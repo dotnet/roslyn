@@ -2499,38 +2499,27 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
     {
-        var body = CreateBlock(statements);
+        var existingBlock = declaration switch
+        {
+            BaseMethodDeclarationSyntax baseMethod => baseMethod.Body,
+            AccessorDeclarationSyntax accessor => accessor.Body,
+            LocalFunctionStatementSyntax localFunction => localFunction.Body,
+            AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Block,
+            _ => null,
+        };
+
+        var body = CreateBlock(statements, existingBlock, addSimplifierAnnotation: false);
         var somebody = statements != null ? body : null;
         var semicolon = statements == null ? SemicolonToken : default;
 
-        switch (declaration.Kind())
+        return declaration switch
         {
-            case SyntaxKind.MethodDeclaration:
-                return ((MethodDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.OperatorDeclaration:
-                return ((OperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.ConversionOperatorDeclaration:
-                return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.ConstructorDeclaration:
-                return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.DestructorDeclaration:
-                return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.LocalFunctionStatement:
-                return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.AnonymousMethodExpression:
-                return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.ParenthesizedLambdaExpression:
-                return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.SimpleLambdaExpression:
-                return ((SimpleLambdaExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.GetAccessorDeclaration:
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.AddAccessorDeclaration:
-            case SyntaxKind.RemoveAccessorDeclaration:
-                return ((AccessorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            default:
-                return declaration;
-        }
+            BaseMethodDeclarationSyntax baseMethod => baseMethod.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            AccessorDeclarationSyntax accessor => accessor.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            LocalFunctionStatementSyntax localFunction => localFunction.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.WithBody(body),
+            _ => declaration,
+        };
     }
 
     public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
@@ -3134,8 +3123,15 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
     }
 
-    private static BlockSyntax CreateBlock(IEnumerable<SyntaxNode>? statements = null)
-        => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
+    private static BlockSyntax CreateBlock(
+        IEnumerable<SyntaxNode>? statements = null,
+        BlockSyntax? existingBlock = null,
+        bool addSimplifierAnnotation = true)
+    {
+        var block = existingBlock ?? SyntaxFactory.Block();
+        block = block.WithStatements(AsStatementList(statements));
+        return addSimplifierAnnotation ? block.WithAdditionalAnnotations(Simplifier.Annotation) : block;
+    }
 
     private static SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode>? nodes)
         => nodes == null ? default : [.. nodes.Select(AsStatement)];
