@@ -1448,7 +1448,7 @@ class C {
 
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
 
             TestSymbolDescription(
                 text,
@@ -2051,7 +2051,7 @@ class C
 
         [Theory]
         [InlineData(SymbolDisplayCompilerInternalOptions.None)]
-        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)]
+        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)]
         internal void TestPropertyGetAccessor(SymbolDisplayCompilerInternalOptions internalOptions)
         {
             var text = @"
@@ -2210,7 +2210,7 @@ class C {
                 GetMembers("<P>k__BackingField").Single();
 
             var format = new SymbolDisplayFormat(
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeContainingType |
@@ -2235,7 +2235,7 @@ class C {
 
         [Theory]
         [InlineData(SymbolDisplayCompilerInternalOptions.None)]
-        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)]
+        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)]
         internal void TestPropertyBackingFieldFromMetadata(SymbolDisplayCompilerInternalOptions internalOptions)
         {
             // Metadata symbols do not associate the backing field with the property, so the metadata name is always displayed.

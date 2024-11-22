@@ -1552,7 +1552,7 @@ end class
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
-                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)
+                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
 
             TestSymbolDescription(
                 text,
