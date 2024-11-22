@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
                     m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                     m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
+                    m["smartRenameSemanticContextUsed"] = _semanticContextUsed;
+                    m["smartRenameSemanticContextDelay"] = _semanticContextDelay;
+                    m["smartRenameSemanticContextError"] = _semanticContextError;
                 }));
             }
             else
@@ -65,6 +68,9 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m[nameof(SuggestionsDropdownTelemetry.DropdownButtonClickTimes)] = _suggestionsDropdownTelemetry.DropdownButtonClickTimes;
                     m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                     m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
+                    m["smartRenameSemanticContextUsed"] = _semanticContextUsed;
+                    m["smartRenameSemanticContextDelay"] = _semanticContextDelay;
+                    m["smartRenameSemanticContextError"] = _semanticContextError;
                 }));
             }
         }
