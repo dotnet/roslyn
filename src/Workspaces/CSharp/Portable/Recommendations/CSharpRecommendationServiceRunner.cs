@@ -26,14 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
 
 internal partial class CSharpRecommendationService
 {
-    private sealed partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner
+    private sealed partial class CSharpRecommendationServiceRunner(
+        CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
+        : AbstractRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken)
     {
-        public CSharpRecommendationServiceRunner(
-            CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
-            : base(context, filterOutOfScopeLocals, cancellationToken)
-        {
-        }
-
         protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
             => lambdaSyntax switch
             {
@@ -330,6 +326,9 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext()
         {
+            var contextNode = _context.LeftToken.GetRequiredParent();
+            var semanticModel = _context.SemanticModel;
+
             // Check if we're in an interesting situation like this:
             //
             //     i          // <-- here
@@ -346,22 +345,38 @@ internal partial class CSharpRecommendationService
             var filterOutOfScopeLocals = _filterOutOfScopeLocals;
             if (filterOutOfScopeLocals)
             {
-                var contextNode = _context.LeftToken.GetRequiredParent();
                 filterOutOfScopeLocals =
                     !contextNode.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) &&
                     !contextNode.IsFoundUnder<DeclarationExpressionSyntax>(d => d.Type);
             }
 
-            var symbols = !_context.IsNameOfContext && _context.LeftToken.GetRequiredParent().IsInStaticContext()
-                ? _context.SemanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
-                : _context.SemanticModel.LookupSymbols(_context.LeftToken.SpanStart);
+            ImmutableArray<ISymbol> symbols;
+            if (_context.IsNameOfContext)
+            {
+                symbols = semanticModel.LookupSymbols(_context.LeftToken.SpanStart);
+
+                // We may be inside of a nameof() on a method.  In that case, we want to include the parameters in
+                // the nameof if LookupSymbols didn't already return them.
+                var enclosingMethodOrLambdaNode = contextNode.AncestorsAndSelf().FirstOrDefault(n => n is AnonymousFunctionExpressionSyntax or BaseMethodDeclarationSyntax);
+                var enclosingMethodOrLambda = enclosingMethodOrLambdaNode is null
+                    ? null
+                    : semanticModel.GetSymbolInfo(enclosingMethodOrLambdaNode).GetAnySymbol() ?? semanticModel.GetDeclaredSymbol(enclosingMethodOrLambdaNode);
+                if (enclosingMethodOrLambda is IMethodSymbol method)
+                    symbols = [.. symbols.Concat(method.Parameters)];
+            }
+            else
+            {
+                symbols = contextNode.IsInStaticContext()
+                    ? semanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
+                    : semanticModel.LookupSymbols(_context.LeftToken.SpanStart);
+            }
 
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
             var contextOuterTypes = ComputeOuterTypes(_context, _cancellationToken);
-            var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
+            var contextEnclosingNamedType = semanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
-            return symbols.WhereAsArray(
+            return symbols.Distinct().WhereAsArray(
                 static (symbol, args) => !IsUndesirable(args._context, args.contextEnclosingNamedType, args.contextOuterTypes, args.filterOutOfScopeLocals, symbol, args._cancellationToken),
                 (_context, contextOuterTypes, contextEnclosingNamedType, filterOutOfScopeLocals, _cancellationToken));
 

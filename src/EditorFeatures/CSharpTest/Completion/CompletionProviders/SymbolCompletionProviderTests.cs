@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12558,18 +12559,17 @@ class C
         await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60812")]
     public async Task ParameterNotAvailableInMethodAttributeNameofWithNoArgument()
     {
-        var source = @"
-class C
-{
-    [Some(nameof($$))]
-    void M(int parameter) { }
-}
-";
-        // Tracked by https://github.com/dotnet/roslyn/issues/60812
-        await VerifyItemIsAbsentAsync(MakeMarkup(source), "parameter");
+        var source = """
+            class C
+            {
+                [Some(nameof($$))]
+                void M(int parameter) { }
+            }
+            """;
+        await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
     }
 
     [Fact]
@@ -14075,7 +14075,7 @@ public static class Extension
 
     #endregion
 
-    private static string MakeMarkup(string source, string languageVersion = "Preview")
+    private static string MakeMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, string languageVersion = "Preview")
     {
         return $$"""
 <Workspace>
