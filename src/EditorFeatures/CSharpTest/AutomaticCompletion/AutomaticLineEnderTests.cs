@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
@@ -16,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
+public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
 {
     [WpfFact]
     public void Creation()
@@ -609,7 +607,7 @@ $$", @"         using
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
-    public void EmbededStatement3()
+    public void EmbeddedStatement3()
     {
         Test(@"class Program
 {
@@ -625,6 +623,27 @@ $$", @"         using
     void Method()
     {
         foreach (var x in y$$)
+    }
+}");
+    }
+
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
+    public void EmbeddedStatement4()
+    {
+        Test(@"class Program
+{
+    void Method()
+    {
+        foreach (var (x, y) in z)
+        {
+            $$
+        }
+    }
+}", @"class Program
+{
+    void Method()
+    {
+        foreach (var (x, y) in z$$)
     }
 }");
     }

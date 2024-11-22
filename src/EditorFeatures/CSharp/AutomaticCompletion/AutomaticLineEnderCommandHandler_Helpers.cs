@@ -942,7 +942,7 @@ internal partial class AutomaticLineEnderCommandHandler
         return embeddedStatementOwner switch
         {
             DoStatementSyntax doStatementNode => doStatementNode.WithStatement(block),
-            ForEachStatementSyntax forEachStatementNode => forEachStatementNode.WithStatement(block),
+            CommonForEachStatementSyntax forEachStatementNode => forEachStatementNode.WithStatement(block),
             ForStatementSyntax forStatementNode => forStatementNode.WithStatement(block),
             IfStatementSyntax ifStatementNode => ifStatementNode.WithStatement(block),
             ElseClauseSyntax elseClauseNode => elseClauseNode.WithStatement(block),
