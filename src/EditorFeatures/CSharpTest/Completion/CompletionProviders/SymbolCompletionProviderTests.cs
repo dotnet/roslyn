@@ -12572,6 +12572,42 @@ class C
         await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66982")]
+    public async Task CapturedParameters1()
+    {
+        var source = """
+            class C
+            {
+                void M(string args)
+                {
+                    static void LocalFunc()
+                    {
+                        Console.WriteLine($$);
+                    }
+                }
+            }
+            """;
+        await VerifyItemIsAbsentAsync(MakeMarkup(source), "args");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66982")]
+    public async Task CapturedParameters2()
+    {
+        var source = """
+            class C
+            {
+                void M(string args)
+                {
+                    static void LocalFunc()
+                    {
+                        Console.WriteLine(nameof($$));
+                    }
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(MakeMarkup(source), "args");
+    }
+
     [Fact]
     public async Task ParameterAvailableInMethodParameterAttributeNameof()
     {
