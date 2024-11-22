@@ -1448,7 +1448,7 @@ class C {
 
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
 
             TestSymbolDescription(
                 text,
@@ -2049,8 +2049,10 @@ class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact]
-        public void TestPropertyGetAccessor()
+        [Theory]
+        [InlineData(SymbolDisplayCompilerInternalOptions.None)]
+        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)]
+        internal void TestPropertyGetAccessor(SymbolDisplayCompilerInternalOptions internalOptions)
         {
             var text = @"
 class C {
@@ -2062,6 +2064,7 @@ class C {
                 GetMembers("get_P").Single();
 
             var format = new SymbolDisplayFormat(
+                internalOptions,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeContainingType |
@@ -2121,6 +2124,175 @@ class C {
                 SymbolDisplayPartKind.PropertyName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact]
+        public void TestPropertyBackingField()
+        {
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("<P>k__BackingField").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "private String C.P.field",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact]
+        public void TestPropertyBackingFieldFromCompilationReference()
+        {
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp1 = CreateCompilation(text);
+            var comp2 = CreateCompilation("", references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var prop = comp2.GetMember<FieldSymbol>("C.<P>k__BackingField").GetPublicSymbol();
+            var parts = SymbolDisplay.ToDisplayParts(prop, format);
+
+            Verify(
+                parts,
+                "private string P.field",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact]
+        public void TestPropertyBackingField_UseMetadataMethodNames()
+        {
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("<P>k__BackingField").Single();
+
+            var format = new SymbolDisplayFormat(
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "private String C.<P>k__BackingField",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Theory]
+        [InlineData(SymbolDisplayCompilerInternalOptions.None)]
+        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)]
+        internal void TestPropertyBackingFieldFromMetadata(SymbolDisplayCompilerInternalOptions internalOptions)
+        {
+            // Metadata symbols do not associate the backing field with the property, so the metadata name is always displayed.
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            var format = new SymbolDisplayFormat(
+                compilerInternalOptions: internalOptions,
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp1 = CreateCompilation(text);
+            var comp2 = CreateCompilation("", references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var prop = comp2.GetMember<FieldSymbol>("C.<P>k__BackingField").GetPublicSymbol();
+            var parts = SymbolDisplay.ToDisplayParts(prop, format);
+
+            Verify(
+                parts,
+                "private string <P>k__BackingField",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact]
+        public void TestPropertyBackingFieldVB()
+        {
+            var text = @"
+Class A
+   Public Property Prop As String
+End Class";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp = CreateVisualBasicCompilation("c", text);
+            var a = (ITypeSymbol)comp.GlobalNamespace.GetMembers("A").Single();
+            var goo = a.GetMembers("_Prop").Single();
+            var parts = SymbolDisplay.ToDisplayParts(goo, format);
+
+            Verify(
+                parts,
+                "private string _Prop",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
         }
 
         [Fact]
