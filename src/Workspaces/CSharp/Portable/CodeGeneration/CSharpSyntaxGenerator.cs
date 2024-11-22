@@ -190,9 +190,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     private protected override SyntaxNode ParameterDeclaration(
         string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
     {
-        var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
-        if (isScoped)
-            modifiers = modifiers.Insert(0, ScopedKeyword);
+        var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(isScoped, refKind);
 
         if (isExtension)
             modifiers = modifiers.Insert(0, ThisKeyword);

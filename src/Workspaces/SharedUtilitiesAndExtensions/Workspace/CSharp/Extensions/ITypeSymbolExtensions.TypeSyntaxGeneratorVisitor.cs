@@ -161,10 +161,10 @@ internal partial class ITypeSymbolExtensions
                     => FunctionPointerUnmanagedCallingConvention(Identifier(identifier));
             }
 
-            var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind)))
+            var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p)))
                 .Concat([(
                     Type: symbol.Signature.ReturnType,
-                    RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))])
+                    RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(isScoped: false, symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))])
                 .SelectAsArray(t => FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
             return AddInformationTo(
