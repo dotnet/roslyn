@@ -376,7 +376,7 @@ internal sealed class DebuggingSession : IDisposable
         }
         catch (Exception e)
         {
-            EditAndContinueService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
+            EditAndContinueService.Log.Write($"Failed to create baseline for '{projectId.DebugName}': {e.Message}", LogMessageSeverity.Error);
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
             errors = [Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message])];

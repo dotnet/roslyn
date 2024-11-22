@@ -573,7 +573,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             {
                 // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                 // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                Log.Write("Syntax errors found in '{0}'", filePath);
+                Log.Write($"Syntax errors found in '{filePath}'");
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
             }
 
@@ -584,7 +584,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 // a) comparing texts is cheaper than diffing trees
                 // b) we need to ignore errors in unchanged documents
 
-                Log.Write("Document unchanged: '{0}'", filePath);
+                Log.Write($"Document unchanged: '{filePath}'");
                 return DocumentAnalysisResults.Unchanged(newDocument.Id, filePath, analysisStopwatch.Elapsed);
             }
 
@@ -592,7 +592,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             // These features may not be handled well by the analysis below.
             if (ExperimentalFeaturesEnabled(newTree))
             {
-                Log.Write("Experimental features enabled in '{0}'", filePath);
+                Log.Write($"Experimental features enabled in '{filePath}'");
 
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
@@ -676,7 +676,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             }
             else
             {
-                Log.Write("Capabilities required by '{0}': {1}", filePath, capabilities.GrantedCapabilities);
+                Log.Write($"Capabilities required by '{filePath}': {capabilities.GrantedCapabilities}");
             }
 
             var hasBlockingRudeEdits = diagnostics.HasBlockingRudeEdits();
@@ -728,7 +728,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     lineText = null;
                 }
 
-                Log.Write("Rude edit {0}:{1} '{2}' line {3}: '{4}'", diagnostic.Kind, diagnostic.SyntaxKind, filePath, lineNumber, lineText);
+                Log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SyntaxKind} '{filePath}' line {lineNumber}: '{lineText}'");
             }
         }
     }
@@ -819,7 +819,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                         if (oldBody == null || newBody == null)
                         {
-                            Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
+                            Log.Write($"Invalid active statement span: {oldStatementSpan}", LogMessageSeverity.Warning);
                             continue;
                         }
 
@@ -872,7 +872,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 }
                 else
                 {
-                    Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
+                    Log.Write($"Invalid active statement span: {oldStatementSpan}", LogMessageSeverity.Warning);
                 }
 
                 // we were not able to determine the active statement location (PDB data might be invalid)

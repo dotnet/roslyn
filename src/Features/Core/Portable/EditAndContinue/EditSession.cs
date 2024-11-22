@@ -472,7 +472,12 @@ internal sealed class EditSession
 
         foreach (var generatorDiagnostic in generatorDiagnostics)
         {
-            EditAndContinueService.Log.Write("Source generator failed: {0}", generatorDiagnostic);
+            EditAndContinueService.Log.Write($"Source generator failed: {generatorDiagnostic}", generatorDiagnostic.Severity switch
+            {
+                DiagnosticSeverity.Warning => LogMessageSeverity.Warning,
+                DiagnosticSeverity.Error => LogMessageSeverity.Error,
+                _ => LogMessageSeverity.Info
+            });
         }
 
         return await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
@@ -802,7 +807,7 @@ internal sealed class EditSession
 
         try
         {
-            log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
+            log.Write($"Found {updateId.SessionId} potentially changed document(s) in project {updateId.Ordinal} '{solution.FilePath}'");
 
             using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
@@ -826,7 +831,7 @@ internal sealed class EditSession
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    log.Write("EnC state of {0} '{1}' queried: project not loaded", newProject.Name, newProject.FilePath);
+                    log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project not loaded");
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     //
@@ -848,7 +853,7 @@ internal sealed class EditSession
                     continue;
                 }
 
-                log.Write("Found {0} potentially changed document(s) in project {1} '{2}'", changedOrAddedDocuments.Count, newProject.Name, newProject.FilePath);
+                log.Write($"Found {changedOrAddedDocuments.Count} potentially changed document(s) in project {newProject.Name} '{newProject.FilePath}'");
 
                 var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                 if (mvidReadError != null)
@@ -865,7 +870,7 @@ internal sealed class EditSession
 
                 if (mvid == Guid.Empty)
                 {
-                    log.Write("Emitting update of {0} '{1}': project not built", newProject.Name, newProject.FilePath);
+                    log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
                     continue;
                 }
 
@@ -901,18 +906,18 @@ internal sealed class EditSession
                         // only remember the first syntax error we encounter:
                         syntaxError ??= changedDocumentAnalysis.SyntaxError;
 
-                        log.Write("Changed document '{0}' has syntax error: {1}", changedDocumentAnalysis.FilePath, changedDocumentAnalysis.SyntaxError);
+                        log.Write($"Changed document '{changedDocumentAnalysis.FilePath}' has syntax error: {changedDocumentAnalysis.SyntaxError}");
                     }
                     else if (changedDocumentAnalysis.HasChanges)
                     {
-                        log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
+                        log.Write($"Document changed, added, or deleted: '{changedDocumentAnalysis.FilePath}'");
                     }
 
                     Telemetry.LogAnalysisTime(changedDocumentAnalysis.ElapsedTime);
                 }
 
                 var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                log.Write("Project summary for {0} '{1}': {2}", newProject.Name, newProject.FilePath, projectSummary);
+                log.Write($"Project summary for {newProject.Name} '{newProject.FilePath}': {projectSummary}");
 
                 if (projectSummary == ProjectAnalysisSummary.NoChanges)
                 {
@@ -972,7 +977,7 @@ internal sealed class EditSession
 
                 Contract.ThrowIfTrue(projectBaselines.IsEmpty);
 
-                log.Write("Emitting update of '{0}' {1}", newProject.Name, newProject.FilePath);
+                log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
 
                 var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1146,7 +1151,7 @@ internal sealed class EditSession
 
         bool LogException(Exception e)
         {
-            log.Write("Exception while emitting update: {0}", e.ToString());
+            log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
             return true;
         }
     }

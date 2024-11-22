@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
 /// </summary>
 [Export(typeof(IEditAndContinueService)), Shared]
-internal sealed class EditAndContinueService : IEditAndContinueService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditAndContinueService() : IEditAndContinueService
 {
     [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
     [method: ImportingConstructor]
@@ -48,7 +50,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     internal static readonly TraceLog Log;
     internal static readonly TraceLog AnalysisLog;
 
-    private Func<Project, CompilationOutputs> _compilationOutputsProvider;
+    private Func<Project, CompilationOutputs> _compilationOutputsProvider = GetCompilationOutputs;
 
     /// <summary>
     /// List of active debugging sessions (small number of simoultaneously active sessions is expected).
@@ -56,17 +58,10 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     private readonly List<DebuggingSession> _debuggingSessions = [];
     private static int s_debuggingSessionId;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueService()
-    {
-        _compilationOutputsProvider = GetCompilationOutputs;
-    }
-
     static EditAndContinueService()
     {
-        Log = new(2048, "EnC", "Trace.log");
-        AnalysisLog = new(1024, "EnC", "Analysis.log");
+        Log = new(2048, "Trace.log");
+        AnalysisLog = new(1024, "Analysis.log");
 
         var logDir = GetLogDirectory();
         if (logDir != null)
@@ -171,7 +166,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
                 _debuggingSessions.Add(session);
             }
 
-            Log.Write("Session #{0} started.", sessionId.Ordinal);
+            Log.Write($"Session #{sessionId} started.");
             return sessionId;
 
         }
@@ -200,7 +195,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
 
         debuggingSession.EndSession(out var telemetryData);
 
-        Log.Write("Session #{0} ended.", debuggingSession.Id.Ordinal);
+        Log.Write($"Session #{debuggingSession.Id} ended.");
     }
 
     public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState)

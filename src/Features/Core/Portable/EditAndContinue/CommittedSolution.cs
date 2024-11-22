@@ -413,14 +413,14 @@ internal sealed class CommittedSolution
 
             if (debugInfoReaderProvider == null)
             {
-                EditAndContinueService.Log.Write("Source file of project '{0}' doesn't match output PDB: PDB '{1}' (assembly: '{2}') not found", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath);
+                EditAndContinueService.Log.Write($"Source file of project '{projectName}' doesn't match output PDB: PDB '{compilationOutputs.PdbDisplayPath}' (assembly: '{compilationOutputs.AssemblyDisplayPath}') not found", LogMessageSeverity.Warning);
             }
 
             return debugInfoReaderProvider;
         }
         catch (Exception e)
         {
-            EditAndContinueService.Log.Write("Source file of project '{0}' doesn't match output PDB: error opening PDB '{1}' (assembly: '{2}'): {3}", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath, e.Message);
+            EditAndContinueService.Log.Write($"Source file of project '{projectName}' doesn't match output PDB: error opening PDB '{compilationOutputs.PdbDisplayPath}' (assembly: '{compilationOutputs.AssemblyDisplayPath}'): {e.Message}", LogMessageSeverity.Warning);
             return null;
         }
     }
@@ -453,14 +453,14 @@ internal sealed class CommittedSolution
                 return sourceText;
             }
 
-            EditAndContinueService.Log.Write("Checksum differs for source file '{0}'", sourceFilePath);
+            EditAndContinueService.Log.Write($"Checksum differs for source file '{sourceFilePath}'", LogMessageSeverity.Warning);
 
             // does not match:
             return null;
         }
         catch (Exception e)
         {
-            EditAndContinueService.Log.Write("Error calculating checksum for source file '{0}': '{1}'", sourceFilePath, e.Message);
+            EditAndContinueService.Log.Write($"Error calculating checksum for source file '{sourceFilePath}': '{e.Message}'", LogMessageSeverity.Error);
 
             // unable to determine:
             return default;
@@ -500,7 +500,7 @@ internal sealed class CommittedSolution
         {
             if (!debugInfoReader.TryGetDocumentChecksum(sourceFilePath, out checksum, out var algorithmId))
             {
-                EditAndContinueService.Log.Write("Source '{0}' doesn't match output PDB: no document", sourceFilePath);
+                EditAndContinueService.Log.Write($"Source '{sourceFilePath}' doesn't match output PDB: no document", LogMessageSeverity.Warning);
                 return false;
             }
 
@@ -508,14 +508,14 @@ internal sealed class CommittedSolution
             if (algorithm == SourceHashAlgorithm.None)
             {
                 // This can only happen if the PDB was post-processed by a misbehaving tool.
-                EditAndContinueService.Log.Write("Source '{0}' doesn't match PDB: unknown checksum alg", sourceFilePath);
+                EditAndContinueService.Log.Write($"Source '{sourceFilePath}' doesn't match PDB: unknown checksum alg", LogMessageSeverity.Warning);
             }
 
             return true;
         }
         catch (Exception e)
         {
-            EditAndContinueService.Log.Write("Source '{0}' doesn't match output PDB: error reading symbols: {1}", sourceFilePath, e.Message);
+            EditAndContinueService.Log.Write($"Source '{sourceFilePath}' doesn't match output PDB: error reading symbols: {e.Message}", LogMessageSeverity.Error);
         }
 
         // unable to determine
