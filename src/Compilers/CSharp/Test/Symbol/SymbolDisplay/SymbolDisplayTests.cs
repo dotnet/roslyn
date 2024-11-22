@@ -2165,6 +2165,45 @@ class C {
         }
 
         [Fact]
+        public void TestPropertyBackingField_UseMetadataMethodNames()
+        {
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("<P>k__BackingField").Single();
+
+            var format = new SymbolDisplayFormat(
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "private String C.<P>k__BackingField",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact]
         public void TestMemberEventAll()
         {
             var text = @"

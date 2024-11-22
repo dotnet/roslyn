@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.DotToken);
             }
 
-            if (symbol.AssociatedSymbol is IPropertySymbol associatedProperty)
+            if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)
+                && symbol.AssociatedSymbol is IPropertySymbol associatedProperty)
             {
                 AddPropertyNameAndParameters(associatedProperty);
                 AddPunctuation(SyntaxKind.DotToken);
