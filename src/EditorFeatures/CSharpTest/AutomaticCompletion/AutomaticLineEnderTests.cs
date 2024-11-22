@@ -137,7 +137,7 @@ $$", "class {$$}");
     }
 
     [WpfFact]
-    public void EmbededStatement()
+    public void EmbeddedStatement()
     {
         Test(@"class C
 {
@@ -158,7 +158,7 @@ $$", "class {$$}");
     }
 
     [WpfFact]
-    public void EmbededStatement1()
+    public void EmbeddedStatement1()
     {
         Test(@"class C
 {
@@ -179,7 +179,7 @@ $$", "class {$$}");
     }
 
     [WpfFact]
-    public void EmbededStatement2()
+    public void EmbeddedStatement2()
     {
         Test(@"class C
 {
