@@ -1196,6 +1196,13 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsVerbatimStringLiteral(SyntaxToken token)
         => token.IsVerbatimStringLiteral();
 
+    public bool IsRawStringLiteral(SyntaxToken token)
+        => token.Kind() is
+            SyntaxKind.SingleLineRawStringLiteralToken or
+            SyntaxKind.MultiLineRawStringLiteralToken or
+            SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+            SyntaxKind.Utf8MultiLineRawStringLiteralToken;
+
     public bool IsNumericLiteral(SyntaxToken token)
         => token.Kind() == SyntaxKind.NumericLiteralToken;
 
