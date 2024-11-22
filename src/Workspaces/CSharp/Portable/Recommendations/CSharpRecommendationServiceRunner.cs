@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
 internal partial class CSharpRecommendationService
 {
     private sealed partial class CSharpRecommendationServiceRunner(
-        CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken) 
+        CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
         : AbstractRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken)
     {
         protected override int GetLambdaParameterCount(AnonymousFunctionExpressionSyntax lambdaSyntax)
