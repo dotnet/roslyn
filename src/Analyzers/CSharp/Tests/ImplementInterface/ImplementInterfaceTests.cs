@@ -1487,12 +1487,7 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             {
                 int Prop { get; set; }
 
-                int I1.Prop
-                {
-                    get => Prop;
-
-                    set => Prop = value;
-                }
+                int I1.Prop { get => Prop; set => Prop = value; }
             }
 
             interface I1
