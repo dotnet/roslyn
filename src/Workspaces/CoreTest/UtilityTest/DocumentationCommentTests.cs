@@ -80,11 +80,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var comment = DocumentationComment.FromXmlFragment("<summary>Summary 1</summary><summary>Summary 2</summary>");
 
-            Assert.Equal("Summary 1", comment.SummaryText);
+            Assert.Equal("Summary 1\r\nSummary 2", comment.SummaryText);
         }
 
-        [Fact(Skip = "Bug 522741")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522741")]
         public void ParseTagWithMultiLineComments()
         {
             var comment = DocumentationComment.FromXmlFragment(@"<summary>
@@ -92,7 +91,7 @@ Summary 1
 Summary 2
 </summary>");
 
-            Assert.Equal("Summary 1 Summary 2", comment.SummaryText);
+            Assert.Equal("Summary 1\r\nSummary 2", comment.SummaryText);
         }
 
         [Fact]
