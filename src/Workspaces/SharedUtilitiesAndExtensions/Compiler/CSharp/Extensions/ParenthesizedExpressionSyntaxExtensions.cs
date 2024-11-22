@@ -111,6 +111,10 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (expression.IsKind(SyntaxKind.TupleExpression))
             return true;
 
+        // ([...]) -> [...]
+        if (expression.IsKind(SyntaxKind.CollectionExpression))
+            return true;
+
         // int Prop => (x); -> int Prop => x;
         if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
         {
