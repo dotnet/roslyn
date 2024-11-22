@@ -20,6 +20,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     public void Creation()
     {
         Test("""
+
             $$
             """, "$$");
     }
