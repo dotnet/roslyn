@@ -77,7 +77,7 @@ internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrType
 
     public override bool IsType => true;
 
-    bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
+    bool ITypeSymbol.IsRefLikeType => false;
 
     bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
