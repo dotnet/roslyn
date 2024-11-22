@@ -768,7 +768,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             """);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66102")]
     public void EmbeddedStatement4()
     {
         Test("""
