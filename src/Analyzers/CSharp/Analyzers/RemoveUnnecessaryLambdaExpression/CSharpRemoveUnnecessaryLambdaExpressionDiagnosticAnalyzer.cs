@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -26,18 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
 /// time.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
+        EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
+        CSharpCodeStyleOptions.PreferMethodGroupConversion,
+        fadingOption: null,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
-               EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
-               CSharpCodeStyleOptions.PreferMethodGroupConversion,
-               fadingOption: null,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -51,7 +47,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer 
                 var conditionalAttributeType = context.Compilation.ConditionalAttribute();
 
                 context.RegisterSyntaxNodeAction(
-                    c => AnalyzeSyntax(c, expressionType, conditionalAttributeType),
+                    context => AnalyzeSyntax(context, expressionType, conditionalAttributeType),
                     SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             }
         });
