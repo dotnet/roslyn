@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)
+                && symbol is Symbols.PublicModel.FieldSymbol
                 && symbol.AssociatedSymbol is IPropertySymbol associatedProperty)
             {
                 AddPropertyNameAndParameters(associatedProperty);

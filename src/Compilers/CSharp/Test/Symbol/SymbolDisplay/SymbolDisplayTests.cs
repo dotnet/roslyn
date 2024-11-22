@@ -2165,6 +2165,38 @@ class C {
         }
 
         [Fact]
+        public void TestPropertyBackingFieldFromCompilationReference()
+        {
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp1 = CreateCompilation(text);
+            var comp2 = CreateCompilation("", references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var prop = comp2.GetMember<FieldSymbol>("C.<P>k__BackingField").GetPublicSymbol();
+            var parts = SymbolDisplay.ToDisplayParts(prop, format);
+
+            Verify(
+                parts,
+                "private string P.field",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact]
         public void TestPropertyBackingField_UseMetadataMethodNames()
         {
             var text = @"
@@ -2198,9 +2230,69 @@ class C {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.PropertyName,
-                SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Keyword);
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Theory]
+        [InlineData(SymbolDisplayCompilerInternalOptions.None)]
+        [InlineData(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)]
+        internal void TestPropertyBackingFieldFromMetadata(SymbolDisplayCompilerInternalOptions internalOptions)
+        {
+            // Metadata symbols do not associate the backing field with the property, so the metadata name is always displayed.
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            var format = new SymbolDisplayFormat(
+                compilerInternalOptions: internalOptions,
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp1 = CreateCompilation(text);
+            var comp2 = CreateCompilation("", references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var prop = comp2.GetMember<FieldSymbol>("C.<P>k__BackingField").GetPublicSymbol();
+            var parts = SymbolDisplay.ToDisplayParts(prop, format);
+
+            Verify(
+                parts,
+                "private string <P>k__BackingField",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact]
+        public void TestPropertyBackingFieldVB()
+        {
+            var text = @"
+Class A
+   Public Property Prop As String
+End Class";
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp = CreateVisualBasicCompilation("c", text);
+            var a = (ITypeSymbol)comp.GlobalNamespace.GetMembers("A").Single();
+            var goo = a.GetMembers("_Prop").Single();
+            var parts = SymbolDisplay.ToDisplayParts(goo, format);
+
+            Verify(
+                parts,
+                "private string _Prop",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
         }
 
         [Fact]
