@@ -1288,10 +1288,11 @@ public sealed class RemoveAsyncModifierTests
             
             public class Class1
             {
-                public void Goo()
+                public Task Goo()
                 {
                     //Hello 
                     Console.WriteLine("Goo");
+                    return Task.CompletedTask;
                     //World
                 }
             }

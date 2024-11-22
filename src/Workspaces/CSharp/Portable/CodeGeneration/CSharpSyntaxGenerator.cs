@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -3129,7 +3130,15 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         bool addSimplifierAnnotation = true)
     {
         var block = existingBlock ?? SyntaxFactory.Block();
-        block = block.WithStatements(AsStatementList(statements));
+
+        var statementList = AsStatementList(statements);
+
+        // If we're adding any statements, make sure the open brace can move around.  This allows `{ }` on an existing
+        // one-line construct to have the braces move to their own lines in accordance to the user's formatting rules.
+        if (statementList.Count > 0)
+            block = block.WithOpenBraceToken(block.OpenBraceToken.WithAdditionalAnnotations(Formatter.Annotation));
+
+        block = block.WithStatements(statementList);
         return addSimplifierAnnotation ? block.WithAdditionalAnnotations(Simplifier.Annotation) : block;
     }
 
