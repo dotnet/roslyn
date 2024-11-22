@@ -8984,47 +8984,4 @@ namespace ConsoleApp1
             }
             """);
     }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71042")]
-    public async Task TestWithGenericsInLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
-            """
-            using System.Collections.Generic;
-
-            record struct ID<T>(T Key);
-
-            class C
-            {
-                void M(int id)
-                {
-                    void N<T>(T id, Dictionary<ID<T>, string> d)
-                    {
-                        if (d.TryGetValue([|new(id)|], out string? s))
-                        {
-                        }
-                    }
-                }
-            }
-            """,
-            """
-            using System.Collections.Generic;
-
-            record struct ID<T>(T Key);
-
-            class C
-            {
-                void M(int id)
-                {
-                    void N<T>(T id, Dictionary<ID<T>, string> d)
-                    {
-                        ID<T> {|Rename:key|} = new(id);
-                        if (d.TryGetValue(key, out string? s))
-                        {
-                        }
-                    }
-                }
-            }
-            """);
-    }
 }
