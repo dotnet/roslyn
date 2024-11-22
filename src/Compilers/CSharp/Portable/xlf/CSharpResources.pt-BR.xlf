@@ -12710,8 +12710,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">O comprimento combinado de cadeias do usuários usadas pelo programa excede o limite permitido. Tente diminuir o uso de literais de cadeia.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Consider using feature flag 'utf8-string-encoding'.</source>
+        <target state="needs-review-translation">O comprimento combinado de cadeias do usuários usadas pelo programa excede o limite permitido. Tente diminuir o uso de literais de cadeia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

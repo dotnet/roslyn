@@ -470,6 +470,8 @@ namespace Roslyn.Test.Utilities
 
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => throw new NotImplementedException();
 
+        public override int ERR_MissingPredefinedMember => throw new NotImplementedException();
+
         public override int? WRN_ByValArraySizeConstRequired => throw new NotImplementedException();
     }
 }

@@ -12710,8 +12710,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">La longueur combinée des chaînes utilisateur que le programme utilise dépasse la limite autorisée. Essayez de réduire le nombre de littéraux de chaîne.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Consider using feature flag 'utf8-string-encoding'.</source>
+        <target state="needs-review-translation">La longueur combinée des chaînes utilisateur que le programme utilise dépasse la limite autorisée. Essayez de réduire le nombre de littéraux de chaîne.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

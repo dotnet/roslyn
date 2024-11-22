@@ -12,6 +12,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -210,9 +211,16 @@ namespace Microsoft.CodeAnalysis.Emit
                     yield return typeDef;
                 }
             }
+
+            foreach (var typeDef in GetFrozenDataStringHolders())
+            {
+                yield return typeDef;
+            }
         }
 
         public abstract PrivateImplementationDetails? GetFrozenPrivateImplementationDetails();
+
+        public abstract IEnumerable<DataStringHolder> GetFrozenDataStringHolders();
 
         /// <summary>
         /// Additional top-level types injected by the Expression Evaluators.
@@ -591,6 +599,8 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly TCompilation Compilation;
 
         private PrivateImplementationDetails _lazyPrivateImplementationDetails;
+        private ConcurrentDictionary<ImmutableArray<byte>, DataStringHolder> _lazyDataStringHolders;
+        private int _dataStringHoldersFrozen;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
 
@@ -1044,6 +1054,68 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
         }
 
+        Cci.IFieldReference ITokenDeferral.GetFieldForDataString(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            if (_dataStringHoldersFrozen == 1)
+            {
+                throw new InvalidOperationException($"Field {nameof(_lazyDataStringHolders)} is frozen.");
+            }
+
+            ISymbolInternal encodingUtf8 = Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__get_UTF8);
+            ISymbolInternal encodingGetString = Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__GetString);
+
+            bool hasErrors = false;
+
+            if (encodingUtf8 is null)
+            {
+                reportMissingMember(Compilation, syntaxNode, diagnostics, WellKnownMember.System_Text_Encoding__get_UTF8);
+                hasErrors = true;
+            }
+
+            if (encodingGetString is null)
+            {
+                reportMissingMember(Compilation, syntaxNode, diagnostics, WellKnownMember.System_Text_Encoding__GetString);
+                hasErrors = true;
+            }
+
+            if (hasErrors)
+            {
+                return null;
+            }
+
+            var holders = InterlockedOperations.Initialize(ref _lazyDataStringHolders,
+                static () => new ConcurrentDictionary<ImmutableArray<byte>, DataStringHolder>(ByteSequenceComparer.Instance));
+
+            DataStringHolder holder = holders.GetOrAdd(data, static (data, arg) =>
+            {
+                var (@this, syntaxNode, diagnostics) = arg;
+
+                TSyntaxNode tSyntaxNode = (TSyntaxNode)syntaxNode;
+
+                return new DataStringHolder(
+                    moduleBuilder: @this,
+                    dataHash: PrivateImplementationDetails.DataToHex(data),
+                    systemObject: @this.GetSpecialType(SpecialType.System_Object, tSyntaxNode, diagnostics),
+                    systemString: @this.GetSpecialType(SpecialType.System_String, tSyntaxNode, diagnostics),
+                    compilerGeneratedAttribute: @this.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
+                    encodingUtf8: (Cci.IMethodReference)@this.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__get_UTF8).GetCciAdapter(),
+                    encodingGetString: (Cci.IMethodReference)@this.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__GetString).GetCciAdapter(),
+                    privateImplementationDetails: @this.GetPrivateImplClass(tSyntaxNode, diagnostics));
+            },
+            (this, syntaxNode, diagnostics));
+
+            return holder.CreateDataField(data);
+
+            static void reportMissingMember(TCompilation compilation, SyntaxNode syntaxNode, DiagnosticBag diagnostics, WellKnownMember member)
+            {
+                var memberDescriptor = WellKnownMembers.GetDescriptor(member);
+                diagnostics.Add(compilation.MessageProvider.CreateDiagnostic(
+                    compilation.MessageProvider.ERR_MissingPredefinedMember,
+                    syntaxNode.GetLocation(),
+                    memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name));
+            }
+        }
+
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
         public ArrayMethods ArrayMethods
@@ -1109,6 +1181,29 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(_lazyPrivateImplementationDetails?.IsFrozen != false);
             return _lazyPrivateImplementationDetails;
+        }
+
+        public void FreezeDataStringHolders(DiagnosticBag diagnostics)
+        {
+            var wasFrozen = Interlocked.Exchange(ref _dataStringHoldersFrozen, 1);
+            if (wasFrozen != 0)
+            {
+                throw new InvalidOperationException($"Field {nameof(_lazyDataStringHolders)} was already frozen.");
+            }
+
+            if (_lazyDataStringHolders is not null)
+            {
+                foreach (var dataStringHolder in _lazyDataStringHolders.Values)
+                {
+                    dataStringHolder.Freeze(diagnostics);
+                }
+            }
+        }
+
+        public override IEnumerable<DataStringHolder> GetFrozenDataStringHolders()
+        {
+            Debug.Assert(_lazyDataStringHolders is null || _dataStringHoldersFrozen == 1);
+            return _lazyDataStringHolders?.Values ?? SpecializedCollections.EmptyEnumerable<DataStringHolder>();
         }
 
 #nullable disable
