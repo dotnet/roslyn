@@ -1455,8 +1455,43 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
 
                     set
                     {
-                        throw new System.NotImplementedException();
+                        Prop = value;
                     }
+                }
+            }
+
+            interface I1
+            {
+                int Prop { get; set; }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestConflictingProperties2()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            class Test : {|CS0737:I1|}
+            {
+                int Prop { get; set; }
+            }
+
+            interface I1
+            {
+                int Prop { get; set; }
+            }
+            """,
+            """
+            class Test : I1
+            {
+                int Prop { get; set; }
+
+                int I1.Prop
+                {
+                    get => Prop;
+
+                    set => Prop = value;
                 }
             }
 
