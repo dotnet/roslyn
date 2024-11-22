@@ -9,6 +9,7 @@ using System.Xml;
 using Microsoft.CodeAnalysis.PooledObjects;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -227,88 +228,97 @@ internal sealed class DocumentationComment
 
         private void ParseCallback(XmlReader reader)
         {
-            if (reader.NodeType == XmlNodeType.Element)
+            if (reader.NodeType != XmlNodeType.Element)
             {
-                var localName = reader.LocalName;
-                if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && _comment.ExampleText == null)
-                {
-                    _comment.ExampleText = TrimEachLine(reader.ReadInnerXml());
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName) && _comment.SummaryText == null)
-                {
-                    _comment.SummaryText = TrimEachLine(reader.ReadInnerXml());
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && _comment.ReturnsText == null)
-                {
-                    _comment.ReturnsText = TrimEachLine(reader.ReadInnerXml());
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.ValueElementName) && _comment.ValueText == null)
-                {
-                    _comment.ValueText = TrimEachLine(reader.ReadInnerXml());
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && _comment.RemarksText == null)
-                {
-                    _comment.RemarksText = TrimEachLine(reader.ReadInnerXml());
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
-                {
-                    var name = reader.GetAttribute(XmlNames.NameAttributeName);
-                    var paramText = reader.ReadInnerXml();
+                // We came across something that isn't a start element, like a block of text. Skip it.
+                reader.Read();
+                return;
+            }
 
-                    if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
-                    {
-                        (_parameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
-                        _comment._parameterTexts.Add(name, TrimEachLine(paramText));
-                    }
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
-                {
-                    var name = reader.GetAttribute(XmlNames.NameAttributeName);
-                    var typeParamText = reader.ReadInnerXml();
+            var localName = reader.LocalName;
+            if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName))
+            {
+                _comment.ExampleText = InitializeValue(_comment.ExampleText, TrimEachLine(reader.ReadInnerXml()));
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.SummaryElementName))
+            {
+                _comment.SummaryText = InitializeValue(_comment.SummaryText, TrimEachLine(reader.ReadInnerXml()));
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName))
+            {
+                _comment.ReturnsText = InitializeValue(_comment.ReturnsText, TrimEachLine(reader.ReadInnerXml()));
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.ValueElementName))
+            {
+                _comment.ValueText = InitializeValue(_comment.ValueText, TrimEachLine(reader.ReadInnerXml()));
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName))
+            {
+                _comment.RemarksText = InitializeValue(_comment.RemarksText, TrimEachLine(reader.ReadInnerXml()));
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
+            {
+                var name = reader.GetAttribute(XmlNames.NameAttributeName);
+                var paramText = reader.ReadInnerXml();
 
-                    if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
-                    {
-                        (_typeParameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
-                        _comment._typeParameterTexts.Add(name, TrimEachLine(typeParamText));
-                    }
-                }
-                else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
+                if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                 {
-                    var type = reader.GetAttribute(XmlNames.CrefAttributeName);
-                    var exceptionText = reader.ReadInnerXml();
-
-                    if (!string.IsNullOrWhiteSpace(type))
-                    {
-                        if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
-                        {
-                            (_exceptionTypesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(type);
-                            (_exceptionTextBuilders ??= []).Add(type, ImmutableArray.CreateBuilder<string>());
-                        }
-
-                        _exceptionTextBuilders[type].Add(exceptionText);
-                    }
+                    (_parameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
+                    _comment._parameterTexts.Add(name, TrimEachLine(paramText));
                 }
-                else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
+            {
+                var name = reader.GetAttribute(XmlNames.NameAttributeName);
+                var typeParamText = reader.ReadInnerXml();
+
+                if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                 {
-                    var cref = reader.GetAttribute(XmlNames.CrefAttributeName);
-                    if (!string.IsNullOrWhiteSpace(cref))
+                    (_typeParameterNamesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(name);
+                    _comment._typeParameterTexts.Add(name, TrimEachLine(typeParamText));
+                }
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
+            {
+                var type = reader.GetAttribute(XmlNames.CrefAttributeName);
+                var exceptionText = reader.ReadInnerXml();
+
+                if (!string.IsNullOrWhiteSpace(type))
+                {
+                    if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
                     {
-                        _comment.CompletionListCref = cref;
+                        (_exceptionTypesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(type);
+                        (_exceptionTextBuilders ??= []).Add(type, ImmutableArray.CreateBuilder<string>());
                     }
 
-                    reader.ReadInnerXml();
+                    _exceptionTextBuilders[type].Add(exceptionText);
                 }
-                else
+            }
+            else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
+            {
+                var cref = reader.GetAttribute(XmlNames.CrefAttributeName);
+                if (!string.IsNullOrWhiteSpace(cref))
                 {
-                    // This is an element we don't handle. Skip it.
-                    reader.Read();
+                    _comment.CompletionListCref = cref;
                 }
+
+                reader.ReadInnerXml();
             }
             else
             {
-                // We came across something that isn't a start element, like a block of text.
-                // Skip it.
+                // This is an element we don't handle. Skip it.
                 reader.Read();
+            }
+
+            return;
+
+            static string InitializeValue(string? existingValue, string newValue)
+            {
+                // The use of Environment.NewLine matches the behavior of StringBuilder.AppendLine used in multiple
+                // places in this file.
+                return existingValue is null or ""
+                    ? newValue
+                    : $"{existingValue}{Environment.NewLine}{newValue}";
             }
         }
     }

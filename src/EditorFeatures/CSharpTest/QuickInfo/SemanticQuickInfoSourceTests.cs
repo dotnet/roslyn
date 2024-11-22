@@ -398,6 +398,25 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             Documentation("summary for interface IGoo"));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60725")]
+    public async Task TestMergedRemarks()
+    {
+        var markup =
+            """
+            /// <remarks>hello1</remarks>
+            public partial class C {
+            }
+
+            /// <remarks>hello2</remarks>
+            public partial class $$C {
+            }
+            """;
+
+        await TestAsync(markup,
+            MainDescription("class C"),
+            Remarks("hello1 hello2"));
+    }
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
     public async Task TestDocumentationInUsingDirectiveWithAlias3()
     {
@@ -516,7 +535,9 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
         // SingleLine doc comment with '\r' line separators
         await TestAsync("""
-            ///<summary>Hello!            ///</summary>            class C { void M() { $$C obj; } }
+            ///<summary>Hello!
+            ///</summary>
+            class C { void M() { $$C obj; } }
             """,
             MainDescription("class C"),
             Documentation("Hello!"));
@@ -632,7 +653,12 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
         // Multiline doc comment with '\r' line separators
         await TestAsync("""
-            /**            * <summary>            * Hello!            * </summary>            */            class C { void M() { $$C obj; } }
+            /**
+            * <summary>
+            * Hello!
+            * </summary>
+            */
+            class C { void M() { $$C obj; } }
             """,
             MainDescription("class C"),
             Documentation("Hello!"));
