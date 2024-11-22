@@ -162,6 +162,7 @@ internal interface ISyntaxFacts
 
     bool IsNumericLiteral(SyntaxToken token);
     bool IsVerbatimStringLiteral(SyntaxToken token);
+    bool IsRawStringLiteral(SyntaxToken token);
 
     bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
