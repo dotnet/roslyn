@@ -16,7 +16,7 @@ Function Set-PipelineVariable($name, $value) {
         return # already set
     }
 
-    #New-Item -Path "Env:\$name".ToUpper() -Value $value -Force | Out-Null
+    #New-Item -LiteralPath "Env:\$name".ToUpper() -Value $value -Force | Out-Null
     Write-Host "##vso[task.setvariable variable=$name]$value"
 }
 

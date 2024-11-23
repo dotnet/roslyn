@@ -50,7 +50,7 @@ if ($AccessToken) {
 
     $endpointURIs = @()
     Get-ChildItem "$PSScriptRoot\..\nuget.config" -Recurse |% {
-        $nugetConfig = [xml](Get-Content -Path $_)
+        $nugetConfig = [xml](Get-Content -LiteralPath $_)
 
         $nugetConfig.configuration.packageSources.add |? { ($_.value -match '^https://pkgs\.dev\.azure\.com/') -or ($_.value -match '^https://[\w\-]+\.pkgs\.visualstudio\.com/') } |% {
             if ($endpointURIs -notcontains $_.Value) {

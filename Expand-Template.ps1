@@ -40,7 +40,7 @@ function Replace-Placeholders {
 
     $Path = Resolve-Path $Path
     Write-Host "Replacing tokens in `"$Path`""
-    $content = Get-Content -Path $Path | Out-String
+    $content = Get-Content -LiteralPath $Path | Out-String
     $Replacements.GetEnumerator() |% {
         $modifiedContent = $content -replace $_.Key,$_.Value
         if ($modifiedContent -eq $content) {
@@ -199,7 +199,7 @@ try {
 
     # Self-integrity check
     Get-ChildItem -Recurse -File -Exclude bin,obj,README.md,Expand-Template.* |? { -not $_.FullName.Contains("obj") } |% {
-        $PLACEHOLDERS = Get-Content -Path $_.FullName |? { $_.Contains('PLACEHOLDER') }
+        $PLACEHOLDERS = Get-Content -LiteralPath $_.FullName |? { $_.Contains('PLACEHOLDER') }
         if ($PLACEHOLDERS) {
             Write-Error "PLACEHOLDER discovered in $($_.FullName)"
         }

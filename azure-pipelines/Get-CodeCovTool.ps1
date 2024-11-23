@@ -68,7 +68,7 @@ if (!(Test-Path $finalToolPath)) {
     }
 
     Write-Host "Verifying hash on downloaded tool" -ForegroundColor Yellow
-    $actualHash = (Get-FileHash -Path $tool -Algorithm SHA256).Hash
+    $actualHash = (Get-FileHash -LiteralPath $tool -Algorithm SHA256).Hash
     $expectedHash = (Get-Content $sha).Split()[0]
     if ($actualHash -ne $expectedHash) {
         # Validation failed. Delete the tool so we can't execute it.
