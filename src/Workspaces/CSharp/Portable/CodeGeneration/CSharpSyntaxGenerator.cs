@@ -1752,6 +1752,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
         for (int i = 0, n = list.Count; i < n; i++)
         {
+            // By default, do not place leading elastic trivia on modifiers we make.  Just because something is
+            // adding/removing/modifying modifiers does not mean we want the parent construct to change its formatting
+            // respective to what's around it.
             if (!withLeadingElasticMarker)
                 list[i] = list[i].WithoutLeadingTrivia();
 
