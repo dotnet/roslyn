@@ -1600,19 +1600,6 @@ End Class
         <Fact>
         Public Sub IncreasedPriorityWins_02()
 
-            Dim i1Source = "
-<OverloadResolutionPriority(1)>
-public Shared Sub M(x As I1)
-    System.Console.WriteLine(1)
-End Sub
-"
-
-            Dim i2Source = "
-public Shared Sub M(x As I2)
-    throw DirectCast(Nothing, System.Exception)
-End Sub
-"
-
             Dim reference = "
 Imports System.Runtime.CompilerServices
 
