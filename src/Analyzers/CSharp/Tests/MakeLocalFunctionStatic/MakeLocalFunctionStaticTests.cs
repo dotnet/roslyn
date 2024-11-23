@@ -251,33 +251,35 @@ parseOptions: CSharp8ParseOptions);
     public async Task TestLeadingTriviaAfterOpenBrace(string leadingTrivia)
     {
         await TestInRegularAndScriptAsync(
-$@"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{{leadingTrivia}
-        int [||]fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
-$$"""
-using System;
+            class C
+            {
+                void M()
+                {{{leadingTrivia}}
+                    int [||]fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
+            $$"""
+            using System;
 
-class C
-{
-    void M()
-    {{{leadingTrivia}}
-        static int fibonacci(int n)
-        {
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }
-    }
-}
-""",
-parseOptions: CSharp8ParseOptions);
+            class C
+            {
+                void M()
+                {{{leadingTrivia}}
+                    static int fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
+            parseOptions: CSharp8ParseOptions);
     }
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
