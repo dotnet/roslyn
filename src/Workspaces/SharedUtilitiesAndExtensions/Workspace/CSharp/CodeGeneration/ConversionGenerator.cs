@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -48,34 +49,31 @@ internal static class ConversionGenerator
         CSharpCodeGenerationContextInfo info,
         CancellationToken cancellationToken)
     {
-        var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern;
-
         var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConversionOperatorDeclarationSyntax>(method, info);
         if (reusableSyntax != null)
-        {
             return reusableSyntax;
-        }
 
         var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName
             ? ImplicitKeyword
             : ExplicitKeyword;
 
-        var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
+        var checkedKeyword = SyntaxFacts.IsCheckedOperator(method.MetadataName)
             ? CheckedKeyword
             : default;
 
+        var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern;
         var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
-            modifiers: GenerateModifiers(destination),
+            modifiers: GenerateModifiers(destination, method),
             implicitOrExplicitKeyword: keyword,
-            explicitInterfaceSpecifier: null,
+            explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
             operatorKeyword: OperatorKeyword,
-            checkedKeyword: checkedToken,
+            checkedKeyword: checkedKeyword,
             type: method.ReturnType.GenerateTypeSyntax(),
             parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());
+            semicolonToken: hasNoBody ? SemicolonToken : default);
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -100,11 +98,19 @@ internal static class ConversionGenerator
         return declaration;
     }
 
-    private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination)
+    private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination, IMethodSymbol method)
     {
-        // If these appear in interfaces they must be static abstract
-        return destination is CodeGenerationDestination.InterfaceType
-            ? ([StaticKeyword, AbstractKeyword])
-            : ([PublicKeyword, StaticKeyword]);
+        // Only "static" allowed if we're an explicit impl.
+        if (method.ExplicitInterfaceImplementations.Any())
+        {
+            return method.IsStatic ? [StaticKeyword] : [];
+        }
+        else
+        {
+            // If these appear in interfaces they must be static abstract
+            return destination is CodeGenerationDestination.InterfaceType
+                ? ([StaticKeyword, AbstractKeyword])
+                : ([PublicKeyword, StaticKeyword]);
+        }
     }
 }

@@ -167,11 +167,7 @@ internal static partial class MemberDeclarationSyntaxExtensions
         => memberDeclaration is BaseMethodDeclarationSyntax;
 
     public static BlockSyntax GetBody(this MemberDeclarationSyntax memberDeclaration)
-        => memberDeclaration switch
-        {
-            BaseMethodDeclarationSyntax method => method.Body,
-            _ => null,
-        };
+        => (memberDeclaration as BaseMethodDeclarationSyntax)?.Body;
 
     public static ArrowExpressionClauseSyntax GetExpressionBody(this MemberDeclarationSyntax memberDeclaration)
         => memberDeclaration switch
