@@ -1669,82 +1669,82 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         switch (accessibility)
         {
             case Accessibility.Internal:
-                list.Add(WithSpace(InternalKeyword));
+                list.Add(InternalKeyword);
                 break;
             case Accessibility.Public:
-                list.Add(WithSpace(PublicKeyword));
+                list.Add(PublicKeyword);
                 break;
             case Accessibility.Private:
-                list.Add(WithSpace(PrivateKeyword));
+                list.Add(PrivateKeyword);
                 break;
             case Accessibility.Protected:
-                list.Add(WithSpace(ProtectedKeyword));
+                list.Add(ProtectedKeyword);
                 break;
             case Accessibility.ProtectedOrInternal:
-                list.Add(WithSpace(ProtectedKeyword));
-                list.Add(WithSpace(InternalKeyword));
+                list.Add(ProtectedKeyword);
+                list.Add(InternalKeyword);
                 break;
             case Accessibility.ProtectedAndInternal:
-                list.Add(WithSpace(PrivateKeyword));
-                list.Add(WithSpace(ProtectedKeyword));
+                list.Add(PrivateKeyword);
+                list.Add(ProtectedKeyword);
                 break;
             case Accessibility.NotApplicable:
                 break;
         }
 
         if (modifiers.IsFile)
-            list.Add(WithSpace(FileKeyword));
+            list.Add(FileKeyword);
 
         if (modifiers.IsAbstract)
-            list.Add(WithSpace(AbstractKeyword));
+            list.Add(AbstractKeyword);
 
         if (modifiers.IsNew)
-            list.Add(WithSpace(NewKeyword));
+            list.Add(NewKeyword);
 
         if (modifiers.IsSealed)
-            list.Add(WithSpace(SealedKeyword));
+            list.Add(SealedKeyword);
 
         if (modifiers.IsOverride)
-            list.Add(WithSpace(OverrideKeyword));
+            list.Add(OverrideKeyword);
 
         if (modifiers.IsVirtual)
-            list.Add(WithSpace(VirtualKeyword));
+            list.Add(VirtualKeyword);
 
         if (modifiers.IsStatic)
-            list.Add(WithSpace(StaticKeyword));
+            list.Add(StaticKeyword);
 
         if (modifiers.IsAsync)
-            list.Add(WithSpace(AsyncKeyword));
+            list.Add(AsyncKeyword);
 
         if (modifiers.IsConst)
-            list.Add(WithSpace(ConstKeyword));
+            list.Add(ConstKeyword);
 
         if (modifiers.IsReadOnly)
-            list.Add(WithSpace(ReadOnlyKeyword));
+            list.Add(ReadOnlyKeyword);
 
         if (modifiers.IsUnsafe)
-            list.Add(WithSpace(UnsafeKeyword));
+            list.Add(UnsafeKeyword);
 
         if (modifiers.IsVolatile)
-            list.Add(WithSpace(VolatileKeyword));
+            list.Add(VolatileKeyword);
 
         if (modifiers.IsExtern)
-            list.Add(WithSpace(ExternKeyword));
+            list.Add(ExternKeyword);
 
         if (modifiers.IsRequired)
-            list.Add(WithSpace(RequiredKeyword));
+            list.Add(RequiredKeyword);
 
         // partial and ref must be last
         if (modifiers.IsRef)
-            list.Add(WithSpace(RefKeyword));
+            list.Add(RefKeyword);
 
         if (modifiers.IsPartial)
-            list.Add(WithSpace(PartialKeyword));
+            list.Add(PartialKeyword);
+
+        for (int i = 0, n = list.Count; i < n; i++)
+            list[i] = list[i].WithoutLeadingTrivia().WithTrailingTrivia(SyntaxFactory.ElasticSpace);
 
         return [.. list];
-
-        SyntaxToken WithSpace(SyntaxToken token)
-            => token.WithoutLeadingTrivia().WithTrailingTrivia(SyntaxFactory.ElasticSpace);
     }
 
     private protected override SyntaxNode TypeParameter(string name)
