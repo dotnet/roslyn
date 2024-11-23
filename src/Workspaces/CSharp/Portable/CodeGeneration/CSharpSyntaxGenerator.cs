@@ -241,9 +241,11 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
         name = StripExplicitInterfaceName(name);
 
-        var method = SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory.MethodDeclaration(
             attributeLists: default,
-            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
+            // Pass `withLeadingElasticMarker: true` to ensure method will space itself properly within the members it
+            // is added to.
+            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration, withLeadingElasticMarker: true),
             returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(VoidKeyword),
             explicitInterfaceSpecifier: null,
             identifier: name.ToIdentifierToken(),
@@ -253,9 +255,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             body: hasBody ? CreateBlock(statements) : null,
             expressionBody: null,
             semicolonToken: !hasBody ? SemicolonToken : default);
-
-        // Ensure method will space itself properly within the members it is added to.
-        return method.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
     }
 
     private static string StripExplicitInterfaceName(string name)
@@ -1662,10 +1661,17 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             _ => declaration,
         };
 
-    private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers, SyntaxKind kind)
-        => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers);
+    private static SyntaxTokenList AsModifierList(
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        SyntaxKind kind,
+        bool withLeadingElasticMarker = false)
+        => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers, withLeadingElasticMarker);
 
-    private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers)
+    private static SyntaxTokenList AsModifierList(
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        bool withLeadingElasticMarker = false)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var list);
 
@@ -1745,7 +1751,12 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             list.Add(PartialKeyword);
 
         for (int i = 0, n = list.Count; i < n; i++)
-            list[i] = list[i].WithoutLeadingTrivia().WithTrailingTrivia(SyntaxFactory.ElasticSpace);
+        {
+            if (!withLeadingElasticMarker)
+                list[i] = list[i].WithoutLeadingTrivia();
+
+            list[i] = list[i].WithTrailingTrivia(SyntaxFactory.ElasticSpace);
+        }
 
         return [.. list];
     }
