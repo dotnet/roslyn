@@ -3340,7 +3340,7 @@ public class RemoveUnusedMembersTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69143")]
     public async Task KeepInlineArrayInstanceMember()
     {
         await new VerifyCS.Test
