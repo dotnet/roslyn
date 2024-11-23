@@ -1486,7 +1486,6 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
             class Test : I1
             {
                 int Prop { get; set; }
-
                 int I1.Prop { get => Prop; set => Prop = value; }
             }
 
