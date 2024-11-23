@@ -241,7 +241,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
         name = StripExplicitInterfaceName(name);
 
-        return SyntaxFactory.MethodDeclaration(
+        var method = SyntaxFactory.MethodDeclaration(
             attributeLists: default,
             modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
             returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(VoidKeyword),
@@ -253,6 +253,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             body: hasBody ? CreateBlock(statements) : null,
             expressionBody: null,
             semicolonToken: !hasBody ? SemicolonToken : default);
+
+        // Ensure method will space itself properly within the members it is added to.
+        return method.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
     }
 
     private static string StripExplicitInterfaceName(string name)

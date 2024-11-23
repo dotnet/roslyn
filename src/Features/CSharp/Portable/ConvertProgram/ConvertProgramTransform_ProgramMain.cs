@@ -86,7 +86,7 @@ internal static partial class ConvertProgramTransform
 
         var method = (MethodDeclarationSyntax)generator.MethodDeclaration(
             mainMethod, WellKnownMemberNames.EntryPointMethodName,
-            GenerateProgramMainStatements(root, out var leadingTrivia)).WithPrependedLeadingTrivia(ElasticMarker);
+            GenerateProgramMainStatements(root, out var leadingTrivia));
         method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
         method = (MethodDeclarationSyntax)generator.WithAccessibility(
             method, useDeclaredAccessibility ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
