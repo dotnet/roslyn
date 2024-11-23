@@ -3,60 +3,45 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(IDynamicFileInfoProvider)), Shared]
+[Shared]
+[Export(typeof(IDynamicFileInfoProvider))]
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
-internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
+[ExportCSharpVisualBasicStatelessLspService(typeof(RazorDynamicFileInfoProvider))]
+[Method("razor/dynamicFileInfoChanged")]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer) : IDynamicFileInfoProvider, ILspServiceNotificationHandler<RazorDynamicFileChangedParams>
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
-
-    private class ProvideDynamicFileParams
-    {
-        [JsonPropertyName("razorDocument")]
-        public required TextDocumentIdentifier RazorDocument { get; set; }
-    }
-
-    private class ProvideDynamicFileResponse
-    {
-        [JsonPropertyName("csharpDocument")]
-        public required TextDocumentIdentifier CSharpDocument { get; set; }
-    }
-
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
-    private class RemoveDynamicFileParams
-    {
-        [JsonPropertyName("csharpDocument")]
-        public required TextDocumentIdentifier CSharpDocument { get; set; }
-    }
+    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
 
-#pragma warning disable CS0067 // We won't fire the Updated event -- we expect Razor to send us textual changes via didChange instead
+    public bool MutatesSolutionState => false;
+    public bool RequiresLSPSolution => false;
+
     public event EventHandler<string>? Updated;
-#pragma warning restore CS0067
 
-    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer)
+    public Task HandleNotificationAsync(RazorDynamicFileChangedParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
+        Updated?.Invoke(this, ProtocolConversions.GetDocumentFilePathFromUri(request.CSharpDocument.Uri));
+        return Task.CompletedTask;
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
-        var requestParams = new ProvideDynamicFileParams
+        var requestParams = new RazorProvideDynamicFileParams
         {
             RazorDocument = new()
             {
@@ -67,26 +52,44 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
 
-        var response = await clientLanguageServerManager.SendRequestAsync<ProvideDynamicFileParams, ProvideDynamicFileResponse>(
+        var response = await clientLanguageServerManager.SendRequestAsync<RazorProvideDynamicFileParams, RazorProvideDynamicFileResponse>(
             ProvideRazorDynamicFileInfoMethodName, requestParams, cancellationToken);
 
-        // Since we only sent one file over, we should get either zero or one URI back
-        var responseUri = response.CSharpDocument?.Uri;
-
-        if (responseUri == null)
+        if (response.CSharpDocument is null)
         {
             return null;
         }
-        else
+
+        // Since we only sent one file over, we should get either zero or one URI back
+        var responseUri = response.CSharpDocument.Uri;
+        var dynamicFileInfoFilePath = ProtocolConversions.GetDocumentFilePathFromUri(responseUri);
+
+        if (response.Edits is not null)
         {
-            var dynamicFileInfoFilePath = ProtocolConversions.GetDocumentFilePathFromUri(responseUri);
-            return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, EmptyStringTextLoader.Instance, designTimeOnly: true, documentServiceProvider: null);
+            var workspaceManager = LanguageServerHost.Instance.GetRequiredLspService<LspWorkspaceManager>(); ;
+            var (workspace, solution, document) = await workspaceManager.GetLspDocumentInfoAsync(response.CSharpDocument, cancellationToken).ConfigureAwait(false);
+
+            var sourceText = document is null
+                ? SourceText.From("")
+                : await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var version = document is null
+                ? VersionStamp.Default
+                : await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
+            var newText = sourceText.WithChanges(textChanges);
+
+            var textAndVersion = TextAndVersion.Create(newText, version);
+            return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, TextLoader.From(textAndVersion), designTimeOnly: true, documentServiceProvider: null);
         }
+
+        return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, EmptyStringTextLoader.Instance, designTimeOnly: true, documentServiceProvider: null);
     }
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        var notificationParams = new RemoveDynamicFileParams
+        var notificationParams = new RazorRemoveDynamicFileParams
         {
             CSharpDocument = new()
             {
