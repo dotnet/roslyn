@@ -992,8 +992,13 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         var attrs = ctors.SelectAsArray(ctor => ctor.GetAttributes());
 
         Assert.Empty(attrs[0]);
+        Assert.Equal(1, ((MethodSymbol)ctors[1]).OverloadResolutionPriority);
         AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Int32 priority)",
             attrs[1].Single().AttributeConstructor.ToTestDisplayString());
+
+        var m = ((CSharpCompilation)verifier.Compilation).GetTypeByMetadataName("System.Runtime.CompilerServices.C")!.GetMembers("M").OfType<MethodSymbol>().First();
+        Assert.Equal(1, m.OverloadResolutionPriority);
+        AssertEx.Equal("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(System.Int32 priority)", m.GetAttributes().First().AttributeConstructor.ToTestDisplayString());
 
         verifier.VerifyIL("System.Runtime.CompilerServices.C.Main()", """
             {
@@ -1057,6 +1062,92 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CompileAndVerify(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/75985")]
+    public void CycleOnOverloadResolutionPriorityConstructor_07()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            namespace System
+            {
+                public class ObsoleteAttribute : Attribute
+                {
+                    public ObsoleteAttribute(string x){}
+
+                    [OverloadResolutionPriority(1)]
+                    public ObsoleteAttribute(string x, bool y = false){}
+
+                }
+            }
+
+            #pragma warning disable CS0436 // The type 'ObsoleteAttribute' in '' conflicts with the imported type 'ObsoleteAttribute'
+
+            [System.Obsolete("Test")]
+            public class C {}
+            
+            public class D
+            {
+                public C x;
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition],
+            symbolValidator: (m) =>
+            {
+                AssertEx.Equal("System.ObsoleteAttribute..ctor(System.String x)",
+                               m.ContainingAssembly.GetTypeByMetadataName("C")!.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+            });
+        verifier.VerifyDiagnostics(
+            // (22,12): warning CS0618: 'C' is obsolete: 'Test'
+            //     public C x;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C").WithArguments("C", "Test").WithLocation(22, 12)
+            );
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/75985")]
+    public void CycleOnOverloadResolutionPriorityConstructor_08()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            namespace System
+            {
+                public class ObsoleteAttribute : Attribute
+                {
+                    public ObsoleteAttribute(string x){}
+
+                    [OverloadResolutionPriority(1)]
+                    public ObsoleteAttribute(string x, bool y = true){}
+
+                }
+            }
+
+            #pragma warning disable CS0436 // The type 'ObsoleteAttribute' in '' conflicts with the imported type 'ObsoleteAttribute'
+
+            [System.Obsolete("Test")]
+            public class C {}
+            
+            public class D
+            {
+                public C x;
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition],
+            symbolValidator: (m) =>
+            {
+                AssertEx.Equal("System.ObsoleteAttribute..ctor(System.String x)",
+                               m.ContainingAssembly.GetTypeByMetadataName("C")!.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+            });
+        verifier.VerifyDiagnostics(
+            // (22,12): warning CS0618: 'C' is obsolete: 'Test'
+            //     public C x;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C").WithArguments("C", "Test").WithLocation(22, 12)
+            );
     }
 
     [Theory, CombinatorialData]

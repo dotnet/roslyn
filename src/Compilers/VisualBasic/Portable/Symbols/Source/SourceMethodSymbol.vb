@@ -1538,7 +1538,7 @@ lReportErrorOnTwoTokens:
                     End If
 
                     Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
-                    If Not attrdata.HasErrors Then
+                    If Not attrdata.HasErrors AndAlso attrdata.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
                         Dim priority As Integer = attrdata.GetConstructorArgument(Of Integer)(0, SpecialType.System_Int32)
                         arguments.GetOrCreateData(Of MethodEarlyWellKnownAttributeData)().OverloadResolutionPriority = priority
                         Return If(Not hasAnyDiagnostics, attrdata, Nothing)
