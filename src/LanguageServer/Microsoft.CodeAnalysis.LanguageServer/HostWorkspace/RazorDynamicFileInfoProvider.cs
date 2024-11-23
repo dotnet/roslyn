@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,14 +19,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
 [ExportCSharpVisualBasicStatelessLspService(typeof(RazorDynamicFileInfoProvider))]
 [Method("razor/dynamicFileInfoChanged")]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer) : IDynamicFileInfoProvider, ILspServiceNotificationHandler<RazorDynamicFileChangedParams>
+internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServiceNotificationHandler<RazorDynamicFileChangedParams>
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
-    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
+    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
+    private readonly AsyncBatchingWorkQueue<string> _updateWorkQueue;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RazorDynamicFileInfoProvider(
+        Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer,
+        IAsynchronousOperationListenerProvider listenerProvider)
+    {
+        _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
+        _updateWorkQueue = new AsyncBatchingWorkQueue<string>(
+            TimeSpan.FromMilliseconds(200),
+            UpdateAsync,
+            listenerProvider.GetListener(nameof(RazorDynamicFileInfoProvider)),
+            CancellationToken.None);
+    }
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
@@ -33,7 +48,8 @@ internal class RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializ
 
     public Task HandleNotificationAsync(RazorDynamicFileChangedParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        Updated?.Invoke(this, ProtocolConversions.GetDocumentFilePathFromUri(request.CSharpDocument.Uri));
+        var path = ProtocolConversions.GetDocumentFilePathFromUri(request.CSharpDocument.Uri);
+        _updateWorkQueue.AddWork(path);
         return Task.CompletedTask;
     }
 
@@ -66,8 +82,8 @@ internal class RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializ
 
         if (response.Edits is not null)
         {
-            var workspaceManager = LanguageServerHost.Instance.GetRequiredLspService<LspWorkspaceManager>(); ;
-            var (workspace, solution, document) = await workspaceManager.GetLspDocumentInfoAsync(response.CSharpDocument, cancellationToken).ConfigureAwait(false);
+            var workspaceManager = LanguageServerHost.Instance.GetRequiredLspService<LspWorkspaceManager>();
+            var (_, _1, document) = await workspaceManager.GetLspDocumentInfoAsync(response.CSharpDocument, cancellationToken);
 
             var sourceText = document is null
                 ? SourceText.From("")
@@ -102,6 +118,17 @@ internal class RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializ
 
         return clientLanguageServerManager.SendNotificationAsync(
             RemoveRazorDynamicFileInfoMethodName, notificationParams, cancellationToken).AsTask();
+    }
+
+    private ValueTask UpdateAsync(ImmutableSegmentedList<string> paths, CancellationToken token)
+    {
+        foreach (var path in paths)
+        {
+            token.ThrowIfCancellationRequested();
+            Updated?.Invoke(this, path);
+        }
+
+        return ValueTask.CompletedTask;
     }
 
     private sealed class EmptyStringTextLoader : TextLoader
