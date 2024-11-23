@@ -213,35 +213,37 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
     public async Task TestLeadingTriviaAfterSemicolon(string leadingTrivia)
     {
         await TestInRegularAndScriptAsync(
-$@"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{
-        int x;{leadingTrivia}
-        int [||]fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
-$$"""
-using System;
+            class C
+            {
+                void M()
+                {
+                    int x;{{leadingTrivia}}
+                    int [||]fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
+            $$"""
+            using System;
 
-class C
-{
-    void M()
-    {
-        int x;{{leadingTrivia}}
-        static int fibonacci(int n)
-        {
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }
-    }
-}
-""",
-parseOptions: CSharp8ParseOptions);
+            class C
+            {
+                void M()
+                {
+                    int x;{{leadingTrivia}}
+                    static int fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
+            parseOptions: CSharp8ParseOptions);
     }
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
