@@ -1388,4 +1388,26 @@ class C
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61256")]
+    public async Task TestWithRawString()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """"
+                struct ValueTuple
+                {
+                    public void Goo()
+                    {
+                        var someVariable = "Some text";
+
+                        var fullText = someVariable [||]+ """
+                            Appended line
+                            """;
+                    }
+                }
+                """",
+            LanguageVersion = LanguageVersion.CSharp11,
+        }.RunAsync();
+    }
 }
