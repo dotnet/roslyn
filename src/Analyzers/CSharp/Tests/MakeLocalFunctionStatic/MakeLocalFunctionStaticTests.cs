@@ -203,7 +203,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
     }
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
@@ -226,15 +226,14 @@ class C
         }}
     }}
 }}",
-"""
+$$"""
 using System;
 
 class C
 {
     void M()
     {
-        int x;
-
+        int x;{{leadingTrivia}}
         static int fibonacci(int n)
         {
             return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
@@ -264,13 +263,13 @@ class C
         }}
     }}
 }}",
-"""
+$$"""
 using System;
 
 class C
 {
     void M()
-    {
+    {{{leadingTrivia}}
         static int fibonacci(int n)
         {
             return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
@@ -304,7 +303,7 @@ class C
         }}
     }}
 }}",
-"""
+$$"""
 using System;
 
 class C
@@ -314,8 +313,7 @@ class C
         bool otherFunction()
         {
             return true;
-        }
-
+        }{{leadingTrivia}}
         static int fibonacci(int n)
         {
             return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
@@ -343,15 +341,14 @@ class C
         int [||]fibonacci(int n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
     }}
 }}",
-"""
+$$"""
 using System;
 
 class C
 {
     void M()
     {
-        bool otherFunction() => true;
-
+        bool otherFunction() => true;{{leadingTrivia}}
         static int fibonacci(int n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
     }
 }
