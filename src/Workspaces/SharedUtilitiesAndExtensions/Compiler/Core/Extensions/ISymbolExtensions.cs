@@ -802,6 +802,6 @@ internal static partial class ISymbolExtensions
         if (symbol is null || attributeClass is null)
             return false;
 
-        return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute), attributeClass);
+        return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute.AttributeClass), attributeClass);
     }
 }
