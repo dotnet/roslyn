@@ -66,6 +66,7 @@ public class ConvertToProgramMainAnalyzerTests
             |}
             """,
             FixedCode = """
+
             internal class Program
             {
                 private static void Main(string[] args)

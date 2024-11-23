@@ -53,7 +53,6 @@ public partial class CodeCleanupTests
 
         var expected = """
             using System;
-
             internal class Program
             {
                 private static void Main(string[] args)
@@ -84,7 +83,6 @@ public partial class CodeCleanupTests
         var expected = """
             using System;
             using System.Collections.Generic;
-
             internal class Program
             {
                 private static void Main(string[] args)
