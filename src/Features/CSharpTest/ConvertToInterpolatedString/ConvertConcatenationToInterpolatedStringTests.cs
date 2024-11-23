@@ -1403,7 +1403,7 @@ class C
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68425")]
     public async Task TestQuoteCharacter1()
     {
         await new VerifyCS.Test
@@ -1430,7 +1430,7 @@ class C
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68425")]
     public async Task TestQuoteCharacter2()
     {
         await new VerifyCS.Test
