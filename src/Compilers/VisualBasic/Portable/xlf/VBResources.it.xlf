@@ -9323,8 +9323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}' viene usato solo a scopo di valutazione e potrebbe essere modificato o rimosso in aggiornamenti futuri.</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates{1}{2}.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates{1}{2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

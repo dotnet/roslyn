@@ -186,12 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (data.Kind == ObsoleteAttributeKind.Experimental)
                 {
-                    Debug.Assert(data.Message is null);
                     Debug.Assert(!data.IsError);
 
                     // Provide an explicit format for fully-qualified type names.
                     return new CustomObsoleteDiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.WRN_Experimental, data,
-                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat));
+                        new FormattedSymbol(symbol, SymbolDisplayFormat.CSharpErrorMessageFormat), string.IsNullOrEmpty(data.Message) ? "" : " - ", data.Message ?? "");
                 }
 
                 // Issue a specialized diagnostic for add methods of collection initializers
