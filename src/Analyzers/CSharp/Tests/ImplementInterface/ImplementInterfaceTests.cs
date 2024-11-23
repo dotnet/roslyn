@@ -12012,7 +12012,7 @@ interface I
         }.RunAsync();
     }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
     public async Task TestIEnumerable1()
     {
         await TestWithAllCodeStyleOptionsOffAsync(
