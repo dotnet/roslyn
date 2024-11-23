@@ -122,7 +122,6 @@ public partial class CodeCleanupTests
             global using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-
             internal class Program
             {
                 private static Task Main(string[] args)
