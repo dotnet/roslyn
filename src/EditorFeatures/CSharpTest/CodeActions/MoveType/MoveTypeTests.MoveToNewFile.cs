@@ -301,7 +301,7 @@ class Class2 { }";
 @"namespace N1
 {
     [||]class Class1 { }
-        class Class2 { }
+    class Class2 { }
 }";
 
         var codeAfterMove =
