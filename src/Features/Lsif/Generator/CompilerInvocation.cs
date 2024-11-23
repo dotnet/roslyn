@@ -6,15 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -83,10 +79,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
                     assemblyName: parsedCommandLine.CompilationName!,
                     language: languageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: new CompilationOutputInfo(
+                        assemblyPath: parsedCommandLine.OutputFileName != null ? Path.Combine(parsedCommandLine.OutputDirectory, parsedCommandLine.OutputFileName) : null,
+                        generatedFilesOutputDirectory: parsedCommandLine.GeneratedFilesOutputDirectory),
                     checksumAlgorithm: parsedCommandLine.ChecksumAlgorithm,
                     filePath: invocationInfo.ProjectFilePath,
-                    outputFilePath: parsedCommandLine.OutputFileName),
+                    outputRefFilePath: parsedCommandLine.OutputRefFilePath),
                 parsedCommandLine.CompilationOptions,
                 parsedCommandLine.ParseOptions,
                 parsedCommandLine.SourceFiles.Select(s => CreateDocumentInfo(unmappedPath: s.Path)),
@@ -188,15 +186,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             public string ProjectFilePath { get; set; }
 
-            public List<PathMapping> PathMappings { get; set; } = new List<PathMapping>();
+            public List<PathMapping> PathMappings { get; set; } = [];
 
             public sealed class PathMapping
             {
                 public string From { get; set; }
                 public string To { get; set; }
             }
-
-#nullable disable
         }
     }
 }

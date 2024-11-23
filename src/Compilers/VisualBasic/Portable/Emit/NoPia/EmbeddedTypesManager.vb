@@ -81,11 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return lazyMethod
         End Function
 
-        Friend Overrides Function GetTargetAttributeSignatureIndex(underlyingSymbol As SymbolAdapter, attrData As VisualBasicAttributeData, description As AttributeDescription) As Integer
-            Return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol.AdaptedSymbol, description)
+        Friend Overrides Function GetTargetAttributeSignatureIndex(attrData As VisualBasicAttributeData, description As AttributeDescription) As Integer
+            Return attrData.GetTargetAttributeSignatureIndex(description)
         End Function
 
-        Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, attrData As VisualBasicAttributeData, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
+        Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, constructorArguments As ImmutableArray(Of TypedConstant), namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)), syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
             Dim ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics)
             If ctor Is Nothing Then
                 Return Nothing
@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     ' When emitting a com event interface, we have to tweak the parameters: the spec requires that we use
                     ' the original source interface as both source interface and event provider. Otherwise, we'd have to embed
                     ' the event provider class too.
-                    Return New SynthesizedAttributeData(ctor,
-                        ImmutableArray.Create(attrData.CommonConstructorArguments(0), attrData.CommonConstructorArguments(0)),
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor,
+                        ImmutableArray.Create(constructorArguments(0), constructorArguments(0)),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
                 Case WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor
@@ -105,14 +105,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     ' instantiatable. The attribute cannot refer directly to the coclass, however, because we can't embed
                     ' classes, and we can't emit a reference to the PIA. We don't actually need
                     ' the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
-                    Return New SynthesizedAttributeData(ctor,
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor,
                         ImmutableArray.Create(New TypedConstant(ctor.Parameters(0).Type, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
                 Case Else
-                    Return New SynthesizedAttributeData(ctor, attrData.CommonConstructorArguments, attrData.CommonNamedArguments)
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments)
 
             End Select
+        End Function
+
+        Friend Overrides Function TryGetAttributeArguments(attrData As VisualBasicAttributeData, ByRef constructorArguments As ImmutableArray(Of TypedConstant), ByRef namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)), syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Boolean
+            Dim result As Boolean = Not attrData.HasErrors
+
+            constructorArguments = attrData.CommonConstructorArguments
+            namedArguments = attrData.CommonNamedArguments
+
+            Dim errorInfo As DiagnosticInfo = attrData.ErrorInfo
+            If errorInfo IsNot Nothing Then
+                diagnostics.Add(errorInfo, If(syntaxNodeOpt?.Location, NoLocation.Singleton))
+            End If
+
+            Return result
         End Function
 
         Friend Function GetAssemblyGuidString(assembly As AssemblySymbol) As String
@@ -404,7 +418,7 @@ checksForAllEmbedabbleTypes:
                     ' ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
                     ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType.AdaptedNamedTypeSymbol, syntaxNodeOpt, diagnostics, Me)
                 Case Else
-                    If Cci.Extensions.HasBody(embedded) Then
+                    If embedded.HasBody Then
                         ' ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
                         ReportDiagnostic(diagnostics, ERRID.ERR_InteropMethodWithBody1, syntaxNodeOpt, method.AdaptedMethodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat))
                     End If

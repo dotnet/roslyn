@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     _metadataReferences = metadataReferences.ToImmutableArray();
                     _pathToIndicesMap = CreatePathToIndexMap(_metadataReferences);
-                    _indicesToRemove = new HashSet<int>();
+                    _indicesToRemove = [];
                     _projectReferences = ImmutableHashSet.CreateBuilder<ProjectReference>();
                 }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndClear();
                 }
 
                 private ImmutableArray<MetadataReference> GetMetadataReferences()
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndClear();
                 }
 
                 private ImmutableHashSet<ProjectReference> GetProjectReferences()
@@ -209,26 +209,35 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             continue;
                         }
 
-                        // If we don't know how to load a project (that is, it's not a language we support), we can still
-                        // attempt to verify that its output exists on disk and is included in our set of metadata references.
-                        // If it is, we'll just leave it in place.
-                        if (!IsProjectLoadable(projectReferencePath) &&
-                            await VerifyUnloadableProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
+                        if (projectFileReference.ReferenceOutputAssembly)
                         {
-                            continue;
-                        }
+                            // If we don't know how to load a project (that is, it's not a language we support), we can still
+                            // attempt to verify that its output exists on disk and is included in our set of metadata references.
+                            // If it is, we'll just leave it in place.
+                            if (!IsProjectLoadable(projectReferencePath) &&
+                                await VerifyUnloadableProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
+                            {
+                                continue;
+                            }
 
-                        // If metadata is preferred, see if the project reference's output exists on disk and is included
-                        // in our metadata references. If it is, don't create a project reference; we'll just use the metadata.
-                        if (_preferMetadataForReferencesOfDiscoveredProjects &&
-                            await VerifyProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
-                        {
-                            continue;
-                        }
+                            // If metadata is preferred, see if the project reference's output exists on disk and is included
+                            // in our metadata references. If it is, don't create a project reference; we'll just use the metadata.
+                            if (_preferMetadataForReferencesOfDiscoveredProjects &&
+                                await VerifyProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
+                            {
+                                continue;
+                            }
 
-                        // Finally, we'll try to load and reference the project.
-                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, aliases, builder, cancellationToken).ConfigureAwait(false))
+                            // Finally, we'll try to load and reference the project.
+                            if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, aliases, builder, cancellationToken).ConfigureAwait(false))
+                            {
+                                continue;
+                            }
+                        }
+                        else
                         {
+                            // Load the project but do not add a reference:
+                            _ = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
                             continue;
                         }
                     }
@@ -326,11 +335,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             private bool IsProjectLoadable(string projectPath)
-                => _projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+                => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
 
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
-                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var buildHost = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
                 return outputFilePath != null
                     && builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);

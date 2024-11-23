@@ -10,57 +10,56 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    internal override Type GetHighlighterType()
+        => typeof(CheckedExpressionHighlighter);
+
+    [Fact]
+    public async Task TestExample1_1()
     {
-        internal override Type GetHighlighterType()
-            => typeof(CheckedExpressionHighlighter);
-
-        [Fact]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-                """
-                class C
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    short x = short.MaxValue;
+                    short y = short.MaxValue;
+                    int z;
+                    try
                     {
-                        short x = short.MaxValue;
-                        short y = short.MaxValue;
-                        int z;
-                        try
-                        {
-                            z = {|Cursor:[|checked|]|}((short)(x + y));
-                        }
-                        catch (OverflowException e)
-                        {
-                            z = -1;
-                        }
-
-                        return z;
+                        z = {|Cursor:[|checked|]|}((short)(x + y));
                     }
-                }
-                """);
-        }
+                    catch (OverflowException e)
+                    {
+                        z = -1;
+                    }
 
-        [Fact]
-        public async Task TestExample2_1()
-        {
-            await TestAsync(
-                """
-                class C
+                    return z;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample2_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        short x = short.MaxValue;
-                        short y = short.MaxValue;
-                        int z = {|Cursor:[|unchecked|]|}((short)(x + y));
-                        return z;
-                    }
+                    short x = short.MaxValue;
+                    short y = short.MaxValue;
+                    int z = {|Cursor:[|unchecked|]|}((short)(x + y));
+                    return z;
                 }
-                """);
-        }
+            }
+            """);
     }
 }

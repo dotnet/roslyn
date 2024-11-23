@@ -9,10 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface INavigateToLinkService : IWorkspaceService
 {
-    internal interface INavigateToLinkService : IWorkspaceService
-    {
-        Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken);
-    }
+    Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken);
 }

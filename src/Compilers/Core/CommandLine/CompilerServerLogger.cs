@@ -108,26 +108,29 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Static class initializer that initializes logging.
         /// </summary>
-        public CompilerServerLogger(string identifier)
+        public CompilerServerLogger(string identifier, string? loggingFilePath = null)
         {
             _identifier = identifier;
 
             try
             {
-                // Check if the environment
-                if (Environment.GetEnvironmentVariable(EnvironmentVariableName) is string loggingFileName)
+                if (loggingFilePath is null)
                 {
+                    loggingFilePath = Environment.GetEnvironmentVariable(EnvironmentVariableName);
                     // If the environment variable contains the path of a currently existing directory,
                     // then use a process-specific name for the log file and put it in that directory.
                     // Otherwise, assume that the environment variable specifies the name of the log file.
-                    if (Directory.Exists(loggingFileName))
+                    if (Directory.Exists(loggingFilePath))
                     {
                         var processId = Process.GetCurrentProcess().Id;
-                        loggingFileName = Path.Combine(loggingFileName, $"server.{processId}.log");
+                        loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
                     }
+                }
 
+                if (loggingFilePath is not null)
+                {
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
-                    _loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+                    _loggingStream = new FileStream(loggingFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
                 }
             }
             catch (Exception e)

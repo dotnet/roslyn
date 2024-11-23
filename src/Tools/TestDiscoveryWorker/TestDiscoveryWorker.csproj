@@ -2,23 +2,23 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="xunit.abstractions" Version="$(xunitabstractionsVersion)" />
-    <PackageReference Include="xunit.runner.utility" Version="$(xunitrunnerutilityVersion)" />
-    <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
-    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriVersion)" />
-    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
+    <PackageReference Include="xunit.abstractions" />
+    <PackageReference Include="xunit.runner.utility" />
+    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="System.Private.Uri" />
+    <PackageReference Include="System.Net.Http" />
   </ItemGroup>
     
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>

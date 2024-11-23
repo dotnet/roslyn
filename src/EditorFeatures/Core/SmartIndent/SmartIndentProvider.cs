@@ -9,30 +9,29 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+
+[Export(typeof(ISmartIndentProvider))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[ContentType(ContentTypeNames.VisualBasicContentType)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SmartIndentProvider(EditorOptionsService editorOptionsService) : ISmartIndentProvider
 {
-    [Export(typeof(ISmartIndentProvider))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class SmartIndentProvider(EditorOptionsService editorOptionsService) : ISmartIndentProvider
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+
+    public ISmartIndent? CreateSmartIndent(ITextView textView)
     {
-        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
-
-        public ISmartIndent? CreateSmartIndent(ITextView textView)
+        if (textView == null)
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
-            {
-                return null;
-            }
-
-            return new SmartIndent(textView, _editorOptionsService);
+            throw new ArgumentNullException(nameof(textView));
         }
+
+        if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
+        {
+            return null;
+        }
+
+        return new SmartIndent(textView, _editorOptionsService);
     }
 }

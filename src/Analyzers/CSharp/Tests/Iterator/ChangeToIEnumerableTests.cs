@@ -11,408 +11,407 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-    public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public ChangeToIEnumerableTests(ITestOutputHelper logger)
+       : base(logger)
     {
-        public ChangeToIEnumerableTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpChangeToIEnumerableCodeFixProvider());
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpChangeToIEnumerableCodeFixProvider());
 
-        [Fact]
-        public async Task TestChangeToIEnumerableObjectMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task TestChangeToIEnumerableObjectMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static object [|M|]()
                 {
-                    static object [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
+            }
+            """;
 
-            var expected =
-                """
-                using System;
-                using System.Collections.Generic;
+        var expected =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IEnumerable<object> M()
                 {
-                    static IEnumerable<object> M()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestInRegularAndScriptAsync(initial, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(initial, expected);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableTupleMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task TestChangeToIEnumerableTupleMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static Tuple<int> [|M|]()
                 {
-                    static Tuple<int> [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
+            }
+            """;
 
-            var expected =
-                """
-                using System;
-                using System.Collections.Generic;
+        var expected =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IEnumerable<Tuple<int>> M()
                 {
-                    static IEnumerable<Tuple<int>> M()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestInRegularAndScriptAsync(initial, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(initial, expected);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableListMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task TestChangeToIEnumerableListMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IList<int> [|M|]()
                 {
-                    static IList<int> [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
+            }
+            """;
 
-            var expected =
-                """
-                using System;
-                using System.Collections.Generic;
+        var expected =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IEnumerable<int> M()
                 {
-                    static IEnumerable<int> M()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestInRegularAndScriptAsync(initial, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(initial, expected);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
-        {
-            var initial =
-                """
-                #nullable enable
+    [Fact]
+    public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
+    {
+        var initial =
+            """
+            #nullable enable
 
-                using System;
-                using System.Collections.Generic;
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IList<string?> [|M|]()
                 {
-                    static IList<string?> [|M|]()
-                    {
-                        yield return "";
-                    }
+                    yield return "";
                 }
-                """;
+            }
+            """;
 
-            var expected =
-                """
-                #nullable enable
+        var expected =
+            """
+            #nullable enable
 
-                using System;
-                using System.Collections.Generic;
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IEnumerable<string?> M()
                 {
-                    static IEnumerable<string?> M()
-                    {
-                        yield return "";
-                    }
+                    yield return "";
                 }
-                """;
-            await TestInRegularAndScriptAsync(initial, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(initial, expected);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IEnumerable<int> [|M|]()
                 {
-                    static IEnumerable<int> [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(initial);
-        }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(initial);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                static IEnumerator<int> [|M|]()
                 {
-                    static IEnumerator<int> [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(initial);
-        }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(initial);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableIEnumeratorMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections;
+    [Fact]
+    public async Task TestChangeToIEnumerableIEnumeratorMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections;
 
-                class Program
+            class Program
+            {
+                static IEnumerator [|M|]()
                 {
-                    static IEnumerator [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(initial);
-        }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(initial);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableIEnumerableMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections;
+    [Fact]
+    public async Task TestChangeToIEnumerableIEnumerableMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections;
 
-                class Program
+            class Program
+            {
+                static IEnumerable [|M|]()
                 {
-                    static IEnumerable [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(initial);
-        }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(initial);
+    }
 
-        [Fact]
-        public async Task TestChangeToIEnumerableVoidMethod()
-        {
-            var initial =
-                """
-                using System;
-                using System.Collections;
+    [Fact]
+    public async Task TestChangeToIEnumerableVoidMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Collections;
 
-                class Program
+            class Program
+            {
+                static void [|M|]()
                 {
-                    static void [|M|]()
-                    {
-                        yield return 0;
-                    }
+                    yield return 0;
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(initial);
-        }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(initial);
+    }
 
-        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        public async Task TestChangeToIEnumerableProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
+    public async Task TestChangeToIEnumerableProperty()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
 
-                namespace Asdf
+            namespace Asdf
+            {
+                public class Test
                 {
-                    public class Test
-                    {
-                        public ISet<IMyInterface> Test
-                        {
-                            [|get|]
-                            {
-                                yield return TestFactory.Create<float>("yada yada yada");
-                            } ;
-                        }
-                    }
-
-                    public static class TestFactory
-                    {
-                        public static IMyInterface Create<T>(string someIdentifier)
-                        {
-                            return new MyClass<T>();
-                        }
-                    }
-
-                    public interface IMyInterface : IEquatable<IMyInterface>
-                    {
-                    }
-
-                    public class MyClass<T> : IMyInterface
-                    {
-                        public bool Equals(IMyInterface other)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-
-                namespace Asdf
-                {
-                    public class Test
-                    {
-                        public IEnumerable<IMyInterface> Test
-                        {
-                            get
-                            {
-                                yield return TestFactory.Create<float>("yada yada yada");
-                            } ;
-                        }
-                    }
-
-                    public static class TestFactory
-                    {
-                        public static IMyInterface Create<T>(string someIdentifier)
-                        {
-                            return new MyClass<T>();
-                        }
-                    }
-
-                    public interface IMyInterface : IEquatable<IMyInterface>
-                    {
-                    }
-
-                    public class MyClass<T> : IMyInterface
-                    {
-                        public bool Equals(IMyInterface other)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        public async Task TestChangeToIEnumerableOperator()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                namespace Asdf
-                {
-                    public class T
-                    {
-                        public static ISet<int> operator [|=|] (T left, T right)
-                        {
-                            yield return 0;
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                namespace Asdf
-                {
-                    public class T
-                    {
-                        public static IEnumerable<int> operator = (T left, T right)
-                        {
-                            yield return 0;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        public async Task TestChangeToIEnumerableIndexer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
-
-                class T
-                {
-                    public T[] this[int i]
+                    public ISet<IMyInterface> Test
                     {
                         [|get|]
                         {
-                            yield return new T();
-                        }
+                            yield return TestFactory.Create<float>("yada yada yada");
+                        } ;
                     }
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
 
-                class T
+                public static class TestFactory
                 {
-                    public IEnumerable<T> this[int i]
+                    public static IMyInterface Create<T>(string someIdentifier)
+                    {
+                        return new MyClass<T>();
+                    }
+                }
+
+                public interface IMyInterface : IEquatable<IMyInterface>
+                {
+                }
+
+                public class MyClass<T> : IMyInterface
+                {
+                    public bool Equals(IMyInterface other)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            namespace Asdf
+            {
+                public class Test
+                {
+                    public IEnumerable<IMyInterface> Test
                     {
                         get
                         {
-                            yield return new T();
-                        }
+                            yield return TestFactory.Create<float>("yada yada yada");
+                        } ;
                     }
                 }
-                """);
-        }
+
+                public static class TestFactory
+                {
+                    public static IMyInterface Create<T>(string someIdentifier)
+                    {
+                        return new MyClass<T>();
+                    }
+                }
+
+                public interface IMyInterface : IEquatable<IMyInterface>
+                {
+                }
+
+                public class MyClass<T> : IMyInterface
+                {
+                    public bool Equals(IMyInterface other)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
+    public async Task TestChangeToIEnumerableOperator()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            namespace Asdf
+            {
+                public class T
+                {
+                    public static ISet<int> operator [|=|] (T left, T right)
+                    {
+                        yield return 0;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            namespace Asdf
+            {
+                public class T
+                {
+                    public static IEnumerable<int> operator = (T left, T right)
+                    {
+                        yield return 0;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
+    public async Task TestChangeToIEnumerableIndexer()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class T
+            {
+                public T[] this[int i]
+                {
+                    [|get|]
+                    {
+                        yield return new T();
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class T
+            {
+                public IEnumerable<T> this[int i]
+                {
+                    get
+                    {
+                        yield return new T();
+                    }
+                }
+            }
+            """);
     }
 }

@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using WindowsInput.Native;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
-{
-    [TestService]
-    internal partial class EncapsulateFieldInProcess
-    {
-        public string DialogName => "Preview Changes - Encapsulate Field";
+namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
-        internal Task InvokeAsync(CancellationToken cancellationToken)
-        {
-            return TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_R, VirtualKeyCode.CONTROL), (VirtualKeyCode.VK_E, VirtualKeyCode.CONTROL) }, cancellationToken);
-        }
+[TestService]
+internal partial class EncapsulateFieldInProcess
+{
+    public string DialogName => "Preview Changes - Encapsulate Field";
+
+    internal Task InvokeAsync(CancellationToken cancellationToken)
+    {
+        return TestServices.Input.SendAsync([(VirtualKeyCode.VK_R, VirtualKeyCode.CONTROL), (VirtualKeyCode.VK_E, VirtualKeyCode.CONTROL)], cancellationToken);
     }
 }

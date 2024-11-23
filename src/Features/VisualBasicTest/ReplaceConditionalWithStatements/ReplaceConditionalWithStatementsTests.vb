@@ -15,7 +15,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements.VisualBasicReplaceConditionalWithStatementsCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceConditionalWithStatements
-
+    <UseExportProvider>
     Public Class ReplaceConditionalWithStatementsTests
         <Fact>
         Public Async Function TestAssignment_ObjectType() As Task

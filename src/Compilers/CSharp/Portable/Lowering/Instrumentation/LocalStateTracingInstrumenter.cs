@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isMethodBody)
                 {
-                    Debug.Assert(_lazyPreviousContextVariables?.IsEmpty() != false);
+                    Debug.Assert(_lazyPreviousContextVariables?.IsEmpty != false);
                     _lazyPreviousContextVariables?.Free();
                     _lazyPreviousContextVariables = null;
                 }
@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
                     _ when variableType.IsRefLikeType && !hasOverriddenToString(variableType)
                         => null, // not possible to invoke ToString on ref struct that doesn't override it
+                    _ when variableType is TypeParameterSymbol { AllowsRefLikeType: true }
+                        => null, // not possible to invoke ToString on ref struct type parameter
                     _ when variableType.TypeKind is TypeKind.Struct
                         // we'll emit ToString constrained virtcall to avoid boxing the struct
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
@@ -265,6 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol? GetWellKnownMethodSymbol(WellKnownMember overload, SyntaxNode syntax)
             => (MethodSymbol?)Binder.GetWellKnownTypeMember(_factory.Compilation, overload, _diagnostics, syntax: syntax, isOptional: false);
+
+        private MethodSymbol? GetSpecialMethodSymbol(SpecialMember overload, SyntaxNode syntax)
+            => (MethodSymbol?)Binder.GetSpecialTypeMember(_factory.Compilation, overload, _diagnostics, syntax: syntax);
 
         public override void PreInstrumentBlock(BoundBlock original, LocalRewriter rewriter)
         {
@@ -343,14 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var instrumentationEpilogue = (returnLogger != null) ?
                 _factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), returnLogger)) : _factory.NoOp(NoOpStatementFlavor.Default);
 
-            // currently don't need to compose multiple instrumentations
-            Debug.Assert(instrumentation is null);
-
-            instrumentation = new BoundBlockInstrumentation(
-                _factory.Syntax,
-                _scope.ContextVariable,
-                instrumentationPrologue,
-                instrumentationEpilogue);
+            instrumentation = _factory.CombineInstrumentation(instrumentation, _scope.ContextVariable, instrumentationPrologue, instrumentationEpilogue);
 
             _scope.Close(isMethodBody);
         }
@@ -463,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameter.Type.SpecialType == SpecialType.System_String && targetType.SpecialType != SpecialType.System_String)
             {
-                var toStringMethod = GetWellKnownMethodSymbol(WellKnownMember.System_Object__ToString, value.Syntax);
+                var toStringMethod = GetSpecialMethodSymbol(SpecialMember.System_Object__ToString, value.Syntax);
 
                 BoundExpression toString;
                 if (toStringMethod is null)

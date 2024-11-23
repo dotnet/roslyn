@@ -6,19 +6,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNullable
-{
-    public class EnableNullableFixAllTests : AbstractCSharpCodeActionTest
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new EnableNullableCodeRefactoringProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNullable;
 
-        [Fact]
-        public async Task EnableNullable_FixAllInSolution()
-        {
-            await TestInRegularAndScriptAsync(@"
+public class EnableNullableFixAllTests : AbstractCSharpCodeActionTest_NoEditor
+{
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new EnableNullableCodeRefactoringProvider();
+
+    [Fact]
+    public async Task EnableNullable_FixAllInSolution()
+    {
+        await TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -96,16 +97,16 @@ class Example4
     </Project>
 </Workspace>
 ");
-        }
+    }
 
-        [Theory]
-        [InlineData("FixAllInDocument")]
-        [InlineData("FixAllInProject")]
-        [InlineData("FixAllInContainingMember")]
-        [InlineData("FixAllInContainingType")]
-        public async Task EnableNullable_UnsupportedFixAllScopes(string fixAllScope)
-        {
-            await TestMissingInRegularAndScriptAsync($@"
+    [Theory]
+    [InlineData("FixAllInDocument")]
+    [InlineData("FixAllInProject")]
+    [InlineData("FixAllInContainingMember")]
+    [InlineData("FixAllInContainingType")]
+    public async Task EnableNullable_UnsupportedFixAllScopes(string fixAllScope)
+    {
+        await TestMissingInRegularAndScriptAsync($@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -143,6 +144,5 @@ class Example4
     </Project>
 </Workspace>
 ");
-        }
     }
 }

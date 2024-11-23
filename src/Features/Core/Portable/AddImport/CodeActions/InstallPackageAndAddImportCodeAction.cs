@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -11,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -58,7 +58,7 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(
             this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false));
         result.Add(_installOperation);
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
@@ -108,7 +108,7 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         public override string Title => _installPackageOperation.Title;
 
         internal override async Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var newSolution = workspace.CurrentSolution.WithDocumentText(
                 _changedDocumentId, _newText);

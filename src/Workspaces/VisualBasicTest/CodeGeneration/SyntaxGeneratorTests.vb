@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={NetFramework.mscorlib, NetFramework.System})
 
         Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
         End Property
 
         Public Shared Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+            Return VisualBasicCompilation.Create("test").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
         Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -1077,6 +1077,23 @@ End Operator")
             VerifySyntax(Of OperatorBlockSyntax)(
                 Generator.Declaration(Conversion),
 "Public Shared Widening Operator CType(value As System.Byte) As System.Decimal
+End Operator")
+        End Sub
+
+        <Fact>
+        Public Sub TestOperatorDeclarationSymbolOverload()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+"
+Public Class C
+    Shared Operator +(c1 As C, c2 As C) As C
+    End Operator
+End Class")
+            Dim compilation = VisualBasicCompilation.Create("AssemblyName", syntaxTrees:={tree})
+
+            Dim additionOperatorSymbol = DirectCast(compilation.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Single(), IMethodSymbol)
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.OperatorDeclaration(additionOperatorSymbol),
+"Public Shared Operator +(c1 As Global.C, c2 As Global.C) As Global.C
 End Operator")
         End Sub
 

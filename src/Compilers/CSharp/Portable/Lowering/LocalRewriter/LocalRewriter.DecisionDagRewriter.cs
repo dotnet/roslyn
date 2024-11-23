@@ -758,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var stringPatternInput = isStringInput ? StringPatternInput.String : (isSpanInput ? StringPatternInput.SpanChar : StringPatternInput.ReadOnlySpanChar);
 
                         if (!this._localRewriter._compilation.FeatureDisableLengthBasedSwitch &&
+                            this._factory.Compilation.Options.OptimizationLevel == OptimizationLevel.Release &&
                             LengthBasedStringSwitchData.Create(node.Cases) is var lengthBasedDispatch &&
                             lengthBasedDispatch.ShouldGenerateLengthBasedSwitch(node.Cases.Length) &&
                             hasLengthBasedDispatchRequiredMembers(stringPatternInput))
@@ -920,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we have already generated the helper, possibly for another switch
                 // or on another thread, we don't need to regenerate it.
                 var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics.DiagnosticBag);
-                if (privateImplClass.GetMethod(stringPatternInput switch
+                if (privateImplClass.PrivateImplementationDetails.GetMethod(stringPatternInput switch
                 {
                     StringPatternInput.String => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName,
                     StringPatternInput.SpanChar => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName,
@@ -957,12 +958,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 SynthesizedGlobalMethodSymbol method = stringPatternInput switch
                 {
-                    StringPatternInput.String => new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType),
-                    StringPatternInput.SpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: false),
-                    StringPatternInput.ReadOnlySpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: true),
+                    StringPatternInput.String => new SynthesizedStringSwitchHashMethod(privateImplClass, returnType, paramType),
+                    StringPatternInput.SpanChar => new SynthesizedSpanSwitchHashMethod(privateImplClass, returnType, paramType, isReadOnlySpan: false),
+                    StringPatternInput.ReadOnlySpanChar => new SynthesizedSpanSwitchHashMethod(privateImplClass, returnType, paramType, isReadOnlySpan: true),
                     _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
                 };
-                privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
+                privateImplClass.PrivateImplementationDetails.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 
 #nullable enable

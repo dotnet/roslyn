@@ -31,7 +31,7 @@ internal sealed class FieldWithInitializerDeclarationBody(VariableDeclaratorSynt
         => variableDeclarator.SyntaxTree;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(InitializerExpression)!.Captured;
+        => model.AnalyzeDataFlow(InitializerExpression)!.CapturedInside;
 
     public override TextSpan Envelope
     {

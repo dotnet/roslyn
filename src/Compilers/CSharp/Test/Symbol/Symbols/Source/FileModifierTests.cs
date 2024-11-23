@@ -6,14 +6,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -811,6 +816,46 @@ public partial class C
             AssertEx.Equal("<MyGeneratedFile_g>F18307E6C553D2E6465CEA162655C06E2BB2896889519559EB1EE5FA53513F0E8__C", expectedSymbol.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
         }
+    }
+
+    [Theory]
+    [InlineData("""
+            file class Outer1 { }
+            file class Outer2 { }
+            """, "Outer2")]
+    [InlineData("""
+            file class Outer { }
+            """, "Outer")]
+    public void Determinism(string source, string fileTypeName)
+    {
+        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
+        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
+        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
+        var options = TestOptions.DebugDll.WithDeterministic(true);
+        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
+        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
+
+        var resolver = new SourceFileResolver(
+            ImmutableArray<string>.Empty,
+            baseDirectory: null,
+            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
+
+        var outer1 = comp1.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        var outer2 = comp2.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        var outer3 = comp3.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
+        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
+
+        var emitOptions = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+        var bytes1 = comp1.EmitToArray(emitOptions);
+        var bytes2 = comp2.EmitToArray(emitOptions);
+        var bytes3 = comp3.EmitToArray(emitOptions);
+        Assert.False(bytes1.SequenceEqual(bytes2));
+        Assert.True(bytes1.SequenceEqual(bytes3));
     }
 
     [Fact]
@@ -4328,7 +4373,7 @@ public partial class C
             }
             """;
 
-        var comp2 = CreateCompilation(source2, references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib45);
+        var comp2 = CreateCompilation(source2, references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib461);
         comp2.VerifyDiagnostics(
         // (5,9): error CS0103: The name 'C' does not exist in the current context
         //         C.M();

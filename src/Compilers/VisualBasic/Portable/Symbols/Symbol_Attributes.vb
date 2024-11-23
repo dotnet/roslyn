@@ -198,12 +198,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MarkEmbeddedAttributeTypeReference(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation)
             ReportExtensionAttributeUseSiteInfo(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
 
-            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
+            If arguments.Attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
-            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.CompilerFeatureRequiredAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.CompilerFeatureRequiredAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseCompilerFeatureRequired, arguments.AttributeSyntaxOpt.Location)
-            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.RequiredMemberAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.RequiredMemberAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseRequiredMember, arguments.AttributeSyntaxOpt.Location)
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute) Then
+                If Not SyntaxFacts.IsValidIdentifier(DirectCast(arguments.Attribute.CommonConstructorArguments(0).ValueInternal, String)) Then
+                    Dim attrArgumentLocation = VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidExperimentalDiagID, attrArgumentLocation)
+                End If
             End If
         End Sub
 

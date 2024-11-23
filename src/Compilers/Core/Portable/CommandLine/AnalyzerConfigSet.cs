@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
 
-        private StrongBox<AnalyzerConfigOptionsResult>? _lazyConfigOptions;
+        private SingleInitNullable<AnalyzerConfigOptionsResult> _lazyConfigOptions;
 
         private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
         {
@@ -166,20 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets an <see cref="AnalyzerConfigOptionsResult"/> that contain the options that apply globally
         /// </summary>
         public AnalyzerConfigOptionsResult GlobalConfigOptions
-        {
-            get
-            {
-                if (_lazyConfigOptions is null)
-                {
-                    Interlocked.CompareExchange(
-                        ref _lazyConfigOptions,
-                        new StrongBox<AnalyzerConfigOptionsResult>(ParseGlobalConfigOptions()),
-                        null);
-                }
-
-                return _lazyConfigOptions.Value;
-            }
-        }
+            => _lazyConfigOptions.Initialize(static @this => @this.ParseGlobalConfigOptions(), this);
 
         /// <summary>
         /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
@@ -196,8 +183,9 @@ namespace Microsoft.CodeAnalysis
 
             var sectionKey = _sectionKeyPool.Allocate();
 
-            var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
+            var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
+            normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.
@@ -217,7 +205,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var config = _analyzerConfigs[analyzerConfigIndex];
 
-                if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
+                if (PathUtilities.IsSameDirectoryOrChildOf(normalizedPath, config.NormalizedDirectory, StringComparison.Ordinal))
                 {
                     // If this config is a root config, then clear earlier options since they don't apply
                     // to this source file.

@@ -12,8 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct DecimalTC : INumericTC<decimal>
+        private class DecimalTC : INumericTC<decimal>
         {
+            public static readonly DecimalTC Instance = new DecimalTC();
+
             // These are the smallest nonzero normal mantissa value (in three parts) below which you could use a higher scale.
             // This is the 96-bit representation of ((2^96)-1) / 10;
             private const uint transitionLow = 0x99999999;
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public decimal Random(Random random)
             {
-                INumericTC<uint> uinttc = default(UIntTC);
+                INumericTC<uint> uinttc = UIntTC.Instance;
                 return new DecimalRep(
                     low: uinttc.Random(random),
                     mid: uinttc.Random(random),

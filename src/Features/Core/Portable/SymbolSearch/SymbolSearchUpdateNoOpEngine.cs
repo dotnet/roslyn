@@ -7,22 +7,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal sealed class SymbolSearchUpdateNoOpEngine : ISymbolSearchUpdateEngine
 {
-    internal sealed class SymbolSearchUpdateNoOpEngine : ISymbolSearchUpdateEngine
+    public static readonly SymbolSearchUpdateNoOpEngine Instance = new();
+
+    public void Dispose()
     {
-        public static readonly SymbolSearchUpdateNoOpEngine Instance = new();
-
-        public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
-
-        public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
-
-        public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
-
-        public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
-            => default;
+        // Nothing to do for the no-op version.
     }
+
+    public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
+
+    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
+
+    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+
+    public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
+        => default;
 }

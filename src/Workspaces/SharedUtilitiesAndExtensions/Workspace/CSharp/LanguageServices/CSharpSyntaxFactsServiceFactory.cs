@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp
-{
-    [ExportLanguageServiceFactory(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
-    internal sealed partial class CSharpSyntaxFactsServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxFactsServiceFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => CSharpSyntaxFactsService.Instance;
+[ExportLanguageServiceFactory(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
+internal sealed partial class CSharpSyntaxFactsServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSyntaxFactsServiceFactory()
+    {
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => CSharpSyntaxFactsService.Instance;
 }

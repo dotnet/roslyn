@@ -50,3 +50,24 @@ This document captures the current state. Potential future improvements in this 
 | Edit a member referencing an embedded interop type | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |
 | Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
+| Edit in a solution containing projects that specify `*` in `AssemblyVersionAttribute`, e.g. `[assembly: AssemblyVersion("1.0.*")`]. | See [workaround](#projects-with-variable-assembly-versions) below. |
+
+### Projects with variable assembly versions
+
+Hot Reload and Edit & Continue are not compatible with using `*` in `AssemblyVersionAttribute` value. Presence of `*` in the version means that the compiler generates a new version
+every build based on the current time. The build then produces non-reproducible, non-deterministic outputs (see [Reproducible Builds](https://reproducible-builds.org)).
+
+It is thus highly recommended to use alternative versioning methods, such as [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning), that derive the assembly version
+from the HEAD commit SHA (for git repositories).
+
+> To enable generating commit SHA based assembly versions using `Nerdbank.GitVersioning` package, specify `{ "assemblyVersion" : {"precision": "revision"} }` setting in `version.json`.
+
+If you prefer to keep using `*` in `AssemblyVersionAttribute` it is recommended to use conditional compilation directive to only apply such version to Release builds like so:
+
+```C#
+#if DEBUG
+[assembly: AssemblyVersion("1.0.0.0")]
+#else
+[assembly: AssemblyVersion("1.0.*")]
+#endif
+```

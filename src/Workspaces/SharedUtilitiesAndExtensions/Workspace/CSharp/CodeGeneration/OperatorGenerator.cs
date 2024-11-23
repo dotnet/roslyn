@@ -5,123 +5,122 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Xml;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
+namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+internal static class OperatorGenerator
 {
-    internal static class OperatorGenerator
+    internal static TypeDeclarationSyntax AddOperatorTo(
+        TypeDeclarationSyntax destination,
+        IMethodSymbol method,
+        CSharpCodeGenerationContextInfo info,
+        IList<bool>? availableIndices,
+        CancellationToken cancellationToken)
     {
-        internal static TypeDeclarationSyntax AddOperatorTo(
-            TypeDeclarationSyntax destination,
-            IMethodSymbol method,
-            CSharpCodeGenerationContextInfo info,
-            IList<bool>? availableIndices,
-            CancellationToken cancellationToken)
-        {
-            var methodDeclaration = GenerateOperatorDeclaration(method, GetDestination(destination), info, cancellationToken);
-            var members = Insert(destination.Members, methodDeclaration, info, availableIndices, after: LastOperator);
+        var methodDeclaration = GenerateOperatorDeclaration(method, GetDestination(destination), info, cancellationToken);
+        var members = Insert(destination.Members, methodDeclaration, info, availableIndices, after: LastOperator);
 
-            return AddMembersTo(destination, members, cancellationToken);
+        return AddMembersTo(destination, members, cancellationToken);
+    }
+
+    internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        CancellationToken cancellationToken)
+    {
+        var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, info);
+        if (reusableSyntax != null)
+        {
+            return reusableSyntax;
         }
 
-        internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
-            IMethodSymbol method,
-            CodeGenerationDestination destination,
-            CSharpCodeGenerationContextInfo info,
-            CancellationToken cancellationToken)
+        var declaration = GenerateOperatorDeclarationWorker(method, destination, info, cancellationToken);
+        declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
+
+        return AddAnnotationsTo(method,
+            ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
+    }
+
+    private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
+        CSharpCodeGenerationContextInfo info, OperatorDeclarationSyntax declaration, CancellationToken cancellationToken)
+    {
+        if (declaration.ExpressionBody == null)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, info);
-            if (reusableSyntax != null)
+            if (declaration.Body?.TryConvertToArrowExpressionBody(
+                declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedOperators.Value, cancellationToken,
+                out var expressionBody, out var semicolonToken) == true)
             {
-                return reusableSyntax;
+                return declaration.WithBody(null)
+                                  .WithExpressionBody(expressionBody)
+                                  .WithSemicolonToken(semicolonToken);
             }
-
-            var declaration = GenerateOperatorDeclarationWorker(method, destination, info, cancellationToken);
-            declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
-
-            return AddAnnotationsTo(method,
-                ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
         }
 
-        private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationContextInfo info, OperatorDeclarationSyntax declaration, CancellationToken cancellationToken)
-        {
-            if (declaration.ExpressionBody == null)
-            {
-                if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedOperators.Value, cancellationToken,
-                    out var expressionBody, out var semicolonToken) == true)
-                {
-                    return declaration.WithBody(null)
-                                      .WithExpressionBody(expressionBody)
-                                      .WithSemicolonToken(semicolonToken);
-                }
-            }
+        return declaration;
+    }
 
-            return declaration;
+    private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        CancellationToken cancellationToken)
+    {
+        var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
+
+        var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
+        if (operatorSyntaxKind == SyntaxKind.None)
+        {
+            throw new ArgumentException(string.Format(WorkspaceExtensionsResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
         }
 
-        private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
-            IMethodSymbol method,
-            CodeGenerationDestination destination,
-            CSharpCodeGenerationContextInfo info,
-            CancellationToken cancellationToken)
+        var operatorToken = Token(operatorSyntaxKind);
+        var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
+            ? CheckedKeyword
+            : default;
+
+        var operatorDecl = OperatorDeclaration(
+            attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
+            modifiers: GenerateModifiers(method, destination, hasNoBody),
+            returnType: method.ReturnType.GenerateTypeSyntax(),
+            explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
+            operatorKeyword: OperatorKeyword,
+            checkedKeyword: checkedToken,
+            operatorToken: operatorToken,
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
+            body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+            expressionBody: null,
+            semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());
+
+        operatorDecl = UseExpressionBodyIfDesired(info, operatorDecl, cancellationToken);
+        return operatorDecl;
+    }
+
+    private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination, bool hasNoBody)
+    {
+        using var tokens = TemporaryArray<SyntaxToken>.Empty;
+
+        if (method.ExplicitInterfaceImplementations.Length == 0 &&
+            !(destination is CodeGenerationDestination.InterfaceType && hasNoBody))
         {
-            var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
-
-            var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
-            if (operatorSyntaxKind == SyntaxKind.None)
-            {
-                throw new ArgumentException(string.Format(WorkspaceExtensionsResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
-            }
-
-            var operatorToken = SyntaxFactory.Token(operatorSyntaxKind);
-            var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
-                ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword)
-                : default;
-
-            var operatorDecl = SyntaxFactory.OperatorDeclaration(
-                attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
-                modifiers: GenerateModifiers(method, destination, hasNoBody),
-                returnType: method.ReturnType.GenerateTypeSyntax(),
-                explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
-                operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                checkedKeyword: checkedToken,
-                operatorToken: operatorToken,
-                parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
-                body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
-                expressionBody: null,
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
-
-            operatorDecl = UseExpressionBodyIfDesired(info, operatorDecl, cancellationToken);
-            return operatorDecl;
+            tokens.Add(PublicKeyword);
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination, bool hasNoBody)
-        {
-            using var tokens = TemporaryArray<SyntaxToken>.Empty;
+        tokens.Add(StaticKeyword);
 
-            if (method.ExplicitInterfaceImplementations.Length == 0 &&
-                !(destination is CodeGenerationDestination.InterfaceType && hasNoBody))
-            {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
-            }
+        if (method.IsAbstract)
+            tokens.Add(AbstractKeyword);
 
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-
-            if (method.IsAbstract)
-            {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-            }
-
-            return tokens.ToImmutableAndClear().ToSyntaxTokenList();
-        }
+        return [.. tokens.ToImmutableAndClear()];
     }
 }

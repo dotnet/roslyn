@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
     internal class CSharpLspRazorProjectFactory
     {
         private readonly RemoteLanguageServiceWorkspaceHost _remoteLanguageServiceWorkspaceHost;
-        private readonly Dictionary<string, ProjectId> _projects = new Dictionary<string, ProjectId>();
+        private readonly Dictionary<string, ProjectId> _projects = [];
 
         public ProjectId GetProject(string projectName)
         {

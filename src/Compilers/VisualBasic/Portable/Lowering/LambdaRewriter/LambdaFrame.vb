@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -20,17 +21,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ISynthesizedMethodBodyImplementationSymbol
 
         Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
-        Private ReadOnly _topLevelMethod As MethodSymbol
+        Friend ReadOnly TopLevelMethod As MethodSymbol
         Private ReadOnly _sharedConstructor As MethodSymbol
         Private ReadOnly _singletonCache As FieldSymbol
-        Friend ReadOnly ClosureOrdinal As Integer
 
         'NOTE: this does not include captured parent frame references 
         Friend ReadOnly CapturedLocals As New ArrayBuilder(Of LambdaCapturedVariable)
         Private ReadOnly _constructor As SynthesizedLambdaConstructor
         Friend ReadOnly TypeMap As TypeSubstitution
-
         Private ReadOnly _scopeSyntaxOpt As SyntaxNode
+
+        ' debug info:
+        Public ReadOnly RudeEdit As RuntimeRudeEdit?
+        Public ReadOnly ClosureId As DebugId
 
         Private Shared ReadOnly s_typeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
             Function(container)
@@ -47,6 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        scopeSyntaxOpt As SyntaxNode,
                        methodId As DebugId,
                        closureId As DebugId,
+                       rudeEdit As RuntimeRudeEdit?,
                        copyConstructor As Boolean,
                        isStatic As Boolean,
                        isDelegateRelaxationFrame As Boolean)
@@ -75,7 +79,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, CreateTypeParameter)
             Me.TypeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
-            Me._topLevelMethod = topLevelMethod
+            Me.TopLevelMethod = topLevelMethod
+            Me.RudeEdit = rudeEdit
+            Me.ClosureId = closureId
         End Sub
 
         Private Shared Function MakeName(scopeSyntaxOpt As SyntaxNode,
@@ -237,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property Method As IMethodSymbolInternal Implements ISynthesizedMethodBodyImplementationSymbol.Method
             Get
-                Return _topLevelMethod
+                Return TopLevelMethod
             End Get
         End Property
     End Class

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
@@ -33,7 +33,7 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <!-- Include all dependencies; the DestinationSubDirectory is to handle culture-specific resource files that should be placed in
            subdirectories -->
@@ -44,8 +44,13 @@
                               PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)"
                               Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
 
-      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
-      <TfmSpecificPackageFile Include="$(ProjectDepsFilePath)" PackagePath="tools\$(TargetFramework)\any" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+      <!-- Include content output as well, for the BuildHost -->
+      <TfmSpecificPackageFile Include="@(AllItemsFullPathWithTargetPath)"
+                              PackagePath="tools\$(TargetFramework)\any\%(AllItemsFullPathWithTargetPath.TargetPath)"
+                              Condition="'%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
+
+      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any"
+                              Condition="'%(FullPath)' != '$(ProjectRuntimeConfigFilePath)'"/>
     </ItemGroup>
   </Target>
 
@@ -55,22 +60,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
-
-    <!-- Since we're using Microsoft.Build.Locator, it's important to ensure that absolutely no MSBuild binaries are deployed alongside our application,
-         or else those can get picked up first and break things. Since we're referencing MSBuild.StructuredLogger, it'll bring along extra dependencies by default. -->
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(RefOnlyMicrosoftBuildUtilitiesCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
-
-    <!-- Work around https://github.com/dotnet/msbuild/issues/7873; without this we won't have a new enough System.Memory and we'll get
-         method missing exceptions when we are running with some newer MSBuild versions. -->
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
+    <PackageReference Include="MSBuild.StructuredLogger" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
   <!-- Since we may be loading analyzers in-process, we need to have the appropriate binding redirects in place -->
@@ -83,21 +79,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
-    <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
 
-    <!-- Below is the transitive closure of the project references above to placate BuildBoss. If changes are made above this line,
-         please update the stuff here accordingly. -->
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <!-- Make sure we include the RazorCompiler ExternalAccess since this needs to be deployed with the compiler for things that might
+         run the Razor generator. We bundle this in the MWorkspaces.MSBuild NuGet package directly, but since we're consuming a project reference
+         rather than a package reference we'll have to include this here. -->
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
   </ItemGroup>
 
   <ItemGroup>

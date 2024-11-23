@@ -35,13 +35,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Snippets_behavior
 
         Public ReadOnly Property Option_Never_include_snippets As String =
-            BasicVSResources.Never_include_snippets
+            VSPackage.Never_include_snippets
 
         Public ReadOnly Property Option_Always_include_snippets As String =
-            BasicVSResources.Always_include_snippets
+            VSPackage.Always_include_snippets
 
         Public ReadOnly Property Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier As String =
-            BasicVSResources.Include_snippets_when_Tab_is_typed_after_an_identifier
+            VSPackage.Include_snippets_when_Tab_is_typed_after_an_identifier
 
         Public ReadOnly Property Option_Show_items_from_unimported_namespaces As String =
             BasicVSResources.Show_items_from_unimported_namespaces

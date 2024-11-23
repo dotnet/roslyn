@@ -2,6 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.UseCollectionExpression
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -30,9 +33,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Throw ExceptionUtilities.Unreachable()
         End Function
 
-        Protected Overrides Function HasExistingInvalidInitializerForCollection(objectCreation As ObjectCreationExpressionSyntax) As Boolean
+        Protected Overrides Function HasExistingInvalidInitializerForCollection() As Boolean
             ' In VB we cannot add a `From { }` initializer to an object if it already has a `With { }` initializer.
-            Return TypeOf objectCreation.Initializer Is ObjectMemberInitializerSyntax
+            Return TypeOf _objectCreationExpression.Initializer Is ObjectMemberInitializerSyntax
+        End Function
+
+        Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+                preMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                postMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                cancellationToken As CancellationToken) As Boolean
+            ' Only called for collection expressions, which VB does not support
+            Throw ExceptionUtilities.Unreachable()
         End Function
     End Class
 End Namespace

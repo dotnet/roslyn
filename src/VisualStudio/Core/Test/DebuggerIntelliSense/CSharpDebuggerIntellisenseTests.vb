@@ -417,8 +417,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531165")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531165")>
         Public Async Function ClassDesigner1() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -445,8 +444,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531167")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531167")>
         Public Async Function ClassDesigner2() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -470,8 +468,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124544")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124544")>
         Public Async Function CompletionUsesContextBufferPositions() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -735,8 +732,7 @@ $$</Document>
             End Using
         End Function
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163608")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163608")>
         Public Async Function TestItemDescription() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">

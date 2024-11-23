@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Private ReadOnly _hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             ''' <summary>
             ''' EnC support: the rewriter stores debug info for each await/yield in this builder.
@@ -75,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
-                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected MustOverride ReadOnly Property FirstIncreasingResumableState As StateMachineState
-            Protected MustOverride ReadOnly Property EncMissingStateMessage As String
+            Protected MustOverride ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode
 
             ''' <summary>
             ''' Implementation-specific name for labels to mark state machine resume points.
@@ -222,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function GenerateMissingStateDispatch() As BoundStatement
-                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateMessage)
+                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateErrorCode)
             End Function
 
 #Region "Visitors"

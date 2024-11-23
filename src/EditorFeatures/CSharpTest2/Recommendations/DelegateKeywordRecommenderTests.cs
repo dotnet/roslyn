@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 
 [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-public class DelegateKeywordRecommenderTests : KeywordRecommenderTests
+public sealed class DelegateKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
     public async Task TestAtRoot_Interactive()
@@ -514,4 +514,131 @@ public class DelegateKeywordRecommenderTests : KeywordRecommenderTests
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68399")]
+    public async Task TestNotInRecordParameterAttribute()
+    {
+        await VerifyAbsenceAsync(
+            """
+            record R([$$] int i) { }
+            """);
+    }
+
+    #region Collection expressions
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_BeforeFirstElementToVar()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            var x = [$$
+            """));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_BeforeFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [$$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_AfterFirstElementToVar()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            var x = [new object(), $$
+            """));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_AfterFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [string.Empty, $$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [.. $$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [string.Empty, .. $$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_ParenAtFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [($$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_ParenAfterFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [string.Empty, ($$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_ParenSpreadAtFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [.. ($$
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+    public async Task TestInCollectionExpressions_ParenSpreadAfterFirstElementToReturn()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                IEnumerable<string> M() => [string.Empty, .. ($$
+            }
+            """);
+    }
+
+    #endregion
 }

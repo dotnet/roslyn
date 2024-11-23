@@ -4,40 +4,54 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class StackExtensions
 {
-    internal static class StackExtensions
+#if !NET
+    public static bool TryPop<T>(this Stack<T> stack, [MaybeNullWhen(false)] out T result)
     {
-        public static void Push<T>(this Stack<T> stack, IEnumerable<T> values)
+        if (stack.Count == 0)
         {
-            foreach (var v in values)
-                stack.Push(v);
+            result = default;
+            return false;
         }
 
-        public static void Push<T>(this Stack<T> stack, HashSet<T> values)
-        {
-            foreach (var v in values)
-                stack.Push(v);
-        }
+        result = stack.Pop();
+        return true;
+    }
+#endif
 
-        public static void Push<T>(this Stack<T> stack, ImmutableArray<T> values)
-        {
-            foreach (var v in values)
-                stack.Push(v);
-        }
+    public static void Push<T>(this Stack<T> stack, IEnumerable<T> values)
+    {
+        foreach (var v in values)
+            stack.Push(v);
+    }
 
-        internal static void PushReverse<T, U>(this Stack<T> stack, IList<U> range)
-            where U : T
-        {
-            Contract.ThrowIfNull(stack);
-            Contract.ThrowIfNull(range);
+    public static void Push<T>(this Stack<T> stack, HashSet<T> values)
+    {
+        foreach (var v in values)
+            stack.Push(v);
+    }
 
-            for (var i = range.Count - 1; i >= 0; i--)
-            {
-                stack.Push(range[i]);
-            }
+    public static void Push<T>(this Stack<T> stack, ImmutableArray<T> values)
+    {
+        foreach (var v in values)
+            stack.Push(v);
+    }
+
+    internal static void PushReverse<T, U>(this Stack<T> stack, IList<U> range)
+        where U : T
+    {
+        Contract.ThrowIfNull(stack);
+        Contract.ThrowIfNull(range);
+
+        for (var i = range.Count - 1; i >= 0; i--)
+        {
+            stack.Push(range[i]);
         }
     }
 }

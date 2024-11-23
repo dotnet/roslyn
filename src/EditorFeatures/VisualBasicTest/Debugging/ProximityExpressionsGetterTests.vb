@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
         ''' folder in this project.
         ''' </summary>
         Public Shared Async Function GenerateBaselineAsync() As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(GetTestFileContent())
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(GetTestFileContent())
                 Dim languageDebugInfo = New VisualBasicLanguageDebugInfoService()
 
                 Dim hostdoc = workspace.Documents.First()
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 
         Private Shared Async Function TestProximityExpressionsGetterAsync(markup As String,
                                                    continuation As Func(Of VisualBasicProximityExpressionsService, Document, Integer, Task)) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(markup)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(markup)
                 Dim testDocument = workspace.Documents.Single()
                 Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
@@ -221,7 +221,7 @@ End Module</text>.Value, "local", True)
             Dim caretPosition As Integer
             MarkupTestFile.GetPosition(input, parsedInput, caretPosition)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(parsedInput)
                 Dim service = New VisualBasicProximityExpressionsService()
                 Dim hostdoc = workspace.Documents.First()
                 Dim snapshot = hostdoc.GetTextBuffer().CurrentSnapshot

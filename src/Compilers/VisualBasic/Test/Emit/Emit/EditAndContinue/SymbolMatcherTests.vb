@@ -358,7 +358,6 @@ End Class
             Dim matcher = New VisualBasicSymbolMatcher(
                 synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -430,7 +429,6 @@ End Class
             Dim matcher = New VisualBasicSymbolMatcher(
                 synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -508,7 +506,6 @@ End Class
             Dim matcher = New VisualBasicSymbolMatcher(
                 synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)

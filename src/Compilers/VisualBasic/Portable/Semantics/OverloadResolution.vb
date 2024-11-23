@@ -710,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public NotInferredTypeArguments As BitVector
 
-            Public TypeArgumentInferenceDiagnosticsOpt As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            Public TypeArgumentInferenceDiagnosticsOpt As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(candidate As Candidate, state As CandidateAnalysisResultState)
                 Me.Candidate = candidate
@@ -2895,7 +2895,7 @@ Bailout:
                 If method.IsGenericMethod Then
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=useSiteInfo)
+                    Dim satisfiedConstraints = method.CheckConstraints(binder.Compilation.LanguageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=useSiteInfo)
                     diagnosticsBuilder.Free()
 
                     If useSiteDiagnosticsBuilder IsNot Nothing AndAlso useSiteDiagnosticsBuilder.Count > 0 Then

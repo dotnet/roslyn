@@ -1343,7 +1343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         {
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);
             var c = CSharpCompilation.Create("empty");
-            var state = new GeneratorDriverState(options,
+            var state = new GeneratorDriverState(
+                    options,
                     CompilerAnalyzerConfigOptionsProvider.Empty,
                     ImmutableArray<ISourceGenerator>.Empty,
                     ImmutableArray<IIncrementalGenerator>.Empty,
@@ -1351,10 +1352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
                     SyntaxStore.Empty,
-                    disabledOutputs: IncrementalGeneratorOutputKind.None,
-                    runtime: TimeSpan.Zero,
-                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps,
-                    parseOptionsChanged: false);
+                    driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps),
+                    runtime: TimeSpan.Zero);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }

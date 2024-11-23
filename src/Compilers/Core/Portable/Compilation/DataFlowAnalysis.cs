@@ -78,8 +78,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The set of the local variables that have been referenced in anonymous
-        /// functions within a region and therefore must be moved to a field of a frame class.
+        /// functions and therefore must be moved to a field of a frame class.
         /// </summary>
+        /// <remarks>
+        /// This is the union of <see cref="CapturedInside"/> and <see cref="CapturedOutside"/>.
+        /// </remarks>
         public abstract ImmutableArray<ISymbol> Captured { get; }
 
         /// <summary>

@@ -117,6 +117,11 @@
         <target state="translated">プロジェクト テレメトリ コレクション</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="translated">関連ドキュメント</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">名前の変更</target>
@@ -127,9 +132,19 @@
         <target state="translated">セマンティック分類</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">セマンティック検索</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">資産プロバイダー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">ソースの生成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

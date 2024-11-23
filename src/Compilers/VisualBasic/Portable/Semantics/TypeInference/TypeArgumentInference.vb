@@ -1998,7 +1998,7 @@ HandleAsAGeneralExpression:
 
                         Case BoundKind.UnboundLambda
                             ' Infer Anonymous Delegate type from unbound lambda.
-                            Dim inferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = DirectCast(argument, UnboundLambda).InferredAnonymousDelegate
+                            Dim inferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = DirectCast(argument, UnboundLambda).InferredAnonymousDelegate
 
                             If (inferredAnonymousDelegate.Value.Diagnostics.IsDefault OrElse Not inferredAnonymousDelegate.Value.Diagnostics.HasAnyErrors()) Then
 
@@ -2132,7 +2132,7 @@ HandleAsAGeneralExpression:
 
                             If unboundLambda.IsFunctionLambda Then
                                 Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
-                                Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferReturnType(inferenceSignature)
+                                Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferReturnType(inferenceSignature)
 
                                 If Not returnTypeInfo.Value.Diagnostics.IsDefault AndAlso returnTypeInfo.Value.Diagnostics.HasAnyErrors() Then
                                     lambdaReturnType = Nothing

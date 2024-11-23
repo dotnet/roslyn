@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     isNullableAnalysisEnabled: false,
                                                     isVarArg: baseMethod.IsVararg,
                                                     isExpressionBodied: false,
-                                                    isExplicitInterfaceImplementation: false)))
+                                                    isExplicitInterfaceImplementation: false,
+                                                    hasThisInitializer: false)))
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);

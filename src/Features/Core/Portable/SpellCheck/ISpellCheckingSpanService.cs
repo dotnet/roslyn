@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.SpellCheck
+namespace Microsoft.CodeAnalysis.SpellCheck;
+
+/// <summary>
+/// Service for individual languages to provide the regions of their code that should be spell checked.
+/// </summary>
+internal interface ISpellCheckSpanService : ILanguageService
 {
-    /// <summary>
-    /// Service for individual languages to provide the regions of their code that should be spell checked.
-    /// </summary>
-    internal interface ISpellCheckSpanService : ILanguageService
-    {
-        Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken);
 }

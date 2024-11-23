@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
-        private readonly bool _hasThisInitializer;
-
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConstructorDeclarationSyntax syntax,
@@ -32,10 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              bool isNullableAnalysisEnabled,
              BindingDiagnosticBag diagnostics) :
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax),
-                  MakeModifiersAndFlags(containingType, syntax, methodKind, isNullableAnalysisEnabled, location, diagnostics, out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers))
+                  MakeModifiersAndFlags(
+                      containingType, syntax, methodKind, isNullableAnalysisEnabled, syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer, location, diagnostics, out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers))
         {
-            _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
-
             this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
             if (report_ERR_StaticConstructorWithAccessModifiers)
@@ -81,14 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(
-            NamedTypeSymbol containingType, ConstructorDeclarationSyntax syntax, MethodKind methodKind, bool isNullableAnalysisEnabled, Location location, BindingDiagnosticBag diagnostics,
-            out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers)
+            NamedTypeSymbol containingType,
+            ConstructorDeclarationSyntax syntax,
+            MethodKind methodKind,
+            bool isNullableAnalysisEnabled,
+            bool hasThisInitializer,
+            Location location,
+            BindingDiagnosticBag diagnostics,
+            out bool modifierErrors,
+            out bool report_ERR_StaticConstructorWithAccessModifiers)
         {
             DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax, methodKind, syntax.HasAnyBody(), location, diagnostics, out modifierErrors, out report_ERR_StaticConstructorWithAccessModifiers);
             Flags flags = MakeFlags(
-                                    methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
-                                    isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false, isVarArg: syntax.IsVarArg(),
-                                    isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false);
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
+                isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false, isVarArg: syntax.IsVarArg(),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false,
+                hasThisInitializer: hasThisInitializer);
 
             return (declarationModifiers, flags);
         }
@@ -179,11 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsNullableAnalysisEnabled()
-        {
-            return _hasThisInitializer ?
-                flags.IsNullableAnalysisEnabled :
-                ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
-        }
+            => flags.HasThisInitializer
+                ? flags.IsNullableAnalysisEnabled
+                : ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
 
         protected override bool AllowRefOrOut
         {

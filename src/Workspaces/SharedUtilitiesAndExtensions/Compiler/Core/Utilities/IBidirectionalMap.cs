@@ -5,27 +5,26 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal interface IBidirectionalMap<TKey, TValue>
 {
-    internal interface IBidirectionalMap<TKey, TValue>
-    {
-        bool IsEmpty { get; }
+    bool IsEmpty { get; }
 
-        bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value);
-        bool TryGetKey(TValue value, [MaybeNullWhen(false)] out TKey key);
+    bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value);
+    bool TryGetKey(TValue value, [MaybeNullWhen(false)] out TKey key);
 
-        TValue? GetValueOrDefault(TKey key);
-        TKey? GetKeyOrDefault(TValue value);
+    TValue? GetValueOrDefault(TKey key);
+    TKey? GetKeyOrDefault(TValue value);
 
-        bool ContainsKey(TKey key);
-        bool ContainsValue(TValue value);
+    bool ContainsKey(TKey key);
+    bool ContainsValue(TValue value);
 
-        IBidirectionalMap<TKey, TValue> RemoveKey(TKey key);
-        IBidirectionalMap<TKey, TValue> RemoveValue(TValue value);
+    IBidirectionalMap<TKey, TValue> RemoveKey(TKey key);
+    IBidirectionalMap<TKey, TValue> RemoveValue(TValue value);
 
-        IBidirectionalMap<TKey, TValue> Add(TKey key, TValue value);
+    IBidirectionalMap<TKey, TValue> Add(TKey key, TValue value);
 
-        IEnumerable<TKey> Keys { get; }
-        IEnumerable<TValue> Values { get; }
-    }
+    IEnumerable<TKey> Keys { get; }
+    IEnumerable<TValue> Values { get; }
 }

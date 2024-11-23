@@ -4244,7 +4244,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(input)
+            Using workspace = EditorTestWorkspace.Create(input)
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim root = Await document.GetSyntaxRootAsync()

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class UserFunctionExtensions
     {
-        internal static Func<TInput, CancellationToken, TOutput> WrapUserFunction<TInput, TOutput>(this Func<TInput, CancellationToken, TOutput> userFunction)
+        internal static Func<TInput, CancellationToken, TOutput> WrapUserFunction<TInput, TOutput>(this Func<TInput, CancellationToken, TOutput> userFunction, bool catchAnalyzerExceptions)
         {
             return (input, token) =>
             {
@@ -65,19 +65,19 @@ namespace Microsoft.CodeAnalysis
                 {
                     return userFunction(input, token);
                 }
-                catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
+                catch (Exception e) when (catchAnalyzerExceptions && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }
             };
         }
 
-        internal static Func<TInput, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(this Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction)
+        internal static Func<TInput, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(this Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction, bool catchAnalyzerExceptions)
         {
-            return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArrayOrEmpty();
+            return (input, token) => userFunction.WrapUserFunction(catchAnalyzerExceptions)(input, token).ToImmutableArrayOrEmpty();
         }
 
-        internal static Action<TInput, CancellationToken> WrapUserAction<TInput>(this Action<TInput> userAction)
+        internal static Action<TInput, CancellationToken> WrapUserAction<TInput>(this Action<TInput> userAction, bool catchAnalyzerExceptions)
         {
             return (input, token) =>
             {
@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     userAction(input);
                 }
-                catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
+                catch (Exception e) when (catchAnalyzerExceptions && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }
             };
         }
 
-        internal static Action<TInput1, TInput2, CancellationToken> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userAction)
+        internal static Action<TInput1, TInput2, CancellationToken> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userAction, bool catchAnalyzerExceptions)
         {
             return (input1, input2, token) =>
             {
@@ -100,15 +100,20 @@ namespace Microsoft.CodeAnalysis
                 {
                     userAction(input1, input2);
                 }
-                catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
+                catch (Exception e) when (catchAnalyzerExceptions && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }
             };
         }
 
-        internal static IEqualityComparer<T> WrapUserComparer<T>(this IEqualityComparer<T> comparer)
+        internal static IEqualityComparer<T> WrapUserComparer<T>(this IEqualityComparer<T> comparer, bool catchAnalyzerExceptions)
         {
+            if (!catchAnalyzerExceptions)
+            {
+                return comparer;
+            }
+
             return new WrappedUserComparer<T>(comparer);
         }
     }

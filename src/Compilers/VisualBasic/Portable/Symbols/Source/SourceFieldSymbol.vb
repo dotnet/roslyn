@@ -32,8 +32,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyExpandedDocComment As String
         Private _lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        ' Set to 1 when the compilation event has been produced
-        Private _eventProduced As Integer
+        ''' <summary>
+        ''' See <see cref="StateFlags"/>
+        ''' </summary>
+        Protected _lazyState As Integer
+
+        <Flags>
+        Protected Enum StateFlags As Integer
+            TypeConstraintsChecked = &H1
+
+            EventProduced = &H2
+        End Enum
 
         Protected Sub New(container As SourceMemberContainerTypeSymbol,
                           syntaxRef As SyntaxReference,
@@ -51,15 +60,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_memberFlags = memberFlags
         End Sub
 
-        Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
+        Protected Overridable Sub GenerateDeclarationErrorsImpl(cancellationToken As CancellationToken)
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             Dim unusedType = Me.Type
             GetConstantValue(ConstantFieldsInProgress.Empty)
+        End Sub
+
+        Friend NotOverridable Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
+            GenerateDeclarationErrorsImpl(cancellationToken)
 
             ' We want declaration events to be last, after all compilation analysis is done, so we produce them here
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            If Interlocked.CompareExchange(_eventProduced, 1, 0) = 0 AndAlso Not Me.IsImplicitlyDeclared Then
+            If ThreadSafeFlagOperations.Set(_lazyState, StateFlags.EventProduced) AndAlso Not Me.IsImplicitlyDeclared Then
                 sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
         End Sub
@@ -720,13 +733,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
             Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasSpecialNameAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.NonSerializedAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.NonSerializedAttribute) Then
 
                 If Me.ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasNonSerializedAttribute = True
@@ -734,7 +747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.FieldOffsetAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.FieldOffsetAttribute) Then
                 Dim offset = attrData.CommonConstructorArguments(0).DecodeValue(Of Integer)(SpecialType.System_Int32)
                 If offset < 0 Then
                     diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
@@ -743,11 +756,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().SetFieldOffset(offset)
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonFieldWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Field, MessageProvider.Instance)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DateTimeConstantAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute) Then
                 VerifyConstantValueMatches(attrData.DecodeDateTimeConstantValue(), arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DecimalConstantAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DecimalConstantAttribute) Then
                 VerifyConstantValueMatches(attrData.DecodeDecimalConstantValue(), arguments)
             Else
                 MyBase.DecodeWellKnownAttribute(arguments)

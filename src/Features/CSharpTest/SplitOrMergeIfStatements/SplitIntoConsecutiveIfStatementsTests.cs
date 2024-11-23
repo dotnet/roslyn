@@ -11,22 +11,22 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
-{
-    [Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)]
-    public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeActionTest
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
 
-        [Theory]
-        [InlineData("a [||]|| b")]
-        [InlineData("a |[||]| b")]
-        [InlineData("a ||[||] b")]
-        [InlineData("a [||||] b")]
-        public async Task SplitOnOrOperatorSpans(string condition)
-        {
-            await TestInRegularAndScriptAsync(
+[Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)]
+public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeActionTest_NoEditor
+{
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider();
+
+    [Theory]
+    [InlineData("a [||]|| b")]
+    [InlineData("a |[||]| b")]
+    [InlineData("a ||[||] b")]
+    [InlineData("a [||||] b")]
+    public async Task SplitOnOrOperatorSpans(string condition)
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Theory]
-        [InlineData("a [|||]| b")]
-        [InlineData("a[| |||] b")]
-        [InlineData("a[||] || b")]
-        public async Task NotSplitOnOrOperatorSpans(string condition)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory]
+    [InlineData("a [|||]| b")]
+    [InlineData("a[| |||] b")]
+    [InlineData("a[||] || b")]
+    public async Task NotSplitOnOrOperatorSpans(string condition)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitOnIfKeyword()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitOnIfKeyword()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitOnAndOperator()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitOnAndOperator()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitOnBitwiseOrOperator()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitOnBitwiseOrOperator()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitOnOrOperatorOutsideIfStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitOnOrOperatorOutsideIfStatement()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         var v = a [||]|| b;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitOnOrOperatorInIfStatementBody()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitOnOrOperatorInIfStatementBody()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
             a [||]|| b;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithChainedOrExpression1()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithChainedOrExpression1()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithChainedOrExpression2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithChainedOrExpression2()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -192,12 +192,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithChainedOrExpression3()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithChainedOrExpression3()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitInsideParentheses1()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitInsideParentheses1()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -234,12 +234,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitInsideParentheses2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitInsideParentheses2()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -249,12 +249,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitInsideParentheses3()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitInsideParentheses3()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -264,12 +264,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithOtherExpressionInsideParentheses1()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithOtherExpressionInsideParentheses1()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -291,12 +291,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithOtherExpressionInsideParentheses2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithOtherExpressionInsideParentheses2()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -318,12 +318,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithMixedAndExpression1()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithMixedAndExpression1()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -345,12 +345,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithMixedAndExpression2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithMixedAndExpression2()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -372,12 +372,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitWithMixedConditionalExpression1()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitWithMixedConditionalExpression1()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -387,12 +387,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotSplitWithMixedConditionalExpression2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotSplitWithMixedConditionalExpression2()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -402,12 +402,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithMixedConditionalExpressionInsideParentheses1()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithMixedConditionalExpressionInsideParentheses1()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -429,12 +429,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithMixedConditionalExpressionInsideParentheses2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithMixedConditionalExpressionInsideParentheses2()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -456,12 +456,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithStatementInsideBlock()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithStatementInsideBlock()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -486,12 +486,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithStatementWithoutBlock()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithStatementWithoutBlock()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -510,12 +510,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
             System.Console.WriteLine(a || b);
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithNestedIfStatement()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithNestedIfStatement()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -536,12 +536,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
             if (true) { }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithNestedIfStatementInWhileLoop()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithNestedIfStatementInWhileLoop()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -568,48 +568,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
                     using (null) { }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithNestedIfStatementInsideBlockInWhileLoop()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithNestedIfStatementInsideBlockInWhileLoop()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
     {
         if (a [||]|| b)
-            while (a)
-            {
-                if (true)
-                    using (null) { }
-            }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            while (a)
-            {
-                if (true)
-                    using (null) { }
-            }
-        else if (b)
             while (a)
             {
                 if (true)
                     using (null) { }
             }
     }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            while (a)
+            {
+                if (true)
+                    using (null) { }
+            }
+        else if (b)
+            while (a)
+            {
+                if (true)
+                    using (null) { }
+            }
+    }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithNestedIfStatementInsideBlock()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithNestedIfStatementInsideBlock()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -634,12 +634,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithMissingStatement()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithMissingStatement()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -655,12 +655,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 else if (b)
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithElseStatementInsideBlock()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithElseStatementInsideBlock()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -687,12 +687,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithElseStatementWithoutBlock()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithElseStatementWithoutBlock()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -715,12 +715,12 @@ else if (b)
             System.Console.WriteLine(a || b);
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithElseNestedIfStatement()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithElseNestedIfStatement()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -741,12 +741,12 @@ else if (b)
         else if (true) { }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithElseIfElse()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithElseIfElse()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -773,12 +773,12 @@ else if (b)
             System.Console.WriteLine(b);
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitAsPartOfElseIfElse()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitAsPartOfElseIfElse()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -805,12 +805,12 @@ else if (b)
             System.Console.WriteLine(b);
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithMissingElseStatement()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithMissingElseStatement()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -831,12 +831,12 @@ else if (b)
         else
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitWithPreservedSingleLineFormatting()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitWithPreservedSingleLineFormatting()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -852,12 +852,12 @@ else if (b)
         else if (b) System.Console.WriteLine();
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuits1()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuits1()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -876,12 +876,12 @@ else if (b)
             return;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuits2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuits2()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -900,12 +900,12 @@ else if (b)
             throw new System.Exception();
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuits3()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuits3()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -930,12 +930,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuits4()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuits4()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -976,12 +976,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuits5()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuits5()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1019,13 +1019,13 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuitsInSwitchSection()
-        {
-            // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuitsInSwitchSection()
+    {
+        // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1054,13 +1054,13 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithNestedIfStatement()
-        {
-            // No need to create a block if we're not adding an else clause.
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithNestedIfStatement()
+    {
+        // No need to create a block if we're not adding an else clause.
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1082,12 +1082,12 @@ else if (b)
                 return;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithPreservedSingleLineFormatting()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithPreservedSingleLineFormatting()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1103,15 +1103,15 @@ else if (b)
         if (b) return;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues1()
-        {
-            // Even though there are no statements inside, we still can't split this into separate statements
-            // because it would change the semantics from short-circuiting to always evaluating the second condition,
-            // breaking code like 'if (a == null || a.InstanceMethod())'.
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues1()
+    {
+        // Even though there are no statements inside, we still can't split this into separate statements
+        // because it would change the semantics from short-circuiting to always evaluating the second condition,
+        // breaking code like 'if (a == null || a.InstanceMethod())'.
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1133,12 +1133,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues2()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1166,12 +1166,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1199,12 +1199,12 @@ else if (b)
             }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues4()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues4()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1241,12 +1241,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1269,12 +1269,12 @@ else if (b)
             return;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1297,12 +1297,12 @@ else if (b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task SplitNotIntoSeparateStatementsAsElseIfIfControlFlowQuits()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task SplitNotIntoSeparateStatementsAsElseIfIfControlFlowQuits()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1325,6 +1325,5 @@ else if (b)
             return;
     }
 }");
-        }
     }
 }

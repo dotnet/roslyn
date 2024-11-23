@@ -96,6 +96,11 @@
         <target state="translated">Kodunuzda kullanılmayan parametreler bulundurmamaya çalışın. Parametre kaldırılamıyorsa adını, bir alt çizgiyle başlayacak ve ardından isteğe bağlı olarak bir tamsayı gelecek ('_', '_1', '_2' gibi) şekilde değiştirin. Bu değerler özel atılabilir sembol adı olarak işlenir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="translated">Temel sınıflarda erişilemeyen, uygulanmamış üyeler var</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
         <target state="translated">Blok ve sonraki ifade arasında boş satır gerekir</target>
@@ -144,6 +149,16 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">'GetHashCode' uygulaması basitleştirilebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="translated">Soyut sınıfı uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="translated">'{0}' aracılığıyla uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

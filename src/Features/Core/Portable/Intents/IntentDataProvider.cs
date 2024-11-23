@@ -5,44 +5,38 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.CodeAnalysis.Features.Intents
+namespace Microsoft.CodeAnalysis.Features.Intents;
+
+internal sealed class IntentDataProvider(
+    string? serializedIntentData)
 {
-    internal sealed class IntentDataProvider(
-        string? serializedIntentData,
-        CleanCodeGenerationOptionsProvider fallbackOptions)
+    private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
     {
-        private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
+        var serializerOptions = new JsonSerializerOptions
         {
-            var serializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            serializerOptions.Converters.Add(new JsonStringEnumConverter());
-            return serializerOptions;
-        });
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+        serializerOptions.Converters.Add(new JsonStringEnumConverter());
+        return serializerOptions;
+    });
 
-        public readonly CleanCodeGenerationOptionsProvider FallbackOptions = fallbackOptions;
+    private readonly string? _serializedIntentData = serializedIntentData;
 
-        private readonly string? _serializedIntentData = serializedIntentData;
-
-        public T? GetIntentData<T>() where T : class
+    public T? GetIntentData<T>() where T : class
+    {
+        if (_serializedIntentData != null)
         {
-            if (_serializedIntentData != null)
+            try
             {
-                try
-                {
-                    return JsonSerializer.Deserialize<T>(_serializedIntentData, s_serializerOptions.Value);
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-                {
-                }
+                return JsonSerializer.Deserialize<T>(_serializedIntentData, s_serializerOptions.Value);
             }
-
-            return null;
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+            }
         }
+
+        return null;
     }
 }

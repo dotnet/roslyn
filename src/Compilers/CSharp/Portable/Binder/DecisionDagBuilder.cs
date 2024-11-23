@@ -645,32 +645,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            var builder = ArrayBuilder<Tests>.GetInstance(2);
-            if (bin.Disjunction)
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+            var binaryPatternStack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            var currentNode = bin;
+
+            do
             {
-                builder.Add(MakeTestsAndBindings(input, bin.Left, bindings));
-                builder.Add(MakeTestsAndBindings(input, bin.Right, bindings));
-                var result = Tests.OrSequence.Create(builder);
-                if (bin.InputType.Equals(bin.NarrowedType))
+                binaryPatternStack.Push(currentNode);
+                currentNode = currentNode.Left as BoundBinaryPattern;
+            } while (currentNode != null);
+
+            currentNode = binaryPatternStack.Pop();
+            Tests result = MakeTestsAndBindings(input, currentNode.Left, out output, bindings);
+
+            do
+            {
+                result = makeTestsAndBindingsForBinaryPattern(this, result, output, input, currentNode, out output, bindings);
+            } while (binaryPatternStack.TryPop(out currentNode));
+
+            binaryPatternStack.Free();
+
+            return result;
+
+            static Tests makeTestsAndBindingsForBinaryPattern(DecisionDagBuilder @this, Tests leftTests, BoundDagTemp leftOutput, BoundDagTemp input, BoundBinaryPattern bin, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+            {
+                var builder = ArrayBuilder<Tests>.GetInstance(2);
+                if (bin.Disjunction)
                 {
-                    output = input;
-                    return result;
+                    builder.Add(leftTests);
+                    builder.Add(@this.MakeTestsAndBindings(input, bin.Right, bindings));
+                    var result = Tests.OrSequence.Create(builder);
+                    if (bin.InputType.Equals(bin.NarrowedType))
+                    {
+                        output = input;
+                        return result;
+                    }
+                    else
+                    {
+                        builder = ArrayBuilder<Tests>.GetInstance(2);
+                        builder.Add(result);
+                        output = @this.MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                        return Tests.AndSequence.Create(builder);
+                    }
                 }
                 else
                 {
-                    builder = ArrayBuilder<Tests>.GetInstance(2);
-                    builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                    builder.Add(leftTests);
+                    builder.Add(@this.MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
+                    output = rightOutput;
+                    Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
                     return Tests.AndSequence.Create(builder);
                 }
-            }
-            else
-            {
-                builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
-                builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
-                output = rightOutput;
-                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
-                return Tests.AndSequence.Create(builder);
             }
         }
 
@@ -679,10 +705,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
-            Debug.Assert(rel.Value.Type is not null);
+            var type = rel.Value.Type ?? input.Type;
+            Debug.Assert(type is { });
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
             var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
@@ -1691,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder.Append(" BIND[");
                         builder.Append(string.Join("; ", bindings));
-                        builder.Append("]");
+                        builder.Append(']');
                     }
 
                     if (cd.WhenClause is { })

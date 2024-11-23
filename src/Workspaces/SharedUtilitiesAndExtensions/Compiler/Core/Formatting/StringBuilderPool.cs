@@ -4,20 +4,19 @@
 
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal static class StringBuilderPool
 {
-    internal static class StringBuilderPool
+    public static StringBuilder Allocate()
+        => SharedPools.Default<StringBuilder>().AllocateAndClear();
+
+    public static void Free(StringBuilder builder)
+        => SharedPools.Default<StringBuilder>().ClearAndFree(builder);
+
+    public static string ReturnAndFree(StringBuilder builder)
     {
-        public static StringBuilder Allocate()
-            => SharedPools.Default<StringBuilder>().AllocateAndClear();
-
-        public static void Free(StringBuilder builder)
-            => SharedPools.Default<StringBuilder>().ClearAndFree(builder);
-
-        public static string ReturnAndFree(StringBuilder builder)
-        {
-            SharedPools.Default<StringBuilder>().ForgetTrackedObject(builder);
-            return builder.ToString();
-        }
+        SharedPools.Default<StringBuilder>().ForgetTrackedObject(builder);
+        return builder.ToString();
     }
 }

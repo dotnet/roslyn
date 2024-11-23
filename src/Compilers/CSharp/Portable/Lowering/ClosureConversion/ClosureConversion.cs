@@ -17,6 +17,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -101,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The "this" symbol for the current method.
         private ParameterSymbol _currentFrameThis;
 
-        private readonly ArrayBuilder<LambdaDebugInfo> _lambdaDebugInfoBuilder;
+        private readonly ArrayBuilder<EncLambdaInfo> _lambdaDebugInfoBuilder;
+        private readonly ArrayBuilder<LambdaRuntimeRudeEditInfo> _lambdaRuntimeRudeEditsBuilder;
 
         // ID dispenser for field names of frame references
         private int _synthesizedFieldNameIdDispenser;
@@ -154,16 +156,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ClosureConversion(
             Analysis analysis,
             NamedTypeSymbol thisType,
-            ParameterSymbol thisParameterOpt,
+            ParameterSymbol? thisParameter,
             MethodSymbol method,
             int methodOrdinal,
             MethodSymbol substitutedSourceMethod,
-            ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            ArrayBuilder<EncLambdaInfo> lambdaDebugInfoBuilder,
+            ArrayBuilder<LambdaRuntimeRudeEditInfo> lambdaRuntimeRudeEditsBuilder,
+            VariableSlotAllocator? slotAllocator,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
-            : base(slotAllocatorOpt, compilationState, diagnostics)
+            : base(slotAllocator, compilationState, diagnostics)
         {
             RoslynDebug.Assert(analysis != null);
             RoslynDebug.Assert((object)thisType != null);
@@ -175,13 +178,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _substitutedSourceMethod = substitutedSourceMethod;
             _topLevelMethodOrdinal = methodOrdinal;
             _lambdaDebugInfoBuilder = lambdaDebugInfoBuilder;
+            _lambdaRuntimeRudeEditsBuilder = lambdaRuntimeRudeEditsBuilder;
             _currentMethod = method;
             _analysis = analysis;
             _assignLocals = assignLocals;
             _currentTypeParameters = method.TypeParameters;
             _currentLambdaBodyTypeMap = TypeMap.Empty;
-            _innermostFramePointer = _currentFrameThis = thisParameterOpt;
-            _framePointers[thisType] = thisParameterOpt;
+            _innermostFramePointer = _currentFrameThis = thisParameter;
+            _framePointers[thisType] = thisParameter;
             _seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
             _synthesizedFieldNameIdDispenser = 1;
 
@@ -192,8 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             });
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
-
-#nullable disable
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -215,35 +217,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="methodOrdinal">Index of the method symbol in its containing type member list.</param>
         /// <param name="substitutedSourceMethod">If this is non-null, then <paramref name="method"/> will be treated as this for uses of parent symbols. For use in EE.</param>
         /// <param name="lambdaDebugInfoBuilder">Information on lambdas defined in <paramref name="method"/> needed for debugging.</param>
+        /// <param name="lambdaRuntimeRudeEditsBuilder">EnC rude edit information on lambdas defined in <paramref name="method"/>.</param>
         /// <param name="closureDebugInfoBuilder">Information on closures defined in <paramref name="method"/> needed for debugging.</param>
-        /// <param name="slotAllocatorOpt">Slot allocator.</param>
+        /// <param name="slotAllocator">Slot allocator.</param>
         /// <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics</param>
         /// <param name="assignLocals">The set of original locals that should be assigned to proxies if lifted</param>
         public static BoundStatement Rewrite(
             BoundStatement loweredBody,
             NamedTypeSymbol thisType,
-            ParameterSymbol thisParameter,
+            ParameterSymbol? thisParameter,
             MethodSymbol method,
             int methodOrdinal,
             MethodSymbol substitutedSourceMethod,
-            ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
-            ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            ArrayBuilder<EncLambdaInfo> lambdaDebugInfoBuilder,
+            ArrayBuilder<LambdaRuntimeRudeEditInfo> lambdaRuntimeRudeEditsBuilder,
+            ArrayBuilder<EncClosureInfo> closureDebugInfoBuilder,
+            VariableSlotAllocator? slotAllocator,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
         {
-            Debug.Assert((object)thisType != null);
-            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
+            Debug.Assert(thisType is not null);
+            Debug.Assert(thisParameter is null || TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
-            Debug.Assert(diagnostics.DiagnosticBag is object);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             var analysis = Analysis.Analyze(
                 loweredBody,
                 method,
                 methodOrdinal,
-                slotAllocatorOpt,
+                slotAllocator,
                 compilationState,
                 diagnostics.DiagnosticBag);
 
@@ -256,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodOrdinal,
                 substitutedSourceMethod,
                 lambdaDebugInfoBuilder,
-                slotAllocatorOpt,
+                lambdaRuntimeRudeEditsBuilder,
+                slotAllocator,
                 compilationState,
                 diagnostics,
                 assignLocals);
@@ -287,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return body;
         }
-
+#nullable disable
         private BoundStatement AddStatementsIfNeeded(BoundStatement body)
         {
             if (_addedLocals != null)
@@ -330,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Adds <see cref="SynthesizedClosureEnvironment"/> synthesized types to the compilation state
         /// and creates hoisted fields for all locals captured by the environments.
         /// </summary>
-        private void SynthesizeClosureEnvironments(ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+        private void SynthesizeClosureEnvironments(ArrayBuilder<EncClosureInfo> closureDebugInfo)
         {
             Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
             {
@@ -363,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(syntax != null);
 
                 DebugId methodId = _analysis.GetTopLevelMethodId();
-                DebugId closureId = _analysis.GetClosureId(syntax, closureDebugInfo);
+                DebugId closureId = _analysis.GetClosureId(env, syntax, closureDebugInfo, out var rudeEdit);
 
                 var containingMethod = scope.ContainingFunctionOpt?.OriginalMethodSymbol ?? _topLevelMethod;
                 if ((object)_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
@@ -377,7 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     env.IsStruct,
                     syntax,
                     methodId,
-                    closureId);
+                    closureId,
+                    rudeEdit);
 
                 foreach (var captured in env.CapturedVariables)
                 {
@@ -413,10 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nestedFunction.ContainingEnvironmentOpt != null)
                 {
                     containerAsFrame = nestedFunction.ContainingEnvironmentOpt.SynthesizedEnvironment;
+                    translatedLambdaContainer = containerAsFrame;
 
                     closureKind = ClosureKind.General;
-                    translatedLambdaContainer = containerAsFrame;
-                    closureOrdinal = containerAsFrame.ClosureOrdinal;
+                    closureOrdinal = containerAsFrame.ClosureId.Ordinal;
                 }
                 else if (nestedFunction.CapturesThis)
                 {
@@ -442,8 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Lower directly onto the containing type
-                    translatedLambdaContainer = _topLevelMethod.ContainingType;
                     containerAsFrame = null;
+                    translatedLambdaContainer = _topLevelMethod.ContainingType;
                     closureKind = ClosureKind.Static;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
@@ -451,13 +457,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)translatedLambdaContainer != _topLevelMethod.ContainingType ||
                              VarianceSafety.GetEnclosingVariantInterface(_topLevelMethod) is null);
 
+                var structEnvironments = getStructEnvironments(nestedFunction);
+
                 // Move the body of the lambda to a freshly generated synthetic method on its frame.
                 topLevelMethodId = _analysis.GetTopLevelMethodId();
-                lambdaId = GetLambdaId(syntax, closureKind, closureOrdinal);
+                lambdaId = GetLambdaId(syntax, closureKind, closureOrdinal, structEnvironments.SelectAsArray(e => e.ClosureId), containerAsFrame?.RudeEdit);
 
                 var synthesizedMethod = new SynthesizedClosureMethod(
                     translatedLambdaContainer,
-                    getStructEnvironments(nestedFunction),
+                    structEnvironments,
                     closureKind,
                     _topLevelMethod,
                     topLevelMethodId,
@@ -515,7 +523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methodId = _analysis.GetTopLevelMethodId();
                     }
 
-                    DebugId closureId = default(DebugId);
                     // using _topLevelMethod as containing member because the static frame does not have generic parameters, except for the top level method's
                     var containingMethod = isNonGeneric ? null : (_substitutedSourceMethod ?? _topLevelMethod);
                     _lazyStaticLambdaFrame = new SynthesizedClosureEnvironment(
@@ -524,7 +531,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isStruct: false,
                         scopeSyntaxOpt: null,
                         methodId: methodId,
-                        closureId: closureId);
+                        closureId: default,
+                        rudeEdit: null);
 
                     // non-generic static lambdas can share the frame
                     if (isNonGeneric)
@@ -614,7 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, frame pointer local variables themselves can be "captured".  In that case
                 // the inner frames contain pointers to the enclosing frames.  That is, nested
                 // frame pointers are organized in a linked list.
-                return proxyField.Replacement(syntax, frameType => FramePointer(syntax, frameType));
+                return proxyField.Replacement(
+                    syntax,
+                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
+                    (syntax, self: this));
             }
 
             var localFrame = (LocalSymbol)framePointer;
@@ -769,7 +780,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
+                var left = proxy.Replacement(
+                    syntax,
+                    static (frameType1, arg) => new BoundLocal(arg.syntax, arg.framePointer, null, arg.framePointer.Type),
+                    (syntax, framePointer));
+
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
@@ -1173,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var newPrologue = (BoundStatement)Visit(newInstrumentation.Prologue);
                 var newEpilogue = (BoundStatement)Visit(newInstrumentation.Epilogue);
-                newInstrumentation = newInstrumentation.Update(newInstrumentation.Local, newPrologue, newEpilogue);
+                newInstrumentation = newInstrumentation.Update(newInstrumentation.Locals, newPrologue, newEpilogue);
             }
 
             // TODO: we may not need to update if there was nothing to rewrite.
@@ -1420,12 +1435,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundNoOpStatement(node.Syntax, NoOpStatementFlavor.Default);
         }
-
-        private DebugId GetLambdaId(SyntaxNode syntax, ClosureKind closureKind, int closureOrdinal)
+#nullable enable
+        private DebugId GetLambdaId(SyntaxNode syntax, ClosureKind closureKind, int closureOrdinal, ImmutableArray<DebugId> structClosureIds, RuntimeRudeEdit? closureRudeEdit)
         {
             Debug.Assert(syntax != null);
+            Debug.Assert(CompilationState.ModuleBuilderOpt != null);
+            Debug.Assert(closureOrdinal >= LambdaDebugInfo.MinClosureOrdinal);
 
-            SyntaxNode lambdaOrLambdaBodySyntax;
+            SyntaxNode? lambdaOrLambdaBodySyntax;
             bool isLambdaBody;
 
             if (syntax is AnonymousFunctionExpressionSyntax anonymousFunction)
@@ -1435,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (syntax is LocalFunctionStatementSyntax localFunction)
             {
-                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
+                lambdaOrLambdaBodySyntax = (SyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
 
                 if (lambdaOrLambdaBodySyntax is null)
                 {
@@ -1466,21 +1483,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             // determine lambda ordinal and calculate syntax offset
 
             DebugId lambdaId;
-            DebugId previousLambdaId;
-            if (slotAllocatorOpt != null && slotAllocatorOpt.TryGetPreviousLambda(lambdaOrLambdaBodySyntax, isLambdaBody, out previousLambdaId))
+            DebugId previousLambdaId = default;
+            RuntimeRudeEdit? lambdaRudeEdit = null;
+
+            if (closureRudeEdit == null &&
+                slotAllocator?.TryGetPreviousLambda(lambdaOrLambdaBodySyntax, isLambdaBody, closureOrdinal, structClosureIds, out previousLambdaId, out lambdaRudeEdit) == true &&
+                lambdaRudeEdit == null)
             {
                 lambdaId = previousLambdaId;
             }
             else
             {
                 lambdaId = new DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+
+                var rudeEdit = closureRudeEdit ?? lambdaRudeEdit;
+                if (rudeEdit != null)
+                {
+                    _lambdaRuntimeRudeEditsBuilder.Add(new LambdaRuntimeRudeEditInfo(previousLambdaId, rudeEdit.Value));
+                }
             }
 
             int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(lambdaOrLambdaBodySyntax), lambdaOrLambdaBodySyntax.SyntaxTree);
-            _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal));
+            _lambdaDebugInfoBuilder.Add(new EncLambdaInfo(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal), structClosureIds));
             return lambdaId;
         }
-
+#nullable disable
         private SynthesizedClosureMethod RewriteLambdaOrLocalFunction(
             IBoundLambdaOrFunction node,
             out ClosureKind closureKind,

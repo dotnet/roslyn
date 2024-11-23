@@ -2,15 +2,12 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);netstandard2.0</TargetFrameworks>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-    <!-- System.Collections.Immutable 7.0.0 does not support netcoreapp3.1 -->
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -22,15 +19,13 @@
     </PackageDescription>
     <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
-    <!-- It's fine to suppress since this is a source package -->
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
   <ItemGroup>
     <!-- ⚠ Consuming projects outside dotnet/roslyn will be required to manually reproduce the APIs for any linked files added here -->
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" />

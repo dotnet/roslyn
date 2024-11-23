@@ -2082,7 +2082,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedSignatures: new SignatureDescription[]
             {
                 Signature("C", "Main", ".method public hidebysig static System.Void Main() cil managed"),
@@ -6300,13 +6300,13 @@ public class Program
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = default)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: options);
             return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim condition As BoundExpression = Visit(node.Condition)
             Dim whenTrue As BoundExpression = Visit(node.WhenTrue)
             Dim whenFalse As BoundExpression = Visit(node.WhenFalse)
-            Return ConvertRuntimeHelperToExpressionTree("Condition", condition, whenTrue, whenFalse)
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Condition, condition, whenTrue, whenFalse)
         End Function
 
         Private Function VisitBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundExpression
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If convTestExpr Is Nothing OrElse resultType.IsSameTypeIgnoringAll(testExpressionType) OrElse
                     (testExpressionType.IsNullableType AndAlso resultType.IsSameTypeIgnoringAll(testExpressionType.GetNullableUnderlyingType)) Then
-                Return ConvertRuntimeHelperToExpressionTree("Coalesce", rewrittenTestExpression, rewrittenElseExpression)
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Coalesce, rewrittenTestExpression, rewrittenElseExpression)
             End If
 
             Select Case convTestExpr.Kind
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim paramSymbol As ParameterSymbol = CreateCoalesceLambdaParameterSymbol(testExpressionType)
                     Dim lambdaBody As BoundExpression = BuildLambdaBodyForCoalesce(conversion, resultType, paramSymbol, conversion.Checked)
                     Dim coalesceLambda As BoundExpression = BuildLambdaForCoalesceCall(resultType, paramSymbol, lambdaBody)
-                    Return ConvertRuntimeHelperToExpressionTree("Coalesce", rewrittenTestExpression, rewrittenElseExpression, coalesceLambda)
+                    Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Coalesce_Lambda, rewrittenTestExpression, rewrittenElseExpression, coalesceLambda)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(convTestExpr.Kind)
@@ -74,7 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim paramLocalSymbol As LocalSymbol = Me._factory.SynthesizedLocal(parameterExpressionType)
             Dim parameterReference As BoundLocal = Me._factory.Local(paramLocalSymbol, True)
-            Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](lambdaParameter.Type), _factory.Literal(s_coalesceLambdaParameterName))
+            Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree(
+                WellKnownMember.System_Linq_Expressions_Expression__Parameter,
+                _factory.[Typeof](lambdaParameter.Type, _factory.WellKnownType(WellKnownType.System_Type)),
+                _factory.Literal(s_coalesceLambdaParameterName))
 
             Me._parameterMap(lambdaParameter) = parameterReference.MakeRValue
             Dim convertedValue As BoundExpression = Visit(body)
@@ -86,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      ImmutableArray.Create(Of BoundExpression)(
                                          Me._factory.AssignmentExpression(parameterReference, parameter)),
                                      ConvertRuntimeHelperToExpressionTree(
-                                         "Lambda",
+                                         WellKnownMember.System_Linq_Expressions_Expression__Lambda,
                                          convertedValue,
                                          Me._factory.Array(
                                              parameterExpressionType,

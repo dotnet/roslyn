@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +9,9 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -40,7 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     textSpan = ProtocolConversions.RangeToTextSpan(range, text);
                 }
 
-                var options = new XamlFormattingOptions { InsertSpaces = formattingOptions.InsertSpaces, TabSize = formattingOptions.TabSize, OtherOptions = formattingOptions.OtherOptions };
+                var options = new XamlFormattingOptions
+                {
+                    InsertSpaces = formattingOptions.InsertSpaces,
+                    TabSize = formattingOptions.TabSize,
+                    OtherOptions = formattingOptions.OtherOptions?.AsUntyped()
+                };
                 var textChanges = await formattingService.GetFormattingChangesAsync(document, options, textSpan, cancellationToken).ConfigureAwait(false);
                 edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
             }

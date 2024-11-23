@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
@@ -46,7 +45,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -66,16 +65,16 @@ class C
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(78, mockDocumentNavigationService._position)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(121, mockDocumentNavigationService._position)
             End Using
         End Function
 
@@ -89,7 +88,7 @@ int y = x$$</Document>
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()
@@ -108,8 +107,8 @@ int y = x$$</Document>
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(4, 1), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(4, mockDocumentNavigationService._position)
                 Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
             End Using
         End Function
@@ -134,7 +133,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()
@@ -158,8 +157,8 @@ class C
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(22, 1), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(22, mockDocumentNavigationService._position)
                 Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
             End Using
         End Function

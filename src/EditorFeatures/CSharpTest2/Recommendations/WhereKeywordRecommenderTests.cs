@@ -195,6 +195,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
+        public async Task TestAfterPreviousAllowsRefStructConstraint_01()
+        {
+            await VerifyKeywordAsync(
+@"class C<T> where T : allows ref struct $$");
+        }
+
+        [Fact]
+        public async Task TestAfterPreviousAllowsRefStructConstraint_02()
+        {
+            await VerifyKeywordAsync(
+@"class C { void M<T>() where T : allows ref struct $$");
+        }
+
+        [Fact]
         public async Task TestAfterPreviousConstraint()
         {
             await VerifyKeywordAsync(
@@ -629,6 +643,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 public class C<T> where T : List<(int, string)> $$
                 {
                 }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72821")]
+        public async Task TestNotAfterLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C
+                {
+                    void M<T>()
+                    {
+                        void Inner() $$
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72821")]
+        public async Task TestAfterGenericLocalFunction()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    void M<T>()
+                    {
+                        void Inner<T1>() $$
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72821")]
+        public async Task TestAfterFirstValidConstraintInGenericLocalFunction()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    void M<T>()
+                    {
+                        void Inner<T1, T2>()
+                            where T1 : C
+                            $$
                 """);
         }
     }

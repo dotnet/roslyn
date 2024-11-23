@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
@@ -18,15 +19,15 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class CommentTests : AbstractSyntaxStructureProviderTests
+public class CommentStructureTests : AbstractSyntaxStructureProviderTests
 {
     protected override string LanguageName => LanguageNames.CSharp;
 
     private static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
         SyntaxTriviaList triviaList)
     {
-        using var result = TemporaryArray<BlockSpan>.Empty;
-        CSharpStructureHelpers.CollectCommentBlockSpans(triviaList, ref result.AsRef());
+        using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var result);
+        CSharpStructureHelpers.CollectCommentBlockSpans(triviaList, result);
         return result.ToImmutableAndClear();
     }
 

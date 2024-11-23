@@ -100,7 +100,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemidInsertionPoint,
                 useHandlesClause:=True,
                 additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
-                GlobalOptions,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1

@@ -818,7 +818,7 @@
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}': {1}</value>
   </data>
-  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+  <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_OverrideNotNeeded3" xml:space="preserve">
@@ -2784,6 +2784,9 @@
   <data name="ERR_BadTypeArgForStructConstraint2" xml:space="preserve">
     <value>Type argument '{0}' does not satisfy the 'Structure' constraint for type parameter '{1}'.</value>
   </data>
+  <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
+    <value>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</value>
+  </data>
   <data name="ERR_BadTypeArgForRefConstraint2" xml:space="preserve">
     <value>Type argument '{0}' does not satisfy the 'Class' constraint for type parameter '{1}'.</value>
   </data>
@@ -4386,7 +4389,7 @@
     <value>The specified version string does not conform to the recommended format</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="ERR_InvalidAssemblyCultureForExe" xml:space="preserve">
     <value>Executables cannot be satellite assemblies; culture should always be empty</value>
@@ -5541,7 +5544,7 @@
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
-    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+    <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</value>
   </data>
   <data name="IConversionExpressionIsNotVisualBasicConversion" xml:space="preserve">
     <value>{0} is not a valid Visual Basic conversion expression</value>
@@ -5626,6 +5629,9 @@
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
   </data>
+  <data name="FEATURE_UnmanagedConstraint" xml:space="preserve">
+    <value>recognizing 'unmanaged' constraint</value>
+  </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</value>
   </data>
@@ -5691,5 +5697,23 @@
   </data>
   <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
     <value>'{0}' is defined in assembly '{1}'.</value>
+  </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
+  </data>
+  <data name="ERR_LockTypeUnsupported" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</value>
+  </data>
+  <data name="WRN_ConvertingLock" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
+  <data name="WRN_ConvertingLock_Title" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+  </data>
+  <data name="ERR_TypeReserved" xml:space="preserve">
+    <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
 </root>

@@ -5,11 +5,10 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Rename
+namespace Microsoft.CodeAnalysis.Rename;
+
+internal interface IRenameIssuesService : ILanguageService
 {
-    internal interface IRenameIssuesService : ILanguageService
-    {
-        bool CheckLanguageSpecificIssues(
-            SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
-    }
+    bool CheckLanguageSpecificIssues(
+        SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
 }

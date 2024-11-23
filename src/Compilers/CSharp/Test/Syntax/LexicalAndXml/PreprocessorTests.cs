@@ -2426,7 +2426,7 @@ class A { } #define XXX
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement); // CS1040
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" });
+            VerifyDirectivesSpecial(node);
         }
 
         [Fact]
@@ -2587,7 +2587,7 @@ class A { } #undef XXX
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" });
+            VerifyDirectivesSpecial(node);
         }
 
         [Fact]
@@ -3222,9 +3222,9 @@ class A { }
         [Theory]
         [InlineData(LanguageVersion.CSharp4, "4")]
         [InlineData(LanguageVersion.CSharp9, "9.0")]
-        [InlineData(LanguageVersion.Latest, "latest (12.0)")]
-        [InlineData(LanguageVersion.LatestMajor, "latestmajor (12.0)")]
-        [InlineData(LanguageVersion.Default, "default (12.0)")]
+        [InlineData(LanguageVersion.Latest, "latest (13.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (13.0)")]
+        [InlineData(LanguageVersion.Default, "default (13.0)")]
         [InlineData(LanguageVersion.Preview, "preview")]
         public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {

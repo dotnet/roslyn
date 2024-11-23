@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,43 +11,43 @@ using Microsoft.CodeAnalysis.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType
+namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider()
+    : AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<
+        ExpressionSyntax,
+        TupleExpressionSyntax,
+        AnonymousObjectCreationExpressionSyntax>
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]
-    internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
-        : AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<
-            ExpressionSyntax,
-            TupleExpressionSyntax,
-            AnonymousObjectCreationExpressionSyntax>
-    {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider()
-        {
-        }
+    protected override int GetInitializerCount(AnonymousObjectCreationExpressionSyntax anonymousType)
+        => anonymousType.Initializers.Count;
 
-        protected override int GetInitializerCount(AnonymousObjectCreationExpressionSyntax anonymousType)
-            => anonymousType.Initializers.Count;
+    protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
+        => TupleExpression(
+            OpenParenToken.WithTriviaFrom(anonCreation.OpenBraceToken),
+            ConvertInitializers(anonCreation.Initializers),
+            CloseParenToken.WithTriviaFrom(anonCreation.CloseBraceToken))
+                .WithPrependedLeadingTrivia(anonCreation.GetLeadingTrivia());
 
-        protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
-            => SyntaxFactory.TupleExpression(
-                    SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.OpenBraceToken),
-                    ConvertInitializers(anonCreation.Initializers),
-                    SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonCreation.CloseBraceToken))
-                            .WithPrependedLeadingTrivia(anonCreation.GetLeadingTrivia());
+    private static SeparatedSyntaxList<ArgumentSyntax> ConvertInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
+        => SeparatedList(initializers.Select(ConvertInitializer), GetSeparators(initializers));
 
-        private static SeparatedSyntaxList<ArgumentSyntax> ConvertInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
-            => SyntaxFactory.SeparatedList(initializers.Select(ConvertInitializer), initializers.GetSeparators());
+    private static IEnumerable<SyntaxToken> GetSeparators(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
+        => initializers.Count == 0 ? [] : initializers.GetSeparators().Take(initializers.Count - 1);
 
-        private static ArgumentSyntax ConvertInitializer(AnonymousObjectMemberDeclaratorSyntax declarator)
-            => SyntaxFactory.Argument(ConvertName(declarator.NameEquals), default, declarator.Expression)
-                            .WithTriviaFrom(declarator);
+    private static ArgumentSyntax ConvertInitializer(AnonymousObjectMemberDeclaratorSyntax declarator)
+        => Argument(ConvertName(declarator.NameEquals), refKindKeyword: default, declarator.Expression).WithTriviaFrom(declarator);
 
-        private static NameColonSyntax? ConvertName(NameEqualsSyntax? nameEquals)
-            => nameEquals == null
-                ? null
-                : SyntaxFactory.NameColon(
-                    nameEquals.Name,
-                    SyntaxFactory.Token(SyntaxKind.ColonToken).WithTriviaFrom(nameEquals.EqualsToken));
-    }
+    private static NameColonSyntax? ConvertName(NameEqualsSyntax? nameEquals)
+        => nameEquals == null
+            ? null
+            : NameColon(
+                nameEquals.Name,
+                ColonToken.WithTriviaFrom(nameEquals.EqualsToken));
 }

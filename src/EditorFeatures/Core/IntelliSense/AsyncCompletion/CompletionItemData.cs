@@ -6,35 +6,34 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+
+internal sealed record class CompletionItemData(RoslynCompletionItem RoslynItem, SnapshotPoint? TriggerLocation)
 {
-    internal sealed record class CompletionItemData(RoslynCompletionItem RoslynItem, SnapshotPoint? TriggerLocation)
+    private const string RoslynCompletionItemData = nameof(RoslynCompletionItemData);
+
+    public static bool TryGetData(CompletionItem vsCompletionItem, out CompletionItemData data)
+        => vsCompletionItem.Properties.TryGetProperty(RoslynCompletionItemData, out data);
+
+    public static RoslynCompletionItem GetOrAddDummyRoslynItem(CompletionItem vsItem)
     {
-        private const string RoslynCompletionItemData = nameof(RoslynCompletionItemData);
+        if (TryGetData(vsItem, out var data))
+            return data.RoslynItem;
 
-        public static bool TryGetData(CompletionItem vsCompletionItem, out CompletionItemData data)
-            => vsCompletionItem.Properties.TryGetProperty(RoslynCompletionItemData, out data);
+        // TriggerLocation is null for items provided by non-roslyn completion source
+        var roslynItem = CreateDummyRoslynItem(vsItem);
+        AddData(vsItem, roslynItem, triggerLocation: null);
 
-        public static RoslynCompletionItem GetOrAddDummyRoslynItem(CompletionItem vsItem)
-        {
-            if (TryGetData(vsItem, out var data))
-                return data.RoslynItem;
-
-            // TriggerLocation is null for items provided by non-roslyn completion source
-            var roslynItem = CreateDummyRoslynItem(vsItem);
-            AddData(vsItem, roslynItem, triggerLocation: null);
-
-            return roslynItem;
-        }
-
-        public static void AddData(CompletionItem vsCompletionItem, RoslynCompletionItem roslynItem, SnapshotPoint? triggerLocation)
-            => vsCompletionItem.Properties[RoslynCompletionItemData] = new CompletionItemData(roslynItem, triggerLocation);
-
-        private static RoslynCompletionItem CreateDummyRoslynItem(CompletionItem vsItem)
-            => RoslynCompletionItem.Create(
-                displayText: vsItem.DisplayText,
-                filterText: vsItem.FilterText,
-                sortText: vsItem.SortText,
-                displayTextSuffix: vsItem.Suffix);
+        return roslynItem;
     }
+
+    public static void AddData(CompletionItem vsCompletionItem, RoslynCompletionItem roslynItem, SnapshotPoint? triggerLocation)
+        => vsCompletionItem.Properties[RoslynCompletionItemData] = new CompletionItemData(roslynItem, triggerLocation);
+
+    private static RoslynCompletionItem CreateDummyRoslynItem(CompletionItem vsItem)
+        => RoslynCompletionItem.Create(
+            displayText: vsItem.DisplayText,
+            filterText: vsItem.FilterText,
+            sortText: vsItem.SortText,
+            displayTextSuffix: vsItem.Suffix);
 }

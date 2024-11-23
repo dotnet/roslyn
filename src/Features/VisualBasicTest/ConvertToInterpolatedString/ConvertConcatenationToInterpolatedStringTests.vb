@@ -6,6 +6,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString.VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpolatedString
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
     Public Class ConvertConcatenationToInterpolatedStringTests
         <Fact>

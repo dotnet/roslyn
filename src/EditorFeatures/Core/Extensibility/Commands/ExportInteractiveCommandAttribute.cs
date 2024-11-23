@@ -8,12 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportInteractiveAttribute(Type t, params string[] contentTypes) : ExportAttribute(t)
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportInteractiveAttribute(Type t, params string[] contentTypes) : ExportAttribute(t)
-    {
-        public IEnumerable<string> ContentTypes { get; } = contentTypes;
-    }
+    public IEnumerable<string> ContentTypes { get; } = contentTypes;
 }

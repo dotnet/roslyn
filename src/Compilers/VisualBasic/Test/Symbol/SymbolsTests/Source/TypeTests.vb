@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -673,7 +674,7 @@ End Namespace
         <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
-            Dim mscorlibRef = TestMetadata.Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim module1Ref = TestReferences.SymbolsTests.netModule.netModule1
             Dim text = <literal>
 Class Test
@@ -1535,6 +1536,239 @@ BC30294: Structure 'SI_1' cannot contain an instance of itself:
     Public s4 As SII_4
            ~~
 </errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_01()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of B(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As D(Of T)
+End Structure
+    
+Structure D(Of T)
+    Dim x As C(Of D(Of T))
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'D(Of T)' (variable 'x').
+    'D(Of T)' contains 'C(Of D(Of T))' (variable 'x').
+    Dim x As D(Of T)
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'D(Of T)' (variable 'x').
+    'D(Of T)' contains 'C(Of D(Of T))' (variable 'x').
+    Dim x As D(Of T)
+        ~
+BC30294: Structure 'D' cannot contain an instance of itself: 
+    'D(Of T)' contains 'C(Of D(Of T))' (variable 'x').
+    'C(Of D(Of T))' contains 'D(Of D(Of T))' (variable 'x').
+    Dim x As C(Of D(Of T))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_02()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of C(Of B(Of T)))
+End Structure
+
+Structure C(Of T)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_04()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As C(Of C(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of B(Of T))
+    Dim y As C(Of C(Of T))
+    Dim z As B(Of T)
+End Structure
+    
+Structure D
+    Dim x As B(Of Integer)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'C(Of C(Of T))' (variable 'x').
+    Dim x As C(Of C(Of T))
+        ~
+BC30294: Structure 'B' cannot contain an instance of itself: 
+    'B(Of T)' contains 'B(Of T)' (variable 'z').
+    Dim z As B(Of T)
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_05()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As C(Of C(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim z As B(Of T)
+    Dim x As A(Of B(Of T))
+    Dim y As C(Of C(Of T))
+End Structure
+    
+Structure D
+    Dim x As B(Of Integer)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'C(Of C(Of T))' (variable 'x').
+    Dim x As C(Of C(Of T))
+        ~
+BC30294: Structure 'B' cannot contain an instance of itself: 
+    'B(Of T)' contains 'B(Of T)' (variable 'z').
+    Dim z As B(Of T)
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub InstanceMemberExplosion_06()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Dim x As A(Of A(Of T))
+End Structure
+
+Structure C(Of T)
+    Dim x As C(Of C(Of T))
+End Structure
+
+Structure B(Of T)
+    Dim x As A(Of B(Of T))
+    Dim z As B(Of T)
+    Dim y As C(Of C(Of T))
+End Structure
+    
+Structure D
+    Dim x As B(Of Integer)
+End Structure
+")
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30294: Structure 'A' cannot contain an instance of itself: 
+    'A(Of T)' contains 'A(Of A(Of T))' (variable 'x').
+    Dim x As A(Of A(Of T))
+        ~
+BC30294: Structure 'C' cannot contain an instance of itself: 
+    'C(Of T)' contains 'C(Of C(Of T))' (variable 'x').
+    Dim x As C(Of C(Of T))
+        ~
+BC30294: Structure 'B' cannot contain an instance of itself: 
+    'B(Of T)' contains 'B(Of T)' (variable 'z').
+    Dim z As B(Of T)
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub StaticMemberExplosion_01()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Shared x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Shared x As A(Of B(Of T))
+End Structure
+
+Structure C(Of T)
+    Shared x As D(Of T)
+End Structure
+    
+Structure D(Of T)
+    Shared x As C(Of D(Of T))
+End Structure
+")
+
+            CompileAndVerify(compilation, verify:=Verification.Skipped).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66844")>
+        Public Sub StaticMemberExplosion_02()
+            Dim compilation = CompilationUtils.CreateCompilation("
+Structure A(Of T)
+    Shared x As A(Of A(Of T))
+End Structure
+
+Structure B(Of T)
+    Shared x As A(Of C(Of B(Of T)))
+End Structure
+
+Structure C(Of T)
+End Structure
+")
+
+            CompileAndVerify(compilation, verify:=Verification.Skipped).VerifyDiagnostics()
         End Sub
 
         <Fact>

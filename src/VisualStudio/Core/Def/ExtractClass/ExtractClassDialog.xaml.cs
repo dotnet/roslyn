@@ -9,40 +9,39 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass;
+
+/// <summary>
+/// Interaction logic for ExtractClassDialog.xaml
+/// </summary>
+internal partial class ExtractClassDialog : DialogWindow
 {
-    /// <summary>
-    /// Interaction logic for ExtractClassDialog.xaml
-    /// </summary>
-    internal partial class ExtractClassDialog : DialogWindow
+    public string OK => ServicesVSResources.OK;
+    public string Cancel => ServicesVSResources.Cancel;
+    public string SelectMembers => ServicesVSResources.Select_members_colon;
+    public string ExtractClassTitle => ViewModel.Title;
+    public ExtractClassViewModel ViewModel { get; }
+    public MemberSelection MemberSelectionControl { get; }
+
+    public ExtractClassDialog(ExtractClassViewModel viewModel)
     {
-        public string OK => ServicesVSResources.OK;
-        public string Cancel => ServicesVSResources.Cancel;
-        public string SelectMembers => ServicesVSResources.Select_members_colon;
-        public string ExtractClassTitle => ViewModel.Title;
-        public ExtractClassViewModel ViewModel { get; }
-        public MemberSelection MemberSelectionControl { get; }
+        ViewModel = viewModel;
+        DataContext = ViewModel;
+        MemberSelectionControl = new MemberSelection(ViewModel.MemberSelectionViewModel);
 
-        public ExtractClassDialog(ExtractClassViewModel viewModel)
-        {
-            ViewModel = viewModel;
-            DataContext = ViewModel;
-            MemberSelectionControl = new MemberSelection(ViewModel.MemberSelectionViewModel);
+        Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
-            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-
-            InitializeComponent();
-        }
-
-        private void OK_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel.TrySubmit())
-            {
-                DialogResult = true;
-            }
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-            => DialogResult = false;
+        InitializeComponent();
     }
+
+    private void OK_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.TrySubmit())
+        {
+            DialogResult = true;
+        }
+    }
+
+    private void Cancel_Click(object sender, RoutedEventArgs e)
+        => DialogResult = false;
 }

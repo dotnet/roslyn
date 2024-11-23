@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
                 list.Add(parseResult);
             }
 
-            return new EditorConfigFile<EditorConfigOption>(editorconfigFilePath, list.ToImmutableArray());
+            return new EditorConfigFile<EditorConfigOption>(editorconfigFilePath, [.. list]);
         }
 
         [Fact]

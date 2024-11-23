@@ -18,91 +18,86 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
+namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider() : CodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
-    internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
+    public const string RemoveOperator = nameof(RemoveOperator);
+    public const string NegateExpression = nameof(NegateExpression);
+
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        public const string RemoveOperator = nameof(RemoveOperator);
-        public const string NegateExpression = nameof(NegateExpression);
+        var document = context.Document;
+        var diagnostics = context.Diagnostics;
+        var cancellationToken = context.CancellationToken;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRemoveConfusingSuppressionCodeFixProvider()
-        {
-        }
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CSharpAnalyzersResources.Remove_operator_preserves_semantics,
+                c => FixAllAsync(document, diagnostics, negate: false, c),
+                RemoveOperator),
+            context.Diagnostics);
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId);
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CSharpAnalyzersResources.Negate_expression_changes_semantics,
+                c => FixAllAsync(document, diagnostics, negate: true, c),
+                NegateExpression),
+            context.Diagnostics);
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var document = context.Document;
-            var diagnostics = context.Diagnostics;
-            var cancellationToken = context.CancellationToken;
-
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CSharpAnalyzersResources.Remove_operator_preserves_semantics,
-                    c => FixAllAsync(document, diagnostics, negate: false, c),
-                    RemoveOperator),
-                context.Diagnostics);
-
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CSharpAnalyzersResources.Negate_expression_changes_semantics,
-                    c => FixAllAsync(document, diagnostics, negate: true, c),
-                    NegateExpression),
-                context.Diagnostics);
-
-            return Task.CompletedTask;
-        }
-
-        private static async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            bool negate, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
-            var generator = editor.Generator;
-            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                Debug.Assert(node.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
-
-                // Negate the result if requested.
-                var updatedNode = negate
-                    ? generator.Negate(generatorInternal, node, semanticModel, cancellationToken)
-                    : node;
-
-                var isNode = updatedNode.DescendantNodesAndSelf().First(
-                    n => n.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
-                var left = isNode switch
-                {
-                    BinaryExpressionSyntax binary => binary.Left,
-                    IsPatternExpressionSyntax isPattern => isPattern.Expression,
-                    _ => throw ExceptionUtilities.UnexpectedValue(node),
-                };
-
-                // Remove the suppression operator.
-                var suppression = (PostfixUnaryExpressionSyntax)left;
-                var withoutSuppression = suppression.Operand.WithAppendedTrailingTrivia(suppression.OperatorToken.GetAllTrivia());
-                var isWithoutSuppression = updatedNode.ReplaceNode(suppression, withoutSuppression);
-
-                editor.ReplaceNode(node, isWithoutSuppression);
-            }
-
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
-        }
-
-        public override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) =>
-                await FixAllAsync(
-                    document, diagnostics,
-                    context.CodeActionEquivalenceKey == NegateExpression,
-                    context.CancellationToken).ConfigureAwait(false));
+        return Task.CompletedTask;
     }
+
+    private static async Task<Document> FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        bool negate, CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+        var generator = editor.Generator;
+        var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+
+        foreach (var diagnostic in diagnostics)
+        {
+            var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            Debug.Assert(node.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
+
+            // Negate the result if requested.
+            var updatedNode = negate
+                ? generator.Negate(generatorInternal, node, semanticModel, cancellationToken)
+                : node;
+
+            var isNode = updatedNode.DescendantNodesAndSelf().First(
+                n => n.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
+            var left = isNode switch
+            {
+                BinaryExpressionSyntax binary => binary.Left,
+                IsPatternExpressionSyntax isPattern => isPattern.Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
+
+            // Remove the suppression operator.
+            var suppression = (PostfixUnaryExpressionSyntax)left;
+            var withoutSuppression = suppression.Operand.WithAppendedTrailingTrivia(suppression.OperatorToken.GetAllTrivia());
+            var isWithoutSuppression = updatedNode.ReplaceNode(suppression, withoutSuppression);
+
+            editor.ReplaceNode(node, isWithoutSuppression);
+        }
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    public override FixAllProvider GetFixAllProvider()
+        => FixAllProvider.Create(async (context, document, diagnostics) =>
+            await FixAllAsync(
+                document, diagnostics,
+                context.CodeActionEquivalenceKey == NegateExpression,
+                context.CancellationToken).ConfigureAwait(false));
 }

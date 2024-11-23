@@ -16,865 +16,864 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable;
+
+public partial class RemoveUnusedVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    public partial class RemoveUnusedVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public RemoveUnusedVariableTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public RemoveUnusedVariableTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariable()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariable()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        [|int a = 3;|]
-                    }
+                    [|int a = 3;|]
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariable1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariable1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        [|string a;|]
-                        string b = ";
-                        var c = b;
-                    }
+                    [|string a;|]
+                    string b = ";
+                    var c = b;
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        string b = ";
-                        var c = b;
-                    }
+                    string b = ";
+                    var c = b;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariable3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariable3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        [|string a;|]
-                    }
+                    [|string a;|]
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariableMultipleOnLine()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariableMultipleOnLine()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        [|string a|], b;
-                    }
+                    [|string a|], b;
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        string b;
-                    }
+                    string b;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariableMultipleOnLine1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariableMultipleOnLine1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        string a, [|b|];
-                    }
+                    string a, [|b|];
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        string a;
-                    }
+                    string a;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariableFixAll()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariableFixAll()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        {|FixAllInDocument:string a;|}
-                        string b;
-                    }
+                    {|FixAllInDocument:string a;|}
+                    string b;
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariableFixAll1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariableFixAll1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        {|FixAllInDocument:string a;|}
-                        string b, c;
-                    }
+                    {|FixAllInDocument:string a;|}
+                    string b, c;
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVariableFixAll2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedVariableFixAll2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        string a, {|FixAllInDocument:b|};
-                    }
+                    string a, {|FixAllInDocument:b|};
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20466")]
-        public async Task RemoveUnusedCatchVariable()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20466")]
+    public async Task RemoveUnusedCatchVariable()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
+                    try
                     {
-                        try
-                        {
-                        }
-                        catch (System.Exception [|e|])
-                        {
-                        }
+                    }
+                    catch (System.Exception [|e|])
+                    {
                     }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
+                    try
                     {
-                        try
-                        {
-                        }
-                        catch (System.Exception)
-                        {
-                        }
+                    }
+                    catch (System.Exception)
+                    {
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20987")]
-        public async Task LeadingDirectives()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                #define DIRECTIVE1
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20987")]
+    public async Task LeadingDirectives()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            #define DIRECTIVE1
 
-                using System;
+            using System;
 
-                namespace ClassLibrary
+            namespace ClassLibrary
+            {
+                public class Class1
                 {
-                    public class Class1
+                    public static string GetText()
                     {
-                        public static string GetText()
-                        {
-                #if DIRECTIVE1
-                        return "Hello from " + Environment.OSVersion;
-                #elif DIRECTIVE2
-                        return "Hello from .NET Standard";
-                #else
-                #error Unknown platform 
-                #endif
-                            int [|blah|] = 5;
-                        }
+            #if DIRECTIVE1
+                    return "Hello from " + Environment.OSVersion;
+            #elif DIRECTIVE2
+                    return "Hello from .NET Standard";
+            #else
+            #error Unknown platform 
+            #endif
+                        int [|blah|] = 5;
                     }
                 }
-                """,
-                """
-                #define DIRECTIVE1
+            }
+            """,
+            """
+            #define DIRECTIVE1
 
-                using System;
+            using System;
 
-                namespace ClassLibrary
+            namespace ClassLibrary
+            {
+                public class Class1
                 {
-                    public class Class1
+                    public static string GetText()
                     {
-                        public static string GetText()
-                        {
-                #if DIRECTIVE1
-                        return "Hello from " + Environment.OSVersion;
-                #elif DIRECTIVE2
-                        return "Hello from .NET Standard";
-                #else
-                #error Unknown platform 
-                #endif
-                        }
+            #if DIRECTIVE1
+                    return "Hello from " + Environment.OSVersion;
+            #elif DIRECTIVE2
+                    return "Hello from .NET Standard";
+            #else
+            #error Unknown platform 
+            #endif
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20942")]
-        public async Task TestWhitespaceBetweenStatements1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Test
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20942")]
+    public async Task TestWhitespaceBetweenStatements1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
-                    {
-                        bool used = true;
-                        int [|unused|];
+                    bool used = true;
+                    int [|unused|];
 
-                        return used;
-                    }
+                    return used;
                 }
-                """,
-                """
-                class Test
+            }
+            """,
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
-                    {
-                        bool used = true;
+                    bool used = true;
 
-                        return used;
-                    }
+                    return used;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20942")]
-        public async Task TestWhitespaceBetweenStatements2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Test
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20942")]
+    public async Task TestWhitespaceBetweenStatements2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
-                    {
-                        int [|unused|];
+                    int [|unused|];
 
-                        return used;
-                    }
+                    return used;
                 }
-                """,
-                """
-                class Test
+            }
+            """,
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
-                    {
-                        return used;
-                    }
+                    return used;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task TestWhitespaceBetweenStatementsInSwitchSection1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Test
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task TestWhitespaceBetweenStatementsInSwitchSection1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
+                    switch (true)
                     {
-                        switch (true)
-                        {
-                            case true:
-                                bool used = true;
-                                int [|unused|];
+                        case true:
+                            bool used = true;
+                            int [|unused|];
 
-                                return used;
-                        }
+                            return used;
                     }
                 }
-                """,
-                """
-                class Test
+            }
+            """,
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
+                    switch (true)
                     {
-                        switch (true)
-                        {
-                            case true:
-                                bool used = true;
+                        case true:
+                            bool used = true;
 
-                                return used;
-                        }
+                            return used;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task TestWhitespaceBetweenStatementsInSwitchSection2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Test
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task TestWhitespaceBetweenStatementsInSwitchSection2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
+                    switch (true)
                     {
-                        switch (true)
-                        {
-                            case true:
-                                int [|unused|];
+                        case true:
+                            int [|unused|];
 
-                                return used;
-                        }
+                            return used;
                     }
                 }
-                """,
-                """
-                class Test
+            }
+            """,
+            """
+            class Test
+            {
+                bool TrySomething()
                 {
-                    bool TrySomething()
+                    switch (true)
                     {
-                        switch (true)
-                        {
-                            case true:
-                                return used;
-                        }
+                        case true:
+                            return used;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveVariableAndComment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveVariableAndComment()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        int [|unused|] = 0; // remove also comment
-                    }
+                    int [|unused|] = 0; // remove also comment
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveVariableAndAssgnment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveVariableAndAssgnment()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        int [|b|] = 0;
-                        b = 0;
-                    }
+                    int [|b|] = 0;
+                    b = 0;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task JointDeclarationRemoveFirst()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task JointDeclarationRemoveFirst()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int [|unused|] = 0, used = 0;
-                        return used;
-                    }
+                    int [|unused|] = 0, used = 0;
+                    return used;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int used = 0;
-                        return used;
-                    }
+                    int used = 0;
+                    return used;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task JointDeclarationRemoveSecond()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task JointDeclarationRemoveSecond()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int used = 0, [|unused|] = 0;
-                        return used;
-                    }
+                    int used = 0, [|unused|] = 0;
+                    return used;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int used = 0;
-                        return used;
-                    }
+                    int used = 0;
+                    return used;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23322"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task JointAssignmentRemoveFirst()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23322"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task JointAssignmentRemoveFirst()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int [|unused|] = 0;
-                        int used = 0;
-                        unused = used = 0;
-                        return used;
-                    }
+                    int [|unused|] = 0;
+                    int used = 0;
+                    unused = used = 0;
+                    return used;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int used = 0;
-                        used = 0;
-                        return used;
-                    }
+                    int used = 0;
+                    used = 0;
+                    return used;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task JointAssignmentRemoveSecond()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task JointAssignmentRemoveSecond()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int used = 0;
-                        int [|unused|] = 0;
-                        used = unused = 0;
-                        return used;
-                    }
+                    int used = 0;
+                    int [|unused|] = 0;
+                    used = unused = 0;
+                    return used;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        int used = 0;
-                        used = 0;
-                        return used;
-                    }
+                    int used = 0;
+                    used = 0;
+                    return used;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22921"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22921"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    public async Task RemoveUnusedLambda()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int M()
                 {
-                    int M()
-                    {
-                        Func<int> [|unused|] = () =>
-                        {
-                            return 0;
-                        };
-                        return 1;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    int M()
-                    {
-                        return 1;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task JointDeclarationRemoveBoth()
-        {
-            var input = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                class C
-                {
-                    int M()
-                    {
-                        int {|FixAllInDocument:a|} = 0, b = 0;
-                        return 0;
-                    }
-                }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                class C
-                {
-                    int M()
+                    Func<int> [|unused|] = () =>
                     {
                         return 0;
+                    };
+                    return 1;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int M()
+                {
+                    return 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task JointDeclarationRemoveBoth()
+    {
+        var input = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                int M()
+                {
+                    int {|FixAllInDocument:a|} = 0, b = 0;
+                    return 0;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var expected = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                int M()
+                {
+                    return 0;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestInRegularAndScriptAsync(input, expected);
+    }
+
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task JointAssignment()
+    {
+        var input = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                int M()
+                {
+                    int a = 0;
+                    int {|FixAllInDocument:b|} = 0;
+                    a = b = 0;
+                    return 0;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var expected = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                int M()
+                {
+                    int a = 0;
+                    a = 0;
+                    return 0;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestInRegularAndScriptAsync(input, expected);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
+    public async Task RemoveUnusedVariableDeclaredInForStatement()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    for([|int i = 0|]; ; )
+                    {
+
                     }
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task JointAssignment()
-        {
-            var input = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                class C
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    int M()
+                    for(; ; )
                     {
-                        int a = 0;
-                        int {|FixAllInDocument:b|} = 0;
-                        a = b = 0;
-                        return 0;
+
                     }
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
+            }
+            """);
+    }
 
-            var expected = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                class C
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
+    public async Task RemoveUnusedVariableJointDeclaredInForStatement()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    int M()
+                    for(int i = 0[|, j = 0|]; i < 1; i++)
                     {
-                        int a = 0;
-                        a = 0;
-                        return 0;
+
                     }
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-        public async Task RemoveUnusedVariableDeclaredInForStatement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
+                    for(int i = 0; i < 1; i++)
                     {
-                        for([|int i = 0|]; ; )
-                        {
 
-                        }
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        for(; ; )
-                        {
+            }
+            """);
+    }
 
-                        }
-                    }
-                }
-                """);
-        }
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44273")]
+    public async Task TopLevelStatement()
+    {
+        await TestAsync("""
+            [|int i = 0|];
+            """,
+            """
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-        public async Task RemoveUnusedVariableJointDeclaredInForStatement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+            """, TestOptions.Regular);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
+    public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
+                    if (true)
                         for(int i = 0[|, j = 0|]; i < 1; i++)
                         {
 
                         }
-                    }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
+                    if (true)
                         for(int i = 0; i < 1; i++)
                         {
 
                         }
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44273")]
-        public async Task TopLevelStatement()
-        {
-            await TestAsync("""
-                [|int i = 0|];
-                """,
-                """
-
-                """, TestOptions.Regular);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
-        public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
+    public async Task DoNotCrashOnDeclarationInsideIfStatement()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(bool test)
                 {
-                    void Method()
+                    if (test [|and test|])
                     {
-                        if (true)
-                            for(int i = 0[|, j = 0|]; i < 1; i++)
-                            {
 
-                            }
                     }
                 }
-                """,
-                """
-                class Class
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/56924")]
+    public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(bool test)
                 {
-                    void Method()
-                    {
-                        if (true)
-                            for(int i = 0; i < 1; i++)
-                            {
-
-                            }
-                    }
+                    if (test) var x = () => {
+                        try { }
+                        catch (Exception [|ex|]) { }
+                    };
                 }
-                """);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
-        public async Task DoNotCrashOnDeclarationInsideIfStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(bool test)
                 {
-                    void Method(bool test)
-                    {
-                        if (test [|and test|])
-                        {
-
-                        }
-                    }
+                    if (test) var x = () => {
+                        try { }
+                        catch (Exception) { }
+                    };
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56924")]
-        public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(bool test)
-                    {
-                        if (test) var x = () => {
-                            try { }
-                            catch (Exception [|ex|]) { }
-                        };
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method(bool test)
-                    {
-                        if (test) var x = () => {
-                            try { }
-                            catch (Exception) { }
-                        };
-                    }
-                }
-                """);
-        }
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/51737")]
+    public async Task RemoveUnusedVariableTopLevel()
+    {
+        await TestAsync(
+            """
+            [|int i = 1|];
+            i = 2;
+            """,
+            """
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/51737")]
-        public async Task RemoveUnusedVariableTopLevel()
-        {
-            await TestAsync(
-                """
-                [|int i = 1|];
-                i = 2;
-                """,
-                """
-
-                """, CSharpParseOptions.Default);
-        }
+            """, CSharpParseOptions.Default);
     }
 }

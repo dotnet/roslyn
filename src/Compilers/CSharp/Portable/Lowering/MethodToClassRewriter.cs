@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly TypeCompilationState CompilationState;
 
         protected readonly BindingDiagnosticBag Diagnostics;
-        protected readonly VariableSlotAllocator? slotAllocatorOpt;
+        protected readonly VariableSlotAllocator? slotAllocator;
 
         private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
-        protected MethodToClassRewriter(VariableSlotAllocator? slotAllocatorOpt, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        protected MethodToClassRewriter(VariableSlotAllocator? slotAllocator, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
-            this.slotAllocatorOpt = slotAllocatorOpt;
+            this.slotAllocator = slotAllocator;
             this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var rewrittenPropertySymbol = VisitPropertySymbol(node.PropertySymbol);
             var rewrittenReceiver = (BoundExpression?)Visit(node.ReceiverOpt);
-            return node.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, rewrittenPropertySymbol, node.ResultKind, VisitType(node.Type));
+            return node.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, rewrittenPropertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, VisitType(node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -233,7 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var rewrittenArguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             var rewrittenType = this.VisitType(node.Type);
 
-            Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual() == node.Method.IsMetadataVirtual());
+#if DEBUG
+            // Calling IsMetadataVirtual with intent of getting a fully accurate result requires the symbol to be fully completed first
+            Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded)
+                == node.Method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded));
+#endif
 
             // If the original receiver was a base access and it was rewritten, 
             // change the method to point to the wrapper method
@@ -369,7 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (proxies.TryGetValue(parameterOrLocal, out CapturedSymbolReplacement? proxy))
             {
-                replacement = proxy.Replacement(syntax, frameType => FramePointer(syntax, frameType));
+                replacement = proxy.Replacement(
+                    syntax,
+                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
+                    (syntax, self: this));
+
                 return true;
             }
 
@@ -612,12 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (method.ContainingType is null)
-            {
-                Debug.Assert(method.OriginalDefinition is SynthesizedGlobalMethodSymbol);
-                return method.OriginalDefinition.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
-            }
-            else if (method.ContainingType.IsAnonymousType)
+            if (method.ContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
@@ -708,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, receiverType, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

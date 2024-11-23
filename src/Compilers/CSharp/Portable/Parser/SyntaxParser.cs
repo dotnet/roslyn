@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _prevTokenTrailingTrivia = null;
             if (this.IsIncremental || _allowModeReset)
             {
-                _firstBlender = new Blender(this.lexer, null, null);
+                _firstBlender = new Blender(this.lexer, oldTree: null, changes: null);
             }
         }
 
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return _currentToken ?? (_currentToken = this.FetchCurrentToken());
+                return _currentToken ??= this.FetchCurrentToken();
             }
         }
 
@@ -890,12 +890,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(code, args);
         }
 
-        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
+#nullable enable
+
+        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode? skippedSyntax) where TNode : CSharpSyntaxNode
         {
+            if (skippedSyntax is null)
+                return node;
+
             var oldToken = node as SyntaxToken ?? node.GetFirstToken();
             var newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
+
+#nullable disable
 
         protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
         {

@@ -521,5 +521,192 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyAbsenceAsync("sealed record $$");
         }
+
+        [Fact]
+        public async Task TestAfterAllowsRefInTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsRefInTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T>
+                    where T : allows ref $$
+                    where U : U
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsRefInMethodTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C {
+                    void Goo<T>()
+                      where T : allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsRefInMethodTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C {
+                    void Goo<T>()
+                      where T : allows ref $$
+                      where U : T
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsRefAfterClassTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : class, allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterStructTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : struct, allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterSimpleTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : IGoo, allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterConstructorTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : new(), allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterStructInTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : allows ref struct $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterStructInTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T>
+                    where T : allows ref struct $$
+                    where U : U
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterStructAfterClassTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : class, allows ref struct $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterStructAfterStructTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : struct, allows ref struct $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterStructAfterSimpleTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : IGoo, allows ref struct $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterStructAfterConstructorTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : new(), allows ref struct $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T>
+                    where T : allows $$
+                    where U : U
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInMethodTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C {
+                    void Goo<T>()
+                      where T : allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInMethodTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C {
+                    void Goo<T>()
+                      where T : allows $$
+                      where U : T
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsAfterClassTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : class, allows $$
+                """);
+        }
     }
 }

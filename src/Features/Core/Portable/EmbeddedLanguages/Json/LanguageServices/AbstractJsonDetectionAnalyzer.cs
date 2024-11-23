@@ -7,95 +7,97 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+
+/// <summary>
+/// Analyzer that helps find strings that are likely to be JSON and which we should offer the
+/// enable language service features for.
+/// </summary>
+internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    /// <summary>
-    /// Analyzer that helps find strings that are likely to be JSON and which we should offer the
-    /// enable language service features for.
-    /// </summary>
-    internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    public const string DiagnosticId = "JSON002";
+    public const string StrictKey = nameof(StrictKey);
+
+    private static readonly ImmutableDictionary<string, string?> s_strictProperties =
+        ImmutableDictionary<string, string?>.Empty.Add(StrictKey, "");
+
+    private readonly EmbeddedLanguageInfo _info;
+
+    protected AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
+        : base(DiagnosticId,
+               EnforceOnBuildValues.DetectProbableJsonStrings,
+               option: null,
+               new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+               new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
     {
-        public const string DiagnosticId = "JSON002";
-        public const string StrictKey = nameof(StrictKey);
+        _info = info;
+    }
 
-        private static readonly ImmutableDictionary<string, string?> s_strictProperties =
-            ImmutableDictionary<string, string?>.Empty.Add(StrictKey, "");
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        private readonly EmbeddedLanguageInfo _info;
+    protected override void InitializeWorker(AnalysisContext context)
+        => context.RegisterSemanticModelAction(Analyze);
 
-        protected AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
-            : base(DiagnosticId,
-                   EnforceOnBuildValues.DetectProbableJsonStrings,
-                   option: null,
-                   new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+    public void Analyze(SemanticModelAnalysisContext context)
+    {
+        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.DetectAndOfferEditorFeaturesForProbableJsonStrings) ||
+            ShouldSkipAnalysis(context, notification: null))
         {
-            _info = info;
+            return;
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        var detector = JsonLanguageDetector.GetOrCreate(context.SemanticModel.Compilation, _info);
+        Analyze(context, detector, context.GetAnalysisRoot(findInTrivia: true), context.CancellationToken);
+    }
 
-        public override bool OpenFileOnly(SimplifierOptions? options)
-            => false;
+    private void Analyze(
+        SemanticModelAnalysisContext context,
+        JsonLanguageDetector detector,
+        SyntaxNode node,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSemanticModelAction(Analyze);
-
-        public void Analyze(SemanticModelAnalysisContext context)
+        foreach (var child in node.ChildNodesAndTokens())
         {
-            if (!context.GetIdeAnalyzerOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings)
-                return;
+            if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                continue;
 
-            var detector = JsonLanguageDetector.GetOrCreate(context.SemanticModel.Compilation, _info);
-            Analyze(context, detector, context.GetAnalysisRoot(findInTrivia: true), context.CancellationToken);
-        }
-
-        private void Analyze(
-            SemanticModelAnalysisContext context,
-            JsonLanguageDetector detector,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            foreach (var child in node.ChildNodesAndTokens())
+            if (child.AsNode(out var childNode))
             {
-                if (!context.ShouldAnalyzeSpan(child.FullSpan))
-                    continue;
+                Analyze(context, detector, childNode, cancellationToken);
+            }
+            else
+            {
+                var token = child.AsToken();
 
-                if (child.IsNode)
+                // If we have a string, and it's not being passed to a known JSON api (and it doesn't have a
+                // lang=json comment), but it is parseable as JSON with enough structure that we are confident it is
+                // json, then report that json features could light up here.
+                if (_info.IsAnyStringLiteral(token.RawKind) &&
+                    detector.TryParseString(token, context.SemanticModel, includeProbableStrings: false, cancellationToken) == null &&
+                    detector.IsProbablyJson(token, out _))
                 {
-                    Analyze(context, detector, child.AsNode()!, cancellationToken);
-                }
-                else
-                {
-                    var token = child.AsToken();
+                    var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
+                    var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
+                    var properties = strictTree != null && strictTree.Diagnostics.Length == 0
+                        ? s_strictProperties
+                        : ImmutableDictionary<string, string?>.Empty;
 
-                    // If we have a string, and it's not being passed to a known JSON api (and it doesn't have a
-                    // lang=json comment), but it is parseable as JSON with enough structure that we are confident it is
-                    // json, then report that json features could light up here.
-                    if (_info.IsAnyStringLiteral(token.RawKind) &&
-                        detector.TryParseString(token, context.SemanticModel, includeProbableStrings: false, cancellationToken) == null &&
-                        detector.IsProbablyJson(token, out _))
-                    {
-                        var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-                        var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
-                        var properties = strictTree != null && strictTree.Diagnostics.Length == 0
-                            ? s_strictProperties
-                            : ImmutableDictionary<string, string?>.Empty;
-
-                        // Show this as a hidden diagnostic so the user can enable json features explicitly if they
-                        // want, but do not spam them with a ... notification if they don't want it.
-                        context.ReportDiagnostic(DiagnosticHelper.Create(
-                            this.Descriptor,
-                            token.GetLocation(),
-                            ReportDiagnostic.Hidden,
-                            additionalLocations: null,
-                            properties));
-                    }
+                    // Show this as a hidden diagnostic so the user can enable json features explicitly if they
+                    // want, but do not spam them with a ... notification if they don't want it.
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this.Descriptor,
+                        token.GetLocation(),
+                        NotificationOption2.Silent,
+                        context.Options,
+                        additionalLocations: null,
+                        properties));
                 }
             }
         }

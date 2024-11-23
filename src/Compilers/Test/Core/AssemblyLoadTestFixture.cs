@@ -110,10 +110,61 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string AnalyzerWithLaterFakeCompilerDependency { get; }
 
+        /// <summary>
+        /// An analyzer that can be used to load a resource
+        /// </summary>
+        public string AnalyzerWithLoc { get; }
+
+        /// <summary>
+        /// An analyzer that can be used to load a resource
+        /// </summary>
+        public string AnalyzerWithLocResourceEnGB { get; }
+
         public AssemblyLoadTestFixture()
         {
             _temp = new TempRoot();
             _directory = _temp.CreateDirectory();
+
+            const string AnalyzerWithLocSource = """
+using System;
+using System.Resources;
+using System.Reflection;
+using System.Threading;
+using System.Globalization;
+
+[assembly: System.Reflection.AssemblyTitle("AnalyzerWithLoc")]
+[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+
+namespace AnalyzerWithLoc
+{
+    public static class Util
+    {
+        public static void Exec(string culture)
+        {
+            try
+            {
+                var ci = new CultureInfo(culture);
+                var rm = new ResourceManager("rmc", typeof(Util).Assembly);
+                _ = rm.GetString("hello", ci);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+    }
+}
+""";
+
+            AnalyzerWithLoc = GenerateDll("AnalyzerWithLoc", _directory, AnalyzerWithLocSource);
+
+            const string AnalyzerWithLocResourceEnGBSource = @"
+[assembly: System.Reflection.AssemblyTitle(""AnalyzerWithLoc"")]
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+[assembly: System.Reflection.AssemblyCulture(""en-GB"")]
+";
+
+            AnalyzerWithLocResourceEnGB = GenerateDll("AnalyzerWithLoc.resources", _directory.CreateDirectory("en-GB"), AnalyzerWithLocResourceEnGBSource);
 
             const string Delta1Source = @"
 using System.Text;
@@ -129,13 +180,49 @@ namespace Delta
         {
             sb.AppendLine(""Delta: "" + s);
         }
+
+        public void M1()
+        {
+
+        }
     }
 }
 ";
 
             Delta1 = GenerateDll("Delta", _directory, Delta1Source);
+
             var delta1Reference = MetadataReference.CreateFromFile(Delta1);
             DeltaPublicSigned1 = GenerateDll("DeltaPublicSigned", _directory.CreateDirectory("Delta1PublicSigned"), Delta1Source, publicKeyOpt: SigningTestHelpers.PublicKey);
+
+            const string Delta2Source = @"
+using System.Text;
+
+[assembly: System.Reflection.AssemblyTitle(""Delta"")]
+[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+
+namespace Delta
+{
+    public class D
+    {
+        public void Write(StringBuilder sb, string s)
+        {
+            sb.AppendLine(""Delta.2: "" + s);
+        }
+
+        public void M2()
+        {
+
+        }
+    }
+}
+";
+
+            var v2Directory = _directory.CreateDirectory("Version2");
+            Delta2 = GenerateDll("Delta", v2Directory, Delta2Source);
+            var v2PublicSignedDirectory = _directory.CreateDirectory("Version2PublicSigned");
+            DeltaPublicSigned2 = GenerateDll("DeltaPublicSigned", v2PublicSignedDirectory, Delta2Source, publicKeyOpt: SigningTestHelpers.PublicKey);
+
+            var delta2Reference = MetadataReference.CreateFromFile(Delta2);
 
             const string GammaSource = @"
 using System.Text;
@@ -192,31 +279,6 @@ namespace Alpha
     }
 }
 ", gammaReference);
-
-            const string Delta2Source = @"
-using System.Text;
-
-[assembly: System.Reflection.AssemblyTitle(""Delta"")]
-[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
-
-namespace Delta
-{
-    public class D
-    {
-        public void Write(StringBuilder sb, string s)
-        {
-            sb.AppendLine(""Delta.2: "" + s);
-        }
-    }
-}
-";
-
-            var v2Directory = _directory.CreateDirectory("Version2");
-            Delta2 = GenerateDll("Delta", v2Directory, Delta2Source);
-            var v2PublicSignedDirectory = _directory.CreateDirectory("Version2PublicSigned");
-            DeltaPublicSigned2 = GenerateDll("DeltaPublicSigned", v2PublicSignedDirectory, Delta2Source, publicKeyOpt: SigningTestHelpers.PublicKey);
-
-            var delta2Reference = MetadataReference.CreateFromFile(Delta2);
 
             const string EpsilonSource = @"
 using System.Text;
@@ -470,9 +532,9 @@ public class Analyzer : DiagnosticAnalyzer
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithms.Default)) },
                 references: (new MetadataReference[]
                 {
-                    NetStandard20.mscorlib,
-                    NetStandard20.netstandard,
-                    NetStandard20.SystemRuntime
+                    NetStandard20.References.mscorlib,
+                    NetStandard20.References.netstandard,
+                    NetStandard20.References.SystemRuntime
                 }).Concat(additionalReferences),
                 options: options);
 

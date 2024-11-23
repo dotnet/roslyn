@@ -4,10 +4,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal sealed class NavigationBarItemSelectedEventArgs(NavigationBarItem item) : EventArgs
 {
-    internal sealed class NavigationBarItemSelectedEventArgs(NavigationBarItem item) : EventArgs
-    {
-        public NavigationBarItem Item { get; } = item;
-    }
+    public NavigationBarItem Item { get; } = item;
 }

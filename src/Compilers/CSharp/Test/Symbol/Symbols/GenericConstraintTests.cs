@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -1095,12 +1096,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -4627,11 +4628,10 @@ class B
             compilation.VerifyIL("B.M2<T>(T)",
 @"
 {
-  // Code size      180 (0xb4)
+  // Code size      172 (0xac)
   .maxstack  4
   .locals init (int V_0,
-            T& V_1,
-            T V_2)
+                T& V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  dup
   IL_0003:  constrained. ""T""
@@ -4658,42 +4658,38 @@ class B
   IL_003e:  stloc.1
   IL_003f:  ldloc.1
   IL_0040:  ldobj      ""T""
-  IL_0045:  stloc.2
-  IL_0046:  ldloca.s   V_2
-  IL_0048:  ldloc.1
-  IL_0049:  constrained. ""T""
-  IL_004f:  callvirt   ""int I.P.get""
-  IL_0054:  ldc.i4.2
-  IL_0055:  add
-  IL_0056:  constrained. ""T""
-  IL_005c:  callvirt   ""void I.P.set""
-  IL_0061:  ldarga.s   V_0
-  IL_0063:  stloc.1
-  IL_0064:  ldloc.1
-  IL_0065:  ldobj      ""T""
-  IL_006a:  stloc.2
-  IL_006b:  ldloca.s   V_2
+  IL_0045:  box        ""T""
+  IL_004a:  ldloc.1
+  IL_004b:  constrained. ""T""
+  IL_0051:  callvirt   ""int I.P.get""
+  IL_0056:  ldc.i4.2
+  IL_0057:  add
+  IL_0058:  callvirt   ""void I.P.set""
+  IL_005d:  ldarga.s   V_0
+  IL_005f:  stloc.1
+  IL_0060:  ldloc.1
+  IL_0061:  ldobj      ""T""
+  IL_0066:  box        ""T""
+  IL_006b:  ldc.i4.0
+  IL_006c:  ldloc.1
   IL_006d:  ldc.i4.0
-  IL_006e:  ldloc.1
-  IL_006f:  ldc.i4.0
-  IL_0070:  constrained. ""T""
-  IL_0076:  callvirt   ""int I.this[int].get""
-  IL_007b:  ldc.i4.2
-  IL_007c:  add
-  IL_007d:  constrained. ""T""
-  IL_0083:  callvirt   ""void I.this[int].set""
-  IL_0088:  ldstr      ""{0}, {1}""
-  IL_008d:  ldarg.0
-  IL_008e:  box        ""T""
-  IL_0093:  callvirt   ""int I.P.get""
-  IL_0098:  box        ""int""
-  IL_009d:  ldarg.0
-  IL_009e:  box        ""T""
-  IL_00a3:  ldc.i4.0
-  IL_00a4:  callvirt   ""int I.this[int].get""
-  IL_00a9:  box        ""int""
-  IL_00ae:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00b3:  ret
+  IL_006e:  constrained. ""T""
+  IL_0074:  callvirt   ""int I.this[int].get""
+  IL_0079:  ldc.i4.2
+  IL_007a:  add
+  IL_007b:  callvirt   ""void I.this[int].set""
+  IL_0080:  ldstr      ""{0}, {1}""
+  IL_0085:  ldarg.0
+  IL_0086:  box        ""T""
+  IL_008b:  callvirt   ""int I.P.get""
+  IL_0090:  box        ""int""
+  IL_0095:  ldarg.0
+  IL_0096:  box        ""T""
+  IL_009b:  ldc.i4.0
+  IL_009c:  callvirt   ""int I.this[int].get""
+  IL_00a1:  box        ""int""
+  IL_00a6:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00ab:  ret
 }
 ");
             compilation.VerifyIL("B.M3<T>(T)",
@@ -7299,7 +7295,7 @@ public class C : A<C, C.D>
             metadataComp.VerifyDiagnostics();
             var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
                 new[] { metadataComp.EmitToImageReference() },
-                targetFramework: TargetFramework.Mscorlib45);
+                targetFramework: TargetFramework.Mscorlib461);
 
             // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
             DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);

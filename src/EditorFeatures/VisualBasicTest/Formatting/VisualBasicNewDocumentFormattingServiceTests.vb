@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
 
         Protected Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
-        Protected Overrides Function CreateTestWorkspace(testCode As String, parseOptions As ParseOptions) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(testCode, parseOptions)
+        Protected Overrides Function CreateTestWorkspace(testCode As String, parseOptions As ParseOptions) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(testCode, parseOptions)
         End Function
 
         <Fact>

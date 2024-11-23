@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -28,7 +27,7 @@ internal sealed class OrdinaryInstanceConstructorWithExplicitInitializerDeclarat
         => BreakpointSpans.CreateSpanForExplicitConstructorInitializer(Initializer);
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(Initializer)!.Captured.AddRange(model.AnalyzeDataFlow(Body).Captured).Distinct();
+        => model.AnalyzeDataFlow(Initializer)!.CapturedInside.AddRange(model.AnalyzeDataFlow(Body).CapturedInside).Distinct();
 
     public override TextSpan Envelope
         => TextSpan.FromBounds(InitializerActiveStatementSpan.Start, Body.Span.End);

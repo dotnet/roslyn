@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -17,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// relational operators for it; such a set can be formed only by including explicitly mentioned
         /// members (or the inverse, excluding them, by complementing the set).
         /// </summary>
-        private sealed class EnumeratedValueSet<T, TTC> : IValueSet<T>
-            where TTC : struct, IEquatableValueTC<T>
+        private sealed class EnumeratedValueSet<T> : IValueSet<T>
             where T : notnull
         {
             /// <summary>
@@ -29,14 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly ImmutableHashSet<T> _membersIncludedOrExcluded;
 
-            private EnumeratedValueSet(bool included, ImmutableHashSet<T> membersIncludedOrExcluded) =>
-                (this._included, this._membersIncludedOrExcluded) = (included, membersIncludedOrExcluded);
+            private readonly IEquatableValueTC<T> _tc;
 
-            public static readonly EnumeratedValueSet<T, TTC> AllValues = new EnumeratedValueSet<T, TTC>(included: false, ImmutableHashSet<T>.Empty);
+            private EnumeratedValueSet(bool included, ImmutableHashSet<T> membersIncludedOrExcluded, IEquatableValueTC<T> tc) =>
+                (this._included, this._membersIncludedOrExcluded, this._tc) = (included, membersIncludedOrExcluded, tc);
 
-            public static readonly EnumeratedValueSet<T, TTC> NoValues = new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty);
+            public static EnumeratedValueSet<T> AllValues(IEquatableValueTC<T> tc)
+                => new EnumeratedValueSet<T>(included: false, ImmutableHashSet<T>.Empty, tc);
 
-            internal static EnumeratedValueSet<T, TTC> Including(T value) => new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty.Add(value));
+            public static EnumeratedValueSet<T> NoValues(IEquatableValueTC<T> tc)
+                => new EnumeratedValueSet<T>(included: true, ImmutableHashSet<T>.Empty, tc);
+
+            internal static EnumeratedValueSet<T> Including(T value, IEquatableValueTC<T> tc)
+                => new EnumeratedValueSet<T>(included: true, ImmutableHashSet<T>.Empty.Add(value), tc);
 
             public bool IsEmpty => _included && _membersIncludedOrExcluded.IsEmpty;
 
@@ -45,25 +50,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get
                 {
                     if (IsEmpty) throw new ArgumentException();
-                    var tc = default(TTC);
                     if (_included)
-                        return tc.ToConstantValue(_membersIncludedOrExcluded.OrderBy(k => k).First());
+                        return _tc.ToConstantValue(_membersIncludedOrExcluded.OrderBy(k => k).First());
                     if (typeof(T) == typeof(string))
                     {
                         // try some simple strings.
                         if (this.Any(BinaryOperatorKind.Equal, (T)(object)""))
-                            return tc.ToConstantValue((T)(object)"");
+                            return _tc.ToConstantValue((T)(object)"");
                         for (char c = 'A'; c <= 'z'; c++)
                             if (this.Any(BinaryOperatorKind.Equal, (T)(object)c.ToString()))
-                                return tc.ToConstantValue((T)(object)c.ToString());
+                                return _tc.ToConstantValue((T)(object)c.ToString());
                     }
                     // If that doesn't work, choose from a sufficiently large random selection of values.
                     // Since this is an excluded set, they cannot all be excluded
-                    var candidates = tc.RandomValues(_membersIncludedOrExcluded.Count + 1, new Random(0), _membersIncludedOrExcluded.Count + 1);
+                    var candidates = _tc.RandomValues(_membersIncludedOrExcluded.Count + 1, new Random(0), _membersIncludedOrExcluded.Count + 1);
                     foreach (var value in candidates)
                     {
                         if (this.Any(BinaryOperatorKind.Equal, value))
-                            return tc.ToConstantValue(value);
+                            return _tc.ToConstantValue(value);
                     }
 
                     throw ExceptionUtilities.Unreachable();
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, default(TTC).FromConstantValue(value));
+            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, _tc.FromConstantValue(value));
 
             public bool All(BinaryOperatorKind relation, T value)
             {
@@ -104,9 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, default(TTC).FromConstantValue(value));
+            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
 
-            public IValueSet<T> Complement() => new EnumeratedValueSet<T, TTC>(!_included, _membersIncludedOrExcluded);
+            public IValueSet<T> Complement() => new EnumeratedValueSet<T>(!_included, _membersIncludedOrExcluded, _tc);
 
             IValueSet IValueSet.Complement() => this.Complement();
 
@@ -114,18 +118,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (this == o)
                     return this;
-                var other = (EnumeratedValueSet<T, TTC>)o;
+                var other = (EnumeratedValueSet<T>)o;
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
+
                 var (larger, smaller) = (this._membersIncludedOrExcluded.Count > other._membersIncludedOrExcluded.Count) ? (this, other) : (other, this);
                 switch (larger._included, smaller._included)
                 {
                     case (true, true):
-                        return new EnumeratedValueSet<T, TTC>(true, larger._membersIncludedOrExcluded.Intersect(smaller._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(true, larger._membersIncludedOrExcluded.Intersect(smaller._membersIncludedOrExcluded), _tc);
                     case (true, false):
-                        return new EnumeratedValueSet<T, TTC>(true, larger._membersIncludedOrExcluded.Except(smaller._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(true, larger._membersIncludedOrExcluded.Except(smaller._membersIncludedOrExcluded), _tc);
                     case (false, false):
-                        return new EnumeratedValueSet<T, TTC>(false, larger._membersIncludedOrExcluded.Union(smaller._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(false, larger._membersIncludedOrExcluded.Union(smaller._membersIncludedOrExcluded), _tc);
                     case (false, true):
-                        return new EnumeratedValueSet<T, TTC>(true, smaller._membersIncludedOrExcluded.Except(larger._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(true, smaller._membersIncludedOrExcluded.Except(larger._membersIncludedOrExcluded), _tc);
                 }
             }
 
@@ -135,18 +141,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (this == o)
                     return this;
-                var other = (EnumeratedValueSet<T, TTC>)o;
+                var other = (EnumeratedValueSet<T>)o;
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
+
                 var (larger, smaller) = (this._membersIncludedOrExcluded.Count > other._membersIncludedOrExcluded.Count) ? (this, other) : (other, this);
                 switch (larger._included, smaller._included)
                 {
                     case (false, false):
-                        return new EnumeratedValueSet<T, TTC>(false, larger._membersIncludedOrExcluded.Intersect(smaller._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(false, larger._membersIncludedOrExcluded.Intersect(smaller._membersIncludedOrExcluded), _tc);
                     case (false, true):
-                        return new EnumeratedValueSet<T, TTC>(false, larger._membersIncludedOrExcluded.Except(smaller._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(false, larger._membersIncludedOrExcluded.Except(smaller._membersIncludedOrExcluded), _tc);
                     case (true, true):
-                        return new EnumeratedValueSet<T, TTC>(true, larger._membersIncludedOrExcluded.Union(smaller._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(true, larger._membersIncludedOrExcluded.Union(smaller._membersIncludedOrExcluded), _tc);
                     case (true, false):
-                        return new EnumeratedValueSet<T, TTC>(false, smaller._membersIncludedOrExcluded.Except(larger._membersIncludedOrExcluded));
+                        return new EnumeratedValueSet<T>(false, smaller._membersIncludedOrExcluded.Except(larger._membersIncludedOrExcluded), _tc);
                 }
             }
 
@@ -154,9 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object? obj)
             {
-                if (obj is not EnumeratedValueSet<T, TTC> other)
+                if (obj is not EnumeratedValueSet<T> other)
                     return false;
 
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
                 return this._included == other._included
                     && this._membersIncludedOrExcluded.SetEqualsWithoutIntermediateHashSet(other._membersIncludedOrExcluded);
             }

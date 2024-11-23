@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
-        private readonly ImmutableArray<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
+        private readonly IEnumerable<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
         private readonly string _language;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             OptionStore optionStore,
             Func<OptionStore, IServiceProvider,
             AbstractOptionPreviewViewModel> createViewModel,
-            ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedEditorConfigOptions,
+            IEnumerable<(string feature, ImmutableArray<IOption2> options)> groupedEditorConfigOptions,
             string language)
             : base(optionStore)
         {
@@ -105,22 +106,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
 
             var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, OptionStore, _language);
-            using (var sfd = new System.Windows.Forms.SaveFileDialog
+            using var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",
                 FileName = ".editorconfig",
                 Title = ServicesVSResources.Save_dot_editorconfig_file,
                 InitialDirectory = GetInitialDirectory()
-            })
+            };
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                IOUtilities.PerformIO(() =>
                 {
-                    IOUtilities.PerformIO(() =>
-                    {
-                        var filePath = sfd.FileName;
-                        File.WriteAllText(filePath, editorconfig.ToString());
-                    });
-                }
+                    var filePath = sfd.FileName;
+                    File.WriteAllText(filePath, editorconfig.ToString());
+                });
             }
         }
 

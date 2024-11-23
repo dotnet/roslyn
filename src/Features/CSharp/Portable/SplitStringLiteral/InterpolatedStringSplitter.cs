@@ -8,87 +8,88 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
+namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+internal abstract partial class StringSplitter
 {
-    internal abstract partial class StringSplitter
+    private sealed class InterpolatedStringSplitter(
+        ParsedDocument document,
+        int position,
+        InterpolatedStringExpressionSyntax interpolatedStringExpression,
+        IndentationOptions indentationOptions,
+        CancellationToken cancellationToken) : StringSplitter(document, position, indentationOptions, cancellationToken)
     {
-        private sealed class InterpolatedStringSplitter(
-            ParsedDocument document,
-            int position,
-            InterpolatedStringExpressionSyntax interpolatedStringExpression,
-            IndentationOptions indentationOptions,
-            CancellationToken cancellationToken) : StringSplitter(document, position, indentationOptions, cancellationToken)
+        private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression = interpolatedStringExpression;
+
+        protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
+
+        // Don't offer on $@"" strings and raw string literals.  They support newlines directly in their content.
+        protected override bool CheckToken()
+            => _interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken;
+
+        protected override BinaryExpressionSyntax CreateSplitString()
         {
-            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression = interpolatedStringExpression;
+            var contents = _interpolatedStringExpression.Contents.ToList();
 
-            protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
+            var beforeSplitContents = new List<InterpolatedStringContentSyntax>();
+            var afterSplitContents = new List<InterpolatedStringContentSyntax>();
 
-            // Don't offer on $@"" strings and raw string literals.  They support newlines directly in their content.
-            protected override bool CheckToken()
-                => _interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken;
-
-            protected override BinaryExpressionSyntax CreateSplitString()
+            foreach (var content in contents)
             {
-                var contents = _interpolatedStringExpression.Contents.ToList();
-
-                var beforeSplitContents = new List<InterpolatedStringContentSyntax>();
-                var afterSplitContents = new List<InterpolatedStringContentSyntax>();
-
-                foreach (var content in contents)
+                if (content.Span.End <= CursorPosition)
                 {
-                    if (content.Span.End <= CursorPosition)
-                    {
-                        // Content is entirely before the cursor.  Nothing needs to be done to it.
-                        beforeSplitContents.Add(content);
-                    }
-                    else if (content.Span.Start >= CursorPosition)
-                    {
-                        // Content is entirely after the cursor.  Nothing needs to be done to it.
-                        afterSplitContents.Add(content);
-                    }
-                    else
-                    {
-                        // Content crosses the cursor.  Need to split it.
-                        beforeSplitContents.Add(CreateInterpolatedStringText(content.SpanStart, CursorPosition));
-                        afterSplitContents.Insert(0, CreateInterpolatedStringText(CursorPosition, content.Span.End));
-                    }
+                    // Content is entirely before the cursor.  Nothing needs to be done to it.
+                    beforeSplitContents.Add(content);
                 }
-
-                var leftExpression = SyntaxFactory.InterpolatedStringExpression(
-                    _interpolatedStringExpression.StringStartToken,
-                    SyntaxFactory.List(beforeSplitContents),
-                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
-                                 .WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-
-                var rightExpression = SyntaxFactory.InterpolatedStringExpression(
-                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
-                    SyntaxFactory.List(afterSplitContents),
-                    _interpolatedStringExpression.StringEndToken);
-
-                return SyntaxFactory.BinaryExpression(
-                    SyntaxKind.AddExpression,
-                    leftExpression,
-                    PlusNewLineToken,
-                    rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
+                else if (content.Span.Start >= CursorPosition)
+                {
+                    // Content is entirely after the cursor.  Nothing needs to be done to it.
+                    afterSplitContents.Add(content);
+                }
+                else
+                {
+                    // Content crosses the cursor.  Need to split it.
+                    beforeSplitContents.Add(CreateInterpolatedStringText(content.SpanStart, CursorPosition));
+                    afterSplitContents.Insert(0, CreateInterpolatedStringText(CursorPosition, content.Span.End));
+                }
             }
 
-            private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
-            {
-                var content = Document.Text.ToString(TextSpan.FromBounds(start, end));
-                return SyntaxFactory.InterpolatedStringText(
-                    SyntaxFactory.Token(
-                        leading: default,
-                        kind: SyntaxKind.InterpolatedStringTextToken,
-                        text: content,
-                        valueText: "",
-                        trailing: default));
-            }
+            var leftExpression = InterpolatedStringExpression(
+                _interpolatedStringExpression.StringStartToken,
+                [.. beforeSplitContents],
+                InterpolatedStringEndToken
+                             .WithTrailingTrivia(ElasticSpace));
 
-            protected override int StringOpenQuoteLength() => "$\"".Length;
+            var rightExpression = InterpolatedStringExpression(
+                InterpolatedStringStartToken,
+                [.. afterSplitContents],
+                _interpolatedStringExpression.StringEndToken);
+
+            return BinaryExpression(
+                SyntaxKind.AddExpression,
+                leftExpression,
+                PlusNewLineToken,
+                rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
         }
+
+        private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
+        {
+            var content = Document.Text.ToString(TextSpan.FromBounds(start, end));
+            return InterpolatedStringText(
+                Token(
+                    leading: default,
+                    kind: SyntaxKind.InterpolatedStringTextToken,
+                    text: content,
+                    valueText: "",
+                    trailing: default));
+        }
+
+        protected override int StringOpenQuoteLength() => "$\"".Length;
     }
 }

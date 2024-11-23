@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 }
             }
 
-            return results.ToImmutable();
+            return results.ToImmutableAndClear();
         }
     }
 }

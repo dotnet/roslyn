@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Features.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -550,7 +549,7 @@ public class CSharpTestMethodFinderTests
 
     private static async Task TestAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
     {
-        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+        var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
         var testDocument = workspace.Documents.First();
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
@@ -564,7 +563,7 @@ public class CSharpTestMethodFinderTests
 
     private static async Task TestMatchAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
     {
-        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+        var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
         var testDocument = workspace.Documents.First();
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
@@ -573,7 +572,7 @@ public class CSharpTestMethodFinderTests
         var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
         var semanticModel = await workspace.CurrentSolution.GetRequiredDocument(testDocument.Id).GetRequiredSemanticModelAsync(CancellationToken.None);
 
-        List<string> unmatchedTestNames = new();
+        List<string> unmatchedTestNames = [];
 
         foreach (var expectedTestName in expectedTestNames)
         {

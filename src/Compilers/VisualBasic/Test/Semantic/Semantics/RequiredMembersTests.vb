@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         Private Function CreateCSharpCompilationWithRequiredMembers(source As String) As CSharpCompilation
-            Return CreateCSharpCompilation(source, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Return CreateCSharpCompilation(source, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
         End Function
 
         <Fact>
@@ -424,14 +424,14 @@ End Module"
         Public Sub EnforcedRequiredMembers_ThroughRetargeting_NoneSet()
             Dim retargetedCode = GetCDefinition(hasSetsRequiredMembers:=False)
 
-            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim originalBasic = CreateCompilation("
 Public Class Base
     Public Property C As C
 End Class", {originalC.EmitToImageReference()})
 
-            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim comp = CreateCompilation("
 Module M
@@ -455,14 +455,14 @@ BC37321: Required member 'Public Overloads Property Prop As Integer' must be set
         Public Sub EnforcedRequiredMembers_ThroughRetargeting_AllSet(<CombinatorialValues("As New Derived()", " = new Derived()")> constructor As String)
             Dim retargetedCode = GetCDefinition(hasSetsRequiredMembers:=False)
 
-            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim originalBasic = CreateCompilation("
 Public Class Base
     Public Property C As C
 End Class", {originalC.EmitToImageReference()})
 
-            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim comp = CreateCompilation("
 Module M
@@ -480,14 +480,14 @@ End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageRefere
 
             Dim retargetedCode = GetCDefinition(hasSetsRequiredMembers:=True)
 
-            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim originalBasic = CreateCompilation("
 Public Class Base
     Public Property C As C
 End Class", {originalC.EmitToImageReference()})
 
-            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), retargetedCode, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim comp = CreateCompilation("
 Module M
@@ -504,14 +504,14 @@ End Module", {originalBasic.ToMetadataReference(), retargetedC.EmitToImageRefere
             Dim codeWithRequired = GetCDefinition(hasSetsRequiredMembers:=False)
             Dim codeWithoutRequired = codeWithRequired.Replace("required ", "")
 
-            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), codeWithoutRequired, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim originalC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True), codeWithoutRequired, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim originalBasic = CreateCompilation("
 Public Class Derived
     Inherits C
 End Class", {originalC.EmitToImageReference()})
 
-            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), codeWithRequired, referencedAssemblies:=Basic.Reference.Assemblies.Net70.All)
+            Dim retargetedC = CreateCSharpCompilation(New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True), codeWithRequired, referencedAssemblies:=Basic.Reference.Assemblies.Net70.References.All)
 
             Dim comp = CreateCompilation("
 Module M
@@ -543,7 +543,7 @@ End Class", targetFramework:=TargetFramework.Net70)
 public class Derived : Base
 {
     public required int Prop { get; set; }
-}", referencedAssemblies:=DirectCast(Basic.Reference.Assemblies.Net70.All, IEnumerable(Of MetadataReference)).Append(originalVbComp.EmitToImageReference()))
+}", referencedAssemblies:=DirectCast(Basic.Reference.Assemblies.Net70.References.All, IEnumerable(Of MetadataReference)).Append(originalVbComp.EmitToImageReference()))
 
             Dim comp = CreateCompilation($"
 Module M
@@ -1952,7 +1952,7 @@ namespace System
         }
     }
 }
-", referencedAssemblies:=Basic.Reference.Assemblies.Net461.All)
+", referencedAssemblies:=Basic.Reference.Assemblies.Net461.References.All)
             Dim csharpCompReference As MetadataReference = csharpComp.EmitToImageReference()
 
             ' Using Net461 to get a framework without ValueTuple
@@ -2143,7 +2143,7 @@ namespace System
         }
     }
 }
-", referencedAssemblies:=Basic.Reference.Assemblies.Net461.All)
+", referencedAssemblies:=Basic.Reference.Assemblies.Net461.References.All)
 
             ' Using Net461 to get a framework without ValueTuple
 

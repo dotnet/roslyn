@@ -5,20 +5,17 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
-[ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Host), Shared]
-internal sealed class FeaturesFixAllGetFixesService : AbstractFixAllGetFixesService, IWorkspaceServiceFactory
+[ExportWorkspaceService(typeof(IFixAllGetFixesService), ServiceLayer.Default), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class FeaturesFixAllGetFixesService() : AbstractFixAllGetFixesService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FeaturesFixAllGetFixesService()
+    protected override Solution? GetChangedSolution(Workspace workspace, Solution currentSolution, Solution newSolution, string fixAllPreviewChangesTitle, string fixAllTopLevelHeader, Glyph glyph)
     {
+        return newSolution;
     }
-
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => this;
 }

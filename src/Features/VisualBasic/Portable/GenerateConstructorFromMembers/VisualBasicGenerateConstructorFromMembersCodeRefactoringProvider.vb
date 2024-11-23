@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
             Return SymbolDisplay.ToDisplayString(parameter, format)
         End Function
 
-        Protected Overrides Function PrefersThrowExpressionAsync(document As Document, fallbackOptions As SimplifierOptionsProvider, cancellationToken As CancellationToken) As ValueTask(Of Boolean)
+        Protected Overrides Function PrefersThrowExpressionAsync(document As Document, cancellationToken As CancellationToken) As ValueTask(Of Boolean)
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
             Return ValueTaskFactory.FromResult(False)
         End Function

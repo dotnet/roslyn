@@ -10,228 +10,228 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod;
+
+[Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+public class SelectionValidatorTests : ExtractMethodBase
 {
-    [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-    public class SelectionValidatorTests : ExtractMethodBase
+    [Fact]
+    public async Task SelectionTest1()
     {
-        [Fact]
-        public async Task SelectionTest1()
-        {
-            var code = "{|b:using System;|}";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        var code = "{|b:using System;|}";
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest2()
-        {
-            var code = @"{|b:namespace A|}
+    [Fact]
+    public async Task SelectionTest2()
+    {
+        var code = @"{|b:namespace A|}
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest3()
-        {
-            var code = @"namespace {|b:A|}
+    [Fact]
+    public async Task SelectionTest3()
+    {
+        var code = @"namespace {|b:A|}
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest4()
-        {
-            var code = @"{|b:class|} A
+    [Fact]
+    public async Task SelectionTest4()
+    {
+        var code = @"{|b:class|} A
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest5()
-        {
-            var code = @"class {|b:A|}
+    [Fact]
+    public async Task SelectionTest5()
+    {
+        var code = @"class {|b:A|}
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest6()
-        {
-            var code = @"class A : {|b:object|}
+    [Fact]
+    public async Task SelectionTest6()
+    {
+        var code = @"class A : {|b:object|}
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest7()
-        {
-            var code = @"class A : object, {|b:IDisposable|}
+    [Fact]
+    public async Task SelectionTest7()
+    {
+        var code = @"class A : object, {|b:IDisposable|}
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest8()
-        {
-            var code = @"class A<{|b:T|}>
+    [Fact]
+    public async Task SelectionTest8()
+    {
+        var code = @"class A<{|b:T|}>
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest9()
-        {
-            var code = @"class A<T> where {|b:T|} : class
+    [Fact]
+    public async Task SelectionTest9()
+    {
+        var code = @"class A<T> where {|b:T|} : class
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest10()
-        {
-            var code = @"class A<T> where T : {|b:IDisposable|}
+    [Fact]
+    public async Task SelectionTest10()
+    {
+        var code = @"class A<T> where T : {|b:IDisposable|}
 {
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest11()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest11()
+    {
+        var code = @"class A
 {
     {|b:A|} Method()
     {
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest12()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest12()
+    {
+        var code = @"class A
 {
     A Method({|b:A|} a)
     {
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest13()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest13()
+    {
+        var code = @"class A
 {
     A Method(A {|b:a|})
     {
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest14()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest14()
+    {
+        var code = @"class A
 {
     [{|b:Goo|}]
     A Method(A a)
     {
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest15()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest15()
+    {
+        var code = @"class A
 {
     [Goo({|b:A|}=1)]
     A Method(A a)
     {
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest16()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest16()
+    {
+        var code = @"class A
 {
     [Goo(A={|b:1|})]
     A Method(A a)
     {
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest17()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest17()
+    {
+        var code = @"class A
 {
     const int {|b:i|} = 1;
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest18()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest18()
+    {
+        var code = @"class A
 {
     const {|b:int|} i = 1;
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest19()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest19()
+    {
+        var code = @"class A
 {
     const int i = {|b:1|};
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest20()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest20()
+    {
+        var code = @"class A
 {
     const int i = {|r:{|b:1 + |}2|};
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest21()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest21()
+    {
+        var code = @"class A
 {
     const int {|b:i = 1 + |}2;
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest22()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest22()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -243,26 +243,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         int b = 2;|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest23()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest23()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         {|b:int i = 1;
     }|}
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest24()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest24()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -271,13 +271,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endRegion
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectionTest25()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest25()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -286,13 +286,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endRegion
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest26()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest26()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -301,13 +301,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endregion|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest27()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest27()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -316,13 +316,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         int i = 1;|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest28()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest28()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -331,13 +331,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest29()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest29()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -346,13 +346,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest30()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest30()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -361,13 +361,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         int i = 1;|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest31()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest31()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -377,13 +377,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest32()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest32()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -393,13 +393,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest33()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest33()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -408,13 +408,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectionTest34()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest34()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -423,39 +423,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endregion|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectionTest35()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest35()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         {|b:// test|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest36()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest36()
+    {
+        var code = @"class A
 {
     IEnumerable<int> Method1()
     {
         {|r:{|b:yield return 1;|}|}
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest37()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest37()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -468,13 +468,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectionTest38()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectionTest38()
+    {
+        var code = @"class A
 {
     void Method1()
     {
@@ -487,117 +487,117 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        public async Task SelectionTest39()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
+    public async Task SelectionTest39()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         {|r:{|b:System|}.Console.WriteLine(1);|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        public async Task SelectionTest40()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
+    public async Task SelectionTest40()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         {|r:{|b:System.Console|}.WriteLine(1);|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        public async Task SelectionTest41()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
+    public async Task SelectionTest41()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         {|r:{|b:System.Console.WriteLine|}(1);|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        public async Task SelectionTest42()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
+    public async Task SelectionTest42()
+    {
+        var code = @"class A
 {
     void Method1()
     {
 {|r:        System.{|b:Console|}.WriteLine(1);|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        public async Task SelectionTest43()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
+    public async Task SelectionTest43()
+    {
+        var code = @"class A
 {
     void Method1()
     {
 {|r:        System.{|b:Console.WriteLine|}(1);|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
-        public async Task SelectionTest44()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540082")]
+    public async Task SelectionTest44()
+    {
+        var code = @"class A
 {
     void Method1()
     {
 {|r:        System.Console.{|b:WriteLine|}(1);|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
-        public async Task SelectionTest45()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
+    public async Task SelectionTest45()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         short[,] arr = {|r:new short[,] { {|b:{ 19, 19, 19 }|}, { 19, 19, 19 } }|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
-        public async Task SelectionTest46()
-        {
-            var code = @"class A
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539242")]
+    public async Task SelectionTest46()
+    {
+        var code = @"class A
 {
     void Method1()
     {
         short[,] arr = {|r:{ {|b:{ 19, 19, 19 }|}, { 19, 19, 19 } }|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540338")]
-        public async Task SelectionTest47()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540338")]
+    public async Task SelectionTest47()
+    {
+        var code = @"using System;
 class C
 {
     void M()
@@ -607,13 +607,13 @@ class C
     }
 }
 ";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectIfWithReturn()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectIfWithReturn()
+    {
+        var code = @"class A
 {
     public void Method1()
     {
@@ -623,13 +623,13 @@ class C
         return;
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectConstIfWithReturn()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectConstIfWithReturn()
+    {
+        var code = @"class A
 {
     public void Method1()
     {
@@ -639,13 +639,13 @@ class C
         Console.WriteLine();
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectReturnButNotAllCodePathsContainAReturn()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectReturnButNotAllCodePathsContainAReturn()
+    {
+        var code = @"class A
 {
     public void Method1(bool b1, bool b2)
     {
@@ -658,13 +658,13 @@ class C
         Console.WriteLine();
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectIfBranchWhereNotAllPathsReturn()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectIfBranchWhereNotAllPathsReturn()
+    {
+        var code = @"class A
 {
     int Method8(int i)
     {
@@ -683,13 +683,13 @@ class C
         return i;
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact]
-        public async Task SelectCatchFilterClause()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectCatchFilterClause()
+    {
+        var code = @"class A
 {
     int method()
     {
@@ -703,13 +703,13 @@ class C
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectCatchFilterClause2()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectCatchFilterClause2()
+    {
+        var code = @"class A
 {
     int method()
     {
@@ -725,13 +725,13 @@ class C
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectWithinCatchFilterClause()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectWithinCatchFilterClause()
+    {
+        var code = @"class A
 {
     int method()
     {
@@ -745,13 +745,13 @@ class C
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectWithinCatchFilterClause2()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectWithinCatchFilterClause2()
+    {
+        var code = @"class A
 {
     int method()
     {
@@ -765,13 +765,13 @@ class C
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectLValueOfPlusEqualsOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectLValueOfPlusEqualsOperator()
+    {
+        var code = @"class A
 {
     int method()
     {
@@ -780,13 +780,13 @@ class C
         return i;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectRValueOfPlusEqualsOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectRValueOfPlusEqualsOperator()
+    {
+        var code = @"class A
 {
     int method()
     {
@@ -795,13 +795,13 @@ class C
         return i;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectRValueOfPredecrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectRValueOfPredecrementOperator()
+    {
+        var code = @"class A
 {
     string method(string s, int i)
     {
@@ -811,13 +811,13 @@ class C
         return myvar[i];
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectArrayWithDecrementIndex()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectArrayWithDecrementIndex()
+    {
+        var code = @"class A
 {
     string method(string s, int i)
     {
@@ -827,13 +827,13 @@ class C
         return myvar[i];
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectCastOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectCastOperator()
+    {
+        var code = @"class A
 {
     int method(string goo)
     {
@@ -841,91 +841,91 @@ class C
         return bar.Length;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectLHSOfPostIncrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectLHSOfPostIncrementOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
         return {|r:{|b:i|}++|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectPostIncrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectPostIncrementOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
         return {|r:i{|b:++|}|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectRHSOfPreIncrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectRHSOfPreIncrementOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
         return {|r:{|b:++|}i|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectPreIncrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectPreIncrementOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
         return {|r:{|b:++|}i|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectPreDecrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectPreDecrementOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
         return {|r:{|b:--|}i|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectLHSOfPostDecrementOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectLHSOfPostDecrementOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
         return {|r:{|b:i|}--|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectUnaryPlusOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectUnaryPlusOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
@@ -933,13 +933,13 @@ class C
         return j;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectUnaryMinusOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectUnaryMinusOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
@@ -947,13 +947,13 @@ class C
         return j;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectLogicalNegationOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectLogicalNegationOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
@@ -961,13 +961,13 @@ class C
         return j;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectBitwiseNegationOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectBitwiseNegationOperator()
+    {
+        var code = @"class A
 {
     int method(int i)
     {
@@ -975,13 +975,13 @@ class C
         return j;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectCastOperator2()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectCastOperator2()
+    {
+        var code = @"class A
 {
     int method(double i)
     {
@@ -989,39 +989,39 @@ class C
         return j;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectInvalidSubexpressionToExpand()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectInvalidSubexpressionToExpand()
+    {
+        var code = @"class A
 {
     public int method(int a, int b, int c)
     {
         return {|r:a + {|b:b + c|}|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectValidSubexpressionAndHenceDoNotExpand()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectValidSubexpressionAndHenceDoNotExpand()
+    {
+        var code = @"class A
 {
     public int method(int a, int b, int c)
     {
         return {|b:a + b|} + c;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectLHSOfMinusEqualsOperator()
-        {
-            var code = @"class A
+    [Fact]
+    public async Task SelectLHSOfMinusEqualsOperator()
+    {
+        var code = @"class A
 {
     public int method(int a, int b)
     {
@@ -1029,13 +1029,13 @@ class C
         return a;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectInnerBlockPartially()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectInnerBlockPartially()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class A
@@ -1053,13 +1053,13 @@ class A
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectInnerBlockWithoutBracesPartially()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectInnerBlockWithoutBracesPartially()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class A
@@ -1075,13 +1075,13 @@ class A
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectBeginningBrace()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectBeginningBrace()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class A
@@ -1091,13 +1091,13 @@ class A
         if (true) {|r:{|b:{|} }|}
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectAcrossBlocks1()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectAcrossBlocks1()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class A
@@ -1114,13 +1114,13 @@ class A
         }
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectMethodParameters()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectMethodParameters()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class A
@@ -1138,13 +1138,13 @@ class A
         return x + y + z;
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectChainedInvocations1()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectChainedInvocations1()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class Test
@@ -1167,13 +1167,13 @@ class Test
         {|b:a.b|}.c();
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact]
-        public async Task SelectChainedInvocations2()
-        {
-            var code = @"using System;
+    [Fact]
+    public async Task SelectChainedInvocations2()
+    {
+        var code = @"using System;
 using System.Collections;
 
 class Test
@@ -1196,13 +1196,13 @@ class Test
 {|r:        a.{|b:b.c()|}|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540474")]
-        public async Task GotoStatement()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540474")]
+    public async Task GotoStatement()
+    {
+        var code = @"using System;
 using System.Reflection.Emit; 
 
 class Program
@@ -1218,47 +1218,47 @@ class Program
         }|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
-        public async Task BugFix6750()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
+    public async Task BugFix6750()
+    {
+        var code = @"using System;
 
 class Program
 {
     int[] array = new int[{|b:1|}];
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
-        public async Task BugFix6750_1()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540481")]
+    public async Task BugFix6750_1()
+    {
+        var code = @"using System;
 
 class Program
 {
     int[] array = {|r:new int[{|b:1|}] { 1 }|};
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542201")]
-        public async Task MalformedCode_NoOuterType()
-        {
-            var code = @"x(a){
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542201")]
+    public async Task MalformedCode_NoOuterType()
+    {
+        var code = @"x(a){
 {|b:for ();|}
 }
 ";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542210")]
-        public async Task NoQueryContinuation()
-        {
-            var code = @"using System.Linq;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542210")]
+    public async Task NoQueryContinuation()
+    {
+        var code = @"using System.Linq;
  
 class P
 {
@@ -1270,28 +1270,28 @@ class P
                 {|b:select y|}|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
-        public async Task DoNotCrash()
-            => await IterateAllAsync(TestResource.AllInOneCSharpCode);
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
+    public async Task DoNotCrash()
+        => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
-        [Fact, WorkItem(9931, "DevDiv_Projects/Roslyn")]
-        public async Task ExtractMethodIdentifierAtEndOfInteractiveBuffer()
-        {
-            var code = @"using System.Console;
+    [Fact, WorkItem(9931, "DevDiv_Projects/Roslyn")]
+    public async Task ExtractMethodIdentifierAtEndOfInteractiveBuffer()
+    {
+        var code = @"using System.Console;
 WriteLine();
 
 {|r:{|b:Diagnostic|}|}";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543020")]
-        public async Task MemberAccessStructAsExpression()
-        {
-            var code = @"struct S
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543020")]
+    public async Task MemberAccessStructAsExpression()
+    {
+        var code = @"struct S
 {
     public float X;
     public float Y;
@@ -1321,13 +1321,13 @@ WriteLine();
         return new S();
     }
 } ";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
-        public async Task TypeOfExpression()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543140")]
+    public async Task TypeOfExpression()
+    {
+        var code = @"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -1338,43 +1338,43 @@ class Program
         Console.WriteLine({|r:typeof({|b:Dictionary<,>|})|}.IsGenericTypeDefinition);
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        public async Task AnonymousTypeMember1()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
+    public async Task AnonymousTypeMember1()
+    {
+        var code = @"using System;
 class C { void M() { {|r:var x = new { {|b:String|} = true }; |}} }
 ";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        public async Task AnonymousTypeMember2()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
+    public async Task AnonymousTypeMember2()
+    {
+        var code = @"using System;
 class C { void M() { 
 var String = 1;
 {|r:var x = new { {|b:String|} };|}
 } }
 ";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        public async Task AnonymousTypeMember3()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
+    public async Task AnonymousTypeMember3()
+    {
+        var code = @"using System;
 class C { void M() { var x = new { String = {|b:true|} }; } }
 ";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
-        public async Task AnonymousTypeMember4()
-        {
-            var code = @"class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543186")]
+    public async Task AnonymousTypeMember4()
+    {
+        var code = @"class Program
 {
     static void Main(string[] args)
     {
@@ -1391,13 +1391,13 @@ class C { void M() { var x = new { String = {|b:true|} }; } }
         }|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
-        public async Task AddressOfExpr1()
-        {
-            var code = @"
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
+    public async Task AddressOfExpr1()
+    {
+        var code = @"
 class C
 {
     unsafe void M()
@@ -1406,13 +1406,13 @@ class C
         int* j = {|r:&{|b:i|}|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
-        public async Task AddressOfExpr2()
-        {
-            var code = @"
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
+    public async Task AddressOfExpr2()
+    {
+        var code = @"
 class C
 {
     unsafe void M()
@@ -1421,13 +1421,13 @@ class C
         int* j = {|b:&i|};
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544627")]
-        public async Task BaseKeyword()
-        {
-            var code = @"class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544627")]
+    public async Task BaseKeyword()
+    {
+        var code = @"class C
 {
     void Goo()
     {
@@ -1435,13 +1435,13 @@ class C
     }
 }
 ";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545057")]
-        public async Task RefvalueKeyword()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545057")]
+    public async Task RefvalueKeyword()
+    {
+        var code = @"using System;
  
 class A
 {
@@ -1453,13 +1453,13 @@ class A
         Console.WriteLine({|r:__refvalue(typedReference, {|b:Int32|})|});
     }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531286")]
-        public async Task NoCrashOnThrowWithoutCatchClause()
-        {
-            var code = @"public class Test
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531286")]
+    public async Task NoCrashOnThrowWithoutCatchClause()
+    {
+        var code = @"public class Test
 {
     delegate int D();
     static void Main()
@@ -1475,13 +1475,13 @@ class A
         return 1;
     }
 }";
-            await TestSelectionAsync(code, expectedFail: true);
-        }
+        await TestSelectionAsync(code, expectedFail: true);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-        public async Task SimpleConditionalAccessExpressionSelectFirstExpression()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
+    public async Task SimpleConditionalAccessExpressionSelectFirstExpression()
+    {
+        var code = @"using System;
 class Program
 {
     static void Main(string[] args)
@@ -1494,13 +1494,13 @@ class A
 {
     public int Length { get; internal set; }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-        public async Task SimpleConditionalAccessExpressionSelectSecondExpression()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
+    public async Task SimpleConditionalAccessExpressionSelectSecondExpression()
+    {
+        var code = @"using System;
 class Program
 {
     static void Main(string[] args)
@@ -1513,13 +1513,13 @@ class A
 {
     public int Length { get; internal set; }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-        public async Task NestedConditionalAccessExpressionWithMemberBindingExpression()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
+    public async Task NestedConditionalAccessExpressionWithMemberBindingExpression()
+    {
+        var code = @"using System;
  
 class Program
 {
@@ -1537,13 +1537,13 @@ class B
 {
     public int Length { get; set; }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-        public async Task NestedConditionalAccessExpressionWithMemberBindingExpressionSelectSecondExpression()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
+    public async Task NestedConditionalAccessExpressionWithMemberBindingExpressionSelectSecondExpression()
+    {
+        var code = @"using System;
  
 class Program
 {
@@ -1561,13 +1561,13 @@ class B
 {
     public int Length { get; set; }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
-        public async Task NestedConditionalAccessExpressionWithInvocationExpression()
-        {
-            var code = @"using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/751")]
+    public async Task NestedConditionalAccessExpressionWithInvocationExpression()
+    {
+        var code = @"using System;
  
 class Program
 {
@@ -1588,23 +1588,22 @@ class B
 {
     public int Length { get; set; }
 }";
-            await TestSelectionAsync(code);
-        }
+        await TestSelectionAsync(code);
+    }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
-        public async Task DoNotCrashPastEndOfLine()
-        {
-            //                    11 1
-            //          012345678901 2
-            var code = "class C { }\r\n";
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
+    public async Task DoNotCrashPastEndOfLine()
+    {
+        //                    11 1
+        //          012345678901 2
+        var code = "class C { }\r\n";
 
-            // Markup parsing doesn't produce the right spans here, so supply one ourselves.
-            // Can be removed when https://github.com/dotnet/roslyn-sdk/issues/637 is fixed
+        // Markup parsing doesn't produce the right spans here, so supply one ourselves.
+        // Can be removed when https://github.com/dotnet/roslyn-sdk/issues/637 is fixed
 
-            // This span covers just the "\n"
-            var span = new TextSpan(12, 1);
+        // This span covers just the "\n"
+        var span = new TextSpan(12, 1);
 
-            await TestSelectionAsync(code, expectedFail: true, textSpanOverride: span);
-        }
+        await TestSelectionAsync(code, expectedFail: true, textSpanOverride: span);
     }
 }

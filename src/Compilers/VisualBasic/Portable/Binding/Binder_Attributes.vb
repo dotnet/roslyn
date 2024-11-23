@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)) = visitor.VisitNamedArguments(boundAttribute.NamedArguments, diagnostics)
             Dim isConditionallyOmitted As Boolean = Not visitor.HasErrors AndAlso IsAttributeConditionallyOmitted(boundAttributeType, node, boundAttribute.SyntaxTree)
 
-            Return New SourceAttributeData(node.GetReference(), DirectCast(boundAttribute.Type, NamedTypeSymbol), boundAttribute.Constructor, args, namedArgs, isConditionallyOmitted, hasErrors:=visitor.HasErrors)
+            Return New SourceAttributeData(Compilation, node.GetReference(), DirectCast(boundAttribute.Type, NamedTypeSymbol), boundAttribute.Constructor, args, namedArgs, isConditionallyOmitted, hasErrors:=visitor.HasErrors)
         End Function
 
         Protected Function IsAttributeConditionallyOmitted(attributeType As NamedTypeSymbol, node As AttributeSyntax, syntaxTree As SyntaxTree) As Boolean

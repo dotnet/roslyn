@@ -4,12 +4,14 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -333,7 +335,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 cmd,
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification, suppressionType),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: suppressionKinds));
+        }
+
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd)
+        {
+            string expectedOutput =
+"""
+{{
+  "$schema": "http://json.schemastore.org/sarif-2.1.0",
+  "version": "2.1.0",
+  "runs": [
+    {{
+{5},
+      "properties": {{
+        "analyzerExecutionTime": "{8}"
+      }},
+      "tool": {{
+        "driver": {{
+          "name": "{0}",
+          "version": "{1}",
+          "dottedQuadFileVersion": "{2}",
+          "semanticVersion": "{3}",
+          "language": "{4}",
+{6}
+        }}
+      }},
+      {7},
+      "columnKind": "utf16CodeUnits"
+    }}
+  ]
+}}
+""";
+            return FormatOutputText(
+                expectedOutput,
+                cmd,
+                hasAnalyzers: true,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation, warnAsError: true),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
+                    (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Error))));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -364,6 +405,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         public void AnalyzerDiagnosticsSuppressedWithNullJustification()
         {
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsWithWarnAsError()
+        {
+            AnalyzerDiagnosticsWithWarnAsErrorImpl();
         }
 
         private string FormatOutputText(
@@ -424,7 +471,7 @@ class C
       ""results"": [
       ],
       ""properties"": {{
-        ""analyzerExecutionTime"": ""{6}""
+        ""analyzerExecutionTime"": ""{7}""
       }},
       ""tool"": {{
         ""driver"": {{
@@ -436,6 +483,7 @@ class C
 {5}
         }}
       }},
+      {6},
       ""columnKind"": ""utf16CodeUnits""
     }}
   ]
@@ -444,9 +492,11 @@ class C
                 expectedOutputMarkup,
                 cmd,
                 hasAnalyzers: true,
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(
-                    cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
-                    suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
+                    suppressionKinds1: new[] { "external" }, suppressionKinds2: new[] { "external" }),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
+                    (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Suppress)),
+                    (AnalyzerForErrorLogTest.Descriptor2.Id, 1, ImmutableHashSet.Create(ReportDiagnostic.Suppress))));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -502,7 +552,7 @@ dotnet_diagnostic.ID1.severity = none
     {{
 {5},
       ""properties"": {{
-        ""analyzerExecutionTime"": ""{7}""
+        ""analyzerExecutionTime"": ""{8}""
       }},
       ""tool"": {{
         ""driver"": {{
@@ -514,6 +564,7 @@ dotnet_diagnostic.ID1.severity = none
 {6}
         }}
       }},
+      {7},
       ""columnKind"": ""utf16CodeUnits""
     }}
   ]
@@ -523,7 +574,10 @@ dotnet_diagnostic.ID1.severity = none
                 cmd,
                 hasAnalyzers: true,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, "Justification1", suppressionType: "SuppressMessageAttribute"),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture, suppressionKinds1: new[] { "external", "inSource" }));
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture,
+                    suppressionKinds1: new[] { "external", "inSource" }),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogInvocationsText(
+                    (AnalyzerForErrorLogTest.Descriptor1.Id, 0, ImmutableHashSet.Create(ReportDiagnostic.Suppress, ReportDiagnostic.Warn))));
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -596,6 +650,102 @@ class C
             Assert.Equal(expectedOutput, actualOutput);
 
             CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        public enum SarifTestVersion { V1, V2 }
+
+        private string GetErrorLogQualifier(SarifTestVersion version)
+        {
+            return version == SarifTestVersion.V1 ? "" : ";version=2";
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [CombinatorialData]
+        public void LineDirective(SarifTestVersion version)
+        {
+            var errorLogDir = Temp.CreateDirectory();
+            var mappedDir = Temp.CreateDirectory();
+            Assert.False(File.Exists(Path.Combine(mappedDir.Path, "otherfile.cs")));
+
+            var source = $$"""
+public class C
+{
+#line 123 "{{mappedDir.Path}}\otherfile.cs"
+    private int x;
+}
+""";
+            var sourceFile = errorLogDir.CreateFile("myfile.cs").WriteAllText(source);
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", sourceFile.Path, "/preferreduilang:en", $"/errorlog:{errorLogFile}{GetErrorLogQualifier(version)}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains("CS0169", actualConsoleOutput);
+            Assert.Contains("CS5001", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            var actualObject = JObject.Parse(actualOutput);
+            if (version == SarifTestVersion.V1)
+            {
+                var runs = (JArray)actualObject["runs"];
+                Assert.Equal(1, runs.Count);
+
+                var results = (JArray)runs[0]["results"];
+                Assert.Equal(2, results.Count);
+
+                var results0 = results[0];
+                Assert.Equal("CS5001", (string)results0["ruleId"]);
+
+                var results1 = results[1];
+                Assert.Equal("CS0169", (string)results1["ruleId"]);
+
+                var locations = (JArray)results1["locations"];
+                Assert.Equal(1, locations.Count);
+
+                var resultFile = locations[0]["resultFile"];
+                Assert.Equal($"file:///{mappedDir.Path.Replace(@"\", "/")}/otherfile.cs", (string)resultFile["uri"]);
+
+                var region = resultFile["region"];
+                Assert.Equal(123, (int)region["startLine"]);
+                Assert.Equal(17, (int)region["startColumn"]);
+                Assert.Equal(123, (int)region["endLine"]);
+                Assert.Equal(18, (int)region["endColumn"]);
+            }
+            else
+            {
+                var runs = (JArray)actualObject["runs"];
+                Assert.Equal(1, runs.Count);
+
+                var results = (JArray)runs[0]["results"];
+                Assert.Equal(2, results.Count);
+
+                var results0 = results[0];
+                Assert.Equal("CS5001", (string)results0["ruleId"]);
+
+                var results1 = results[1];
+                Assert.Equal("CS0169", (string)results1["ruleId"]);
+
+                var locations = (JArray)results1["locations"];
+                Assert.Equal(1, locations.Count);
+
+                var physicalLocation = locations[0]["physicalLocation"];
+                Assert.Equal(expected: $"file:///{mappedDir.Path.Replace(@"\", "/")}/otherfile.cs", (string)physicalLocation["artifactLocation"]["uri"]);
+
+                var region = physicalLocation["region"];
+                Assert.Equal(123, (int)region["startLine"]);
+                Assert.Equal(17, (int)region["startColumn"]);
+                Assert.Equal(123, (int)region["endLine"]);
+                Assert.Equal(18, (int)region["endColumn"]);
+            }
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
             CleanupAllGeneratedFiles(errorLogFile);
         }
     }

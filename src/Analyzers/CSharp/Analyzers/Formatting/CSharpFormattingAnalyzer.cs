@@ -6,12 +6,11 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeStyle;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpFormattingAnalyzer : AbstractFormattingAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpFormattingAnalyzer : AbstractFormattingAnalyzer
-    {
-        protected override ISyntaxFormatting SyntaxFormatting
-            => CSharpSyntaxFormatting.Instance;
-    }
+    protected override ISyntaxFormatting SyntaxFormatting
+        => CSharpSyntaxFormatting.Instance;
 }

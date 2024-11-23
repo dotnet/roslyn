@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseAutoProperty
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
@@ -16,13 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Inherits AbstractUseAutoPropertyAnalyzer(Of
             SyntaxKind,
             PropertyBlockSyntax,
+            ConstructorBlockSyntax,
             FieldDeclarationSyntax,
             ModifiedIdentifierSyntax,
-            ExpressionSyntax)
+            ExpressionSyntax,
+            IdentifierNameSyntax)
 
         Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -32,11 +34,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
-        Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
-            Return True
+        Protected Overrides Function SupportsFieldExpression(compilation As Compilation) As Boolean
+            ' 'field' keyword not supported in VB.
+            Return False
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(fieldNames As HashSet(Of String), ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
+        Protected Overrides ReadOnly Property CanExplicitInterfaceImplementationsBeFixed As Boolean = True
+        Protected Overrides ReadOnly Property SupportsFieldAttributesOnProperties As Boolean = False
+
+        Protected Overrides Function ContainsFieldExpression(propertyDeclaration As PropertyBlockSyntax, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Sub RecordIneligibleFieldLocations(
+                fieldNames As HashSet(Of String),
+                ineligibleFieldUsageIfOutsideProperty As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
+                semanticModel As SemanticModel,
+                codeBlock As SyntaxNode,
+                cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
@@ -100,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function GetSetterExpression(setMethod As IMethodSymbol, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Protected Overrides Function GetSetterExpression(semanticModel As SemanticModel, setMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
             ' Setter has to be of the form:
             '
             '     Set(value)
@@ -133,36 +148,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Sub RegisterNonConstructorFieldWrites(
-                fieldNames As HashSet(Of String),
-                fieldWrites As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
-                semanticModel As SemanticModel,
-                codeBlock As SyntaxNode,
-                cancellationToken As CancellationToken)
-
-            ' the property doesn't have a setter currently. check all the types the field is 
-            ' declared in.  If the field is written to outside of a constructor, then this 
-            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
-            ' the autoprop read/write, And that could be opening up the property widely 
-            ' (in accessibility terms) in a way the user would not want.
-
-            ' Always fine to convert an prop to an auto-prop if its field was only written in a constructor.
-            If codeBlock.AncestorsAndSelf().Contains(Function(node) node.Kind() = SyntaxKind.ConstructorBlock) Then
-                Return
-            End If
-
-            For Each node In codeBlock.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)
-                If Not fieldNames.Contains(node.Identifier.ValueText) Then
-                    Continue For
-                End If
-
-                Dim field = TryCast(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol, IFieldSymbol)
-                If field IsNot Nothing AndAlso
-                   node.IsWrittenTo(semanticModel, cancellationToken) Then
-
-                    AddFieldWrite(fieldWrites, field, node)
-                End If
-            Next
+        Protected Overrides Sub AddAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, fieldNames As HashSet(Of String), result As HashSet(Of IFieldSymbol), cancellationToken As CancellationToken)
+            Throw ExceptionUtilities.Unreachable()
         End Sub
     End Class
 End Namespace

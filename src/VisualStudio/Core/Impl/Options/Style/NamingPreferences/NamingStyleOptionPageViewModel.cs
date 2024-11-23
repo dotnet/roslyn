@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public string ManageSpecificationsButtonText => ServicesVSResources.Manage_specifications;
         public string ManageStylesButtonText => ServicesVSResources.Manage_naming_styles;
 
-        private readonly NotificationOptionViewModel[] _notifications = new[]
-        {
+        private readonly NotificationOptionViewModel[] _notifications =
+        [
             new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
             new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
             new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
             new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
-        };
+        ];
 
         public string CodeStyleMembersAutomationText => ServicesVSResources.Naming_rules;
 
@@ -204,8 +204,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             public NamingRuleViewModel()
             {
-                Specifications = new ObservableCollection<SymbolSpecification>();
-                NamingStyles = new ObservableCollection<MutableNamingStyle>();
+                Specifications = [];
+                NamingStyles = [];
                 NotificationPreferences = new List<NotificationOptionViewModel>();
             }
 

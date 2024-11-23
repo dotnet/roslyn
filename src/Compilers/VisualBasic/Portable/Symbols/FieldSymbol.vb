@@ -407,6 +407,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbolInternal_Type As ITypeSymbolInternal Implements IFieldSymbolInternal.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbolInternal_AssociatedSymbol As ISymbolInternal Implements IFieldSymbolInternal.AssociatedSymbol
+            Get
+                Return Me.AssociatedSymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_IsConst As Boolean Implements IFieldSymbol.IsConst
             Get
                 Return Me.IsConst

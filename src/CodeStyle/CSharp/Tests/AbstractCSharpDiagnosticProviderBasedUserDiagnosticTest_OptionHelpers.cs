@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
 {
-    public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         internal static (OptionKey2, object) SingleOption<T>(Option2<T> option, T enabled)
             => (new OptionKey2(option), enabled);

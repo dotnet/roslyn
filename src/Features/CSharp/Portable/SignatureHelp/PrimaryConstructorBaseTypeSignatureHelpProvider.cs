@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 /// such as 'record Student(int Id) : Person($$"first", "last");`.
 /// </summary>
 [ExportSignatureHelpProvider("PrimaryConstructorBaseTypeSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -68,7 +67,7 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
     private bool IsTriggerToken(SyntaxToken token)
         => SignatureHelpUtilities.IsTriggerParenOrComma<PrimaryConstructorBaseTypeSyntax>(token, IsTriggerCharacter);
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -151,8 +150,6 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
         }
 
         static IList<SymbolDisplayPart> GetPostambleParts()
-        {
-            return SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
-        }
+            => [Punctuation(SyntaxKind.CloseParenToken)];
     }
 }

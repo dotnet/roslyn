@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 

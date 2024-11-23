@@ -201,8 +201,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
         Public Sub TestVerifyInvalidLocation02()
             VerifyStatementEndConstructApplied(
                 before:="Sub S",

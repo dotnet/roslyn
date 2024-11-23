@@ -20,26 +20,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedGlobalMethodSymbol : MethodSymbol, ISynthesizedGlobalMethodSymbol
     {
-        private readonly ModuleSymbol _containingModule;
-        private readonly PrivateImplementationDetails _privateImplType;
+        private readonly SynthesizedPrivateImplementationDetailsType _privateImplType;
         private TypeSymbol _returnType;
         private ImmutableArray<ParameterSymbol> _parameters;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
 
-        internal SynthesizedGlobalMethodSymbol(ModuleSymbol containingModule, PrivateImplementationDetails privateImplType, string name)
+        internal SynthesizedGlobalMethodSymbol(SynthesizedPrivateImplementationDetailsType privateImplType, string name)
         {
-            Debug.Assert((object)containingModule != null);
-            Debug.Assert(privateImplType != null);
+            Debug.Assert(privateImplType is not null);
             Debug.Assert(name != null);
 
-            _containingModule = containingModule;
             _privateImplType = privateImplType;
             _name = name;
         }
 
-        internal SynthesizedGlobalMethodSymbol(ModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string name)
-            : this(containingModule, privateImplType, name)
+        internal SynthesizedGlobalMethodSymbol(SynthesizedPrivateImplementationDetailsType privateImplType, TypeSymbol returnType, string name)
+            : this(privateImplType, name)
         {
             Debug.Assert((object)returnType != null);
             _returnType = returnType;
@@ -77,42 +74,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override ModuleSymbol ContainingModule
-        {
-            get
-            {
-                return _containingModule;
-            }
-        }
-
-        public sealed override AssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return _containingModule.ContainingAssembly;
-            }
-        }
-
-        /// <summary>
-        /// Synthesized methods that must be emitted in the compiler generated
-        /// PrivateImplementationDetails class have null containing type symbol.
-        /// </summary>
         public sealed override Symbol ContainingSymbol
         {
-            get { return null; }
+            get { return _privateImplType; }
         }
 
         public sealed override NamedTypeSymbol ContainingType
         {
             get
             {
-                return null;
+                return _privateImplType;
             }
         }
 
         public PrivateImplementationDetails ContainingPrivateImplementationDetailsType
         {
-            get { return _privateImplType; }
+            get { return _privateImplType.PrivateImplementationDetails; }
         }
 
         public override string Name
@@ -182,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!_typeParameters.IsDefault, $"Expected {nameof(SetTypeParameters)} prior to accessing this property.");
+                RoslynDebug.Assert(!_typeParameters.IsDefault, $"Expected {nameof(SetTypeParameters)} prior to accessing this property.");
                 if (_typeParameters.IsDefault)
                 {
                     return ImmutableArray<TypeParameterSymbol>.Empty;
@@ -196,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
+                RoslynDebug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
                 if (_parameters.IsDefault)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
@@ -314,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -377,6 +354,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
-        internal sealed override bool UseUpdatedEscapeRules => _containingModule.UseUpdatedEscapeRules;
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal sealed override int TryGetOverloadResolutionPriority()
+        {
+            return 0;
+        }
     }
 }

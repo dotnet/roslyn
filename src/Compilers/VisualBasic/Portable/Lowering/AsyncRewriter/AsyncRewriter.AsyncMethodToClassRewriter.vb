@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            builder As FieldSymbol,
-                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
@@ -94,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Protected Overrides ReadOnly Property EncMissingStateMessage As String
+            Protected Overrides ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode
                 Get
-                    Return CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod
+                    Return HotReloadExceptionCode.CannotResumeSuspendedAsyncMethod
                 End Get
             End Property
 

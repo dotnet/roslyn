@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<PENamedTypeSymbol> _lazyFlattenedTypes;
 
+        /// <summary>
+        /// All namespace and type members in a flat array
+        /// </summary>
+        private ImmutableArray<Symbol> _lazyFlattenedNamespacesAndTypes;
+
         internal sealed override NamespaceExtent Extent
         {
             get
@@ -61,22 +66,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             AllowGenericEnumeration = false)]
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
-            EnsureAllMembersLoaded();
-
-            var memberTypes = GetMemberTypesPrivate();
-
-            if (lazyNamespaces.Count == 0)
-                return StaticCast<Symbol>.From(memberTypes);
-
-            var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
-
-            builder.AddRange(memberTypes);
-            foreach (var pair in lazyNamespaces)
+            if (_lazyFlattenedNamespacesAndTypes.IsDefault)
             {
-                builder.Add(pair.Value);
+                EnsureAllMembersLoaded();
+                ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, calculateMembers());
             }
 
-            return builder.ToImmutableAndFree();
+            return _lazyFlattenedNamespacesAndTypes;
+
+            ImmutableArray<Symbol> calculateMembers()
+            {
+                var memberTypes = GetMemberTypesPrivate();
+
+                if (lazyNamespaces.Count == 0)
+                    return StaticCast<Symbol>.From(memberTypes);
+
+                var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
+
+                builder.AddRange(memberTypes);
+                foreach (var pair in lazyNamespaces)
+                {
+                    builder.Add(pair.Value);
+                }
+
+                return builder.ToImmutableAndFree();
+            }
         }
 
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
@@ -89,6 +103,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return StaticCast<NamedTypeSymbol>.From(_lazyFlattenedTypes);
+        }
+
+        internal override NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
+        {
+            EnsureAllMembersLoaded();
+
+            if (lazyNamespaces.TryGetValue(name, out var ns))
+            {
+                return ns;
+            }
+
+            return null;
         }
 
         public sealed override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)

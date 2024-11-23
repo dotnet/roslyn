@@ -5,14 +5,12 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -52,9 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new NodeMapBuilder(additionMap, tree, node);
                 builder.Visit(root);
 
+#if NET
+                // Ensure map is large enough to hold found nodes.
+                map.EnsureCapacity(map.Count + additionMap.Keys.Count);
+#endif
+
                 foreach (CSharpSyntaxNode key in additionMap.Keys)
                 {
-                    if (map.ContainsKey(key))
+                    var nodesToAdd = additionMap.GetAsOneOrMany(key);
+                    if (!map.TryAdd(key, nodesToAdd))
                     {
 #if DEBUG
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
@@ -73,35 +77,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // have the same structure as the original map entries, but will not be ReferenceEquals.
 
                         var existing = map[key];
-                        var added = additionMap[key];
-                        Debug.Assert(existing.Count == added.Length, "existing.Count == added.Length");
+                        Debug.Assert(existing.Count == nodesToAdd.Count, "existing.Count == nodesToAdd.Length");
                         for (int i = 0; i < existing.Count; i++)
                         {
-                            // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
+                            // TODO: it would be great if we could check !ReferenceEquals(existing[i], nodesToAdd[i]) (DevDiv #11584).
                             // Known impediments include:
                             //   1) Field initializers aren't cached because they're not in statements.
                             //   2) Single local declarations (e.g. "int x = 1;" vs "int x = 1, y = 2;") aren't found in the cache
                             //      since nothing is cached for the statement syntax.
-                            if (existing[i].Kind != added[i].Kind)
+                            if (existing[i].Kind != nodesToAdd[i].Kind)
                             {
                                 Debug.Assert(!(key is StatementSyntax), "!(key is StatementSyntax)");
 
                                 // This also seems to be happening when we get equivalent BoundTypeExpression and BoundTypeOrValueExpression nodes.
-                                if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
+                                if (existing[i].Kind == BoundKind.TypeExpression && nodesToAdd[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
                                     Debug.Assert(
-                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
+                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)nodesToAdd[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
-                                            "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
+                                            "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)nodesToAdd[{0}]).Type", i));
                                 }
-                                else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
+                                else if (existing[i].Kind == BoundKind.TypeOrValueExpression && nodesToAdd[i].Kind == BoundKind.TypeExpression)
                                 {
                                     Debug.Assert(
-                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
+                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)nodesToAdd[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
-                                            "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));
+                                            "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)nodesToAdd[{0}]).Type", i));
                                 }
                                 else
                                 {
@@ -111,17 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 Debug.Assert(
-                                    (object)existing[i] == added[i] || !(key is StatementSyntax),
+                                    (object)existing[i] == nodesToAdd[i] || !(key is StatementSyntax),
                                     string.Format(
                                         System.Globalization.CultureInfo.InvariantCulture,
-                                        "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
+                                        "(object)existing[{0}] == nodesToAdd[{0}] || !(key is StatementSyntax)", i));
                             }
                         }
 #endif
-                    }
-                    else
-                    {
-                        map[key] = additionMap.GetAsOneOrMany(key);
                     }
                 }
 
@@ -188,12 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _map.Add(current.Syntax, current);
                 }
 
-                // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
+                // In machine-generated code we frequently end up with binary operator or pattern trees that are deep on the left,
                 // such as a + b + c + d ...
                 // To avoid blowing the call stack, we build an explicit stack to handle the left-hand recursion.
-                var binOp = current as BoundBinaryOperator;
 
-                if (binOp != null)
+                if (current is BoundBinaryOperator binOp)
                 {
                     var stack = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -219,6 +217,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Visit(stack.Pop());
                     }
+
+                    stack.Free();
+                }
+                else if (current is BoundBinaryPattern binaryPattern)
+                {
+                    var stack = ArrayBuilder<BoundPattern>.GetInstance();
+
+                    stack.Push(binaryPattern.Right);
+                    BoundPattern currentPattern = binaryPattern.Left;
+                    binaryPattern = currentPattern as BoundBinaryPattern;
+
+                    while (binaryPattern != null)
+                    {
+                        if (ShouldAddNode(binaryPattern))
+                        {
+                            _map.Add(binaryPattern.Syntax, binaryPattern);
+                        }
+
+                        stack.Push(binaryPattern.Right);
+                        currentPattern = binaryPattern.Left;
+                        binaryPattern = currentPattern as BoundBinaryPattern;
+                    }
+
+                    do
+                    {
+                        Visit(currentPattern);
+                    } while (stack.TryPop(out currentPattern));
 
                     stack.Free();
                 }
@@ -284,6 +309,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable();
+            }
+
+            public override BoundNode VisitIfStatement(BoundIfStatement node)
+            {
+                while (true)
+                {
+                    this.Visit(node.Condition);
+                    this.Visit(node.Consequence);
+
+                    var alternative = node.AlternativeOpt;
+                    if (alternative is null)
+                    {
+                        break;
+                    }
+
+                    if (alternative is BoundIfStatement elseIfStatement)
+                    {
+                        node = elseIfStatement;
+                        if (ShouldAddNode(node))
+                        {
+                            _map.Add(node.Syntax, node);
+                        }
+                    }
+                    else
+                    {
+                        this.Visit(alternative);
+                        break;
+                    }
+                }
+
+                return null;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

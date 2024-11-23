@@ -11,245 +11,244 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static partial class SyntaxTreeExtensions
 {
-    internal static partial class SyntaxTreeExtensions
+    public static bool OverlapsHiddenPosition([NotNullWhen(returnValue: true)] this SyntaxTree? tree, TextSpan span, CancellationToken cancellationToken)
     {
-        public static bool OverlapsHiddenPosition([NotNullWhen(returnValue: true)] this SyntaxTree? tree, TextSpan span, CancellationToken cancellationToken)
+        if (tree == null)
         {
-            if (tree == null)
-            {
-                return false;
-            }
-
-            var text = tree.GetText(cancellationToken);
-
-            return text.OverlapsHiddenPosition(span, (position, cancellationToken2) =>
-                {
-                    // implements the ASP.NET IsHidden rule
-                    var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
-                    return lineVisibility is LineVisibility.Hidden or LineVisibility.BeforeFirstLineDirective;
-                },
-                cancellationToken);
+            return false;
         }
 
-        public static bool IsScript(this SyntaxTree syntaxTree)
-            => syntaxTree.Options.Kind != SourceCodeKind.Regular;
+        var text = tree.GetText(cancellationToken);
 
-        /// <summary>
-        /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
-        /// position, or a token of Kind = None if the caret is not touching either.
-        /// </summary>
-        public static Task<SyntaxToken> GetTouchingWordAsync(
-            this SyntaxTree syntaxTree,
-            int position,
-            ISyntaxFacts syntaxFacts,
-            CancellationToken cancellationToken,
-            bool findInsideTrivia = false)
-        {
-            return GetTouchingTokenAsync(syntaxTree, position, syntaxFacts.IsWord, cancellationToken, findInsideTrivia);
-        }
-
-        public static Task<SyntaxToken> GetTouchingTokenAsync(
-            this SyntaxTree syntaxTree,
-            int position,
-            CancellationToken cancellationToken,
-            bool findInsideTrivia = false)
-        {
-            return GetTouchingTokenAsync(syntaxTree, position, _ => true, cancellationToken, findInsideTrivia);
-        }
-
-        public static async Task<SyntaxToken> GetTouchingTokenAsync(
-            this SyntaxTree syntaxTree,
-            int position,
-            Predicate<SyntaxToken> predicate,
-            CancellationToken cancellationToken,
-            bool findInsideTrivia = false)
-        {
-            Contract.ThrowIfNull(syntaxTree);
-
-            if (position > syntaxTree.Length)
+        return text.OverlapsHiddenPosition(span, (position, cancellationToken2) =>
             {
-                return default;
-            }
+                // implements the ASP.NET IsHidden rule
+                var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
+                return lineVisibility is LineVisibility.Hidden or LineVisibility.BeforeFirstLineDirective;
+            },
+            cancellationToken);
+    }
 
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position, findInsideTrivia);
+    public static bool IsScript(this SyntaxTree syntaxTree)
+        => syntaxTree.Options.Kind != SourceCodeKind.Regular;
 
-            if ((token.Span.Contains(position) || token.Span.End == position) && predicate(token))
-            {
-                return token;
-            }
+    /// <summary>
+    /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
+    /// position, or a token of Kind = None if the caret is not touching either.
+    /// </summary>
+    public static Task<SyntaxToken> GetTouchingWordAsync(
+        this SyntaxTree syntaxTree,
+        int position,
+        ISyntaxFacts syntaxFacts,
+        CancellationToken cancellationToken,
+        bool findInsideTrivia = false)
+    {
+        return GetTouchingTokenAsync(syntaxTree, position, syntaxFacts.IsWord, cancellationToken, findInsideTrivia);
+    }
 
-            token = token.GetPreviousToken();
+    public static Task<SyntaxToken> GetTouchingTokenAsync(
+        this SyntaxTree syntaxTree,
+        int position,
+        CancellationToken cancellationToken,
+        bool findInsideTrivia = false)
+    {
+        return GetTouchingTokenAsync(syntaxTree, position, _ => true, cancellationToken, findInsideTrivia);
+    }
 
-            if (token.Span.End == position && predicate(token))
-            {
-                return token;
-            }
+    public static async Task<SyntaxToken> GetTouchingTokenAsync(
+        this SyntaxTree syntaxTree,
+        int position,
+        Predicate<SyntaxToken> predicate,
+        CancellationToken cancellationToken,
+        bool findInsideTrivia = false)
+    {
+        Contract.ThrowIfNull(syntaxTree);
 
-            // SyntaxKind = None
+        if (position > syntaxTree.Length)
+        {
             return default;
         }
 
-        public static bool IsEntirelyHidden(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position, findInsideTrivia);
+
+        if ((token.Span.Contains(position) || token.Span.End == position) && predicate(token))
         {
-            if (!tree.HasHiddenRegions())
+            return token;
+        }
+
+        token = token.GetPreviousToken();
+
+        if (token.Span.End == position && predicate(token))
+        {
+            return token;
+        }
+
+        // SyntaxKind = None
+        return default;
+    }
+
+    public static bool IsEntirelyHidden(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)
+    {
+        if (!tree.HasHiddenRegions())
+        {
+            return false;
+        }
+
+        var text = tree.GetText(cancellationToken);
+        var startLineNumber = text.Lines.IndexOf(span.Start);
+        var endLineNumber = text.Lines.IndexOf(span.End);
+
+        for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var linePosition = text.Lines[lineNumber].Start;
+            if (!tree.IsHiddenPosition(linePosition, cancellationToken))
             {
                 return false;
             }
+        }
 
-            var text = tree.GetText(cancellationToken);
-            var startLineNumber = text.Lines.IndexOf(span.Start);
-            var endLineNumber = text.Lines.IndexOf(span.End);
+        return true;
+    }
 
-            for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
+    public static bool IsBeforeFirstToken(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+    {
+        var root = syntaxTree.GetRoot(cancellationToken);
+        var firstToken = root.GetFirstToken(includeZeroWidth: true, includeSkipped: true);
+
+        return position <= firstToken.SpanStart;
+    }
+
+    public static SyntaxToken FindTokenOrEndToken(
+        this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(syntaxTree);
+
+        var root = syntaxTree.GetRoot(cancellationToken);
+        var result = root.FindToken(position, findInsideTrivia: true);
+        if (result.RawKind != 0)
+        {
+            return result;
+        }
+
+        // Special cases.  See if we're actually at the end of a:
+        // a) doc comment
+        // b) pp directive
+        // c) file
+
+        var compilationUnit = (ICompilationUnitSyntax)root;
+        var triviaList = compilationUnit.EndOfFileToken.LeadingTrivia;
+        foreach (var trivia in triviaList.Reverse())
+        {
+            if (trivia.HasStructure)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var linePosition = text.Lines[lineNumber].Start;
-                if (!tree.IsHiddenPosition(linePosition, cancellationToken))
+                var token = trivia.GetStructure()!.GetLastToken(includeZeroWidth: true);
+                if (token.Span.End == position)
                 {
-                    return false;
+                    return token;
                 }
             }
-
-            return true;
         }
 
-        public static bool IsBeforeFirstToken(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        if (position == root.FullSpan.End)
         {
-            var root = syntaxTree.GetRoot(cancellationToken);
-            var firstToken = root.GetFirstToken(includeZeroWidth: true, includeSkipped: true);
-
-            return position <= firstToken.SpanStart;
+            return compilationUnit.EndOfFileToken;
         }
 
-        public static SyntaxToken FindTokenOrEndToken(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        return default;
+    }
+
+    internal static SyntaxTrivia FindTriviaAndAdjustForEndOfFile(
+        this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, bool findInsideTrivia = false)
+    {
+        var root = syntaxTree.GetRoot(cancellationToken);
+        var trivia = root.FindTrivia(position, findInsideTrivia);
+
+        // If we ask right at the end of the file, we'll get back nothing.
+        // We handle that case specially for now, though SyntaxTree.FindTrivia should
+        // work at the end of a file.
+        if (position == root.FullWidth())
         {
-            Contract.ThrowIfNull(syntaxTree);
-
-            var root = syntaxTree.GetRoot(cancellationToken);
-            var result = root.FindToken(position, findInsideTrivia: true);
-            if (result.RawKind != 0)
-            {
-                return result;
-            }
-
-            // Special cases.  See if we're actually at the end of a:
-            // a) doc comment
-            // b) pp directive
-            // c) file
-
             var compilationUnit = (ICompilationUnitSyntax)root;
-            var triviaList = compilationUnit.EndOfFileToken.LeadingTrivia;
-            foreach (var trivia in triviaList.Reverse())
+            var endOfFileToken = compilationUnit.EndOfFileToken;
+            if (endOfFileToken.HasLeadingTrivia)
             {
-                if (trivia.HasStructure)
+                trivia = endOfFileToken.LeadingTrivia.Last();
+            }
+            else
+            {
+                var token = endOfFileToken.GetPreviousToken(includeSkipped: true);
+                if (token.HasTrailingTrivia)
                 {
-                    var token = trivia.GetStructure()!.GetLastToken(includeZeroWidth: true);
-                    if (token.Span.End == position)
-                    {
-                        return token;
-                    }
+                    trivia = token.TrailingTrivia.Last();
                 }
             }
+        }
 
-            if (position == root.FullSpan.End)
+        return trivia;
+    }
+
+    /// <summary>
+    /// If the position is inside of token, return that token; otherwise, return the token to the right.
+    /// </summary>
+    public static SyntaxToken FindTokenOnRightOfPosition(
+        this SyntaxTree syntaxTree,
+        int position,
+        CancellationToken cancellationToken,
+        bool includeSkipped = true,
+        bool includeDirectives = false,
+        bool includeDocumentationComments = false)
+    {
+        return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
+            position, includeSkipped, includeDirectives, includeDocumentationComments);
+    }
+
+    /// <summary>
+    /// If the position is inside of token, return that token; otherwise, return the token to the left.
+    /// </summary>
+    public static SyntaxToken FindTokenOnLeftOfPosition(
+        this SyntaxTree syntaxTree,
+        int position,
+        CancellationToken cancellationToken,
+        bool includeSkipped = true,
+        bool includeDirectives = false,
+        bool includeDocumentationComments = false)
+    {
+        return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
+            position, includeSkipped, includeDirectives, includeDocumentationComments);
+    }
+
+    public static bool IsGeneratedCode(this SyntaxTree syntaxTree, AnalyzerOptions? analyzerOptions, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    {
+        // First check if user has configured "generated_code = true | false" in .editorconfig
+        if (analyzerOptions != null)
+        {
+            var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(analyzerConfigOptions).ToNullable();
+            if (isUserConfiguredGeneratedCode.HasValue)
             {
-                return compilationUnit.EndOfFileToken;
+                return isUserConfiguredGeneratedCode.Value;
             }
-
-            return default;
         }
 
-        internal static SyntaxTrivia FindTriviaAndAdjustForEndOfFile(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, bool findInsideTrivia = false)
-        {
-            var root = syntaxTree.GetRoot(cancellationToken);
-            var trivia = root.FindTrivia(position, findInsideTrivia);
+        // Otherwise, fallback to generated code heuristic.
+        return GeneratedCodeUtilities.IsGeneratedCode(
+            syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
+    }
 
-            // If we ask right at the end of the file, we'll get back nothing.
-            // We handle that case specially for now, though SyntaxTree.FindTrivia should
-            // work at the end of a file.
-            if (position == root.FullWidth())
-            {
-                var compilationUnit = (ICompilationUnitSyntax)root;
-                var endOfFileToken = compilationUnit.EndOfFileToken;
-                if (endOfFileToken.HasLeadingTrivia)
-                {
-                    trivia = endOfFileToken.LeadingTrivia.Last();
-                }
-                else
-                {
-                    var token = endOfFileToken.GetPreviousToken(includeSkipped: true);
-                    if (token.HasTrailingTrivia)
-                    {
-                        trivia = token.TrailingTrivia.Last();
-                    }
-                }
-            }
-
-            return trivia;
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the right.
-        /// </summary>
-        public static SyntaxToken FindTokenOnRightOfPosition(
-            this SyntaxTree syntaxTree,
-            int position,
-            CancellationToken cancellationToken,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the left.
-        /// </summary>
-        public static SyntaxToken FindTokenOnLeftOfPosition(
-            this SyntaxTree syntaxTree,
-            int position,
-            CancellationToken cancellationToken,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        public static bool IsGeneratedCode(this SyntaxTree syntaxTree, AnalyzerOptions? analyzerOptions, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            // First check if user has configured "generated_code = true | false" in .editorconfig
-            if (analyzerOptions != null)
-            {
-                var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-                var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerConfigOptions);
-                if (isUserConfiguredGeneratedCode.HasValue)
-                {
-                    return isUserConfiguredGeneratedCode.Value;
-                }
-            }
-
-            // Otherwise, fallback to generated code heuristic.
-            return GeneratedCodeUtilities.IsGeneratedCode(
-                syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
-        }
-
-        /// <summary>
-        /// Finds the node in the given <paramref name="syntaxTree"/> corresponding to the given <paramref name="span"/>.
-        /// If the <paramref name="span"/> is <see langword="null"/>, then returns the root node of the tree.
-        /// </summary>
-        public static SyntaxNode FindNode(this SyntaxTree syntaxTree, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
-        {
-            var root = syntaxTree.GetRoot(cancellationToken);
-            return root.FindNode(span, findInTrivia, getInnermostNodeForTie);
-        }
+    /// <summary>
+    /// Finds the node in the given <paramref name="syntaxTree"/> corresponding to the given <paramref name="span"/>.
+    /// If the <paramref name="span"/> is <see langword="null"/>, then returns the root node of the tree.
+    /// </summary>
+    public static SyntaxNode FindNode(this SyntaxTree syntaxTree, TextSpan? span, bool findInTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
+    {
+        var root = syntaxTree.GetRoot(cancellationToken);
+        return root.FindNode(span, findInTrivia, getInnermostNodeForTie);
     }
 }

@@ -5,11 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,6 +17,8 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    using static CSharpSyntaxTokens;
+
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingTests : CSharpFormattingTestBase
     {
@@ -993,7 +993,7 @@ class D
 {
     public int A { get; set; }
     public int B { get; set; }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -1023,7 +1023,7 @@ class D
             string s = o        as       string;
             bool b   = o        is       string;
         }
-    }", false, changingOptions);
+    }", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772298")]
@@ -1569,7 +1569,7 @@ class goo
         }
         void goo() { int xx = 0; int zz = 0;}
 }
-class goo{int x = 0;}", false, changingOptions);
+class goo{int x = 0;}", changingOptions);
         }
 
         [Fact]
@@ -1636,7 +1636,7 @@ class goo
 class goo
 {
     int x = 0;
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -1718,7 +1718,7 @@ class goo
             Del d = delegate(int k) { Console.WriteLine(); Console.WriteLine(); };
         }
 }
-class goo{int x = 0;}", false, changingOptions);
+class goo{int x = 0;}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991480")]
@@ -1741,7 +1741,7 @@ class goo{int x = 0;}", false, changingOptions);
     {
         for (int d = 0; d < 10; ++d) { }
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
@@ -2000,7 +2000,7 @@ public class goo : System.Object
 
 {
 }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -2122,7 +2122,7 @@ else
     return 0;
 }
 }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33458")]
@@ -2288,7 +2288,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
                   Y2 = 3
     };
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -4637,22 +4637,18 @@ class innerClass
 }";
 
             var property = SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.List<AttributeListSyntax>(),
-                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
+                attributeLists: [],
+                [PublicKeyword],
                 SyntaxFactory.ParseTypeName("int"),
                 null,
                 SyntaxFactory.Identifier("Prop"),
-                SyntaxFactory.AccessorList(
-                    SyntaxFactory.List(
-                        new AccessorDeclarationSyntax[]
-                        {
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.GetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("return c;")))),
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.SetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("c = value;"))))
-                        })));
+                SyntaxFactory.AccessorList([
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.GetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("return c;"))),
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.SetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("c = value;")))]));
 
             Assert.NotNull(property);
             using var workspace = new AdhocWorkspace();
@@ -5281,8 +5277,10 @@ _ = this is  C(  ){}  ; }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp);
-            changingOptions.Add(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true }
+            };
             var code = @"class C
 {
     void M()
@@ -5766,8 +5764,7 @@ void bar()
 
             var expected = @"class C
 {
-}
-#line default
+}#line default
 
 #line hidden";
 
@@ -6015,7 +6012,7 @@ goo:
         }
     }
 }";
-            await AssertFormatAsync(expected, code, false, changingOptions);
+            await AssertFormatAsync(expected, code, changingOptions);
         }
 
         [Fact, WorkItem(707064, "DevDiv_Projects/Roslyn")]
@@ -6520,7 +6517,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code, false, changingOptions);
+            await AssertFormatAsync(expected, code, changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
@@ -8058,7 +8055,7 @@ class Program
     {
         Console.WriteLine("""");        // GooBar
     }
-}", false, optionSet);
+}", optionSet);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1151")]
@@ -8083,7 +8080,7 @@ class Program
     {
         Console.WriteLine("""");        /* GooBar */
     }
-}", false, optionSet);
+}", optionSet);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100920")]
@@ -8264,7 +8261,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/776")]
@@ -8786,7 +8783,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
@@ -8824,7 +8821,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
@@ -8863,7 +8860,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem(111079, "devdiv.visualstudio.com")]
@@ -10081,6 +10078,44 @@ class A
         return a is
         {
             Name: ""foo"",
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(57854, "https://github.com/dotnet/roslyn/issues/57854")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_NonDefaultInSwitchExpression()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a switch {
+            { Name: ""foo"" } => true,
+            _ => false,
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a switch
+        {
+            { Name: ""foo"" } => true,
+            _ => false,
         };
     }
 }", changedOptionSet: changingOptions);

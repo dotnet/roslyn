@@ -20,14 +20,14 @@ Namespace Tests
         Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
-                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, displayTextPrefix As String, inlineDescription As String,
                 isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?,
                 options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
 
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options)
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task
@@ -847,7 +847,9 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyItemsExistAsync(text, "Nothing", "True", "False", "Await")
+            For Each keywordKind In SyntaxFacts.GetKeywordKinds()
+                Await VerifyItemExistsAsync(text, SyntaxFacts.GetText(keywordKind), glyph:=Glyph.Keyword)
+            Next
         End Function
 
         <Fact>
@@ -955,5 +957,53 @@ end class"
             Await VerifyItemExistsAsync(text, "term")
             Await VerifyItemExistsAsync(text, "description")
         End Function
+
+        <Fact>
+        Public Async Function TriggerOnDeletion_DeleteInsideAttributeName() As Task
+            TriggerOnDeletion = True
+
+            Dim text = "
+''' <see lang$$ord=""true"" />
+class C
+end class"
+            Await VerifyItemExistsAsync(text, "langword", deletedCharTrigger:="w"c)
+        End Function
+
+        <Fact>
+        Public Async Function TriggerOnDeletion_DeleteInsideAttributeValue() As Task
+            TriggerOnDeletion = True
+
+            Dim text = "
+''' <see langword=""t$$ue"" />
+class C
+end class"
+            Await VerifyItemExistsAsync(text, "True", deletedCharTrigger:="r"c)
+        End Function
+
+        <Fact>
+        Public Async Function TriggerOnDeletion_DeleteInsideTagName() As Task
+            TriggerOnDeletion = True
+
+            Dim text = "
+''' <summ$$ry>
+''' </summary>
+class C
+end class"
+            Await VerifyItemExistsAsync(text, "summary", deletedCharTrigger:="a"c)
+        End Function
+
+        <Fact>
+        Public Async Function TriggerOnDeletion_DeleteInXmlText_DoesntSuggest() As Task
+            TriggerOnDeletion = True
+
+            Dim text = "
+''' <summary>
+''' a$$c
+''' </summary>
+class C
+end class"
+            Await VerifyItemIsAbsentAsync(text, "see", deletedCharTrigger:="b"c)
+        End Function
+
     End Class
 End Namespace

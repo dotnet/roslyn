@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected TypeSymbol SwitchGoverningType => SwitchGoverningExpression.Type;
 
-        protected ImmutableBindingDiagnostic<AssemblySymbol> SwitchGoverningDiagnostics
+        protected ReadOnlyBindingDiagnostic<AssemblySymbol> SwitchGoverningDiagnostics
         {
             get
             {
                 EnsureSwitchGoverningExpressionAndDiagnosticsBound();
-                return new ImmutableBindingDiagnostic<AssemblySymbol>(_switchGoverningDiagnostics, _switchGoverningDependencies);
+                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(_switchGoverningDiagnostics, _switchGoverningDependencies);
             }
         }
 

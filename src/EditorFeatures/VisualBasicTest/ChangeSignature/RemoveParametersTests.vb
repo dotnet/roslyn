@@ -97,7 +97,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestChangeSignatureCommandDisabledInSubmission()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -115,8 +115,7 @@ End Module
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = New VisualBasicChangeSignatureCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    workspace.GlobalOptions)
+                    workspace.GetService(Of IThreadingContext))
 
                 Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

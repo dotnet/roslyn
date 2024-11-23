@@ -1089,7 +1089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 leastRelaxationLevel = ConversionKind.DelegateRelaxationLevelWideningToNonLambda
 
                 ' Infer Anonymous Delegate as the target for the lambda.
-                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = source.InferredAnonymousDelegate
+                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = source.InferredAnonymousDelegate
 
                 ' If we have errors for the inference, we know that there is no conversion.
                 If Not anonymousDelegateInfo.Value.Diagnostics.IsDefault AndAlso anonymousDelegateInfo.Value.Diagnostics.HasAnyErrors() Then
@@ -1112,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If source.IsInferredDelegateForThisLambda(delegateInvoke.ContainingType) Then
-                    Dim inferenceDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = source.InferredAnonymousDelegate.Value
+                    Dim inferenceDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = source.InferredAnonymousDelegate.Value
 
                     ' If we have errors for the inference, we know that there is no conversion.
                     If Not inferenceDiagnostics.Diagnostics.IsDefault AndAlso inferenceDiagnostics.Diagnostics.HasAnyErrors() Then
@@ -2032,6 +2032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             While candidate IsNot Nothing
                 If ConstraintsHelper.CheckConstraints(constructedSymbol:=Nothing,
+                                                      LanguageVersion.Latest, ' Classifying conversions from/to type parameters. This is meaningful only when they and their constraints are declared in source
                                                       substitution:=Nothing,
                                                       typeParameter:=typeParam,
                                                       typeArgument:=candidate,

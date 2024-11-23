@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -152,10 +151,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 // supported commands first before actually firing the command.
                 if (ErrorHandler.Succeeded(
                     _filterKeys.TranslateAcceleratorEx(
-                        new VisualStudio.OLE.Interop.MSG[] { oleMSG },
+                        [oleMSG],
                         (uint)(__VSTRANSACCELEXFLAGS.VSTAEXF_NoFireCommand | __VSTRANSACCELEXFLAGS.VSTAEXF_UseTextEditorKBScope | __VSTRANSACCELEXFLAGS.VSTAEXF_AllowModalState),
                         0 /*scope count*/,
-                        Array.Empty<Guid>() /*scopes*/,
+                        [] /*scopes*/,
                         out var cmdGuid,
                         out var cmdId,
                         out _,
@@ -165,10 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     if (IsCommandAllowed(cmdGuid, cmdId))
                     {
                         var res = _filterKeys.TranslateAcceleratorEx(
-                            new VisualStudio.OLE.Interop.MSG[] { oleMSG },
+                            [oleMSG],
                             (uint)(__VSTRANSACCELEXFLAGS.VSTAEXF_UseTextEditorKBScope | __VSTRANSACCELEXFLAGS.VSTAEXF_AllowModalState),
                             0 /*scope count*/,
-                            Array.Empty<Guid>() /*scopes*/,
+                            [] /*scopes*/,
                             out _,
                             out _,
                             out _,

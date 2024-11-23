@@ -6,10 +6,9 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.PasteTracking
+namespace Microsoft.CodeAnalysis.PasteTracking;
+
+internal interface IPasteTrackingService
 {
-    internal interface IPasteTrackingService
-    {
-        bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan);
-    }
+    bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan);
 }

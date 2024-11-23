@@ -5,12 +5,11 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportDeclarationNameRecommenderAttribute(string name) : ExportAttribute(typeof(IDeclarationNameRecommender))
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportDeclarationNameRecommenderAttribute(string name) : ExportAttribute(typeof(IDeclarationNameRecommender))
-    {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-    }
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
 }

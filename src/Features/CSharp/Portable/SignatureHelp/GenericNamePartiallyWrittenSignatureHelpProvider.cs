@@ -12,26 +12,25 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
+namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+
+[ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
+internal class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
 {
-    [ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
-    internal class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public GenericNamePartiallyWrittenSignatureHelpProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GenericNamePartiallyWrittenSignatureHelpProvider()
-        {
-        }
+    }
 
-        protected override bool TryGetGenericIdentifier(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
-            => root.SyntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+    protected override bool TryGetGenericIdentifier(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
+        => root.SyntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
 
-        protected override TextSpan GetTextSpan(SyntaxToken genericIdentifier, SyntaxToken lessThanToken)
-        {
-            var lastToken = genericIdentifier.FindLastTokenOfPartialGenericName();
-            var nextToken = lastToken.GetNextNonZeroWidthTokenOrEndOfFile();
-            Contract.ThrowIfTrue(nextToken.Kind() == 0);
-            return TextSpan.FromBounds(genericIdentifier.SpanStart, nextToken.SpanStart);
-        }
+    protected override TextSpan GetTextSpan(SyntaxToken genericIdentifier, SyntaxToken lessThanToken)
+    {
+        var lastToken = genericIdentifier.FindLastTokenOfPartialGenericName();
+        var nextToken = lastToken.GetNextNonZeroWidthTokenOrEndOfFile();
+        Contract.ThrowIfTrue(nextToken.Kind() == 0);
+        return TextSpan.FromBounds(genericIdentifier.SpanStart, nextToken.SpanStart);
     }
 }

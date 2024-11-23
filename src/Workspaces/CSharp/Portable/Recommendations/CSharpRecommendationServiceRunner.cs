@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -17,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
@@ -42,16 +45,13 @@ internal partial class CSharpRecommendationService
 
         public override RecommendedSymbols GetRecommendedSymbols()
         {
-            if (_context.IsInNonUserCode ||
-                _context.IsPreProcessorDirectiveContext)
-            {
+            if (_context.IsInNonUserCode || _context.IsPreProcessorDirectiveContext)
                 return default;
-            }
 
-            if (!_context.IsRightOfNameSeparator)
-                return new RecommendedSymbols(GetSymbolsForCurrentContext());
+            if (_context.IsRightOfNameSeparator)
+                return GetSymbolsOffOfContainer();
 
-            return GetSymbolsOffOfContainer();
+            return new RecommendedSymbols(GetSymbolsForCurrentContext());
         }
 
         public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol? explicitLambdaParameterType)
@@ -106,7 +106,7 @@ internal partial class CSharpRecommendationService
             else if (_context.IsDestructorTypeContext)
             {
                 var symbol = _context.SemanticModel.GetDeclaredSymbol(_context.ContainingTypeOrEnumDeclaration!, _cancellationToken);
-                return symbol == null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(symbol);
+                return symbol == null ? [] : [symbol];
             }
             else if (_context.IsNamespaceDeclarationNameContext)
             {
@@ -117,7 +117,7 @@ internal partial class CSharpRecommendationService
                 return GetSymbolsForEnumBaseList(container: null);
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         private RecommendedSymbols GetSymbolsOffOfContainer()
@@ -137,6 +137,22 @@ internal partial class CSharpRecommendationService
                 }
             }
 
+            if (IsConstantPatternContainerContext())
+            {
+                // We are building a pattern expression, and thus we can only access either constants, types or namespaces.
+                return node switch
+                {
+                    // x is (A.$$
+                    // x switch { A.$$
+                    // x switch { { Property: A.$$
+                    MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
+                        => GetSymbolsOffOfExpressionInConstantPattern(memberAccess.Expression),
+                    // x is A.$$
+                    QualifiedNameSyntax qualifiedName => GetSymbolsOffOfExpressionInConstantPattern(qualifiedName.Left),
+                    _ => default,
+                };
+            }
+
             return node switch
             {
                 MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
@@ -147,10 +163,52 @@ internal partial class CSharpRecommendationService
                 // This code should be executing only if the cursor is between two dots in a `..` token.
                 RangeExpressionSyntax rangeExpression => GetSymbolsOffOfRangeExpression(rangeExpression),
                 QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
-                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
+                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOfAlias(aliasName.Alias),
                 MemberBindingExpressionSyntax => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression()!.Expression),
                 _ => default,
             };
+
+            bool IsConstantPatternContainerContext()
+            {
+                if (node is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    for (var current = node; current != null; current = current.Parent)
+                    {
+                        if (current.Kind() == SyntaxKind.ConstantPattern)
+                            return true;
+
+                        if (current.Kind() == SyntaxKind.ParenthesizedExpression)
+                            continue;
+
+                        if (current.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                            continue;
+
+                        break;
+                    }
+                }
+                else if (node is QualifiedNameSyntax)
+                {
+                    var last = node;
+                    for (var current = node; current != null; last = current, current = current.Parent)
+                    {
+                        if (current is BinaryExpressionSyntax(SyntaxKind.IsExpression) binaryExpression &&
+                            binaryExpression.Right == last)
+                        {
+                            return true;
+                        }
+
+                        if (current.Kind() == SyntaxKind.QualifiedName)
+                            continue;
+
+                        if (current.Kind() == SyntaxKind.AliasQualifiedName)
+                            continue;
+
+                        break;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private RecommendedSymbols GetSymbolsOffOfRangeExpression(RangeExpressionSyntax rangeExpression)
@@ -222,12 +280,12 @@ internal partial class CSharpRecommendationService
 
             var symbols = enclosingSymbol != null
                 ? enclosingSymbol.GetTypeArguments()
-                : ImmutableArray<ITypeSymbol>.Empty;
+                : [];
 
             return ImmutableArray<ISymbol>.CastUp(symbols);
         }
 
-        private RecommendedSymbols GetSymbolsOffOffAlias(IdentifierNameSyntax alias)
+        private RecommendedSymbols GetSymbolsOffOfAlias(IdentifierNameSyntax alias)
         {
             var aliasSymbol = _context.SemanticModel.GetAliasInfo(alias, _cancellationToken);
             if (aliasSymbol == null)
@@ -321,7 +379,7 @@ internal partial class CSharpRecommendationService
 
                 if (symbol.IsExtensionMethod() &&
                     !Equals(enclosingNamedType, symbol.ContainingType) &&
-                    !outerTypes.Any(outerType => outerType.Equals(symbol.ContainingType)))
+                    !outerTypes.Contains(symbol.ContainingType))
                 {
                     return true;
                 }
@@ -425,7 +483,7 @@ internal partial class CSharpRecommendationService
                 return GetSymbolsOffOfExpression(name);
 
             if (name.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(_context.SemanticModel, out var nameBinding, out var container))
-                return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false, isForDereference: false);
+                return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false, isForDereference: false, allowColorColor: true);
 
             // We're in a name-only context, since if we were an expression we'd be a
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
@@ -467,6 +525,59 @@ internal partial class CSharpRecommendationService
             return new RecommendedSymbols(symbols);
         }
 
+        private RecommendedSymbols GetSymbolsOffOfExpressionInConstantPattern(ExpressionSyntax? originalExpression)
+        {
+            if (originalExpression is null)
+                return default;
+
+            var semanticModel = _context.SemanticModel;
+            var boundSymbol = semanticModel.GetSymbolInfo(originalExpression, _cancellationToken);
+
+            if (boundSymbol.Symbol is not INamespaceOrTypeSymbol namespaceOrType)
+            {
+                // Likely a Color Color case, so we reinterpret the bound symbol into a type
+                if (originalExpression is IdentifierNameSyntax identifier)
+                {
+                    var reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+                    var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+                    var container = _context.SemanticModel.GetTypeInfo(identifier, _cancellationToken).Type;
+
+                    // The reinterpretation must be a namespace or type, since we cannot have a
+                    // constant expression out of dotting a constant value, like a x.Length
+                    // If all we can bind to is a const local or const field, we cannot offer valid suggestions
+                    if (reinterpretedSymbol is not INamespaceOrTypeSymbol)
+                        return default;
+
+                    var expression = originalExpression.WalkDownParentheses();
+
+                    return GetSymbolsOffOfBoundExpressionWorker(
+                        reinterpretedBinding,
+                        originalExpression,
+                        expression,
+                        container,
+                        unwrapNullable: false,
+                        isForDereference: false);
+                }
+
+                return default;
+            }
+
+            var containingType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
+            if (containingType == null)
+                return default;
+
+            // A constant pattern may only include qualifications to
+            // - namespaces (from other namespaces or aliases),
+            // - types (from aliases, namespaces or other types),
+            // - constant fields (from types)
+            // Methods, properties, events, non-constant fields etc. are excluded since they are not constant expressions
+            var symbols = namespaceOrType
+                .GetMembers()
+                .WhereAsArray(symbol => symbol is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true }
+                    && symbol.IsAccessibleWithin(containingType));
+            return new RecommendedSymbols(symbols);
+        }
+
         private RecommendedSymbols GetSymbolsOffOfExpression(ExpressionSyntax? originalExpression)
         {
             if (originalExpression == null)
@@ -481,21 +592,8 @@ internal partial class CSharpRecommendationService
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
             var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
 
-            var result = GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false, isForDereference: false);
-
-            // Check for the Color Color case.
-            if (originalExpression.CanAccessInstanceAndStaticMembersOffOf(_context.SemanticModel, _cancellationToken))
-            {
-                var speculativeSymbolInfo = _context.SemanticModel.GetSpeculativeSymbolInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
-
-                var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container, unwrapNullable: false, isForDereference: false);
-
-                result = new RecommendedSymbols(
-                    result.NamedSymbols.Concat(typeMembers.NamedSymbols),
-                    result.UnnamedSymbols);
-            }
-
-            return result;
+            return GetSymbolsOffOfBoundExpression(
+                originalExpression, expression, leftHandBinding, container, unwrapNullable: false, isForDereference: false, allowColorColor: true);
         }
 
         private RecommendedSymbols GetSymbolsOffOfDereferencedExpression(ExpressionSyntax originalExpression)
@@ -504,7 +602,9 @@ internal partial class CSharpRecommendationService
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
             var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
 
-            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false, isForDereference: true);
+            // Can't access statics through a pointer so do not allow for the `Color Color` case.
+            return GetSymbolsOffOfBoundExpression(
+                originalExpression, expression, leftHandBinding, container, unwrapNullable: false, isForDereference: true, allowColorColor: false);
         }
 
         private RecommendedSymbols GetSymbolsOffOfConditionalReceiver(ExpressionSyntax originalExpression)
@@ -522,7 +622,9 @@ internal partial class CSharpRecommendationService
             if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
                 return default;
 
-            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: true, isForDereference: false);
+            // Can't access statics through `?.` so do not allow for the `Color Color` case.
+            return GetSymbolsOffOfBoundExpression(
+                originalExpression, expression, leftHandBinding, container, unwrapNullable: true, isForDereference: false, allowColorColor: false);
         }
 
         private RecommendedSymbols GetSymbolsOffOfBoundExpression(
@@ -531,7 +633,70 @@ internal partial class CSharpRecommendationService
             SymbolInfo leftHandBinding,
             ITypeSymbol? containerType,
             bool unwrapNullable,
-            bool isForDereference)
+            bool isForDereference,
+            bool allowColorColor)
+        {
+            var result = GetSymbolsOffOfBoundExpressionWorker(leftHandBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
+            if (!allowColorColor || !CanAccessInstanceAndStaticMembersOffOf(out var reinterpretedBinding))
+                return result;
+
+            var typeMembers = GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
+
+            return new RecommendedSymbols(
+                result.NamedSymbols.Concat(typeMembers.NamedSymbols),
+                result.UnnamedSymbols);
+
+            bool CanAccessInstanceAndStaticMembersOffOf(out SymbolInfo reinterpretedBinding)
+            {
+                reinterpretedBinding = default;
+
+                // Check for the Color Color case.
+                //
+                // color color: if you bind "A" and you get a symbol and the type of that symbol is
+                // Q; and if you bind "A" *again* as a type and you get type Q, then both A.static
+                // and A.instance are permitted
+                if (expression is not IdentifierNameSyntax identifier)
+                    return false;
+
+                var semanticModel = _context.SemanticModel;
+                var symbol = leftHandBinding.GetAnySymbol();
+
+                // If the symbol is currently bound as a named type, try to bind it as an instance.  Conversely, if it's
+                // bound as an instance, try to bind it as a named type.
+                INamedTypeSymbol? instanceType, staticType;
+                if (symbol is INamedTypeSymbol namedType)
+                {
+                    reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+                    var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+
+                    // has to actually have reinterpreted to something that has an instance type.
+                    if (reinterpretedSymbol is INamespaceOrTypeSymbol)
+                        return false;
+
+                    instanceType = reinterpretedSymbol.GetSymbolType() as INamedTypeSymbol;
+                    staticType = namedType;
+                }
+                else
+                {
+                    reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+                    var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+
+                    // Has to actually have reinterpreted to a named typed.
+                    if (reinterpretedSymbol is not INamedTypeSymbol reinterprettedNamedType)
+                        return false;
+
+                    instanceType = symbol.GetSymbolType() as INamedTypeSymbol;
+                    staticType = reinterprettedNamedType;
+                }
+
+                if (instanceType is null || staticType is null)
+                    return false;
+
+                return SymbolEquivalenceComparer.Instance.Equals(instanceType, staticType);
+            }
+        }
+
+        private RecommendedSymbols GetSymbolsOffOfBoundExpressionWorker(SymbolInfo leftHandBinding, ExpressionSyntax originalExpression, ExpressionSyntax expression, ITypeSymbol? containerType, bool unwrapNullable, bool isForDereference)
         {
             var excludeInstance = false;
             var excludeStatic = true;
@@ -678,7 +843,7 @@ internal partial class CSharpRecommendationService
             var semanticModel = _context.SemanticModel;
             var container = GetContainerForUnnamedSymbols(semanticModel, originalExpression);
             if (container == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
             // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
@@ -692,7 +857,7 @@ internal partial class CSharpRecommendationService
             AddOperators(container, symbols);
             AddConversions(container, symbols);
 
-            return symbols.ToImmutable();
+            return symbols.ToImmutableAndClear();
         }
 
         private ITypeSymbol? GetContainerForUnnamedSymbols(SemanticModel semanticModel, ExpressionSyntax originalExpression)

@@ -2,116 +2,115 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal enum Glyph
 {
-    internal enum Glyph
-    {
-        None,
+    None,
 
-        Assembly,
+    Assembly,
 
-        BasicFile,
-        BasicProject,
+    BasicFile,
+    BasicProject,
 
-        ClassPublic,
-        ClassProtected,
-        ClassPrivate,
-        ClassInternal,
+    ClassPublic,
+    ClassProtected,
+    ClassPrivate,
+    ClassInternal,
 
-        CSharpFile,
-        CSharpProject,
+    CSharpFile,
+    CSharpProject,
 
-        ConstantPublic,
-        ConstantProtected,
-        ConstantPrivate,
-        ConstantInternal,
+    ConstantPublic,
+    ConstantProtected,
+    ConstantPrivate,
+    ConstantInternal,
 
-        DelegatePublic,
-        DelegateProtected,
-        DelegatePrivate,
-        DelegateInternal,
+    DelegatePublic,
+    DelegateProtected,
+    DelegatePrivate,
+    DelegateInternal,
 
-        EnumPublic,
-        EnumProtected,
-        EnumPrivate,
-        EnumInternal,
+    EnumPublic,
+    EnumProtected,
+    EnumPrivate,
+    EnumInternal,
 
-        EnumMemberPublic,
-        EnumMemberProtected,
-        EnumMemberPrivate,
-        EnumMemberInternal,
+    EnumMemberPublic,
+    EnumMemberProtected,
+    EnumMemberPrivate,
+    EnumMemberInternal,
 
-        Error,
-        StatusInformation,
+    Error,
+    StatusInformation,
 
-        EventPublic,
-        EventProtected,
-        EventPrivate,
-        EventInternal,
+    EventPublic,
+    EventProtected,
+    EventPrivate,
+    EventInternal,
 
-        ExtensionMethodPublic,
-        ExtensionMethodProtected,
-        ExtensionMethodPrivate,
-        ExtensionMethodInternal,
+    ExtensionMethodPublic,
+    ExtensionMethodProtected,
+    ExtensionMethodPrivate,
+    ExtensionMethodInternal,
 
-        FieldPublic,
-        FieldProtected,
-        FieldPrivate,
-        FieldInternal,
+    FieldPublic,
+    FieldProtected,
+    FieldPrivate,
+    FieldInternal,
 
-        InterfacePublic,
-        InterfaceProtected,
-        InterfacePrivate,
-        InterfaceInternal,
+    InterfacePublic,
+    InterfaceProtected,
+    InterfacePrivate,
+    InterfaceInternal,
 
-        Intrinsic,
+    Intrinsic,
 
-        Keyword,
+    Keyword,
 
-        Label,
+    Label,
 
-        Local,
+    Local,
 
-        Namespace,
+    Namespace,
 
-        MethodPublic,
-        MethodProtected,
-        MethodPrivate,
-        MethodInternal,
+    MethodPublic,
+    MethodProtected,
+    MethodPrivate,
+    MethodInternal,
 
-        ModulePublic,
-        ModuleProtected,
-        ModulePrivate,
-        ModuleInternal,
+    ModulePublic,
+    ModuleProtected,
+    ModulePrivate,
+    ModuleInternal,
 
-        OpenFolder,
+    OpenFolder,
 
-        Operator,
+    Operator,
 
-        Parameter,
+    Parameter,
 
-        PropertyPublic,
-        PropertyProtected,
-        PropertyPrivate,
-        PropertyInternal,
+    PropertyPublic,
+    PropertyProtected,
+    PropertyPrivate,
+    PropertyInternal,
 
-        RangeVariable,
+    RangeVariable,
 
-        Reference,
+    Reference,
 
-        StructurePublic,
-        StructureProtected,
-        StructurePrivate,
-        StructureInternal,
+    StructurePublic,
+    StructureProtected,
+    StructurePrivate,
+    StructureInternal,
 
-        TypeParameter,
+    TypeParameter,
 
-        Snippet,
+    Snippet,
 
-        CompletionWarning,
+    CompletionWarning,
 
-        AddReference,
-        NuGet,
-        TargetTypeMatch
-    }
+    AddReference,
+    NuGet,
+    TargetTypeMatch
 }

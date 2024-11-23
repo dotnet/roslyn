@@ -10,32 +10,30 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
+
+internal interface IReplaceMethodWithPropertyService : ILanguageService
 {
-    internal interface IReplaceMethodWithPropertyService : ILanguageService
-    {
-        Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context);
+    Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context);
 
-        void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
-        void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
+    void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
+    void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
 
-        void ReplaceGetMethodWithProperty(
-            CodeGenerationOptions options, ParseOptions parseOptions,
-            SyntaxEditor editor, SemanticModel semanticModel,
-            GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged, CancellationToken cancellationToken);
+    void ReplaceGetMethodWithProperty(
+        CodeGenerationOptions options, ParseOptions parseOptions,
+        SyntaxEditor editor, SemanticModel semanticModel,
+        GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged, CancellationToken cancellationToken);
 
-        void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
-    }
+    void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
+}
 
-    internal readonly struct GetAndSetMethods(
-        IMethodSymbol getMethod, IMethodSymbol setMethod,
-        SyntaxNode getMethodDeclaration, SyntaxNode setMethodDeclaration)
-    {
-        public readonly IMethodSymbol GetMethod = getMethod;
-        public readonly IMethodSymbol SetMethod = setMethod;
-        public readonly SyntaxNode GetMethodDeclaration = getMethodDeclaration;
-        public readonly SyntaxNode SetMethodDeclaration = setMethodDeclaration;
-    }
+internal readonly struct GetAndSetMethods(
+    IMethodSymbol getMethod, IMethodSymbol setMethod,
+    SyntaxNode getMethodDeclaration, SyntaxNode setMethodDeclaration)
+{
+    public readonly IMethodSymbol GetMethod = getMethod;
+    public readonly IMethodSymbol SetMethod = setMethod;
+    public readonly SyntaxNode GetMethodDeclaration = getMethodDeclaration;
+    public readonly SyntaxNode SetMethodDeclaration = setMethodDeclaration;
 }

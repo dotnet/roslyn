@@ -8,11 +8,39 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    public static class SeparatedSyntaxList
+    {
+        public static SeparatedSyntaxList<TNode> Create<TNode>(ReadOnlySpan<TNode> nodes) where TNode : SyntaxNode
+        {
+            if (nodes.Length == 0)
+                return default;
+
+            if (nodes.Length == 1)
+                return new SeparatedSyntaxList<TNode>(new SyntaxNodeOrTokenList(nodes[0], index: 0));
+
+            var builder = new CodeAnalysis.Syntax.SeparatedSyntaxListBuilder<TNode>(nodes.Length);
+
+            builder.Add(nodes[0]);
+
+            var separator = nodes[0].Green.CreateSeparator(nodes[0]);
+
+            for (int i = 1, n = nodes.Length; i < n; i++)
+            {
+                builder.AddSeparator(separator);
+                builder.Add(nodes[i]);
+            }
+
+            return builder.ToList();
+        }
+    }
+
+    [CollectionBuilder(typeof(SeparatedSyntaxList), "Create")]
     public readonly partial struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>>, IReadOnlyList<TNode> where TNode : SyntaxNode
     {
         private readonly SyntaxNodeOrTokenList _list;
@@ -400,7 +428,7 @@ namespace Microsoft.CodeAnalysis
                     // if item before insertion point is a node, add a separator
                     if (nodesToInsertWithSeparators.Count > 0 || (insertionIndex > 0 && nodesWithSeps[insertionIndex - 1].IsNode))
                     {
-                        nodesToInsertWithSeparators.Add(item.Green.CreateSeparator<TNode>(item));
+                        nodesToInsertWithSeparators.Add(item.Green.CreateSeparator(item));
                     }
 
                     nodesToInsertWithSeparators.Add(item);
@@ -412,7 +440,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var node = nodesWithSeps[insertionIndex].AsNode();
                 Debug.Assert(node is object);
-                nodesToInsertWithSeparators.Add(node.Green.CreateSeparator<TNode>(node)); // separator
+                nodesToInsertWithSeparators.Add(node.Green.CreateSeparator(node)); // separator
             }
 
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.InsertRange(insertionIndex, nodesToInsertWithSeparators));

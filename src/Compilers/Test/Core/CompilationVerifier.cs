@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             try
             {
                 testEnvironment.Verify(peVerify);
-#if NETCOREAPP
+#if NET
                 ILVerify(peVerify);
 #endif
             }
@@ -300,20 +300,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private sealed class Resolver : ILVerify.ResolverBase
+        private sealed class Resolver : ILVerify.IResolver
         {
-            private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName;
+            private readonly Dictionary<string, PEReader> _readersByName;
 
-            internal Resolver(Dictionary<string, ImmutableArray<byte>> imagesByName)
+            internal Resolver(Dictionary<string, PEReader> readersByName)
             {
-                _imagesByName = imagesByName;
+                _readersByName = readersByName;
             }
 
-            protected override PEReader ResolveCore(string simpleName)
+            public PEReader ResolveAssembly(AssemblyName assemblyName)
             {
-                if (_imagesByName.TryGetValue(simpleName, out var image))
+                return Resolve(assemblyName.Name);
+            }
+
+            public PEReader ResolveModule(AssemblyName referencingAssembly, string fileName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public PEReader Resolve(string simpleName)
+            {
+                if (_readersByName.TryGetValue(simpleName, out var reader))
                 {
-                    return new PEReader(image);
+                    return reader;
                 }
 
                 throw new Exception($"ILVerify was not able to resolve a module named '{simpleName}'");
@@ -327,11 +337,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            var imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
+            var readersByName = new Dictionary<string, PEReader>(StringComparer.OrdinalIgnoreCase);
             foreach (var module in _allModuleData)
             {
                 string name = module.SimpleName;
-                if (imagesByName.ContainsKey(name))
+                if (readersByName.ContainsKey(name))
                 {
                     if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                     {
@@ -340,10 +350,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     throw new Exception($"Multiple modules named '{name}' were found");
                 }
-                imagesByName.Add(name, module.Image);
+                readersByName.Add(name, new PEReader(module.Image));
             }
 
-            var resolver = new Resolver(imagesByName);
+            var resolver = new Resolver(readersByName);
             var verifier = new ILVerify.Verifier(resolver);
             var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
@@ -359,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Main module is the first one
             var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
 
-            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.FullName, mainModuleReader);
             var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
 
             if (actualSuccess != expectedSuccess)

@@ -32,6 +32,11 @@
         <target state="translated">產生事件訂閱</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_event">
+        <source>Generating event...</source>
+        <target state="translated">正在產生事件...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
         <target state="translated">放大原始字串</target>
@@ -45,11 +50,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (按 TAB 鍵插入)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">智慧縮排</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_raw_string">

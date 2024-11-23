@@ -80,7 +80,7 @@ End Module</code>
 
             MarkupTestFile.GetSpans(code, codeWithoutMarkup, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarkup)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithoutMarkup)
                 Dim doc = workspace.Documents.First()
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 

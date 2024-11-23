@@ -9,242 +9,251 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
-    internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    public static readonly ConstructorSymbolReferenceFinder Instance = new();
+
+    private ConstructorSymbolReferenceFinder()
     {
-        public static readonly ConstructorSymbolReferenceFinder Instance = new();
+    }
 
-        private ConstructorSymbolReferenceFinder()
+    protected override bool CanFind(IMethodSymbol symbol)
+        => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
+
+    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
+    {
+        var containingType = symbol.ContainingType;
+        return GetAllMatchingGlobalAliasNamesAsync(project, containingType.Name, containingType.Arity, cancellationToken);
+    }
+
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        IMethodSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        var containingType = symbol.ContainingType;
+        var typeName = symbol.ContainingType.Name;
+
+        await AddDocumentsAsync(
+            project, documents, typeName, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+
+        if (globalAliases != null)
         {
-        }
-
-        protected override bool CanFind(IMethodSymbol symbol)
-            => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
-
-        protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            var containingType = symbol.ContainingType;
-            return GetAllMatchingGlobalAliasNamesAsync(project, containingType.Name, containingType.Arity, cancellationToken);
-        }
-
-        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Project project,
-            IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            var containingType = symbol.ContainingType;
-            var typeName = symbol.ContainingType.Name;
-
-            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-
-            await AddDocumentsAsync(
-                project, documents, typeName, result, cancellationToken).ConfigureAwait(false);
-
-            if (globalAliases != null)
+            foreach (var globalAlias in globalAliases)
             {
-                foreach (var globalAlias in globalAliases)
-                {
-                    await AddDocumentsAsync(
-                        project, documents, globalAlias, result, cancellationToken).ConfigureAwait(false);
-                }
+                await AddDocumentsAsync(
+                    project, documents, globalAlias, processResult, processResultData, cancellationToken).ConfigureAwait(false);
             }
-
-            result.AddRange(await FindDocumentsAsync(
-                project, documents, containingType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false));
-
-            result.AddRange(await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-                project, documents, cancellationToken).ConfigureAwait(false));
-
-            result.AddRange(symbol.MethodKind == MethodKind.Constructor
-                ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty);
-
-            return result.ToImmutable();
         }
 
-        private static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-            => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsImplicitObjectCreation, cancellationToken);
+        await FindDocumentsAsync(
+            project, documents, containingType.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        private static async Task AddDocumentsAsync(
-            Project project,
-            IImmutableSet<Document>? documents,
-            string typeName,
-            ArrayBuilder<Document> result,
-            CancellationToken cancellationToken)
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
+            project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+
+        if (symbol.MethodKind == MethodKind.Constructor)
         {
-            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, typeName).ConfigureAwait(false);
-
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.Services.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
-                ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
-
-            result.AddRange(documentsWithName);
-            result.AddRange(documentsWithAttribute);
+            await FindDocumentsWithImplicitObjectCreationExpressionAsync(
+                project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
+    }
 
-        private static bool IsPotentialReference(PredefinedType predefinedType, ISyntaxFactsService syntaxFacts, SyntaxToken token)
-            => syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
-               predefinedType == actualType;
+    private static Task FindDocumentsWithImplicitObjectCreationExpressionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsImplicitObjectCreation, processResult, processResultData, cancellationToken);
 
-        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IMethodSymbol methodSymbol,
-            FindReferencesDocumentState state,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+    private static async Task AddDocumentsAsync<TData>(
+        Project project,
+        IImmutableSet<Document>? documents,
+        string typeName,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, typeName).ConfigureAwait(false);
+
+        if (TryGetNameWithoutAttributeSuffix(typeName, project.Services.GetRequiredService<ISyntaxFactsService>(), out var simpleName))
+            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
+    }
+
+    private static bool IsPotentialReference(PredefinedType predefinedType, ISyntaxFactsService syntaxFacts, SyntaxToken token)
+        => syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
+           predefinedType == actualType;
+
+    protected override void FindReferencesInDocument<TData>(
+        IMethodSymbol methodSymbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        // First just look for this normal constructor references using the name of it's containing type.
+        var containingType = methodSymbol.ContainingType;
+        var containingTypeName = containingType.Name;
+        AddReferencesInDocumentWorker(
+            methodSymbol, containingTypeName, state, processResult, processResultData, cancellationToken);
+
+        // Next, look for constructor references through a global alias to our containing type.
+        foreach (var globalAlias in state.GlobalAliases)
+            FindReferenceToAlias(methodSymbol, state, processResult, processResultData, containingTypeName, globalAlias, cancellationToken);
+
+        foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(containingTypeName, containingType.Arity))
+            FindReferenceToAlias(methodSymbol, state, processResult, processResultData, containingTypeName, localAlias, cancellationToken);
+
+        // Finally, look for constructor references to predefined types (like `new int()`),
+        // implicit object references, and inside global suppression attributes.
+        FindPredefinedTypeReferences(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
+
+        FindReferencesInImplicitObjectCreationExpression(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
+
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindReferenceToAlias<TData>(
+        IMethodSymbol methodSymbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, string name, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the type name (i.e.
+        // global alias Console = System.Console).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(name, alias))
+            return;
+
+        AddReferencesInDocumentWorker(
+            methodSymbol, alias, state, processResult, processResultData, cancellationToken);
+    }
+
+    /// <summary>
+    /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
+    /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
+    /// </summary>
+    private static void AddReferencesInDocumentWorker<TData>(
+        IMethodSymbol symbol,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        FindOrdinaryReferences(
+            symbol, name, state, processResult, processResultData, cancellationToken);
+        FindAttributeReferences(
+            symbol, name, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindOrdinaryReferences<TData>(
+        IMethodSymbol symbol,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        FindReferencesInDocumentUsingIdentifier(
+            symbol, name, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindPredefinedTypeReferences<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
+        if (predefinedType == PredefinedType.None)
+            return;
+
+        var tokens = state.Root
+            .DescendantTokens(descendIntoTrivia: true)
+            .WhereAsArray(
+                static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
+                (state, predefinedType));
+
+        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindAttributeReferences<TData>(
+        IMethodSymbol symbol,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        if (TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var simpleName))
+            FindReferencesInDocumentUsingIdentifier(symbol, simpleName, state, processResult, processResultData, cancellationToken);
+    }
+
+    private static void FindReferencesInImplicitObjectCreationExpression<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        if (!state.Cache.SyntaxTreeIndex.ContainsImplicitObjectCreation)
+            return;
+
+        // Note: only C# supports implicit object creation.  So we don't need to do anything special around case
+        // insensitive matching here.
+        //
+        // Search for all the `new` tokens in the file.
+        var newKeywordTokens = state.Cache.GetNewKeywordTokens(cancellationToken);
+        if (newKeywordTokens.IsEmpty)
+            return;
+
+        // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
+        var minimumArgumentCount = symbol.Parameters.Count(static p => !p.IsOptional && !p.IsParams);
+        var maximumArgumentCount = symbol.Parameters is [.., { IsParams: true }]
+            ? int.MaxValue
+            : symbol.Parameters.Length;
+
+        var exactArgumentCount = symbol.Parameters.Any(static p => p.IsOptional || p.IsParams)
+            ? -1
+            : symbol.Parameters.Length;
+
+        var implicitObjectKind = state.SyntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
+        foreach (var newKeywordToken in newKeywordTokens)
         {
-            using var _1 = ArrayBuilder<FinderLocation>.GetInstance(out var result);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            // First just look for this normal constructor references using the name of it's containing type.
-            var name = methodSymbol.ContainingType.Name;
-            await AddReferencesInDocumentWorkerAsync(
-                methodSymbol, name, state, result, cancellationToken).ConfigureAwait(false);
+            var node = newKeywordToken.Parent;
+            if (node is null || node.RawKind != implicitObjectKind)
+                continue;
 
-            // Next, look for constructor references through a global alias to our containing type.
-            foreach (var globalAlias in state.GlobalAliases)
+            // if there are too few or too many arguments, then don't bother checking.
+            var actualArgumentCount = state.SyntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
+            if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
+                continue;
+
+            // if we need an exact count then make sure that the count we have fits the count we need.
+            if (exactArgumentCount != -1 && exactArgumentCount != actualArgumentCount)
+                continue;
+
+            var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+            if (Matches(constructor, symbol))
             {
-                // ignore the cases where the global alias might match the type name (i.e.
-                // global alias Console = System.Console).  We'll already find those references
-                // above.
-                if (state.SyntaxFacts.StringComparer.Equals(name, globalAlias))
-                    continue;
-
-                await AddReferencesInDocumentWorkerAsync(
-                    methodSymbol, globalAlias, state, result, cancellationToken).ConfigureAwait(false);
-            }
-
-            // Nest, our containing type might itself have local aliases to it in this particular file.
-            // If so, see what the local aliases are and then search for constructor references to that.
-            using var _2 = ArrayBuilder<FinderLocation>.GetInstance(out var typeReferences);
-            await NamedTypeSymbolReferenceFinder.AddReferencesToTypeOrGlobalAliasToItAsync(
-                methodSymbol.ContainingType, state, typeReferences, cancellationToken).ConfigureAwait(false);
-
-            var aliasReferences = await FindLocalAliasReferencesAsync(
-                typeReferences, methodSymbol, state, cancellationToken).ConfigureAwait(false);
-
-            // Finally, look for constructor references to predefined types (like `new int()`),
-            // implicit object references, and inside global suppression attributes.
-            result.AddRange(await FindPredefinedTypeReferencesAsync(
-                methodSymbol, state, cancellationToken).ConfigureAwait(false));
-
-            result.AddRange(await FindReferencesInImplicitObjectCreationExpressionAsync(
-                methodSymbol, state, cancellationToken).ConfigureAwait(false));
-
-            result.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                methodSymbol, state, cancellationToken).ConfigureAwait(false));
-
-            return result.ToImmutable();
-        }
-
-        /// <summary>
-        /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
-        /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
-        /// </summary>
-        private static async Task AddReferencesInDocumentWorkerAsync(
-            IMethodSymbol symbol,
-            string name,
-            FindReferencesDocumentState state,
-            ArrayBuilder<FinderLocation> result,
-            CancellationToken cancellationToken)
-        {
-            result.AddRange(await FindOrdinaryReferencesAsync(
-                symbol, name, state, cancellationToken).ConfigureAwait(false));
-            result.AddRange(await FindAttributeReferencesAsync(
-                symbol, name, state, cancellationToken).ConfigureAwait(false));
-        }
-
-        private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
-            IMethodSymbol symbol,
-            string name,
-            FindReferencesDocumentState state,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, name, state, cancellationToken);
-        }
-
-        private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
-            IMethodSymbol symbol,
-            FindReferencesDocumentState state,
-            CancellationToken cancellationToken)
-        {
-            var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
-            if (predefinedType == PredefinedType.None)
-                return new(ImmutableArray<FinderLocation>.Empty);
-
-            var tokens = state.Root
-                .DescendantTokens(descendIntoTrivia: true)
-                .WhereAsArray(
-                    static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
-                    (state, predefinedType));
-
-            return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
-        }
-
-        private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
-            IMethodSymbol symbol,
-            string name,
-            FindReferencesDocumentState state,
-            CancellationToken cancellationToken)
-        {
-            return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var simpleName)
-                ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, state, cancellationToken)
-                : new(ImmutableArray<FinderLocation>.Empty);
-        }
-
-        private Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(
-            IMethodSymbol symbol,
-            FindReferencesDocumentState state,
-            CancellationToken cancellationToken)
-        {
-            // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
-            var minimumArgumentCount = symbol.Parameters.Count(p => !p.IsOptional && !p.IsParams);
-            var maximumArgumentCount = symbol.Parameters is [.., { IsParams: true }]
-                ? int.MaxValue
-                : symbol.Parameters.Length;
-
-            var exactArgumentCount = symbol.Parameters.Any(static p => p.IsOptional || p.IsParams)
-                ? -1
-                : symbol.Parameters.Length;
-
-            return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
-
-            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
-                => syntaxTreeInfo.ContainsImplicitObjectCreation;
-
-            void CollectMatchingReferences(
-                SyntaxNode node, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> locations)
-            {
-                var syntaxFacts = state.SyntaxFacts;
-                if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
-                    return;
-
-                // if there are too few or too many arguments, then don't bother checking.
-                var actualArgumentCount = syntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
-                if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
-                    return;
-
-                // if we need an exact count then make sure that the count we have fits the count we need.
-                if (exactArgumentCount != -1 && exactArgumentCount != actualArgumentCount)
-                    return;
-
-                var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-                if (Matches(constructor, symbol))
-                {
-                    var location = node.GetFirstToken().GetLocation();
-                    var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
-
-                    locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        state.Document, alias: null, location, isImplicit: true, symbolUsageInfo,
-                        GetAdditionalFindUsagesProperties(node, state), CandidateReason.None)));
-                }
+                var result = new FinderLocation(node, new ReferenceLocation(
+                    state.Document,
+                    alias: null,
+                    newKeywordToken.GetLocation(),
+                    isImplicit: true,
+                    GetSymbolUsageInfo(node, state, cancellationToken),
+                    GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
+                processResult(result, processResultData);
             }
         }
     }

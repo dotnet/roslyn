@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2432,9 +2433,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,9): error CS0306: The type 'ReadOnlySpan<byte>' may not be used as a type argument
-                //         PrintType("""
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "PrintType").WithArguments("System.ReadOnlySpan<byte>").WithLocation(6, 9)
+                // (6,9): error CS9244: The type 'ReadOnlySpan<byte>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.PrintType<T>(T)'
+                //         PrintType(@"hello"u8);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "PrintType").WithArguments("C.PrintType<T>(T)", "T", "System.ReadOnlySpan<byte>").WithLocation(6, 9)
                 );
         }
 
@@ -3277,13 +3278,13 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetConversion(node).IsUserDefined);
+            Assert.True(model.GetConversion(node).IsSpan);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3305,13 +3306,14 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
 
             Assert.True(model.GetConversion(node).IsIdentity);
+            Assert.True(((IConversionOperation)model.GetOperation(node)).GetConversion().IsSpan);
         }
 
         [Theory]
@@ -3328,7 +3330,23 @@ class C
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = """
+[Test3]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+[Test3]: Unexpected type on the stack. { Offset = 0x6, Found = address of Int32, Expected = Native Int }
+[Test3]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+""" });
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test3", """
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    "int <PrivateImplementationDetails>.F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57"
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+  IL_000b:  ret
+}
+""");
 
             string blobId = ExecutionConditionUtil.IsWindows ?
                 "I_000026F8" :

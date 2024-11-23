@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,18 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeMemberRequired;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMemberRequired), Shared]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.DeclareAsNullable)]
-internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
+    private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring it as nullable.
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMakeMemberRequiredCodeFixProvider()
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(CS8618);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8618];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -110,7 +104,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
         };
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
         var generator = editor.Generator;

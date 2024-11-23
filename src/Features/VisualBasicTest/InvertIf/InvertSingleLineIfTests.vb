@@ -2,21 +2,24 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
+Imports Microsoft.CodeAnalysis.Testing
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.InvertIf.VisualBasicInvertSingleLineIfCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
-    <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertSingleLineIfTests
-        Inherits AbstractVisualBasicCodeActionTest
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicInvertSingleLineIfCodeRefactoringProvider()
+        Private Shared Async Function TestInsideSubAsync(initial As String, expected As String) As Task
+            Await TestAsync(CreateTreeText(initial), CreateTreeText(expected))
         End Function
 
-        Public Async Function TestFixOneAsync(initial As String, expected As String) As Task
-            Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
+        Private Shared Async Function TestAsync(initial As String, expected As String) As Task
+            Await New VerifyVB.Test With
+            {
+                .TestCode = initial,
+                .FixedCode = expected,
+                .CompilerDiagnostics = CompilerDiagnostics.None
+            }.RunAsync()
         End Function
 
         Public Shared Function CreateTreeText(initial As String) As String
@@ -54,7 +57,7 @@ End Module
 
         <Fact>
         Public Async Function TestAnd() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a And b Then aMethod() Else bMethod()
 ",
@@ -66,7 +69,7 @@ End Module
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
         Public Async Function TestAddEmptyArgumentListIfNeeded() As Task
             Dim markup =
-<File>
+"
 Module A
     Sub Main()
         [||]If True Then : Goo : Goo
@@ -76,14 +79,14 @@ Module A
     Sub Goo()
     End Sub
 End Module
-</File>
+"
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact>
         Public Async Function TestAndAlso() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a AndAlso b Then aMethod() Else bMethod()
 ",
@@ -94,7 +97,7 @@ End Module
 
         <Fact>
         Public Async Function TestCall() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a.Goo() Then aMethod() Else bMethod()
 ",
@@ -105,7 +108,7 @@ End Module
 
         <Fact>
         Public Async Function TestNotIdentifier() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If Not a Then aMethod() Else bMethod()
 ",
@@ -116,7 +119,7 @@ End Module
 
         <Fact>
         Public Async Function TestTrueLiteral() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If True Then aMethod() Else bMethod()
 ",
@@ -127,7 +130,7 @@ End Module
 
         <Fact>
         Public Async Function TestFalseLiteral() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If False Then aMethod() Else bMethod()
 ",
@@ -138,7 +141,7 @@ End Module
 
         <Fact>
         Public Async Function TestEquals() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a = b Then aMethod() Else bMethod()
 ",
@@ -149,7 +152,7 @@ End Module
 
         <Fact>
         Public Async Function TestNotEquals() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a <> b Then aMethod() Else bMethod()
 ",
@@ -160,7 +163,7 @@ End Module
 
         <Fact>
         Public Async Function TestLessThan() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a < b Then aMethod() Else bMethod()
 ",
@@ -171,7 +174,7 @@ End Module
 
         <Fact>
         Public Async Function TestLessThanOrEqual() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a <= b Then aMethod() Else bMethod()
 ",
@@ -182,7 +185,7 @@ End Module
 
         <Fact>
         Public Async Function TestGreaterThan() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a > b Then aMethod() Else bMethod()
 ",
@@ -193,7 +196,7 @@ End Module
 
         <Fact>
         Public Async Function TestGreaterThanOrEqual() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a >= b Then aMethod() Else bMethod()
 ",
@@ -204,7 +207,7 @@ End Module
 
         <Fact>
         Public Async Function TestIs() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         Dim myObject As New Object
         Dim thisObject = myObject
@@ -221,7 +224,7 @@ End Module
 
         <Fact>
         Public Async Function TestIsNot() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         Dim myObject As New Object
         Dim thisObject = myObject
@@ -238,7 +241,7 @@ End Module
 
         <Fact>
         Public Async Function TestOr() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a Or b Then aMethod() Else bMethod()
 ",
@@ -249,7 +252,7 @@ End Module
 
         <Fact>
         Public Async Function TestOrElse() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a OrElse b Then aMethod() Else bMethod()
 ",
@@ -260,7 +263,7 @@ End Module
 
         <Fact>
         Public Async Function TestOr2() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         I[||]f Not a Or Not b Then aMethod() Else bMethod()
 ",
@@ -271,7 +274,7 @@ End Module
 
         <Fact>
         Public Async Function TestOrElse2() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         I[||]f Not a OrElse Not b Then aMethod() Else bMethod()
 ",
@@ -282,7 +285,7 @@ End Module
 
         <Fact>
         Public Async Function TestAnd2() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If Not a And Not b Then aMethod() Else bMethod()
 ",
@@ -293,7 +296,7 @@ End Module
 
         <Fact>
         Public Async Function TestAndAlso2() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If Not a AndAlso Not b Then aMethod() Else bMethod()
 ",
@@ -304,7 +307,7 @@ End Module
 
         <Fact>
         Public Async Function TestXor() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         I[||]f a Xor b Then aMethod() Else bMethod()
 ",
@@ -314,9 +317,9 @@ End Module
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545411")>
-        <WpfFact(Skip:="545411")>
+        <Fact(Skip:="545411")>
         Public Async Function TestXor2() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         I[||]f Not (a Xor b) Then aMethod() Else bMethod()
 ",
@@ -327,7 +330,7 @@ End Module
 
         <Fact>
         Public Async Function TestNested() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If (((a = b) AndAlso (c <> d)) OrElse ((e < f) AndAlso (Not g))) Then aMethod() Else bMethod()
 ",
@@ -339,7 +342,7 @@ End Module
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim markup =
-<File>
+"
 Imports System.Linq
 Module Program
     Sub Main()
@@ -349,15 +352,15 @@ Module Program
     Sub Take()
     End Sub
 End Module
-</File>
+"
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim markup =
-<File>
+"
 Imports System.Linq
 Module Program
     Sub Main()
@@ -367,15 +370,15 @@ Module Program
     Sub Ascending()
     End Sub
 End Module
-</File>
+"
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim markup =
-<File>
+"
 Imports System.Linq
 Module Program
     Sub Main()
@@ -385,15 +388,15 @@ Module Program
     Sub Ascending()
     End Sub
 End Module
-</File>
+"
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim markup =
-<File>
+"
 Imports System.Linq
 Module Program
     Sub Main()
@@ -401,26 +404,15 @@ Module Program
 Take:   Return
     End Sub
 End Module
-</File>
+"
 
-            Dim expected =
-<File>
-Imports System.Linq
-Module Program
-    Sub Main()
-        If False Then Console.WriteLine() Else Dim q = From x In ""
-[Take]:   Return
-    End Sub
-End Module
-</File>
-
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim markup =
-<File>
+"
 Imports System.Linq
 Module Program
     Sub Main()
@@ -430,14 +422,14 @@ Module Program
     Sub Take()
     End Sub
 End Module
-</File>
+"
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [|If a And b Then aMethod() Else bMethod()|]
 ",
@@ -448,7 +440,7 @@ End Module
 
         <Fact>
         Public Async Function TestMultipleStatementsSingleLineIfStatement() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         If[||] a Then aMethod() : bMethod() Else cMethod() : d()
 ",
@@ -459,7 +451,7 @@ End Module
 
         <Fact>
         Public Async Function TestTriviaAfterSingleLineIfStatement() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a Then aMethod() Else bMethod() ' I will stay put 
 ",
@@ -469,7 +461,7 @@ End Module
         End Function
         <Fact>
         Public Async Function TestParenthesizeForLogicalExpressionPrecedence() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Sub Main()
     I[||]f a AndAlso b Or c Then aMethod() Else bMethod()
 End Sub
@@ -482,7 +474,7 @@ End Module")
 
         <Fact>
         Public Async Function TestParenthesizeComparisonOperands() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If 0 <= <x/>.GetHashCode Then aMethod() Else bMethod()
 ",
@@ -493,9 +485,9 @@ End Module")
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529749")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
-        <WpfFact(Skip:="Bug 530593")>
+        <Fact(Skip:="Bug 530593")>
         Public Async Function TestNestedSingleLineIfs() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
         ' Invert the 1st If 
@@ -512,18 +504,20 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529747")>
         Public Async Function TestTryToParenthesizeAwkwardSyntaxInsideSingleLineLambdaMethod() As Task
-            Await TestMissingAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         ' Invert If 
         Dim x = Sub() I[||]f True Then Dim y Else Console.WriteLine(), z = 1
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfSingleLineIf() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         If T[||]rue Then Return Else Console.WriteLine(""a"")
@@ -537,45 +531,45 @@ End Module")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531101")>
-        <WpfFact(Skip:="531101")>
+        <Fact(Skip:="531101")>
         Public Async Function TestImplicitLineContinuationBeforeClosingParenIsRemoved() As Task
             Dim markup =
-<MethodBody>
+"
 [||]If (True OrElse True
     ) Then
 Else
 End If
-</MethodBody>
+"
 
             Dim expected =
-<MethodBody>
+"
 If False AndAlso False Then
 Else
 End If
-</MethodBody>
+"
 
-            Await TestAsync(markup, expected)
+            Await TestInsideSubAsync(markup, expected)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
-<File>
+"
 Module Program
     Sub Main()
-        [||]If 0 &gt;= &lt;x/&gt;.GetHashCode Then Console.WriteLine(1) Else Console.WriteLine(2)
+        [||]If 0 >= <x/>.GetHashCode Then Console.WriteLine(1) Else Console.WriteLine(2)
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Sub Main()
-        If 0 &lt; (&lt;x/&gt;.GetHashCode) Then Console.WriteLine(2) Else Console.WriteLine(1)
+        If 0 < (<x/>.GetHashCode) Then Console.WriteLine(2) Else Console.WriteLine(1)
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(markup, expected)
         End Function
@@ -583,7 +577,7 @@ End Module
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
         Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =
-<File>
+"
 Module Program
     Sub Main()
         Select Nothing
@@ -591,14 +585,14 @@ Module Program
         End Select
     End Sub
 End Module
-</File>
+"
 
-            Await TestMissingAsync(markup)
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact>
         Public Async Function TestSingleLineIdentifier() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a Then aMethod() Else bMethod()
 ",
@@ -609,7 +603,7 @@ End Module
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45177")>
         Public Async Function TestWithMissingTrueStatementWithinUsing() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub M(Disposable As IDisposable)
         Dim x = True

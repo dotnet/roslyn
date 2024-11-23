@@ -124,6 +124,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 #endif
 
             [Fact]
+            [WorkItem(70166, "https://github.com/dotnet/roslyn/issues/70166")]
+            public void TestIfMutexIsGlobal()
+            {
+                const string GlobalPrefix = "Global\\";
+
+                var clientMutexName = BuildServerConnection.GetClientMutexName(_pipeName);
+                Assert.True(clientMutexName.StartsWith(GlobalPrefix));
+
+                var serverMutexName = BuildServerConnection.GetServerMutexName(_pipeName);
+                Assert.True(serverMutexName.StartsWith(GlobalPrefix));
+            }
+
+            [Fact]
             public async Task ConnectToPipe()
             {
                 string pipeName = ServerUtil.GetPipeName();
@@ -330,6 +343,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var name = BuildServerConnection.GetPipeName(path);
                 // We only have ~50 total bytes to work with on mac, so the base path must be small
                 Assert.Equal(43, name.Length);
+            }
+
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75714")]
+            public void GetPipeNameForPath_Casing()
+            {
+                var path1 = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var path2 = string.Format(@"Q:{0}The{0}Path", Path.DirectorySeparatorChar);
+                Assert.Equal(BuildServerConnection.GetPipeName(path1), BuildServerConnection.GetPipeName(path2));
             }
         }
     }

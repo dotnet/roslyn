@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            FatalError.Handler = FailFast.Handler;
+            FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
             var responseFile = Path.Combine(buildPaths.ClientDirectory, VisualBasicCompiler.ResponseFileName);
             var compiler = new Vbc(responseFile, buildPaths, args, analyzerLoader);

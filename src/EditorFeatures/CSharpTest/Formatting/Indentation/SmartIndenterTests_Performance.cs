@@ -8,18 +8,18 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
+
+public partial class SmartIndenterTests
 {
-    public partial class SmartIndenterTests
+    // TODO: Author this as a performance test.
+    [WpfFact]
+    [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+    public void RegionPerformance()
     {
-        // TODO: Author this as a performance test.
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void RegionPerformance()
-        {
-            var code =
-            #region very long sample code
- """
+        var code =
+        #region very long sample code
+"""
  using System;
  using System.Collections.Generic;
 
@@ -2209,11 +2209,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
      }
  }
  """;
-            #endregion
+        #endregion
 
-            AssertSmartIndent(
-                code,
-                expectedIndentation: 12);
-        }
+        AssertSmartIndent(
+            code,
+            expectedIndentation: 12);
     }
 }

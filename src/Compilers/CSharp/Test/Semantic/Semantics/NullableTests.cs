@@ -6,11 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2133,7 +2129,7 @@ struct S
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
         public void TestIsNullable1()
         {
             var source = @"
@@ -2149,15 +2145,9 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,23): error CS0103: The name 'i' does not exist in the current context
+                // (6,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (o is int? i)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 23),
-                // (6,24): error CS1003: Syntax error, ':' expected
-                //         if (o is int? i)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(6, 24),
-                // (6,24): error CS1525: Invalid expression term ')'
-                //         if (o is int? i)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 18));
         }
 
         [Fact]
@@ -2202,6 +2192,79 @@ class C
                 // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (o is A i)
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
+        public void MissingSystemNullable()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    X<Y?> M1() => M3(() => M2());
+                    X<Y?> M2() => new();
+                    void M3(object _) { }
+                }
+                class X<T> { }
+                struct Y { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
+                // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
+                // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
+                // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
+                // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
+        public void MissingSystemNullable_MissingUserType()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    X<Y?> M1() => M3(() => M2());
+                    X<Y?> M2() => new();
+                    void M3(object _) { }
+                }
+                class X<T> { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(4, 7),
+                // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
+                // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
+                // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
+                // (5,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(5, 7),
+                // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
+                // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
         }
     }
 }
