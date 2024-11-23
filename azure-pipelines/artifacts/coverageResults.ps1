@@ -6,8 +6,8 @@ $coverageFiles = @(Get-ChildItem "$RepoRoot/test/*.cobertura.xml" -Recurse | Whe
 if ($env:SYSTEM_DEFAULTWORKINGDIRECTORY) {
     Write-Host "Substituting $env:SYSTEM_DEFAULTWORKINGDIRECTORY with `"{reporoot}`""
     $coverageFiles |% {
-        $content = Get-Content -Path $_ |% { $_ -Replace [regex]::Escape($env:SYSTEM_DEFAULTWORKINGDIRECTORY), "{reporoot}" }
-        Set-Content -Path $_ -Value $content -Encoding UTF8
+        $content = Get-Content -LiteralPath $_ |% { $_ -Replace [regex]::Escape($env:SYSTEM_DEFAULTWORKINGDIRECTORY), "{reporoot}" }
+        Set-Content -LiteralPath $_ -Value $content -Encoding UTF8
     }
 } else {
     Write-Warning "coverageResults: Azure Pipelines not detected. Machine-neutral token replacement skipped."

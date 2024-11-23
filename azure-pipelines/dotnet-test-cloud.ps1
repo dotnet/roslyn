@@ -61,7 +61,7 @@ Get-ChildItem -Recurse -Path $RepoRoot\test\*.trx |% {
   Copy-Item $_ -Destination $ArtifactStagingFolder/test_logs/
 
   if ($PublishResults) {
-    $x = [xml](Get-Content -Path $_)
+    $x = [xml](Get-Content -LiteralPath $_)
     $runTitle = $null
     if ($x.TestRun.TestDefinitions -and $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')) {
       $storage = $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')[0].storage -replace '\\','/'
