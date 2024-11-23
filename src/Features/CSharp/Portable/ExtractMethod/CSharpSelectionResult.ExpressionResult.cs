@@ -128,7 +128,7 @@ internal abstract partial class CSharpSelectionResult
         }
     }
 
-    private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, ISymbol? coclassSymbol)
+    private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, INamedTypeSymbol? coclassSymbol)
     {
         if (!conversion.IsImplicit ||
              info.ConvertedType == null ||
@@ -138,6 +138,6 @@ internal abstract partial class CSharpSelectionResult
         }
 
         // let's see whether this interface has coclass attribute
-        return info.ConvertedType.GetAttributes().Any(static (c, coclassSymbol) => c.AttributeClass?.Equals(coclassSymbol) == true, coclassSymbol);
+        return info.ConvertedType.HasAttribute(coclassSymbol);
     }
 }
