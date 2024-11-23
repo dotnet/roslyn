@@ -48,7 +48,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServ
 
     public Task HandleNotificationAsync(RazorDynamicFileChangedParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        var path = ProtocolConversions.GetDocumentFilePathFromUri(request.CSharpDocument.Uri);
+        var path = ProtocolConversions.GetDocumentFilePathFromUri(request.RazorDocument.Uri);
         _updateWorkQueue.AddWork(path);
         return Task.CompletedTask;
     }

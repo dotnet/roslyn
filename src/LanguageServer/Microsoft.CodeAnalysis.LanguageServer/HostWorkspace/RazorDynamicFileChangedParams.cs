@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal class RazorDynamicFileChangedParams
 {
     [JsonPropertyName("razorDocument")]
-    public required TextDocumentIdentifier CSharpDocument { get; set; }
+    public required TextDocumentIdentifier RazorDocument { get; set; }
 }
