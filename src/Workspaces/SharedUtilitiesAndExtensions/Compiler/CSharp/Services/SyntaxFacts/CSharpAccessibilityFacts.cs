@@ -100,11 +100,7 @@ internal class CSharpAccessibilityFacts : IAccessibilityFacts
         return accessibility;
     }
 
-    public static void GetAccessibilityAndModifiers(
-        SyntaxTokenList modifierList,
-        out Accessibility accessibility,
-        out DeclarationModifiers modifiers,
-        out bool isDefault)
+    public static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault)
     {
         accessibility = Accessibility.NotApplicable;
         modifiers = DeclarationModifiers.None;
