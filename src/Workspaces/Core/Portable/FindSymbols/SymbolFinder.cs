@@ -192,7 +192,9 @@ public static partial class SymbolFinder
             var symbolId = symbol.GetSymbolKey(cancellationToken);
             var result = symbolId.Resolve(projectCompilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
-            return InSource(result.Symbol) ? result.Symbol : result.CandidateSymbols.FirstOrDefault(InSource);
+            var resultSymbol = InSource(result.Symbol) ? result.Symbol : result.CandidateSymbols.FirstOrDefault(InSource);
+            Contract.ThrowIfTrue(resultSymbol is not null);
+            return null;
         }
 
         return null;
