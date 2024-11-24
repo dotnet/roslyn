@@ -16,20 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory = factory;
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
-        {
-            var loweredCall = (BoundCall)base.VisitCall(node)!;
-
-            var calledMethod = loweredCall.Method.GetConstructedLeastOverriddenMethod(_factory.CurrentType, requireSameReturnType: true);
-            if (calledMethod.IsAsync2)
-            {
-                calledMethod = new AsyncThunkForAsync2Method(calledMethod);
-                loweredCall = loweredCall.Update(loweredCall.ReceiverOpt, loweredCall.InitialBindingReceiverIsSubjectToCloning, calledMethod, loweredCall.Arguments);
-            }
-
-            return loweredCall;
-        }
-
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
             var loweredAwait = (BoundAwaitExpression)base.VisitAwaitExpression(node)!;
@@ -37,26 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.CurrentFunction?.IsAsync2 == true)
             {
                 BoundExpression arg = loweredAwait.Expression;
-                if (arg is BoundCall call && call.Method is AsyncThunkForAsync2Method thunk)
-                {
-                    // instead of calling a thunk and awaiting, call the underlying method
-                    MethodSymbol method = thunk.UnderlyingMethod;
-                    return call.Update(
-                        call.ReceiverOpt,
-                        call.InitialBindingReceiverIsSubjectToCloning,
-                        method,
-                        call.Arguments,
-                        call.ArgumentNamesOpt,
-                        call.ArgumentRefKindsOpt,
-                        call.IsDelegateCall,
-                        call.Expanded,
-                        call.InvokedAsExtensionMethod,
-                        call.ArgsToParamsOpt,
-                        call.DefaultArguments,
-                        call.ResultKind,
-                        loweredAwait.Type);
-                }
-                else if (arg is BoundCall call1 &&
+                if (arg is BoundCall call1 &&
                     (call1.Method.ReturnType.IsGenericNonCustomTaskType(_factory.Compilation) ||
                      call1.Method.ReturnType.IsNonGenericNonCustomTaskType(_factory.Compilation) ||
                      call1.Method.ReturnType.IsGenericNonCustomValueTaskType(_factory.Compilation) ||

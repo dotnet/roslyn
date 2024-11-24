@@ -2236,7 +2236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             int stack = 0;
 
-            if (!EffectivelyReturnsVoid(method))
+            if (!method.ReturnsVoid)
             {
                 // The call puts the return value on the stack.
                 stack += 1;
@@ -2263,13 +2263,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return stack;
-        }
-
-        private static bool EffectivelyReturnsVoid(MethodSymbol method)
-        {
-            // if we call async2 method directly, then we are really calling the unwrapped version, thus Task/ValueTask means "void"
-            return method.ReturnsVoid ||
-                (method.IsAsync2 && ((NamedTypeSymbol)method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length == 0);
         }
 
         private static int GetObjCreationStackBehavior(BoundObjectCreationExpression objCreation)
@@ -4050,7 +4043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCallCleanup(SyntaxNode syntax, UseKind useKind, MethodSymbol method)
         {
-            if (!EffectivelyReturnsVoid(method))
+            if (!method.ReturnsVoid)
             {
                 EmitPopIfUnused(useKind != UseKind.Unused);
             }

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var result = _returnTemp;
                 if (result == null)
                 {
-                    Debug.Assert(!EffectivelyReturnsVoid(_method), "returning something from void method?");
+                    Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
                     var slotConstraints = _method.RefKind == RefKind.None
                         ? LocalSlotConstraints.None
                         : LocalSlotConstraints.ByRef;
@@ -175,11 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(bodySyntax), bodySyntax.SyntaxTree);
                         var returnType = _method.ReturnTypeWithAnnotations;
-                        if (_method.IsAsync2)
-                        {
-                            returnType = ((NamedTypeSymbol)returnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                        }
-
                         var localSymbol = new SynthesizedLocal(_method, returnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
@@ -197,11 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     else
                     {
                         var returnType = _method.ReturnType;
-                        if (_method.IsAsync2)
-                        {
-                            returnType = ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                        }
-
                         result = AllocateTemp(returnType, _boundBody.Syntax, slotConstraints);
                     }
 

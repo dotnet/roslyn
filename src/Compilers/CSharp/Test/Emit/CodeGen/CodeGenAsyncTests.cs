@@ -6121,7 +6121,7 @@ class Test
 {
 	// Methods
 	.method public hidebysig static 
-		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) M1 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task`1<int32> M1 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2068
 		// Code size 44 (0x2c)
@@ -6147,7 +6147,7 @@ class Test
 		IL_002b: ret
 	} // end of method TT::M1
 	.method public hidebysig static 
-		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) M2 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task`1<int32> M2 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x20a0
 		// Code size 6 (0x6)
@@ -6156,7 +6156,7 @@ class Test
 		IL_0005: ret
 	} // end of method TT::M2
 	.method public hidebysig static 
-		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) M3 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task`1<int32> M3 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x20a7
 		// Code size 11 (0xb)
@@ -6271,7 +6271,7 @@ class Test
             var c = CompileAndVerify(source, new[] { ref1 }, options: TestOptions.ReleaseExe, verify: Verification.Fails);
 
             c.VerifyTypeIL("CC", @"
-.class private auto ansi beforefieldinit CC
+    .class private auto ansi beforefieldinit CC
 	extends [mscorlib]System.Object
 {
 	// Nested Types
@@ -6413,7 +6413,7 @@ class Test
 		IL_002e: ret
 	} // end of method CC::M3
 	.method public hidebysig static 
-		int64 modopt([mscorlib]System.Threading.Tasks.Task`1) M2 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task`1<int64> M2 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x20a3
 		// Code size 7 (0x7)
@@ -6502,7 +6502,7 @@ class Test
 {
 	// Methods
 	.method public hidebysig static 
-		void modopt([mscorlib]System.Threading.Tasks.Task) M1 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task M1 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2067
 		// Code size 8 (0x8)
@@ -6513,7 +6513,7 @@ class Test
 		IL_0007: ret
 	} // end of method TT::M1
 	.method public hidebysig static 
-		void modopt([mscorlib]System.Threading.Tasks.Task) M2 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task M2 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2070
 		// Code size 6 (0x6)
@@ -6522,7 +6522,7 @@ class Test
 		IL_0005: ret
 	} // end of method TT::M2
 	.method public hidebysig static 
-		void modopt([mscorlib]System.Threading.Tasks.Task) M3 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task M3 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2077
 		// Code size 11 (0xb)
@@ -7133,9 +7133,9 @@ public class Test
 	.field public static class [mscorlib]System.Type s_type
 	// Methods
 	.method public hidebysig static 
-		!!T modopt([mscorlib]System.Threading.Tasks.Task`1) Async2TestEntryPoint<T> (
+		class [mscorlib]System.Threading.Tasks.Task`1<!!T> Async2TestEntryPoint<T> (
 			!!T arg
-		) cil managed 
+		) cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2067
 		// Code size 22 (0x16)
@@ -7418,7 +7418,7 @@ class Test
 {
 	// Methods
 	.method public hidebysig static 
-		int32 modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) M1 () cil managed 
+		valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> M1 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2067
 		// Code size 13 (0xd)
@@ -7429,7 +7429,7 @@ class Test
 		IL_000c: ret
 	} // end of method TT::M1
 	.method public hidebysig static 
-		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) M2 () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task`1<int32> M2 () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2075
 		// Code size 6 (0x6)
@@ -7579,170 +7579,170 @@ class Test
 
             verifier.VerifyTypeIL("CC", @"
     .class private auto ansi beforefieldinit CC
-    	extends [mscorlib]System.Object
-    {
-    	// Nested Types
-    	.class nested private auto ansi sealed beforefieldinit '<M3>d__0'
-    		extends [mscorlib]System.ValueType
-    		implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
-    	{
-    		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		// Fields
-    		.field public int32 '<>1__state'
-    		.field public valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> '<>t__builder'
-    		.field private valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> '<>u__1'
-    		// Methods
-    		.method private final hidebysig newslot virtual 
-    			instance void MoveNext () cil managed 
-    		{
-    			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-    			// Method begins at RVA 0x20c4
-    			// Code size 150 (0x96)
-    			.maxstack 3
-    			.locals init (
-    				[0] int32,
-    				[1] int64,
-    				[2] valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>,
-    				[3] valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32>,
-    				[4] class [mscorlib]System.Exception
-    			)
-    			IL_0000: ldarg.0
-    			IL_0001: ldfld int32 CC/'<M3>d__0'::'<>1__state'
-    			IL_0006: stloc.0
-    			.try
-    			{
-    				IL_0007: ldloc.0
-    				IL_0008: brfalse.s IL_0041
-    				IL_000a: call valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> [A]TT::M1()
-    				IL_000f: stloc.3
-    				IL_0010: ldloca.s 3
-    				IL_0012: call instance valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<!0> valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32>::GetAwaiter()
-    				IL_0017: stloc.2
-    				IL_0018: ldloca.s 2
-    				IL_001a: call instance bool valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>::get_IsCompleted()
-    				IL_001f: brtrue.s IL_005d
-    				IL_0021: ldarg.0
-    				IL_0022: ldc.i4.0
-    				IL_0023: dup
-    				IL_0024: stloc.0
-    				IL_0025: stfld int32 CC/'<M3>d__0'::'<>1__state'
-    				IL_002a: ldarg.0
-    				IL_002b: ldloc.2
-    				IL_002c: stfld valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> CC/'<M3>d__0'::'<>u__1'
-    				IL_0031: ldarg.0
-    				IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    				IL_0037: ldloca.s 2
-    				IL_0039: ldarg.0
-    				IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::AwaitUnsafeOnCompleted<valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>, valuetype CC/'<M3>d__0'>(!!0&, !!1&)
-    				IL_003f: leave.s IL_0095
-    				IL_0041: ldarg.0
-    				IL_0042: ldfld valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> CC/'<M3>d__0'::'<>u__1'
-    				IL_0047: stloc.2
-    				IL_0048: ldarg.0
-    				IL_0049: ldflda valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> CC/'<M3>d__0'::'<>u__1'
-    				IL_004e: initobj valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>
-    				IL_0054: ldarg.0
-    				IL_0055: ldc.i4.m1
-    				IL_0056: dup
-    				IL_0057: stloc.0
-    				IL_0058: stfld int32 CC/'<M3>d__0'::'<>1__state'
-    				IL_005d: ldloca.s 2
-    				IL_005f: call instance !0 valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>::GetResult()
-    				IL_0064: conv.i8
-    				IL_0065: stloc.1
-    				IL_0066: leave.s IL_0081
-    			} // end .try
-    			catch [mscorlib]System.Exception
-    			{
-    				IL_0068: stloc.s 4
-    				IL_006a: ldarg.0
-    				IL_006b: ldc.i4.s -2
-    				IL_006d: stfld int32 CC/'<M3>d__0'::'<>1__state'
-    				IL_0072: ldarg.0
-    				IL_0073: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    				IL_0078: ldloc.s 4
-    				IL_007a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::SetException(class [mscorlib]System.Exception)
-    				IL_007f: leave.s IL_0095
-    			} // end handler
-    			IL_0081: ldarg.0
-    			IL_0082: ldc.i4.s -2
-    			IL_0084: stfld int32 CC/'<M3>d__0'::'<>1__state'
-    			IL_0089: ldarg.0
-    			IL_008a: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    			IL_008f: ldloc.1
-    			IL_0090: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::SetResult(!0)
-    			IL_0095: ret
-    		} // end of method '<M3>d__0'::MoveNext
-    		.method private final hidebysig newslot virtual 
-    			instance void SetStateMachine (
-    				class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
-    			) cil managed 
-    		{
-    			.custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    				01 00 00 00
-    			)
-    			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-    			// Method begins at RVA 0x2178
-    			// Code size 13 (0xd)
-    			.maxstack 8
-    			IL_0000: ldarg.0
-    			IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    			IL_0006: ldarg.1
-    			IL_0007: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-    			IL_000c: ret
-    		} // end of method '<M3>d__0'::SetStateMachine
-    	} // end of class <M3>d__0
-    	// Methods
-    	.method public hidebysig static 
-    		class [mscorlib]System.Threading.Tasks.Task`1<int64> M3 () cil managed 
-    	{
-    		.custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-    			01 00 0b 43 43 2b 3c 4d 33 3e 64 5f 5f 30 00 00
-    		)
-    		// Method begins at RVA 0x2068
-    		// Code size 47 (0x2f)
-    		.maxstack 2
-    		.locals init (
-    			[0] valuetype CC/'<M3>d__0'
-    		)
-    		IL_0000: ldloca.s 0
-    		IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::Create()
-    		IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    		IL_000c: ldloca.s 0
-    		IL_000e: ldc.i4.m1
-    		IL_000f: stfld int32 CC/'<M3>d__0'::'<>1__state'
-    		IL_0014: ldloca.s 0
-    		IL_0016: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    		IL_001b: ldloca.s 0
-    		IL_001d: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::Start<valuetype CC/'<M3>d__0'>(!!0&)
-    		IL_0022: ldloca.s 0
-    		IL_0024: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
-    		IL_0029: call instance class [mscorlib]System.Threading.Tasks.Task`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::get_Task()
-    		IL_002e: ret
-    	} // end of method CC::M3
-    	.method public hidebysig static 
-    		int64 modopt([mscorlib]System.Threading.Tasks.Task`1) M2 () cil managed 
-    	{
-    		// Method begins at RVA 0x20a3
-    		// Code size 7 (0x7)
-    		.maxstack 8
-    		IL_0000: call int32 modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) [A]TT::M1()
-    		IL_0005: conv.i8
-    		IL_0006: ret
-    	} // end of method CC::M2
-    	.method public hidebysig specialname rtspecialname 
-    		instance void .ctor () cil managed 
-    	{
-    		// Method begins at RVA 0x20ab
-    		// Code size 7 (0x7)
-    		.maxstack 8
-    		IL_0000: ldarg.0
-    		IL_0001: call instance void [mscorlib]System.Object::.ctor()
-    		IL_0006: ret
-    	} // end of method CC::.ctor
-    } // end of class CC
+	extends [mscorlib]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<M3>d__0'
+		extends [mscorlib]System.ValueType
+		implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public int32 '<>1__state'
+		.field public valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> '<>t__builder'
+		.field private valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> '<>u__1'
+		// Methods
+		.method private final hidebysig newslot virtual 
+			instance void MoveNext () cil managed 
+		{
+			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
+			// Method begins at RVA 0x20c4
+			// Code size 150 (0x96)
+			.maxstack 3
+			.locals init (
+				[0] int32,
+				[1] int64,
+				[2] valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>,
+				[3] valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32>,
+				[4] class [mscorlib]System.Exception
+			)
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 CC/'<M3>d__0'::'<>1__state'
+			IL_0006: stloc.0
+			.try
+			{
+				IL_0007: ldloc.0
+				IL_0008: brfalse.s IL_0041
+				IL_000a: call valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32> [A]TT::M1()
+				IL_000f: stloc.3
+				IL_0010: ldloca.s 3
+				IL_0012: call instance valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<!0> valuetype [System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1<int32>::GetAwaiter()
+				IL_0017: stloc.2
+				IL_0018: ldloca.s 2
+				IL_001a: call instance bool valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>::get_IsCompleted()
+				IL_001f: brtrue.s IL_005d
+				IL_0021: ldarg.0
+				IL_0022: ldc.i4.0
+				IL_0023: dup
+				IL_0024: stloc.0
+				IL_0025: stfld int32 CC/'<M3>d__0'::'<>1__state'
+				IL_002a: ldarg.0
+				IL_002b: ldloc.2
+				IL_002c: stfld valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> CC/'<M3>d__0'::'<>u__1'
+				IL_0031: ldarg.0
+				IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+				IL_0037: ldloca.s 2
+				IL_0039: ldarg.0
+				IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::AwaitUnsafeOnCompleted<valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>, valuetype CC/'<M3>d__0'>(!!0&, !!1&)
+				IL_003f: leave.s IL_0095
+				IL_0041: ldarg.0
+				IL_0042: ldfld valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> CC/'<M3>d__0'::'<>u__1'
+				IL_0047: stloc.2
+				IL_0048: ldarg.0
+				IL_0049: ldflda valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32> CC/'<M3>d__0'::'<>u__1'
+				IL_004e: initobj valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>
+				IL_0054: ldarg.0
+				IL_0055: ldc.i4.m1
+				IL_0056: dup
+				IL_0057: stloc.0
+				IL_0058: stfld int32 CC/'<M3>d__0'::'<>1__state'
+				IL_005d: ldloca.s 2
+				IL_005f: call instance !0 valuetype [System.Threading.Tasks.Extensions]System.Runtime.CompilerServices.ValueTaskAwaiter`1<int32>::GetResult()
+				IL_0064: conv.i8
+				IL_0065: stloc.1
+				IL_0066: leave.s IL_0081
+			} // end .try
+			catch [mscorlib]System.Exception
+			{
+				IL_0068: stloc.s 4
+				IL_006a: ldarg.0
+				IL_006b: ldc.i4.s -2
+				IL_006d: stfld int32 CC/'<M3>d__0'::'<>1__state'
+				IL_0072: ldarg.0
+				IL_0073: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+				IL_0078: ldloc.s 4
+				IL_007a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::SetException(class [mscorlib]System.Exception)
+				IL_007f: leave.s IL_0095
+			} // end handler
+			IL_0081: ldarg.0
+			IL_0082: ldc.i4.s -2
+			IL_0084: stfld int32 CC/'<M3>d__0'::'<>1__state'
+			IL_0089: ldarg.0
+			IL_008a: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+			IL_008f: ldloc.1
+			IL_0090: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::SetResult(!0)
+			IL_0095: ret
+		} // end of method '<M3>d__0'::MoveNext
+		.method private final hidebysig newslot virtual 
+			instance void SetStateMachine (
+				class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
+			) cil managed 
+		{
+			.custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
+			// Method begins at RVA 0x2178
+			// Code size 13 (0xd)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+			IL_0006: ldarg.1
+			IL_0007: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
+			IL_000c: ret
+		} // end of method '<M3>d__0'::SetStateMachine
+	} // end of class <M3>d__0
+	// Methods
+	.method public hidebysig static 
+		class [mscorlib]System.Threading.Tasks.Task`1<int64> M3 () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
+			01 00 0b 43 43 2b 3c 4d 33 3e 64 5f 5f 30 00 00
+		)
+		// Method begins at RVA 0x2068
+		// Code size 47 (0x2f)
+		.maxstack 2
+		.locals init (
+			[0] valuetype CC/'<M3>d__0'
+		)
+		IL_0000: ldloca.s 0
+		IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::Create()
+		IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+		IL_000c: ldloca.s 0
+		IL_000e: ldc.i4.m1
+		IL_000f: stfld int32 CC/'<M3>d__0'::'<>1__state'
+		IL_0014: ldloca.s 0
+		IL_0016: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+		IL_001b: ldloca.s 0
+		IL_001d: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::Start<valuetype CC/'<M3>d__0'>(!!0&)
+		IL_0022: ldloca.s 0
+		IL_0024: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64> CC/'<M3>d__0'::'<>t__builder'
+		IL_0029: call instance class [mscorlib]System.Threading.Tasks.Task`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<int64>::get_Task()
+		IL_002e: ret
+	} // end of method CC::M3
+	.method public hidebysig static 
+		class [mscorlib]System.Threading.Tasks.Task`1<int64> M2 () cil managed flag(0400) 
+	{
+		// Method begins at RVA 0x20a3
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: call int32 modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) [A]TT::M1()
+		IL_0005: conv.i8
+		IL_0006: ret
+	} // end of method CC::M2
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20ab
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method CC::.ctor
+} // end of class CC
 ");
         }
 
@@ -8000,13 +8000,13 @@ class TT
 	} // end of class IntegerException
 	// Methods
 	.method public hidebysig static 
-		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) Handler () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task`1<int32> Handler () cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x2080
 		// Code size 20 (0x14)
 		.maxstack 1
 		.locals init (
-			[0] int32
+			[0] class [mscorlib]System.Threading.Tasks.Task`1<int32>
 		)
 		.try
 		{
@@ -8025,9 +8025,9 @@ class TT
 		IL_0013: ret
 	} // end of method TT::Handler
 	.method public hidebysig static 
-		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) Throw (
+		class [mscorlib]System.Threading.Tasks.Task`1<int32> Throw (
 			int32 'value'
-		) cil managed 
+		) cil managed flag(0400) 
 	{
 		// Method begins at RVA 0x20b0
 		// Code size 43 (0x2b)
@@ -8256,7 +8256,7 @@ namespace System.Runtime.CompilerServices
 		IL_0006: ret
 	} // end of method Program::.ctor
 	.method assembly hidebysig static 
-		void modopt([mscorlib]System.Threading.Tasks.Task) '<<Main>$>g__M1|0_0' () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M1|0_0' () cil managed flag(0400) 
 	{
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
@@ -8283,7 +8283,7 @@ namespace System.Runtime.CompilerServices
 		IL_0024: ret
 	} // end of method Program::'<<Main>$>g__M1|0_0'
 	.method assembly hidebysig static 
-		void modopt([mscorlib]System.Threading.Tasks.Task) '<<Main>$>g__M2|0_1' () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M2|0_1' () cil managed flag(0400) 
 	{
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
@@ -8295,7 +8295,7 @@ namespace System.Runtime.CompilerServices
 		IL_0005: ret
 	} // end of method Program::'<<Main>$>g__M2|0_1'
 	.method assembly hidebysig static 
-		void modopt([mscorlib]System.Threading.Tasks.Task) '<<Main>$>g__M3|0_2' () cil managed 
+		class [mscorlib]System.Threading.Tasks.Task '<<Main>$>g__M3|0_2' () cil managed flag(0400) 
 	{
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
@@ -8340,7 +8340,6 @@ namespace System.Runtime.CompilerServices
 		IL_002e: ret
 	} // end of method Program::'<<Main>$>g__M3_2|0_3'
 } // end of class Program
-
 ");
         }
 
@@ -8538,7 +8537,7 @@ namespace System.Runtime.CompilerServices
 			IL_0006: ret
 		} // end of method '<>c__DisplayClass0_0'::.ctor
 		.method assembly hidebysig 
-			instance int32 modopt([mscorlib]System.Threading.Tasks.Task`1) '<<Main>$>g__M1|0' () cil managed 
+			instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M1|0' () cil managed flag(0400) 
 		{
 			// Method begins at RVA 0x2098
 			// Code size 43 (0x2b)
@@ -8564,7 +8563,7 @@ namespace System.Runtime.CompilerServices
 			IL_002a: ret
 		} // end of method '<>c__DisplayClass0_0'::'<<Main>$>g__M1|0'
 		.method assembly hidebysig 
-			instance int32 modopt([mscorlib]System.Threading.Tasks.Task`1) '<<Main>$>g__M2|1' () cil managed 
+			instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M2|1' () cil managed flag(0400) 
 		{
 			// Method begins at RVA 0x20cf
 			// Code size 7 (0x7)
@@ -8574,7 +8573,7 @@ namespace System.Runtime.CompilerServices
 			IL_0006: ret
 		} // end of method '<>c__DisplayClass0_0'::'<<Main>$>g__M2|1'
 		.method assembly hidebysig 
-			instance int32 modopt([mscorlib]System.Threading.Tasks.Task`1) '<<Main>$>g__M3|2' () cil managed 
+			instance class [mscorlib]System.Threading.Tasks.Task`1<int32> '<<Main>$>g__M3|2' () cil managed flag(0400) 
 		{
 			// Method begins at RVA 0x20d7
 			// Code size 12 (0xc)
@@ -8650,7 +8649,6 @@ namespace System.Runtime.CompilerServices
 		IL_0006: ret
 	} // end of method Program::.ctor
 } // end of class Program
-
 ");
         }
 

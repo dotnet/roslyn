@@ -528,31 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsAsync => false;
 
-        internal override bool IsAsync2
-        {
-            get
-            {
-                var modifiers = Signature.ReturnParam.TypeWithAnnotations.CustomModifiers;
-                if (modifiers.IsDefaultOrEmpty)
-                {
-                    return false;
-                }
-
-                var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
-                if (!modifier.IsOptional)
-                {
-                    return false;
-                }
-
-                var modifierType = modifier.ModifierSymbol;
-                if (Signature.ReturnParam.TypeWithAnnotations.IsVoidType())
-                {
-                    return modifierType.MetadataName == "Task" || modifierType.MetadataName == "ValueTask";
-                }
-
-                return modifierType.MetadataName == "Task`1" || modifierType.MetadataName == "ValueTask`1";
-            }
-        }
+        // being async2 only matters for source methods
+        // even though we could probe for the methodimpl flag, we do not caere.
+        internal override bool IsAsync2 => false;
 
         public override int Arity
         {
@@ -691,21 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                TypeWithAnnotations returnType = Signature.ReturnParam.TypeWithAnnotations;
-                if (!IsAsync2)
-                {
-                    return returnType;
-                }
-
-                var modifiers = Signature.ReturnParam.TypeWithAnnotations.CustomModifiers;
-                var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
-                var modifierType = modifier.ModifierSymbol;
-                if (!Signature.ReturnParam.TypeWithAnnotations.IsVoidType())
-                {
-                    modifierType = modifierType.OriginalDefinition.Construct(Signature.ReturnParam.Type);
-                }
-
-                return TypeWithAnnotations.Create(modifierType, NullableAnnotation.NotAnnotated);
+                return Signature.ReturnParam.TypeWithAnnotations;
             }
         }
 

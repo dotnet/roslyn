@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (AdaptedMethodSymbol.IsDefinition && // can't be generic instantiation
                 AdaptedMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule &&  // must be declared in the module we are building
-                AdaptedMethodSymbol is not AsyncThunkForAsync2Method)  // must not be a thunk to an async2 method
+                AdaptedMethodSymbol is not Async2ThunkForAsyncMethod)  // must not be a thunk to an async2 method
             {
                 Debug.Assert((object)AdaptedMethodSymbol.PartialDefinitionPart == null); // must be definition
                 return this;
@@ -218,18 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (AdaptedMethodSymbol.IsAsync2)
-                {
-                    NamedTypeSymbol typeSymbol = (NamedTypeSymbol)AdaptedMethodSymbol.ReturnType;
-                    if (typeSymbol.AllTypeArgumentCount() != 0)
-                    {
-                        typeSymbol = typeSymbol.ConstructUnboundGenericType();
-                    }
-
-                    Cci.ICustomModifier mod = CSharpCustomModifier.CreateOptional(typeSymbol);
-                    return ImmutableArray.Create(mod);
-                }
-
                 return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedMethodSymbol.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }
@@ -253,20 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             var type = AdaptedMethodSymbol.ReturnType;
-
-            if (AdaptedMethodSymbol.IsAsync2)
-            {
-                NamedTypeSymbol typeSymbol = (NamedTypeSymbol)type;
-                if (typeSymbol.AllTypeArgumentCount() == 0)
-                {
-                    type = AdaptedMethodSymbol.ContainingAssembly.GetSpecialType(SpecialType.System_Void);
-                }
-                else
-                {
-                    type = typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                }
-            }
-
             return ((PEModuleBuilder)context.Module).Translate(type,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics);
@@ -466,7 +442,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return AdaptedMethodSymbol.ImplementationAttributes;
+            var result = AdaptedMethodSymbol.ImplementationAttributes;
+
+            if (AdaptedMethodSymbol.IsAsync2)
+            {
+                result |= (System.Reflection.MethodImplAttributes)1024;
+            }
+
+            return result;
         }
 
         bool Cci.IMethodDefinition.IsRuntimeSpecial
