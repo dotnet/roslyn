@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!underlyingReturnType.IsGenericType)
                 {
                     var voidType = UnderlyingMethod.DeclaringCompilation.GetSpecialType(SpecialType.System_Void);
-                    return TypeWithAnnotations.Create(voidType).WithModifiers(ImmutableArray.Create(CSharpCustomModifier.CreateOptional(underlyingReturnType)));
+                    return TypeWithAnnotations.Create(voidType).WithModifiers(ImmutableArray.Create(CSharpCustomModifier.CreateRequired(underlyingReturnType)));
                 }
 
                 var taskType = underlyingReturnType.OriginalDefinition.ConstructUnboundGenericType();
                 var elementType = underlyingReturnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
 
-                return TypeWithAnnotations.Create(elementType).WithModifiers(ImmutableArray.Create(CSharpCustomModifier.CreateOptional(taskType)));
+                return TypeWithAnnotations.Create(elementType).WithModifiers(ImmutableArray.Create(CSharpCustomModifier.CreateRequired(taskType)));
             }
         }
 

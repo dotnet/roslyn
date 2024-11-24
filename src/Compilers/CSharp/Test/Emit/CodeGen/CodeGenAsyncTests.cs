@@ -6143,7 +6143,7 @@ class Test
 		IL_001d: ldloca.s 0
 		IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
 		IL_0024: ldc.i4.s 42
-		IL_0026: call !!0 modopt([mscorlib]System.Threading.Tasks.Task`1) [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
+		IL_0026: call !!0 modreq([mscorlib]System.Threading.Tasks.Task`1) [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
 		IL_002b: ret
 	} // end of method TT::M1
 	.method public hidebysig static 
@@ -6152,7 +6152,7 @@ class Test
 		// Method begins at RVA 0x20a0
 		// Code size 6 (0x6)
 		.maxstack 8
-		IL_0000: call int32 modopt([mscorlib]System.Threading.Tasks.Task`1) TT::M1()
+		IL_0000: call int32 modreq([mscorlib]System.Threading.Tasks.Task`1) TT::M1()
 		IL_0005: ret
 	} // end of method TT::M2
 	.method public hidebysig static 
@@ -6418,7 +6418,7 @@ class Test
 		// Method begins at RVA 0x20a3
 		// Code size 7 (0x7)
 		.maxstack 8
-		IL_0000: call int32 modopt([mscorlib]System.Threading.Tasks.Task`1) [A]TT::M1()
+		IL_0000: call int32 modreq([mscorlib]System.Threading.Tasks.Task`1) [A]TT::M1()
 		IL_0005: conv.i8
 		IL_0006: ret
 	} // end of method CC::M2
@@ -6508,7 +6508,7 @@ class Test
 		// Code size 8 (0x8)
 		.maxstack 8
 		IL_0000: ldc.i4.1
-		IL_0001: call !!0 modopt([mscorlib]System.Threading.Tasks.Task`1) [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
+		IL_0001: call !!0 modreq([mscorlib]System.Threading.Tasks.Task`1) [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
 		IL_0006: pop
 		IL_0007: ret
 	} // end of method TT::M1
@@ -6518,7 +6518,7 @@ class Test
 		// Method begins at RVA 0x2070
 		// Code size 6 (0x6)
 		.maxstack 8
-		IL_0000: call void modopt([mscorlib]System.Threading.Tasks.Task) TT::M1()
+		IL_0000: call void modreq([mscorlib]System.Threading.Tasks.Task) TT::M1()
 		IL_0005: ret
 	} // end of method TT::M2
 	.method public hidebysig static 
@@ -7144,7 +7144,7 @@ public class Test
 		IL_0005: call class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
 		IL_000a: stsfld class [mscorlib]System.Type Cls1::s_type
 		IL_000f: ldarg.0
-		IL_0010: call !!0 modopt([mscorlib]System.Threading.Tasks.Task`1) [mscorlib]System.Threading.Tasks.Task::FromResult<!!T>(!!0)
+		IL_0010: call !!0 modreq([mscorlib]System.Threading.Tasks.Task`1) [mscorlib]System.Threading.Tasks.Task::FromResult<!!T>(!!0)
 		IL_0015: ret
 	} // end of method Cls1::Async2TestEntryPoint
 	.method public hidebysig specialname rtspecialname 
@@ -7423,9 +7423,9 @@ class Test
 		// Method begins at RVA 0x2067
 		// Code size 13 (0xd)
 		.maxstack 8
-		IL_0000: call void modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask) TT::ValueTaskFromCompleted()
+		IL_0000: call void modreq([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask) TT::ValueTaskFromCompleted()
 		IL_0005: ldc.i4.s 42
-		IL_0007: call !!0 modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) TT::ValueTaskFromResult<int32>(!!0)
+		IL_0007: call !!0 modreq([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) TT::ValueTaskFromResult<int32>(!!0)
 		IL_000c: ret
 	} // end of method TT::M1
 	.method public hidebysig static 
@@ -7434,7 +7434,7 @@ class Test
 		// Method begins at RVA 0x2075
 		// Code size 6 (0x6)
 		.maxstack 8
-		IL_0000: call int32 modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) TT::M1()
+		IL_0000: call int32 modreq([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) TT::M1()
 		IL_0005: ret
 	} // end of method TT::M2
 	.method public hidebysig static 
@@ -7728,7 +7728,7 @@ class Test
 		// Method begins at RVA 0x20a3
 		// Code size 7 (0x7)
 		.maxstack 8
-		IL_0000: call int32 modopt([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) [A]TT::M1()
+		IL_0000: call int32 modreq([System.Threading.Tasks.Extensions]System.Threading.Tasks.ValueTask`1) [A]TT::M1()
 		IL_0005: conv.i8
 		IL_0006: ret
 	} // end of method CC::M2
@@ -8011,7 +8011,7 @@ class TT
 		.try
 		{
 			IL_0000: ldc.i4.s 42
-			IL_0002: call int32 modopt([mscorlib]System.Threading.Tasks.Task`1) TT::Throw(int32)
+			IL_0002: call int32 modreq([mscorlib]System.Threading.Tasks.Task`1) TT::Throw(int32)
 			IL_0007: stloc.0
 			IL_0008: leave.s IL_0012
 		} // end .try
@@ -8291,7 +8291,7 @@ namespace System.Runtime.CompilerServices
 		// Method begins at RVA 0x20b9
 		// Code size 6 (0x6)
 		.maxstack 8
-		IL_0000: call void modopt([mscorlib]System.Threading.Tasks.Task) Program::'<<Main>$>g__M1|0_0'()
+		IL_0000: call void modreq([mscorlib]System.Threading.Tasks.Task) Program::'<<Main>$>g__M1|0_0'()
 		IL_0005: ret
 	} // end of method Program::'<<Main>$>g__M2|0_1'
 	.method assembly hidebysig static 
@@ -8569,7 +8569,7 @@ namespace System.Runtime.CompilerServices
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
-			IL_0001: call instance int32 modopt([mscorlib]System.Threading.Tasks.Task`1) Program/'<>c__DisplayClass0_0'::'<<Main>$>g__M1|0'()
+			IL_0001: call instance int32 modreq([mscorlib]System.Threading.Tasks.Task`1) Program/'<>c__DisplayClass0_0'::'<<Main>$>g__M1|0'()
 			IL_0006: ret
 		} // end of method '<>c__DisplayClass0_0'::'<<Main>$>g__M2|1'
 		.method assembly hidebysig 
