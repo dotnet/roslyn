@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSyntaxDiagnosticsOpt = null;
         private Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localAdditionalFileDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? _nonLocalDiagnosticsOpt = null;
+
+        private List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, HashSet<DiagnosticAnalyzer>)>? _partialFileAnalysisAnalyzers;
 
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
         {
@@ -145,43 +148,74 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Filters down the given <paramref name="analyzers"/> to only retain the analyzers which have
-        /// not completed execution. If the <paramref name="filterScope"/> is non-null, then return
-        /// the analyzers which have not fully exected on the filterScope. Otherwise, return the analyzers
-        /// which have not fully executed on the entire compilation.
+        /// Filters down the given analyzers in <paramref name="analysisScope"/> to those which have
+        /// not completed execution.
         /// </summary>
-        /// <param name="analyzers">Analyzers to be filtered.</param>
-        /// <param name="filterScope">Optional scope for filtering.</param>
+        /// <param name="analysisScope">AnalysisScope containing the analyzers to be filtered.</param>
         /// <returns>
-        /// Analyzers which have not fully executed on the given <paramref name="filterScope"/>, if non-null,
-        /// or the entire compilation, if <paramref name="filterScope"/> is null.
+        /// Analyzers which have not completed execution on the given <paramref name="analysisScope"/>,
+        /// utilizing previously reported analysis results from the full compilation,full file, or partial file.
         /// </returns>
-        public ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, (SourceOrAdditionalFile file, bool syntax)? filterScope)
+        public ImmutableArray<DiagnosticAnalyzer> GetPendingAnalyzers(AnalysisScope analysisScope)
         {
             lock (_gate)
             {
                 // If we have a non-null filter scope, then fetch the set of analyzers that have
                 // already completed execution on this filter scope.
-                var completedAnalyzersForFile = filterScope.HasValue
-                    ? GetCompletedAnalyzersForFile_NoLock(filterScope.Value.file, filterScope.Value.syntax)
+                var completedAnalyzersForFile = analysisScope.FilterFileOpt.HasValue
+                    ? GetCompletedAnalyzersForFile_NoLock(analysisScope.FilterFileOpt.Value, analysisScope.IsSyntacticSingleFileAnalysis)
                     : null;
 
-                return analyzers.WhereAsArray(
-                    static (analyzer, arg) =>
-                    {
-                        // If the analyzer has not executed for the entire compilation, or we are computing
-                        // pending analyzers for a specific filterScope and the analyzer has not executed on
-                        // this filter scope, then we add the analyzer to pending analyzers.
-                        if (!arg.self._completedAnalyzersForCompilation.Contains(analyzer) &&
-                            (arg.completedAnalyzersForFile == null || !arg.completedAnalyzersForFile.Contains(analyzer)))
-                        {
-                            return true;
-                        }
+                var builder = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
+                foreach (var analyzer in analysisScope.Analyzers)
+                {
+                    // Don't include the analyzer if it has executed for the entire compilation
+                    if (_completedAnalyzersForCompilation.Contains(analyzer))
+                        continue;
 
-                        return false;
-                    },
-                    (self: this, completedAnalyzersForFile));
+                    // Don't include the analyzer if it has executed for this full file
+                    if (completedAnalyzersForFile != null && completedAnalyzersForFile.Contains(analyzer))
+                        continue;
+
+                    // Don't include the analyzer if it has executed for this span in the file
+                    if (IsContributingToMatchingPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile, analysisScope.OriginalFilterSpan))
+                        continue;
+
+                    builder.Add(analyzer);
+                }
+
+                return builder.ToImmutableAndFree();
             }
+        }
+
+        private bool IsContributingToMatchingPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile? filterFile, TextSpan? filterSpan, SourceOrAdditionalFile? originalFilterFile, TextSpan? originalFilterSpan)
+        {
+            if (_partialFileAnalysisAnalyzers == null || filterFile == null || originalFilterFile == null)
+                return false;
+
+            foreach (var (currentFilterFile, currentFilterSpan, currentOriginalFilterFile, currentOriginalFilterSpan, contributingAnalyzers) in _partialFileAnalysisAnalyzers)
+            {
+                if (currentFilterFile == filterFile && currentFilterSpan == filterSpan && currentOriginalFilterFile == originalFilterFile && currentOriginalFilterSpan == originalFilterSpan)
+                    return contributingAnalyzers.Contains(analyzer);
+            }
+
+            return false;
+        }
+
+        private void ContributeToPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, SourceOrAdditionalFile originalFilterFile, TextSpan? originalFilterSpan)
+        {
+            _partialFileAnalysisAnalyzers ??= new List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, HashSet<DiagnosticAnalyzer>)>();
+
+            foreach (var (currentFilterFile, currentFilterSpan, currentOriginalFilterFile, currentOriginalFilterSpan, contributingAnalyzers) in _partialFileAnalysisAnalyzers)
+            {
+                if (currentFilterFile == filterFile && currentFilterSpan == filterSpan && currentOriginalFilterFile == originalFilterFile && currentOriginalFilterSpan == originalFilterSpan)
+                {
+                    contributingAnalyzers.Add(analyzer);
+                    return;
+                }
+            }
+
+            _partialFileAnalysisAnalyzers.Add((filterFile, filterSpan, originalFilterFile, originalFilterSpan, [analyzer]));
         }
 
         public void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, CancellationToken cancellationToken)
@@ -249,6 +283,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             {
                                 fullSemanticDiagnosticsForTree = true;
                             }
+                        }
+                        else if (analysisScope.OriginalFilterFile.HasValue)
+                        {
+                            // Store the results from the partial file analysis
+                            ContributeToPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt.Value, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile.Value, analysisScope.OriginalFilterSpan);
                         }
                     }
                     else
