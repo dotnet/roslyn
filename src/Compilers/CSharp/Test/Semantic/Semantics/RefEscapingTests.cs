@@ -4900,9 +4900,9 @@ unsafe class Program
                     // (14,33): error CS8352: Cannot use variable 'value1' in this context because it may expose referenced variables outside of their declaration scope
                     //             new SW().TryGet(out value1);
                     Diagnostic(ErrorCode.ERR_EscapeVariable, "value1").WithArguments("value1").WithLocation(14, 33),
-                    // (37,10): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    // (37,10): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //         [UnscopedRef]
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(37, 10)
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(37, 10)
                     );
 
             }

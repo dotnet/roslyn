@@ -5353,6 +5353,16 @@
         <target state="translated">Parametre okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
+        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
+        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="translated">Atanmayan '{0}' yerel değişkeninin kullanımı</target>

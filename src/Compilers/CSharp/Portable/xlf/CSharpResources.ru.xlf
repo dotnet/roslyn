@@ -5354,6 +5354,16 @@
         <target state="translated">Параметр не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
+        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
+        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="translated">Использование локальной переменной "{0}", которой не присвоено значение.</target>

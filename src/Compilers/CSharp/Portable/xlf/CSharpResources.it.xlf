@@ -5353,6 +5353,16 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <target state="translated">Il parametro non è stato letto. Si è dimenticato di usarlo per inizializzare la proprietà con tale nome?</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
+        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
+        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
         <source>Use of unassigned local variable '{0}'</source>
         <target state="translated">Uso della variabile locale '{0}' non assegnata</target>

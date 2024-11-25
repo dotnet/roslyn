@@ -9747,9 +9747,9 @@ class Program
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (8,28): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    // (8,28): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     static ref S<T> F1<T>([UnscopedRef] ref S<T> x1)
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 28),
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(8, 28),
                     // (15,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
                     //         return ref y2; // 1
                     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(15, 20));
@@ -11074,9 +11074,9 @@ class Program
                 // (9,31): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 31),
-                // (9,51): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
+                // (9,51): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                 //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(9, 51),
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(9, 51),
                 // (10,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f5 = (ref R x5, scoped ref R y5) => { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 29),
@@ -22337,9 +22337,9 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,6): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                // (6,6): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                 //     [UnscopedRef] public ref int Ref() => ref F;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6),
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
                 // (6,47): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     [UnscopedRef] public ref int Ref() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 47));
@@ -22368,9 +22368,9 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (4,13): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                // (4,13): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                 //     void M([UnscopedRef] ref int x, out int y)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 13));
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 13));
 
             var expectedDiagnostics = new[]
             {
@@ -22405,9 +22405,9 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,32): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                // (6,32): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                 //     public static ref int Ref([UnscopedRef] out S s)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 32));
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 32));
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics();
@@ -22430,9 +22430,9 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,32): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                // (6,32): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 32),
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 32),
                 // (6,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 45),
@@ -22465,30 +22465,6 @@ using @scoped = System.Int32;
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
         public void UnscopedRefAttribute_RefSafetyRules_Reference()
         {
-            // This is like source1 below compiled with an old compiler that didn't know about the UnscopedRefAttribute.
-            var source1il = """
-                .class public sequential ansi sealed beforefieldinit S extends System.ValueType
-                {
-                    .method public hidebysig instance int32& Ref() cil managed 
-                    {
-                        .param [1] .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (01 00 00 00)
-                        .maxstack 8
-                        ldnull
-                        throw
-                    }
-                }
-
-                .class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends System.Object
-                {
-                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
-                    {
-                        .maxstack 8
-                        ret
-                    }
-                }
-                """;
-            var ref1a = CompileIL(source1il);
-
             var source1 = """
                 using System.Diagnostics.CodeAnalysis;
                 public struct S
@@ -22496,11 +22472,11 @@ using @scoped = System.Int32;
                     [UnscopedRef] public ref int Ref() => throw null;
                 }
                 """;
-            CreateCompilation([source1, UnscopedRefAttributeDefinition],
+            var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (4,6): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                // (4,6): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                 //     [UnscopedRef] public ref int Ref() => throw null;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 6));
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 6)).EmitToImageReference();
             var ref1b = CreateCompilation(source1,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics().EmitToImageReference();
@@ -22573,33 +22549,20 @@ using @scoped = System.Int32;
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
         public void UnscopedRefAttribute_RefSafetyRules_Reference_SynthesizedDelegate_02()
         {
-            /*
+            var source1 = """
+                using System.Diagnostics.CodeAnalysis;
                 public static class C
                 {
                     public static void M([UnscopedRef] ref int x) { }
                 }
-             */
-            var source1 = """
-                .class public auto ansi abstract sealed beforefieldinit C extends System.Object
-                {
-                    .method public hidebysig static void M(int32& x) cil managed 
-                    {
-                        .param [1] .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (01 00 00 00)
-                        .maxstack 8
-                        ret
-                    }
-                }
-
-                .class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends System.Object
-                {
-                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
-                    {
-                        .maxstack 8
-                        ret
-                    }
-                }
                 """;
-            var ref1 = CompileIL(source1);
+            var ref1 = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10)
+                .VerifyDiagnostics(
+                    // (4,27): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
+                    //     public static void M([UnscopedRef] ref int x) { }
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 27))
+                .EmitToImageReference();
 
             var source2 = """
                 using System;
@@ -25129,27 +25092,27 @@ class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,6): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    // (5,6): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     [UnscopedRef] ref int F() => throw null;
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 6),
-                    // (6,6): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(5, 6),
+                    // (6,6): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     [UnscopedRef] ref int P => throw null;
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6),
-                    // (10,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
+                    // (10,21): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     static void F1([UnscopedRef] out int i1) { i1 = 0; }
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 21),
-                    // (11,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(10, 21),
+                    // (11,21): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     static void F2([UnscopedRef] R r2) { }
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(11, 21),
-                    // (12,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(11, 21),
+                    // (12,21): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     static void F3([UnscopedRef] ref R r3) { }
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(12, 21),
-                    // (13,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(12, 21),
+                    // (13,21): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     static void F4([UnscopedRef] in R r4) { }
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(13, 21),
-                    // (14,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(13, 21),
+                    // (14,21): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
                     //     static void F5([UnscopedRef] out R r5) { }
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 21));
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(14, 21));
             }
 
             var scopedRefInCSharp10 = languageVersion == LanguageVersion.CSharp11 ? ScopedKind.None : ScopedKind.ScopedRef;

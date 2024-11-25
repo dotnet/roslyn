@@ -99,7 +99,7 @@ even when the code was compiled in the context of the earlier ref safety rules
 (i.e., targeting C# 10 or earlier with net6.0 or earlier).
 However, the attribute should not have an effect in that context, and that is now fixed.
 
-Code that previously did not report any errors in C# 10 or older with net6.0 or older can now fail to compile:
+Code that previously did not report any errors in C# 10 or earlier with net6.0 or earlier can now fail to compile:
 
 ```cs
 using System.Diagnostics.CodeAnalysis;
@@ -116,14 +116,14 @@ struct S
 
 To prevent misunderstanding (thinking the attribute has an effect
 but it actually does not because your code is compiled with the earlier ref safety rules),
-an error is reported when the attribute is used in C# 10 or earlier with net6.0 or earlier:
+a warning is reported when the attribute is used in C# 10 or earlier with net6.0 or earlier:
 
 ```cs
 using System.Diagnostics.CodeAnalysis;
 struct S
 {
     // both are errors in C# 10 with net6.0:
-    // error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+    // warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
     [UnscopedRef] public ref int Ref() => throw null!;
     public static void M([UnscopedRef] ref int x) { }
 }

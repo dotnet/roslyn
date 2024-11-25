@@ -868,7 +868,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!this.IsValidUnscopedRefAttributeTarget())
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                    var code = !UseUpdatedEscapeRules
+                        ? ErrorCode.WRN_UnscopedRefAttributeOldRules
+                        : ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget;
+                    diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
                 }
                 else if (DeclaredScope != ScopedKind.None)
                 {

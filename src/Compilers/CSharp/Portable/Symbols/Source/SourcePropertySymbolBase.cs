@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var code = this.GetMethod?.UseUpdatedEscapeRules == false || this.SetMethod?.UseUpdatedEscapeRules == false
-                        ? ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget
+                        ? ErrorCode.WRN_UnscopedRefAttributeOldRules
                         : ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget;
                     diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
                 }

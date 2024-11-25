@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var code = !this.UseUpdatedEscapeRules
-                        ? ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget
+                        ? ErrorCode.WRN_UnscopedRefAttributeOldRules
                         : ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget;
                     diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
                 }
