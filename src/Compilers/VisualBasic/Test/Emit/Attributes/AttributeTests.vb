@@ -5466,15 +5466,15 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <expected><![CDATA[
-DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates - use CCC instead.
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates: 'use CCC instead'.
     Sub M(c As C)
                ~
 ]]></expected>)
 
             Dim diag = comp.GetDiagnostics().Single()
             Assert.Equal("DiagID1", diag.Id)
-            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
-            Assert.Equal(DefaultHelpLinkUri, diag.Descriptor.HelpLinkUri)
+            Assert.Equal(ERRID.WRN_ExperimentalWithMessage, diag.Code)
+            Assert.Equal($"https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC{CInt(ERRID.WRN_ExperimentalWithMessage)})", diag.Descriptor.HelpLinkUri)
         End Sub
 
         <Fact>
@@ -5542,15 +5542,15 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <expected><![CDATA[
-DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates - use CCC instead.
+DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates: 'use CCC instead'.
     Sub M(c As C)
                ~
 ]]></expected>)
 
             Dim diag = comp.GetDiagnostics().Single()
             Assert.Equal("DiagID1", diag.Id)
-            Assert.Equal(ERRID.WRN_Experimental, diag.Code)
-            Assert.Equal(DefaultHelpLinkUri, diag.Descriptor.HelpLinkUri)
+            Assert.Equal(ERRID.WRN_ExperimentalWithMessage, diag.Code)
+            Assert.Equal($"https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC{CInt(ERRID.WRN_ExperimentalWithMessage)})", diag.Descriptor.HelpLinkUri)
         End Sub
 
         <Fact>

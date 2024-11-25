@@ -2018,6 +2018,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_ConvertingLock = 42508
 
+        WRN_ExperimentalWithMessage = 42509
+
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
 

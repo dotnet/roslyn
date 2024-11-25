@@ -5538,9 +5538,15 @@
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
   <data name="WRN_Experimental" xml:space="preserve">
-    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates{1}{2}.</value>
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
   <data name="WRN_Experimental_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="WRN_ExperimentalWithMessage" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</value>
+  </data>
+  <data name="WRN_ExperimentalWithMessage_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
