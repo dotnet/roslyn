@@ -374,6 +374,24 @@
         }
       }
     },
+    // InlineRenameUIOptionsStorage.UseInlineAdornment
+    "textEditor.csharpAndVisualBasic.rename.useInlineAdornment": {
+      "title": "@Show_UI_inline;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": "true",
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.rename",
+          "order": 10
+        }
+      ],
+      "migration": {
+        "input": {
+          "store": "SettingsManager",
+          "path": "TextEditor.RenameUseInlineAdornment"
+        }
+      }
+    },
     // GenerationOptions.PlaceSystemNamespaceFirst
     "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
       "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",

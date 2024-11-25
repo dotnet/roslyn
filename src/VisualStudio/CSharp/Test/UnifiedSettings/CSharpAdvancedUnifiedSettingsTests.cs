@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
@@ -67,6 +68,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources", MetadataAsSourceOptionsStorage.NavigateToDecompiledSources),
                 ("textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer", MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers),
                 ("textEditor.csharpAndVisualBasic.rename.commitRenameAsynchronously", InlineRenameSessionOptionsStorage.CommitRenameAsynchronously),
+                ("textEditor.csharpAndVisualBasic.rename.useInlineAdornment", InlineRenameUIOptionsStorage.UseInlineAdornment),
                 ("textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst", GenerationOptions.PlaceSystemNamespaceFirst),
                 ("textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups", GenerationOptions.SeparateImportDirectiveGroups),
                 ("textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies", SymbolSearchOptionsStorage.SearchReferenceAssemblies),
