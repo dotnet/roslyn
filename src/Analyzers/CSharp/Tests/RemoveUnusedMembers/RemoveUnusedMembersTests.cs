@@ -3339,4 +3339,33 @@ public class RemoveUnusedMembersTests
                 """,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69143")]
+    public async Task KeepInlineArrayInstanceMember()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(4)]
+                struct S
+                {
+                    private int i;
+                    private static int [|j|];
+                }
+                """,
+            FixedCode = """
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(4)]
+                struct S
+                {
+                    private int i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
 }
