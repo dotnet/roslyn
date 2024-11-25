@@ -1701,54 +1701,24 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                 break;
         }
 
-        if (modifiers.IsFile)
-            list.Add(FileKeyword);
-
-        if (modifiers.IsAbstract)
-            list.Add(AbstractKeyword);
-
-        if (modifiers.IsNew)
-            list.Add(NewKeyword);
-
-        if (modifiers.IsSealed)
-            list.Add(SealedKeyword);
-
-        if (modifiers.IsOverride)
-            list.Add(OverrideKeyword);
-
-        if (modifiers.IsVirtual)
-            list.Add(VirtualKeyword);
-
-        if (modifiers.IsStatic)
-            list.Add(StaticKeyword);
-
-        if (modifiers.IsAsync)
-            list.Add(AsyncKeyword);
-
-        if (modifiers.IsConst)
-            list.Add(ConstKeyword);
-
-        if (modifiers.IsReadOnly)
-            list.Add(ReadOnlyKeyword);
-
-        if (modifiers.IsUnsafe)
-            list.Add(UnsafeKeyword);
-
-        if (modifiers.IsVolatile)
-            list.Add(VolatileKeyword);
-
-        if (modifiers.IsExtern)
-            list.Add(ExternKeyword);
-
-        if (modifiers.IsRequired)
-            list.Add(RequiredKeyword);
+        AddIf(modifiers.IsFile, FileKeyword);
+        AddIf(modifiers.IsAbstract, AbstractKeyword);
+        AddIf(modifiers.IsNew, NewKeyword);
+        AddIf(modifiers.IsSealed, SealedKeyword);
+        AddIf(modifiers.IsOverride, OverrideKeyword);
+        AddIf(modifiers.IsVirtual, VirtualKeyword);
+        AddIf(modifiers.IsStatic, StaticKeyword);
+        AddIf(modifiers.IsAsync, AsyncKeyword);
+        AddIf(modifiers.IsConst, ConstKeyword);
+        AddIf(modifiers.IsReadOnly, ReadOnlyKeyword);
+        AddIf(modifiers.IsUnsafe, UnsafeKeyword);
+        AddIf(modifiers.IsVolatile, VolatileKeyword);
+        AddIf(modifiers.IsExtern, ExternKeyword);
+        AddIf(modifiers.IsRequired, RequiredKeyword);
 
         // partial and ref must be last
-        if (modifiers.IsRef)
-            list.Add(RefKeyword);
-
-        if (modifiers.IsPartial)
-            list.Add(PartialKeyword);
+        AddIf(modifiers.IsRef, RefKeyword);
+        AddIf(modifiers.IsPartial, PartialKeyword);
 
         for (int i = 0, n = list.Count; i < n; i++)
         {
@@ -1762,6 +1732,12 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
 
         return [.. list];
+
+        void AddIf(bool test, SyntaxToken token)
+        {
+            if (test)
+                list.Add(token);
+        }
     }
 
     private protected override SyntaxNode TypeParameter(string name)
