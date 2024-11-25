@@ -438,7 +438,6 @@ public class RemoveUnusedMembersTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             ExpectedDiagnostics =
             {
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
@@ -3269,6 +3268,75 @@ public class RemoveUnusedMembersTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task KeepUsedDeconstructMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object? o,
+                        ref object? p)
+                    {
+                        (o, p) = this;
+                    }
+
+                    void Deconstruct(
+                        out object? o,
+                        out object? p)
+                    {
+                        o = null;
+                        p = null;
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task RemoveUnusedDeconstructMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object o,
+                        ref object p)
+                    {
+                    }
+
+                    void [|Deconstruct|](
+                        out object? o,
+                        out object? p)
+                    {
+                        o = null;
+                        p = null;
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object o,
+                        ref object p)
+                    {
+                    }
+                }
+                """,
         }.RunAsync();
     }
 }

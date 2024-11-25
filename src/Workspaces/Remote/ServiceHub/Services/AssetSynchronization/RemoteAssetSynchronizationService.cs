@@ -49,7 +49,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     }
 
     public ValueTask SynchronizeTextChangesAsync(
-        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges)> changes,
+        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges, Checksum newTextChecksum)> changes,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(async cancellationToken =>
@@ -58,7 +58,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 
             using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
             {
-                foreach (var (documentId, baseTextChecksum, textChanges) in changes)
+                foreach (var (documentId, baseTextChecksum, textChanges, newTextChecksum) in changes)
                 {
                     // Try to get the text associated with baseTextChecksum
                     var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
@@ -73,7 +73,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
                     // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
                     // the entire document.
                     var newText = text.WithChanges(textChanges);
-                    var newSerializableText = new SerializableSourceText(newText, newText.GetContentHash());
+                    var newSerializableText = new SerializableSourceText(newText, newTextChecksum);
 
                     WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
                 }

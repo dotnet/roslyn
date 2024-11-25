@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -190,9 +191,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     private protected override SyntaxNode ParameterDeclaration(
         string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
     {
-        var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
-        if (isScoped)
-            modifiers = modifiers.Insert(0, ScopedKeyword);
+        var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(isScoped, refKind);
 
         if (isExtension)
             modifiers = modifiers.Insert(0, ThisKeyword);
@@ -2499,38 +2498,27 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
     {
-        var body = CreateBlock(statements);
+        var existingBlock = declaration switch
+        {
+            BaseMethodDeclarationSyntax baseMethod => baseMethod.Body,
+            AccessorDeclarationSyntax accessor => accessor.Body,
+            LocalFunctionStatementSyntax localFunction => localFunction.Body,
+            AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Block,
+            _ => null,
+        };
+
+        var body = CreateBlock(statements, existingBlock, addSimplifierAnnotation: false);
         var somebody = statements != null ? body : null;
         var semicolon = statements == null ? SemicolonToken : default;
 
-        switch (declaration.Kind())
+        return declaration switch
         {
-            case SyntaxKind.MethodDeclaration:
-                return ((MethodDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.OperatorDeclaration:
-                return ((OperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.ConversionOperatorDeclaration:
-                return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.ConstructorDeclaration:
-                return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.DestructorDeclaration:
-                return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.LocalFunctionStatement:
-                return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.AnonymousMethodExpression:
-                return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.ParenthesizedLambdaExpression:
-                return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.SimpleLambdaExpression:
-                return ((SimpleLambdaExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.GetAccessorDeclaration:
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.AddAccessorDeclaration:
-            case SyntaxKind.RemoveAccessorDeclaration:
-                return ((AccessorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            default:
-                return declaration;
-        }
+            BaseMethodDeclarationSyntax baseMethod => baseMethod.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            AccessorDeclarationSyntax accessor => accessor.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            LocalFunctionStatementSyntax localFunction => localFunction.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.WithBody(body),
+            _ => declaration,
+        };
     }
 
     public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
@@ -3134,8 +3122,23 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
     }
 
-    private static BlockSyntax CreateBlock(IEnumerable<SyntaxNode>? statements = null)
-        => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
+    private static BlockSyntax CreateBlock(
+        IEnumerable<SyntaxNode>? statements = null,
+        BlockSyntax? existingBlock = null,
+        bool addSimplifierAnnotation = true)
+    {
+        var block = existingBlock ?? SyntaxFactory.Block();
+
+        var statementList = AsStatementList(statements);
+
+        // If we're adding any statements, make sure the open brace can move around.  This allows `{ }` on an existing
+        // one-line construct to have the braces move to their own lines in accordance to the user's formatting rules.
+        if (statementList.Count > 0)
+            block = block.WithOpenBraceToken(block.OpenBraceToken.WithAdditionalAnnotations(Formatter.Annotation));
+
+        block = block.WithStatements(statementList);
+        return addSimplifierAnnotation ? block.WithAdditionalAnnotations(Simplifier.Annotation) : block;
+    }
 
     private static SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode>? nodes)
         => nodes == null ? default : [.. nodes.Select(AsStatement)];

@@ -31,7 +31,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -51,7 +50,6 @@ $$
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -93,7 +91,6 @@ $${|CS8805:System.Console.WriteLine(0);|}
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -133,7 +130,6 @@ $$System.Console.WriteLine(0);
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -152,7 +148,6 @@ $$System.Console.WriteLine(0);
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =

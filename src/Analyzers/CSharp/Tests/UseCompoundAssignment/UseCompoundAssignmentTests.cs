@@ -283,7 +283,6 @@ public class UseCompoundAssignmentTests
         await new VerifyCS.Test()
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp7_3
         }.RunAsync();
     }
@@ -305,7 +304,6 @@ public class UseCompoundAssignmentTests
         await new VerifyCS.Test()
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -958,7 +956,6 @@ public class UseCompoundAssignmentTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();

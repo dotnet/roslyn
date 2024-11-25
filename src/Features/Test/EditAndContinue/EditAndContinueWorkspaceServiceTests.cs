@@ -1328,8 +1328,9 @@ class C { int Y => 2; }
         EndDebuggingSession(debuggingSession);
     }
 
-    [Fact]
-    public async Task RudeEdits_UpdateBaseline()
+    [Theory]
+    [CombinatorialData]
+    public async Task RudeEdits_UpdateBaseline(bool validChangeBeforeRudeEdit)
     {
         var source1 = "abstract class C { }";
         var source2 = "abstract class C { void F() {} }";
@@ -1348,18 +1349,32 @@ class C { int Y => 2; }
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
+        EmitSolutionUpdateResults result;
+        var readers = ImmutableArray<IDisposable>.Empty;
+
         // change the source (valid edit):
-        solution = solution.WithDocumentText(documentId, CreateText(source2));
+        if (validChangeBeforeRudeEdit)
+        {
+            solution = solution.WithDocumentText(documentId, CreateText(source2));
 
-        var result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [projectId], s_noActiveSpans, CancellationToken.None);
-        Assert.Equal(ModuleUpdateStatus.Ready, result.ModuleUpdates.Status);
-        Assert.Empty(result.ProjectsToRebuild);
-        Assert.Empty(result.ProjectsToRestart);
+            result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: [projectId], s_noActiveSpans, CancellationToken.None);
+            Assert.Equal(ModuleUpdateStatus.Ready, result.ModuleUpdates.Status);
+            Assert.Empty(result.ProjectsToRebuild);
+            Assert.Empty(result.ProjectsToRestart);
 
-        // baseline should be present:
-        var readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
-        Assert.NotEmpty(readers);
-        Assert.True(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectId));
+            // baseline should be present:
+            readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
+            Assert.NotEmpty(readers);
+            Assert.True(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectId));
+
+            CommitSolutionUpdate(debuggingSession);
+        }
+        else
+        {
+            // baseline is not present:
+            Assert.Empty(debuggingSession.GetTestAccessor().GetBaselineModuleReaders());
+            Assert.False(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectId));
+        }
 
         // change the source (rude edit):
         solution = solution.WithDocumentText(documentId, CreateText(source3));
@@ -1376,18 +1391,19 @@ class C { int Y => 2; }
         AssertEx.Equal([projectId], result.ProjectsToRebuild);
         AssertEx.Equal([projectId], result.ProjectsToRestart);
 
-        DiscardSolutionUpdate(debuggingSession);
-
         // restart:
         _debuggerService.LoadedModules.Remove(moduleId);
         moduleId = EmitAndLoadLibraryToDebuggee(source3, sourceFilePath: sourceFile.Path);
         debuggingSession.UpdateBaselines(solution, result.ProjectsToRebuild);
 
-        // baseline should be removed:
-        Assert.False(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectId));
+        if (validChangeBeforeRudeEdit)
+        {
+            // baseline should be removed:
+            Assert.False(debuggingSession.GetTestAccessor().HasProjectEmitBaseline(projectId));
 
-        // all readers created for the module must be disposed, so we can rebuild the module:
-        VerifyReadersDisposed(readers);
+            // all readers created for the module must be disposed, so we can rebuild the module:
+            VerifyReadersDisposed(readers);
+        }
 
         // no rude edits reported:
         Assert.Empty(await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None));
@@ -1405,13 +1421,22 @@ class C { int Y => 2; }
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.SequenceEqual(
-        [
-            "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=2|EmptyHotReloadSessionCount=1",
-            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines={6A6F7270-0000-4000-8000-000000000000}",
-            "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=23|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}",
-            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=3|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}|ProjectIdsWithUpdatedBaselines="
-        ], _telemetryLog);
+        AssertEx.SequenceEqual(validChangeBeforeRudeEdit
+            ? [
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=3|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}|ProjectIdsWithUpdatedBaselines=",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=3|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines={6A6F7270-0000-4000-8000-000000000000}",
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=3|RudeEditKind=23|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=4|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}|ProjectIdsWithUpdatedBaselines=",
+            ]
+            :
+            [
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=2|EmptyHotReloadSessionCount=1",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines={6A6F7270-0000-4000-8000-000000000000}",
+                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=23|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=3|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}|ProjectIdsWithUpdatedBaselines=",
+            ],
+            _telemetryLog);
     }
 
     [Fact]

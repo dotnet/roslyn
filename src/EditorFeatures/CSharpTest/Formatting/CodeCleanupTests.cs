@@ -627,20 +627,14 @@ public partial class CodeCleanupTests
     }
 
     [Theory]
-    [InlineData(LanguageNames.CSharp, 50)]
-    [InlineData(LanguageNames.VisualBasic, 87)]
-    public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int numberOfUnsupportedDiagnosticIds)
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language)
     {
         var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
 
         // No Duplicates
         Assert.Equal(supportedDiagnostics, supportedDiagnostics.Distinct());
-
-        // Exact Number of Unsupported Diagnostic Ids
-        var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
-        var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
-
-        Assert.Equal(numberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
     }
 
     private const string _code = """

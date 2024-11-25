@@ -54,13 +54,13 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     /// <summary>
     /// Streams that are verified to be disposed at the end of the debug session (by default).
     /// </summary>
-    public List<(Guid mvid, Stream stream)> DisposalVerifiedStreams = [];
+    private ImmutableList<Stream> _disposalVerifiedStreams = [];
 
     public override void Dispose()
     {
         base.Dispose();
 
-        foreach (var (_, stream) in DisposalVerifiedStreams)
+        foreach (var stream in _disposalVerifiedStreams)
         {
             Assert.False(stream.CanRead);
         }
@@ -314,7 +314,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             OpenAssemblyStreamImpl = () =>
             {
                 var stream = new MemoryStream();
-                DisposalVerifiedStreams.Add((moduleId, stream));
+                ImmutableInterlocked.Update(ref _disposalVerifiedStreams, s => s.Add(stream));
                 peImage.WriteToStream(stream);
                 stream.Position = 0;
                 return stream;
@@ -322,7 +322,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             OpenPdbStreamImpl = () =>
             {
                 var stream = new MemoryStream();
-                DisposalVerifiedStreams.Add((moduleId, stream));
+                ImmutableInterlocked.Update(ref _disposalVerifiedStreams, s => s.Add(stream));
                 pdbImage.WriteToStream(stream);
                 stream.Position = 0;
                 return stream;

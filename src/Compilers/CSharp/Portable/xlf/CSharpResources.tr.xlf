@@ -2577,6 +2577,11 @@
         <target state="translated">struct alan başlatıcıları</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="new">unbound generic types in nameof operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">işaretsiz sağ kaydırma</target>
@@ -10305,8 +10310,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">'{0}' yazma için açılamıyor -- '{1}'</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">'{0}' yazma için açılamıyor -- '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
