@@ -996,6 +996,33 @@
         }
       }
     },
+    // ColorSchemeOptionsStorage.ColorScheme.
+    "textEditor.csharpAndVisualBasic.advanced.editorColorScheme.visualStudioColorSchemeName": {
+      "title": "@Editor_Color_Scheme;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "VisualStudio2017", "VisualStudio2019" ],
+      "enumLabels": [ "@Visual_Studio_2017;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Visual_Studio_2019;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "VisualStudio2019",
+      "order": 0,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Roslyn.ColorSchemeName"
+          },
+          "map": [
+            {
+              "result": "VisualStudio2017",
+              "match": 1
+            },
+            {
+              "result": "VisualStudio2019",
+              "match": 2
+            }
+          ]
+        }
+      }
+    },
     // ImplementTypeOptionsStorage.InsertionBehavior
     "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation": {
       "title": "@When_inserting_properties_events_and_methods_place_them;..\\Microsoft.VisualStudio.LanguageServices.dll",

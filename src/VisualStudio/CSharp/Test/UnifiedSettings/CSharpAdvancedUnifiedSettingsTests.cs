@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -110,6 +111,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharp.advanced.jsonStrings.colorizeJsonPatterns", ClassificationOptionsStorage.ColorizeJsonPatterns),
                 ("textEditor.csharp.advanced.jsonStrings.unsupportedReportInvalidJsonPatterns", JsonDetectionOptionsStorage.ReportInvalidJsonPatterns),
                 ("textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents", HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor),
+                ("textEditor.csharpAndVisualBasic.advanced.editorColorScheme.visualStudioColorSchemeName", ColorSchemeOptionsStorage.ColorScheme),
                 ("textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation", ImplementTypeOptionsStorage.InsertionBehavior),
                 ("textEditor.csharp.advanced.implementInterfaceOrAbstractClass.propertyGenerationBehavior", ImplementTypeOptionsStorage.PropertyGenerationBehavior),
                 ("textEditor.csharp.advanced.inlayHints.colorizeInlineHints", InlineHintsViewOptionsStorage.ColorHints),
