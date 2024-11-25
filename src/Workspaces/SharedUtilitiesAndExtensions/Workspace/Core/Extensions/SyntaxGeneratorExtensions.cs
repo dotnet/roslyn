@@ -258,11 +258,11 @@ internal static partial class SyntaxGeneratorExtensions
             return default;
 
         // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
-        if (conflictingProperty is { SetMethod: not null, Parameters.Length: 0 } &&
-            property is { SetMethod: not null, Parameters.Length: 0 })
+        if (conflictingProperty is { SetMethod.Parameters.Length: 1 } &&
+            property is { SetMethod.Parameters: [var parameter] })
         {
             if (compilation.ClassifyCommonConversion(property.Type, conflictingProperty.Type) is { Exists: true, IsImplicit: true })
-                return [generator.ExpressionStatement(generator.AssignmentStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name), generator.IdentifierName("value")))];
+                return [generator.ExpressionStatement(generator.AssignmentStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name), generator.IdentifierName(parameter.Name)))];
         }
 
         return generator.CreateThrowNotImplementedStatementBlock(compilation);
