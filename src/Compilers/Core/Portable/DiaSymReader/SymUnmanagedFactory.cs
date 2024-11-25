@@ -217,8 +217,8 @@ namespace Microsoft.DiaSymReader
                             break;
                         case (Architecture.LoongArch64, false):
                             CreateSymWriterLoongArch64(ref clsid, out instance);
-#endif
                             break;
+#endif
                         default:
                             throw new NotSupportedException();
                     }
