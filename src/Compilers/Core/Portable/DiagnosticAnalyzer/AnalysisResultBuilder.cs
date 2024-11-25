@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localAdditionalFileDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? _nonLocalDiagnosticsOpt = null;
 
-        private List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, HashSet<DiagnosticAnalyzer>)>? _partialFileAnalysisAnalyzers;
+        private List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, bool, HashSet<DiagnosticAnalyzer>)>? _partialFileAnalysisAnalyzers;
 
         internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
 
                     // Don't include the analyzer if it has executed for this span in the file
-                    if (IsContributingToMatchingPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile, analysisScope.OriginalFilterSpan))
+                    if (IsContributingToMatchingPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile, analysisScope.OriginalFilterSpan, analysisScope.IsSyntacticSingleFileAnalysis))
                         continue;
 
                     builder.Add(analyzer);
@@ -188,34 +188,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool IsContributingToMatchingPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile? filterFile, TextSpan? filterSpan, SourceOrAdditionalFile? originalFilterFile, TextSpan? originalFilterSpan)
+        private bool IsContributingToMatchingPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile? filterFile, TextSpan? filterSpan, SourceOrAdditionalFile? originalFilterFile, TextSpan? originalFilterSpan, bool isSyntacticSingleFileAnalysis)
         {
             if (_partialFileAnalysisAnalyzers == null || filterFile == null || originalFilterFile == null)
                 return false;
 
-            foreach (var (currentFilterFile, currentFilterSpan, currentOriginalFilterFile, currentOriginalFilterSpan, contributingAnalyzers) in _partialFileAnalysisAnalyzers)
+            foreach (var (currentFilterFile, currentFilterSpan, currentOriginalFilterFile, currentOriginalFilterSpan, currentIsSyntacticSingleFileAnalysis, contributingAnalyzers) in _partialFileAnalysisAnalyzers)
             {
-                if (currentFilterFile == filterFile && currentFilterSpan == filterSpan && currentOriginalFilterFile == originalFilterFile && currentOriginalFilterSpan == originalFilterSpan)
+                if (currentFilterFile == filterFile && currentFilterSpan == filterSpan && currentOriginalFilterFile == originalFilterFile && currentOriginalFilterSpan == originalFilterSpan && currentIsSyntacticSingleFileAnalysis == isSyntacticSingleFileAnalysis)
                     return contributingAnalyzers.Contains(analyzer);
             }
 
             return false;
         }
 
-        private void ContributeToPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, SourceOrAdditionalFile originalFilterFile, TextSpan? originalFilterSpan)
+        private void ContributeToPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, SourceOrAdditionalFile originalFilterFile, TextSpan? originalFilterSpan, bool isSyntacticSingleFileAnalysis)
         {
-            _partialFileAnalysisAnalyzers ??= new List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, HashSet<DiagnosticAnalyzer>)>();
+            _partialFileAnalysisAnalyzers ??= new List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, bool, HashSet<DiagnosticAnalyzer>)>();
 
-            foreach (var (currentFilterFile, currentFilterSpan, currentOriginalFilterFile, currentOriginalFilterSpan, contributingAnalyzers) in _partialFileAnalysisAnalyzers)
+            foreach (var (currentFilterFile, currentFilterSpan, currentOriginalFilterFile, currentOriginalFilterSpan, currentIsSyntacticSingleFileAnalysis, contributingAnalyzers) in _partialFileAnalysisAnalyzers)
             {
-                if (currentFilterFile == filterFile && currentFilterSpan == filterSpan && currentOriginalFilterFile == originalFilterFile && currentOriginalFilterSpan == originalFilterSpan)
+                if (currentFilterFile == filterFile && currentFilterSpan == filterSpan && currentOriginalFilterFile == originalFilterFile && currentOriginalFilterSpan == originalFilterSpan && currentIsSyntacticSingleFileAnalysis == isSyntacticSingleFileAnalysis)
                 {
                     contributingAnalyzers.Add(analyzer);
                     return;
                 }
             }
 
-            _partialFileAnalysisAnalyzers.Add((filterFile, filterSpan, originalFilterFile, originalFilterSpan, [analyzer]));
+            _partialFileAnalysisAnalyzers.Add((filterFile, filterSpan, originalFilterFile, originalFilterSpan, isSyntacticSingleFileAnalysis, [analyzer]));
         }
 
         public void ApplySuppressionsAndStoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation, Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts, CancellationToken cancellationToken)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         else if (analysisScope.OriginalFilterFile.HasValue)
                         {
                             // Store the results from the partial file analysis
-                            ContributeToPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt.Value, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile.Value, analysisScope.OriginalFilterSpan);
+                            ContributeToPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt.Value, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile.Value, analysisScope.OriginalFilterSpan, analysisScope.IsSyntacticSingleFileAnalysis);
                         }
                     }
                     else
