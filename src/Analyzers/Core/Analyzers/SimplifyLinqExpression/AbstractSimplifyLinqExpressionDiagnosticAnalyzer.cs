@@ -17,7 +17,7 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
     where TInvocationExpressionSyntax : SyntaxNode
     where TMemberAccessExpressionSyntax : SyntaxNode
 {
-    private static readonly IImmutableSet<string> s_nonEnumerableReturningLinqMethodNames =
+    private static readonly ImmutableHashSet<string> s_nonEnumerableReturningLinqMethodNames =
         ImmutableHashSet.Create(
             nameof(Enumerable.First),
             nameof(Enumerable.Last),
@@ -29,6 +29,8 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
             nameof(Enumerable.LastOrDefault));
 
     protected abstract ISyntaxFacts SyntaxFacts { get; }
+
+    protected abstract bool ConflictsWithMemberByNameOnly { get; }
 
     public AbstractSimplifyLinqExpressionDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
@@ -49,19 +51,13 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
     private void OnCompilationStart(CompilationStartAnalysisContext context)
     {
         if (!TryGetEnumerableTypeSymbol(context.Compilation, out var enumerableType))
-        {
             return;
-        }
 
         if (!TryGetLinqWhereExtensionMethod(enumerableType, out var whereMethodSymbol))
-        {
             return;
-        }
 
         if (!TryGetLinqMethodsThatDoNotReturnEnumerables(enumerableType, out var linqMethodSymbols))
-        {
             return;
-        }
 
         context.RegisterOperationAction(
             context => AnalyzeInvocationOperation(context, enumerableType, whereMethodSymbol, linqMethodSymbols),
@@ -141,12 +137,19 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
             return;
         }
 
+        // Do not offer to transpose if there is already a method on the collection named the same as the linq extension
+        // method.  This would cause us to call the instance method after the transformation, not the extension method.
         if (!targetTypeSymbol.Equals(enumerableType, SymbolEqualityComparer.Default) &&
             targetTypeSymbol.MemberNames.Contains(name))
         {
-            // Do not offer to transpose if there is already a member on the collection named the same as the linq extension method
-            // example: list.Where(x => x != null).Count() cannot be changed to list.Count(x => x != null) as List<T> already has a member named Count
-            return;
+            // VB conflicts if any member has the same name (like a Count property vs Count extension method).
+            if (this.ConflictsWithMemberByNameOnly)
+                return;
+
+            // C# conflicts only if it is a method as well.  So a Count property will not conflict with a Count
+            // extension method.
+            if (targetTypeSymbol.GetMembers(name).Any(m => m is IMethodSymbol))
+                return;
         }
 
         context.ReportDiagnostic(Diagnostic.Create(Descriptor, nextInvocation.Syntax.GetLocation()));
@@ -161,25 +164,27 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
 
         INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
         {
-            if (invocation.Syntax is TInvocationExpressionSyntax invocationNode &&
-                SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is TMemberAccessExpressionSyntax memberAccess &&
-                SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess) is SyntaxNode expression)
+            if (invocation.Syntax is not TInvocationExpressionSyntax invocationNode ||
+                SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is not TMemberAccessExpressionSyntax memberAccess ||
+                SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess) is not SyntaxNode expression)
             {
-                return invocation.SemanticModel?.GetTypeInfo(expression).Type as INamedTypeSymbol;
+                return null;
             }
 
-            return null;
+            return invocation.SemanticModel?.GetTypeInfo(expression).Type as INamedTypeSymbol;
         }
 
         string? TryGetMethodName(IInvocationOperation invocation)
         {
-            if (invocation.Syntax is TInvocationExpressionSyntax invocationNode &&
-                SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is TMemberAccessExpressionSyntax memberAccess)
+            if (invocation.Syntax is not TInvocationExpressionSyntax invocationNode ||
+                SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is not TMemberAccessExpressionSyntax memberAccess)
             {
-                return SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess).GetText().ToString();
+                return null;
             }
 
-            return null;
+            var memberName = SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
+            var identifier = SyntaxFacts.GetIdentifierOfSimpleName(memberName);
+            return identifier.ValueText;
         }
     }
 }

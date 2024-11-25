@@ -1666,31 +1666,16 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var list);
 
-        switch (accessibility)
+        list.AddRange((IEnumerable<SyntaxToken>)(accessibility switch
         {
-            case Accessibility.Internal:
-                list.Add(InternalKeyword);
-                break;
-            case Accessibility.Public:
-                list.Add(PublicKeyword);
-                break;
-            case Accessibility.Private:
-                list.Add(PrivateKeyword);
-                break;
-            case Accessibility.Protected:
-                list.Add(ProtectedKeyword);
-                break;
-            case Accessibility.ProtectedOrInternal:
-                list.Add(ProtectedKeyword);
-                list.Add(InternalKeyword);
-                break;
-            case Accessibility.ProtectedAndInternal:
-                list.Add(PrivateKeyword);
-                list.Add(ProtectedKeyword);
-                break;
-            case Accessibility.NotApplicable:
-                break;
-        }
+            Accessibility.Internal => [InternalKeyword],
+            Accessibility.Public => [PublicKeyword],
+            Accessibility.Private => [PrivateKeyword],
+            Accessibility.Protected => [ProtectedKeyword],
+            Accessibility.ProtectedOrInternal => [ProtectedKeyword, InternalKeyword],
+            Accessibility.ProtectedAndInternal => [PrivateKeyword, ProtectedKeyword],
+            _ => [],
+        }));
 
         if (modifiers.IsFile)
             list.Add(FileKeyword);
