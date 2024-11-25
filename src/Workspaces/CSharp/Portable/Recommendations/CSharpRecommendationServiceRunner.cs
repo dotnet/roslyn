@@ -497,14 +497,14 @@ internal partial class CSharpRecommendationService
         {
             // Can't capture parameters across a static lambda/local function
 
-            var containingStaticFunctions = contextNode.AncestorsAndSelf().Where(a => a switch
+            var containingStaticFunction = contextNode.FirstAncestorOrSelf<SyntaxNode>(a => a switch
             {
                 AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword),
                 LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.StaticKeyword),
                 _ => false,
-            }).ToSet();
+            });
 
-            if (containingStaticFunctions.Count == 0)
+            if (containingStaticFunction is null)
                 return symbols;
 
             return symbols.WhereAsArray(s =>
@@ -512,15 +512,8 @@ internal partial class CSharpRecommendationService
                 if (s is not IParameterSymbol { DeclaringSyntaxReferences: [var parameterReference] })
                     return true;
 
-                foreach (var staticFunction in containingStaticFunctions)
-                {
-                    if (parameterReference.Span.Start < staticFunction.SpanStart)
-                        return false;
-                }
-
-                return true;
+                return parameterReference.Span.Start >= containingStaticFunction.SpanStart;
             });
-
         }
 
         private RecommendedSymbols GetSymbolsOffOfName(NameSyntax name)
