@@ -1366,6 +1366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_DoNotUseRequiredMember,
                      ERRID.ERR_UnsupportedRefReturningCallInWithStatement,
                      ERRID.ERR_TypeReserved,
+                     ERRID.ERR_UnmanagedConstraintNotSatisfied,
                      ERRID.ERR_NextAvailable,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,

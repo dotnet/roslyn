@@ -809,6 +809,58 @@ public class C
             Assert.Null(item.CommitCharacters);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7623")]
+    public async Task TestSoftSelectionForDiscardAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+public class A
+{
+    public void M()
+    {
+        var _someDiscard = 1;
+        _{|caret:|}
+    }
+}";
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, true);
+
+        var completionParams = CreateCompletionParams(
+            caretLocation,
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "_",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var actualItem = results.Items.First(i => i.Label == "_someDiscard");
+
+        Assert.True(results.IsIncomplete);
+        Assert.Empty(results.ItemDefaults.CommitCharacters);
+        Assert.Equal("_someDiscard", actualItem.Label);
+        Assert.Null(actualItem.CommitCharacters);
+
+        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caretLocation),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "s",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        actualItem = results.Items.First(i => i.Label == "_someDiscard");
+
+        Assert.False(results.IsIncomplete);
+        Assert.NotEmpty(results.ItemDefaults.CommitCharacters);
+        Assert.Equal("_someDiscard", actualItem.Label);
+        Assert.Null(actualItem.CommitCharacters);
+    }
+
     private sealed class CSharpLspThrowExceptionOnChangeCompletionService : CompletionService
     {
         private CSharpLspThrowExceptionOnChangeCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider) : base(services, listenerProvider)

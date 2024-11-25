@@ -26,7 +26,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -40,7 +39,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -54,7 +52,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -68,7 +65,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -89,7 +85,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -110,7 +105,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -131,7 +125,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -155,7 +148,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -179,7 +171,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -203,7 +194,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -227,7 +217,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -251,7 +240,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -275,7 +263,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -303,7 +290,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -330,7 +316,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -357,7 +342,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -411,7 +395,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.TrueWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -817,7 +800,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -864,7 +846,6 @@ public class ConsecutiveBracePlacementTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();

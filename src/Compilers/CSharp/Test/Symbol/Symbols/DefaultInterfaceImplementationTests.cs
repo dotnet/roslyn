@@ -51,25 +51,13 @@ public interface I1
 
         private static Verification Verify(bool isStatic)
         {
+            // IL Verify complains about static constrained calls: "Missing callvirt following constrained prefix."
             return isStatic ? Verification.Skipped : VerifyOnMonoOrCoreClr;
         }
 
         private static bool Execute(bool isStatic, bool haveImplementationInDerivedInterface = false, bool hasImplementationOfVirtualInDerivedType = false)
         {
-            // The runtime ignores the implementation of a static virtual method in derived types
-            // Tracked by https://github.com/dotnet/roslyn/issues/64501
-            if (isStatic && hasImplementationOfVirtualInDerivedType)
-            {
-                return false;
-            }
-
-            // https://github.com/dotnet/roslyn/issues/61321 : Enable execution for isStatic and haveImplementationInDerivedInterface once runtime can handle it.
-            if (!ExecutionConditionUtil.IsMonoOrCoreClr || (isStatic && haveImplementationInDerivedInterface))
-            {
-                return false;
-            }
-
-            return true;
+            return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
         private static Verification VerifyOnMonoOrCoreClr_FailsIlVerify

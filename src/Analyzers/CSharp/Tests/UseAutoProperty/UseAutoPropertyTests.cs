@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1877,7 +1878,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23216")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23215")]
-    public async Task TestFixAllInDocument()
+    public async Task TestFixAllInDocument1()
     {
         await TestInRegularAndScript1Async(
             """
@@ -1910,6 +1911,53 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 int P { get; }
 
                 int Q { get; }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
+    public async Task TestFixAllInDocument2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            internal struct StringFormat
+            {
+                private readonly object {|FixAllInDocument:_argument1|};
+                private readonly object _argument2;
+                private readonly object _argument3;
+                private readonly object[] _arguments;
+
+                public object Argument1
+                {
+                    get { return _argument1; }
+                }
+
+                public object Argument2
+                {
+                    get { return _argument2; }
+                }
+
+                public object Argument3
+                {
+                    get { return _argument3; }
+                }
+
+                public object[] Arguments
+                {
+                    get { return _arguments; }
+                }
+            }
+            """,
+            """
+            internal struct StringFormat
+            {
+                public object Argument1 { get; }
+
+                public object Argument2 { get; }
+
+                public object Argument3 { get; }
+
+                public object[] Arguments { get; }
             }
             """);
     }

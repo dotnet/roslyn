@@ -118,5 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return InternalSubstituteTypeParametersDistinct(substitution, constraintTypes)
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return _sourceTypeParameterSymbol.HasUnmanagedTypeConstraint
+            End Get
+        End Property
     End Class
 End Namespace

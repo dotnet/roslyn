@@ -69,6 +69,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options)
     public CodeStyleOption2<bool> PreferMethodGroupConversion => GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion);
     public CodeStyleOption2<bool> PreferPrimaryConstructors => GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors);
     public CodeStyleOption2<bool> PreferSystemThreadingLock => GetOption(CSharpCodeStyleOptions.PreferSystemThreadingLock);
+    public CodeStyleOption2<bool> PreferUnboundGenericTypeInNameOf => GetOption(CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf);
 
     // CodeGenerationOptions
 

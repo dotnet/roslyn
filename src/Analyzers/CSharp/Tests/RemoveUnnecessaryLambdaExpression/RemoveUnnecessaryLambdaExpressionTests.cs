@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,11 +20,11 @@ using VerifyCS = CSharpCodeFixVerifier<
    CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
-public class RemoveUnnecessaryLambdaExpressionTests
+public sealed class RemoveUnnecessaryLambdaExpressionTests
 {
     private static async Task TestInRegularAndScriptAsync(
-        string testCode,
-        string fixedCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp12,
         OutputKind? outputKind = null)
     {
@@ -40,7 +41,7 @@ public class RemoveUnnecessaryLambdaExpressionTests
     }
 
     private static Task TestMissingInRegularAndScriptAsync(
-        string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion version = LanguageVersion.CSharp12,
         OutputKind? outputKind = null)
         => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
@@ -119,7 +120,6 @@ public class RemoveUnnecessaryLambdaExpressionTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp12,
             Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
         }.RunAsync();
@@ -2031,6 +2031,46 @@ public class RemoveUnnecessaryLambdaExpressionTests
                 public string ToStr(int x)
                 {
                     return x.ToString();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71300")]
+    public async Task PreserveComment()
+    {
+        await TestInRegularAndScriptAsync("""
+            using System;
+
+            class C
+            {
+                void M1()
+                {
+                    M2([|() =>
+                    {
+                        // I hope M2 doesn't call M1!
+                        |]M1();
+                    });
+                }
+
+                void M2(Action a)
+                {
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M1()
+                {
+                    // I hope M2 doesn't call M1!
+                    M2(M1);
+                }
+            
+                void M2(Action a)
+                {
                 }
             }
             """);

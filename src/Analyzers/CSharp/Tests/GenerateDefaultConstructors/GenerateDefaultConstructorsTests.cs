@@ -66,7 +66,6 @@ public class GenerateDefaultConstructorsTests
         await new VerifyRefactoring.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -78,7 +77,6 @@ public class GenerateDefaultConstructorsTests
         await new VerifyCodeFix.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
