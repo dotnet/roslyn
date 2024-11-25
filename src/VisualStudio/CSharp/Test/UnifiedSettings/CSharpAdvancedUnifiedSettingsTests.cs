@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
@@ -56,6 +57,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess", RemoteHostOptionsStorage.OOP64Bit),
                 ("textEditor.csharpAndVisualBasic.analysis.reloadChangedAnalyzerReferences", WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences),
                 ("textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics", VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics),
+                ("textEditor.csharpAndVisualBasic.analysis.skipAnalyzersForImplicitlyTriggeredBuilds", FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds),
+                ("textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences", FeatureOnOffOptions.OfferRemoveUnusedReferences),
                 ("textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst", GenerationOptions.PlaceSystemNamespaceFirst),
                 ("textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups", GenerationOptions.SeparateImportDirectiveGroups),
                 ("textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies", SymbolSearchOptionsStorage.SearchReferenceAssemblies),

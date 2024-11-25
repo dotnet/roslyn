@@ -166,11 +166,16 @@
         }
       }
     },
-    // VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics
-    "textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics": {
-      "title": "@Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll",
+    // FeatureOnOffOptions.OfferRemoveUnusedReferences
+    "textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences": {
+      "title": "@Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "default": false,
+      "alternateDefault": {
+        // WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag
+        "flagName": "Roslyn.RemoveUnusedReferences",
+        "default": false
+      },
+      "default": true,
       "placements": [
         {
           "category": "textEditor.csharp.advanced.analysis",
@@ -180,8 +185,48 @@
       "migration": {
         "pass": {
           "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.OfferRemoveUnusedReferences"
+          }
+        }
+      }
+    },
+    // VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics
+    "textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics": {
+      "title": "@Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.analysis",
+          "order": 50
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
             "store": "VsUserSettingsRegistry",
             "path": "Roslyn\\Internal\\Diagnostics\\EnableFileLoggingForDiagnostics"
+          }
+        }
+      }
+    },
+    // FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds
+    "textEditor.csharpAndVisualBasic.analysis.skipAnalyzersForImplicitlyTriggeredBuilds": {
+      "title": "@Skip_analyzers_for_implicitly_triggered_builds;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.analysis",
+          "order": 60
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds"
           }
         }
       }
