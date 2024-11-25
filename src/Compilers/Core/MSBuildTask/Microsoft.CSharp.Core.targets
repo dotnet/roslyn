@@ -18,9 +18,10 @@
       - Pattern: .NET 5.0 uses C# 9.0, .NET 6.0 uses C# 10.0, and so on.
       - Starting from C# 9.0 for .NET 5.0, we add the difference between the major .NET version and 5 
         to determine the correct language version.
+      NOTE: `.Split('.')[0]` needed due to https://github.com/dotnet/msbuild/issues/9757.
     -->
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV), 5)))).0</_MaxSupportedLangVersion>
+                                         '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV.Split('.')[0]), 5)))).0</_MaxSupportedLangVersion>
 
     <!-- Cap _MaxSupportedLangVersion if it exceeds _MaxAvailableLangVersion -->
     <_MaxAvailableLangVersion>13.0</_MaxAvailableLangVersion>
