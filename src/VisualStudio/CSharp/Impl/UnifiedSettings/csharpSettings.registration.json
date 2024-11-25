@@ -231,6 +231,41 @@
         }
       }
     },
+    // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution
+    "textEditor.csharpAndVisualBasic.sourceGenerators.skipAnalyzersForImplicitlyTriggeredBuilds": {
+      "title": "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "automatic", "balanced" ],
+      "enumItemLabels": [ "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Balanced_Run_generators_after_saving_or_building;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "automatic",
+      "alternateDefault": {
+        // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag
+        "flagName": "Roslyn.SourceGeneratorExecutionBalanced",
+        "default": "balanced"
+      },
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.sourceGenerators",
+          "order": 0
+        }
+      ],
+      "enumIntegerToString": {
+        "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Roslyn.Specific.SourceGeneratorExecution"
+        },
+        "map": [
+          {
+            "result": "automatic",
+            "match": 0
+          },
+          {
+            "result": "balanced",
+            "match": 1
+          }
+        ]
+      }
+    },
     // GenerationOptions.PlaceSystemNamespaceFirst
     "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
       "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
