@@ -4120,5 +4120,767 @@ class C
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: [libS2, missingLibS1]);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_StringLocal_MoveNextAfterDispose()
+        {
+            string src = """
+var values = new C<int>([42, 43]);
+var enumerator = values.GetEnumerator();
+assert(enumerator.MoveNext());
+assert(enumerator.Current == 43);
+
+enumerator.Dispose();
+System.Console.Write(" disposed ");
+
+assert(!enumerator.MoveNext());
+
+static void assert(bool b) { if (!b) throw new System.Exception(); }
+
+class C<T>
+{
+    private sealed class Node
+    {
+        internal readonly T _value; // Value of the node.
+        internal Node _next; // Next pointer.
+
+        internal Node(T value)
+        {
+            _value = value;
+            _next = null;
+        }
+    }
+
+    private Node _head; 
+
+    public C(System.Collections.Generic.IEnumerable<T> collection)
+    {
+        Node lastNode = null;
+        foreach (T element in collection)
+        {
+            Node newNode = new Node(element);
+            newNode._next = lastNode;
+            lastNode = newNode;
+        }
+
+        _head = lastNode;
+    }
+
+    public System.Collections.Generic.IEnumerator<T> GetEnumerator()
+    {
+        return GetEnumerator(_head);
+    }
+
+    private static System.Collections.Generic.IEnumerator<T> GetEnumerator(Node head)
+    {
+        Node current = head;
+        if (current is null) System.Console.Write(" empty ");
+
+        while (current != null)
+        {
+            yield return current._value;
+            current = current._next;
+            System.Console.Write("AFTER");
+        }
+    }
+}
+""";
+            // TODO2 crash
+            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_0007:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn()
+        {
+            // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
+            // If the state of the enumerator object is suspended, invoking Dispose: ... Changes the state to after.
+            string src = """
+var enumerator = C.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+enumerator.Dispose();
+System.Console.Write("disposed ");
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator()
+    {
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            CreateCompilation(src).VerifyEmitDiagnostics();
+            // TODO2 we incorrectly resume execution after disposal
+            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed True two").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        // TODO2 document breaking change
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldBreak()
+        {
+            // When a yield break statement is encountered ... The state of the enumerator object is changed to after.
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        yield return " one ";
+        if (b) yield break;
+        yield return " two ";
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one False one False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size      100 (0x64)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0036,
+        IL_005b)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0022:  ldarg.0
+  IL_0023:  ldstr      " one "
+  IL_0028:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_002d:  ldarg.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0034:  ldc.i4.1
+  IL_0035:  ret
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.m1
+  IL_0038:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      "bool C.<GetEnumerator>d__0.b"
+  IL_0043:  brfalse.s  IL_0047
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
+  IL_0047:  ldarg.0
+  IL_0048:  ldstr      " two "
+  IL_004d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_0052:  ldarg.0
+  IL_0053:  ldc.i4.2
+  IL_0054:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0059:  ldc.i4.1
+  IL_005a:  ret
+  IL_005b:  ldarg.0
+  IL_005c:  ldc.i4.m1
+  IL_005d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0062:  ldc.i4.0
+  IL_0063:  ret
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_EndOfBody()
+        {
+            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        yield return " one ";
+        System.Console.Write("done ");
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one done False one False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size       62 (0x3e)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_002b
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0017:  ldarg.0
+  IL_0018:  ldstr      " one "
+  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
+  IL_002b:  ldarg.0
+  IL_002c:  ldc.i4.m1
+  IL_002d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0032:  ldstr      "done "
+  IL_0037:  call       "void System.Console.Write(string)"
+  IL_003c:  ldc.i4.0
+  IL_003d:  ret
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_ThrowException()
+        {
+            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+try
+{
+    System.Console.Write(enumerator.MoveNext());
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        yield return " one ";
+        throw new System.Exception("exception");
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one exception one False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_002b
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0017:  ldarg.0
+  IL_0018:  ldstr      " one "
+  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
+  IL_002b:  ldarg.0
+  IL_002c:  ldc.i4.m1
+  IL_002d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0032:  ldstr      "exception"
+  IL_0037:  newobj     "System.Exception..ctor(string)"
+  IL_003c:  throw
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn_InTryFinally()
+        {
+            // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
+
+            // If the state of the enumerator object is suspended, invoking Dispose:
+            // ...
+            // Executes any finally blocks as if the last executed yield return statement were a yield break statement.
+            //   If this causes an exception to be thrown and propagated out of the iterator body,
+            //   the state of the enumerator object is set to after and the exception is propagated to the caller of the Dispose method.
+            string src = """
+var enumerator = C.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write("disposing ");
+try
+{
+    enumerator.Dispose();
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+System.Console.Write(" disposed ");
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator()
+    {
+        try
+        {
+            yield return " one ";
+        }
+        finally
+        {
+            throw new System.Exception("exception");
+        }
+    }
+}
+""";
+            CreateCompilation(src).VerifyEmitDiagnostics();
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one disposing exception disposed False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.s   -3
+  IL_000a:  beq.s      IL_0010
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  bne.un.s   IL_001a
+  IL_0010:  nop
+  .try
+  {
+    IL_0011:  leave.s    IL_001a
+  }
+  finally
+  {
+    IL_0013:  ldarg.0
+    IL_0014:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
+    IL_0019:  endfinally
+  }
+  IL_001a:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldBreak_InTryFinally()
+        {
+            // When a yield break statement is encountered:
+            // If the yield break statement is within one or more try blocks, the associated finally blocks are executed.
+            // The state of the enumerator object is changed to after.
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        yield return " one ";
+        try
+        {
+            if (b) yield break;
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+        yield return " two ";
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one finally False one False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size      117 (0x75)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  switch    (
+        IL_001b,
+        IL_0036,
+        IL_006a)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0022:  ldarg.0
+  IL_0023:  ldstr      " one "
+  IL_0028:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_002d:  ldarg.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0034:  ldc.i4.1
+  IL_0035:  ret
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.m1
+  IL_0038:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  .try
+  {
+    IL_003d:  ldarg.0
+    IL_003e:  ldfld      "bool C.<GetEnumerator>d__0.b"
+    IL_0043:  brfalse.s  IL_0049
+    IL_0045:  ldc.i4.0
+    IL_0046:  stloc.0
+    IL_0047:  leave.s    IL_0073
+    IL_0049:  leave.s    IL_0056
+  }
+  finally
+  {
+    IL_004b:  ldstr      "finally "
+    IL_0050:  call       "void System.Console.Write(string)"
+    IL_0055:  endfinally
+  }
+  IL_0056:  ldarg.0
+  IL_0057:  ldstr      " two "
+  IL_005c:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_0061:  ldarg.0
+  IL_0062:  ldc.i4.2
+  IL_0063:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0068:  ldc.i4.1
+  IL_0069:  ret
+  IL_006a:  ldarg.0
+  IL_006b:  ldc.i4.m1
+  IL_006c:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0071:  ldc.i4.0
+  IL_0072:  ret
+  IL_0073:  ldloc.0
+  IL_0074:  ret
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_ThrowException_InTryFinally()
+        {
+            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+try
+{
+    System.Console.Write(enumerator.MoveNext());
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        yield return " one ";
+        try
+        {
+            throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_002b
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0017:  ldarg.0
+  IL_0018:  ldstr      " one "
+  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
+  IL_002b:  ldarg.0
+  IL_002c:  ldc.i4.m1
+  IL_002d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  .try
+  {
+    IL_0032:  ldstr      "exception"
+    IL_0037:  newobj     "System.Exception..ctor(string)"
+    IL_003c:  throw
+  }
+  finally
+  {
+    IL_003d:  ldstr      "finally "
+    IL_0042:  call       "void System.Console.Write(string)"
+    IL_0047:  endfinally
+  }
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_ThrowException_InTryFinally_WithYieldInTry()
+        {
+            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+try
+{
+    System.Console.Write(enumerator.MoveNext());
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        try
+        {
+            yield return " one ";
+            throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
+            var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size       83 (0x53)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0006:  stloc.1
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0012
+    IL_000a:  ldloc.1
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq.s      IL_0037
+    IL_000e:  ldc.i4.0
+    IL_000f:  stloc.0
+    IL_0010:  leave.s    IL_0051
+    IL_0012:  ldarg.0
+    IL_0013:  ldc.i4.m1
+    IL_0014:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0019:  ldarg.0
+    IL_001a:  ldc.i4.s   -3
+    IL_001c:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0021:  ldarg.0
+    IL_0022:  ldstr      " one "
+    IL_0027:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+    IL_002c:  ldarg.0
+    IL_002d:  ldc.i4.1
+    IL_002e:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0033:  ldc.i4.1
+    IL_0034:  stloc.0
+    IL_0035:  leave.s    IL_0051
+    IL_0037:  ldarg.0
+    IL_0038:  ldc.i4.s   -3
+    IL_003a:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_003f:  ldstr      "exception"
+    IL_0044:  newobj     "System.Exception..ctor(string)"
+    IL_0049:  throw
+  }
+  fault
+  {
+    IL_004a:  ldarg.0
+    IL_004b:  call       "void C.<GetEnumerator>d__0.Dispose()"
+    IL_0050:  endfinally
+  }
+  IL_0051:  ldloc.0
+  IL_0052:  ret
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.s   -3
+  IL_000a:  beq.s      IL_0010
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  bne.un.s   IL_001a
+  IL_0010:  nop
+  .try
+  {
+    IL_0011:  leave.s    IL_001a
+  }
+  finally
+  {
+    IL_0013:  ldarg.0
+    IL_0014:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
+    IL_0019:  endfinally
+  }
+  IL_001a:  ret
+}
+""");
+        }
     }
 }
