@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
+using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
@@ -95,6 +96,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharp.advanced.comments.autoXmlDocCommentGeneration", DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration),
                 ("textEditor.csharp.advanced.comments.splitComments", SplitCommentOptionsStorage.Enabled),
                 ("textEditor.csharp.advanced.comments.insertBlockCommentStartString", BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString),
+                ("textEditor.csharp.advanced.editorHelp.splitStringLiteralOnReturn", SplitStringLiteralOptionsStorage.Enabled),
                 ("textEditor.csharp.advanced.editorHelp.fixStringContentsOnPaste", StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste),
                 ("textEditor.csharp.advanced.editorHelp.showRemarksInQuickInfo", QuickInfoOptionsStorage.ShowRemarksInQuickInfo),
                 ("textEditor.csharp.advanced.editorHelp.showPreviewForRenameTracking", RenameTrackingOptionsStorage.RenameTrackingPreview),

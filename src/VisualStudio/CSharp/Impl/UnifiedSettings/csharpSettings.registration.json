@@ -801,12 +801,27 @@
         }
       }
     },
+    // SplitStringLiteralOptionsStorage.Enabled
+    "textEditor.csharp.advanced.editorHelp.splitStringLiteralOnReturn": {
+      "title": "@Split_string_literals_on_enter;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SplitStringLiterals"
+          }
+        }
+      }
+    },
     // QuickInfoOptionsStorage.ShowRemarksInQuickInfo
     "textEditor.csharp.advanced.editorHelp.showRemarksInQuickInfo": {
       "title": "@Show_remarks_in_Quick_Info;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "order": 10,
+      "order": 20,
       "migration": {
         "pass": {
           "input": {
@@ -821,7 +836,7 @@
       "title": "@Show_preview_for_rename_tracking;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "order": 20,
+      "order": 30,
       "migration": {
         "pass": {
           "input": {
@@ -836,7 +851,7 @@
       "title": "@Report_invalid_placeholders_in_string_dot_format_calls;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "order": 30,
+      "order": 40,
       "migration": {
         "pass": {
           "input": {
@@ -851,7 +866,7 @@
       "title": "@Underline_reassigned_variables;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
-      "order": 40,
+      "order": 50,
       "migration": {
         "pass": {
           "input": {
@@ -866,7 +881,7 @@
       "title": "@Strike_out_obsolete_symbols;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
-      "order": 50,
+      "order": 60,
       "migration": {
         "pass": {
           "input": {
