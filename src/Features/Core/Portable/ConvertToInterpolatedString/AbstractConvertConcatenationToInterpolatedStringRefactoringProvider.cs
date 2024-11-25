@@ -83,7 +83,6 @@ internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactor
 
         if (stringLiterals.Length > 0)
         {
-
             // Make sure that all the string tokens we're concatenating are the same type
             // of string literal.  i.e. if we have an expression like: @" "" " + " \r\n "
             // then we don't merge this.  We don't want to be munging different types of
