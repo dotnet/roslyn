@@ -177,7 +177,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (completedAnalyzersForFile != null && completedAnalyzersForFile.Contains(analyzer))
                         continue;
 
-                    // Don't include the analyzer if it has executed for this span in the file
+                    // Don't include the analyzer if it has executed for this span/file/syntactic combination. Typically this span corresponds
+                    //  to a single line in the file to get lightbulb information. Requests for the compiler analyzer occasionally expand this
+                    //  range to the containing member.
                     if (IsContributingToMatchingPartialFileAnalysis_NoLock(analyzer, analysisScope.FilterFileOpt, analysisScope.FilterSpanOpt, analysisScope.OriginalFilterFile, analysisScope.OriginalFilterSpan, analysisScope.IsSyntacticSingleFileAnalysis))
                         continue;
 
@@ -188,6 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        // Determines whether the analyzer has had a completed partial analysis for the given file/span/syntactic combination.
         private bool IsContributingToMatchingPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile? filterFile, TextSpan? filterSpan, SourceOrAdditionalFile? originalFilterFile, TextSpan? originalFilterSpan, bool isSyntacticSingleFileAnalysis)
         {
             if (_partialFileAnalysisAnalyzers == null || filterFile == null || originalFilterFile == null)
@@ -202,6 +205,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
+        // Caches that this analyzer has had a completed partial analysis for the given file/span/syntactic combination.
+        // The actual results are stored in the _local*DiagnosticsOpt members.
         private void ContributeToPartialFileAnalysis_NoLock(DiagnosticAnalyzer analyzer, SourceOrAdditionalFile filterFile, TextSpan? filterSpan, SourceOrAdditionalFile originalFilterFile, TextSpan? originalFilterSpan, bool isSyntacticSingleFileAnalysis)
         {
             _partialFileAnalysisAnalyzers ??= new List<(SourceOrAdditionalFile, TextSpan?, SourceOrAdditionalFile, TextSpan?, bool, HashSet<DiagnosticAnalyzer>)>();
