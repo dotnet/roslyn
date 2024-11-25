@@ -268,6 +268,66 @@
         }
       }
     },
+    // MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources
+    "textEditor.csharpAndVisualBasic.goToDefinition.skipAnalyzersForImplicitlyTriggeredBuilds": {
+      "title": "@Enable_navigation_to_sourcelink_and_embedded_sources;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.goToDefinition",
+          "order": 0
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.NavigateToSourceLinkAndEmbeddedSources"
+          }
+        }
+      }
+    },
+    // MetadataAsSourceOptionsStorage.NavigateToDecompiledSources
+    "textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources": {
+      "title": "@Enable_navigation_to_decompiled_sources;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.goToDefinition",
+          "order": 10
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.NavigateToDecompiledSources"
+          }
+        }
+      }
+    },
+    // MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers
+    "textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer": {
+      "title": "@Always_use_default_symbol_servers_for_navigation;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.goToDefinition",
+          "order": 20
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.AlwaysUseDefaultSymbolServers"
+          }
+        }
+      }
+    },
     // SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles
     "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles": {
       "title": "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll",

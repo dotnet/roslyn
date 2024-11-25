@@ -31,6 +31,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
@@ -61,6 +62,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences", FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds),
                 ("textEditor.csharpAndVisualBasic.sourceGenerators.skipAnalyzersForImplicitlyTriggeredBuilds", WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution),
                 ("textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles", SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles),
+                ("textEditor.csharpAndVisualBasic.goToDefinition.skipAnalyzersForImplicitlyTriggeredBuilds", MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources),
+                ("textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources", MetadataAsSourceOptionsStorage.NavigateToDecompiledSources),
+                ("textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer", MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers),
                 ("textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst", GenerationOptions.PlaceSystemNamespaceFirst),
                 ("textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups", GenerationOptions.SeparateImportDirectiveGroups),
                 ("textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies", SymbolSearchOptionsStorage.SearchReferenceAssemblies),
