@@ -117,6 +117,55 @@
         }
       }
     },
+    // RemoteHostOptionsStorage.OOP64Bit
+    "textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess": {
+      "title": "@Run_code_analysis_in_separate_process_requires_restart;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "requiresRestart": true,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.analysis",
+          "order": 30
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Roslyn\\Internal\\OnOff\\Features\\OOP64Bit"
+          }
+        }
+      }
+    },
+    // WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences
+    "textEditor.csharpAndVisualBasic.analysis.reloadChangedAnalyzerReferences": {
+      "title": "@Automatically_reload_updated_analyzers_and_generators;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      // TODO: It seems this will cause Unified Settings not display the option
+      "enableWhen": "${config:textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess}=='true'",
+      "requiresRestart": true,
+      "alternateDefault": {
+        // WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag
+        "flagName": "Roslyn.ReloadChangedAnalyzerReferences",
+        "default": true
+      },
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.analysis",
+          "order": 31
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Roslyn.Specific.ReloadChangedAnalyzerReferences"
+          }
+        }
+      }
+    },
     // GenerationOptions.PlaceSystemNamespaceFirst
     "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
       "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
