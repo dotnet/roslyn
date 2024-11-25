@@ -2348,7 +2348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
-                    if (delegateParameter.HasUnscopedRefAttribute && delegateParameter.UseUpdatedEscapeRules)
+                    if (delegateParameter.HasUnscopedRefAttribute)
                     {
                         reportUseSiteDiagnosticForSynthesizedAttribute(
                             lambdaSymbol,

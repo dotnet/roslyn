@@ -22534,16 +22534,25 @@ using @scoped = System.Int32;
                 Delegate d = C.M;
                 Console.WriteLine(d.GetType());
                 """;
+
+            var expectedOutput = "<>f__AnonymousDelegate0";
+
             CompileAndVerify(source2, [ref1],
                 parseOptions: TestOptions.Regular10,
-                symbolValidator: static (module) =>
-                {
-                    var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
-                    AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(ref System.Int32 arg)", m.ToTestDisplayString());
-                    var a = m.Parameters[0].GetAttributes().Single().AttributeClass.ToTestDisplayString();
-                    AssertEx.Equal("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", a);
-                },
-                expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
+                symbolValidator: validate,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source2, [ref1],
+                symbolValidator: validate,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(ref System.Int32 arg)", m.ToTestDisplayString());
+                var a = m.Parameters[0].GetAttributes().Single().AttributeClass.ToTestDisplayString();
+                AssertEx.Equal("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", a);
+            }
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22570,14 +22579,24 @@ using @scoped = System.Int32;
                 Delegate d = C.M;
                 Console.WriteLine(d.GetType());
                 """;
+
+            var expectedOutput = "<>A{00000001}`1[System.Int32]";
+
             CompileAndVerify(source2, [ref1],
-                symbolValidator: static (module) =>
-                {
-                    var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000001}.Invoke");
-                    AssertEx.Equal("void <>A{00000001}<T1>.Invoke(ref T1 arg)", m.ToTestDisplayString());
-                    Assert.Empty(m.Parameters[0].GetAttributes());
-                },
-                expectedOutput: "<>A{00000001}`1[System.Int32]").VerifyDiagnostics();
+                parseOptions: TestOptions.Regular10,
+                symbolValidator: validate,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source2, [ref1],
+                symbolValidator: validate,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000001}.Invoke");
+                AssertEx.Equal("void <>A{00000001}<T1>.Invoke(ref T1 arg)", m.ToTestDisplayString());
+                Assert.Empty(m.Parameters[0].GetAttributes());
+            }
         }
 
         [Theory]
