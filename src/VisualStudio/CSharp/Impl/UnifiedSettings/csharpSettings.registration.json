@@ -1078,12 +1078,32 @@
         }
       }
     },
+    // InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1
+    "textEditor.csharpAndVisualBasic.advanced.inlayHints.displayInlineHintsWhilePressingAltF1": {
+      "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.inlayHints",
+          "order": 0
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Specific.DisplayAllHintsWhilePressingAltF1"
+          }
+        }
+      }
+    },
     // InlineHintsViewOptionsStorage.ColorHints
     "textEditor.csharp.advanced.inlayHints.colorizeInlineHints": {
       "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
-      "order": 0,
+      "order": 10,
       "migration": {
         "pass": {
           "input": {
@@ -1098,7 +1118,7 @@
       "title": "@Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
-      "order": 10,
+      "order": 20,
       "migration": {
         "pass": {
           "input": {
@@ -1114,7 +1134,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 20,
+      "order": 30,
       "migration": {
         "pass": {
           "input": {
@@ -1130,7 +1150,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 30,
+      "order": 40,
       "migration": {
         "pass": {
           "input": {
@@ -1146,7 +1166,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": false,
-      "order": 40,
+      "order": 50,
       "migration": {
         "pass": {
           "input": {
@@ -1162,7 +1182,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 50,
+      "order": 60,
       "migration": {
         "pass": {
           "input": {
@@ -1178,7 +1198,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 60,
+      "order": 70,
       "migration": {
         "pass": {
           "input": {
@@ -1194,7 +1214,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 70,
+      "order": 80,
       "migration": {
         "pass": {
           "input": {
@@ -1210,7 +1230,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 80,
+      "order": 90,
       "migration": {
         "pass": {
           "input": {
@@ -1225,7 +1245,7 @@
       "title": "@Display_inline_type_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
-      "order": 90,
+      "order": 100,
       "migration": {
         "pass": {
           "input": {
@@ -1241,7 +1261,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 100,
+      "order": 110,
       "migration": {
         "pass": {
           "input": {
@@ -1257,7 +1277,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 110,
+      "order": 120,
       "migration": {
         "pass": {
           "input": {
@@ -1273,7 +1293,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 110,
+      "order": 130,
       "migration": {
         "pass": {
           "input": {
@@ -1289,7 +1309,7 @@
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
-      "order": 120,
+      "order": 140,
       "migration": {
         "pass": {
           "input": {
@@ -1304,7 +1324,7 @@
       "title": "@Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
-      "order": 130,
+      "order": 150,
       "migration": {
         "pass": {
           "input": {
@@ -1319,7 +1339,7 @@
       "title": "@Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
-      "order": 140,
+      "order": 160,
       "migration": {
         "pass": {
           "input": {

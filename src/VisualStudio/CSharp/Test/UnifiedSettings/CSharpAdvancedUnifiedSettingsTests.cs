@@ -113,6 +113,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents", HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor),
                 ("textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation", ImplementTypeOptionsStorage.InsertionBehavior),
                 ("textEditor.csharp.advanced.implementInterfaceOrAbstractClass.propertyGenerationBehavior", ImplementTypeOptionsStorage.PropertyGenerationBehavior),
+                ("textEditor.csharpAndVisualBasic.advanced.inlayHints.displayInlineHintsWhilePressingAltF1", InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1),
                 ("textEditor.csharp.advanced.inlayHints.colorizeInlineHints", InlineHintsViewOptionsStorage.ColorHints),
                 ("textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters", InlineHintsOptionsStorage.EnabledForParameters),
                 ("textEditor.csharp.advanced.inlayHints.enableInlayHintsForLiteralParameters", InlineHintsOptionsStorage.ForLiteralParameters),
