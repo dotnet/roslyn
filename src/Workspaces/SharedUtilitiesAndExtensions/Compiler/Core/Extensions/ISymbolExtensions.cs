@@ -797,7 +797,7 @@ internal static partial class ISymbolExtensions
             ContainingNamespace.Name: nameof(System),
         });
 
-    public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, INamedTypeSymbol? attributeClass)
+    public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeClass)
     {
         if (symbol is null || attributeClass is null)
             return false;
