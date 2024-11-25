@@ -351,6 +351,29 @@
         }
       }
     },
+    // InlineRenameSessionOptionsStorage.CommitRenameAsynchronously
+    "textEditor.csharpAndVisualBasic.rename.commitRenameAsynchronously": {
+      "title": "@Rename_asynchronously_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": "false",
+      "alternateDefault": {
+        // InlineRenameSessionOptionsStorage.CommitRenameAsynchronouslyFeatureFlag
+        "flagName": "Roslyn.CommitRenameAsynchronously",
+        "default": "false"
+      },
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.rename",
+          "order": 0
+        }
+      ],
+      "migration": {
+        "input": {
+          "store": "SettingsManager",
+          "path": "TextEditor.Specific.CommitRenameAsynchronously"
+        }
+      }
+    },
     // GenerationOptions.PlaceSystemNamespaceFirst
     "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
       "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",

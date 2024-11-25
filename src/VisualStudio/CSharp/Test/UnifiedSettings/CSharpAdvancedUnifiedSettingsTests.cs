@@ -29,6 +29,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
 using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -65,6 +66,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharpAndVisualBasic.goToDefinition.skipAnalyzersForImplicitlyTriggeredBuilds", MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources),
                 ("textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources", MetadataAsSourceOptionsStorage.NavigateToDecompiledSources),
                 ("textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer", MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers),
+                ("textEditor.csharpAndVisualBasic.rename.commitRenameAsynchronously", InlineRenameSessionOptionsStorage.CommitRenameAsynchronously),
                 ("textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst", GenerationOptions.PlaceSystemNamespaceFirst),
                 ("textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups", GenerationOptions.SeparateImportDirectiveGroups),
                 ("textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies", SymbolSearchOptionsStorage.SearchReferenceAssemblies),
