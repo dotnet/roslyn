@@ -369,6 +369,8 @@ internal partial class CSharpRecommendationService
                 symbols = contextNode.IsInStaticContext()
                     ? semanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
                     : semanticModel.LookupSymbols(_context.LeftToken.SpanStart);
+
+                symbols = FilterOutUncapturableParameters(symbols, contextNode);
             }
 
             // Filter out any extension methods that might be imported by a using static directive.
@@ -489,6 +491,29 @@ internal partial class CSharpRecommendationService
 
                 return false;
             }
+        }
+
+        private static ImmutableArray<ISymbol> FilterOutUncapturableParameters(ImmutableArray<ISymbol> symbols, SyntaxNode contextNode)
+        {
+            // Can't capture parameters across a static lambda/local function
+
+            var containingStaticFunction = contextNode.FirstAncestorOrSelf<SyntaxNode>(a => a switch
+            {
+                AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword),
+                LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.StaticKeyword),
+                _ => false,
+            });
+
+            if (containingStaticFunction is null)
+                return symbols;
+
+            return symbols.WhereAsArray(s =>
+            {
+                if (s is not IParameterSymbol { DeclaringSyntaxReferences: [var parameterReference] })
+                    return true;
+
+                return parameterReference.Span.Start >= containingStaticFunction.SpanStart;
+            });
         }
 
         private RecommendedSymbols GetSymbolsOffOfName(NameSyntax name)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
 [ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpRecommendationService() : AbstractRecommendationService<CSharpSyntaxContext, AnonymousFunctionExpressionSyntax>
+internal sealed partial class CSharpRecommendationService() : AbstractRecommendationService<CSharpSyntaxContext, AnonymousFunctionExpressionSyntax>
 {
     protected override AbstractRecommendationServiceRunner CreateRunner(CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
         => new CSharpRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken);
