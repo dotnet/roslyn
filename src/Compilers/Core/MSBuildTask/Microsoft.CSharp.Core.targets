@@ -20,7 +20,7 @@
         to determine the correct language version.
     -->
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND
-                                         '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV), 5)))).0</_MaxSupportedLangVersion>
+                                         '$(_MaxSupportedLangVersion)' == ''">$([MSBuild]::Add(9, $([MSBuild]::Subtract($(_TargetFrameworkVersionWithoutV.Split('.')[0]), 5)))).0</_MaxSupportedLangVersion>
 
     <!-- Cap _MaxSupportedLangVersion if it exceeds _MaxAvailableLangVersion -->
     <_MaxAvailableLangVersion>13.0</_MaxAvailableLangVersion>
