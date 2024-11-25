@@ -3025,9 +3025,12 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "42 42").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3058,12 +3061,15 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -3095,12 +3101,15 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -3133,12 +3142,15 @@ class C
             var verifier = CompileAndVerify(comp, expectedOutput: "100 100 True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "int[] C.<Produce>d__0.<values2>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -3186,12 +3198,15 @@ public class C
             var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<M>d__0.<s>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<M>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -3239,12 +3254,15 @@ public class C
             var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<M>d__0.<s>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<M>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -3314,9 +3332,12 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3344,9 +3365,12 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "value value value").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3381,9 +3405,12 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "42 42").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3418,10 +3445,13 @@ class C
 """;
             var verifier = CompileAndVerify(src, expectedOutput: "42").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__2.System.IDisposable.Dispose()", """
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+ {
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__2.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3680,9 +3710,12 @@ public class C
             var verifier = CompileAndVerify(src, expectedOutput: "10 42 42").VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0<T>.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<M>d__0<T>.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3739,9 +3772,12 @@ public class C
             var verifier = CompileAndVerify(src, expectedOutput: "10 42 42", references: [libComp.EmitToImageReference()]).VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<M>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -3856,12 +3892,15 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "values2 values2 values3 values3 True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -3887,9 +3926,12 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "ran ran").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -4031,12 +4073,15 @@ public struct Buffer4<T>
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue", verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("Program.<Test>d__1.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "C Program.<Test>d__1.<>7__wrap2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int Program.<Test>d__1.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -4070,12 +4115,15 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        8 (0x8)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
-  IL_0007:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -4125,24 +4173,24 @@ class C
         public void AddVariableCleanup_StringLocal_MoveNextAfterDispose()
         {
             string src = """
-var values = new C<int>([42, 43]);
+var values = new C<string>([" one ", " two "]);
 var enumerator = values.GetEnumerator();
-assert(enumerator.MoveNext());
-assert(enumerator.Current == 43);
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
 
+System.Console.Write("disposing ");
 enumerator.Dispose();
-System.Console.Write(" disposed ");
+System.Console.Write("disposed ");
 
-assert(!enumerator.MoveNext());
-
-static void assert(bool b) { if (!b) throw new System.Exception(); }
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
 
 class C<T>
 {
     private sealed class Node
     {
-        internal readonly T _value; // Value of the node.
-        internal Node _next; // Next pointer.
+        internal readonly T _value;
+        internal Node _next;
 
         internal Node(T value)
         {
@@ -4174,8 +4222,6 @@ class C<T>
     private static System.Collections.Generic.IEnumerator<T> GetEnumerator(Node head)
     {
         Node current = head;
-        if (current is null) System.Console.Write(" empty ");
-
         while (current != null)
         {
             yield return current._value;
@@ -4185,16 +4231,68 @@ class C<T>
     }
 }
 """;
-            // TODO2 crash
-            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+            var verifier = CompileAndVerify(src, expectedOutput: "True two disposing disposed False two").VerifyDiagnostics();
+            verifier.VerifyIL("C<T>.<GetEnumerator>d__4.System.Collections.IEnumerator.MoveNext()", """
 {
-  // Code size        8 (0x8)
+  // Code size      107 (0x6b)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_003f
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.0
+  IL_0019:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.head"
+  IL_001e:  stfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
+  IL_0023:  br.s       IL_0061
+  IL_0025:  ldarg.0
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
+  IL_002c:  ldfld      "T C<T>.Node._value"
+  IL_0031:  stfld      "T C<T>.<GetEnumerator>d__4.<>2__current"
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.1
+  IL_0038:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
+  IL_003d:  ldc.i4.1
+  IL_003e:  ret
+  IL_003f:  ldarg.0
+  IL_0040:  ldc.i4.m1
+  IL_0041:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
+  IL_0046:  ldarg.0
+  IL_0047:  ldarg.0
+  IL_0048:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
+  IL_004d:  ldfld      "C<T>.Node C<T>.Node._next"
+  IL_0052:  stfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
+  IL_0057:  ldstr      "AFTER"
+  IL_005c:  call       "void System.Console.Write(string)"
+  IL_0061:  ldarg.0
+  IL_0062:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
+  IL_0067:  brtrue.s   IL_0025
+  IL_0069:  ldc.i4.0
+  IL_006a:  ret
+}
+""");
+            verifier.VerifyIL("C<T>.<GetEnumerator>d__4.System.IDisposable.Dispose()", """
+{
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
-  IL_0007:  ret
+  IL_0002:  stfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
+  IL_000f:  ret
 }
 """);
         }
@@ -4225,19 +4323,144 @@ class C
     }
 }
 """;
-            CreateCompilation(src).VerifyEmitDiagnostics();
-            // TODO2 we incorrectly resume execution after disposal
-            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed True two").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
 
-        // TODO2 document breaking change
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn_IEnumerable()
+        {
+            // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
+            // If the state of the enumerator object is suspended, invoking Dispose: ... Changes the state to after.
+            string src = """
+var enumerator = C.Produce().GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+enumerator.Dispose();
+System.Console.Write("disposed ");
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<string> Produce()
+    {
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0008:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_DisposeTwice()
+        {
+            // If the state of the enumerator object is after, invoking Dispose has no affect.
+            string src = """
+var enumerator = C.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+enumerator.Dispose();
+System.Console.Write("disposed ");
+
+enumerator.Dispose();
+System.Console.Write("disposed2 ");
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator()
+    {
+        string local = "";
+        yield return " one ";
+        local.ToString();
+    }
+}
+""";
+            // Note: we actually set the state to "after"/"finished" and cleanup hoisted locals again
+            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed disposed2 False one").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_0036
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0017:  ldarg.0
+  IL_0018:  ldstr      ""
+  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<local>5__2"
+  IL_0022:  ldarg.0
+  IL_0023:  ldstr      " one "
+  IL_0028:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+  IL_002d:  ldarg.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0034:  ldc.i4.1
+  IL_0035:  ret
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.m1
+  IL_0038:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      "string C.<GetEnumerator>d__0.<local>5__2"
+  IL_0043:  callvirt   "string object.ToString()"
+  IL_0048:  pop
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
+}
+""");
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      "string C.<GetEnumerator>d__0.<local>5__2"
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_000f:  ret
+}
+""");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
         public void StateAfterMoveNext_YieldBreak()
         {
@@ -4318,9 +4541,12 @@ class C
 
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -4390,9 +4616,12 @@ class C
 
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -4469,9 +4698,12 @@ class C
 
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -4657,9 +4889,12 @@ class C
 
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
@@ -4688,6 +4923,11 @@ System.Console.Write(enumerator.Current);
 System.Console.Write(enumerator.MoveNext());
 System.Console.Write(enumerator.Current);
 
+enumerator.Dispose();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
 class C
 {
     public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
@@ -4705,7 +4945,7 @@ class C
 }
 """;
             // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
-            var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
   // Code size       72 (0x48)
@@ -4752,9 +4992,12 @@ class C
 
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0008:  ret
 }
 """);
         }
