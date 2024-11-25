@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editing;
@@ -54,6 +55,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharp.advanced.analysis.inlineDiagnosticsLocation", InlineDiagnosticsOptionsStorage.Location),
                 ("textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess", RemoteHostOptionsStorage.OOP64Bit),
                 ("textEditor.csharpAndVisualBasic.analysis.reloadChangedAnalyzerReferences", WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences),
+                ("textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics", VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics),
                 ("textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst", GenerationOptions.PlaceSystemNamespaceFirst),
                 ("textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups", GenerationOptions.SeparateImportDirectiveGroups),
                 ("textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies", SymbolSearchOptionsStorage.SearchReferenceAssemblies),

@@ -144,7 +144,7 @@
       "type": "boolean",
       "default": false,
       // TODO: It seems this will cause Unified Settings not display the option
-      "enableWhen": "${config:textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess}=='true'",
+      // "enableWhen": "${config:textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess}=='true'",
       "requiresRestart": true,
       "alternateDefault": {
         // WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag
@@ -162,6 +162,26 @@
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.Roslyn.Specific.ReloadChangedAnalyzerReferences"
+          }
+        }
+      }
+    },
+    // VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics
+    "textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics": {
+      "title": "@Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.analysis",
+          "order": 40
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "VsUserSettingsRegistry",
+            "path": "Roslyn\\Internal\\Diagnostics\\EnableFileLoggingForDiagnostics"
           }
         }
       }
