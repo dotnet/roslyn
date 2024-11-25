@@ -362,7 +362,7 @@ internal partial class CSharpRecommendationService
                     ? null
                     : semanticModel.GetSymbolInfo(enclosingMethodOrLambdaNode).GetAnySymbol() ?? semanticModel.GetDeclaredSymbol(enclosingMethodOrLambdaNode);
                 if (enclosingMethodOrLambda is IMethodSymbol method)
-                    symbols = [.. symbols.Concat(method.Parameters)];
+                    symbols = [.. symbols, .. method.Parameters];
             }
             else
             {

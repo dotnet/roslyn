@@ -159,7 +159,7 @@ Class C
             Return M
         End Get
         Set(value As Integer)
-            M = value
+            M = Value
         End Set
     End Property
 End Class")
@@ -199,7 +199,7 @@ Class C
             Return M
         End Get
         Set(value As Integer)
-            M = value
+            M = Value
         End Set
     End Property
 End Class")
@@ -1686,7 +1686,7 @@ Class C
             Return Bar
         End Get
         Set(value As Integer)
-            Bar = value
+            Bar = Value
         End Set
     End Property
 End Class")
@@ -1733,7 +1733,7 @@ Class C
             Return Bar
         End Get
         Set(value As Integer)
-            Bar = value
+            Bar = Value
         End Set
     End Property
 
