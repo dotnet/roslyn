@@ -60,6 +60,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharpAndVisualBasic.analysis.skipAnalyzersForImplicitlyTriggeredBuilds", FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds),
                 ("textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences", FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds),
                 ("textEditor.csharpAndVisualBasic.sourceGenerators.skipAnalyzersForImplicitlyTriggeredBuilds", WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution),
+                ("textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles", SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles),
                 ("textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst", GenerationOptions.PlaceSystemNamespaceFirst),
                 ("textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups", GenerationOptions.SeparateImportDirectiveGroups),
                 ("textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies", SymbolSearchOptionsStorage.SearchReferenceAssemblies),

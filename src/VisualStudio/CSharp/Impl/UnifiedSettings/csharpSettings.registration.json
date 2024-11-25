@@ -142,7 +142,7 @@
     "textEditor.csharpAndVisualBasic.analysis.reloadChangedAnalyzerReferences": {
       "title": "@Automatically_reload_updated_analyzers_and_generators;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "default": false,
+      "default": true,
       // TODO: It seems this will cause Unified Settings not display the option
       // "enableWhen": "${config:textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess}=='true'",
       "requiresRestart": true,
@@ -237,7 +237,7 @@
       "type": "string",
       "enum": [ "automatic", "balanced" ],
       "enumItemLabels": [ "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Balanced_Run_generators_after_saving_or_building;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
-      "default": "automatic",
+      "default": "balanced",
       "alternateDefault": {
         // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag
         "flagName": "Roslyn.SourceGeneratorExecutionBalanced",
@@ -249,21 +249,46 @@
           "order": 0
         }
       ],
-      "enumIntegerToString": {
-        "input": {
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
             "store": "SettingsManager",
             "path": "TextEditor.Roslyn.Specific.SourceGeneratorExecution"
-        },
-        "map": [
-          {
-            "result": "automatic",
-            "match": 0
           },
-          {
-            "result": "balanced",
-            "match": 1
-          }
-        ]
+          "map": [
+            {
+              "result": "automatic",
+              "match": 0
+            },
+            {
+              "result": "balanced",
+              "match": 1
+            }
+          ]
+        }
+      }
+    },
+    // SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles
+    "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles": {
+      "title": "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": "false",
+      "alternateDefault": {
+        // SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag
+        "flagName": "Roslyn.EnableDiagnosticsInSourceGeneratedFiles",
+        "default": "false"
+      },
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.sourceGenerators",
+          "order": 10
+        }
+      ],
+      "migration": {
+        "input": {
+          "store": "SettingsManager",
+          "path": "TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment"
+        }
       }
     },
     // GenerationOptions.PlaceSystemNamespaceFirst
