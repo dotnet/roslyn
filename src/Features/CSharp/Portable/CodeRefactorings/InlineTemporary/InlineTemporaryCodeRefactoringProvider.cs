@@ -408,10 +408,14 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
 
                 return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
             }
-            else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+            else if (isVar && expression is
+                        ObjectCreationExpressionSyntax or
+                        ArrayCreationExpressionSyntax or
+                        CastExpressionSyntax or
+                        InvocationExpressionSyntax)
             {
                 // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
-                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
+                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...` or `Y(...)`
                 return expression;
             }
             else
