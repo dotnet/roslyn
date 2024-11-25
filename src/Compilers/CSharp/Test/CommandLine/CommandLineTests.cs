@@ -1728,7 +1728,7 @@ class C
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
             // - update all the tests that call this canary
-            // - update MaxSupportedLangVersion (a relevant test should break when new version is introduced)
+            // - update _MaxAvailableLangVersion (a relevant test should break when new version is introduced)
             // - email release management to add to the release notes (see old example: https://github.com/dotnet/core/pull/1454)
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));

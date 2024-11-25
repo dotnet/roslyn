@@ -5176,7 +5176,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       33 (0x21)
+  // Code size       40 (0x28)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5202,12 +5202,15 @@ class C
     IL_001d:  endfinally
   }
   IL_001e:  br.s       IL_0020
-  IL_0020:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  ldnull
+  IL_0022:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
+  IL_0027:  ret
 }
 ");
             diff1.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       35 (0x23)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5235,7 +5238,10 @@ class C
     IL_001f:  endfinally
   }
   IL_0020:  br.s       IL_0022
-  IL_0022:  ret
+  IL_0022:  ldarg.0
+  IL_0023:  ldnull
+  IL_0024:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
+  IL_0029:  ret
 }
 ");
 

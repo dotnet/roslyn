@@ -587,7 +587,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+        public static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
 
         protected static readonly string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
