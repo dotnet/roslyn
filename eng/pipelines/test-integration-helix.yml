@@ -83,6 +83,14 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
+      - task: UseDotNet@2
+        displayName: 'Install .NET 9 Runtime'
+        inputs:
+          packageType: runtime
+          version: '9.0.0'
+          includePreviewVersions: true
+          installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
       - task: PowerShell@2
         displayName: Run Integration Tests
         inputs:
