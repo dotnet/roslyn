@@ -94,7 +94,7 @@ class C
 
 ***Introduced in Visual Studio 2022 version 17.13***
 
-The `UnscopedRefAttribute` unintentionally affected code compiled by new Roslyn versions
+The `UnscopedRefAttribute` unintentionally affected code compiled by new Roslyn compiler versions
 even when the code was compiled in the context of the earlier ref safety rules
 (i.e., targeting C# 10 or earlier with net6.0 or earlier).
 However, the attribute should not have an effect in that context, and that is now fixed.
