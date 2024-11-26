@@ -41,6 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property RegionDirectiveTrivia As Integer = SyntaxKind.RegionDirectiveTrivia Implements ISyntaxKinds.RegionDirectiveTrivia
         Public ReadOnly Property EndRegionDirectiveTrivia As Integer = SyntaxKind.EndRegionDirectiveTrivia Implements ISyntaxKinds.EndRegionDirectiveTrivia
         Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
+        Public ReadOnly Property DefineDirectiveTrivia As Integer = SyntaxKind.ConstDirectiveTrivia Implements ISyntaxKinds.DefineDirectiveTrivia
+        Public ReadOnly Property UndefDirectiveTrivia As Integer? Implements ISyntaxKinds.UndefDirectiveTrivia
 
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property CloseBracketToken As Integer? = Nothing Implements ISyntaxKinds.CloseBracketToken
@@ -114,6 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression Implements ISyntaxKinds.ReferenceEqualsExpression
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
+        Public ReadOnly Property SuppressNullableWarningExpression As Integer? Implements ISyntaxKinds.SuppressNullableWarningExpression
         Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.TernaryConditionalExpression
         Public ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression Implements ISyntaxKinds.ThisExpression
         Public ReadOnly Property ThrowExpression As Integer? Implements ISyntaxKinds.ThrowExpression

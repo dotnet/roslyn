@@ -535,6 +535,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is PostfixUnaryExpressionSyntax;
 
+    public bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        => node is ElementBindingExpressionSyntax;
+
     public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is MemberBindingExpressionSyntax;
 
@@ -1192,6 +1195,13 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsVerbatimStringLiteral(SyntaxToken token)
         => token.IsVerbatimStringLiteral();
+
+    public bool IsRawStringLiteral(SyntaxToken token)
+        => token.Kind() is
+            SyntaxKind.SingleLineRawStringLiteralToken or
+            SyntaxKind.MultiLineRawStringLiteralToken or
+            SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+            SyntaxKind.Utf8MultiLineRawStringLiteralToken;
 
     public bool IsNumericLiteral(SyntaxToken token)
         => token.Kind() == SyntaxKind.NumericLiteralToken;

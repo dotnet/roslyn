@@ -11,8 +11,10 @@ IDE0302 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0303 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0303> | Simplify collection initialization |
 IDE0304 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0304> | Simplify collection initialization |
 IDE0305 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0305> | Simplify collection initialization |
+IDE0306 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0306> | Simplify collection initialization |
 IDE0320 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0320> | Make anonymous function static |
 IDE0330 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0330> | Use 'System.Threading.Lock' |
+IDE0340 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0340> | Use unbound generic type |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |

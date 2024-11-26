@@ -5284,7 +5284,7 @@ select t";
         public void RangeExpression_ThreeDots()
         {
             UsingExpression("1...2",
-                // (1,2): error CS8401: Unexpected character sequence '...'
+                // (1,2): error CS8635: Unexpected character sequence '...'
                 // 1...2
                 Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
 
@@ -5297,7 +5297,7 @@ select t";
                 N(SyntaxKind.DotDotToken);
                 N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.NumericLiteralToken, ".2");
+                    N(SyntaxKind.NumericLiteralToken, "2");
                 }
             }
             EOF();

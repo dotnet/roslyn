@@ -62,6 +62,16 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation: skipSpeculation);
     }
 
+    private protected override Task BaseVerifyWorkerAsync(
+        string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
+        List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+    {
+        return base.VerifyWorkerAsync(
+            code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind,
+            expectedResults, matchingFilters, flags, options, skipSpeculation);
+    }
+
     private protected override async Task VerifyWorkerAsync(
         string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,

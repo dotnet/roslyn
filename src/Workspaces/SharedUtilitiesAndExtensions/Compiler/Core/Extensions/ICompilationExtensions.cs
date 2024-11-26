@@ -79,7 +79,10 @@ internal static class ICompilationExtensions
         => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName!);
 
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+
+    public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");

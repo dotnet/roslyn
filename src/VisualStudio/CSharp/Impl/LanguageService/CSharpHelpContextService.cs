@@ -208,6 +208,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (symbol is IPreprocessingSymbol)
+            {
+                Debug.Fail("We should have handled that in the preprocessor directive.");
+            }
+
             text = FormatSymbol(symbol);
             return text != null;
         }
@@ -357,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return true;
                 }
 
-                if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
+                if (token.Kind() is SyntaxKind.IdentifierToken or SyntaxKind.EndOfDirectiveToken)
                 {
                     text = $"#{directive.HashToken.GetNextToken(includeDirectives: true).Text}";
                     return true;

@@ -41,6 +41,8 @@ internal interface ISyntaxKinds
     int EndRegionDirectiveTrivia { get; }
     int RegionDirectiveTrivia { get; }
     int? ShebangDirectiveTrivia { get; }
+    int DefineDirectiveTrivia { get; }
+    int? UndefDirectiveTrivia { get; }
 
     #endregion
 
@@ -155,6 +157,7 @@ internal interface ISyntaxKinds
     int ReferenceEqualsExpression { get; }
     int ReferenceNotEqualsExpression { get; }
     int SimpleMemberAccessExpression { get; }
+    int? SuppressNullableWarningExpression { get; }
     int TernaryConditionalExpression { get; }
     int ThisExpression { get; }
     int? ThrowExpression { get; }

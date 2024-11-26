@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,14 +18,26 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
-public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePairUtil.Create("strict", "true")]);
 
-    public MakeFieldReadonlyTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
+    private const string s_inlineArrayAttribute = """
+        namespace System.Runtime.CompilerServices
+        {
+            [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
+            public sealed class InlineArrayAttribute : Attribute
+            {
+                public InlineArrayAttribute (int length)
+                {
+                    Length = length;
+                }
+            
+                public int Length { get; }
+            }
+        }
+        """;
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpMakeFieldReadonlyDiagnosticAnalyzer(), new CSharpMakeFieldReadonlyCodeFixProvider());
@@ -2264,6 +2275,51 @@ $@"class MyClass
                 {
                     C<string>.s_value = null;
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69143")]
+    public async Task DoNotAddReadonlyToInlineArrayInstanceMember()
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            {{s_inlineArrayAttribute}}
+
+            [InlineArray(4)]
+            struct S
+            {
+                private int [|i|];
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task AddReadonlyToInlineArrayStaticMember1()
+    {
+        await TestInRegularAndScriptAsync($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            {{s_inlineArrayAttribute}}
+
+            [InlineArray(4)]
+            struct S
+            {
+                private static int [|j|];
+            }
+            """, $$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            {{s_inlineArrayAttribute}}
+
+            [InlineArray(4)]
+            struct S
+            {
+                private static readonly int j;
             }
             """);
     }

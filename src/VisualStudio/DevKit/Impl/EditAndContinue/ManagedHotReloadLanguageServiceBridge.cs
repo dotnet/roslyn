@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService service) : IManagedHotReloadLanguageService, IExportedBrokeredService
+internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService2 service) : IManagedHotReloadLanguageService2, IExportedBrokeredService
 {
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor
         => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
@@ -43,8 +44,14 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false)).FromContract();
 
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+        => (await service.GetUpdatesAsync(runningProjects, cancellationToken).ConfigureAwait(false)).FromContract();
+
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
+
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => service.UpdateBaselinesAsync(projectPaths, cancellationToken);
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         => service.DiscardUpdatesAsync(cancellationToken);

@@ -287,7 +287,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.ConfigOptions, analyzerConfigOptions?.TreeOptions);
+                    // Currently only project analyzers show in Solution Explorer, so we never need to consider fallback options.
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.ConfigOptionsWithoutFallback, analyzerConfigOptions?.TreeOptions);
                     selectedItemSeverities.Add(severity);
                 }
             }

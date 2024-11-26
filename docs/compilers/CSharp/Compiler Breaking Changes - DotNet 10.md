@@ -1,4 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 9 all the way to .NET 10.
+# Breaking changes in Roslyn after .NET 9.0.100 through .NET 10.0.100
+
+This document lists known breaking changes in Roslyn after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
 ## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
 
@@ -39,5 +41,51 @@ static class C
     // another workaround:
     [OverloadResolutionPriority(1)]
     public static void R<T>(ReadOnlySpan<T> s) => Console.Write(3);
+}
+```
+
+When using C# 14 or newer and targeting a .NET older than `net10.0`
+or .NET Framework with `System.Memory` reference,
+there is a breaking change with `Enumerable.Reverse` and arrays:
+
+```cs
+int[] x = new[] { 1, 2, 3 };
+var y = x.Reverse(); // previously Enumerable.Reverse, now MemoryExtensions.Reverse
+```
+
+On `net10.0`, there is `Enumerable.Reverse(this T[])` which takes precedence and hence the break is avoided.
+Otherwise, `MemoryExtensions.Reverse(this Span<T>)` is resolved which has different semantics
+than `Enumerable.Reverse(this IEnumerable<T>)` (which used to be resolved in C# 13 and lower).
+Specifically, the `Span` extension does the reversal in place and returns `void`.
+As a workaround, one can define their own `Enumerable.Reverse(this T[])` or use `Enumerable.Reverse` explicitly:
+
+```cs
+int[] x = new[] { 1, 2, 3 };
+var y = Enumerable.Reverse(x); // instead of 'x.Reverse();'
+```
+
+## Diagnostics now reported for pattern-based disposal method in `foreach`
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+For instance, an obsolete `DisposeAsync` method is now reported in `await foreach`.
+```csharp
+await foreach (var i in new C()) { } // 'C.AsyncEnumerator.DisposeAsync()' is obsolete
+
+class C
+{
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        throw null;
+    }
+
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current { get => throw null; }
+        public Task<bool> MoveNextAsync() => throw null;
+
+        [System.Obsolete]
+        public ValueTask DisposeAsync() => throw null;
+    }
 }
 ```

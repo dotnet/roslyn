@@ -1252,6 +1252,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function IsRawStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsRawStringLiteral
+            ' VB does not have raw strings
+            Return False
+        End Function
+
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
             Dim argumentList = DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
             Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
@@ -1566,6 +1571,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPostfixUnaryExpression
             ' Does not exist in VB.
+            Return False
+        End Function
+
+        Public Function IsElementBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementBindingExpression
+            ' Does not exist in VB.  VB represents an element binding as a InvocationExpression with null target.
             Return False
         End Function
 

@@ -49,24 +49,19 @@ internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
             //
             // We only collapse the "inner" span which has larger start.
             context.Spans.Sort(initialContextCount, s_blockSpanComparer);
-
-            var lastAddedLineStart = -1;
-            var lastAddedLineEnd = -1;
             var text = context.SyntaxTree.GetText(context.CancellationToken);
+            BlockSpan? lastSpan = null;
+
             context.Spans.RemoveWhere((span, index, _) =>
                 {
                     // do not remove items before the first item that we added
                     if (index < initialContextCount)
                         return false;
 
-                    var lineStart = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
-                    var lineEnd = text.Lines.GetLinePosition(span.TextSpan.End).Line;
-                    if (lineStart == lastAddedLineStart && lastAddedLineEnd == lineEnd)
+                    if (span.IsOverlappingBlockSpan(text.Lines, lastSpan))
                         return true;
 
-                    lastAddedLineStart = lineStart;
-                    lastAddedLineEnd = lineEnd;
-
+                    lastSpan = span;
                     return false;
                 },
                 arg: default(VoidResult));

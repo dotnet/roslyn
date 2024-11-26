@@ -72,10 +72,22 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
     {
         Debug.Assert(expression != null);
 
-        var parentNodeToSpeculate = expression
-            .AncestorsAndSelf(ascendOutOfTrivia: false)
-            .Where(CanSpeculateOnNode)
-            .LastOrDefault();
+        SyntaxNode previousNode = null;
+        SyntaxNode parentNodeToSpeculate = null;
+        foreach (var node in expression.AncestorsAndSelf(ascendOutOfTrivia: false))
+        {
+            if (CanSpeculateOnNode(node))
+            {
+                // Only speculate on PrimaryConstructorBaseTypeSyntax if we are inside the argument list
+                if (node.Kind() is not SyntaxKind.PrimaryConstructorBaseType ||
+                    previousNode.Kind() is SyntaxKind.ArgumentList)
+                {
+                    parentNodeToSpeculate = node;
+                }
+            }
+
+            previousNode = node;
+        }
 
         return parentNodeToSpeculate ?? expression;
     }

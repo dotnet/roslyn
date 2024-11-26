@@ -162,6 +162,7 @@ internal interface ISyntaxFacts
 
     bool IsNumericLiteral(SyntaxToken token);
     bool IsVerbatimStringLiteral(SyntaxToken token);
+    bool IsRawStringLiteral(SyntaxToken token);
 
     bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
@@ -287,6 +288,7 @@ internal interface ISyntaxFacts
     SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
     SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
 
+    bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
 

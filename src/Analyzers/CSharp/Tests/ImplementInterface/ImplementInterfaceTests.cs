@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
@@ -377,7 +376,7 @@ public class ImplementInterfaceTests
                 }
             }
             """,
-codeAction: ("True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            codeAction: ("True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
     }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
@@ -11538,12 +11537,12 @@ interface I
                     throw new System.NotImplementedException();
                 }
 
-                public static explicit operator checked string(C3 x)
+                static explicit I1<C3>.operator checked string(C3 x)
                 {
                     throw new System.NotImplementedException();
                 }
 
-                public static explicit operator string(C3 x)
+                static explicit I1<C3>.operator string(C3 x)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -11924,7 +11923,6 @@ interface I
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             //LanguageVersion = LanguageVersion.CSharp12,
             ExpectedDiagnostics =
             {
@@ -11932,6 +11930,50 @@ interface I
                 DiagnosticResult.CompilerError("CS0071").WithSpan(10, 32, 10, 33),
                 DiagnosticResult.CompilerError("CS0102").WithSpan(10, 33, 10, 38)
             }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61263")]
+    public async Task ImplementStaticConversionsExplicitly()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestCode = """
+                interface I11<T11> where T11 : I11<T11>
+                {
+                    static abstract implicit operator long(T11 x);
+                    static abstract explicit operator int(T11 x);
+                }
+
+                class C11 : {|CS0535:{|CS0535:I11<C11>|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                interface I11<T11> where T11 : I11<T11>
+                {
+                    static abstract implicit operator long(T11 x);
+                    static abstract explicit operator int(T11 x);
+                }
+            
+                class C11 : I11<C11>
+                {
+                    static implicit I11<C11>.operator long(C11 x)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                
+                    static explicit I11<C11>.operator int(C11 x)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            CodeActionIndex = 1,
+            CodeActionEquivalenceKey = "True;False;False:global::I11<global::C11>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
         }.RunAsync();
     }
 }

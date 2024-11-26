@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CompletionCapabilityHelper capabilityHelper,
             CompletionList list,
             bool isIncomplete,
+            bool isHardSelection,
             long resultId,
             CancellationToken cancellationToken)
         {
-            var isSuggestionMode = list.SuggestionModeItem is not null;
+            var isSuggestionMode = !isHardSelection;
             if (list.ItemsList.Count == 0)
             {
                 return new LSP.VSInternalCompletionList
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 //
                 // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
                 // We don't need to return the fake suggestion mode item.
-                SuggestionMode = list.SuggestionModeItem != null,
+                SuggestionMode = isSuggestionMode,
                 Data = capabilityHelper.SupportVSInternalCompletionListData ? resolveData : null,
             };
 

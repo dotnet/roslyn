@@ -2032,6 +2032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             While candidate IsNot Nothing
                 If ConstraintsHelper.CheckConstraints(constructedSymbol:=Nothing,
+                                                      LanguageVersion.Latest, ' Classifying conversions from/to type parameters. This is meaningful only when they and their constraints are declared in source
                                                       substitution:=Nothing,
                                                       typeParameter:=typeParam,
                                                       typeArgument:=candidate,

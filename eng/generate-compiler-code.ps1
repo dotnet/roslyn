@@ -23,7 +23,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
   $errorFileName = if ($language -eq "CSharp") { "ErrorCode.cs" } else { "Errors.vb" }
   $errorFilePath = Join-Path $languageDir "Errors\$errorFileName"
   $errorGeneratedFilePath = Join-Path $generatedDir "ErrorFacts.Generated.$($languageSuffix)"
-  $targetFramework = "net8.0"
+  $targetFramework = "net9.0"
 
   Create-Directory $generatedDir
   Create-Directory $generatedTestDir
@@ -75,7 +75,7 @@ function Run-IOperation($coreDir, $ioperationProject) {
   $operationsDir = Join-Path $coreDir "Operations"
   $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
   $generationDir = Join-Path $coreDir "Generated"
-  $targetFramework = "net8.0"
+  $targetFramework = "net9.0"
 
   if (-not $test) {
     Run-Tool $ioperationProject "`"$operationsXml`" `"$generationDir`"" $targetFramework
@@ -92,7 +92,7 @@ function Run-GetTextCore($generatedDir) {
   $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
 
   Create-Directory $generatedDir
-  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net8.0"
+  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net9.0"
 }
 
 function Run-GetText() {

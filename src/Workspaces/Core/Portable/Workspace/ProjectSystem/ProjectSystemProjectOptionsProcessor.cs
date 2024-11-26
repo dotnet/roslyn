@@ -221,6 +221,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             : _commandLineArgumentsForCommandLine.OutputFileName;
 
         _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
+        _project.GeneratedFilesOutputDirectory = _commandLineArgumentsForCommandLine.GeneratedFilesOutputDirectory;
         _project.ParseOptions = parseOptions;
         _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
     }

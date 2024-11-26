@@ -38,6 +38,7 @@ internal abstract partial class PatternMatcher
         public WordSimilarityChecker SimilarityChecker;
 
         public readonly bool IsLowercase;
+        public readonly bool IsUppercase;
 
         public TextChunk(string text, bool allowFuzzingMatching)
         {
@@ -50,6 +51,7 @@ internal abstract partial class PatternMatcher
                 : default;
 
             IsLowercase = !ContainsUpperCaseLetter(text);
+            IsUppercase = !ContainsLowerCaseLetter(text);
         }
 
         public void Dispose()

@@ -32,6 +32,7 @@ using static SyntaxFactory;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     : AbstractUseAutoPropertyCodeFixProvider<
+        CSharpUseAutoPropertyCodeFixProvider,
         TypeDeclarationSyntax,
         PropertyDeclarationSyntax,
         VariableDeclaratorSyntax,
@@ -64,11 +65,10 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         // We're going to walk this property body, converting most reference of the field to use the `field` keyword
         // instead.  However, not all reference can be updated.  For example, reference through another instance.  Those
         // we update to point at the property instead.  So we grab that property name here to use in the rewriter.
-        var propertyIdentifier = property.Identifier.WithoutTrivia();
-        var propertyIdentifierName = IdentifierName(propertyIdentifier);
+        var propertyIdentifierName = IdentifierName(property.Identifier.WithoutTrivia());
 
         var identifierNames = fieldLocations.Locations
-            .Select(loc => loc.Location.FindNode(cancellationToken) as IdentifierNameSyntax)
+            .Select(loc => loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax)
             .WhereNotNull()
             .ToSet();
 
@@ -131,8 +131,8 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         // Move any field initializer over to the property as well.
         if (fieldInitializer != null)
         {
-            updatedProperty = updatedProperty
-                .WithInitializer(EqualsValueClause(fieldInitializer))
+            updatedProperty = updatedProperty.WithoutTrailingTrivia()
+                .WithInitializer(EqualsValueClause(EqualsToken.WithLeadingTrivia(Space).WithTrailingTrivia(Space), fieldInitializer))
                 .WithSemicolonToken(SemicolonToken);
         }
 

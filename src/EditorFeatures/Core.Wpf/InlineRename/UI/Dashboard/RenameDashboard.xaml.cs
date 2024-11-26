@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                _model.Session.Commit();
+                _model.Session.InitiateCommit();
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)

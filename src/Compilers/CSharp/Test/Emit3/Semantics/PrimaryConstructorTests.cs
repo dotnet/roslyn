@@ -9540,7 +9540,10 @@ class C1 (int p1)
             comp1.VerifyEmitDiagnostics(
                 // (4,38): error CS1041: Identifier expected; 'delegate' is a keyword
                 //     public System.Func<int> M21() => delegate => p1;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38),
+                // (4,47): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                //     public System.Func<int> M21() => delegate => p1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int>", "1").WithLocation(4, 47)
                 );
 
             var source = @"
@@ -20111,7 +20114,7 @@ p1
         [Fact]
         public void IllegalCapturingDueToRefness_02()
         {
-            var source = @"#pragma warning disable CS0649 // Field 'R1.F1' is never assigned to, and will always have its default value 0
+            var source = @"#pragma warning disable CS0649, CS9265 // Field 'R1.F1' is never assigned to, and will always have its default value 0
 ref struct R1
 {
     public int F1;

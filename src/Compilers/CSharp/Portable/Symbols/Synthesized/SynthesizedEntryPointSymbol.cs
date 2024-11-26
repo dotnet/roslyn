@@ -320,9 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>

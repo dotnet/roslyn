@@ -7742,15 +7742,24 @@ public class C {
 			)
 			.override method instance void [mscorlib]System.IDisposable::Dispose()
 			// Method begins at RVA 0x20b1
-			// Code size 1 (0x1)
+			// Code size 22 (0x16)
 			.maxstack 8
-			IL_0000: ret
+			IL_0000: ldarg.0
+			IL_0001: ldnull
+			IL_0002: stfld class C/'<>c__DisplayClass0_0' C/'<M>d__0'::'<>8__1'
+			IL_0007: ldarg.0
+			IL_0008: ldnull
+			IL_0009: stfld class C/'<>c__DisplayClass0_1' C/'<M>d__0'::'<>8__2'
+			IL_000e: ldarg.0
+			IL_000f: ldnull
+			IL_0010: stfld class C/'<>c__DisplayClass0_2' C/'<M>d__0'::'<>8__3'
+			IL_0015: ret
 		} // end of method '<M>d__0'::System.IDisposable.Dispose
 		.method private final hidebysig newslot virtual 
 			instance bool MoveNext () cil managed 
 		{
 			.override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
-			// Method begins at RVA 0x20b4
+			// Method begins at RVA 0x20c8
 			// Code size 342 (0x156)
 			.maxstack 2
 			.locals init (
@@ -7889,7 +7898,7 @@ public class C {
 				01 00 00 00
 			)
 			.override method instance !0 class [mscorlib]System.Collections.Generic.IEnumerator`1<int32>::get_Current()
-			// Method begins at RVA 0x2216
+			// Method begins at RVA 0x222a
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -7903,7 +7912,7 @@ public class C {
 				01 00 00 00
 			)
 			.override method instance void [mscorlib]System.Collections.IEnumerator::Reset()
-			// Method begins at RVA 0x221e
+			// Method begins at RVA 0x2232
 			// Code size 6 (0x6)
 			.maxstack 8
 			IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -7916,7 +7925,7 @@ public class C {
 				01 00 00 00
 			)
 			.override method instance object [mscorlib]System.Collections.IEnumerator::get_Current()
-			// Method begins at RVA 0x2225
+			// Method begins at RVA 0x2239
 			// Code size 12 (0xc)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -7931,7 +7940,7 @@ public class C {
 				01 00 00 00
 			)
 			.override method instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
-			// Method begins at RVA 0x2234
+			// Method begins at RVA 0x2248
 			// Code size 43 (0x2b)
 			.maxstack 2
 			.locals init (
@@ -7964,7 +7973,7 @@ public class C {
 				01 00 00 00
 			)
 			.override method instance class [mscorlib]System.Collections.IEnumerator [mscorlib]System.Collections.IEnumerable::GetEnumerator()
-			// Method begins at RVA 0x226b
+			// Method begins at RVA 0x227f
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0

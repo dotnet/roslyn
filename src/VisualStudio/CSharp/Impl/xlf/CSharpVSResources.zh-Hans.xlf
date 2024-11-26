@@ -532,11 +532,6 @@
         <target state="translated">显示过程行分隔符(_S)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">不要在自定义结构上放置 ref 或 out(_D)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">编辑器帮助</target>
