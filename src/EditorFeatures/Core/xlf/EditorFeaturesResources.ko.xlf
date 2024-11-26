@@ -17,11 +17,6 @@
         <target state="translated">변경 내용 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">캐럿에서 기호를 탐색할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'Encapsulate Field' 정보 계산</target>
@@ -40,6 +35,11 @@
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
         <target state="translated">Copilot으로 설명</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">참조된 문서가 조직에서 제외되었므로 'Copilot로 설명'을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="_0_declarations_and_interceptors">
         <source>'{0}' declarations and interceptors</source>
-        <target state="new">'{0}' declarations and interceptors</target>
+        <target state="translated">'{0}' 선언 및 인터셉터</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">

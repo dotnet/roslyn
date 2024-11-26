@@ -28,7 +28,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
 {
     protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
 
-    private partial class Editor
+    private sealed partial class Editor
     {
         private readonly TService _service;
         private TargetProjectChangeInLanguage _targetProjectChangeInLanguage = TargetProjectChangeInLanguage.NoChange;
@@ -480,12 +480,12 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (!isDialog)
             {
                 // Not generated from the Dialog 
-                containers = GetNamespaceToGenerateInto().Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                containers = GetNamespaceToGenerateInto().Split(['.'], StringSplitOptions.RemoveEmptyEntries);
             }
             else if (!_service.IsSimpleName(_state.NameOrMemberAccessExpression))
             {
                 // If the usage was with a namespace
-                containers = GetNamespaceToGenerateIntoForUsageWithNamespace(targetProject, triggeringProject).Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                containers = GetNamespaceToGenerateIntoForUsageWithNamespace(targetProject, triggeringProject).Split(['.'], StringSplitOptions.RemoveEmptyEntries);
             }
             else
             {

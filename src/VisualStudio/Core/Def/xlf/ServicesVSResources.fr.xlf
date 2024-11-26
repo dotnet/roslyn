@@ -132,6 +132,11 @@
         <target state="translated">Ouvrir automatiquement l’Explorateur de traces de pile en cas de focus</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
+      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
+        <source>Automatically reload updated analyzers and generators (requires restart)</source>
+        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Éviter les instructions d'expression qui ignorent implicitement la valeur</target>
@@ -1039,7 +1044,7 @@
       </trans-unit>
       <trans-unit id="Prefer_System_Threading_Lock">
         <source>Prefer 'System.Threading.Lock'</source>
-        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <target state="translated">Préférez 'System.Threading.Lock'</target>
         <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
@@ -1130,6 +1135,11 @@
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
         <target state="translated">Préférer l'échange de tuples</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_unbound_generic_type_in_nameof">
+        <source>Prefer unbound generic type in 'nameof'</source>
+        <target state="new">Prefer unbound generic type in 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -2411,13 +2421,13 @@ Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auqu
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="translated">exemple</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="new">example</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
         <source>identifier</source>
-        <target state="translated">identificateur</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="new">identifier</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="Install_0">
         <source>Install '{0}'</source>

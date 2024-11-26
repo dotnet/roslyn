@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp;
 /// This class contains all the operations needs to be done on members and destination to complete the pull up operation.
 /// If user clicked the cancel button, it will be null.
 /// </summary>
-internal class PullMembersUpOptions
+internal sealed class PullMembersUpOptions
 {
     /// <summary>
     /// Destination of where members should be pulled up to.

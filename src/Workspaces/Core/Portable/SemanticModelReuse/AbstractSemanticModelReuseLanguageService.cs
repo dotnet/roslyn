@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
@@ -106,8 +106,9 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         }
         else
         {
-            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var currentMembers);
-            this.SyntaxFacts.AddMethodLevelMembers(currentRoot, currentMembers);
+            using var pooledCurrentMembers = this.SyntaxFacts.GetMethodLevelMembers(currentRoot);
+            var currentMembers = pooledCurrentMembers.Object;
+
             var index = currentMembers.IndexOf(currentBodyNode);
             if (index < 0)
             {
@@ -115,8 +116,9 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
                 return null;
             }
 
-            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var previousMembers);
-            this.SyntaxFacts.AddMethodLevelMembers(previousRoot, previousMembers);
+            using var pooledPreviousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
+            var previousMembers = pooledPreviousMembers.Object;
+
             if (currentMembers.Count != previousMembers.Count)
             {
                 Debug.Fail("Member count shouldn't have changed as there were no top level edits.");

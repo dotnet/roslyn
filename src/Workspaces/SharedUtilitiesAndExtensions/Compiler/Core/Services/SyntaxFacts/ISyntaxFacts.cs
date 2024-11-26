@@ -7,13 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
@@ -169,6 +162,7 @@ internal interface ISyntaxFacts
 
     bool IsNumericLiteral(SyntaxToken token);
     bool IsVerbatimStringLiteral(SyntaxToken token);
+    bool IsRawStringLiteral(SyntaxToken token);
 
     bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
@@ -294,6 +288,7 @@ internal interface ISyntaxFacts
     SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
     SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
 
+    bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
 
@@ -410,9 +405,9 @@ internal interface ISyntaxFacts
     SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
     // Violation.  This is a feature level API.
-    void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list);
+    PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
     // Violation.  This is a feature level API.
-    void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list);
+    PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.

@@ -1170,7 +1170,7 @@ public {record} R(MyClass $$
             """;
         var items = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
         Assert.Equal(
-            new[] { "myClass", "my", "@class", "MyClass", "My", "Class", "GetMyClass", "GetMy", "GetClass" },
+            ["myClass", "my", "@class", "MyClass", "My", "Class", "GetMyClass", "GetMy", "GetClass"],
             items.Select(item => item.DisplayText));
     }
 
@@ -1892,7 +1892,7 @@ public {record} R(MyClass $$
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "streamReader");
+        await VerifyItemIsAbsentAsync(markup, "streamReader");
     }
 
     [Fact]

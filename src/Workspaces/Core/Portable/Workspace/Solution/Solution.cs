@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -131,7 +132,8 @@ public partial class Solution
     /// <summary>
     /// True if the solution contains a project with the specified project ID.
     /// </summary>
-    public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => this.SolutionState.ContainsProject(projectId);
+    public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
+        => this.SolutionState.ContainsProject(projectId);
 
     /// <summary>
     /// Gets the project in this solution with the specified project ID. 
@@ -532,6 +534,17 @@ public partial class Solution
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified hasSdkCodeStyleAnalyzers.
+    /// </summary>
+    internal Solution WithHasSdkCodeStyleAnalyzers(ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        CheckContainsProject(projectId);
+
+        return WithCompilationState(CompilationState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers));
+    }
+
+    /// <summary>
     /// Creates a new solution instance with the project documents in the order by the specified document ids.
     /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
     /// </summary>
@@ -558,7 +571,7 @@ public partial class Solution
     internal Solution WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
     {
         CheckContainsProject(attributes.Id);
-        return WithCompilationState(_compilationState.WithProjectAttributes(attributes));
+        return WithCompilationState(CompilationState.WithProjectAttributes(attributes));
     }
 
     /// <summary>
@@ -567,7 +580,7 @@ public partial class Solution
     internal Solution WithProjectInfo(ProjectInfo info)
     {
         CheckContainsProject(info.Id);
-        return WithCompilationState(_compilationState.WithProjectInfo(info));
+        return WithCompilationState(CompilationState.WithProjectInfo(info));
     }
 
     /// <summary>
@@ -626,16 +639,23 @@ public partial class Solution
     /// <exception cref="ArgumentException">The solution does not contain <paramref name="projectId"/>.</exception>
     public Solution RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
-        if (projectReference == null)
-            throw new ArgumentNullException(nameof(projectReference));
+        try
+        {
+            if (projectReference == null)
+                throw new ArgumentNullException(nameof(projectReference));
 
-        CheckContainsProject(projectId);
+            CheckContainsProject(projectId);
 
-        var oldProject = GetRequiredProjectState(projectId);
-        if (!oldProject.ProjectReferences.Contains(projectReference))
-            throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.ProjectReferences.Contains(projectReference))
+                throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
 
-        return WithCompilationState(CompilationState.RemoveProjectReference(projectId, projectReference));
+            return WithCompilationState(CompilationState.RemoveProjectReference(projectId, projectReference));
+        }
+        catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 
     /// <summary>
@@ -769,9 +789,7 @@ public partial class Solution
         CheckContainsProject(projectId);
 
         if (analyzerReferences is null)
-        {
             throw new ArgumentNullException(nameof(analyzerReferences));
-        }
 
         var collection = analyzerReferences.ToImmutableArray();
 
@@ -780,12 +798,16 @@ public partial class Solution
         foreach (var analyzerReference in collection)
         {
             if (this.SolutionState.ContainsAnalyzerReference(projectId, analyzerReference))
-            {
                 throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
-            }
         }
 
-        return WithCompilationState(CompilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection));
+        var boxedReferences = Roslyn.Utilities.EnumerableExtensions.ToBoxedImmutableArray([
+            // Note: we guaranteed that analyzerReferences has no duplicates, and has no overlap with the existing
+            // analyzer references above, so we can just concatenate them here safely.
+            .. this.GetRequiredProjectState(projectId).AnalyzerReferences,
+            .. collection,
+        ]);
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, boxedReferences));
     }
 
     /// <summary>
@@ -807,7 +829,14 @@ public partial class Solution
         if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
             throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
 
-        return WithCompilationState(CompilationState.RemoveAnalyzerReference(projectId, analyzerReference));
+        var builder = new FixedSizeArrayBuilder<AnalyzerReference>(oldProject.AnalyzerReferences.Count - 1);
+        foreach (var reference in oldProject.AnalyzerReferences)
+        {
+            if (!reference.Equals(analyzerReference))
+                builder.Add(reference);
+        }
+
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, builder.MoveToImmutable()));
     }
 
     /// <summary>
@@ -1083,7 +1112,7 @@ public partial class Solution
             filePath: filePath);
     }
 
-    private ProjectState GetRequiredProjectState(ProjectId projectId)
+    internal ProjectState GetRequiredProjectState(ProjectId projectId)
         => this.SolutionState.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
     /// <summary>
@@ -1530,8 +1559,8 @@ public partial class Solution
         return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
     }
 
-    internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
-        => this.SolutionState.GetRelatedDocumentIds(documentId);
+    internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages = false)
+        => this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
 
     /// <summary>
     /// Returns one of any of the related documents of <paramref name="documentId"/>.  Importantly, this will never
@@ -1639,8 +1668,14 @@ public partial class Solution
 
     /// <summary>
     /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
-    /// <see cref="TextDocument.FilePath"/> that matches the given file path.
+    /// <see cref="TextDocument.FilePath"/> that matches the given file path. This may return IDs for any type of document
+    /// including <see cref="AdditionalDocument"/>s or <see cref="AnalyzerConfigDocument" />s.
     /// </summary>
+    /// <remarks>
+    /// It's possible (but unlikely) that the same file may exist as more than one type of document in the same solution. If this
+    /// were to return more than one <see cref="DocumentId"/>, you should not assume that just because one is a regular source file means
+    /// that all of them would be.
+    /// </remarks>
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => this.SolutionState.GetDocumentIdsWithFilePath(filePath);
 
     /// <summary>

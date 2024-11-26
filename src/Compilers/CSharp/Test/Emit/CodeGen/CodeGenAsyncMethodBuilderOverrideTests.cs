@@ -113,7 +113,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (11,25): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -126,7 +126,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "M").WithArguments("async method builder override", "10.0").WithLocation(17, 37)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular10);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -223,7 +223,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (14,16): warning CS8603: Possible null reference return.
                 //         return default(T); // 1
@@ -274,7 +274,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'MyTask', a return keyword must not be followed by an object expression
                 //     static async MyTask F() { await Task.Yield(); return 1; } // 1
@@ -328,7 +328,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -366,7 +366,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -404,7 +404,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -444,7 +444,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -482,7 +482,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -519,7 +519,7 @@ static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return 
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (9,21): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -532,7 +532,7 @@ static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "M").WithArguments("async method builder override", "10.0").WithLocation(15, 26)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular10);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
             verifier.VerifyDiagnostics();
         }
@@ -568,7 +568,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,32): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //     [AsyncMethodBuilder(typeof(Error))]
@@ -614,7 +614,7 @@ class C
 {AsyncMethodBuilderAttribute}
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (9,29): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -693,7 +693,7 @@ class C
 {asyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (11,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilderFactory.Create'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -763,7 +763,7 @@ return;
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
                 // (6,18): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
@@ -784,7 +784,7 @@ return;
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "=>").WithArguments("async method builder override", "10.0").WithLocation(8, 84)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyEmitDiagnostics(
                 // (6,84): error CS8933: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
@@ -817,7 +817,7 @@ return;
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
                 // (6,18): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async MyTask () => { System.Console.Write("F "); await Task.Delay(0); };
@@ -839,7 +839,7 @@ return;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "=>").WithArguments("async method builder override", "10.0").WithLocation(8, 96)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular10);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
             verifier.VerifyDiagnostics();
         }
@@ -880,7 +880,7 @@ public class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (7,71): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 //     [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("Lambda1 "); await Task.Delay(0); } // 1
@@ -938,7 +938,7 @@ public class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(compilation, expectedOutput: "Overload1 Lambda1 Overload2 Lambda2");
             verifier.VerifyDiagnostics();
 
@@ -980,7 +980,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task", "public object Task")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS8204: For type 'MyTaskMethodBuilder' to be used as an AsyncMethodBuilder for type 'MyTask', its Task property should return type 'MyTask' instead of type 'object'.
@@ -1024,7 +1024,7 @@ class C
     .Replace("public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>(new MyTask<T>());", "")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
@@ -1067,7 +1067,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public static MyTaskMethodBuilder<T> Create()", accessibility + " static MyTaskMethodBuilder<T> Create()")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1107,7 +1107,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public static MyTaskMethodBuilder<T> Create()", "public MyTaskMethodBuilder<T> Create()")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
@@ -1148,7 +1148,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public static MyTaskMethodBuilder<T> Create()", "public static MyTaskMethodBuilder<T> Create(int i)")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
@@ -1189,7 +1189,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public static MyTaskMethodBuilder<T> Create()", "public static MyTaskMethodBuilder<T> Create<U>()")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
@@ -1238,7 +1238,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
@@ -1282,7 +1282,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public class MyTaskMethodBuilder<T>", "internal class MyTaskMethodBuilder<T>")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: "M F G 3");
         }
 
@@ -1316,7 +1316,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: "M F G 3");
         }
 
@@ -1346,7 +1346,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public static MyTaskMethodBuilder<T> Create()", "internal static MyTaskMethodBuilder<T> Create()")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1398,7 +1398,7 @@ namespace System.Runtime.CompilerServices
 }}
 ";
             // The first attribute is used
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "M F G 3");
         }
@@ -1439,7 +1439,7 @@ namespace System.Runtime.CompilerServices
 }}
 ";
             // The first attribute is used
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (10,29): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1473,7 +1473,7 @@ class C<U>
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,25): error CS0416: 'MyTaskMethodBuilder<U>': an attribute argument cannot use type parameters
                 //     [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<U>))]
@@ -1501,7 +1501,7 @@ class C<U>
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
                 // (9,34): error CS8940: A generic task-like return type was expected, but the type 'MyTaskMethodBuilder<int>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     static async MyTask<int> M() { await Task.Delay(0); throw null; }
@@ -1535,7 +1535,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task =>", "internal MyTask<T> Task =>")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Task'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1575,7 +1575,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task => _task;", "public static MyTask<T> Task => throw null;")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Task'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1615,7 +1615,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task => _task;", "public MyTask<T> Task = null;")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Task'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1655,7 +1655,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetException", "internal void SetException")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetException'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1699,7 +1699,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetException'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1739,7 +1739,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetException(System.Exception e)", "public void SetException()")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetException'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1779,7 +1779,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetResult", "internal void SetResult")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetResult'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1819,7 +1819,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void AwaitOnCompleted", "internal void AwaitOnCompleted")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.AwaitOnCompleted'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1859,7 +1859,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void AwaitUnsafeOnCompleted", "internal void AwaitUnsafeOnCompleted")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.AwaitUnsafeOnCompleted'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1899,7 +1899,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void Start", "internal void Start")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Start'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -1939,7 +1939,7 @@ class C
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetStateMachine", "internal void SetStateMachine")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (8,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetStateMachine'
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }

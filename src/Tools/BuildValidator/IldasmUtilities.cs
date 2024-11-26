@@ -12,6 +12,15 @@ namespace BuildValidator
 {
     internal static class IldasmUtilities
     {
+        private static string GetArchitecture()
+        {
+#if NET8_0_OR_GREATER
+            return RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+#else
+            return "x64";
+#endif
+        }
+
         private static string GetIldasmPath()
         {
             var ildasmExeName = PlatformInformation.IsWindows ? "ildasm.exe" : "ildasm";
@@ -27,8 +36,7 @@ namespace BuildValidator
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                var architecture = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
-                ridName = $"linux-{architecture}";
+                ridName = $"linux-{GetArchitecture()}";
             }
             else
             {

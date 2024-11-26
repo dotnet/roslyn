@@ -33,7 +33,7 @@ public class InterceptorsTests : CSharpTestBase
         }
         """, "attributes.cs");
 
-    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global");
+    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global");
 
     private static readonly SyntaxTree s_attributesTree = CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors);
 
@@ -110,41 +110,41 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS"));
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS"));
         comp.VerifyEmitDiagnostics(
-            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(15, 10));
 
-        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1.NS2"));
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1.NS2"));
         comp.VerifyEmitDiagnostics(
-            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(15, 10));
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1;NS2"), expectedOutput: "1");
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1;NS2"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
     [Fact]
     public void FeatureFlag_Granular_Checksum_01()
     {
-        test(TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS"), expectedOutput: null,
-            // Interceptors.cs(7,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS"), expectedOutput: null,
+            // Interceptors.cs(7,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "eY+urAo7Kg2rsKgGSGjShwIAAABQcm9ncmFtLmNz")]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(7, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(7, 10));
 
-        test(TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1.NS2"), expectedOutput: null,
-            // Interceptors.cs(7,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1.NS2"), expectedOutput: null,
+            // Interceptors.cs(7,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "eY+urAo7Kg2rsKgGSGjShwIAAABQcm9ncmFtLmNz")]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(7, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(7, 10));
 
-        test(TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
+        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1"), expectedOutput: "1");
 
-        test(TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1;NS2"), expectedOutput: "1");
+        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1;NS2"), expectedOutput: "1");
 
         void test(CSharpParseOptions options, string? expectedOutput, params DiagnosticDescription[] expected)
         {
@@ -237,16 +237,16 @@ public class InterceptorsTests : CSharpTestBase
 
         void sadCase(string featureValue)
         {
-            var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue));
+            var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", featureValue));
             comp.VerifyEmitDiagnostics(
-                // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>' to your project.
+                // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1.NS2</InterceptorsNamespaces>' to your project.
                 //         [InterceptsLocation("Program.cs", 4, 3)]
-                Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+                Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1.NS2</InterceptorsNamespaces>").WithLocation(15, 10));
         }
 
         void happyCase(string featureValue)
         {
-            var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue), expectedOutput: "1");
+            var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", featureValue), expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
     }
@@ -272,7 +272,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", ""));
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", ""));
         comp.VerifyEmitDiagnostics(
             // Program.cs(13,6): error CS9206: An interceptor cannot be declared in the global namespace.
             //     [InterceptsLocation("Program.cs", 4, 3)]
@@ -303,10 +303,10 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreviewnamespaces", "global"), expectedOutput: "1");
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -334,11 +334,11 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global.A"));
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global.A"));
         comp.VerifyEmitDiagnostics(
-            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>' to your project.
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);global.B</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);global.B</InterceptorsNamespaces>").WithLocation(15, 10));
     }
 
     [Fact]
@@ -6302,7 +6302,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6347,7 +6347,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6358,9 +6358,9 @@ partial struct CustomHandler
         Assert.Null(interceptor);
 
         comp.VerifyEmitDiagnostics(
-            // Interceptor.cs(8,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NotInterceptors</InterceptorsPreviewNamespaces>' to your project.
+            // Interceptor.cs(8,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NotInterceptors</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation("Program.cs", 1, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NotInterceptors</InterceptorsPreviewNamespaces>").WithLocation(8, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NotInterceptors</InterceptorsNamespaces>").WithLocation(8, 10));
 
         interceptor = model.GetInterceptorMethod(call);
         Assert.Null(interceptor);
@@ -6400,7 +6400,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6449,7 +6449,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6505,7 +6505,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6515,9 +6515,9 @@ partial struct CustomHandler
         Assert.Equal("void Interceptors.D.Interceptor1()", interceptor.ToTestDisplayString());
 
         comp.VerifyEmitDiagnostics(
-            // Interceptor.cs(17,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NotInterceptors</InterceptorsPreviewNamespaces>' to your project.
+            // Interceptor.cs(17,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NotInterceptors</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation("Program.cs", 1, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NotInterceptors</InterceptorsPreviewNamespaces>").WithLocation(17, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NotInterceptors</InterceptorsNamespaces>").WithLocation(17, 10));
 
         interceptor = model.GetInterceptorMethod(call);
         Assert.Equal("void Interceptors.D.Interceptor1()", interceptor.ToTestDisplayString());
@@ -6553,7 +6553,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6572,7 +6572,7 @@ partial struct CustomHandler
     [CombinatorialData]
     public void GetInterceptorMethod_09(bool featureExists)
     {
-        // InterceptorsPreviewNamespaces is empty or does not exist
+        // InterceptorsNamespaces is empty or does not exist
         var source = ("""
             C.M();
 
@@ -6599,7 +6599,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: featureExists ? TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "") : TestOptions.Regular);
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: featureExists ? TestOptions.Regular.WithFeature("InterceptorsNamespaces", "") : TestOptions.Regular);
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6607,16 +6607,16 @@ partial struct CustomHandler
 
         Assert.Null(model.GetInterceptorMethod(call));
         comp.VerifyEmitDiagnostics(
-            // Interceptor.cs(10,14): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>' to your project.
+            // Interceptor.cs(10,14): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);Interceptors</InterceptorsNamespaces>' to your project.
             //             [InterceptsLocation("Program.cs", 1, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>").WithLocation(10, 14));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);Interceptors</InterceptorsNamespaces>").WithLocation(10, 14));
         Assert.Null(model.GetInterceptorMethod(call));
     }
 
     [Fact]
     public void GetInterceptorMethod_10()
     {
-        // InterceptorsPreviewNamespaces has duplicates
+        // InterceptorsNamespaces has duplicates
         var source = ("""
             C.M();
 
@@ -6643,7 +6643,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors;Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors;Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6671,7 +6671,7 @@ partial struct CustomHandler
             }
             """, "Program.cs");
 
-        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6690,7 +6690,7 @@ partial struct CustomHandler
     public void GetInterceptorMethod_12()
     {
         // Compilation contains no files
-        var comp = CreateCompilation([], parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation([], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
 
         // We can't use GetInterceptorMethod without a SemanticModel and we can't get a SemanticModel when the compilation contains no trees.
         // But, we can exercise some internal API for theoretical edge cases to see if it is robust (does not throw, updates expected flags).
@@ -6730,7 +6730,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", @namespace));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", @namespace));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6772,7 +6772,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors.Nested"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors.Nested"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6781,9 +6781,9 @@ partial struct CustomHandler
         Assert.Null(model.GetInterceptorMethod(call));
 
         comp.VerifyEmitDiagnostics(
-            // Interceptor.cs(8,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>' to your project.
+            // Interceptor.cs(8,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);Interceptors</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation("Program.cs", 1, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>").WithLocation(8, 10));
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);Interceptors</InterceptorsNamespaces>").WithLocation(8, 10));
 
         Assert.Null(model.GetInterceptorMethod(call));
     }
@@ -7512,5 +7512,449 @@ partial struct CustomHandler
         model = comp.GetSemanticModel(source);
         var method = model.GetInterceptorMethod(node);
         Assert.Equal($"void Interceptors.M1(this {refKind}S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverCapturedToTemp_StructRvalueReceiver()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    new S().M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.Main", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              .locals init (S V_0)
+              IL_0000:  ldloca.s   V_0
+              IL_0002:  initobj    "S"
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  call       "void C.M1(ref S)"
+              IL_000f:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverCapturedToTemp_StructInReceiver()
+    {
+        // Implicitly capture receiver to temp in 's.M()' because target method needs a writable reference.
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    M0(new S());
+                }
+
+                static void M0(in S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size       15 (0xf)
+              .maxstack  1
+              .locals init (S V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldobj      "S"
+              IL_0006:  stloc.0
+              IL_0007:  ldloca.s   V_0
+              IL_0009:  call       "void C.M1(ref S)"
+              IL_000e:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_StructRefReceiver()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    S s = default;
+                    M0(ref s);
+                }
+
+                static void M0(ref S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "void C.M1(ref S)"
+              IL_0006:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_StructReadonlyMethod()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                readonly void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    M0(new S());
+                }
+
+                static void M0(in S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this in S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "void C.M1(in S)"
+              IL_0006:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this in S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_StructLvalueReceiver()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    M0(new S());
+                }
+
+                static void M0(S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size        8 (0x8)
+              .maxstack  1
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "void C.M1(ref S)"
+              IL_0007:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_ByValueParameter()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public class C
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    new C().M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class SC
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this C c) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", """
+            {
+              // Code size       11 (0xb)
+              .maxstack  1
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "void SC.M1(C)"
+              IL_000a:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void SC.M1(this C c)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void Receiver_RefReturn_NotCapturedToTemp()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                public int F;
+
+                static S s;
+                static ref S RS() => ref s;
+
+                void M() => throw null!;
+
+                public static void Main()
+                {
+                    RS().F = 1;
+                    Console.Write(RS().F);
+                    RS().M();
+                    Console.Write(RS().F);
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "RS().M()");
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            public static class SC
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => s.F = 2;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "12");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  2
+              IL_0000:  call       "ref S S.RS()"
+              IL_0005:  ldc.i4.1
+              IL_0006:  stfld      "int S.F"
+              IL_000b:  call       "ref S S.RS()"
+              IL_0010:  ldfld      "int S.F"
+              IL_0015:  call       "void System.Console.Write(int)"
+              IL_001a:  call       "ref S S.RS()"
+              IL_001f:  call       "void SC.M1(ref S)"
+              IL_0024:  call       "ref S S.RS()"
+              IL_0029:  ldfld      "int S.F"
+              IL_002e:  call       "void System.Console.Write(int)"
+              IL_0033:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void SC.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void CannotReturnRefToImplicitTemp()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            public ref struct S
+            {
+                static Span<int> Test()
+                {
+                    return new S().M();
+                }
+
+                [UnscopedRef]
+                public Span<int> M() => default;
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         return new S().M();
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(8, 16));
+
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "new S().M()");
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            static class D
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static Span<int> M(this ref S s) => default;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        comp = CreateCompilation([source, interceptors, s_attributesTree], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         return new S().M();
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(8, 16));
+
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        AssertEx.Equal("System.Span<System.Int32> D.M(this ref S s)", method.ToTestDisplayString());
     }
 }

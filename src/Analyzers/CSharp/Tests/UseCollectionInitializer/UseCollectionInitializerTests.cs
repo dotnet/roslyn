@@ -42,7 +42,6 @@ public sealed partial class UseCollectionInitializerTests
         var test = new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         };
 
         if (languageVersion != null)
@@ -1780,6 +1779,47 @@ public sealed partial class UseCollectionInitializerTests
                             // Leading
                             ([1, 2, 3])
                         };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75214")]
+    public async Task TestComplexForeach()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class C
+                {
+                    void M(List<int>? list1)
+                    {
+                        foreach (var (value, sort) in (list1 ?? [|new|] List<int>()).Select((val, i) => (val, i)))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                
+                using System.Collections.Generic;
+                using System.Linq;
+                
+                class C
+                {
+                    void M(List<int>? list1)
+                    {
+                        foreach (var (value, sort) in (list1 ?? []).Select((val, i) => (val, i)))
+                        {
+                        }
                     }
                 }
                 """,

@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,49 +51,79 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(context.Solution);
 
             var document = context.Document;
-            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
+            var position = await document
+                .GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken)
+                .ConfigureAwait(false);
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
-            var completionOptions = GetCompletionOptions(document, capabilityHelper);
+            var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
+            var completionListCache = context.GetRequiredLspService<CompletionListCache>();
+
+            return await GetCompletionListAsync(
+                document,
+                position,
+                request.Context,
+                _globalOptions,
+                capabilityHelper,
+                completionListCache,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<LSP.CompletionList?> GetCompletionListAsync(
+            Document document,
+            int position,
+            LSP.CompletionContext? completionContext,
+            IGlobalOptionService globalOptions,
+            CompletionCapabilityHelper capabilityHelper,
+            CompletionListCache completionListCache,
+            CancellationToken cancellationToken)
+        {
+            var completionOptions = globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper);
+            var completionListMaxSize = globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
+
+            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var completionTrigger = await ProtocolConversions
+                .LSPToRoslynCompletionTriggerAsync(completionContext, document, position, cancellationToken)
+                .ConfigureAwait(false);
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
+            var project = document.Project;
+
             // Let CompletionService decide if we should trigger completion, unless the request is for incomplete results, in which case we always trigger. 
-            if (request.Context?.TriggerKind is not LSP.CompletionTriggerKind.TriggerForIncompleteCompletions
-                && !completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, documentText, position, completionTrigger, completionOptions, document.Project.Solution.Options, roles: null))
+            if (completionContext?.TriggerKind is not LSP.CompletionTriggerKind.TriggerForIncompleteCompletions
+                && !completionService.ShouldTriggerCompletion(project, project.Services, documentText, position, completionTrigger, completionOptions, project.Solution.Options, roles: null))
             {
                 return null;
             }
 
             var completionListResult = await GetFilteredCompletionListAsync(
-                request, context, documentText, document, completionOptions, completionService, capabilityHelper, cancellationToken).ConfigureAwait(false);
+                completionContext, document, documentText, position, completionOptions, capabilityHelper, completionService, completionListCache, completionListMaxSize, cancellationToken).ConfigureAwait(false);
 
             if (completionListResult == null)
                 return null;
 
-            var (list, isIncomplete, resultId) = completionListResult.Value;
+            var (list, isIncomplete, isHardSelection, resultId) = completionListResult.Value;
 
-            var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-            var result = await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
+            var result = await CompletionResultFactory
+                .ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, isHardSelection, resultId, cancellationToken)
                 .ConfigureAwait(false);
+
             return result;
         }
 
-        private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(
-            LSP.CompletionParams request,
-            RequestContext context,
-            SourceText sourceText,
+        private static async Task<(CompletionList CompletionList, bool IsIncomplete, bool isHardSelection, long ResultId)?> GetFilteredCompletionListAsync(
+            LSP.CompletionContext? context,
             Document document,
+            SourceText sourceText,
+            int position,
             CompletionOptions completionOptions,
-            CompletionService completionService,
             CompletionCapabilityHelper capabilityHelper,
+            CompletionService completionService,
+            CompletionListCache completionListCache,
+            int completionListMaxSize,
             CancellationToken cancellationToken)
         {
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
-            var isTriggerForIncompleteCompletions = request.Context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions;
-            var completionListCache = context.GetRequiredLspService<CompletionListCache>();
+            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(context, document, position, cancellationToken).ConfigureAwait(false);
+            var isTriggerForIncompleteCompletions = context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions;
 
             (CompletionList List, long ResultId)? result;
             if (isTriggerForIncompleteCompletions)
@@ -127,10 +159,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 completionList = completionList.WithSpan(defaultSpan);
             }
 
-            var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
-            var (filteredCompletionList, isIncomplete) = FilterCompletionList(completionList, completionListMaxSize, completionTrigger, sourceText);
+            var (filteredCompletionList, isIncomplete, isHardSelection) = FilterCompletionList(completionList, completionListMaxSize, completionTrigger, sourceText, capabilityHelper);
 
-            return (filteredCompletionList, isIncomplete, resultId);
+            return (filteredCompletionList, isIncomplete, isHardSelection, resultId);
         }
 
         private static async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(
@@ -155,17 +186,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return (completionList, resultId);
         }
 
-        private static (CompletionList CompletionList, bool IsIncomplete) FilterCompletionList(
+        private static (CompletionList CompletionList, bool IsIncomplete, bool isHardSelection) FilterCompletionList(
             CompletionList completionList,
             int completionListMaxSize,
             CompletionTrigger completionTrigger,
-            SourceText sourceText)
+            SourceText sourceText,
+            CompletionCapabilityHelper completionCapabilityHelper)
         {
-            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
-                return (completionList, false);
-
             var filterText = sourceText.GetSubText(completionList.Span).ToString();
             var filterReason = GetFilterReason(completionTrigger);
+
+            // Determine if the list should be hard selected or soft selected.
+            var isFilterTextAllPunctuation = CompletionService.IsAllPunctuation(filterText);
+
+            // If we only had punctuation - we set soft selection and the list to be incomplete so we get called back when the user continues typing.
+            // If they type something that is not punctuation, we may need to update the hard vs soft selection.
+            // For example, typing '_' should initially be soft selection, but if the user types 'o' we should hard select '_otherVar' (if it exists).
+            // This isn't perfect - ideally we would make this determination every time a filter character is typed, but we do not get called back
+            // for typing filter characters in LSP (unless we always set isIncomplete, which is expensive).
+            var isHardSelection = completionList.SuggestionModeItem is null && !isFilterTextAllPunctuation;
+            var isIncomplete = isFilterTextAllPunctuation;
+
+            // If our completion list hasn't hit the max size, we don't need to do anything filtering
+            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
+                return (completionList, isIncomplete, isHardSelection);
 
             // Use pattern matching to determine which items are most relevant out of the calculated items.
             using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
@@ -210,9 +254,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Currently the VS client does not remember to re-request, so the completion list only ever shows items from "Som"
             // so we always set the isIncomplete flag to true when the original list size (computed when no filter text was typed) is too large.
             // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
-            var isIncomplete = completionList.ItemsList.Count > newCompletionList.ItemsList.Count;
+            isIncomplete |= completionCapabilityHelper.SupportVSInternalClientCapabilities
+                ? completionList.ItemsList.Count > newCompletionList.ItemsList.Count
+                : matchResultsBuilder.Count > filteredList.Length;
 
-            return (newCompletionList, isIncomplete);
+            return (newCompletionList, isIncomplete, isHardSelection);
 
             static CompletionFilterReason GetFilterReason(CompletionTrigger trigger)
             {
@@ -223,38 +269,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     _ => CompletionFilterReason.Other,
                 };
             }
-        }
-
-        private CompletionOptions GetCompletionOptions(Document document, CompletionCapabilityHelper capabilityHelper)
-        {
-            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
-
-            if (capabilityHelper.SupportVSInternalClientCapabilities)
-            {
-                // Filter out unimported types for now as there are two issues with providing them:
-                // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
-                //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
-                // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
-                //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
-                // 3.  LSP client should support completion filters / expanders
-                options = options with
-                {
-                    ShowItemsFromUnimportedNamespaces = false,
-                    ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly,
-                    UpdateImportCompletionCacheInBackground = false,
-                };
-            }
-            else
-            {
-                var updateImportCompletionCacheInBackground = options.ShowItemsFromUnimportedNamespaces is true;
-                options = options with
-                {
-                    ShowNewSnippetExperienceUserOption = false,
-                    UpdateImportCompletionCacheInBackground = updateImportCompletionCacheInBackground
-                };
-            }
-
-            return options;
         }
     }
 }

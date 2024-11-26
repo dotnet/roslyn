@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 """));
             var portableExecutableReference = MetadataReference.CreateFromFile(roslynCompilersLocation, documentation: documentationProvider);
 
-            var compilation = CSharpCompilation.Create(nameof(XmlDocumentationProviderReturnsEntireMemberNode), references: new[] { portableExecutableReference });
+            var compilation = CSharpCompilation.Create(nameof(XmlDocumentationProviderReturnsEntireMemberNode), references: [portableExecutableReference]);
 
             // Verify we can parse it and it contains a single node
             var xml = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.AdditionalTextFile")!.GetDocumentationCommentXml();

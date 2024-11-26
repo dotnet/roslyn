@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
 
-internal class DateAndTimeEmbeddedLanguage : IEmbeddedLanguage
+internal sealed class DateAndTimeEmbeddedLanguage : IEmbeddedLanguage
 {
     public readonly EmbeddedLanguageInfo Info;
 

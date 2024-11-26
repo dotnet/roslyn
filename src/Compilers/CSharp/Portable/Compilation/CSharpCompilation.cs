@@ -142,13 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
-        /// <summary>
-        /// Optional data collected during testing only.
-        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
-        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
-        /// </summary>
-        internal object? TestOnlyCompilationData;
-
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
         /// <summary>
@@ -339,6 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MissingNamespaceSymbol(
                        container.EnsureCSharpSymbolOrNull(nameof(container)),
                        name).GetPublicSymbol();
+        }
+
+        protected override IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name)
+        {
+            return new Symbols.PublicModel.PreprocessingSymbol(name);
         }
 
         #region Constructors and Factories
@@ -3532,6 +3530,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+        private protected override EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
+            => EmitHelpers.MapToCompilation(this, (PEDeltaAssemblyBuilder)moduleBeingBuilt);
 
         private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
         {

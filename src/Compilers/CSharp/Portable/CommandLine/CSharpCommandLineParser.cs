@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // When a features value like "InterceptorsPreviewNamespaces=NS1;NS2" is provided,
+                            // When a features value like "InterceptorsNamespaces=NS1;NS2" is provided,
                             // the build system will quote it so that splitting doesn't occur in the wrong layer.
                             // We need to unquote here so that subsequent layers can properly identify the feature name and value.
                             features.Add(value.Unquote());
@@ -1816,6 +1816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "arm64":
                     return Platform.Arm64;
                 default:
+                    // This switch supports architectures that .NET Framework runs on Windows only.
+                    // Non-Windows architectures that .NET runs on are intentionally not supported here.
                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadPlatformType, value);
                     return Platform.AnyCpu;
             }

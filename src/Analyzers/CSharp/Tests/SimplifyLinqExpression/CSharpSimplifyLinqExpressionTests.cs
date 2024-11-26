@@ -5,17 +5,19 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpression;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
-    CSharpSimplifyLinqExpressionCodeFixProvider>;
+    SimplifyLinqExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-public partial class CSharpSimplifyLinqExpressionTests
+public sealed partial class CSharpSimplifyLinqExpressionTests
 {
     [Theory, CombinatorialData]
     public static async Task TestAllowedMethodTypes(
@@ -471,18 +473,23 @@ public partial class CSharpSimplifyLinqExpressionTests
     }
 
     [Fact]
-    public async Task TestUnsupportedFunction()
+    public async Task TestUnsupportedMethod()
     {
         var source = """
             using System;
             using System.Linq;
+            using System.Collections;
             using System.Collections.Generic;
-            namespace demo
+
+            class Test : IEnumerable<int>
             {
-                class Test
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                public int Count() => 0;
+
+                void M()
                 {
-                    static List<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
-                    int test2 = test1.Where(x => x > 0).Count();
+                    int test2 = new Test().Where(x => x > 0).Count();
                 }
             }
             """;
@@ -524,5 +531,113 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """;
         await VerifyCS.VerifyAnalyzerAsync(source);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52283")]
+    public static async Task TestTrivia1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = [|args.Skip(1)
+                            .Where(a => a.Length == 1).Count()|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = args.Skip(1)
+                            .Count(a => a.Length == 1);
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71293")]
+    public static async Task TestOffOfObjectCreation()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt2 = [|new List<string>().Where(x => x.Equals("hello")).Count()|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt2 = new List<string>().Count(x => x.Equals("hello"));
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71293")]
+    public static async Task TestOffOfFieldReference()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt3 = [|s_wordsField.Where(x => x.Equals("hello")).Count()|];
+                    }
+
+                    private static readonly List<string> s_wordsField;
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt3 = s_wordsField.Count(x => x.Equals("hello"));
+                    }
+                
+                    private static readonly List<string> s_wordsField;
+                }
+                """
+        }.RunAsync();
     }
 }

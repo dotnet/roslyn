@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.IntroduceParameter;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceParameter;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceParameter), Shared]
-internal partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterCodeRefactoringProvider<
+internal sealed partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterCodeRefactoringProvider<
     ExpressionSyntax,
     InvocationExpressionSyntax,
     ObjectCreationExpressionSyntax,

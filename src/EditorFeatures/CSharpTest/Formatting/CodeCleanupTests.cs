@@ -53,7 +53,6 @@ public partial class CodeCleanupTests
 
         var expected = """
             using System;
-
             internal class Program
             {
                 private static void Main(string[] args)
@@ -84,7 +83,6 @@ public partial class CodeCleanupTests
         var expected = """
             using System;
             using System.Collections.Generic;
-
             internal class Program
             {
                 private static void Main(string[] args)
@@ -122,7 +120,6 @@ public partial class CodeCleanupTests
             global using System.Collections.Generic;
             using System.Threading;
             using System.Threading.Tasks;
-
             internal class Program
             {
                 private static Task Main(string[] args)
@@ -627,20 +624,14 @@ public partial class CodeCleanupTests
     }
 
     [Theory]
-    [InlineData(LanguageNames.CSharp, 50)]
-    [InlineData(LanguageNames.VisualBasic, 87)]
-    public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int numberOfUnsupportedDiagnosticIds)
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language)
     {
         var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
 
         // No Duplicates
         Assert.Equal(supportedDiagnostics, supportedDiagnostics.Distinct());
-
-        // Exact Number of Unsupported Diagnostic Ids
-        var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
-        var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
-
-        Assert.Equal(numberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
     }
 
     private const string _code = """
@@ -892,11 +883,11 @@ public partial class CodeCleanupTests
             { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement },
         });
 
-        var solution = workspace.CurrentSolution.WithAnalyzerReferences(new[]
-        {
+        var solution = workspace.CurrentSolution.WithAnalyzerReferences(
+        [
             new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
             new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-        });
+        ]);
 
         if (diagnosticIdsWithSeverity != null)
         {

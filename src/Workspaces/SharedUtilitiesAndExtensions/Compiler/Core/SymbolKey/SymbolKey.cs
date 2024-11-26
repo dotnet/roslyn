@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis;
 ///   <item>Two <see cref="IFieldSymbol"/>s are the "same" if they have
 ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and 
 ///         the "same" <see cref="ISymbol.MetadataName"/>.</item>
+///   <item>Two <see cref="IPreprocessingSymbol"/>s are the "same" if they have
+///         the "same" <see cref="ISymbol.Name"/>.</item>
 /// </list>
 /// </para>
 /// <para>
@@ -235,6 +237,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     public override readonly string ToString()
         => _symbolKeyData;
 
+    // Note: this method may clear 'symbols' before returning.
     private static SymbolKeyResolution CreateResolution<TSymbol>(
         PooledArrayBuilder<TSymbol> symbols, string reasonIfFailed, out string? failureReason)
         where TSymbol : class, ISymbol
@@ -253,7 +256,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
         {
             failureReason = null;
             return new SymbolKeyResolution(
-                ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutable()),
+                ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutableAndClear()),
                 CandidateReason.Ambiguous);
         }
     }

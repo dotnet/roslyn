@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-internal class EmbeddedLanguageMetadata : OrderableMetadata, ILanguagesMetadata
+internal sealed class EmbeddedLanguageMetadata : OrderableMetadata, ILanguagesMetadata
 {
     /// <summary>
     /// The particular language-IDs this language supports (for example 'regex/regexp/etc.').

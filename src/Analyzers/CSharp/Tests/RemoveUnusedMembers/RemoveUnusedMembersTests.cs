@@ -15,7 +15,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers;
 
-using static Microsoft.CodeAnalysis.CSharp.UsePatternCombinators.AnalyzedPattern;
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedMembersDiagnosticAnalyzer,
     CSharpRemoveUnusedMembersCodeFixProvider>;
@@ -439,7 +438,6 @@ public class RemoveUnusedMembersTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             ExpectedDiagnostics =
             {
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
@@ -3242,5 +3240,132 @@ public class RemoveUnusedMembersTests
             """;
 
         await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57470")]
+    public async Task TestForeach()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+
+                static class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        foreach (var i in 1..10)
+                            Console.WriteLine(i);
+                    }
+
+                    static IEnumerator GetEnumerator(this Range range)
+                    {
+                        for (int i = range.Start.Value; i < range.End.Value; i++)
+                            yield return i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task KeepUsedDeconstructMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object? o,
+                        ref object? p)
+                    {
+                        (o, p) = this;
+                    }
+
+                    void Deconstruct(
+                        out object? o,
+                        out object? p)
+                    {
+                        o = null;
+                        p = null;
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task RemoveUnusedDeconstructMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object o,
+                        ref object p)
+                    {
+                    }
+
+                    void [|Deconstruct|](
+                        out object? o,
+                        out object? p)
+                    {
+                        o = null;
+                        p = null;
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object o,
+                        ref object p)
+                    {
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69143")]
+    public async Task KeepInlineArrayInstanceMember()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(4)]
+                struct S
+                {
+                    private int i;
+                    private static int [|j|];
+                }
+                """,
+            FixedCode = """
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(4)]
+                struct S
+                {
+                    private int i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
     }
 }

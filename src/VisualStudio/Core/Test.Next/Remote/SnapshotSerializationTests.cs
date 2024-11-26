@@ -34,13 +34,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     [UseExportProvider]
-    public class SnapshotSerializationTests
+    public sealed class SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
     {
-        private readonly AssemblyLoadTestFixture _testFixture;
-        public SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
-        {
-            _testFixture = testFixture;
-        }
+        private readonly AssemblyLoadTestFixture _testFixture = testFixture;
 
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
@@ -58,19 +54,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
 
                 solution = document2.Project.Solution.GetRequiredProject(project1.Id)
-                    .AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")))
+                    .AddProjectReference(new ProjectReference(project2.Id, ["test"]))
                     .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                     .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
-                    .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
+                    .AddAdditionalDocument("Additional", SourceText.From("hello"), ["test"], @".\Add").Project.Solution;
 
                 return solution
-                    .WithAnalyzerReferences(new[] { new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader()) })
-                    .AddAnalyzerConfigDocuments(
-                    ImmutableArray.Create(
-                        DocumentInfo.Create(
-                            DocumentId.CreateNewId(project1.Id),
-                            ".editorconfig",
-                            loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))));
+                    .WithAnalyzerReferences([new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader())])
+                    .AddAnalyzerConfigDocuments([DocumentInfo.Create(
+                        DocumentId.CreateNewId(project1.Id),
+                        ".editorconfig",
+                        loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))]);
             }, WorkspaceChangeKind.SolutionChanged);
 
             return workspace.CurrentSolution;
@@ -491,13 +485,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
 
-            project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
+            project = project.AddAnalyzerReferences([analyzer1, analyzer2]);
 
             var validator = new SerializationValidator(workspace.Services);
             using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
 
             var recovered = await validator.GetSolutionAsync(snapshot);
-            AssertEx.Equal(new[] { file1.Path, file2.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
+            AssertEx.Equal([file1.Path, file2.Path], recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
         }
 
         [Fact]

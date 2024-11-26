@@ -542,11 +542,11 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="example" xml:space="preserve">
     <value>example</value>
-    <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
+    <comment>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
   </data>
   <data name="identifier" xml:space="preserve">
     <value>identifier</value>
-    <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
+    <comment>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
   </data>
   <data name="Install_0" xml:space="preserve">
     <value>Install '{0}'</value>
@@ -1937,7 +1937,13 @@ Additional information: {1}</value>
   <data name="Prefer_static_anonymous_functions" xml:space="preserve">
     <value>Prefer static anonymous functions</value>
   </data>
+  <data name="Prefer_unbound_generic_type_in_nameof" xml:space="preserve">
+    <value>Prefer unbound generic type in 'nameof'</value>
+  </data>
   <data name="Show_hints_for_collection_expressions" xml:space="preserve">
     <value>Show hints for collection expressions</value>
+  </data>
+  <data name="Automatically_reload_updated_analyzers_and_generators" xml:space="preserve">
+    <value>Automatically reload updated analyzers and generators (requires restart)</value>
   </data>
 </root>

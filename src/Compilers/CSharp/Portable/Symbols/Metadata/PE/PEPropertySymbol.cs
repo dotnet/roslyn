@@ -1043,12 +1043,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
             Debug.Assert(IsIndexer || IsIndexedProperty);
             if (!_flags.IsOverloadResolutionPriorityPopulated)
             {
-                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority) &&
+                    priority != 0)
                 {
                     Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
                 }
@@ -1063,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _flags.SetOverloadResolutionPriorityPopulated();
             }
 
-            return _uncommonFields?._lazyOverloadResolutionPriority;
+            return _uncommonFields?._lazyOverloadResolutionPriority ?? 0;
         }
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol

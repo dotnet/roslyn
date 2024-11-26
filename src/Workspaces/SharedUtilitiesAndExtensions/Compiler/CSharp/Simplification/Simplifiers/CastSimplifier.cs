@@ -506,9 +506,27 @@ internal static class CastSimplifier
                 return false;
         }
 
-        // If the types of the expressions are the same, then we can remove safely.
-        if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
-            return true;
+        if (originalConvertedType.Equals(rewrittenConvertedType))
+        {
+            // If the types of the expressions are exactly the same, then we can remove safely.
+            if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return true;
+
+            // The types differ on nullability.  But we may still want to remove this.
+            //
+            // For example:
+            //
+            //      string Method() => (string?)notNullString;
+            //
+            // Here we have a non-null type converted to its nullable form, which is target typed back to the non-null
+            // type.  Removing this nullable cast is safe and desirable.
+            var targetType = castNode.GetTargetType(originalSemanticModel, cancellationToken);
+            if (targetType is not null and not IErrorTypeSymbol &&
+                rewrittenConvertedType.Equals(targetType, SymbolEqualityComparer.IncludeNullability))
+            {
+                return true;
+            }
+        }
 
         // We can safely remove convertion to object in interpolated strings regardless of nullability
         if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
@@ -1104,6 +1122,35 @@ internal static class CastSimplifier
                 var newSymbolInfo = rewrittenSemanticModel.GetSymbolInfo(currentNew, cancellationToken);
                 if (newSymbolInfo.Symbol is null)
                     return true;
+            }
+
+            if (currentOld is InterpolatedStringExpressionSyntax && currentNew is InterpolatedStringExpressionSyntax)
+            {
+                // In the case of interpolations, we need to dive into the operation level to determine if the meaning
+                // of the the interpolation stayed the same in the case of interpolation handlers.
+                if (originalSemanticModel.GetOperation(currentOld, cancellationToken) is not IInterpolatedStringOperation oldInterpolationOperation)
+                    return true;
+
+                if (rewrittenSemanticModel.GetOperation(currentNew, cancellationToken) is not IInterpolatedStringOperation newInterpolationOperation)
+                    return true;
+
+                if (oldInterpolationOperation.Parts.Length != newInterpolationOperation.Parts.Length)
+                    return true;
+
+                for (int i = 0, n = oldInterpolationOperation.Parts.Length; i < n; i++)
+                {
+                    var oldInterpolationPart = oldInterpolationOperation.Parts[i];
+                    var newInterpolationPart = newInterpolationOperation.Parts[i];
+                    if (oldInterpolationPart.Kind != newInterpolationPart.Kind)
+                        return true;
+
+                    // If we were calling some interpolation AppendFormatted helper, and now we're not, we introduced a problem.
+                    if (oldInterpolationPart is IInterpolatedStringAppendOperation { AppendCall: not IInvalidOperation } &&
+                        newInterpolationPart is IInterpolatedStringAppendOperation { AppendCall: IInvalidOperation })
+                    {
+                        return true;
+                    }
+                }
             }
         }
 

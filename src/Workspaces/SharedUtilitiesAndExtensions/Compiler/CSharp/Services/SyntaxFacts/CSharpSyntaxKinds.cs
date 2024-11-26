@@ -39,6 +39,8 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int RegionDirectiveTrivia => (int)SyntaxKind.RegionDirectiveTrivia;
     public int EndRegionDirectiveTrivia => (int)SyntaxKind.EndRegionDirectiveTrivia;
     public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+    public int DefineDirectiveTrivia => (int)SyntaxKind.DefineDirectiveTrivia;
+    public int? UndefDirectiveTrivia => (int)SyntaxKind.UndefDirectiveTrivia;
 
     public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
     public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
@@ -112,6 +114,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
     public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
     public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
+    public int? SuppressNullableWarningExpression => (int)SyntaxKind.SuppressNullableWarningExpression;
     public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
     public int ThisExpression => (int)SyntaxKind.ThisExpression;
     public int? ThrowExpression => (int)SyntaxKind.ThrowExpression;

@@ -4,16 +4,17 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression;
+using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UseCoalesceExpression;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCoalesceExpression;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer,
-    UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider>;
+    CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
 public class UseCoalesceExpressionForIfNullStatementCheckTests
@@ -201,7 +202,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -225,7 +225,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -249,7 +248,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -274,7 +272,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -300,7 +297,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -327,7 +323,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -352,7 +347,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -382,7 +376,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -406,7 +399,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -430,7 +422,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -454,8 +445,239 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
             LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")]
+    public async Task TestLocalDeclaration_CastWithParenthesizedExpression()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(object o)
+                {
+                    I item = o as C;
+                    [|if|] (item == null)
+                    {
+                        item = o as D;
+                    }
+                }
+            }
+
+            class D : I
+            {
+            }
+            """,
+            FixedCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(object o)
+                {
+                    I item = (I)(o as C) ?? o as D;
+                }
+            }
+
+            class D : I
+            {
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")]
+    public async Task TestLocalDeclaration_CastWithoutParenthesizedExpression()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(C c, D d)
+                {
+                    I item = c;
+                    [|if|] (item == null)
+                    {
+                        item = d;
+                    }
+                }
+            }
+
+            class D : I
+            {
+            }
+            """,
+            FixedCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(C c, D d)
+                {
+                    I item = (I)c ?? d;
+                }
+            }
+
+            class D : I
+            {
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")]
+    public async Task TestLocalDeclaration_NoCastWhenEqualSymbol()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(C c1, C c2)
+                {
+                    I item = c1;
+                    [|if|] (item == null)
+                    {
+                        item = c2;
+                    }
+                }
+            }
+            """,
+            FixedCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(C c1, C c2)
+                {
+                    I item = c1 ?? c2;
+                }
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")]
+    public async Task TestLocalDeclaration_NoCastWhenDerivedClass()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(C c, D d)
+                {
+                    I item = c;
+                    [|if|] (item == null)
+                    {
+                        item = d;
+                    }
+                }
+            }
+
+            class D : C
+            {
+            }
+            """,
+            FixedCode =
+            """
+            interface I
+            {
+            }
+
+            class C : I
+            {
+                void M(C c, D d)
+                {
+                    I item = c ?? d;
+                }
+            }
+
+            class D : C
+            {
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")]
+    public async Task TestLocalDeclaration_NoCastWhenDerivedClassReversed()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+            """
+            interface I
+            {
+            }
+
+            class C : D
+            {
+                void M(C c, D d)
+                {
+                    I item = c;
+                    [|if|] (item == null)
+                    {
+                        item = d;
+                    }
+                }
+            }
+
+            class D : I
+            {
+            }
+            """,
+            FixedCode =
+            """
+            interface I
+            {
+            }
+
+            class C : D
+            {
+                void M(C c, D d)
+                {
+                    I item = c ?? d;
+                }
+            }
+
+            class D : I
+            {
+            }
+            """
         }.RunAsync();
     }
 }

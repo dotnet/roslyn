@@ -210,7 +210,7 @@ namespace T
         var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
             new CSharpCompilerDiagnosticAnalyzer(),
             new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var testDocument = workspace.Documents.Single();
         var position = testDocument.CursorPosition.Value;
@@ -239,15 +239,19 @@ namespace T
 
     protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestAsync(
-            """
+            $$"""
             class C
             {
-            """ + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
+            {{code}}
+            }
+            """, expectedDescription, relatedSpans.ToImmutableArray());
 
     protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestInClassAsync(
-            """
+            $$"""
             void M()
             {
-            """ + code + "}", expectedDescription, relatedSpans);
+            {{code}}
+            }
+            """, expectedDescription, relatedSpans);
 }

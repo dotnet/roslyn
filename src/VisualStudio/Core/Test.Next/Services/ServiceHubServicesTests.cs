@@ -89,14 +89,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // update text
             var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
-            // sync
-            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), cancellationToken),
-                CancellationToken.None);
-
             // apply change to solution
             var newDocument = oldDocument.WithText(newText);
             var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+
+            // sync
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync([(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), newState.Text)], cancellationToken),
+                CancellationToken.None);
 
             // check that text already exist in remote side
             Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(newState.Text, out var serializableRemoteText));
@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
-            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices);
         }
 
         [Fact]
@@ -352,15 +352,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var solutionInfo = SolutionInfo.Create(
                 SolutionId.CreateNewId(), VersionStamp.Create(), "",
-                new[]
-                {
-                        ProjectInfo.Create(
-                            p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
-                            projectReferences: new [] { new ProjectReference(p2) }),
-                        ProjectInfo.Create(
-                            p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
-                            metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
-                });
+                [
+                    ProjectInfo.Create(
+                        p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
+                        projectReferences: [new ProjectReference(p2)]),
+                    ProjectInfo.Create(
+                        p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
+                        metadataReferences: [MetadataReference.CreateFromFile(file.Path)])
+                ]);
 
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
@@ -430,6 +429,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var project = localWorkspace.CurrentSolution
                     .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
                     .GetRequiredProject(projectId)
+                    .WithCompilationOutputInfo(new CompilationOutputInfo(
+                        assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                        generatedFilesOutputDirectory: null))
                     .AddAnalyzerReference(analyzerReference);
                 var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
                 tempDocId = tempDoc.Id;
@@ -766,6 +768,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project = workspace.CurrentSolution
                 .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
                 .GetRequiredProject(projectId)
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                    generatedFilesOutputDirectory: null))
                 .AddAnalyzerReference(analyzerReference);
             var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
 

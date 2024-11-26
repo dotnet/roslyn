@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class AbstractSyntaxIndex<TIndex>
+internal abstract partial class AbstractSyntaxIndex<TIndex>
 {
     private static readonly string s_persistenceName = typeof(TIndex).Name;
 
@@ -23,7 +23,7 @@ internal partial class AbstractSyntaxIndex<TIndex>
     /// that we will not try to read previously cached data from a prior version of roslyn with a different format and
     /// will instead regenerate all the indices with the new format.
     /// </summary>
-    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("42");
+    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("43");
 
     /// <summary>
     /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained

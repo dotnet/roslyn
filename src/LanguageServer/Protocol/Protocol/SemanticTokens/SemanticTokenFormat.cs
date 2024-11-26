@@ -9,9 +9,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Value representing the format used to describe semantic tokens.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#tokenFormat">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     [JsonConverter(typeof(StringEnumConverter<SemanticTokenFormat>))]
     [TypeConverter(typeof(StringEnumConverter<SemanticTokenFormat>.TypeConverter))]
     internal readonly record struct SemanticTokenFormat(string Value) : IStringEnum

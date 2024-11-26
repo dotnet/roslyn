@@ -17,11 +17,6 @@
         <target state="translated">Aplikují se změny.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Nejde navigovat k symbolu pod stříškou.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Výpočet informací Encapsulate Field</target>
@@ -40,6 +35,11 @@
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
         <target state="translated">Popis s využitím Copilotu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">Funkce Popis s využitím Copilotu není k dispozici, protože vaše organizace vyloučila odkazovaný dokument.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="_0_declarations_and_interceptors">
         <source>'{0}' declarations and interceptors</source>
-        <target state="new">'{0}' declarations and interceptors</target>
+        <target state="translated">Deklarace a zachycovací objekty {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">

@@ -40,12 +40,10 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         return clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
     }
 
-    public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
-    {
-        return new FileChangeContext([.. watchedDirectories], this);
-    }
+    public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
+        => new FileChangeContext(watchedDirectories, this);
 
-    private class FileChangeContext : IFileChangeContext
+    private sealed class FileChangeContext : IFileChangeContext
     {
         private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
         private readonly LspFileChangeWatcher _lspFileChangeWatcher;
@@ -77,13 +75,23 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
             // If we have any watched directories, then watch those directories directly
             if (watchedDirectories.Any())
             {
-                var directoryWatches = watchedDirectories.Select(d => new FileSystemWatcher
+                var directoryWatches = watchedDirectories.Select(d =>
                 {
-                    GlobPattern = new RelativePattern
+                    var pattern = "**/*" + d.ExtensionFilters.Length switch
                     {
-                        BaseUri = ProtocolConversions.CreateRelativePatternBaseUri(d.Path),
-                        Pattern = d.ExtensionFilter is not null ? "**/*" + d.ExtensionFilter : "**/*"
-                    }
+                        0 => string.Empty,
+                        1 => d.ExtensionFilters[0],
+                        _ => "{" + string.Join(',', d.ExtensionFilters) + "}"
+                    };
+
+                    return new FileSystemWatcher
+                    {
+                        GlobPattern = new RelativePattern
+                        {
+                            BaseUri = ProtocolConversions.CreateRelativePatternBaseUri(d.Path),
+                            Pattern = pattern
+                        }
+                    };
                 }).ToArray();
 
                 _directoryWatchRegistration = new LspFileWatchRegistration(lspFileChangeWatcher, directoryWatches);
@@ -234,7 +242,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             _registrationTask.ContinueWith(async _ =>
             {
-                var unregistrationParams = new UnregistrationParamsWithMisspelling()
+                var unregistrationParams = new UnregistrationParams()
                 {
                     Unregistrations =
                     [

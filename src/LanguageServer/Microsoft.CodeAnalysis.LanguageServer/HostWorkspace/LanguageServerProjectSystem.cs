@@ -115,7 +115,7 @@ internal sealed class LanguageServerProjectSystem
 
             foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
             {
-                _projectsToLoadAndReload.AddWork(new ProjectToLoad(project.ProjectPath, project.ProjectGuid));
+                _projectsToLoadAndReload.AddWork(new ProjectToLoad(project.ProjectPath, project.ProjectGuid, ReportTelemetry: true));
             }
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
@@ -131,7 +131,7 @@ internal sealed class LanguageServerProjectSystem
 
         using (await _gate.DisposableWaitAsync())
         {
-            _projectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null)));
+            _projectsToLoadAndReload.AddWork(projectFilePaths.Select(p => new ProjectToLoad(p, ProjectGuid: null, ReportTelemetry: true)));
 
             // Wait for the in progress batch to complete and send a project initialized notification to the client.
             await _projectsToLoadAndReload.WaitUntilCurrentBatchCompletesAsync();
@@ -278,7 +278,7 @@ internal sealed class LanguageServerProjectSystem
                         _workspaceFactory.ProjectSystemHostInfo);
 
                     var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
-                    loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
+                    loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad with { ReportTelemetry = false });
                     existingProjects.Add(loadedProject);
 
                     (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
@@ -288,7 +288,11 @@ internal sealed class LanguageServerProjectSystem
                 }
             }
 
-            await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
+            if (projectToLoad.ReportTelemetry)
+            {
+                await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
+            }
+
             diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
             if (diagnosticLogItems.Any())
             {

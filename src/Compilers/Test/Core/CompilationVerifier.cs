@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             try
             {
                 testEnvironment.Verify(peVerify);
-#if NETCOREAPP
+#if NET
                 ILVerify(peVerify);
 #endif
             }

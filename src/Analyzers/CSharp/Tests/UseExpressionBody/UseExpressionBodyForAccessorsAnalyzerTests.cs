@@ -575,7 +575,6 @@ public class UseExpressionBodyForAccessorsTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },

@@ -26,7 +26,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private static readonly DiagnosticDescriptorComparer s_comparer = new();
 
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-    private readonly BulkObservableCollection<BaseItem> _items = new();
+    private readonly BulkObservableCollection<BaseItem> _items = [];
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly AsyncBatchingWorkQueue _workQueue;
@@ -103,11 +103,21 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
             _cancellationTokenSource.Cancel();
-            _items.Clear();
+
+            // Note: mutating _items will be picked up automatically by clients who are bound to the collection.  We do
+            // not need to notify them through some other mechanism.
+            if (_items.Count > 0)
+            {
+                // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _items.Clear();
+            }
+
             return;
         }
 
-        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference);
+        // Currently only project analyzers show in Solution Explorer, so isHostAnalyzer is always false.
+        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference, isHostAnalyzer: false);
         var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
             project, analyzerReference).ConfigureAwait(false);
 
@@ -115,6 +125,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
             return;
 
+        // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         _items.BeginBulkOperation();
@@ -133,7 +144,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
         ImmutableArray<BaseItem> GenerateDiagnosticItems(
             Project project,
-            AnalyzerReference analyzerReference)
+            AnalyzerReference analyzerReference,
+            bool isHostAnalyzer)
         {
             var generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
             var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
@@ -148,7 +160,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(
                         project.CompilationOptions!,
-                        analyzerConfigOptions?.ConfigOptions,
+                        isHostAnalyzer ? analyzerConfigOptions?.ConfigOptionsWithFallback : analyzerConfigOptions?.ConfigOptionsWithoutFallback,
                         analyzerConfigOptions?.TreeOptions);
                     return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 });

@@ -69,7 +69,8 @@ public abstract partial class CompletionService
          CancellationToken cancellationToken = default)
     {
         // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = GetDocumentWithFrozenPartialSemantics(document, cancellationToken);
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
@@ -151,7 +152,7 @@ public abstract partial class CompletionService
         static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
             Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
@@ -177,14 +178,12 @@ public abstract partial class CompletionService
     /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
     /// we get into this transient state.
     /// </summary>
-    private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+    private Document GetDocumentWithFrozenPartialSemantics(Document document, CancellationToken cancellationToken)
     {
         if (_suppressPartialSemantics)
-        {
-            return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
-        }
+            return document;
 
-        return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return document.WithFrozenPartialSemantics(cancellationToken);
     }
 
     private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -327,7 +326,7 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel? sharedContext,
         CancellationToken cancellationToken)
     {
-        var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
         var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
 
@@ -340,7 +339,7 @@ public abstract partial class CompletionService
         return context;
     }
 
-    private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
+    private sealed class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
     {
         // We might need to handle large amount of items with import completion enabled,
         // so use a dedicated pool to minimize array allocations. Set the size of pool to a small

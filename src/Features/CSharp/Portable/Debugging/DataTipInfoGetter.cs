@@ -39,11 +39,11 @@ internal static class DataTipInfoGetter
 
             if (expression is LiteralExpressionSyntax)
             {
-                // If the user hovers over a literal, give them a DataTip for the type of the
-                // literal they're hovering over.
-                // Partial semantics should always be sufficient because the (unconverted) type
-                // of a literal can always easily be determined.
-                var (_, semanticModel) = await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                // If the user hovers over a literal, give them a DataTip for the type of the literal they're hovering
+                // over. Partial semantics should always be sufficient because the (unconverted) type of a literal can
+                // always easily be determined.
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
                 return type == null
                     ? default
