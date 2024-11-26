@@ -155,25 +155,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                     Five;
                     """
                 ],
-                @"One;
+                $"""
+                One;
 
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Before_colon + @"
-Two;
-" + WorkspacesResources.After_colon + @"
-TwoZ;
-*/
-TwoY;
-Three;
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                Two;
+                =======
+                TwoZ;
+                >>>>>>> {WorkspacesResources.After}
+                TwoY;
+                Three;
 
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Before_colon + @"
-Four;
-" + WorkspacesResources.After_colon + @"
-FourZ;
-*/
-FourY;
-Five;",
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                Four;
+                =======
+                FourZ;
+                >>>>>>> {WorkspacesResources.After}
+                FourY;
+                Five;
+                """,
                 LanguageNames.CSharp);
         }
 
