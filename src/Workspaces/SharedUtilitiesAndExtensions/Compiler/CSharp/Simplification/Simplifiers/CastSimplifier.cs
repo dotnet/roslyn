@@ -420,22 +420,27 @@ internal static class CastSimplifier
 
         #region allowed cases that allow this cast to be removed.
 
-        // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
-        // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
-        // hierarchy then this is *normally* ok.  HOwever, the language resolve default parameter values 
-        // from the overridden method.  So if they differ, we can't actually remove the cast.
+        // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called. The rules
+        // here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance hierarchy then this
+        // is *normally* ok.  However, the language resolve default parameter values from the overridden method.  So if
+        // they differ, we can't actually remove the cast.
         //
-        // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might
-        // be possible to remove, but only if y's type is sealed, as otherwise the interface method could be
-        // reimplemented in a derived type.
+        // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might be possible
+        // to remove, but only if y's type is sealed, as otherwise the interface method could be reimplemented in a
+        // derived type.
         //
-        // Note: this path is fundamentally different from the other forms of cast removal we perform.  The
-        // casts are removed because statically they make no difference to the meaning of the code.  Here,
-        // the code statically changes meaning.  However, we can use our knowledge of how the language/runtime
-        // works to know at *runtime* that the user will get the exact same behavior.
+        // Note: this path is fundamentally different from the other forms of cast removal we perform.  The casts are
+        // removed because statically they make no difference to the meaning of the code.  Here, the code statically
+        // changes meaning.  However, we can use our knowledge of how the language/runtime works to know at *runtime*
+        // that the user will get the exact same behavior.
         if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
         {
-            if (IsComplementaryMemberAccessAfterCastRemoval(
+            // Note: because this involves virtual calls, it is only safe if the original cast didn't change the runtime
+            // representation of the value at all.  So we only allow this for representation preserving casts.  For example,
+            // `string->object` preserves representation.  As does `int -> icomparable`
+            var isRepresentationPreservingCast = originalConversion.IsIdentityOrImplicitReference() || originalConversion.IsBoxing;
+            if (isRepresentationPreservingCast &&
+                IsComplementaryMemberAccessAfterCastRemoval(
                     memberAccessExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
             {
                 return true;
