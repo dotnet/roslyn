@@ -24,6 +24,7 @@ internal interface IImplementInterfaceService : ILanguageService
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken);
 
     Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
+
     Task<Document> ImplementInterfaceAsync(
         Document document,
         IImplementInterfaceInfo info,

@@ -686,32 +686,34 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
     [InlineData("scoped ref")]
     public async Task TestWithRefKind(string refKind)
     {
-        var markup = $@"
-interface I
-{{
-    void M({refKind} string s);
-}}
+        var markup = $$"""
+            using System;
 
-class C : I
-{{
-    void I.$$
-}}
-";
+            interface I
+            {
+                void M({{refKind}} ReadOnlySpan<int> s);
+            }
 
-        var expected = $@"
-interface I
-{{
-    void M({refKind} string s);
-}}
+            class C : I
+            {
+                void I.$$
+            }
+            """;
 
-class C : I
-{{
-    void I.M({refKind} string s)
-    {{
-        throw new System.NotImplementedException();
-    }}
-}}
-";
+        var expected = $$"""
+            interface I
+            {
+                void M({{refKind}} ReadOnlySpan<int> s);
+            }
+
+            class C : I
+            {
+                void I.M({{refKind}} ReadOnlySpan<int> s)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
 
         await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
     }
