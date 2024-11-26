@@ -188,13 +188,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                     @"C",
                     @"",
                 ],
-                @"
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2") + @"
-" + WorkspacesResources.Before_colon + @"
+                $@"
+<<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2")}, {WorkspacesResources.Before_colon}
 A
-" + WorkspacesResources.After_colon + @"
+=======
 C
-*/
+>>>>>>> {WorkspacesResources.After}
 
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3") + @"
 " + WorkspacesResources.Removed_colon + @"

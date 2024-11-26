@@ -103,7 +103,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
 
                 <<<<<<< {header}, {WorkspacesResources.Before_colon}
                 {beforeString}
-                =======                
+                =======
                 {afterString}
                 >>>>>>> {WorkspacesResources.After}
 
