@@ -111,19 +111,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                     Four
                     """
                 ],
-                @"One
+                $"""
+                One
 
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Before_colon + @"
-Two
-Three
-" + WorkspacesResources.After_colon + @"
-TwoZ
-ThreeZ
-*/
-TwoY
-ThreeY
-Four",
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                Two
+                Three
+                =======
+                TwoZ
+                ThreeZ
+                >>>>>>> {WorkspacesResources.After}
+                TwoY
+                ThreeY
+                Four
+                """,
                 LanguageNames.CSharp);
         }
 
