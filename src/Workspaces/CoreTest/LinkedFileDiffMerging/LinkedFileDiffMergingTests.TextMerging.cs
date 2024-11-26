@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 C
                 >>>>>>> {WorkspacesResources.After}
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3")}, {WorkspaceResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3")}, {WorkspacesResources.Before_colon}
                 A
                 =======
                 >>>>>>> {WorkspacesResources.After}
