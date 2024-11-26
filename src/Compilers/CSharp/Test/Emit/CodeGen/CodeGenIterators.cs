@@ -445,7 +445,7 @@ class Program
 ");
             compilation.VerifyIL("Program.<Int0>d__0.System.IDisposable.Dispose()", @"
 {
-  // Code size       76 (0x4c)
+  // Code size       84 (0x54)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -510,7 +510,10 @@ class Program
     IL_0045:  call       ""void Program.<Int0>d__0.<>m__Finally1()""
     IL_004a:  endfinally
   }
-  IL_004b:  ret
+  IL_004b:  ldarg.0
+  IL_004c:  ldc.i4.s   -2
+  IL_004e:  stfld      ""int Program.<Int0>d__0.<>1__state""
+  IL_0053:  ret
 }
 ");
         }
@@ -3489,7 +3492,7 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "value value ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size       34 (0x22)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -3515,7 +3518,10 @@ class C
   IL_001a:  ldarg.0
   IL_001b:  ldnull
   IL_001c:  stfld      "string C.<Produce>d__0.<s>5__2"
-  IL_0021:  ret
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.s   -2
+  IL_0024:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0029:  ret
 }
 """);
         }
@@ -3562,7 +3568,7 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "value value exception True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size       34 (0x22)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -3588,7 +3594,10 @@ class C
   IL_001a:  ldarg.0
   IL_001b:  ldnull
   IL_001c:  stfld      "string C.<Produce>d__0.<s>5__2"
-  IL_0021:  ret
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.s   -2
+  IL_0024:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0029:  ret
 }
 """);
         }
@@ -3976,7 +3985,7 @@ class C
             var verifier = CompileAndVerify(src, expectedOutput: "value value outer True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size       55 (0x37)
+  // Code size       63 (0x3f)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4021,7 +4030,10 @@ class C
   IL_002f:  ldarg.0
   IL_0030:  ldnull
   IL_0031:  stfld      "string C.<Produce>d__0.<s>5__2"
-  IL_0036:  ret
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.s   -2
+  IL_0039:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_003e:  ret
 }
 """);
         }
@@ -4753,12 +4765,10 @@ class C
     }
 }
 """;
-            CreateCompilation(src).VerifyEmitDiagnostics();
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one disposing exception disposed False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size       27 (0x1b)
+  // Code size       35 (0x23)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4781,7 +4791,10 @@ class C
     IL_0014:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
     IL_0019:  endfinally
   }
-  IL_001a:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.s   -2
+  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0022:  ret
 }
 """);
         }
@@ -5042,7 +5055,6 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
@@ -5098,7 +5110,7 @@ class C
 
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
-  // Code size       27 (0x1b)
+  // Code size       35 (0x23)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5121,7 +5133,10 @@ class C
     IL_0014:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
     IL_0019:  endfinally
   }
-  IL_001a:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.s   -2
+  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0022:  ret
 }
 """);
         }

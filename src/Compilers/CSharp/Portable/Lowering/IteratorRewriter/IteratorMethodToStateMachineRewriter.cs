@@ -158,7 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentFunction = disposeMethod;
             var rootFrame = _currentFinallyFrame;
 
-            // TODO2
             if (rootFrame.knownStates == null)
             {
                 // nothing to finalize
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
                                     GenerateAllHoistedLocalsCleanup(),
-                                    //F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
                                     F.Return());
 
                 F.CloseMethod(disposeBody);
@@ -290,7 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundStatement GenerateReturn(bool finished)
         {
-            // TODO2
             BoundLiteral result = this.F.Literal(!finished);
 
             if (_tryNestingLevel == 0)
