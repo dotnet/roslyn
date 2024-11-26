@@ -883,8 +883,7 @@ class C : I
         await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
     public async Task TestWithParamsCollectionParameter()
     {
         var markup = """

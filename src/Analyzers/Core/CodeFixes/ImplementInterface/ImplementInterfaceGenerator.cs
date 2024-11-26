@@ -286,7 +286,7 @@ internal abstract partial class AbstractImplementInterfaceService
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
             var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
             return GenerateMembers(
-                compilation, member, memberName: member.Name, generateInvisibly: true,
+                compilation, member, conflictingMember: null, memberName: member.Name, generateInvisibly: true,
                 generateAbstractly: false, addNew: false, addUnsafe, propertyGenerationBehavior)
                     .ToImmutableArray();
         }

@@ -176,14 +176,14 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
         return SyntaxFactory.TokenList(result);
     }
 
-    internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, ScopedKind scopedKind, bool forFunctionPointerReturnParameter = false)
-        => (refKind, scopedKind) switch
-        {
-            (RefKind.None, ScopedKind.ScopedValue) => [ScopedKeyword],
-            (RefKind.Ref, ScopedKind.ScopedRef) => [ScopedKeyword, RefKeyword],
-            // Fallback into the other method to handle non-scoped cases
-            _ => GetParameterModifiers(refKind, forFunctionPointerReturnParameter),
-        };
+    //internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, ScopedKind scopedKind, bool forFunctionPointerReturnParameter = false)
+    //    => (refKind, scopedKind) switch
+    //    {
+    //        (RefKind.None, ScopedKind.ScopedValue) => [ScopedKeyword],
+    //        (RefKind.Ref, ScopedKind.ScopedRef) => [ScopedKeyword, RefKeyword],
+    //        // Fallback into the other method to handle non-scoped cases
+    //        _ => GetParameterModifiers(refKind, forFunctionPointerReturnParameter),
+    //    };
 
     public override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
         => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
