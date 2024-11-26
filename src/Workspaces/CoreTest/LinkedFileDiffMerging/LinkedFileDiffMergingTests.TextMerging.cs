@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -59,14 +57,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
             TestLinkedFileSet(
                 "a b c d e",
                 ["a b y d e", "a b z d e"],
-                @"
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Before_colon + @"
-a b c d e
-" + WorkspacesResources.After_colon + @"
-a b z d e
-*/
-a b y d e",
+                $"""
+
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                a b c d e
+                =======
+                a b z d e
+                >>>>>>> {WorkspacesResources.After}
+                a b y d e
+                """,
                 LanguageNames.CSharp);
         }
 
@@ -91,19 +90,25 @@ a q1 c z1 e",
         public void TestTwoConflictsOnAdjacentLines()
         {
             TestLinkedFileSet(
-                @"One
-Two
-Three
-Four",
+                """
+                One
+                Two
+                Three
+                Four
+                """,
                 [
-                    @"One
-TwoY
-ThreeY
-Four",
-                    @"One
-TwoZ
-ThreeZ
-Four"
+                    """
+                    One
+                    TwoY
+                    ThreeY
+                    Four
+                    """,
+                    """
+                    One
+                    TwoZ
+                    ThreeZ
+                    Four
+                    """
                 ],
                 @"One
 
@@ -125,22 +130,28 @@ Four",
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(
-                @"One;
-Two;
-Three;
-Four;
-Five;",
+                """
+                One;
+                Two;
+                Three;
+                Four;
+                Five;
+                """,
                 [
-                    @"One;
-TwoY;
-Three;
-FourY;
-Five;",
-                    @"One;
-TwoZ;
-Three;
-FourZ;
-Five;"
+                    """
+                    One;
+                    TwoY;
+                    Three;
+                    FourY;
+                    Five;
+                    """,
+                    """
+                    One;
+                    TwoZ;
+                    Three;
+                    FourZ;
+                    Five;
+                    """
                 ],
                 @"One;
 
