@@ -1349,6 +1349,21 @@
         }
       }
     },
+    // StackTraceExplorerOptionsStorage.OpenOnFocus
+    "textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus": {
+      "title": "@Stack_Trace_Explorer;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "StackTraceExplorer.Options.OpenOnFocus"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //

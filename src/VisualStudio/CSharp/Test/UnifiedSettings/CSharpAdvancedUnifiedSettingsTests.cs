@@ -41,6 +41,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -130,6 +131,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharp.advanced.inlayHints.enableInlayHintsForCollectionExpressions", InlineHintsOptionsStorage.ForCollectionExpressions),
                 ("textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin", InheritanceMarginOptionsStorage.ShowInheritanceMargin),
                 ("textEditor.csharp.advanced.inheritanceMargin.showGlobalImportsInInheritanceMargin", InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports),
+                ("textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus", StackTraceExplorerOptionsStorage.OpenOnFocus),
             ];
 
         internal override object[] GetEnumOptionValues(IOption2 option)
