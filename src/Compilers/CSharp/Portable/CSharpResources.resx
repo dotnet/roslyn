@@ -5536,6 +5536,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
   </data>
+  <data name="WRN_ExperimentalWithMessage" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</value>
+  </data>
+  <data name="WRN_ExperimentalWithMessage_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
+  </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
