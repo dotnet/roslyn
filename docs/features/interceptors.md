@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature planned to ship in .NET 8 (with support for C# only). The feature may be subject to breaking changes or removal in a future release.
+*Interceptors* is a C# compiler feature, first shipped experimentally in .NET 8.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
@@ -212,9 +212,9 @@ The reason we permit implicit receiver capture for the above intercepted call is
 
 ### Editor experience
 
-Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted. If this feature is brought forward past the experimental stage, this limitation will need to be re-examined.
+Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted.
 
-There is an experimental public API `GetInterceptorMethod(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` which enables analyzers to determine if a call is being intercepted, and if so, which method is intercepting the call. See https://github.com/dotnet/roslyn/issues/72093 for further details.
+`GetInterceptorMethod(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` enables analyzers to determine if a call is being intercepted, and if so, which method is intercepting the call. See https://github.com/dotnet/roslyn/issues/72093 for further details.
 
 ### User opt-in
 
