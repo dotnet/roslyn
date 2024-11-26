@@ -1866,17 +1866,18 @@ Class C
         Yield " two "
     End Function
 End Class
-
     </file>
 </compilation>
 
-            ' TODO2 bug
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed True two")
+            Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
 }
 ")
         End Sub
@@ -1909,18 +1910,20 @@ Class C
         Yield " two "
     End Function
 End Class
-
     </file>
 </compilation>
 
-            ' TODO2 bug
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed True two")
+            Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed False one")
             verifier.VerifyIL("C.VB$StateMachine_1_Produce.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}")
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_Produce.$State As Integer""
+  IL_0008:  ret
+}
+")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -1961,10 +1964,14 @@ End Class
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed disposed2 False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}")
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
+}
+")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2062,9 +2069,12 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
 }
 ")
         End Sub
@@ -2145,9 +2155,12 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
 }
 ")
         End Sub
@@ -2232,9 +2245,12 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
 }
 ")
         End Sub
@@ -2496,13 +2512,14 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
 }
 ")
-
-
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2607,9 +2624,12 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0008:  ret
 }
 ")
         End Sub

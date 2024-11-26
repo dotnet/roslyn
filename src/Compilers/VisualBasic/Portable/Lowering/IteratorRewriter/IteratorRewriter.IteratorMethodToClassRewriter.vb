@@ -115,7 +115,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Return()
                         ))
                 Else
-                    F.CloseMethod(F.Return())
+                    F.CloseMethod(F.Block(
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.FinishedState)),
+                        F.Return()
+                        ))
                 End If
             End Sub
 

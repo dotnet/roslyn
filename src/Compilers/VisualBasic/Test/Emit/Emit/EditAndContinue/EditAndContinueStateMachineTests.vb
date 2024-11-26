@@ -253,9 +253,12 @@ End Class
   IL_0018:  ret
 }
 {
-  // Code size        1 (0x1)
+  // Code size        9 (0x9)
   .maxstack  8
-  IL_0000:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      0x04000005
+  IL_0008:  ret
 }
 {
   // Code size       63 (0x3f)
