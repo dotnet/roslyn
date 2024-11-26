@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -105,8 +106,20 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
     {
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
-        var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(interfaceMember, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
+
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var addUnsafe = interfaceMember.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(info.ContextNode);
+        var implementedMembers = generator.GenerateMembers(
+            compilation,
+            interfaceMember,
+            conflictingMember: null,
+            memberName: interfaceMember.Name,
+            generateInvisibly: true,
+            generateAbstractly: false,
+            addNew: false,
+            addUnsafe,
+            options.PropertyGenerationBehavior);
 
         var singleImplemented = implementedMembers[0];
         Contract.ThrowIfNull(singleImplemented);

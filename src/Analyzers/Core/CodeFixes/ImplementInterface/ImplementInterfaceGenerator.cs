@@ -95,7 +95,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 new CodeGenerationSolutionContext(
                     this.Document.Project.Solution,
                     new CodeGenerationContext(
-                        contextLocation: State.ClassOrStructDecl.GetLocation(),
+                        contextLocation: State.ContextNode.GetLocation(),
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers)),
                 State.ClassOrStructType,
@@ -215,7 +215,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
+            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.ContextNode);
 
             return GenerateMembers(
                 compilation, member, conflictingMember, memberName, generateInvisibleMember, generateAbstractly,
@@ -277,20 +277,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return condition1 || condition2 || condition3;
         }
 
-        public async Task<ImmutableArray<ISymbol>> GenerateExplicitlyImplementedMembersAsync(
-            ISymbol member,
-            ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-            CancellationToken cancellationToken)
-        {
-            var compilation = await Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
-            return GenerateMembers(
-                compilation, member, conflictingMember: null, memberName: member.Name, generateInvisibly: true,
-                generateAbstractly: false, addNew: false, addUnsafe, propertyGenerationBehavior);
-        }
-
-        private ImmutableArray<ISymbol> GenerateMembers(
+        public ImmutableArray<ISymbol> GenerateMembers(
             Compilation compilation,
             ISymbol member,
             ISymbol? conflictingMember,

@@ -17,9 +17,7 @@ internal interface IImplementInterfaceInfo
     /// The specific declaration node for <see cref="ClassOrStructType"/> that the interface implementations should be
     /// added to.
     /// </summary>
-    SyntaxNode ClassOrStructDecl { get; }
-
-    SyntaxNode InterfaceNode { get; }
+    SyntaxNode ContextNode { get; }
 
     /// <summary>
     /// Set of interfaces to implement.  Normally a single interface (when a user invokes the code action on a single
