@@ -86,22 +86,23 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
             var document = project.Documents.FirstOrDefault(
                 d => d.FilePath is not null && PathUtilities.PathsEqual(d.FilePath, dynamicFileInfoFilePath));
 
-            var sourceText = document is null
-                ? SourceText.From("")
-                : await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var version = document is null
-                ? VersionStamp.Default
-                : await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-
             var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
-            var newText = sourceText.WithChanges(textChanges);
+            var textLoader = new TextChangesTextLoader(document, textChanges);
 
-            var textAndVersion = TextAndVersion.Create(newText, version.GetNewerVersion());
-            return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, TextLoader.From(textAndVersion), designTimeOnly: true, documentServiceProvider: null);
+            return new DynamicFileInfo(
+                dynamicFileInfoFilePath,
+                SourceCodeKind.Regular,
+                textLoader,
+                designTimeOnly: true,
+                documentServiceProvider: null);
         }
 
-        return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, EmptyStringTextLoader.Instance, designTimeOnly: true, documentServiceProvider: null);
+        return new DynamicFileInfo(
+            dynamicFileInfoFilePath,
+            SourceCodeKind.Regular,
+            EmptyStringTextLoader.Instance,
+            designTimeOnly: true,
+            documentServiceProvider: null);
     }
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
@@ -132,15 +133,31 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         return ValueTask.CompletedTask;
     }
 
-    private sealed class EmptyStringTextLoader : TextLoader
+    private sealed class EmptyStringTextLoader() : TextLoader
     {
         public static readonly TextLoader Instance = new EmptyStringTextLoader();
-
-        private EmptyStringTextLoader() { }
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             return Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Default));
         }
     }
+
+    private sealed class TextChangesTextLoader(Document? document, IEnumerable<TextChange> changes) : TextLoader
+    {
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        {
+            var sourceText = document is null
+                ? SourceText.From("")
+                : await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var version = document is null
+                ? VersionStamp.Default
+                : await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            var newText = sourceText.WithChanges(changes);
+            return TextAndVersion.Create(newText, version.GetNewerVersion());
+        }
+    }
+
 }
