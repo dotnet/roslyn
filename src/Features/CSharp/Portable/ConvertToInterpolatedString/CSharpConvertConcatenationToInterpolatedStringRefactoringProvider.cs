@@ -21,7 +21,13 @@ internal sealed class CSharpConvertConcatenationToInterpolatedStringRefactoringP
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler") != null;
 
     protected override string GetTextWithoutQuotes(string text, bool isVerbatim, bool isCharacterLiteral)
-        => isVerbatim
-            ? text.Substring("@'".Length, text.Length - "@''".Length)
-            : text.Substring("'".Length, text.Length - "''".Length);
+    {
+        var contents = isVerbatim
+            ? text["@'".Length..^1]
+            : text["'".Length..^1];
+
+        // If we have a '"', we need to escape that double quote accordingly depending on if we're producing a verbatim
+        // or normal string.
+        return isCharacterLiteral && contents is "\"" ? "\\\"" : contents;
+    }
 }

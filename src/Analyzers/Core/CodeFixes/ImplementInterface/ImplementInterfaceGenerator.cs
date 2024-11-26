@@ -157,9 +157,12 @@ internal abstract partial class AbstractImplementInterfaceService
                 State.ClassOrStructType.TypeParameters.Any(static (t, arg) => arg.self.IdentifiersMatch(t.Name, arg.name), (self: this, name));
         }
 
-        private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
+        private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers, out ISymbol? conflictingMember)
         {
-            if (HasConflictingMember(member, implementedVisibleMembers))
+            conflictingMember = null;
+
+            if (IsReservedName(member.Name) ||
+                HasConflictingMember(member, implementedVisibleMembers, out conflictingMember))
             {
                 var memberNames = State.ClassOrStructType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(State.ClassOrStructType).Select(m => m.Name);
 
@@ -194,7 +197,7 @@ internal abstract partial class AbstractImplementInterfaceService
             if (HasMatchingMember(implementedVisibleMembers, member))
                 return [];
 
-            var memberName = DetermineMemberName(member, implementedVisibleMembers);
+            var memberName = DetermineMemberName(member, implementedVisibleMembers, out var conflictingMember);
 
             // See if we need to generate an invisible member.  If we do, then reset the name
             // back to what then member wants it to be.
@@ -215,7 +218,7 @@ internal abstract partial class AbstractImplementInterfaceService
             var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
 
             return GenerateMembers(
-                compilation, member, memberName, generateInvisibleMember, generateAbstractly,
+                compilation, member, conflictingMember, memberName, generateInvisibleMember, generateAbstractly,
                 addNew, addUnsafe, propertyGenerationBehavior);
         }
 
@@ -277,6 +280,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private IEnumerable<ISymbol?> GenerateMembers(
             Compilation compilation,
             ISymbol member,
+            ISymbol? conflictingMember,
             string memberName,
             bool generateInvisibly,
             bool generateAbstractly,
@@ -294,11 +298,12 @@ internal abstract partial class AbstractImplementInterfaceService
 
             if (member is IMethodSymbol method)
             {
-                yield return GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
+                yield return GenerateMethod(
+                    compilation, method, conflictingMember as IMethodSymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
             }
             else if (member is IPropertySymbol property)
             {
-                foreach (var generated in GeneratePropertyMembers(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior))
+                foreach (var generated in GeneratePropertyMembers(compilation, property, conflictingMember as IPropertySymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior))
                     yield return generated;
             }
             else if (member is IEventSymbol @event)

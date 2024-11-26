@@ -107,7 +107,7 @@ internal static class PropertyGenerator
             AddAnnotationsTo(property, declaration));
     }
 
-    private static MemberDeclarationSyntax GeneratePropertyDeclaration(
+    private static PropertyDeclarationSyntax GeneratePropertyDeclaration(
        IPropertySymbol property, CodeGenerationDestination destination,
        CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
@@ -179,19 +179,15 @@ internal static class PropertyGenerator
     private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
         CSharpCodeGenerationContextInfo info, PropertyDeclarationSyntax declaration, CancellationToken cancellationToken)
     {
-        if (declaration.ExpressionBody == null)
+        if (declaration.ExpressionBody == null &&
+            declaration.Initializer == null &&
+            TryGetExpressionBody(
+                declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
+                out var expressionBody, out var semicolonToken))
         {
-            if (declaration.Initializer == null)
-            {
-                if (TryGetExpressionBody(
-                        declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
-                        out var expressionBody, out var semicolonToken))
-                {
-                    declaration = declaration.WithAccessorList(null)
-                                             .WithExpressionBody(expressionBody)
-                                             .WithSemicolonToken(semicolonToken);
-                }
-            }
+            declaration = declaration.WithAccessorList(null)
+                                     .WithExpressionBody(expressionBody)
+                                     .WithSemicolonToken(semicolonToken);
         }
 
         return declaration;

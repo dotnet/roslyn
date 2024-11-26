@@ -243,7 +243,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
         return SyntaxFactory.MethodDeclaration(
             attributeLists: default,
-            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
+            // Pass `withLeadingElasticMarker: true` to ensure method will space itself properly within the members it
+            // is added to.
+            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration, withLeadingElasticMarker: true),
             returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(VoidKeyword),
             explicitInterfaceSpecifier: null,
             identifier: name.ToIdentifierToken(),
@@ -1659,89 +1661,68 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             _ => declaration,
         };
 
-    private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers, SyntaxKind kind)
-        => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers);
+    private static SyntaxTokenList AsModifierList(
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        SyntaxKind kind,
+        bool withLeadingElasticMarker = false)
+        => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers, withLeadingElasticMarker);
 
-    private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers)
+    private static SyntaxTokenList AsModifierList(
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        bool withLeadingElasticMarker = false)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var list);
 
-        switch (accessibility)
+        list.AddRange((IEnumerable<SyntaxToken>)(accessibility switch
         {
-            case Accessibility.Internal:
-                list.Add(InternalKeyword);
-                break;
-            case Accessibility.Public:
-                list.Add(PublicKeyword);
-                break;
-            case Accessibility.Private:
-                list.Add(PrivateKeyword);
-                break;
-            case Accessibility.Protected:
-                list.Add(ProtectedKeyword);
-                break;
-            case Accessibility.ProtectedOrInternal:
-                list.Add(ProtectedKeyword);
-                list.Add(InternalKeyword);
-                break;
-            case Accessibility.ProtectedAndInternal:
-                list.Add(PrivateKeyword);
-                list.Add(ProtectedKeyword);
-                break;
-            case Accessibility.NotApplicable:
-                break;
-        }
+            Accessibility.Internal => [InternalKeyword],
+            Accessibility.Public => [PublicKeyword],
+            Accessibility.Private => [PrivateKeyword],
+            Accessibility.Protected => [ProtectedKeyword],
+            Accessibility.ProtectedOrInternal => [ProtectedKeyword, InternalKeyword],
+            Accessibility.ProtectedAndInternal => [PrivateKeyword, ProtectedKeyword],
+            _ => [],
+        }));
 
-        if (modifiers.IsFile)
-            list.Add(FileKeyword);
-
-        if (modifiers.IsAbstract)
-            list.Add(AbstractKeyword);
-
-        if (modifiers.IsNew)
-            list.Add(NewKeyword);
-
-        if (modifiers.IsSealed)
-            list.Add(SealedKeyword);
-
-        if (modifiers.IsOverride)
-            list.Add(OverrideKeyword);
-
-        if (modifiers.IsVirtual)
-            list.Add(VirtualKeyword);
-
-        if (modifiers.IsStatic)
-            list.Add(StaticKeyword);
-
-        if (modifiers.IsAsync)
-            list.Add(AsyncKeyword);
-
-        if (modifiers.IsConst)
-            list.Add(ConstKeyword);
-
-        if (modifiers.IsReadOnly)
-            list.Add(ReadOnlyKeyword);
-
-        if (modifiers.IsUnsafe)
-            list.Add(UnsafeKeyword);
-
-        if (modifiers.IsVolatile)
-            list.Add(VolatileKeyword);
-
-        if (modifiers.IsExtern)
-            list.Add(ExternKeyword);
-
-        if (modifiers.IsRequired)
-            list.Add(RequiredKeyword);
+        AddIf(modifiers.IsFile, FileKeyword);
+        AddIf(modifiers.IsAbstract, AbstractKeyword);
+        AddIf(modifiers.IsNew, NewKeyword);
+        AddIf(modifiers.IsSealed, SealedKeyword);
+        AddIf(modifiers.IsOverride, OverrideKeyword);
+        AddIf(modifiers.IsVirtual, VirtualKeyword);
+        AddIf(modifiers.IsStatic, StaticKeyword);
+        AddIf(modifiers.IsAsync, AsyncKeyword);
+        AddIf(modifiers.IsConst, ConstKeyword);
+        AddIf(modifiers.IsReadOnly, ReadOnlyKeyword);
+        AddIf(modifiers.IsUnsafe, UnsafeKeyword);
+        AddIf(modifiers.IsVolatile, VolatileKeyword);
+        AddIf(modifiers.IsExtern, ExternKeyword);
+        AddIf(modifiers.IsRequired, RequiredKeyword);
 
         // partial and ref must be last
-        if (modifiers.IsRef)
-            list.Add(RefKeyword);
+        AddIf(modifiers.IsRef, RefKeyword);
+        AddIf(modifiers.IsPartial, PartialKeyword);
 
-        if (modifiers.IsPartial)
-            list.Add(PartialKeyword);
+        for (int i = 0, n = list.Count; i < n; i++)
+        {
+            // By default, do not place leading elastic trivia on modifiers we make.  Just because something is
+            // adding/removing/modifying modifiers does not mean we want the parent construct to change its formatting
+            // respective to what's around it.
+            if (!withLeadingElasticMarker)
+                list[i] = list[i].WithoutLeadingTrivia();
+
+            list[i] = list[i].WithTrailingTrivia(SyntaxFactory.ElasticSpace);
+        }
 
         return [.. list];
+
+        void AddIf(bool test, SyntaxToken token)
+        {
+            if (test)
+                list.Add(token);
+        }
     }
 
     private protected override SyntaxNode TypeParameter(string name)

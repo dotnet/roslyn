@@ -167,7 +167,7 @@ public abstract class SyntaxGenerator : ILanguageService
         IEnumerable<SyntaxNode>? statements = null)
     {
         return MethodDeclaration(
-            name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers, statements);
+            name, parameters, typeParameters?.Select(TypeParameter), returnType, accessibility, modifiers, statements);
     }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
