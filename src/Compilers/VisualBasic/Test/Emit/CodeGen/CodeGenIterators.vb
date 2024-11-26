@@ -3072,6 +3072,5 @@ End Class
 
             CompileAndVerify(source2, expectedOutput:="True finally True")
         End Sub
-        'TODO2 document break in VB too
     End Class
 End Namespace
