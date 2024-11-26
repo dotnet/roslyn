@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
-                            => requiredMember is SourcePropertySymbol { IsAutoProperty: true } prop ? prop.BackingField : requiredMember;
+                            => requiredMember is SourcePropertySymbolBase { BackingField: { } backingField } ? backingField : requiredMember;
                     }
                 }
             }
@@ -7132,9 +7132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetOrCreateSlot(thisParameter);
             }
 
-            // The ContainingSymbol on a substituted local function is incorrect (returns the containing type instead of the containing method)
-            // so we can't find the proper `this` receiver to apply the member post-conditions to.
-            // Tracked by https://github.com/dotnet/roslyn/issues/75543
             return -1;
         }
 

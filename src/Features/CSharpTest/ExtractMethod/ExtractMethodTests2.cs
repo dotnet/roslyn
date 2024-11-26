@@ -840,7 +840,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
+                    Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -882,7 +882,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
+                    Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()

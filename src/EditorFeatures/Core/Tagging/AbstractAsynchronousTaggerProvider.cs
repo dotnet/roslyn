@@ -207,19 +207,29 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
         => textView?.GetCaretPoint(subjectBuffer);
 
     /// <summary>
-    /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine
-    /// the set of spans that it should asynchronously tag.  This will be called in response to
-    /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
-    /// will only be called from the UI thread.  The tagger infrastructure will then determine
-    /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
-    /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
-    /// the future to produce tags for these spans.
+    /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine the set of
+    /// spans that it should asynchronously tag.  This will be called in response to notifications from the <see
+    /// cref="ITaggerEventSource"/> that something has changed, and will only be called from the UI thread.  The tagger
+    /// infrastructure will then determine the <see cref="DocumentSnapshotSpan"/>s associated with these <see
+    /// cref="SnapshotSpan"/>s and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag},
+    /// CancellationToken)"/> at some point in the future to produce tags for these spans.
     /// </summary>
-    protected virtual void AddSpansToTag(
+    /// <returns><see langword="false"/> if spans could not be added and if tagging should abort and re-run at a later
+    /// point.  Note: <see langword="false"/> is not equivalent to <see langword="true"/> along with no spans returned.
+    /// The latter means we can proceed to actual tag computation, just that since there are no applicable spans, we
+    /// should produce no tags whatsoever. The former means 'we cannot even proceed to tagging', 'we should preserve
+    /// whatever tags we current have', and 'we should rerun tagging in the future to see if we can proceed'. Examples
+    /// of where <see langword="false"/> should be used include if the <paramref name="textView"/> needs to be queried
+    /// for data, but it is in a state where it cannot respond to queries (for example, it is in the process of a
+    /// layout).  In that case, we cannot proceed, and we do not want to clear existing tags.  Instead, we want to wait
+    /// a short while till the next applicable time to tag.
+    /// </returns>
+    protected virtual bool TryAddSpansToTag(
         ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
         result.Add(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        return true;
     }
 
     /// <summary>

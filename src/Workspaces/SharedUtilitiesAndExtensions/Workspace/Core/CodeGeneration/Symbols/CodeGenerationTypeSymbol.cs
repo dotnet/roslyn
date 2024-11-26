@@ -14,24 +14,18 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrTypeSymbol, ITypeSymbol
+internal abstract class CodeGenerationTypeSymbol(
+    IAssemblySymbol containingAssembly,
+    INamedTypeSymbol containingType,
+    ImmutableArray<AttributeData> attributes,
+    Accessibility declaredAccessibility,
+    DeclarationModifiers modifiers,
+    string name,
+    SpecialType specialType,
+    NullableAnnotation nullableAnnotation)
+    : CodeGenerationNamespaceOrTypeSymbol(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), ITypeSymbol
 {
-    public SpecialType SpecialType { get; protected set; }
-
-    protected CodeGenerationTypeSymbol(
-        IAssemblySymbol containingAssembly,
-        INamedTypeSymbol containingType,
-        ImmutableArray<AttributeData> attributes,
-        Accessibility declaredAccessibility,
-        DeclarationModifiers modifiers,
-        string name,
-        SpecialType specialType,
-        NullableAnnotation nullableAnnotation)
-        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
-    {
-        this.SpecialType = specialType;
-        this.NullableAnnotation = nullableAnnotation;
-    }
+    public SpecialType SpecialType { get; protected set; } = specialType;
 
     public abstract TypeKind TypeKind { get; }
 
@@ -77,7 +71,7 @@ internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrType
 
     public override bool IsType => true;
 
-    bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
+    bool ITypeSymbol.IsRefLikeType => false;
 
     bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
@@ -85,17 +79,10 @@ internal abstract class CodeGenerationTypeSymbol : CodeGenerationNamespaceOrType
 
     public virtual bool IsRecord => false;
 
-    public NullableAnnotation NullableAnnotation { get; }
+    public NullableAnnotation NullableAnnotation { get; } = nullableAnnotation;
 
     public ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation)
-    {
-        if (this.NullableAnnotation == nullableAnnotation)
-        {
-            return this;
-        }
-
-        return CloneWithNullableAnnotation(nullableAnnotation);
-    }
+        => this.NullableAnnotation == nullableAnnotation ? this : CloneWithNullableAnnotation(nullableAnnotation);
 
     protected sealed override CodeGenerationSymbol Clone()
         => CloneWithNullableAnnotation(this.NullableAnnotation);

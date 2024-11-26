@@ -10,14 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.CodeAnalysis.LanguageServer.UnitTests.LocaleTests;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
@@ -152,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var didReport = false;
             FatalError.OverwriteHandler((exception, severity, dumps) =>
             {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
                 {
                     didReport = true;
                 }
@@ -163,11 +161,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             await Assert.ThrowsAnyAsync<Exception>(async ()
                 => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
-
-            var provider = server.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(
-                server.TestWorkspace,
-                FeatureAttribute.LanguageServer);
 
             Assert.True(didReport);
         }
@@ -185,7 +178,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var didReport = false;
             FatalError.OverwriteHandler((exception, severity, dumps) =>
             {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
                 {
                     didReport = true;
                 }
@@ -196,11 +189,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             await Assert.ThrowsAnyAsync<Exception>(async ()
                 => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
-
-            var provider = server.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(
-                server.TestWorkspace,
-                FeatureAttribute.LanguageServer);
 
             Assert.False(didReport);
         }
@@ -218,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var didReport = false;
             FatalError.OverwriteHandler((exception, severity, dumps) =>
             {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
                 {
                     didReport = true;
                 }
@@ -248,7 +236,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var didReport = false;
             FatalError.OverwriteHandler((exception, severity, dumps) =>
             {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
                 {
                     didReport = true;
                 }
@@ -259,11 +247,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             await Assert.ThrowsAnyAsync<Exception>(async ()
                 => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
-
-            var provider = server.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(
-                server.TestWorkspace,
-                FeatureAttribute.LanguageServer);
 
             Assert.False(didReport);
         }
@@ -281,7 +264,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var didReport = false;
             FatalError.OverwriteHandler((exception, severity, dumps) =>
             {
-                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
                 {
                     didReport = true;
                 }

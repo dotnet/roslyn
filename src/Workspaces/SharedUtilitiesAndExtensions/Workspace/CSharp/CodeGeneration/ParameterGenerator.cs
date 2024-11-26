@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -76,7 +75,7 @@ internal static class ParameterGenerator
     private static SyntaxTokenList GenerateModifiers(
         IParameterSymbol parameter, bool isFirstParam)
     {
-        var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter.RefKind);
+        var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter);
 
         if (isFirstParam &&
             parameter.ContainingSymbol is IMethodSymbol methodSymbol &&

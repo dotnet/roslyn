@@ -215,7 +215,7 @@ internal sealed class ImplementAbstractClassData(
                 attributes: default,
                 accessibility: property.GetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetGetAccessorStatements(
-                    compilation, property, throughMember, preferAutoProperties))
+                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties))
             : null;
 
         var setMethod = ShouldGenerateAccessor(property.SetMethod)
@@ -224,7 +224,7 @@ internal sealed class ImplementAbstractClassData(
                 attributes: default,
                 accessibility: property.SetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetSetAccessorStatements(
-                    compilation, property, throughMember, preferAutoProperties))
+                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties))
             : null;
 
         return CodeGenerationSymbolFactory.CreatePropertySymbol(

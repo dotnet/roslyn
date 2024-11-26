@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public static ProjectInfo CreateProjectInfo(string projectName, string language = LanguageNames.CSharp)
             => ProjectInfo.Create(
-                ProjectId.CreateNewId(),
+                ProjectId.CreateNewId(debugName: projectName),
                 VersionStamp.Create(),
                 name: projectName,
                 assemblyName: projectName,
@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     NoCompilationConstants.LanguageName => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(language)
                 },
+                compilationOptions: TestOptions.DebugDll,
                 filePath: projectName + language switch
                 {
                     LanguageNames.CSharp => ".csproj",
