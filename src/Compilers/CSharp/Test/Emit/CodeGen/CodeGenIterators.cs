@@ -4385,6 +4385,36 @@ class C
   IL_0008:  ret
 }
 """);
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(object.ReferenceEquals(enumerable, enumerator));
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+enumerator.Dispose();
+
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+enumerator.Dispose();
+enumerator.Dispose();
+
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce()
+    {
+        yield return 42;
+        yield return 43;
+    }
+}
+""";
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrueTrueTrue").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4499,7 +4529,6 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one False one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
@@ -4561,6 +4590,30 @@ class C
   IL_0008:  ret
 }
 """);
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce(true);
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+System.Console.Write(!enumerator.MoveNext());
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce(bool b)
+    {
+        yield return 42;
+        if (b) yield break;
+        yield return 43;
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished"
+            // Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4588,7 +4641,6 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one done False one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
@@ -4636,12 +4688,34 @@ class C
   IL_0008:  ret
 }
 """);
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce(true);
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+System.Console.Write(!enumerator.MoveNext());
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce(bool b)
+    {
+        yield return 42;
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished"
+            // Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
         public void StateAfterMoveNext_ThrowException()
         {
-            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            // When an exception is thrown and propagated out of the iterator block ... The state of the enumerator object is changed to after.
             string src = """
 var enumerator = C.GetEnumerator(true);
 
@@ -4671,7 +4745,6 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one exception one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
@@ -4718,6 +4791,35 @@ class C
   IL_0008:  ret
 }
 """);
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+try
+{
+    _ = enumerator.MoveNext();
+}
+catch (System.Exception)
+{
+    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+}
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce()
+    {
+        yield return 42;
+        throw new System.Exception("exception");
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished"
+            // Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(src2, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4797,6 +4899,41 @@ class C
   IL_0022:  ret
 }
 """);
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+try
+{
+    enumerator.Dispose();
+}
+catch (System.Exception)
+{
+    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+}
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce()
+    {
+        try
+        {
+            yield return 42;
+        }
+        finally
+        {
+            throw new System.Exception("exception");
+        }
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished"
+            // Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(src2, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4834,7 +4971,6 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one finally False one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
@@ -4910,12 +5046,43 @@ class C
   IL_0008:  ret
 }
 """);
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce(true);
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+System.Console.Write(!enumerator.MoveNext());
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce(bool b)
+    {
+        yield return 42;
+        try
+        {
+            if (b) yield break;
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+        yield return 43;
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished"
+            // Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(src2, expectedOutput: "TrueTrue finally TrueFalse").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
         public void StateAfterMoveNext_ThrowException_InTryFinally()
         {
-            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            // When an exception is thrown and propagated out of the iterator block: ... The state of the enumerator object is changed to after.
             string src = """
 var enumerator = C.GetEnumerator(true);
 
@@ -4957,7 +5124,6 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
@@ -5013,12 +5179,51 @@ class C
   IL_0008:  ret
 }
 """);
+
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+
+try
+{
+    _ = enumerator.MoveNext();
+}
+catch (System.Exception)
+{
+    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+}
+
+enumerator.Dispose();
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce()
+    {
+        yield return 42;
+        try
+        {
+            throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+    }
+}
+""";
+            // We're not setting the state to "after"/"finished"
+            // Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(src2, expectedOutput: "True finally FalseTrue").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
         public void StateAfterMoveNext_ThrowException_InTryFinally_WithYieldInTry()
         {
-            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+            // When an exception is thrown and propagated out of the iterator block: ... The state of the enumerator object is changed to after.
             string src = """
 var enumerator = C.GetEnumerator(true);
 
@@ -5139,6 +5344,40 @@ class C
   IL_0022:  ret
 }
 """);
+
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+
+try
+{
+    _ = enumerator.MoveNext();
+}
+catch (System.Exception)
+{
+    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+}
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce()
+    {
+        try
+        {
+            yield return 42;
+            throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+    }
+}
+""";
+            CompileAndVerify(src2, expectedOutput: "True finally True").VerifyDiagnostics();
         }
     }
 }
