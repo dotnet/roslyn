@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Iterator)]
     public class CodeGenIterators : CSharpTestBase
     {
         [Fact]
@@ -4808,6 +4809,9 @@ catch (System.Exception)
     System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 }
 
+enumerator.Dispose();
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
@@ -4819,7 +4823,7 @@ class C
 """;
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrueFalseTrue").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]

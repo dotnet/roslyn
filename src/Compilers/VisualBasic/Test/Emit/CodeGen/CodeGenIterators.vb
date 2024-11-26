@@ -3070,7 +3070,9 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source2, expectedOutput:="True finally True")
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="True finally False")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
