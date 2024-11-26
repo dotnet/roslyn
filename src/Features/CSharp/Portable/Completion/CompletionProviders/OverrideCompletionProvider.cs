@@ -18,17 +18,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(PreprocessorCompletionProvider))]
-[Shared]
-internal sealed partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class OverrideCompletionProvider() : AbstractOverrideCompletionProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public OverrideCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override SyntaxNode GetSyntax(SyntaxToken token)

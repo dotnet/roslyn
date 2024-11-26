@@ -13,27 +13,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract partial class AbstractOverrideCompletionProvider
 {
-    private sealed partial class ItemGetter : AbstractItemGetter<AbstractOverrideCompletionProvider>
+    private sealed partial class ItemGetter(
+        AbstractOverrideCompletionProvider overrideCompletionProvider,
+        Document document,
+        int position,
+        SourceText text,
+        SyntaxTree syntaxTree,
+        int startLineNumber,
+        CancellationToken cancellationToken)
+        : AbstractItemGetter<AbstractOverrideCompletionProvider>(
+            overrideCompletionProvider,
+            document,
+            position,
+            text,
+            syntaxTree,
+            startLineNumber,
+            cancellationToken)
     {
-        private ItemGetter(
-            AbstractOverrideCompletionProvider overrideCompletionProvider,
-            Document document,
-            int position,
-            SourceText text,
-            SyntaxTree syntaxTree,
-            int startLineNumber,
-            CancellationToken cancellationToken)
-            : base(
-                  overrideCompletionProvider,
-                  document,
-                  position,
-                  text,
-                  syntaxTree,
-                  startLineNumber,
-                  cancellationToken)
-        {
-        }
-
         public static async Task<ItemGetter> CreateAsync(
             AbstractOverrideCompletionProvider overrideCompletionProvider,
             Document document,
