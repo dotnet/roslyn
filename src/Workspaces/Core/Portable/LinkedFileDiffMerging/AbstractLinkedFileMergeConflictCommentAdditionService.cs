@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis;
 
 internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : IMergeConflictHandler, ILanguageService, ILinkedFileMergeConflictCommentAdditionService
 {
-    protected abstract string? GetLanguageSpecificConflictCommentText(string header, string? beforeString, string? afterString);
-
     public ImmutableArray<TextChange> CreateEdits(SourceText originalSourceText, ArrayBuilder<UnmergedDocumentChanges> unmergedChanges)
     {
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var commentChanges);
@@ -62,7 +60,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
         return partitionedChanges;
     }
 
-    private ImmutableArray<TextChange> GetCommentChangesForDocument(IEnumerable<IEnumerable<TextChange>> partitionedChanges, string projectName, SourceText oldDocumentText)
+    private static ImmutableArray<TextChange> GetCommentChangesForDocument(IEnumerable<IEnumerable<TextChange>> partitionedChanges, string projectName, SourceText oldDocumentText)
     {
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var commentChanges);
 
@@ -90,7 +88,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
         return commentChanges.ToImmutableAndClear();
     }
 
-    private string? GetConflictCommentText(string header, string? beforeString, string? afterString)
+    private static string? GetConflictCommentText(string header, string? beforeString, string? afterString)
     {
         // Whitespace only
         if (beforeString == null && afterString == null)
@@ -110,7 +108,26 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
                 """;
         }
 
-        return GetLanguageSpecificConflictCommentText(header, beforeString, afterString);
+        if (beforeString == null)
+        {
+            return $"""
+
+                <<<<<<< {header}, {WorkspacesResources.Before_colon}
+                =======
+                {afterString}
+                >>>>>>> {WorkspacesResources.After}
+
+                """;
+        }
+
+        return $"""
+
+            <<<<<<< {header}, {WorkspacesResources.Before_colon}
+            {beforeString}
+            =======
+            >>>>>>> {WorkspacesResources.After}
+
+            """;
     }
 
     private static string? TrimBlankLines(SourceText text)

@@ -12,37 +12,4 @@ namespace Microsoft.CodeAnalysis.CSharp;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpLinkedFileMergeConflictCommentAdditionService()
-    : AbstractLinkedFileMergeConflictCommentAdditionService
-{
-    protected override string? GetLanguageSpecificConflictCommentText(string header, string? beforeString, string? afterString)
-    {
-        if (beforeString == null)
-        {
-            // New code
-            return $"""
-
-                /* {header}
-                {WorkspacesResources.Added_colon}
-                {afterString}
-                */
-
-                """;
-        }
-        else if (afterString == null)
-        {
-            // Removed code
-            return $"""
-
-                /* {header}
-                {WorkspacesResources.Removed_colon}
-                {beforeString}
-                */
-
-                """;
-        }
-        else
-        {
-            return null;
-        }
-    }
-}
+    : AbstractLinkedFileMergeConflictCommentAdditionService;
