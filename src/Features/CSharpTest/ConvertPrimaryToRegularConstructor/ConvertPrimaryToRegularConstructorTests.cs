@@ -2468,14 +2468,13 @@ public sealed class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    public C(int i)
-                    {
-                    }
 
                     #region constructors
 
                     #endregion
-
+                    public C(int i)
+                    {
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -2725,19 +2724,16 @@ public sealed class ConvertPrimaryToRegularConstructorTests
         await new VerifyCS.Test
         {
             TestCode = """
-                class Class1();
+                class [|Class1()|];
                 """,
             FixedCode = """
-                class C<T>
+                class Class1
                 {
-                    private const int Default = 0;
-                    private int _i;
-
-                    public C(int i = Default)
+                    public Class1()
                     {
-                        _i = i;
                     }
                 }
+
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
