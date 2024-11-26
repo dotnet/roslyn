@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -51,13 +50,11 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         Contract.ThrowIfNull(state);
 
         var options = await newDocument.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var configuration = new ImplementInterfaceConfiguration()
-        {
-            Explicitly = true,
-        };
 
+        // Implement this member explicitly in the implementing type, and return the resultant member to actually
+        // generate into the right declaration location.
         return await implementInterfaceService.ImplementInterfaceMemberAsync(
-            newDocument, state, member, options, configuration, cancellationToken).ConfigureAwait(false);
+            newDocument, state, member, options, new() { Explicitly = true }, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<SyntaxNode?> GetInterfaceNodeInCompletionAsync(

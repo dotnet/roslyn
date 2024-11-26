@@ -277,7 +277,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return condition1 || condition2 || condition3;
         }
 
-        public async Task<ImmutableArray<ISymbol?>> GenerateExplicitlyImplementedMembersAsync(
+        public async Task<ImmutableArray<ISymbol>> GenerateExplicitlyImplementedMembersAsync(
             ISymbol member,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
             CancellationToken cancellationToken)
@@ -287,11 +287,10 @@ internal abstract partial class AbstractImplementInterfaceService
             var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.InterfaceNode);
             return GenerateMembers(
                 compilation, member, conflictingMember: null, memberName: member.Name, generateInvisibly: true,
-                generateAbstractly: false, addNew: false, addUnsafe, propertyGenerationBehavior)
-                    .ToImmutableArray();
+                generateAbstractly: false, addNew: false, addUnsafe, propertyGenerationBehavior);
         }
 
-        private IEnumerable<ISymbol?> GenerateMembers(
+        private ImmutableArray<ISymbol> GenerateMembers(
             Compilation compilation,
             ISymbol member,
             ISymbol? conflictingMember,
@@ -310,20 +309,18 @@ internal abstract partial class AbstractImplementInterfaceService
                 ? Accessibility.Public
                 : Accessibility.Private;
 
-            if (member is IMethodSymbol method)
+            switch (member)
             {
-                yield return GenerateMethod(
-                    compilation, method, conflictingMember as IMethodSymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName);
+                case IMethodSymbol method:
+                    return [GenerateMethod(compilation, method, conflictingMember as IMethodSymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName)];
+                case IPropertySymbol property:
+                    GeneratePropertyMembers(compilation, property, conflictingMember as IPropertySymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior);
+                    break;
+                case IEventSymbol @event:
+                    return [GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event)];
             }
-            else if (member is IPropertySymbol property)
-            {
-                foreach (var generated in GeneratePropertyMembers(compilation, property, conflictingMember as IPropertySymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior))
-                    yield return generated;
-            }
-            else if (member is IEventSymbol @event)
-            {
-                yield return GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event);
-            }
+
+            return [];
         }
 
         private ISymbol GenerateEvent(Compilation compilation, string memberName, bool generateInvisibly, SyntaxGenerator factory, DeclarationModifiers modifiers, bool useExplicitInterfaceSymbol, Accessibility accessibility, IEventSymbol @event)
