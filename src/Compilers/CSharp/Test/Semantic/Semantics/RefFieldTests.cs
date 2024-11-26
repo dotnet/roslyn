@@ -22681,6 +22681,83 @@ using @scoped = System.Int32;
             }
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void UnscopedRefAttribute_RefSafetyRules_Reference_SynthesizedDelegate_03()
+        {
+            var source1 = """
+                using System.Diagnostics.CodeAnalysis;
+                public static class C
+                {
+                    public static void M([UnscopedRef] ref int x, ref R r)
+                    {
+                        r.F = ref x;
+                    }
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                int x = 1;
+                R r = default;
+                C.M(ref x, ref r);
+                var d = C.M;
+                d(ref x, ref r);
+                """;
+            // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
+            CreateCompilation([source2, UnscopedRefAttributeDefinition], [ref1],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (3,1): error CS8350: This combination of arguments to 'C.M(ref int, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // C.M(ref x, ref r);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "C.M(ref x, ref r)").WithArguments("C.M(ref int, ref R)", "x").WithLocation(3, 1),
+                // (3,9): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                // C.M(ref x, ref r);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate()
+        {
+            var source1 = """
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                R r;
+                {
+                    int x = 1;
+                    r = C.M(ref x);
+
+                    var d = C.M;
+                    r = d(ref x);
+                }
+                """;
+            // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
+            CreateCompilation([source2, UnscopedRefAttributeDefinition], [ref1],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,9): error CS8347: Cannot use a result of 'C.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //     r = C.M(ref x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "C.M(ref x)").WithArguments("C.M(ref int)", "x").WithLocation(4, 9),
+                // (4,17): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //     r = C.M(ref x);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 17));
+        }
+
         [Theory]
         [InlineData("struct")]
         [InlineData("ref struct")]
