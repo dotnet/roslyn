@@ -165,21 +165,13 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
             document, completionItem, semanticModel.Compilation, member, containingType, cancellationToken).ConfigureAwait(false);
         generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
-        Document? memberContainingDocument = null;
-        if (generatedMember.Kind == SymbolKind.Method)
+        return generatedMember switch
         {
-            memberContainingDocument = await codeGenService.AddMethodAsync(context, containingType, (IMethodSymbol)generatedMember, cancellationToken).ConfigureAwait(false);
-        }
-        else if (generatedMember.Kind == SymbolKind.Property)
-        {
-            memberContainingDocument = await codeGenService.AddPropertyAsync(context, containingType, (IPropertySymbol)generatedMember, cancellationToken).ConfigureAwait(false);
-        }
-        else if (generatedMember.Kind == SymbolKind.Event)
-        {
-            memberContainingDocument = await codeGenService.AddEventAsync(context, containingType, (IEventSymbol)generatedMember, cancellationToken).ConfigureAwait(false);
-        }
-
-        return memberContainingDocument;
+            IMethodSymbol method => await codeGenService.AddMethodAsync(context, containingType, method, cancellationToken).ConfigureAwait(false),
+            IPropertySymbol property => await codeGenService.AddPropertyAsync(context, containingType, property, cancellationToken).ConfigureAwait(false),
+            IEventSymbol @event => await codeGenService.AddEventAsync(context, containingType, @event, cancellationToken).ConfigureAwait(false),
+            _ => document
+        };
     }
 
     private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
