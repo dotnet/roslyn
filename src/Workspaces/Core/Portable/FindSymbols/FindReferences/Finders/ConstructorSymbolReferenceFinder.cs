@@ -294,7 +294,7 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
                     state.Document,
                     alias: null,
                     token.GetLocation(),
-                    isImplicit: true,
+                    isImplicit: false,
                     GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
                 processResult(result, processResultData);
