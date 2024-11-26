@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt, bool mightEscapeTemporaryRefs)
+        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
             Debug.Assert(arguments.Length == parameters.Length ||
@@ -953,19 +953,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length ||
                 (argRefKindsOpt.Length == arguments.Length - 1 && arguments is [.., BoundArgListOperator]), "if we have argRefKinds, we should have one for each argument");
 
-            var oldTempRefsMightEscape = _tempRefsMightEscape;
-            if (mightEscapeTemporaryRefs)
-            {
-                _tempRefsMightEscape = true;
-            }
-
             for (int i = 0; i < arguments.Length; i++)
             {
                 RefKind argRefKind = GetArgumentRefKind(arguments, parameters, argRefKindsOpt, i);
                 EmitArgument(arguments[i], argRefKind);
             }
-
-            _tempRefsMightEscape = oldTempRefsMightEscape;
         }
 
         /// <summary>
@@ -1668,11 +1660,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(method.IsStatic);
 
-            EmitArguments(
-                arguments,
-                method.Parameters,
-                call.ArgumentRefKindsOpt,
-                mightEscapeTemporaryRefs: MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused, receiverAddressKind: null));
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
+            EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused, receiverAddressKind: null));
+
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
             if (method.IsAbstract || method.IsVirtual)
@@ -1701,7 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             AddressKind? addressKind;
             bool box;
             LocalDefinition tempOpt;
-            bool mightEscapeTemporaryRefs;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
 
             if (receiverIsInstanceCall(call, out BoundCall nested))
             {
@@ -1717,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 callKind = determineEmitReceiverStrategy(call, out addressKind, out box);
-                emitReceiver(call, callKind, addressKind, box, out tempOpt, out mightEscapeTemporaryRefs);
+                emitReceiver(call, callKind, addressKind, box, out tempOpt);
 
                 while (calls.Count != 0)
                 {
@@ -1767,11 +1762,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         }
                     }
 
-                    emitArgumentsAndCallEpilogue(call, callKind, receiverUseKind,
-                        mightEscapeTemporaryRefs: MightEscapeTemporaryRefs(
-                            call,
-                            used: useKind != UseKind.Unused,
-                            receiverAddressKind: receiverUseKind != UseKind.UsedAsAddress ? null : addressKind));
+                    emitArgumentsAndCallEpilogue(call, callKind, receiverUseKind);
+
+                    _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
+                        call,
+                        used: useKind != UseKind.Unused,
+                        receiverAddressKind: receiverUseKind != UseKind.UsedAsAddress ? null : addressKind));
+
+                    countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
                     FreeOptTemp(tempOpt);
                     tempOpt = null;
 
@@ -1828,10 +1827,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 callKind = determineEmitReceiverStrategy(call, out addressKind, out box);
-                emitReceiver(call, callKind, addressKind, box, out tempOpt, out mightEscapeTemporaryRefs);
+                emitReceiver(call, callKind, addressKind, box, out tempOpt);
             }
 
-            emitArgumentsAndCallEpilogue(call, callKind, useKind, mightEscapeTemporaryRefs);
+            emitArgumentsAndCallEpilogue(call, callKind, useKind);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
+                call,
+                used: useKind != UseKind.Unused,
+                receiverAddressKind: useKind != UseKind.UsedAsAddress ? null : addressKind));
+
             FreeOptTemp(tempOpt);
 
             return;
@@ -1928,12 +1933,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            void emitReceiver(BoundCall call, CallKind callKind, AddressKind? addressKind, bool box, out LocalDefinition tempOpt, out bool mightEscapeTemporaryRefs)
+            void emitReceiver(BoundCall call, CallKind callKind, AddressKind? addressKind, bool box, out LocalDefinition tempOpt)
             {
                 var receiver = call.ReceiverOpt;
                 var receiverType = receiver.Type;
                 tempOpt = null;
-                mightEscapeTemporaryRefs = MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused, receiverAddressKind: addressKind);
 
                 if (addressKind is null)
                 {
@@ -1950,18 +1954,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(!receiverType.IsVerifierReference());
                     tempOpt = EmitReceiverRef(receiver, addressKind.GetValueOrDefault());
 
-                    if (mightEscapeTemporaryRefs)
-                    {
-                        AddBlockTemp(tempOpt);
-                        tempOpt = null;
-                    }
-
                     emitGenericReceiverCloneIfNecessary(call, callKind, ref tempOpt);
                 }
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            void emitArgumentsAndCallEpilogue(BoundCall call, CallKind callKind, UseKind useKind, bool mightEscapeTemporaryRefs)
+            void emitArgumentsAndCallEpilogue(BoundCall call, CallKind callKind, UseKind useKind)
             {
                 var method = call.Method;
                 var receiver = call.ReceiverOpt;
@@ -2015,11 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var arguments = call.Arguments;
-                EmitArguments(
-                    arguments,
-                    method.Parameters,
-                    call.ArgumentRefKindsOpt,
-                    mightEscapeTemporaryRefs: mightEscapeTemporaryRefs);
+                EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
                 int stackBehavior = GetCallStackBehavior(method, arguments);
                 switch (callKind)
                 {
@@ -2474,11 +2468,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // none of the above cases, so just create an instance
-                EmitArguments(
-                    expression.Arguments,
-                    constructor.Parameters,
-                    expression.ArgumentRefKindsOpt,
-                    mightEscapeTemporaryRefs: MightEscapeTemporaryRefs(expression, used));
+
+                var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
+                EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
+
+                _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                    MightEscapeTemporaryRefs(expression, used));
 
                 var stackAdjustment = GetObjCreationStackBehavior(expression);
                 _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
@@ -2736,11 +2732,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
-            EmitArguments(
-                objCreation.Arguments,
-                constructor.Parameters,
-                objCreation.ArgumentRefKindsOpt,
-                mightEscapeTemporaryRefs: MightEscapeTemporaryRefs(objCreation, used));
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
+            EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(objCreation, used));
+
             // -2 to adjust for consumed target address and not produced value.
             var stackAdjustment = GetObjCreationStackBehavior(objCreation) - 2;
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment);
@@ -4063,11 +4062,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
-            EmitArguments(
-                ptrInvocation.Arguments,
-                method.Parameters,
-                ptrInvocation.ArgumentRefKindsOpt,
-                mightEscapeTemporaryRefs: MightEscapeTemporaryRefs(ptrInvocation, used: useKind != UseKind.Unused));
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
+            EmitArguments(ptrInvocation.Arguments, method.Parameters, ptrInvocation.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(ptrInvocation, used: useKind != UseKind.Unused));
+
             var stackBehavior = GetCallStackBehavior(ptrInvocation.FunctionPointer.Signature, ptrInvocation.Arguments);
 
             if (temp is object)

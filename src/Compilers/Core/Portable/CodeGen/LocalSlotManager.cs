@@ -67,6 +67,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // pool of free slots partitioned by their signature.
         private KeyedStack<LocalSignature, LocalDefinition>? _freeSlots;
 
+        // these locals cannot be added to "FreeSlots"
+        private HashSet<LocalDefinition>? _nonReusableLocals;
+
+        // locals whose address has been taken
+        private ArrayBuilder<LocalDefinition>? _addressedLocals;
+
         // all locals in order
         private ArrayBuilder<Cci.ILocalDefinition>? _lazyAllLocals;
 
@@ -246,7 +252,59 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void FreeSlot(LocalDefinition slot)
         {
             Debug.Assert(slot.Name == null);
-            FreeSlots.Push(new LocalSignature(slot.Type, slot.Constraints), slot);
+
+            if (_nonReusableLocals?.Contains(slot) != true)
+            {
+                FreeSlots.Push(new LocalSignature(slot.Type, slot.Constraints), slot);
+            }
+        }
+
+        internal void MarkLocalAsNotReusable(LocalDefinition slot)
+        {
+            _nonReusableLocals ??= new HashSet<LocalDefinition>(ReferenceEqualityComparer.Instance);
+            _nonReusableLocals.Add(slot);
+        }
+
+        internal int? StartScopeOfTrackingAddressedLocals()
+        {
+            if (_addressedLocals is null)
+            {
+                _addressedLocals = ArrayBuilder<LocalDefinition>.GetInstance();
+                return null;
+            }
+
+            return _addressedLocals.Count;
+        }
+
+        internal void AddAddressedLocal(LocalDefinition localDef)
+        {
+            if (localDef != null)
+            {
+                _addressedLocals?.Add(localDef);
+            }
+        }
+
+        internal void EndScopeOfTrackingAddressedLocals(int? countBefore, bool markAsNotReusable)
+        {
+            Debug.Assert(_addressedLocals != null);
+
+            if (markAsNotReusable)
+            {
+                for (var i = countBefore ?? 0; i < _addressedLocals.Count; i++)
+                {
+                    MarkLocalAsNotReusable(_addressedLocals[i]);
+                }
+            }
+
+            if (countBefore is { } c)
+            {
+                _addressedLocals.Count = c;
+            }
+            else
+            {
+                _addressedLocals.Free();
+                _addressedLocals = null;
+            }
         }
 
         public ImmutableArray<Cci.ILocalDefinition> LocalsInOrder()

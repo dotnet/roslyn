@@ -10401,15 +10401,17 @@ public struct Vec4
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.FailsPEVerify)
                 .VerifyDiagnostics()
-                // Two int and two R temps are enough.
+                // Two int and two R temps would be enough, but the emit layer currently does not take blocks into account.
                 .VerifyIL("<top-level-statements-entry-point>", """
                     {
-                      // Code size       88 (0x58)
+                      // Code size       90 (0x5a)
                       .maxstack  2
                       .locals init (R V_0, //r2
                                     int V_1,
                                     int V_2,
-                                    R V_3) //r2
+                                    R V_3, //r2
+                                    int V_4,
+                                    int V_5)
                       IL_0000:  ldc.i4.s   111
                       IL_0002:  stloc.1
                       IL_0003:  ldloca.s   V_1
@@ -10426,21 +10428,21 @@ public struct Vec4
                       IL_0024:  ldind.i4
                       IL_0025:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
                       IL_002a:  ldc.i4     0x14d
-                      IL_002f:  stloc.1
-                      IL_0030:  ldloca.s   V_1
-                      IL_0032:  newobj     "R..ctor(in int)"
-                      IL_0037:  ldc.i4     0x1bc
-                      IL_003c:  stloc.2
-                      IL_003d:  ldloca.s   V_2
-                      IL_003f:  newobj     "R..ctor(in int)"
-                      IL_0044:  stloc.3
-                      IL_0045:  ldfld      "ref readonly int R.F"
-                      IL_004a:  ldind.i4
-                      IL_004b:  ldloc.3
-                      IL_004c:  ldfld      "ref readonly int R.F"
-                      IL_0051:  ldind.i4
-                      IL_0052:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
-                      IL_0057:  ret
+                      IL_002f:  stloc.s    V_4
+                      IL_0031:  ldloca.s   V_4
+                      IL_0033:  newobj     "R..ctor(in int)"
+                      IL_0038:  ldc.i4     0x1bc
+                      IL_003d:  stloc.s    V_5
+                      IL_003f:  ldloca.s   V_5
+                      IL_0041:  newobj     "R..ctor(in int)"
+                      IL_0046:  stloc.3
+                      IL_0047:  ldfld      "ref readonly int R.F"
+                      IL_004c:  ldind.i4
+                      IL_004d:  ldloc.3
+                      IL_004e:  ldfld      "ref readonly int R.F"
+                      IL_0053:  ldind.i4
+                      IL_0054:  call       "void Program.<<Main>$>g__Report|0_0(int, int)"
+                      IL_0059:  ret
                     }
                     """);
         }
@@ -10837,23 +10839,24 @@ public struct Vec4
                 """;
             CompileAndVerify(source)
                 .VerifyDiagnostics()
-                // One int temp would be enough. But currently the emit layer does not see the argument is a discard.
+                // One int and one R temp would be enough. But currently the emit layer does not see the argument is a discard.
                 .VerifyIL("<top-level-statements-entry-point>", """
                     {
                       // Code size       28 (0x1c)
                       .maxstack  2
                       .locals init (R V_0,
                                     int V_1,
-                                    int V_2)
+                                    R V_2,
+                                    int V_3)
                       IL_0000:  ldc.i4.s   111
                       IL_0002:  stloc.1
                       IL_0003:  ldloca.s   V_1
                       IL_0005:  ldloca.s   V_0
                       IL_0007:  call       "void Program.<<Main>$>g__M|0_0(in int, out R)"
                       IL_000c:  ldc.i4     0xde
-                      IL_0011:  stloc.2
-                      IL_0012:  ldloca.s   V_2
-                      IL_0014:  ldloca.s   V_0
+                      IL_0011:  stloc.3
+                      IL_0012:  ldloca.s   V_3
+                      IL_0014:  ldloca.s   V_2
                       IL_0016:  call       "void Program.<<Main>$>g__M|0_0(in int, out R)"
                       IL_001b:  ret
                     }
