@@ -144,6 +144,12 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? IReadOnlyListOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
 
+    public static INamedTypeSymbol? ISetOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName!);
+
+    public static INamedTypeSymbol? IReadOnlySetOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
+
     public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
 
