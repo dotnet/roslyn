@@ -23,30 +23,30 @@ public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCode
     [WorkItem("https://github.com/dotnet/roslyn/issues/48133")]
     public async Task SimpleAutoPropertyTest(string setter)
     {
-        var text = $@"
-class TestClass
-{{
-    public int G[||]oo {{ get; {setter}; }}
-}}
-";
-        var expected = $@"
-class TestClass
-{{
-    private int goo;
+        var text = $$"""
+            class TestClass
+            {
+                public int G[||]oo { get; {{setter}}; }
+            }
+            """;
+        var expected = $$"""
+            class TestClass
+            {
+                private int goo;
 
-    public int Goo
-    {{
-        get
-        {{
-            return goo;
-        }}
-        {setter}
-        {{
-            goo = value;
-        }}
-    }}
-}}
-";
+                public int Goo
+                {
+                    get
+                    {
+                        return goo;
+                    }
+                    {{setter}}
+                    {
+                        goo = value;
+                    }
+                }
+            }
+            """;
         await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
     }
 

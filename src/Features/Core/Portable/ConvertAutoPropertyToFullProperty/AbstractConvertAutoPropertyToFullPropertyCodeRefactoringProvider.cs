@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,7 +48,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_full_property,
-                c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c),
+                cancellationToken => ExpandToFullPropertyAsync(document, property, propertySymbol, root, cancellationToken),
                 nameof(FeaturesResources.Convert_to_full_property)),
             property.Span);
     }
