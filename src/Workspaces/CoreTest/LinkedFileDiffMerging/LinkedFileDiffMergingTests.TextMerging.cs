@@ -75,14 +75,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
             TestLinkedFileSet(
                 "a b c d e",
                 ["a q1 c z1 e", "a q2 c z2 e"],
-                @"
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Before_colon + @"
-a b c d e
-" + WorkspacesResources.After_colon + @"
-a q2 c z2 e
-*/
-a q1 c z1 e",
+                $"""
+
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                a b c d e
+                =======
+                a q2 c z2 e
+                >>>>>>> {WorkspacesResources.After}
+                a q1 c z1 e
+                """,
                 LanguageNames.CSharp);
         }
 
