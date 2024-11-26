@@ -52,8 +52,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
         var options = await newDocument.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
         var implementedSymbol = await implementInterfaceService.ExplicitlyImplementSingleInterfaceMemberAsync(
-            newDocument, state, member, options, cancellationToken)
-                .ConfigureAwait(false);
+            newDocument, state, member, options, cancellationToken).ConfigureAwait(false);
 
         return implementedSymbol;
     }

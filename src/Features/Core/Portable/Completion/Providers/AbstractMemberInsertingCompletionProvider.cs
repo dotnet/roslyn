@@ -19,6 +19,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
 {
+    private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '(')];
+
+    private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(')];
+
+    private static readonly CompletionItemRules s_defaultRules =
+        CompletionItemRules.Create(
+            commitCharacterRules: s_commitRules,
+            filterCharacterRules: s_filterRules,
+            enterKeyRule: EnterKeyRule.Never);
+
     private readonly SyntaxAnnotation _annotation = new();
     private readonly SyntaxAnnotation _replaceStartAnnotation = new();
     private readonly SyntaxAnnotation _replaceEndAnnotation = new();
@@ -28,6 +38,9 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
     protected abstract Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, CompletionItem item, CancellationToken cancellationToken);
     protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
     protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
+
+    protected static CompletionItemRules GetRules()
+        => s_defaultRules;
 
     public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
@@ -90,12 +103,12 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var lineStart = line.GetFirstNonWhitespacePosition();
         Contract.ThrowIfNull(lineStart);
         var endToken = GetToken(completionItem, tree, cancellationToken);
-        var annotatedRoot = treeRoot
-            .ReplaceToken(endToken, endToken.WithAdditionalAnnotations(_replaceEndAnnotation));
+        var annotatedRoot = treeRoot.ReplaceToken(
+            endToken, endToken.WithAdditionalAnnotations(_replaceEndAnnotation));
 
         var startToken = annotatedRoot.FindTokenOnRightOfPosition(lineStart.Value);
-        annotatedRoot = annotatedRoot
-            .ReplaceToken(startToken, startToken.WithAdditionalAnnotations(_replaceStartAnnotation));
+        annotatedRoot = annotatedRoot.ReplaceToken(
+            startToken, startToken.WithAdditionalAnnotations(_replaceStartAnnotation));
 
         // Make sure the new document is frozen before we try to get the semantic model. This is to avoid trigger source
         // generator, which is expensive and not needed for calculating the change.  Pass in 'forceFreeze: true' to
@@ -152,13 +165,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
         generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
-        var memberContainingDocument = await codeGenService.AddMembersAsync(
+        return await codeGenService.AddMembersAsync(
             context, containingType, [generatedMember], cancellationToken).ConfigureAwait(false);
-
-        var memberContainingRoot = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedNodes = memberContainingRoot!.GetAnnotatedNodes(_annotation).ToList();
-        Contract.ThrowIfFalse(annotatedNodes.IsSingle());
-        return memberContainingDocument;
     }
 
     private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
@@ -202,6 +210,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
             var tokens = destinationNode.DescendantTokens(destinationSpan);
             newRoot = root.ReplaceTokens(tokens, static (_, _) => default);
         }
+
         var document = memberContainingDocument.WithSyntaxRoot(newRoot);
 
         document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
@@ -209,19 +218,6 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
         return document;
     }
-
-    private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '(')];
-
-    private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(')];
-
-    private static readonly CompletionItemRules s_defaultRules =
-        CompletionItemRules.Create(
-            commitCharacterRules: s_commitRules,
-            filterCharacterRules: s_filterRules,
-            enterKeyRule: EnterKeyRule.Never);
-
-    protected static CompletionItemRules GetRules()
-        => s_defaultRules;
 
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
