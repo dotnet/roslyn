@@ -22748,8 +22748,7 @@ using @scoped = System.Int32;
                 }
                 """;
             // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
-            CreateCompilation([source2, UnscopedRefAttributeDefinition], [ref1],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,9): error CS8347: Cannot use a result of 'C.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     r = C.M(ref x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "C.M(ref x)").WithArguments("C.M(ref int)", "x").WithLocation(4, 9),
