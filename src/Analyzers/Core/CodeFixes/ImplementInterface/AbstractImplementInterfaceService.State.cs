@@ -13,14 +13,12 @@ internal abstract partial class AbstractImplementInterfaceService
 {
     internal sealed class State(
         Document document,
-        SyntaxNode interfaceNode,
-        SyntaxNode classOrStructDecl,
+        SyntaxNode contextNode,
         INamedTypeSymbol classOrStructType,
         ImmutableArray<INamedTypeSymbol> interfaceTypes,
         SemanticModel model) : IImplementInterfaceInfo
     {
-        public SyntaxNode InterfaceNode { get; } = interfaceNode;
-        public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
+        public SyntaxNode ContextNode { get; } = contextNode;
         public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
         public ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
         public SemanticModel Model { get; } = model;
@@ -52,7 +50,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 return null;
             }
 
-            var state = new State(document, interfaceNode, classOrStructDecl, classOrStructType, interfaceTypes, model);
+            var state = new State(document, classOrStructDecl, classOrStructType, interfaceTypes, model);
 
             if (service.CanImplementImplicitly)
             {
