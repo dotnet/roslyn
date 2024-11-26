@@ -29,10 +29,6 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
     protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
     protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
 
-    public AbstractMemberInsertingCompletionProvider()
-    {
-    }
-
     public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
         var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
@@ -156,25 +152,13 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
         generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
-        Document? memberContainingDocument = null;
-        if (generatedMember.Kind == SymbolKind.Method)
-        {
-            memberContainingDocument = await codeGenService.AddMethodAsync(context, containingType, (IMethodSymbol)generatedMember, cancellationToken).ConfigureAwait(false);
-        }
-        else if (generatedMember.Kind == SymbolKind.Property)
-        {
-            memberContainingDocument = await codeGenService.AddPropertyAsync(context, containingType, (IPropertySymbol)generatedMember, cancellationToken).ConfigureAwait(false);
-        }
-        else if (generatedMember.Kind == SymbolKind.Event)
-        {
-            memberContainingDocument = await codeGenService.AddEventAsync(context, containingType, (IEventSymbol)generatedMember, cancellationToken).ConfigureAwait(false);
-        }
+        var memberContainingDocument = await codeGenService.AddMembersAsync(
+            context, containingType, [generatedMember], cancellationToken).ConfigureAwait(false);
 
-        Contract.ThrowIfNull(memberContainingDocument);
         var memberContainingRoot = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var annotatedNodes = memberContainingRoot!.GetAnnotatedNodes(_annotation).ToList();
         Contract.ThrowIfFalse(annotatedNodes.IsSingle());
-        return memberContainingDocument!;
+        return memberContainingDocument;
     }
 
     private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
