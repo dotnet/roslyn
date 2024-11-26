@@ -28,6 +28,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private IEnumerable<ISymbol?> GeneratePropertyMembers(
             Compilation compilation,
             IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             bool generateAbstractly,
@@ -39,11 +40,11 @@ internal abstract partial class AbstractImplementInterfaceService
             var attributesToRemove = AttributesToRemove(compilation);
 
             var getAccessor = GenerateGetAccessor(
-                compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
+                compilation, property, conflictingProperty, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
                 propertyGenerationBehavior, attributesToRemove);
 
             var setAccessor = GenerateSetAccessor(
-                compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
+                compilation, property, conflictingProperty, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
                 propertyGenerationBehavior, attributesToRemove);
 
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -90,6 +91,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private IMethodSymbol? GenerateSetAccessor(
             Compilation compilation,
             IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
             Accessibility accessibility,
             bool generateAbstractly,
             bool useExplicitInterfaceSymbol,
@@ -117,12 +119,13 @@ internal abstract partial class AbstractImplementInterfaceService
                 accessibility: accessibility,
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.SetMethod] : default,
                 statements: GetSetAccessorStatements(
-                    compilation, property, generateAbstractly, propertyGenerationBehavior));
+                    compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior));
         }
 
         private IMethodSymbol? GenerateGetAccessor(
             Compilation compilation,
             IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
             Accessibility accessibility,
             bool generateAbstractly,
             bool useExplicitInterfaceSymbol,
@@ -130,9 +133,7 @@ internal abstract partial class AbstractImplementInterfaceService
             INamedTypeSymbol[] attributesToRemove)
         {
             if (property.GetMethod == null)
-            {
                 return null;
-            }
 
             var getMethod = property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
                  State.ClassOrStructType,
@@ -144,12 +145,13 @@ internal abstract partial class AbstractImplementInterfaceService
                 accessibility: accessibility,
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.GetMethod] : default,
                 statements: GetGetAccessorStatements(
-                    compilation, property, generateAbstractly, propertyGenerationBehavior));
+                    compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior));
         }
 
         private ImmutableArray<SyntaxNode> GetSetAccessorStatements(
             Compilation compilation,
             IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
             bool generateAbstractly,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
@@ -157,13 +159,14 @@ internal abstract partial class AbstractImplementInterfaceService
                 return default;
 
             var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
-            return generator.GetSetAccessorStatements(compilation, property, ThroughMember,
+            return generator.GetSetAccessorStatements(compilation, property, conflictingProperty, ThroughMember,
                 propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
         }
 
         private ImmutableArray<SyntaxNode> GetGetAccessorStatements(
             Compilation compilation,
             IPropertySymbol property,
+            IPropertySymbol? conflictingProperty,
             bool generateAbstractly,
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
@@ -171,7 +174,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 return default;
 
             var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
-            return generator.GetGetAccessorStatements(compilation, property, ThroughMember,
+            return generator.GetGetAccessorStatements(compilation, property, conflictingProperty, ThroughMember,
                 propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
         }
     }

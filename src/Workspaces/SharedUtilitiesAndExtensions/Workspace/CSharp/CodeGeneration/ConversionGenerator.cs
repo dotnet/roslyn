@@ -48,35 +48,33 @@ internal static class ConversionGenerator
         CSharpCodeGenerationContextInfo info,
         CancellationToken cancellationToken)
     {
-        var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern;
-
         var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConversionOperatorDeclarationSyntax>(method, info);
         if (reusableSyntax != null)
-        {
             return reusableSyntax;
-        }
 
         var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName
             ? ImplicitKeyword
             : ExplicitKeyword;
 
-        var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
+        var checkedKeyword = SyntaxFacts.IsCheckedOperator(method.MetadataName)
             ? CheckedKeyword
             : default;
 
         var isExplicit = method.ExplicitInterfaceImplementations.Length > 0;
+        var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern;
+
         var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
             modifiers: GenerateModifiers(method, destination),
             implicitOrExplicitKeyword: keyword,
             explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
             operatorKeyword: OperatorKeyword,
-            checkedKeyword: checkedToken,
+            checkedKeyword: checkedKeyword,
             type: method.ReturnType.GenerateTypeSyntax(),
             parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());
+            semicolonToken: hasNoBody ? SemicolonToken : default);
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -110,9 +108,7 @@ internal static class ConversionGenerator
         using var tokens = TemporaryArray<SyntaxToken>.Empty;
 
         if (method.ExplicitInterfaceImplementations.Length == 0)
-        {
             tokens.Add(PublicKeyword);
-        }
 
         tokens.Add(StaticKeyword);
 

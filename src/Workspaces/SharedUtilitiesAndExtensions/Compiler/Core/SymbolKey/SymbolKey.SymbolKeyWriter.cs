@@ -20,28 +20,29 @@ internal partial struct SymbolKey
     private enum SymbolKeyType
     {
         Alias = 'A',
-        BodyLevel = 'B',
-        ConstructedMethod = 'C',
-        NamedType = 'D',
-        ErrorType = 'E',
-        Field = 'F',
-        FunctionPointer = 'G',
-        DynamicType = 'I',
-        BuiltinOperator = 'L',
-        Method = 'M',
-        Namespace = 'N',
-        PointerType = 'O',
-        Parameter = 'P',
-        Property = 'Q',
+        AnonymousFunctionOrDelegate = 'Z',
+        AnonymousType = 'W',
         ArrayType = 'R',
         Assembly = 'S',
-        TupleType = 'T',
-        Module = 'U',
+        BodyLevel = 'B',
+        BuiltinOperator = 'L',
+        ConstructedMethod = 'C',
+        DynamicType = 'I',
+        ErrorType = 'E',
         Event = 'V',
-        AnonymousType = 'W',
+        Field = 'F',
+        FunctionPointer = 'G',
+        Method = 'M',
+        Module = 'U',
+        NamedType = 'D',
+        Namespace = 'N',
+        Parameter = 'P',
+        PointerType = 'O',
+        Preprocessing = 'J',
+        Property = 'Q',
         ReducedExtensionMethod = 'X',
+        TupleType = 'T',
         TypeParameter = 'Y',
-        AnonymousFunctionOrDelegate = 'Z',
 
         // Not to be confused with ArrayType.  This indicates an array of elements in the stream.
         Array = '%',
@@ -189,6 +190,11 @@ internal partial struct SymbolKey
                     // While we recursed, we already hit this symbol.  Use its ID as our
                     // ID.
                     id = existingId;
+                }
+                else if (symbol is IPreprocessingSymbol preprocessingSymbol)
+                {
+                    WriteType(SymbolKeyType.Preprocessing);
+                    PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
                 }
                 else
                 {
@@ -473,7 +479,7 @@ internal partial struct SymbolKey
         public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
         {
             // If it's a reference to a method type parameter, and we're currently writing
-            // out a signture, then only write out the ordinal of type parameter.  This 
+            // out a signature, then only write out the ordinal of type parameter.  This 
             // helps prevent recursion problems in cases like "Goo<T>(T t).
             if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
             {

@@ -146,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Create driver that holds onto compilation and associated analyzers
             var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
             var filteredHostAnalyzers = hostAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
+            var filteredProjectSuppressors = filteredProjectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            filteredHostAnalyzers = filteredHostAnalyzers.AddRange(filteredProjectSuppressors);
 
             // PERF: there is no analyzers for this compilation.
             //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.

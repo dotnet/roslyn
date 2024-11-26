@@ -506,9 +506,27 @@ internal static class CastSimplifier
                 return false;
         }
 
-        // If the types of the expressions are the same, then we can remove safely.
-        if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
-            return true;
+        if (originalConvertedType.Equals(rewrittenConvertedType))
+        {
+            // If the types of the expressions are exactly the same, then we can remove safely.
+            if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return true;
+
+            // The types differ on nullability.  But we may still want to remove this.
+            //
+            // For example:
+            //
+            //      string Method() => (string?)notNullString;
+            //
+            // Here we have a non-null type converted to its nullable form, which is target typed back to the non-null
+            // type.  Removing this nullable cast is safe and desirable.
+            var targetType = castNode.GetTargetType(originalSemanticModel, cancellationToken);
+            if (targetType is not null and not IErrorTypeSymbol &&
+                rewrittenConvertedType.Equals(targetType, SymbolEqualityComparer.IncludeNullability))
+            {
+                return true;
+            }
+        }
 
         // We can safely remove convertion to object in interpolated strings regardless of nullability
         if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
