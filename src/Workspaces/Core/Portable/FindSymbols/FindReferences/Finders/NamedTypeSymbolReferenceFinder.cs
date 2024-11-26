@@ -112,42 +112,26 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        {
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
+        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
 
-            // First find all references to this type, either with it's actual name, or through potential
-            // global alises to it.
-            AddReferencesToTypeOrGlobalAliasToIt(
-                namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
-
-            // The items in tempReferences need to be both reported and used later to calculate additional results.
-            foreach (var location in tempReferences)
-                processResult(location, processResultData);
-
-            // This named type may end up being locally aliased as well.  If so, now find all the references
-            // to the local alias.
-
-            FindLocalAliasReferences(
-                tempReferences, state, processResult, processResultData, cancellationToken);
-        }
+        // First find all references to this type, using it's actual .Net name.
+        AddReferencesToTypeOrGlobalAliasToIt(
+            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
 
         // Next, if this named type is a predefined type (like int/long), also search for it with the C# name,
         // not the .Net one.
-        {
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
+        AddPredefinedTypeReferences(namedType, state, tempReferences, cancellationToken);
 
-            AddPredefinedTypeReferences(namedType, state, tempReferences, cancellationToken);
+        // The items in tempReferences need to be both reported and used later to calculate additional results.
+        foreach (var location in tempReferences)
+            processResult(location, processResultData);
 
-            // The items in tempReferences need to be both reported and used later to calculate additional results.
-            foreach (var location in tempReferences)
-                processResult(location, processResultData);
+        // This named type may end up being locally aliased as well.  If so, now find all the references to the local
+        // alias. Note: the local alias may be like `using X = System.Int32` or it could be `using X = int`.  Because
+        // we searched for both forms above, we'll find all references to the local aliases to either form here.
 
-            // This named type may end up being locally aliased as well.  If so, now find all the references
-            // to the local alias.
-
-            FindLocalAliasReferences(
-                tempReferences, state, processResult, processResultData, cancellationToken);
-        }
+        FindLocalAliasReferences(
+            tempReferences, state, processResult, processResultData, cancellationToken);
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             namedType, state, processResult, processResultData, cancellationToken);
