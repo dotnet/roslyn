@@ -88,15 +88,11 @@ internal static class LinkedFileMergeConflictCommentAdditionService
     }
 
     private static string? GetConflictCommentText(string header, string? beforeString, string? afterString)
-    {
-        // Whitespace only
-        if (beforeString == null && afterString == null)
-            return null;
-
-        // Changed code
-        if (beforeString != null && afterString != null)
+        => (beforeString, afterString) switch
         {
-            return $"""
+            (null, null) => null,
+            (not null, not null) =>
+                $"""
 
                 <<<<<<< {header}, {WorkspacesResources.Before_colon}
                 {beforeString}
@@ -104,30 +100,26 @@ internal static class LinkedFileMergeConflictCommentAdditionService
                 {afterString}
                 >>>>>>> {WorkspacesResources.After}
 
-                """;
-        }
-
-        if (beforeString == null)
-        {
-            return $"""
+                """,
+            (null, not null) =>
+                $"""
 
                 <<<<<<< {header}, {WorkspacesResources.Before_colon}
                 =======
                 {afterString}
                 >>>>>>> {WorkspacesResources.After}
 
-                """;
-        }
+                """,
+            (not null, null) =>
+                $"""
 
-        return $"""
+                <<<<<<< {header}, {WorkspacesResources.Before_colon}
+                {beforeString}
+                =======
+                >>>>>>> {WorkspacesResources.After}
 
-            <<<<<<< {header}, {WorkspacesResources.Before_colon}
-            {beforeString}
-            =======
-            >>>>>>> {WorkspacesResources.After}
-
-            """;
-    }
+                """,
+        };
 
     private static string? TrimBlankLines(SourceText text)
     {
