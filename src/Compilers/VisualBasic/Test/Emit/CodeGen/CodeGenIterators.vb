@@ -3072,5 +3072,205 @@ End Class
 
             CompileAndVerify(source2, expectedOutput:="True finally True")
         End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
+        Public Sub StateAfterMoveNext_YieldReturn_AfterTryFinally()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim enumerator = C.GetEnumerator(True)
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(enumerator.Current)
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(enumerator.Current)
+
+        enumerator.Dispose()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(enumerator.Current)
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function GetEnumerator(b As Boolean) As IEnumerator(Of String)
+        Try
+            Yield " one "
+        Finally
+            Console.Write("finally ")
+        End Try
+
+        Yield " two "
+        Console.Write("not executed after disposal")
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="True one finally True two False two")
+            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
+{
+  // Code size      171 (0xab)
+  .maxstack  3
+  .locals init (Boolean V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4.s   -3
+  IL_000a:  sub
+  IL_000b:  switch    (
+        IL_0033,
+        IL_0028,
+        IL_0028,
+        IL_002a,
+        IL_0033,
+        IL_0094)
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+  IL_002a:  ldarg.0
+  IL_002b:  ldc.i4.m1
+  IL_002c:  dup
+  IL_002d:  stloc.1
+  IL_002e:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0033:  nop
+  .try
+  {
+    IL_0034:  ldloc.1
+    IL_0035:  ldc.i4.s   -3
+    IL_0037:  beq.s      IL_003f
+    IL_0039:  ldloc.1
+    IL_003a:  ldc.i4.1
+    IL_003b:  beq.s      IL_0064
+    IL_003d:  br.s       IL_004c
+    IL_003f:  ldarg.0
+    IL_0040:  ldc.i4.m1
+    IL_0041:  dup
+    IL_0042:  stloc.1
+    IL_0043:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+    IL_0048:  ldc.i4.1
+    IL_0049:  stloc.0
+    IL_004a:  leave.s    IL_00a9
+    IL_004c:  ldarg.0
+    IL_004d:  ldstr      "" one ""
+    IL_0052:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
+    IL_0057:  ldarg.0
+    IL_0058:  ldc.i4.1
+    IL_0059:  dup
+    IL_005a:  stloc.1
+    IL_005b:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+    IL_0060:  ldc.i4.1
+    IL_0061:  stloc.0
+    IL_0062:  leave.s    IL_00a9
+    IL_0064:  ldarg.0
+    IL_0065:  ldc.i4.m1
+    IL_0066:  dup
+    IL_0067:  stloc.1
+    IL_0068:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+    IL_006d:  leave.s    IL_007e
+  }
+  finally
+  {
+    IL_006f:  ldloc.1
+    IL_0070:  ldc.i4.0
+    IL_0071:  bge.s      IL_007d
+    IL_0073:  ldstr      ""finally ""
+    IL_0078:  call       ""Sub System.Console.Write(String)""
+    IL_007d:  endfinally
+  }
+  IL_007e:  ldarg.0
+  IL_007f:  ldstr      "" two ""
+  IL_0084:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
+  IL_0089:  ldarg.0
+  IL_008a:  ldc.i4.2
+  IL_008b:  dup
+  IL_008c:  stloc.1
+  IL_008d:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0092:  ldc.i4.1
+  IL_0093:  ret
+  IL_0094:  ldarg.0
+  IL_0095:  ldc.i4.m1
+  IL_0096:  dup
+  IL_0097:  stloc.1
+  IL_0098:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_009d:  ldstr      ""not executed after disposal""
+  IL_00a2:  call       ""Sub System.Console.Write(String)""
+  IL_00a7:  ldc.i4.0
+  IL_00a8:  ret
+  IL_00a9:  ldloc.0
+  IL_00aa:  ret
+}
+")
+            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  bne.un.s   IL_0015
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.s   -3
+  IL_000e:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_0013:  br.s       IL_001c
+  IL_0015:  ldarg.0
+  IL_0016:  ldc.i4.m1
+  IL_0017:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_001c:  ldarg.0
+  IL_001d:  call       ""Function C.VB$StateMachine_1_GetEnumerator.MoveNext() As Boolean""
+  IL_0022:  pop
+  IL_0023:  ldarg.0
+  IL_0024:  ldc.i4.s   -2
+  IL_0026:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_002b:  ret
+}
+")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(enumerator.MoveNext())
+
+        enumerator.Dispose()
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As IEnumerable(Of Integer)
+        Try
+            Yield 42
+        Finally
+            Console.Write(" finally ")
+        End Try
+
+        Yield 43
+        Console.Write("not executed after disposal")
+    End Function
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source2, expectedOutput:="True finally TrueTrue")
+        End Sub
     End Class
 End Namespace

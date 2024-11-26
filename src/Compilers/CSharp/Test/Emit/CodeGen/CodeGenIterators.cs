@@ -5379,5 +5379,173 @@ class C
 """;
             CompileAndVerify(src2, expectedOutput: "True finally True").VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn_AfterTryFinally()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+enumerator.Dispose();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        try
+        {
+            yield return " one ";
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+
+        yield return " two ";
+        System.Console.Write("not executed after disposal");
+    }
+}
+""";
+            var verifier = CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+{
+  // Code size      132 (0x84)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0006:  stloc.1
+    IL_0007:  ldloc.1
+    IL_0008:  switch    (
+        IL_001d,
+        IL_0042,
+        IL_0066)
+    IL_0019:  ldc.i4.0
+    IL_001a:  stloc.0
+    IL_001b:  leave.s    IL_0082
+    IL_001d:  ldarg.0
+    IL_001e:  ldc.i4.m1
+    IL_001f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.s   -3
+    IL_0027:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_002c:  ldarg.0
+    IL_002d:  ldstr      " one "
+    IL_0032:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+    IL_0037:  ldarg.0
+    IL_0038:  ldc.i4.1
+    IL_0039:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_003e:  ldc.i4.1
+    IL_003f:  stloc.0
+    IL_0040:  leave.s    IL_0082
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.s   -3
+    IL_0045:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_004a:  ldarg.0
+    IL_004b:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
+    IL_0050:  ldarg.0
+    IL_0051:  ldstr      " two "
+    IL_0056:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
+    IL_005b:  ldarg.0
+    IL_005c:  ldc.i4.2
+    IL_005d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_0062:  ldc.i4.1
+    IL_0063:  stloc.0
+    IL_0064:  leave.s    IL_0082
+    IL_0066:  ldarg.0
+    IL_0067:  ldc.i4.m1
+    IL_0068:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+    IL_006d:  ldstr      "not executed after disposal"
+    IL_0072:  call       "void System.Console.Write(string)"
+    IL_0077:  ldc.i4.0
+    IL_0078:  stloc.0
+    IL_0079:  leave.s    IL_0082
+  }
+  fault
+  {
+    IL_007b:  ldarg.0
+    IL_007c:  call       "void C.<GetEnumerator>d__0.Dispose()"
+    IL_0081:  endfinally
+  }
+  IL_0082:  ldloc.0
+  IL_0083:  ret
+}
+""");
+
+            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.s   -3
+  IL_000a:  beq.s      IL_0010
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  bne.un.s   IL_001a
+  IL_0010:  nop
+  .try
+  {
+    IL_0011:  leave.s    IL_001a
+  }
+  finally
+  {
+    IL_0013:  ldarg.0
+    IL_0014:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
+    IL_0019:  endfinally
+  }
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.s   -2
+  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0022:  ret
+}
+""");
+
+            // Verify GetEnumerator
+            string src2 = """
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.MoveNext());
+
+enumerator.Dispose();
+System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce()
+    {
+        try
+        {
+            yield return 42;
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+
+        yield return 43;
+        System.Console.Write("not executed after disposal");
+    }
+}
+""";
+            CompileAndVerify(src2, expectedOutput: "True finally TrueTrue").VerifyDiagnostics();
+        }
     }
 }
