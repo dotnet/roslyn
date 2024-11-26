@@ -169,7 +169,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         }
 
         // If invoked method is conditional, converting lambda to method group produces compiler error
-        if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, conditionalAttributeType)))
+        if (invokedMethod.HasAttribute(conditionalAttributeType))
             return;
 
         // In the case where we have `() => expr.m()`, check if `expr` is overwritten anywhere. If so then we do not

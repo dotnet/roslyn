@@ -172,23 +172,15 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                 if (symbol.Type.IsMutableValueType() != false)
                     return false;
 
-                if (symbol.GetAttributes().Any(
-                       static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
-                       threadStaticAttribute))
-                {
+                if (symbol.HasAttribute(threadStaticAttribute))
                     return false;
-                }
 
                 if (IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute))
                     return false;
 
                 // The private instance field inside an inline-array is not allowed to be readonly.
-                if (!symbol.IsStatic && symbol.ContainingType.GetAttributes().Any(
-                       static (a, inlineArrayAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, inlineArrayAttribute),
-                       inlineArrayAttribute))
-                {
+                if (!symbol.IsStatic && symbol.ContainingType.HasAttribute(inlineArrayAttribute))
                     return false;
-                }
 
                 return true;
             }
@@ -198,8 +190,8 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                 if (dataContractAttribute is null || dataMemberAttribute is null)
                     return false;
 
-                return symbol.GetAttributes().Any(static (x, dataMemberAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataMemberAttribute), dataMemberAttribute)
-                    && symbol.ContainingType.GetAttributes().Any(static (x, dataContractAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataContractAttribute), dataContractAttribute);
+                return symbol.HasAttribute(dataMemberAttribute)
+                    && symbol.ContainingType.HasAttribute(dataContractAttribute);
             }
 
             // Method to update the field state for a candidate field written outside constructor and field initializer.

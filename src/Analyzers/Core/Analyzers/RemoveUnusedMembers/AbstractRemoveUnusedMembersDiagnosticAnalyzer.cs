@@ -461,7 +461,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
             // and removal of unused members might break semantics.
-            if (namedType.GetAttributes().Any(static (a, self) => a.AttributeClass == self._structLayoutAttributeType, this))
+            if (namedType.HasAttribute(_structLayoutAttributeType))
                 return;
 
             // Report diagnostics for unused candidate members.
@@ -472,7 +472,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             var entryPoint = symbolEndContext.Compilation.GetEntryPoint(cancellationToken);
 
-            var isInlineArray = namedType.GetAttributes().Any(static (a, self) => a.AttributeClass == self._inlineArrayAttributeType, this);
+            var isInlineArray = namedType.HasAttribute(_inlineArrayAttributeType);
 
             foreach (var member in namedType.GetMembers())
             {
