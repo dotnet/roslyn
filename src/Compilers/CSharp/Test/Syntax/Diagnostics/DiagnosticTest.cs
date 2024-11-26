@@ -322,6 +322,7 @@ class X
                         case ErrorCode.WRN_TargetDifferentRefness:
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                         case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_ExperimentalWithMessage:
                         case ErrorCode.WRN_ConvertingLock:
                         case ErrorCode.WRN_PartialPropertySignatureDifference:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));

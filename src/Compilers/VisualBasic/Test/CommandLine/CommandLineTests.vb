@@ -10854,6 +10854,54 @@ dotnet_diagnostic.BC42380.severity = warning")
             Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.", outWriter.ToString())
         End Sub
 
+        <Fact>
+        Public Sub ExperimentalWithValidDiagnosticID_WarnForExperimentalWithMessage()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Public Class D
+    Public Sub M(c As C)
+    End Sub
+End Class
+
+<System.Diagnostics.CodeAnalysis.Experimental(""DiagID"", Message:=""use CCC"")>
+Public Class C
+    Public Shared Sub M()
+    End Sub
+End Class
+
+Namespace System.Diagnostics.CodeAnalysis
+    Public NotInheritable Class ExperimentalAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal diagnosticId As String)
+        End Sub
+
+        Property Message As String
+    End Class
+End Namespace
+")
+
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42509.severity = warning")
+
+            Assert.Equal(DirectCast(42509, ERRID), ERRID.WRN_ExperimentalWithMessage)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            ' Note: the behavior differs from C# in that the editorconfig rule is applied
+            Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates: 'use CCC'.", outWriter.ToString())
+        End Sub
+
         Private Function EmitGenerator(ByVal targetFramework As String) As String
             Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
             Dim generatorSource As String = $"
