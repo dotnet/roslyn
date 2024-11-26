@@ -21,8 +21,5 @@ internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer : AbstractS
     protected override IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation)
         // In C#, extension methods contain the methods they are being called from in the `this` parameter 
         // So in the case of A().ExtensionB() to get to ExtensionB from A we do the following:
-        => invocation.Parent is IArgumentOperation argument &&
-           argument.Parent is IInvocationOperation nextInvocation
-                ? nextInvocation
-                : null;
+        => invocation.Parent is IArgumentOperation { Parent: IInvocationOperation nextInvocation } ? nextInvocation : null;
 }
