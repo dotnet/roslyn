@@ -349,6 +349,14 @@ internal static class CastSimplifier
         if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error || !rewrittenConversion.Exists)
             return false;
 
+        // If removing the conversion caused us to now become an explicit conversion (a conversion that can cause
+        // lossyness), then we must block as that's disallowed by the language.
+        //
+        // Note: compiler API is slightly odd here as they return such an 'IsExplicit+Exists' conversion when casting
+        // the expression inside a string interpolation.  So we ignore that case here
+        if (rewrittenConversion.IsExplicit && castNode.WalkUpParentheses().Parent is not InterpolationSyntax)
+            return false;
+
         if (CastRemovalWouldCauseUnintendedReferenceComparisonWarning(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
             return false;
 

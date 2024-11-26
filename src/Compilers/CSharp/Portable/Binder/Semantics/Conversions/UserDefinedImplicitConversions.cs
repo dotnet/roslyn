@@ -286,7 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
                 bool allowAnyTarget)
             {
-                foreach (MethodSymbol op in declaringType.GetOperators(WellKnownMemberNames.ImplicitConversionName))
+                var operators = ArrayBuilder<MethodSymbol>.GetInstance();
+                declaringType.AddOperators(WellKnownMemberNames.ImplicitConversionName, operators);
+
+                foreach (MethodSymbol op in operators)
                 {
                     // We might have a bad operator and be in an error recovery situation. Ignore it.
                     if (op.ReturnsVoid || op.ParameterCount != 1)
@@ -354,6 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                operators.Free();
             }
         }
 
