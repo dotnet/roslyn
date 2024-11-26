@@ -1352,5 +1352,26 @@ public class Test
         }
 
         #endregion
+
+        [Fact]
+        public void IfIsVarPattern()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements("""
+class C
+{
+    static void M()
+    {
+/*<bind>*/
+        while (1 is var x)
+        {
+        }
+/*</bind>*/
+    }
+}
+""");
+            var controlFlowAnalysisResults = analysisResults.controlFlowAnalysis;
+            Assert.True(controlFlowAnalysisResults.StartPointIsReachable);
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+        }
     }
 }

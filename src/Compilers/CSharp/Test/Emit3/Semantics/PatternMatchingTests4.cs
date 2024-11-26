@@ -4829,5 +4829,357 @@ class D : A { }
             Assert.Equal("x", x.ToString());
             Assert.Equal("A? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_SimpleDesignation()
+        {
+            var source = """
+public class C
+{
+    public int M()
+    {
+        while (M2() is var number) { }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_SimpleDesignation_If()
+        {
+            var source = """
+public class C
+{
+    public int M()
+    {
+        if (M2() is var number)
+        {
+            return 0;
+        }
+        else
+        {
+            System.Console.Write("false"); // 1
+        }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("false"); // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(11, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_SimpleDesignation_If_Negated()
+        {
+            var source = """
+public class C
+{
+    public int M()
+    {
+        if (M2() is not var number)
+        {
+            System.Console.Write(""); // 1
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,16): error CS0161: 'C.M()': not all code paths return a value
+                //     public int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 16),
+                // (5,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                //         if (M2() is not var number)
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "M2() is not var number").WithArguments("int").WithLocation(5, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_SimpleDesignation_Negated()
+        {
+            var source = """
+public class C
+{
+    public int M()
+    {
+        while (M2() is not var number) { }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,16): error CS0161: 'C.M()': not all code paths return a value
+                //     public int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 16),
+                // (5,16): error CS8518: An expression of type 'int' can never match the provided pattern.
+                //         while (M2() is not var number) { }
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "M2() is not var number").WithArguments("int").WithLocation(5, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_DeclarationPattern_Object()
+        {
+            var source = """
+public class C
+{
+    int M()
+    {
+        while (M2() is object number) { }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_DeclarationPattern_Object_WithNullability()
+        {
+            var source = """
+#nullable enable
+public class C
+{
+    int M()
+    {
+        while (M2() is object number) { }
+    }
+    object? M2() => null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,9): error CS0161: 'C.M()': not all code paths return a value
+                //     int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_DeclarationPattern_Integer()
+        {
+            var source = """
+public class C
+{
+    public int M()
+    {
+        while (M2() is int number) { }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_DeclarationPattern_WithNullability()
+        {
+            var source = """
+#nullable enable
+int M()
+{
+    while (M2() is string s2) { }
+}
+string? M2() => null;
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0161: 'M()': not all code paths return a value
+                // int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("M()").WithLocation(2, 5),
+                // (2,5): warning CS8321: The local function 'M' is declared but never used
+                // int M()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(2, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_TupleDesignation()
+        {
+            var source = """
+public class C
+{
+    int M()
+    {
+        while (M2() is var (number1, number2)) { }
+    }
+
+    public void Deconstruct(out int i, out int j) => throw null;
+    C M2() => null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,9): error CS0161: 'C.M()': not all code paths return a value
+                //     int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_PositionalPattern()
+        {
+            var source = """
+public class C
+{
+    int M()
+    {
+        while (M2() is (var number1, var number2)) { }
+    }
+
+    public void Deconstruct(out int i, out int j) => throw null;
+    C M2() => null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,9): error CS0161: 'C.M()': not all code paths return a value
+                //     int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_PositionalPattern_If()
+        {
+            var source = """
+public class C
+{
+    int M()
+    {
+        if (M2() is (var number1, var number2))
+        {
+            return 0;
+        }
+        else
+        {
+            // if M2() is null
+        }
+    }
+
+    public void Deconstruct(out int i, out int j) => throw null;
+    C M2() => null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,9): error CS0161: 'C.M()': not all code paths return a value
+                //     int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_DiscardDesignation()
+        {
+            var source = """
+public class C
+{
+    public int M()
+    {
+        while (M2() is var _) { }
+    }
+    int M2() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void VarPattern_NotConstant()
+        {
+            var source = """
+public class C
+{
+    const bool b = 1 is var x;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,20): error CS0133: The expression being assigned to 'C.b' must be constant
+                //     const bool b = 1 is var x;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "1 is var x").WithArguments("C.b").WithLocation(3, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_SimpleDesignation_LocalFunction()
+        {
+            var source = """
+M();
+
+int M()
+{
+    while (M2() is var number) { }
+}
+int M2() => throw null;
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_SimpleDesignation_Lambda()
+        {
+            var source = """
+System.Func<int> x = () =>
+    {
+        while (M2() is var number) { }
+
+        int M2() => throw null;
+    };
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_DeclarationPattern_Object_WithNullability_LocalFunction()
+        {
+            var source = """
+#nullable enable
+
+M();
+
+int M()
+{
+    while (M2() is object number) { }
+}
+
+object? M2() => null;
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS0161: 'M()': not all code paths return a value
+                // int M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("M()").WithLocation(5, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_DeclarationPattern_Object_WithNullability_Lambda()
+        {
+            var source = """
+#nullable enable
+
+System.Func<int> x = () =>
+    {
+        while (M2() is object number) { }
+
+        object? M2() => null;
+    };
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,25): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
+                // System.Func<int> x = () =>
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(3, 25));
+        }
     }
 }
