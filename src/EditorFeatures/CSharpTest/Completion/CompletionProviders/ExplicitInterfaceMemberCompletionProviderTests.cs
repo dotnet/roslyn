@@ -689,9 +689,11 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
         var markup = $$"""
             using System;
 
+            ref struct S { }
+
             interface I
             {
-                void M({{refKind}} ReadOnlySpan<int> s);
+                void M({{refKind}} S s);
             }
 
             class C : I
@@ -702,22 +704,24 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
         var expected = $$"""
             using System;
+            
+            ref struct S { }
 
             interface I
             {
-                void M({{refKind}} ReadOnlySpan<int> s);
+                void M({{refKind}} S s);
             }
 
             class C : I
             {
-                void I.M({{refKind}} ReadOnlySpan<int> s)
+                void I.M({{refKind}} S s)
                 {
                     throw new NotImplementedException();
                 }
             }
             """;
 
-        await VerifyProviderCommitAsync(markup, $"M({refKind} ReadOnlySpan<int> s)", expected, '\t');
+        await VerifyProviderCommitAsync(markup, $"M({refKind} S s)", expected, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
