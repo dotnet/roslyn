@@ -105,7 +105,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                     return [];
 
                 var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, CancellationToken);
-                if (containingType is not INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct })
+                if (containingType is not INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct or TypeKind.Interface })
                     return [];
 
                 // We must be explicitly implementing the interface ourselves.
@@ -151,7 +151,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                     // this can only work if the member we're trying to implement returns a single member of the same
                     // type we started with.  For example, we don't want to implement a property as two accessor methods
                     // instead.
-                    if (members.Length != 1 && members[0].Kind != member.Kind)
+                    if (members.Length != 1 || members[0].Kind != member.Kind)
                         return false;
 
                     return true;
