@@ -22353,6 +22353,35 @@ using @scoped = System.Int32;
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_ThisParameter_Property()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public ref int Ref => ref F;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (6,6): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
+                //     [UnscopedRef] public ref int Ref => ref F;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
+                // (6,45): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     [UnscopedRef] public ref int Ref => ref F;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 45));
+
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
         public void UnscopedRefAttribute_RefSafetyRules_RefParameter()
         {
             var source = """
@@ -22491,6 +22520,59 @@ using @scoped = System.Int32;
                     {
                         S s = default;
                         return ref s.Ref();
+                    }
+                }
+                """;
+            CreateCompilation(source2, [ref1a], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1a], parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1a], parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1a]).VerifyDiagnostics();
+
+            foreach (var ref1 in new[] { ref1b, ref1c, ref1d })
+            {
+                var expectedDiagnostics = new[]
+                {
+                    // (6,20): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                    //         return ref s.Ref();
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(6, 20)
+                };
+
+                CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
+                CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+                CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+                CreateCompilation(source2, [ref1]).VerifyDiagnostics(expectedDiagnostics);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_Reference_Property()
+        {
+            var source1 = """
+                using System.Diagnostics.CodeAnalysis;
+                public struct S
+                {
+                    [UnscopedRef] public ref int Ref => throw null;
+                }
+                """;
+            var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,6): warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
+                //     [UnscopedRef] public ref int Ref => throw null;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 6)).EmitToImageReference();
+            var ref1b = CreateCompilation(source1,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics().EmitToImageReference();
+            var ref1c = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics().EmitToImageReference();
+            var ref1d = CreateCompilation([source1, UnscopedRefAttributeDefinition]).VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                static class C
+                {
+                    static ref int M()
+                    {
+                        S s = default;
+                        return ref s.Ref;
                     }
                 }
                 """;
