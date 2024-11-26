@@ -81,7 +81,9 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
 
-        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
+        var greyTextMap = GetTagsForGreyText(replaceSpan, comments);
+
+        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, greyTextMap);
     }
 
     private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)
@@ -426,5 +428,10 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             : " ";
 
         return firstNonWhitespaceColumn.CreateIndentationString(options.UseTabs, options.TabSize) + ExteriorTriviaText + extraIndent;
+    }
+
+    protected virtual Dictionary<string, List<TextSpan>>? GetTagsForGreyText(TextSpan textSpan, string? comments)
+    {
+        return null;
     }
 }

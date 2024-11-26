@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
@@ -223,6 +224,49 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
         }
 
         return false;
+    }
+
+    protected override Dictionary<string, List<TextSpan>>? GetTagsForGreyText(TextSpan textSpan, string? comments)
+    {
+        if (comments == null)
+        {
+            return null;
+        }
+
+        var map = new Dictionary<string, List<TextSpan>>();
+
+        var index = 0;
+        while (index < comments.Length)
+        {
+            var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
+            if (summaryEndTag != -1)
+            {
+                map.Add("summary", [new TextSpan(index, 0)]);
+            }
+
+            var paramEndTag = comments.IndexOf("</param>", index, StringComparison.Ordinal);
+            if (paramEndTag != -1)
+            {
+                map.GetOrAdd("param", _ => new List<TextSpan>()).Add(new TextSpan(index, 0));
+            }
+
+            var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
+            if (returnsEndTag != -1)
+            {
+                map.Add("returns", [new TextSpan(index, 0)]);
+            }
+
+            var exceptionEndTag = comments.IndexOf("</exception>", index, StringComparison.Ordinal);
+            if (exceptionEndTag != -1)
+            {
+                map.GetOrAdd("exception", _ => new List<TextSpan>()).Add(new TextSpan(index, 0));
+            }
+
+            index++;
+
+        }
+
+        return map;
     }
 
     protected override SyntaxToken GetTokenToRight(
