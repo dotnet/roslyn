@@ -6166,7 +6166,6 @@ public static class Extensions
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/75850")]
         public void Deconstruction_UnscopedRef_RefReturnableReceiver()
         {
             var source = """
@@ -6176,17 +6175,17 @@ public static class Extensions
                     R M1(ref S s)
                     {
                         s.Deconstruct(out var x, out _);
-                        return x; // 1
+                        return x;
                     }
                     R M2(ref S s)
                     {
                         (var x, _) = s;
-                        return x; // 2
+                        return x; // 1
                     }
                     R M3(ref S s)
                     {
                         if (s is (var x, _))
-                            return x; // 3
+                            return x; // 2
                         return default;
                     }
                 }
@@ -6196,14 +6195,13 @@ public static class Extensions
                 }
                 ref struct R;
                 """;
-            // Pattern matching emits a copy of the receiver `s`, so the error in M3 is expected.
-            // M2 should not be an error: https://github.com/dotnet/roslyn/issues/75850
+            // M2 and M3 copy the receiver `s`, so the ref safety errors are expected.
             CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // (12,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         return x; // 2
+                //         return x; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(12, 16),
                 // (17,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             return x; // 3
+                //             return x; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 20));
         }
 
