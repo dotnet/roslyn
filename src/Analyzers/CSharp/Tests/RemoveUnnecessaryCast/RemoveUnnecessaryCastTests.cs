@@ -13934,7 +13934,7 @@ public sealed class RemoveUnnecessaryCastTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
-                                          
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75424")]
     public async Task KeepNecessaryObjectOverrideCast()
     {
