@@ -131,10 +131,10 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 
     internal static SyntaxTokenList GetParameterModifiers(
         IParameterSymbol parameter, bool forFunctionPointerReturnParameter = false)
-        => GetParameterModifiers(ParameterIsScoped(parameter), parameter.RefKind, forFunctionPointerReturnParameter);
+        => GetParameterModifiers(ParameterIsScoped(parameter), parameter.RefKind, parameter.IsParams, forFunctionPointerReturnParameter);
 
     internal static SyntaxTokenList GetParameterModifiers(
-        bool isScoped, RefKind refKind, bool forFunctionPointerReturnParameter = false)
+        bool isScoped, RefKind refKind, bool isParams, bool forFunctionPointerReturnParameter = false)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
 
@@ -168,6 +168,9 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
                 result.Add(ReadOnlyKeyword);
                 break;
         }
+
+        if (isParams)
+            result.Add(ParamsKeyword);
 
         return SyntaxFactory.TokenList(result);
     }

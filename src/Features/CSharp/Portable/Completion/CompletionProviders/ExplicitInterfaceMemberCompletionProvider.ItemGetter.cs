@@ -257,9 +257,6 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                     builder.Append(" ");
                 }
 
-                if (parameter.IsParams)
-                    builder.Append("params ");
-
                 AddType(parameter.Type, builder, semanticModel);
                 builder.Append($" {parameter.Name.EscapeIdentifier()}");
             });
