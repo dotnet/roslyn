@@ -120,38 +120,5 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             options.PropertyGenerationBehavior);
 
         return implementedMembers;
-        //var singleImplemented = implementedMembers[0];
-        //Contract.ThrowIfNull(singleImplemented);
-
-        //// Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
-        //// we have to process the created symbols and reduce to the single property wherein the accessors are contained
-        //if (interfaceMember is IPropertySymbol { IsIndexer: false })
-        //{
-        //    IPropertySymbol? commonContainer = null;
-        //    foreach (var implementedMember in implementedMembers)
-        //    {
-        //        if (implementedMember is IPropertySymbol implementedProperty)
-        //        {
-        //            commonContainer ??= implementedProperty;
-        //            Contract.ThrowIfFalse(commonContainer == implementedProperty, "We should have a common property implemented");
-        //        }
-        //        else
-        //        {
-        //            Contract.ThrowIfNull(implementedMember);
-        //            var containingProperty = implementedMember.ContainingSymbol as IPropertySymbol;
-        //            Contract.ThrowIfNull(containingProperty);
-        //            commonContainer ??= containingProperty;
-        //            Contract.ThrowIfFalse(commonContainer == containingProperty, "We should have a common property implemented");
-        //        }
-        //    }
-        //    Contract.ThrowIfNull(commonContainer);
-        //    singleImplemented = commonContainer;
-        //}
-        //else
-        //{
-        //    Contract.ThrowIfFalse(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
-        //}
-
-        //return singleImplemented;
     }
 }
