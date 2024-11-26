@@ -1924,6 +1924,45 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(Object.ReferenceEquals(enumerable, enumerator))
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        enumerator.Dispose()
+
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        enumerator.Dispose()
+        enumerator.Dispose()
+
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As System.Collections.Generic.IEnumerable(Of Integer)
+        Yield 42
+        Yield 43
+    End Function
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueTrueTrueTrue")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2008,7 +2047,6 @@ End Class
     </file>
 </compilation>
 
-            ' We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one False one False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
 {
@@ -2077,6 +2115,41 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce(True)
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        Console.Write(Not enumerator.MoveNext())
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce(b As Boolean) As System.Collections.Generic.IEnumerable(Of Integer)
+        Yield 42
+        If b Then
+            Return
+        End If
+        Yield 43
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueFalse")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2110,7 +2183,6 @@ End Class
     </file>
 </compilation>
 
-            ' We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one done False one False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
 {
@@ -2163,6 +2235,37 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce(True)
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        Console.Write(Not enumerator.MoveNext())
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce(b As Boolean) As System.Collections.Generic.IEnumerable(Of Integer)
+        Yield 42
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueFalse")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2201,7 +2304,6 @@ End Class
     </file>
 </compilation>
 
-            ' We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one exception one False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
 {
@@ -2253,6 +2355,41 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        Try
+            enumerator.MoveNext()
+        Catch
+            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        End Try
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As System.Collections.Generic.IEnumerable(Of Integer)
+        Yield 42
+        Throw New Exception("exception")
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="TrueTrueFalse")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2396,6 +2533,44 @@ End Class
   IL_0023:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        Try
+            enumerator.Dispose()
+        Catch
+            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        End Try
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As System.Collections.Generic.IEnumerable(Of Integer)
+        Try
+            Yield 42
+        Finally
+            Throw New Exception("exception")
+        End Try
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="TrueTrueFalse")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2436,8 +2611,6 @@ End Class
     </file>
 </compilation>
 
-            ' TODO2 confirm
-            ' We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one finally False one False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
 {
@@ -2520,6 +2693,46 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce(True)
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        Console.Write(Not enumerator.MoveNext())
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce(b As Boolean) As IEnumerable(Of Integer)
+        Yield 42
+        Try
+            If b Then
+                Exit Function
+            End If
+        Finally
+            Console.Write(" finally ")
+        End Try
+        Yield 43
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="TrueTrue finally TrueFalse")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2567,8 +2780,6 @@ End Class
     </file>
 </compilation>
 
-            ' TODO2 confirm
-            ' We're not setting the state to "after"/"finished" (we're leaving it as "running") but that is not observable
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one finally exception one False one False one")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
 {
@@ -2632,6 +2843,48 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+
+        Try
+            enumerator.MoveNext()
+        Catch ex As Exception
+            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        End Try
+
+        enumerator.Dispose()
+        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As IEnumerable(Of Integer)
+        Yield 42
+        Try
+            Throw New Exception("exception")
+        Finally
+            Console.Write(" finally ")
+        End Try
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="True finally FalseTrue")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2775,6 +3028,47 @@ End Class
   IL_0023:  ret
 }
 ")
+
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+
+        Try
+            enumerator.MoveNext()
+        Catch ex As Exception
+            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        End Try
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As IEnumerable(Of Integer)
+        Try
+            Yield 42
+            Throw New Exception("exception")
+        Finally
+            Console.Write(" finally ")
+        End Try
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' TODO2 difference from C#, look at the IL
+            ' We're not setting the state to "after"/"finished"
+            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
+            CompileAndVerify(source2, expectedOutput:="True finally False")
         End Sub
         'TODO2 document break in VB too
     End Class
