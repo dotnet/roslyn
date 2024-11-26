@@ -34,19 +34,20 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = ['.'];
 
-    protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol implementingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
+    protected override async Task<ISymbol> GenerateMemberAsync(
+        ISymbol member, INamedTypeSymbol implementingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var implementInterfaceService = newDocument.GetRequiredLanguageService<IImplementInterfaceService>();
 
         var baseMemberInterfaceType = member.ContainingType;
         Contract.ThrowIfFalse(baseMemberInterfaceType.TypeKind is TypeKind.Interface);
 
         var interfaceNode = await GetInterfaceNodeInCompletionAsync(newDocument, completionItem, baseMemberInterfaceType, cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
         Contract.ThrowIfNull(interfaceNode);
 
         var state = await implementInterfaceService.AnalyzeAsync(newDocument, interfaceNode, cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
         Contract.ThrowIfNull(state);
 
         var options = await newDocument.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -57,7 +58,8 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         return implementedSymbol;
     }
 
-    private static async Task<SyntaxNode?> GetInterfaceNodeInCompletionAsync(Document document, CompletionItem item, INamedTypeSymbol baseMemberInterfaceType, CancellationToken cancellationToken)
+    private static async Task<SyntaxNode?> GetInterfaceNodeInCompletionAsync(
+        Document document, CompletionItem item, INamedTypeSymbol baseMemberInterfaceType, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
