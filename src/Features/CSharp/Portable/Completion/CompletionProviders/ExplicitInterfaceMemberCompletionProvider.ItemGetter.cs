@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -66,6 +67,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
             {
                 var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticFacts = Document.GetRequiredLanguageService<ISemanticFactsService>();
+                var implementInterfaceService = Document.GetRequiredLanguageService<IImplementInterfaceService>();
 
                 if (!SyntaxTree.IsRightOfDot(Position, CancellationToken) ||
                     syntaxFacts.IsInNonUserCode(SyntaxTree, Position, CancellationToken) ||
@@ -137,6 +139,10 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                     {
                         return false;
                     }
+
+                    // Ensure this is a member we will be able to implement later on.
+                    implementInterfaceService.ImplementInterfaceMemberAsync(
+                        document, )
 
                     return true;
                 }
