@@ -6,8 +6,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,21 +16,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [Shared]
 [Export(typeof(IDynamicFileInfoProvider))]
+[Export(typeof(RazorDynamicFileInfoProvider))]
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
-[ExportCSharpVisualBasicStatelessLspService(typeof(RazorDynamicFileInfoProvider))]
-[Method("razor/dynamicFileInfoChanged")]
-internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServiceNotificationHandler<RazorDynamicFileChangedParams>
+internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
     private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
+    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly AsyncBatchingWorkQueue<string> _updateWorkQueue;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RazorDynamicFileInfoProvider(
         Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer,
+        LanguageServerWorkspaceFactory workspaceFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
@@ -39,6 +40,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServ
             UpdateAsync,
             listenerProvider.GetListener(nameof(RazorDynamicFileInfoProvider)),
             CancellationToken.None);
+        _workspaceFactory = workspaceFactory;
     }
 
     public bool MutatesSolutionState => false;
@@ -46,11 +48,9 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServ
 
     public event EventHandler<string>? Updated;
 
-    public Task HandleNotificationAsync(RazorDynamicFileChangedParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    public void Update(string filePath)
     {
-        var path = ProtocolConversions.GetDocumentFilePathFromUri(request.RazorDocument.Uri);
-        _updateWorkQueue.AddWork(path);
-        return Task.CompletedTask;
+        _updateWorkQueue.AddWork(filePath);
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
@@ -82,8 +82,9 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServ
 
         if (response.Edits is not null)
         {
-            var workspaceManager = LanguageServerHost.Instance.GetRequiredLspService<LspWorkspaceManager>();
-            var (_, _1, document) = await workspaceManager.GetLspDocumentInfoAsync(response.CSharpDocument, cancellationToken);
+            var project = _workspaceFactory.Workspace.CurrentSolution.GetRequiredProject(projectId);
+            var document = project.Documents.FirstOrDefault(
+                d => d.FilePath is not null && PathUtilities.PathsEqual(d.FilePath, dynamicFileInfoFilePath));
 
             var sourceText = document is null
                 ? SourceText.From("")
@@ -96,7 +97,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider, ILspServ
             var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
             var newText = sourceText.WithChanges(textChanges);
 
-            var textAndVersion = TextAndVersion.Create(newText, version);
+            var textAndVersion = TextAndVersion.Create(newText, version.GetNewerVersion());
             return new DynamicFileInfo(dynamicFileInfoFilePath, SourceCodeKind.Regular, TextLoader.From(textAndVersion), designTimeOnly: true, documentServiceProvider: null);
         }
 
