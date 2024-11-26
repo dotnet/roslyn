@@ -40,15 +40,22 @@ public static class RuntimeHelpers
 }
 ```
 
-Additionally, we use the following helper attributes to indicate information to the runtime. If these attributes are not present in the reference assemblies, we will generate them; the runtime matches by full
-name, not by type identity, so we do not need to care about using the "canonical" versions.
+We presume the following `MethodImplOptions` bit is present. This is used to indicate to the JIT that it should generate an async state machine for the method.
 
 ```cs
 namespace System.Runtime.CompilerServices;
 
-// Used to tell the runtime to generate the async state machinery for this method
-[AttributeUsage(AttributeTargets.Method)]
-public class RuntimeAsyncMethodAttribute() : Attribute();
+public enum MethodImplOptions
+{
+    Async = 1024
+}
+```
+
+Additionally, we use the following helper type to indicate information to the runtime. If this type is not present in the reference assemblies, we will generate it; the runtime matches by full
+name, not by type identity, so we do not need to care about using the "canonical" version.
+
+```cs
+namespace System.Runtime.CompilerServices;
 
 // Used to mark locals that should be hoisted to the generated async closure. Note that the runtime does not guarantee that all locals marked with this modreq will be hoisted; if it can prove that it
 // doesn't need to hoist a variable, it may avoid doing so.
@@ -67,7 +74,7 @@ public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribut
 
 ## Transformation strategy
 
-As mentioned previously, we try to expose as little of this to initial binding as possible. The one major exception to this is our handling of the `RuntimeAsyncMethodAttribute`; we do not let this be applied to
+As mentioned previously, we try to expose as little of this to initial binding as possible. The one major exception to this is our handling of the `MethodImplOption.Async`; we do not let this be applied to
 user code, and will issue an error if a user tries to do this by hand.
 
 Compiler generated async state machines and runtime generated async share some of the same building blocks. Both need to have `await`s with in `catch` and `finally` blocks rewritten to pend the exceptions,
@@ -98,7 +105,7 @@ async Task M()
 ```
 
 ```cs
-[RuntimeAsyncMethod, Experimental]
+[MethodImpl(MethodImplOptions.Async), Experimental]
 Task M()
 {
   // ... see lowering strategy for each kind of await below ...
