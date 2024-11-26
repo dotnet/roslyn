@@ -1822,6 +1822,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 #Region "GetPartsOfXXX members"
 
+        Public Sub GetPartsOfAliasQualifiedName(node As SyntaxNode, ByRef [alias] As SyntaxNode, ByRef colonColonToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAliasQualifiedName
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Sub
+
         Public Sub GetPartsOfArgumentList(node As SyntaxNode, ByRef openParenToken As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of SyntaxNode), ByRef closeParenToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfArgumentList
             Dim argumentList = DirectCast(node, ArgumentListSyntax)
             openParenToken = argumentList.OpenParenToken

@@ -73,6 +73,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
+    public int? AliasQualifiedName => (int)SyntaxKind.AliasQualifiedName;
     public int GenericName => (int)SyntaxKind.GenericName;
     public int IdentifierName => (int)SyntaxKind.IdentifierName;
     public int QualifiedName => (int)SyntaxKind.QualifiedName;
@@ -175,4 +176,5 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;
     public int InterpolatedStringText => (int)SyntaxKind.InterpolatedStringText;
     public int? IndexerMemberCref => (int)SyntaxKind.IndexerMemberCref;
+    public int? PrimaryConstructorBaseType => (int)SyntaxKind.PrimaryConstructorBaseType;
 }
