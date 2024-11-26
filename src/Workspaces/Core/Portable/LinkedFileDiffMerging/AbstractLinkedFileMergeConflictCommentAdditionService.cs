@@ -5,16 +5,15 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
-internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : IMergeConflictHandler, ILanguageService, ILinkedFileMergeConflictCommentAdditionService
+internal static class LinkedFileMergeConflictCommentAdditionService
 {
-    public ImmutableArray<TextChange> CreateEdits(SourceText originalSourceText, ArrayBuilder<UnmergedDocumentChanges> unmergedChanges)
+    public static ImmutableArray<TextChange> CreateEdits(SourceText originalSourceText, ArrayBuilder<UnmergedDocumentChanges> unmergedChanges)
     {
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var commentChanges);
 
