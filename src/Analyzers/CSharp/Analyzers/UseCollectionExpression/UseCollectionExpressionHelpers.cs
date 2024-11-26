@@ -271,8 +271,8 @@ internal static class UseCollectionExpressionHelpers
                 // interfaces, then we don't want to convert this.  This is because the set has different semantics than
                 // the linear sequence types.
                 var isetType = compilation.ISetOfTType();
-                var ireadoOnlySetType = compilation.IReadOnlySetOfTType();
-                if (type.AllInterfaces.Any(t => t.OriginalDefinition.Equals(isetType) || t.OriginalDefinition.Equals(ireadoOnlySetType)))
+                var ireadOnlySetType = compilation.IReadOnlySetOfTType();
+                if (type.AllInterfaces.Any(t => t.OriginalDefinition.Equals(isetType) || t.OriginalDefinition.Equals(ireadOnlySetType)))
                     return false;
 
                 return true;
