@@ -701,6 +701,8 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             """;
 
         var expected = $$"""
+            using System;
+
             interface I
             {
                 void M({{refKind}} ReadOnlySpan<int> s);
@@ -710,12 +712,12 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             {
                 void I.M({{refKind}} ReadOnlySpan<int> s)
                 {
-                    throw new System.NotImplementedException();
+                    throw new NotImplementedException();
                 }
             }
             """;
 
-        await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
+        await VerifyProviderCommitAsync(markup, $"M({refKind} ReadOnlySpan<int> s)", expected, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
