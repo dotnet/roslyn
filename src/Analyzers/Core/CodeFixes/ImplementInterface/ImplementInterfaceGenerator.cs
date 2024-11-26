@@ -35,7 +35,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private readonly Document Document;
         private readonly AbstractImplementInterfaceService Service;
 
-        private readonly IImplementInterfaceInfo State;
+        private readonly ImplementInterfaceInfo State;
         private readonly ImplementTypeOptions Options;
         private readonly ImplementInterfaceConfiguration Configuration;
 
@@ -48,7 +48,7 @@ internal abstract partial class AbstractImplementInterfaceService
         internal ImplementInterfaceGenerator(
             AbstractImplementInterfaceService service,
             Document document,
-            IImplementInterfaceInfo state,
+            ImplementInterfaceInfo state,
             ImplementTypeOptions options,
             ImplementInterfaceConfiguration configuration)
         {
@@ -222,7 +222,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 addNew, addUnsafe, propertyGenerationBehavior);
         }
 
-        private bool ShouldGenerateInvisibleMember(ParseOptions options, ISymbol member, string memberName)
+        public bool ShouldGenerateInvisibleMember(ParseOptions options, ISymbol member, string memberName)
         {
             if (Service.HasHiddenExplicitImplementation)
             {
@@ -296,18 +296,13 @@ internal abstract partial class AbstractImplementInterfaceService
                 ? Accessibility.Public
                 : Accessibility.Private;
 
-            switch (member)
+            return member switch
             {
-                case IMethodSymbol method:
-                    return [GenerateMethod(compilation, method, conflictingMember as IMethodSymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName)];
-                case IPropertySymbol property:
-                    GeneratePropertyMembers(compilation, property, conflictingMember as IPropertySymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior);
-                    break;
-                case IEventSymbol @event:
-                    return [GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event)];
-            }
-
-            return [];
+                IMethodSymbol method => [GenerateMethod(compilation, method, conflictingMember as IMethodSymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName)],
+                IPropertySymbol property => GeneratePropertyMembers(compilation, property, conflictingMember as IPropertySymbol, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior),
+                IEventSymbol @event => [GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event)],
+                _ => [],
+            };
         }
 
         private ISymbol GenerateEvent(Compilation compilation, string memberName, bool generateInvisibly, SyntaxGenerator factory, DeclarationModifiers modifiers, bool useExplicitInterfaceSymbol, Accessibility accessibility, IEventSymbol @event)

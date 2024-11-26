@@ -31,7 +31,8 @@ internal abstract partial class AbstractOverrideCompletionProvider() : AbstractM
         }
     }
 
-    protected override Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
+    protected override Task<ISymbol> GenerateMemberAsync(
+        Document newDocument, CompletionItem completionItem, Compilation compilation, ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, CancellationToken cancellationToken)
     {
         // Special case: if you are overriding object.ToString(), we will make the return value as non-nullable. The return was made nullable because
         // are implementations out there that will return null, but that's not something we really want new implementations doing. We may need to consider

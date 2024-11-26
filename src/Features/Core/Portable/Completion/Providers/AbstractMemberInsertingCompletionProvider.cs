@@ -35,7 +35,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
     protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 
-    protected abstract Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, CompletionItem item, CancellationToken cancellationToken);
+    protected abstract Task<ISymbol> GenerateMemberAsync(
+        Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol containingType, CancellationToken cancellationToken);
     protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
     protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
 
@@ -162,7 +163,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
                 autoInsertionLocation: false,
                 beforeThisLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start))));
 
-        var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
+        var generatedMember = await GenerateMemberAsync(
+            document, completionItem, semanticModel.Compilation, overriddenMember, containingType, cancellationToken).ConfigureAwait(false);
         generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
         return await codeGenService.AddMembersAsync(

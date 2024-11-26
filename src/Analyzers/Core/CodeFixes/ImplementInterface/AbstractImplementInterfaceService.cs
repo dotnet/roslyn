@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
@@ -47,18 +46,18 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
-            var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false);
+            var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state.Info, explicitly: false);
             var generator = new ImplementInterfaceGenerator(
-                this, document, state, options, new() { OnlyRemaining = true, ImplementDisposePattern = implementDisposePattern });
+                this, document, state.Info, options, new() { OnlyRemaining = true, ImplementDisposePattern = implementDisposePattern });
 
             return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
-    public async Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
+    public async Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
     {
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        return State.Generate(this, document, model, interfaceType, cancellationToken);
+        return State.Generate(this, document, model, interfaceType, cancellationToken)?.Info;
     }
 
     protected TNode AddComment<TNode>(string comment, TNode node) where TNode : SyntaxNode
@@ -86,7 +85,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 
     public async Task<Document> ImplementInterfaceAsync(
         Document document,
-        IImplementInterfaceInfo info,
+        ImplementInterfaceInfo info,
         ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken)
@@ -96,63 +95,63 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ISymbol> ImplementInterfaceMemberAsync(
+    public ImmutableArray<ISymbol> ImplementInterfaceMember(
         Document document,
-        IImplementInterfaceInfo info,
-        ISymbol interfaceMember,
+        ImplementInterfaceInfo info,
         ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
-        CancellationToken cancellationToken)
+        Compilation compilation,
+        ISymbol interfaceMember)
     {
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
 
-        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var addUnsafe = interfaceMember.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(info.ContextNode);
+
         var implementedMembers = generator.GenerateMembers(
             compilation,
             interfaceMember,
             conflictingMember: null,
             memberName: interfaceMember.Name,
-            generateInvisibly: true,
-            generateAbstractly: false,
+            generateInvisibly: generator.ShouldGenerateInvisibleMember(document.Project.ParseOptions!, interfaceMember, interfaceMember.Name),
+            generateAbstractly: configuration.Abstractly,
             addNew: false,
-            addUnsafe,
+            interfaceMember.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(info.ContextNode),
             options.PropertyGenerationBehavior);
 
-        var singleImplemented = implementedMembers[0];
-        Contract.ThrowIfNull(singleImplemented);
+        return implementedMembers;
+        //var singleImplemented = implementedMembers[0];
+        //Contract.ThrowIfNull(singleImplemented);
 
-        // Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
-        // we have to process the created symbols and reduce to the single property wherein the accessors are contained
-        if (interfaceMember is IPropertySymbol { IsIndexer: false })
-        {
-            IPropertySymbol? commonContainer = null;
-            foreach (var implementedMember in implementedMembers)
-            {
-                if (implementedMember is IPropertySymbol implementedProperty)
-                {
-                    commonContainer ??= implementedProperty;
-                    Contract.ThrowIfFalse(commonContainer == implementedProperty, "We should have a common property implemented");
-                }
-                else
-                {
-                    Contract.ThrowIfNull(implementedMember);
-                    var containingProperty = implementedMember.ContainingSymbol as IPropertySymbol;
-                    Contract.ThrowIfNull(containingProperty);
-                    commonContainer ??= containingProperty;
-                    Contract.ThrowIfFalse(commonContainer == containingProperty, "We should have a common property implemented");
-                }
-            }
-            Contract.ThrowIfNull(commonContainer);
-            singleImplemented = commonContainer;
-        }
-        else
-        {
-            Contract.ThrowIfFalse(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
-        }
+        //// Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
+        //// we have to process the created symbols and reduce to the single property wherein the accessors are contained
+        //if (interfaceMember is IPropertySymbol { IsIndexer: false })
+        //{
+        //    IPropertySymbol? commonContainer = null;
+        //    foreach (var implementedMember in implementedMembers)
+        //    {
+        //        if (implementedMember is IPropertySymbol implementedProperty)
+        //        {
+        //            commonContainer ??= implementedProperty;
+        //            Contract.ThrowIfFalse(commonContainer == implementedProperty, "We should have a common property implemented");
+        //        }
+        //        else
+        //        {
+        //            Contract.ThrowIfNull(implementedMember);
+        //            var containingProperty = implementedMember.ContainingSymbol as IPropertySymbol;
+        //            Contract.ThrowIfNull(containingProperty);
+        //            commonContainer ??= containingProperty;
+        //            Contract.ThrowIfFalse(commonContainer == containingProperty, "We should have a common property implemented");
+        //        }
+        //    }
+        //    Contract.ThrowIfNull(commonContainer);
+        //    singleImplemented = commonContainer;
+        //}
+        //else
+        //{
+        //    Contract.ThrowIfFalse(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
+        //}
 
-        return singleImplemented;
+        //return singleImplemented;
     }
 }

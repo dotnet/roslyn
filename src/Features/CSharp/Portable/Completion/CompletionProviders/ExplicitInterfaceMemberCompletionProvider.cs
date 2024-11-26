@@ -34,7 +34,12 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
     public override ImmutableHashSet<char> TriggerCharacters { get; } = ['.'];
 
     protected override async Task<ISymbol> GenerateMemberAsync(
-        ISymbol member, INamedTypeSymbol implementingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
+        Document newDocument,
+        CompletionItem completionItem,
+        Compilation compilation,
+        ISymbol member,
+        INamedTypeSymbol newContainingType,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -53,87 +58,8 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
         // Implement this member explicitly in the implementing type, and return the resultant member to actually
         // generate into the right declaration location.
-        return await implementInterfaceService.ImplementInterfaceMemberAsync(
-            newDocument, state, member, options, new() { Explicitly = true }, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<SyntaxNode?> GetInterfaceNodeInCompletionAsync(
-        Document document, CompletionItem item, INamedTypeSymbol baseMemberInterfaceType, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var documentSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-        // We have triggered this provider from a code that looks something like this:
-        // class Class : IInterface
-        // {
-        //     void IInterface.$$
-        // }
-        // where the type declaration can be of any kind except for a delegate and an enum
-        // We find the node that reflects the interface on the type's base list
-        // For a type to apply an explicit interface implementation, the implementing member's containing interface
-        // must be directly included in the base list, so we only need to find the corresponding node referencing the
-        // interface in the base list
-        var compilation = documentSemanticModel.Compilation;
-        var node = syntaxTree.FindNode(item.Span, findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
-        var primaryTypeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
-        Contract.ThrowIfNull(primaryTypeDeclaration, "Expected a BaseTypeDeclarationSyntax to contain the implemented interface member");
-
-        var interfaceNode = NodeInDeclaration(primaryTypeDeclaration);
-        if (interfaceNode != null)
-            return interfaceNode;
-
-        // If we have not found the target interface in this declaration, it is possible we have other partial declarations
-        // whose base lists contain our interface
-        var declaringSyntaxReferences = baseMemberInterfaceType.DeclaringSyntaxReferences;
-        foreach (var syntaxReference in declaringSyntaxReferences)
-        {
-            var declaringSyntax = await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-
-            // We have already evaluated the primary type declaration
-            if (declaringSyntax == primaryTypeDeclaration)
-                continue;
-
-            if (declaringSyntax is not BaseTypeDeclarationSyntax baseTypeDeclarationSyntax)
-                continue;
-
-            interfaceNode = NodeInDeclaration(baseTypeDeclarationSyntax);
-            if (interfaceNode != null)
-                return interfaceNode;
-        }
-
-        return null;
-
-        SyntaxNode? NodeInDeclaration(BaseTypeDeclarationSyntax declaration)
-        {
-            // Given a declaration, we traverse all the types in its base list
-            // to find the node that refers to the interface whose members we suggest
-            var tree = declaration.SyntaxTree;
-            var baseList = declaration.BaseList;
-            if (baseList is null)
-                return null;
-
-            var semanticModel = compilation.GetSemanticModel(tree);
-
-            foreach (var baseType in baseList.Types)
-            {
-                var typeSyntax = baseType.Type;
-                var typeInfo = semanticModel.GetSymbolInfo(typeSyntax, cancellationToken);
-                if (cancellationToken.IsCancellationRequested)
-                    return null;
-
-                var symbol = typeInfo.CandidateReason == CandidateReason.WrongArity ? typeInfo.GetAnySymbol() : typeInfo.Symbol;
-
-                if (symbol is not INamedTypeSymbol type)
-                    continue;
-
-                if (type.Equals(baseMemberInterfaceType, SymbolEqualityComparer.Default))
-                    return typeSyntax;
-            }
-
-            return null;
-        }
+        return implementInterfaceService.ImplementInterfaceMember(
+            newDocument, state, member, options, new() { Explicitly = true }).ConfigureAwait(false);
     }
 
     protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)

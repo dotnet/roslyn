@@ -85,7 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceService.State.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator.cs" />

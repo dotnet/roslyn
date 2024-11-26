@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ImplementInterface;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -108,12 +109,19 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                     return [];
 
                 var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, CancellationToken);
-                if (containingType is null)
+                if (containingType is not INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct })
                     return [];
 
                 // We must be explicitly implementing the interface
                 if (!containingType.Interfaces.Contains(symbol))
                     return [];
+
+                var options = await Document.GetImplementTypeOptionsAsync(CancellationToken).ConfigureAwait(false);
+                var info = new ImplementInterfaceInfo
+                {
+                    ClassOrStructType = containingType,
+                    ContextNode = typeDeclaration,
+                };
 
                 // We're going to create a entry for each one, including the signature
                 var namePosition = name.SpanStart;
@@ -141,8 +149,14 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                     }
 
                     // Ensure this is a member we will be able to implement later on.
-                    implementInterfaceService.ImplementInterfaceMemberAsync(
-                        document, )
+                    var members = implementInterfaceService.ImplementInterfaceMember(
+                        Document, info, options, new() { Explicitly = true }, semanticModel.Compilation, member);
+
+                    // this can only work if the member we're trying to implement returns a single member of the same
+                    // type we started with.  For example, we don't want to implement a property as two accessor methods
+                    // instead.
+                    if (members.Length != 1 && members[0].Kind != member.Kind)
+                        return false;
 
                     return true;
                 }
@@ -171,14 +185,11 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
         private string ToDisplayString(ISymbol symbol, SemanticModel semanticModel)
             => symbol switch
             {
-                IEventSymbol eventSymbol => ToDisplayString(eventSymbol),
+                IEventSymbol eventSymbol => eventSymbol.Name,
                 IPropertySymbol propertySymbol => ToDisplayString(propertySymbol, semanticModel),
                 IMethodSymbol methodSymbol => ToDisplayString(methodSymbol, semanticModel),
                 _ => throw new ArgumentException("Unexpected interface member symbol kind")
             };
-
-        private static string ToDisplayString(IEventSymbol symbol)
-            => symbol.Name;
 
         private static SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
