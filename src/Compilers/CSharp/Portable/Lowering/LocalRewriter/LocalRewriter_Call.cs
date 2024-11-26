@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isComReceiver)
             {
-                RewriteArgumentsForComCall(parameters, actualArguments, refKinds);
+                RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
             }
 
             // * The refkind map is now filled out to match the arguments.
@@ -1599,7 +1599,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RewriteArgumentsForComCall(
             ImmutableArray<ParameterSymbol> parameters,
             BoundExpression[] actualArguments, //already re-ordered to match parameters
-            ArrayBuilder<RefKind> argsRefKindsBuilder)
+            ArrayBuilder<RefKind> argsRefKindsBuilder,
+            ArrayBuilder<LocalSymbol> temporariesBuilder)
         {
             Debug.Assert(actualArguments != null);
             Debug.Assert(actualArguments.Length == parameters.Length);
@@ -1639,11 +1640,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 actualArguments[argIndex] = new BoundSequence(
                     argument.Syntax,
-                    locals: [boundTemp.LocalSymbol],
-                    sideEffects: [boundAssignmentToTemp],
+                    locals: ImmutableArray<LocalSymbol>.Empty,
+                    sideEffects: ImmutableArray.Create<BoundExpression>(boundAssignmentToTemp),
                     value: boundTemp,
                     type: boundTemp.Type);
                 argsRefKindsBuilder[argIndex] = RefKind.Ref;
+
+                temporariesBuilder.Add(boundTemp.LocalSymbol);
             }
         }
 
