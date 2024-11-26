@@ -2511,7 +2511,7 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size       36 (0x24)
+  // Code size       44 (0x2c)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -2530,7 +2530,10 @@ End Class
   IL_001c:  ldarg.0
   IL_001d:  call       ""Function C.VB$StateMachine_1_GetEnumerator.MoveNext() As Boolean""
   IL_0022:  pop
-  IL_0023:  ret
+  IL_0023:  ldarg.0
+  IL_0024:  ldc.i4.s   -2
+  IL_0026:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_002b:  ret
 }
 ")
 
@@ -3006,7 +3009,7 @@ End Class
 ")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
-  // Code size       36 (0x24)
+  // Code size       44 (0x2c)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -3025,10 +3028,12 @@ End Class
   IL_001c:  ldarg.0
   IL_001d:  call       ""Function C.VB$StateMachine_1_GetEnumerator.MoveNext() As Boolean""
   IL_0022:  pop
-  IL_0023:  ret
+  IL_0023:  ldarg.0
+  IL_0024:  ldc.i4.s   -2
+  IL_0026:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
+  IL_002b:  ret
 }
 ")
-
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -3065,10 +3070,7 @@ End Class
     </file>
 </compilation>
 
-            ' TODO2 difference from C#, look at the IL
-            ' We're not setting the state to "after"/"finished"
-            ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="True finally False")
+            CompileAndVerify(source2, expectedOutput:="True finally True")
         End Sub
         'TODO2 document break in VB too
     End Class

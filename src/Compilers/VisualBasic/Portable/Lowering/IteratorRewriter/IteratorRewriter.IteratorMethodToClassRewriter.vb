@@ -103,7 +103,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(Value)),
                                     F.Goto(breakLabel))).ToArray()
 
-                ' TODO2
                 If (sections.Length > 0) Then
                     F.CloseMethod(F.Block(
                         F.Select(
@@ -112,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.NotStartedOrRunningState)),
                         F.Label(breakLabel),
                         F.ExpressionStatement(F.Call(F.Me, moveNextMethod)),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.FinishedState)),
                         F.Return()
                         ))
                 Else
