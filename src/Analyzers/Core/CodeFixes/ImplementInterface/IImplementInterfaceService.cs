@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -32,10 +31,16 @@ internal interface IImplementInterfaceService : ILanguageService
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken);
 
-    Task<ISymbol> ExplicitlyImplementSingleInterfaceMemberAsync(
+    /// <summary>
+    /// Produces the symbol that implements that provided <paramref name="interfaceMember"/> within the corresponding
+    /// <see cref="IImplementInterfaceInfo.ClassOrStructType"/>, based on the provided <paramref name="options"/> and
+    /// <paramref name="configuration"/>.
+    /// </summary>
+    Task<ISymbol> ImplementInterfaceMemberAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ISymbol member,
+        ISymbol interfaceMember,
         ImplementTypeOptions options,
+        ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken);
 }

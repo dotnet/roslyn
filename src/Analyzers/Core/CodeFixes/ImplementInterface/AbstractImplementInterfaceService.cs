@@ -95,24 +95,17 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ISymbol> ExplicitlyImplementSingleInterfaceMemberAsync(
+    public async Task<ISymbol> ImplementInterfaceMemberAsync(
         Document document,
         IImplementInterfaceInfo info,
-        ISymbol member,
+        ISymbol interfaceMember,
         ImplementTypeOptions options,
+        ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var configuration = new ImplementInterfaceConfiguration()
-        {
-            Abstractly = false,
-            Explicitly = true,
-            OnlyRemaining = false,
-            ImplementDisposePattern = false,
-            ThroughMember = null,
-        };
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
-        var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(member, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
+        var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(interfaceMember, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         var singleImplemented = implementedMembers[0];
@@ -120,7 +113,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 
         // Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
         // we have to process the created symbols and reduce to the single property wherein the accessors are contained
-        if (member is IPropertySymbol { IsIndexer: false })
+        if (interfaceMember is IPropertySymbol { IsIndexer: false })
         {
             IPropertySymbol? commonContainer = null;
             foreach (var implementedMember in implementedMembers)

@@ -51,10 +51,13 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         Contract.ThrowIfNull(state);
 
         var options = await newDocument.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var implementedSymbol = await implementInterfaceService.ExplicitlyImplementSingleInterfaceMemberAsync(
-            newDocument, state, member, options, cancellationToken).ConfigureAwait(false);
+        var configuration = new ImplementInterfaceConfiguration()
+        {
+            Explicitly = true,
+        };
 
-        return implementedSymbol;
+        return await implementInterfaceService.ImplementInterfaceMemberAsync(
+            newDocument, state, member, options, configuration, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<SyntaxNode?> GetInterfaceNodeInCompletionAsync(
@@ -79,31 +82,24 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         var node = syntaxTree.FindNode(item.Span, findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
         var primaryTypeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
         Contract.ThrowIfNull(primaryTypeDeclaration, "Expected a BaseTypeDeclarationSyntax to contain the implemented interface member");
+
         var interfaceNode = NodeInDeclaration(primaryTypeDeclaration);
         if (interfaceNode != null)
-        {
             return interfaceNode;
-        }
 
         // If we have not found the target interface in this declaration, it is possible we have other partial declarations
         // whose base lists contain our interface
         var declaringSyntaxReferences = baseMemberInterfaceType.DeclaringSyntaxReferences;
-        foreach (var declaring in declaringSyntaxReferences)
+        foreach (var syntaxReference in declaringSyntaxReferences)
         {
-            var declaringSyntax = await declaring.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            if (declaringSyntax is null)
-            {
-                continue;
-            }
+            var declaringSyntax = await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
             // We have already evaluated the primary type declaration
             if (declaringSyntax == primaryTypeDeclaration)
                 continue;
 
             if (declaringSyntax is not BaseTypeDeclarationSyntax baseTypeDeclarationSyntax)
-            {
                 continue;
-            }
 
             interfaceNode = NodeInDeclaration(baseTypeDeclarationSyntax);
             if (interfaceNode != null)
