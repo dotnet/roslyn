@@ -188,23 +188,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                     @"C",
                     @"",
                 ],
-                $@"
-<<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2")}, {WorkspacesResources.Before_colon}
-A
-=======
-C
->>>>>>> {WorkspacesResources.After}
+                $"""
 
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3") + @"
-" + WorkspacesResources.Removed_colon + @"
-A
-*/
-B",
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2")}, {WorkspacesResources.Before_colon}
+                A
+                =======
+                C
+                >>>>>>> {WorkspacesResources.After}
+
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3")}, {WorkspaceResources.Before_colon}
+                A
+                =======
+                >>>>>>> {WorkspacesResources.After}
+                B
+                """,
                 LanguageNames.CSharp);
         }
 
-        [Fact]
-        public void TestCommentsAddedCodeCSharp()
+        [Theory]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public void TestCommentsAddedCode(string language)
         {
             TestLinkedFileSet(
                 @"",
@@ -212,34 +216,21 @@ B",
                     @"A",
                     @"B",
                 ],
-                @"
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Added_colon + @"
-B
-*/
-A",
-                LanguageNames.CSharp);
+                $"""
+
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                =======
+                B
+                >>>>>>> {WorkspacesResources.After}
+                A
+                """,
+                language);
         }
 
-        [Fact]
-        public void TestCommentsAddedCodeVB()
-        {
-            TestLinkedFileSet(
-                @"",
-                [
-                    @"A",
-                    @"B",
-                ],
-                @"
-' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
-' " + WorkspacesResources.Added_colon + @"
-' B
-A",
-                LanguageNames.VisualBasic);
-        }
-
-        [Fact]
-        public void TestCommentsRemovedCodeCSharp()
+        [Theory]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public void TestCommentsRemovedCode(string language)
         {
             TestLinkedFileSet(
                 @"A",
@@ -247,30 +238,15 @@ A",
                     @"B",
                     @"",
                 ],
-                @"
-/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
-" + WorkspacesResources.Removed_colon + @"
-A
-*/
-B",
-                LanguageNames.CSharp);
-        }
+                $"""
 
-        [Fact]
-        public void TestCommentsRemovedCodeVB()
-        {
-            TestLinkedFileSet(
-                @"A",
-                [
-                    @"B",
-                    @"",
-                ],
-                @"
-' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
-' " + WorkspacesResources.Removed_colon + @"
-' A
-B",
-                LanguageNames.VisualBasic);
+                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                A
+                =======
+                >>>>>>> {WorkspacesResources.After}
+                B
+                """,
+                language);
         }
     }
 }
