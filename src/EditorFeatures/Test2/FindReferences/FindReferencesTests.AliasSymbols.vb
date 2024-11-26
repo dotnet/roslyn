@@ -488,6 +488,7 @@ namespace N
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74384")>
         Public Async Function TestAliasToPrimitive1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
