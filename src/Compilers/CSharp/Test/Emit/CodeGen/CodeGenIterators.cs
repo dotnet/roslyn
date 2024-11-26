@@ -4245,56 +4245,6 @@ class C<T>
 }
 """;
             var verifier = CompileAndVerify(src, expectedOutput: "True two disposing disposed False two").VerifyDiagnostics();
-            verifier.VerifyIL("C<T>.<GetEnumerator>d__4.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size      107 (0x6b)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_003f
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
-  IL_0017:  ldarg.0
-  IL_0018:  ldarg.0
-  IL_0019:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.head"
-  IL_001e:  stfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
-  IL_0023:  br.s       IL_0061
-  IL_0025:  ldarg.0
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
-  IL_002c:  ldfld      "T C<T>.Node._value"
-  IL_0031:  stfld      "T C<T>.<GetEnumerator>d__4.<>2__current"
-  IL_0036:  ldarg.0
-  IL_0037:  ldc.i4.1
-  IL_0038:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
-  IL_003d:  ldc.i4.1
-  IL_003e:  ret
-  IL_003f:  ldarg.0
-  IL_0040:  ldc.i4.m1
-  IL_0041:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
-  IL_0046:  ldarg.0
-  IL_0047:  ldarg.0
-  IL_0048:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
-  IL_004d:  ldfld      "C<T>.Node C<T>.Node._next"
-  IL_0052:  stfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
-  IL_0057:  ldstr      "AFTER"
-  IL_005c:  call       "void System.Console.Write(string)"
-  IL_0061:  ldarg.0
-  IL_0062:  ldfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
-  IL_0067:  brtrue.s   IL_0025
-  IL_0069:  ldc.i4.0
-  IL_006a:  ret
-}
-""");
             verifier.VerifyIL("C<T>.<GetEnumerator>d__4.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
@@ -4375,17 +4325,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
-  IL_0008:  ret
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
+
             // Verify GetEnumerator
             string src2 = """
 var enumerable = C.Produce();
@@ -4449,46 +4390,6 @@ class C
 """;
             // Note: we actually set the state to "after"/"finished" and cleanup hoisted locals again
             var verifier = CompileAndVerify(src, expectedOutput: "True one disposed disposed2 False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size       75 (0x4b)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_0036
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0017:  ldarg.0
-  IL_0018:  ldstr      ""
-  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<local>5__2"
-  IL_0022:  ldarg.0
-  IL_0023:  ldstr      " one "
-  IL_0028:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0034:  ldc.i4.1
-  IL_0035:  ret
-  IL_0036:  ldarg.0
-  IL_0037:  ldc.i4.m1
-  IL_0038:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_003d:  ldarg.0
-  IL_003e:  ldfld      "string C.<GetEnumerator>d__0.<local>5__2"
-  IL_0043:  callvirt   "string object.ToString()"
-  IL_0048:  pop
-  IL_0049:  ldc.i4.0
-  IL_004a:  ret
-}
-""");
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
@@ -4530,67 +4431,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one False one False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size      100 (0x64)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0036,
-        IL_005b)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0022:  ldarg.0
-  IL_0023:  ldstr      " one "
-  IL_0028:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0034:  ldc.i4.1
-  IL_0035:  ret
-  IL_0036:  ldarg.0
-  IL_0037:  ldc.i4.m1
-  IL_0038:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_003d:  ldarg.0
-  IL_003e:  ldfld      "bool C.<GetEnumerator>d__0.b"
-  IL_0043:  brfalse.s  IL_0047
-  IL_0045:  ldc.i4.0
-  IL_0046:  ret
-  IL_0047:  ldarg.0
-  IL_0048:  ldstr      " two "
-  IL_004d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_0052:  ldarg.0
-  IL_0053:  ldc.i4.2
-  IL_0054:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0059:  ldc.i4.1
-  IL_005a:  ret
-  IL_005b:  ldarg.0
-  IL_005c:  ldc.i4.m1
-  IL_005d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0062:  ldc.i4.0
-  IL_0063:  ret
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one False one False one").VerifyDiagnostics();
 
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0008:  ret
-}
-""");
             // Verify GetEnumerator
             string src2 = """
 var enumerable = C.Produce(true);
@@ -4642,53 +4484,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one done False one False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size       62 (0x3e)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_002b
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0017:  ldarg.0
-  IL_0018:  ldstr      " one "
-  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0029:  ldc.i4.1
-  IL_002a:  ret
-  IL_002b:  ldarg.0
-  IL_002c:  ldc.i4.m1
-  IL_002d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0032:  ldstr      "done "
-  IL_0037:  call       "void System.Console.Write(string)"
-  IL_003c:  ldc.i4.0
-  IL_003d:  ret
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one done False one False one").VerifyDiagnostics();
 
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0008:  ret
-}
-""");
             // Verify GetEnumerator
             string src2 = """
 var enumerable = C.Produce(true);
@@ -4746,52 +4543,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one exception one False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size       61 (0x3d)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_002b
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0017:  ldarg.0
-  IL_0018:  ldstr      " one "
-  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0029:  ldc.i4.1
-  IL_002a:  ret
-  IL_002b:  ldarg.0
-  IL_002c:  ldc.i4.m1
-  IL_002d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0032:  ldstr      "exception"
-  IL_0037:  newobj     "System.Exception..ctor(string)"
-  IL_003c:  throw
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one exception one False one").VerifyDiagnostics();
 
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0008:  ret
-}
-""");
             // Verify GetEnumerator
             string src2 = """
 var enumerable = C.Produce();
@@ -4903,6 +4656,19 @@ class C
   IL_0022:  ret
 }
 """);
+            verifier.VerifyIL("C.<GetEnumerator>d__0.<>m__Finally1()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.m1
+  IL_0002:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
+  IL_0007:  ldstr      "exception"
+  IL_000c:  newobj     "System.Exception..ctor(string)"
+  IL_0011:  throw
+}
+""");
+
             // Verify GetEnumerator
             string src2 = """
 var enumerable = C.Produce();
@@ -4975,81 +4741,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one finally False one False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size      117 (0x75)
-  .maxstack  2
-  .locals init (bool V_0,
-                int V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0036,
-        IL_006a)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0022:  ldarg.0
-  IL_0023:  ldstr      " one "
-  IL_0028:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0034:  ldc.i4.1
-  IL_0035:  ret
-  IL_0036:  ldarg.0
-  IL_0037:  ldc.i4.m1
-  IL_0038:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  .try
-  {
-    IL_003d:  ldarg.0
-    IL_003e:  ldfld      "bool C.<GetEnumerator>d__0.b"
-    IL_0043:  brfalse.s  IL_0049
-    IL_0045:  ldc.i4.0
-    IL_0046:  stloc.0
-    IL_0047:  leave.s    IL_0073
-    IL_0049:  leave.s    IL_0056
-  }
-  finally
-  {
-    IL_004b:  ldstr      "finally "
-    IL_0050:  call       "void System.Console.Write(string)"
-    IL_0055:  endfinally
-  }
-  IL_0056:  ldarg.0
-  IL_0057:  ldstr      " two "
-  IL_005c:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_0061:  ldarg.0
-  IL_0062:  ldc.i4.2
-  IL_0063:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0068:  ldc.i4.1
-  IL_0069:  ret
-  IL_006a:  ldarg.0
-  IL_006b:  ldc.i4.m1
-  IL_006c:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0071:  ldc.i4.0
-  IL_0072:  ret
-  IL_0073:  ldloc.0
-  IL_0074:  ret
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one finally False one False one").VerifyDiagnostics();
 
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0008:  ret
-}
-""");
             // Verify GetEnumerator
             string src2 = """
 var enumerable = C.Produce(true);
@@ -5128,61 +4821,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size       72 (0x48)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_002b
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0017:  ldarg.0
-  IL_0018:  ldstr      " one "
-  IL_001d:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0029:  ldc.i4.1
-  IL_002a:  ret
-  IL_002b:  ldarg.0
-  IL_002c:  ldc.i4.m1
-  IL_002d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  .try
-  {
-    IL_0032:  ldstr      "exception"
-    IL_0037:  newobj     "System.Exception..ctor(string)"
-    IL_003c:  throw
-  }
-  finally
-  {
-    IL_003d:  ldstr      "finally "
-    IL_0042:  call       "void System.Console.Write(string)"
-    IL_0047:  endfinally
-  }
-}
-""");
-
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0008:  ret
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one finally exception one False one False one").VerifyDiagnostics();
 
             // Verify GetEnumerator
             string src2 = """
@@ -5255,7 +4894,7 @@ class C
         try
         {
             yield return " one ";
-            throw new System.Exception("exception");
+            if (b) throw new System.Exception("exception");
         }
         finally
         {
@@ -5264,10 +4903,11 @@ class C
     }
 }
 """;
+            // Note: we generate a `fault { Dispose(); }`, but only if there is a `yield` in a `try`, which is surprising
             var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
             verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
-  // Code size       83 (0x53)
+  // Code size      101 (0x65)
   .maxstack  2
   .locals init (bool V_0,
                 int V_1)
@@ -5283,7 +4923,7 @@ class C
     IL_000c:  beq.s      IL_0037
     IL_000e:  ldc.i4.0
     IL_000f:  stloc.0
-    IL_0010:  leave.s    IL_0051
+    IL_0010:  leave.s    IL_0063
     IL_0012:  ldarg.0
     IL_0013:  ldc.i4.m1
     IL_0014:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
@@ -5298,22 +4938,30 @@ class C
     IL_002e:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
     IL_0033:  ldc.i4.1
     IL_0034:  stloc.0
-    IL_0035:  leave.s    IL_0051
+    IL_0035:  leave.s    IL_0063
     IL_0037:  ldarg.0
     IL_0038:  ldc.i4.s   -3
     IL_003a:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_003f:  ldstr      "exception"
-    IL_0044:  newobj     "System.Exception..ctor(string)"
-    IL_0049:  throw
+    IL_003f:  ldarg.0
+    IL_0040:  ldfld      "bool C.<GetEnumerator>d__0.b"
+    IL_0045:  brfalse.s  IL_0052
+    IL_0047:  ldstr      "exception"
+    IL_004c:  newobj     "System.Exception..ctor(string)"
+    IL_0051:  throw
+    IL_0052:  ldarg.0
+    IL_0053:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
+    IL_0058:  ldc.i4.0
+    IL_0059:  stloc.0
+    IL_005a:  leave.s    IL_0063
   }
   fault
   {
-    IL_004a:  ldarg.0
-    IL_004b:  call       "void C.<GetEnumerator>d__0.Dispose()"
-    IL_0050:  endfinally
+    IL_005c:  ldarg.0
+    IL_005d:  call       "void C.<GetEnumerator>d__0.Dispose()"
+    IL_0062:  endfinally
   }
-  IL_0051:  ldloc.0
-  IL_0052:  ret
+  IL_0063:  ldloc.0
+  IL_0064:  ret
 }
 """);
 
@@ -5419,106 +5067,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
-{
-  // Code size      132 (0x84)
-  .maxstack  2
-  .locals init (bool V_0,
-                int V_1)
-  .try
-  {
-    IL_0000:  ldarg.0
-    IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_0006:  stloc.1
-    IL_0007:  ldloc.1
-    IL_0008:  switch    (
-        IL_001d,
-        IL_0042,
-        IL_0066)
-    IL_0019:  ldc.i4.0
-    IL_001a:  stloc.0
-    IL_001b:  leave.s    IL_0082
-    IL_001d:  ldarg.0
-    IL_001e:  ldc.i4.m1
-    IL_001f:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_0024:  ldarg.0
-    IL_0025:  ldc.i4.s   -3
-    IL_0027:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_002c:  ldarg.0
-    IL_002d:  ldstr      " one "
-    IL_0032:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-    IL_0037:  ldarg.0
-    IL_0038:  ldc.i4.1
-    IL_0039:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_003e:  ldc.i4.1
-    IL_003f:  stloc.0
-    IL_0040:  leave.s    IL_0082
-    IL_0042:  ldarg.0
-    IL_0043:  ldc.i4.s   -3
-    IL_0045:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_004a:  ldarg.0
-    IL_004b:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
-    IL_0050:  ldarg.0
-    IL_0051:  ldstr      " two "
-    IL_0056:  stfld      "string C.<GetEnumerator>d__0.<>2__current"
-    IL_005b:  ldarg.0
-    IL_005c:  ldc.i4.2
-    IL_005d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_0062:  ldc.i4.1
-    IL_0063:  stloc.0
-    IL_0064:  leave.s    IL_0082
-    IL_0066:  ldarg.0
-    IL_0067:  ldc.i4.m1
-    IL_0068:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-    IL_006d:  ldstr      "not executed after disposal"
-    IL_0072:  call       "void System.Console.Write(string)"
-    IL_0077:  ldc.i4.0
-    IL_0078:  stloc.0
-    IL_0079:  leave.s    IL_0082
-  }
-  fault
-  {
-    IL_007b:  ldarg.0
-    IL_007c:  call       "void C.<GetEnumerator>d__0.Dispose()"
-    IL_0081:  endfinally
-  }
-  IL_0082:  ldloc.0
-  IL_0083:  ret
-}
-""");
-
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
-{
-  // Code size       35 (0x23)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -3
-  IL_000a:  beq.s      IL_0010
-  IL_000c:  ldloc.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  bne.un.s   IL_001a
-  IL_0010:  nop
-  .try
-  {
-    IL_0011:  leave.s    IL_001a
-  }
-  finally
-  {
-    IL_0013:  ldarg.0
-    IL_0014:  call       "void C.<GetEnumerator>d__0.<>m__Finally1()"
-    IL_0019:  endfinally
-  }
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.s   -2
-  IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
-  IL_0022:  ret
-}
-""");
+            CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
 
             // Verify GetEnumerator
             string src2 = """

@@ -1913,17 +1913,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_Produce.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_Produce.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one disposed False one")
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -2000,17 +1990,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposed disposed2 False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one disposed disposed2 False one")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2047,74 +2027,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one False one False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size      108 (0x6c)
-  .maxstack  3
-  .locals init (Integer V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_003a,
-        IL_0061)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  dup
-  IL_001e:  stloc.0
-  IL_001f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0024:  ldarg.0
-  IL_0025:  ldstr      "" one ""
-  IL_002a:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_002f:  ldarg.0
-  IL_0030:  ldc.i4.1
-  IL_0031:  dup
-  IL_0032:  stloc.0
-  IL_0033:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0038:  ldc.i4.1
-  IL_0039:  ret
-  IL_003a:  ldarg.0
-  IL_003b:  ldc.i4.m1
-  IL_003c:  dup
-  IL_003d:  stloc.0
-  IL_003e:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0043:  ldarg.0
-  IL_0044:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$VB$Local_b As Boolean""
-  IL_0049:  brtrue.s   IL_006a
-  IL_004b:  ldarg.0
-  IL_004c:  ldstr      "" two ""
-  IL_0051:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_0056:  ldarg.0
-  IL_0057:  ldc.i4.2
-  IL_0058:  dup
-  IL_0059:  stloc.0
-  IL_005a:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_005f:  ldc.i4.1
-  IL_0060:  ret
-  IL_0061:  ldarg.0
-  IL_0062:  ldc.i4.m1
-  IL_0063:  dup
-  IL_0064:  stloc.0
-  IL_0065:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_006a:  ldc.i4.0
-  IL_006b:  ret
-}
-")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one False one False one")
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -2183,58 +2096,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one done False one False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size       68 (0x44)
-  .maxstack  3
-  .locals init (Integer V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_002f
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  dup
-  IL_0013:  stloc.0
-  IL_0014:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0019:  ldarg.0
-  IL_001a:  ldstr      "" one ""
-  IL_001f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_0024:  ldarg.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  dup
-  IL_0027:  stloc.0
-  IL_0028:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_002d:  ldc.i4.1
-  IL_002e:  ret
-  IL_002f:  ldarg.0
-  IL_0030:  ldc.i4.m1
-  IL_0031:  dup
-  IL_0032:  stloc.0
-  IL_0033:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0038:  ldstr      ""done ""
-  IL_003d:  call       ""Sub System.Console.Write(String)""
-  IL_0042:  ldc.i4.0
-  IL_0043:  ret
-}
-")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one done False one False one")
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -2304,57 +2166,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one exception one False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size       67 (0x43)
-  .maxstack  3
-  .locals init (Integer V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_002f
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  dup
-  IL_0013:  stloc.0
-  IL_0014:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0019:  ldarg.0
-  IL_001a:  ldstr      "" one ""
-  IL_001f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_0024:  ldarg.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  dup
-  IL_0027:  stloc.0
-  IL_0028:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_002d:  ldc.i4.1
-  IL_002e:  ret
-  IL_002f:  ldarg.0
-  IL_0030:  ldc.i4.m1
-  IL_0031:  dup
-  IL_0032:  stloc.0
-  IL_0033:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0038:  ldstr      ""exception""
-  IL_003d:  newobj     ""Sub System.Exception..ctor(String)""
-  IL_0042:  throw
-}
-")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one exception one False one")
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -2432,83 +2244,6 @@ End Class
 </compilation>
 
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one disposing exception disposed False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size      127 (0x7f)
-  .maxstack  3
-  .locals init (Boolean V_0,
-                Integer V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
-  IL_000a:  sub
-  IL_000b:  switch    (
-        IL_002f,
-        IL_0024,
-        IL_0024,
-        IL_0026,
-        IL_002f)
-  IL_0024:  ldc.i4.0
-  IL_0025:  ret
-  IL_0026:  ldarg.0
-  IL_0027:  ldc.i4.m1
-  IL_0028:  dup
-  IL_0029:  stloc.1
-  IL_002a:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_002f:  nop
-  .try
-  {
-    IL_0030:  ldloc.1
-    IL_0031:  ldc.i4.s   -3
-    IL_0033:  beq.s      IL_003b
-    IL_0035:  ldloc.1
-    IL_0036:  ldc.i4.1
-    IL_0037:  beq.s      IL_0060
-    IL_0039:  br.s       IL_0048
-    IL_003b:  ldarg.0
-    IL_003c:  ldc.i4.m1
-    IL_003d:  dup
-    IL_003e:  stloc.1
-    IL_003f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-    IL_0044:  ldc.i4.1
-    IL_0045:  stloc.0
-    IL_0046:  leave.s    IL_007d
-    IL_0048:  ldarg.0
-    IL_0049:  ldstr      "" one ""
-    IL_004e:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-    IL_0053:  ldarg.0
-    IL_0054:  ldc.i4.1
-    IL_0055:  dup
-    IL_0056:  stloc.1
-    IL_0057:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-    IL_005c:  ldc.i4.1
-    IL_005d:  stloc.0
-    IL_005e:  leave.s    IL_007d
-    IL_0060:  ldarg.0
-    IL_0061:  ldc.i4.m1
-    IL_0062:  dup
-    IL_0063:  stloc.1
-    IL_0064:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-    IL_0069:  leave.s    IL_007b
-  }
-  finally
-  {
-    IL_006b:  ldloc.1
-    IL_006c:  ldc.i4.0
-    IL_006d:  bge.s      IL_007a
-    IL_006f:  ldstr      ""exception""
-    IL_0074:  newobj     ""Sub System.Exception..ctor(String)""
-    IL_0079:  throw
-    IL_007a:  endfinally
-  }
-  IL_007b:  ldc.i4.0
-  IL_007c:  ret
-  IL_007d:  ldloc.0
-  IL_007e:  ret
-}
-")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
   // Code size       44 (0x2c)
@@ -2614,88 +2349,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one finally False one False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size      127 (0x7f)
-  .maxstack  3
-  .locals init (Integer V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  switch    (
-        IL_001b,
-        IL_003a,
-        IL_0074)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  dup
-  IL_001e:  stloc.0
-  IL_001f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0024:  ldarg.0
-  IL_0025:  ldstr      "" one ""
-  IL_002a:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_002f:  ldarg.0
-  IL_0030:  ldc.i4.1
-  IL_0031:  dup
-  IL_0032:  stloc.0
-  IL_0033:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0038:  ldc.i4.1
-  IL_0039:  ret
-  IL_003a:  ldarg.0
-  IL_003b:  ldc.i4.m1
-  IL_003c:  dup
-  IL_003d:  stloc.0
-  IL_003e:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  .try
-  {
-    IL_0043:  ldarg.0
-    IL_0044:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$VB$Local_b As Boolean""
-    IL_0049:  brfalse.s  IL_004d
-    IL_004b:  leave.s    IL_007d
-    IL_004d:  leave.s    IL_005e
-  }
-  finally
-  {
-    IL_004f:  ldloc.0
-    IL_0050:  ldc.i4.0
-    IL_0051:  bge.s      IL_005d
-    IL_0053:  ldstr      ""finally ""
-    IL_0058:  call       ""Sub System.Console.Write(String)""
-    IL_005d:  endfinally
-  }
-  IL_005e:  ldarg.0
-  IL_005f:  ldstr      "" two ""
-  IL_0064:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_0069:  ldarg.0
-  IL_006a:  ldc.i4.2
-  IL_006b:  dup
-  IL_006c:  stloc.0
-  IL_006d:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0072:  ldc.i4.1
-  IL_0073:  ret
-  IL_0074:  ldarg.0
-  IL_0075:  ldc.i4.m1
-  IL_0076:  dup
-  IL_0077:  stloc.0
-  IL_0078:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_007d:  ldc.i4.0
-  IL_007e:  ret
-}
-")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one finally False one False one")
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -2783,69 +2437,7 @@ End Class
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(source, expectedOutput:="True one finally exception one False one False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size       82 (0x52)
-  .maxstack  3
-  .locals init (Integer V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0010
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  beq.s      IL_002f
-  IL_000e:  ldc.i4.0
-  IL_000f:  ret
-  IL_0010:  ldarg.0
-  IL_0011:  ldc.i4.m1
-  IL_0012:  dup
-  IL_0013:  stloc.0
-  IL_0014:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0019:  ldarg.0
-  IL_001a:  ldstr      "" one ""
-  IL_001f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-  IL_0024:  ldarg.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  dup
-  IL_0027:  stloc.0
-  IL_0028:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_002d:  ldc.i4.1
-  IL_002e:  ret
-  IL_002f:  ldarg.0
-  IL_0030:  ldc.i4.m1
-  IL_0031:  dup
-  IL_0032:  stloc.0
-  IL_0033:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  .try
-  {
-    IL_0038:  ldstr      ""exception""
-    IL_003d:  newobj     ""Sub System.Exception..ctor(String)""
-    IL_0042:  throw
-  }
-  finally
-  {
-    IL_0043:  ldloc.0
-    IL_0044:  ldc.i4.0
-    IL_0045:  bge.s      IL_0051
-    IL_0047:  ldstr      ""finally ""
-    IL_004c:  call       ""Sub System.Console.Write(String)""
-    IL_0051:  endfinally
-  }
-}
-")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
-  IL_0003:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0008:  ret
-}
-")
+            CompileAndVerify(source, expectedOutput:="True one finally exception one False one False one")
 
             ' Verify GetEnumerator
             Dim source2 =
@@ -2921,7 +2513,9 @@ Class C
     Public Shared Iterator Function GetEnumerator(b As Boolean) As System.Collections.Generic.IEnumerator(Of String)
         Try
             Yield " one "
-            Throw New Exception("exception")
+            If b Then
+                Throw New Exception("exception")
+            End If
         Finally
             Console.Write("finally ")
         End Try
@@ -2931,82 +2525,6 @@ End Class
 </compilation>
 
             Dim verifier = CompileAndVerify(source, expectedOutput:="True one finally exception one False one")
-            verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.MoveNext()", "
-{
-  // Code size      133 (0x85)
-  .maxstack  3
-  .locals init (Boolean V_0,
-                Integer V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
-  IL_000a:  sub
-  IL_000b:  switch    (
-        IL_002f,
-        IL_0024,
-        IL_0024,
-        IL_0026,
-        IL_002f)
-  IL_0024:  ldc.i4.0
-  IL_0025:  ret
-  IL_0026:  ldarg.0
-  IL_0027:  ldc.i4.m1
-  IL_0028:  dup
-  IL_0029:  stloc.1
-  IL_002a:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-  IL_002f:  nop
-  .try
-  {
-    IL_0030:  ldloc.1
-    IL_0031:  ldc.i4.s   -3
-    IL_0033:  beq.s      IL_003b
-    IL_0035:  ldloc.1
-    IL_0036:  ldc.i4.1
-    IL_0037:  beq.s      IL_0060
-    IL_0039:  br.s       IL_0048
-    IL_003b:  ldarg.0
-    IL_003c:  ldc.i4.m1
-    IL_003d:  dup
-    IL_003e:  stloc.1
-    IL_003f:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-    IL_0044:  ldc.i4.1
-    IL_0045:  stloc.0
-    IL_0046:  leave.s    IL_0083
-    IL_0048:  ldarg.0
-    IL_0049:  ldstr      "" one ""
-    IL_004e:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$Current As String""
-    IL_0053:  ldarg.0
-    IL_0054:  ldc.i4.1
-    IL_0055:  dup
-    IL_0056:  stloc.1
-    IL_0057:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-    IL_005c:  ldc.i4.1
-    IL_005d:  stloc.0
-    IL_005e:  leave.s    IL_0083
-    IL_0060:  ldarg.0
-    IL_0061:  ldc.i4.m1
-    IL_0062:  dup
-    IL_0063:  stloc.1
-    IL_0064:  stfld      ""C.VB$StateMachine_1_GetEnumerator.$State As Integer""
-    IL_0069:  ldstr      ""exception""
-    IL_006e:  newobj     ""Sub System.Exception..ctor(String)""
-    IL_0073:  throw
-  }
-  finally
-  {
-    IL_0074:  ldloc.1
-    IL_0075:  ldc.i4.0
-    IL_0076:  bge.s      IL_0082
-    IL_0078:  ldstr      ""finally ""
-    IL_007d:  call       ""Sub System.Console.Write(String)""
-    IL_0082:  endfinally
-  }
-  IL_0083:  ldloc.0
-  IL_0084:  ret
-}
-")
             verifier.VerifyIL("C.VB$StateMachine_1_GetEnumerator.Dispose()", "
 {
   // Code size       44 (0x2c)
