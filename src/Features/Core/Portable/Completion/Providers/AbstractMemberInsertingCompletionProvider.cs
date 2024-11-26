@@ -148,13 +148,11 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         Contract.ThrowIfNull(containingType);
 
         var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
-        var overriddenMember = symbols.FirstOrDefault();
+        var member = symbols.FirstOrDefault();
 
-        if (overriddenMember == null)
-        {
-            // Unfortunately, SymbolKey resolution failed. Bail.
+        // If SymbolKey resolution failed, then bail.
+        if (member == null)
             return null;
-        }
 
         // CodeGenerationOptions containing before and after
         var context = new CodeGenerationSolutionContext(
@@ -164,7 +162,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
                 beforeThisLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start))));
 
         var generatedMember = await GenerateMemberAsync(
-            document, completionItem, semanticModel.Compilation, overriddenMember, containingType, cancellationToken).ConfigureAwait(false);
+            document, completionItem, semanticModel.Compilation, member, containingType, cancellationToken).ConfigureAwait(false);
         generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
         return await codeGenService.AddMembersAsync(

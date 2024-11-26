@@ -60,7 +60,7 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
     }
 
     protected override async Task<ISymbol> GenerateMemberAsync(
-        Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol newContainingType, CancellationToken cancellationToken)
+        Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol containingType, CancellationToken cancellationToken)
     {
         var syntaxFactory = document.GetRequiredLanguageService<SyntaxGenerator>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

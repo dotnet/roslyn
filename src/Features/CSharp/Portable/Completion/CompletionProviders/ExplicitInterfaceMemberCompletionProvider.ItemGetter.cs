@@ -27,27 +27,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 internal sealed partial class ExplicitInterfaceMemberCompletionProvider
 {
-    private sealed class ItemGetter : AbstractItemGetter<ExplicitInterfaceMemberCompletionProvider>
+    private sealed class ItemGetter(
+        ExplicitInterfaceMemberCompletionProvider overrideCompletionProvider,
+        Document document,
+        int position,
+        SourceText text,
+        SyntaxTree syntaxTree,
+        int startLineNumber,
+        CancellationToken cancellationToken)
+        : AbstractItemGetter<ExplicitInterfaceMemberCompletionProvider>(
+            overrideCompletionProvider,
+            document,
+            position,
+            text,
+            syntaxTree,
+            startLineNumber,
+            cancellationToken)
     {
-        private ItemGetter(
-            ExplicitInterfaceMemberCompletionProvider overrideCompletionProvider,
-            Document document,
-            int position,
-            SourceText text,
-            SyntaxTree syntaxTree,
-            int startLineNumber,
-            CancellationToken cancellationToken)
-            : base(
-                  overrideCompletionProvider,
-                  document,
-                  position,
-                  text,
-                  syntaxTree,
-                  startLineNumber,
-                  cancellationToken)
-        {
-        }
-
         public static async Task<ItemGetter> CreateAsync(
             ExplicitInterfaceMemberCompletionProvider overrideCompletionProvider,
             Document document,
@@ -101,7 +97,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
 
                 var semanticModel = await Document.ReuseExistingSpeculativeModelAsync(Position, CancellationToken).ConfigureAwait(false);
                 var symbol = semanticModel.GetSymbolInfo(name, CancellationToken).Symbol as ITypeSymbol;
-                if (symbol?.TypeKind != TypeKind.Interface)
+                if (symbol is not { TypeKind: TypeKind.Interface })
                     return [];
 
                 var typeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
@@ -112,7 +108,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 if (containingType is not INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct })
                     return [];
 
-                // We must be explicitly implementing the interface
+                // We must be explicitly implementing the interface ourselves.
                 if (!containingType.Interfaces.Contains(symbol))
                     return [];
 
@@ -191,16 +187,9 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 _ => throw new ArgumentException("Unexpected interface member symbol kind")
             };
 
-        private static SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken)
-        {
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            return token.GetPreviousTokenIfTouchingWord(position);
-        }
-
         private string ToDisplayString(IPropertySymbol symbol, SemanticModel semanticModel)
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
-            var startToken = FindStartingToken(SyntaxTree, Position, CancellationToken);
 
             if (symbol.IsIndexer)
             {

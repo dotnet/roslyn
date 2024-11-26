@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -34,32 +35,35 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
     public override ImmutableHashSet<char> TriggerCharacters { get; } = ['.'];
 
     protected override async Task<ISymbol> GenerateMemberAsync(
-        Document newDocument,
+        Document document,
         CompletionItem completionItem,
         Compilation compilation,
         ISymbol member,
-        INamedTypeSymbol newContainingType,
+        INamedTypeSymbol containingType,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var implementInterfaceService = newDocument.GetRequiredLanguageService<IImplementInterfaceService>();
+        var implementInterfaceService = document.GetRequiredLanguageService<IImplementInterfaceService>();
 
-        var baseMemberInterfaceType = member.ContainingType;
-        Contract.ThrowIfFalse(baseMemberInterfaceType.TypeKind is TypeKind.Interface);
+        var position = SymbolCompletionItem.GetContextPosition(completionItem);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position);
+        var typeDeclaration = token.GetRequiredAncestor<BaseTypeDeclarationSyntax>();
 
-        var interfaceNode = await GetInterfaceNodeInCompletionAsync(newDocument, completionItem, baseMemberInterfaceType, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfNull(interfaceNode);
+        var info = new ImplementInterfaceInfo
+        {
+            ClassOrStructType = containingType,
+            ContextNode = typeDeclaration,
+        };
 
-        var state = await implementInterfaceService.AnalyzeAsync(newDocument, interfaceNode, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfNull(state);
-
-        var options = await newDocument.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Implement this member explicitly in the implementing type, and return the resultant member to actually
         // generate into the right declaration location.
-        return implementInterfaceService.ImplementInterfaceMember(
-            newDocument, state, member, options, new() { Explicitly = true }).ConfigureAwait(false);
+        var members = implementInterfaceService.ImplementInterfaceMember(
+            document, info, options, new() { Explicitly = true }, compilation, member);
+        return members.Single();
     }
 
     protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
