@@ -17,6 +17,11 @@
         <target state="translated">Přidávání dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="new">After</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Došlo k chybě při čtení zadaného konfiguračního souboru: {0}</target>
@@ -435,11 +440,6 @@
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Přidáno:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">Po:</target>
         <note />
       </trans-unit>
       <trans-unit id="Before_colon">

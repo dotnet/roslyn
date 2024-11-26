@@ -264,8 +264,8 @@
   <data name="Added_colon" xml:space="preserve">
     <value>Added:</value>
   </data>
-  <data name="After_colon" xml:space="preserve">
-    <value>After:</value>
+  <data name="After" xml:space="preserve">
+    <value>After</value>
   </data>
   <data name="Before_colon" xml:space="preserve">
     <value>Before:</value>

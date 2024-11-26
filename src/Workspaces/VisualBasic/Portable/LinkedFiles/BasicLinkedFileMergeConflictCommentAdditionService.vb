@@ -17,10 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New()
         End Sub
 
-        Friend Overrides Function GetConflictCommentText(header As String, beforeString As String, afterString As String) As String
-            If beforeString Is Nothing AndAlso afterString Is Nothing Then
-                Return Nothing
-            ElseIf beforeString Is Nothing Then
+        Protected Overrides Function GetLanguageSpecificConflictCommentText(header As String, beforeString As String, afterString As String) As String
+            If beforeString Is Nothing Then
                 ' Added code
                 Return String.Format("
 ' {0} 
@@ -41,19 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     WorkspacesResources.Removed_colon,
                     GetCommentedText(beforeString))
             Else
-                Return String.Format("
-' {0} 
-' {1}
-{2}
-' {3}
-{4}
-",
-                    header,
-                    WorkspacesResources.Before_colon,
-                    GetCommentedText(beforeString),
-                    WorkspacesResources.After_colon,
-                    GetCommentedText(afterString))
-
+                Return Nothing
             End If
         End Function
 

@@ -17,6 +17,11 @@
         <target state="translated">No se permite agregar documentos de configuración del analizador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="new">After</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Error al leer el archivo de configuración especificado: {0}</target>
@@ -435,11 +440,6 @@
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Agregado:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">Después:</target>
         <note />
       </trans-unit>
       <trans-unit id="Before_colon">

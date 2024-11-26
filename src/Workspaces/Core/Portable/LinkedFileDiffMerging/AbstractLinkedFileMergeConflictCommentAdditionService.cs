@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : IMergeConflictHandler, ILanguageService, ILinkedFileMergeConflictCommentAdditionService
 {
-    internal abstract string GetConflictCommentText(string header, string beforeString, string afterString);
+    protected abstract string? GetLanguageSpecificConflictCommentText(string header, string? beforeString, string? afterString);
 
     public ImmutableArray<TextChange> CreateEdits(SourceText originalSourceText, ArrayBuilder<UnmergedDocumentChanges> unmergedChanges)
     {
@@ -64,9 +62,9 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
         return partitionedChanges;
     }
 
-    private List<TextChange> GetCommentChangesForDocument(IEnumerable<IEnumerable<TextChange>> partitionedChanges, string projectName, SourceText oldDocumentText)
+    private ImmutableArray<TextChange> GetCommentChangesForDocument(IEnumerable<IEnumerable<TextChange>> partitionedChanges, string projectName, SourceText oldDocumentText)
     {
-        var commentChanges = new List<TextChange>();
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var commentChanges);
 
         foreach (var changePartition in partitionedChanges)
         {
@@ -77,7 +75,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
             var endLineEndPosition = oldDocumentText.Lines.GetLineFromPosition(endPosition).End;
 
             var oldText = oldDocumentText.GetSubText(TextSpan.FromBounds(startLineStartPosition, endLineEndPosition));
-            var adjustedChanges = changePartition.Select(c => new TextChange(TextSpan.FromBounds(c.Span.Start - startLineStartPosition, c.Span.End - startLineStartPosition), c.NewText));
+            var adjustedChanges = changePartition.Select(c => new TextChange(TextSpan.FromBounds(c.Span.Start - startLineStartPosition, c.Span.End - startLineStartPosition), c.NewText!));
             var newText = oldText.WithChanges(adjustedChanges);
 
             var warningText = GetConflictCommentText(
@@ -86,15 +84,36 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
                 TrimBlankLines(newText));
 
             if (warningText != null)
-            {
                 commentChanges.Add(new TextChange(TextSpan.FromBounds(startLineStartPosition, startLineStartPosition), warningText));
-            }
         }
 
-        return commentChanges;
+        return commentChanges.ToImmutableAndClear();
     }
 
-    private static string TrimBlankLines(SourceText text)
+    private string? GetConflictCommentText(string header, string? beforeString, string? afterString)
+    {
+        // Whitespace only
+        if (beforeString == null && afterString == null)
+            return null;
+
+        // Changed code
+        if (beforeString != null && afterString != null)
+        {
+            return $"""
+
+                <<<<<<< {header}, {WorkspacesResources.Before_colon}
+                {beforeString}
+                =======                
+                {afterString}
+                >>>>>>> {WorkspacesResources.After}
+
+                """;
+        }
+
+        return GetLanguageSpecificConflictCommentText(header, beforeString, afterString);
+    }
+
+    private static string? TrimBlankLines(SourceText text)
     {
         int startLine, endLine;
         for (startLine = 0; startLine < text.Lines.Count; startLine++)
