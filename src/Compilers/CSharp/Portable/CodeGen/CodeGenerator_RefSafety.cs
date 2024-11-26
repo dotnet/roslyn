@@ -20,10 +20,7 @@ internal partial class CodeGenerator
             receiverScope: node.Method.TryGetThisParameter(out var thisParameter) ? thisParameter?.EffectiveScope : null,
             receiverAddressKind: receiverAddressKind,
             isReceiverReadOnly: node.Method.IsEffectivelyReadOnly,
-            parameters: node.Method.Parameters,
-            arguments: node.Arguments,
-            argsToParamsOpt: node.ArgsToParamsOpt,
-            expanded: node.Expanded);
+            parameters: node.Method.Parameters);
     }
 
     private static bool MightEscapeTemporaryRefs(BoundObjectCreationExpression node, bool used)
@@ -36,10 +33,7 @@ internal partial class CodeGenerator
             receiverScope: null,
             receiverAddressKind: null,
             isReceiverReadOnly: false,
-            parameters: node.Constructor.Parameters,
-            arguments: node.Arguments,
-            argsToParamsOpt: node.ArgsToParamsOpt,
-            expanded: node.Expanded);
+            parameters: node.Constructor.Parameters);
     }
 
     private static bool MightEscapeTemporaryRefs(BoundFunctionPointerInvocation node, bool used)
@@ -53,10 +47,7 @@ internal partial class CodeGenerator
             receiverScope: null,
             receiverAddressKind: null,
             isReceiverReadOnly: false,
-            parameters: method.Parameters,
-            arguments: node.Arguments,
-            argsToParamsOpt: default,
-            expanded: false);
+            parameters: method.Parameters);
     }
 
     private static bool MightEscapeTemporaryRefs(
@@ -67,82 +58,59 @@ internal partial class CodeGenerator
         ScopedKind? receiverScope,
         AddressKind? receiverAddressKind,
         bool isReceiverReadOnly,
-        ImmutableArray<ParameterSymbol> parameters,
-        ImmutableArray<BoundExpression> arguments,
-        ImmutableArray<int> argsToParamsOpt,
-        bool expanded)
+        ImmutableArray<ParameterSymbol> parameters)
     {
         Debug.Assert(receiverAddressKind is null || receiverType is not null);
 
-        int writableRefs = 0;
-        int readonlyRefs = 0;
+        // number of outputs that can capture references
+        int refTargets = 0;
+        // number of inputs that can contain references
+        int refSources = 0;
 
         if (used && (returnRefKind != RefKind.None || returnType.IsRefLikeOrAllowsRefLikeType()))
         {
-            writableRefs++;
+            // If returning by reference or returning a ref struct, the result might capture references.
+            refTargets++;
         }
 
         if (receiverType is not null)
         {
             receiverScope ??= ScopedKind.None;
-            if (receiverAddressKind is { } a && !IsAnyReadOnly(a) && receiverScope == ScopedKind.None)
+            if (receiverType.IsRefLikeOrAllowsRefLikeType() && receiverScope != ScopedKind.ScopedValue)
             {
-                writableRefs++;
-            }
-            else if (receiverType.IsRefLikeOrAllowsRefLikeType() && receiverScope != ScopedKind.ScopedValue)
-            {
-                if (isReceiverReadOnly || receiverType.IsReadOnly)
+                refSources++;
+                if (!isReceiverReadOnly && !receiverType.IsReadOnly)
                 {
-                    readonlyRefs++;
-                }
-                else
-                {
-                    writableRefs++;
+                    refTargets++;
                 }
             }
             else if (receiverAddressKind != null && receiverScope == ScopedKind.None)
             {
-                readonlyRefs++;
+                refSources++;
             }
         }
 
-        if (shouldReturnTrue(writableRefs, readonlyRefs))
+        if (shouldReturnTrue(refTargets, refSources))
         {
             return true;
         }
 
-        for (var arg = 0; arg < arguments.Length; arg++)
+        foreach (var parameter in parameters)
         {
-            var parameter = Binder.GetCorrespondingParameter(
-                arg,
-                parameters,
-                argsToParamsOpt,
-                expanded);
-
-            if (parameter is not null)
+            if (parameter.Type.IsRefLikeOrAllowsRefLikeType() && parameter.EffectiveScope != ScopedKind.ScopedValue)
             {
-                if (parameter.RefKind.IsWritableReference() && parameter.EffectiveScope == ScopedKind.None)
+                refSources++;
+                if (!parameter.Type.IsReadOnly && parameter.RefKind.IsWritableReference())
                 {
-                    writableRefs++;
-                }
-                else if (parameter.Type.IsRefLikeOrAllowsRefLikeType() && parameter.EffectiveScope != ScopedKind.ScopedValue)
-                {
-                    if (parameter.Type.IsReadOnly || !parameter.RefKind.IsWritableReference())
-                    {
-                        readonlyRefs++;
-                    }
-                    else
-                    {
-                        writableRefs++;
-                    }
-                }
-                else if (parameter.RefKind != RefKind.None && parameter.EffectiveScope == ScopedKind.None)
-                {
-                    readonlyRefs++;
+                    refTargets++;
                 }
             }
+            else if (parameter.RefKind != RefKind.None && parameter.EffectiveScope == ScopedKind.None)
+            {
+                refSources++;
+            }
 
-            if (shouldReturnTrue(writableRefs, readonlyRefs))
+            if (shouldReturnTrue(refTargets, refSources))
             {
                 return true;
             }
@@ -150,9 +118,10 @@ internal partial class CodeGenerator
 
         return false;
 
-        static bool shouldReturnTrue(int writableRefs, int readonlyRefs)
+        static bool shouldReturnTrue(int writableRefs, int readableRefs)
         {
-            return writableRefs > 0 && (writableRefs + readonlyRefs) > 1;
+            // If there is at least one output and at least one input, a reference can be captured.
+            return writableRefs > 0 && readableRefs > 0;
         }
     }
 }
