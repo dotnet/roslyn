@@ -68,8 +68,6 @@ In addition to "ordinary" forms `M()` and `receiver.M()`, a call within a condit
 
 File-local declarations of this type (`file class InterceptsLocationAttribute`) are valid and usages are recognized by the compiler when they are within the same file and compilation. A generator which needs to declare this attribute should use a file-local declaration to ensure it doesn't conflict with other generators that need to do the same thing.
 
-In prior experimental releases of the feature, a well-known constructor signature `InterceptsLocation(string path, int line, int column)]` was also supported. Support for this constructor will be **dropped** prior to stable release of the feature.
-
 #### Location encoding
 
 The arguments to `[InterceptsLocation]` are:
