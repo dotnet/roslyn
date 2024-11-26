@@ -112,25 +112,42 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
+        {
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
 
-        // First find all references to this type, either with it's actual name, or through potential
-        // global alises to it.
-        AddReferencesToTypeOrGlobalAliasToIt(
-            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
+            // First find all references to this type, either with it's actual name, or through potential
+            // global alises to it.
+            AddReferencesToTypeOrGlobalAliasToIt(
+                namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
 
-        // The items in initialReferences need to be both reported and used later to calculate additional results.
-        foreach (var location in initialReferences)
-            processResult(location, processResultData);
+            // The items in tempReferences need to be both reported and used later to calculate additional results.
+            foreach (var location in tempReferences)
+                processResult(location, processResultData);
 
-        // This named type may end up being locally aliased as well.  If so, now find all the references
-        // to the local alias.
+            // This named type may end up being locally aliased as well.  If so, now find all the references
+            // to the local alias.
 
-        FindLocalAliasReferences(
-            initialReferences, state, processResult, processResultData, cancellationToken);
+            FindLocalAliasReferences(
+                tempReferences, state, processResult, processResultData, cancellationToken);
+        }
 
-        FindPredefinedTypeReferences(
-            namedType, state, processResult, processResultData, cancellationToken);
+        // Next, if this named type is a predefined type (like int/long), also search for it with the C# name,
+        // not the .Net one.
+        {
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var tempReferences);
+
+            AddPredefinedTypeReferences(namedType, state, tempReferences, cancellationToken);
+
+            // The items in tempReferences need to be both reported and used later to calculate additional results.
+            foreach (var location in tempReferences)
+                processResult(location, processResultData);
+
+            // This named type may end up being locally aliased as well.  If so, now find all the references
+            // to the local alias.
+
+            FindLocalAliasReferences(
+                tempReferences, state, processResult, processResultData, cancellationToken);
+        }
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             namedType, state, processResult, processResultData, cancellationToken);
@@ -203,11 +220,10 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             namedType, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static void FindPredefinedTypeReferences<TData>(
+    private static void AddPredefinedTypeReferences(
         INamedTypeSymbol symbol,
         FindReferencesDocumentState state,
-        Action<FinderLocation, TData> processResult,
-        TData processResultData,
+        ArrayBuilder<FinderLocation> tempReferences,
         CancellationToken cancellationToken)
     {
         var predefinedType = symbol.SpecialType.ToPredefinedType();
@@ -220,7 +236,8 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
                 static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                 (state, predefinedType));
 
-        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInTokens(
+            symbol, state, tokens, StandardCallbacks<FinderLocation>.AddToArrayBuilder, tempReferences, cancellationToken);
     }
 
     private static void FindAttributeReferences<TData>(
