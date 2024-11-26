@@ -47,6 +47,7 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -132,6 +133,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 ("textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin", InheritanceMarginOptionsStorage.ShowInheritanceMargin),
                 ("textEditor.csharp.advanced.inheritanceMargin.showGlobalImportsInInheritanceMargin", InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports),
                 ("textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus", StackTraceExplorerOptionsStorage.OpenOnFocus),
+                ("textEditor.csharpAndVisualBasic.advanced.documentOutline.enableDocumentOutline", DocumentOutlineOptionsStorage.EnableDocumentOutline),
             ];
 
         internal override object[] GetEnumOptionValues(IOption2 option)

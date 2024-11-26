@@ -1364,6 +1364,32 @@
         }
       }
     },
+    // DocumentOutlineOptionsStorage.EnableDocumentOutline
+    "textEditor.csharpAndVisualBasic.advanced.documentOutline.enableDocumentOutline": {
+      "title": "@Enable_document_outline_experimental_requires_restart;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "requiresRestart": true,
+      "alternateDefault": {
+        // DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag
+        "flagName": "DocumentOutline.DisableFeature",
+        "default": false
+      },
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.documentOutline",
+          "order": 0
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "DocumentOutline.Enable"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
