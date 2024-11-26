@@ -118,6 +118,9 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         FindReferencesInImplicitObjectCreationExpression(
             methodSymbol, state, processResult, processResultData, cancellationToken);
 
+        FindReferencesInPrimaryConstructorBaseType(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
+
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
     }
@@ -251,6 +254,47 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
                     alias: null,
                     newKeywordToken.GetLocation(),
                     isImplicit: true,
+                    GetSymbolUsageInfo(node, state, cancellationToken),
+                    GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
+                processResult(result, processResultData);
+            }
+        }
+    }
+
+    private static void FindReferencesInPrimaryConstructorBaseType<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        if (!state.Cache.SyntaxTreeIndex.ContainsPrimaryConstructorBaseType)
+            return;
+
+        var syntaxFacts = state.SyntaxFacts;
+        foreach (var token in state.Cache.FindMatchingIdentifierTokens(symbol.ContainingType.Name, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var parent = token.GetRequiredParent();
+            if (!syntaxFacts.IsSimpleName(parent))
+                continue;
+
+            if (syntaxFacts.IsRightOfQualifiedName(parent) || syntaxFacts.IsRightOfAliasQualifiedName(parent))
+                parent = parent.GetRequiredParent();
+
+            var node = parent.GetRequiredParent();
+            if (!syntaxFacts.IsPrimaryConstructorBaseType(node))
+                continue;
+
+            var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+            if (Matches(constructor, symbol))
+            {
+                var result = new FinderLocation(node, new ReferenceLocation(
+                    state.Document,
+                    alias: null,
+                    token.GetLocation(),
+                    isImplicit: false,
                     GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
                 processResult(result, processResultData);
