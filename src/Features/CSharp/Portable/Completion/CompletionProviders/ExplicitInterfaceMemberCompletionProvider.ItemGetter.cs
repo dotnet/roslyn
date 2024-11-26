@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -249,22 +250,17 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
         {
             builder.AppendJoinedValues(", ", parameters, (parameter, builder) =>
             {
-                builder.Append((parameter.RefKind, parameter.ScopedKind) switch
+                var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter);
+                foreach (var modifier in modifiers)
                 {
-                    (RefKind.Out, _) => "out ",
-                    (RefKind.Ref, ScopedKind.ScopedRef) => "scoped ref ",
-                    (RefKind.Ref, ScopedKind.None) => "ref ",
-                    (RefKind.Ref, _) => throw new InvalidEnumArgumentException("Unexpected scoped kind with ref kind 'ref'"),
-                    (RefKind.In, _) => "in ",
-                    (RefKind.RefReadOnlyParameter, _) => "ref readonly ",
-                    (RefKind.None, ScopedKind.ScopedValue) => "scoped ",
-                    _ => "",
-                });
-
-                if (parameter.IsParams)
-                {
-                    builder.Append("params ");
+                    builder.Append(SyntaxFacts.GetText(modifier.Kind()));
+                    builder.Append(" ");
                 }
+
+                //if (parameter.IsParams)
+                //{
+                //    builder.Append("params ");
+                //}
 
                 AddType(parameter.Type, builder, semanticModel);
                 builder.Append($" {parameter.Name.EscapeIdentifier()}");
