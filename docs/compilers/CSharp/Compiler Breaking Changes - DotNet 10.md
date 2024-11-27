@@ -123,7 +123,7 @@ using System.Diagnostics.CodeAnalysis;
 struct S
 {
     // both are errors in C# 10 with net6.0:
-    // warning CS9268: UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.
+    // warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
     [UnscopedRef] public ref int Ref() => throw null!;
     public static void M([UnscopedRef] ref int x) { }
 }

@@ -5354,13 +5354,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
-        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
-        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
-        <source>UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</source>
-        <target state="new">UnscopedRefAttribute does not have any effect in C# 10 or earlier with net6.0 or earlier.</target>
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
