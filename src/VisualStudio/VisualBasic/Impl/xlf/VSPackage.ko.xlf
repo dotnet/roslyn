@@ -18,7 +18,7 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+        <source>Underline reassigned variables;Display inline hints;Display inlay hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
 regular expressions;
 related components under cursor;
@@ -33,7 +33,7 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">재할당된 변수에 밑줄 표시, 인라인 힌트 표시, 최종 구문 자동 삽입, 예쁜 목록 설정 변경, 개요 모드 변경, Interface 및 MustOverride 구성원 자동 삽입, 절차 줄 구분 기호 표시 또는 숨기기, 오류 수정 제안 켜기 또는 끄기, 참조 강조 표시 끄기 및 키워드 켜기 또는 끄기, 
+        <target state="needs-review-translation">재할당된 변수에 밑줄 표시, 인라인 힌트 표시, 최종 구문 자동 삽입, 예쁜 목록 설정 변경, 개요 모드 변경, Interface 및 MustOverride 구성원 자동 삽입, 절차 줄 구분 기호 표시 또는 숨기기, 오류 수정 제안 켜기 또는 끄기, 참조 강조 표시 끄기 및 키워드 켜기 또는 끄기, 
 정규식,
 정규식,
 커서 아래에 있는 관련 구성 요소,

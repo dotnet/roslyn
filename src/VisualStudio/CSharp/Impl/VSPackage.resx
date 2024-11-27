@@ -144,6 +144,7 @@
   <data name="306" xml:space="preserve">
     <value>Underline reassigned variables;
 Display inline hints;
+Display inlay hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 

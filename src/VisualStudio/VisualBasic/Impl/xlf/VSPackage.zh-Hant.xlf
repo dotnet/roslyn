@@ -18,7 +18,7 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+        <source>Underline reassigned variables;Display inline hints;Display inlay hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
 regular expressions;
 related components under cursor;
@@ -33,7 +33,7 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">為重新指派的變數加上底線;顯示內嵌提示;自動插入結束建構;變更美化排列設定;變更大綱模式;自動插入介面和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤校正建議;開啟或關閉參考及關鍵字的醒目提示;
+        <target state="needs-review-translation">為重新指派的變數加上底線;顯示內嵌提示;自動插入結束建構;變更美化排列設定;變更大綱模式;自動插入介面和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤校正建議;開啟或關閉參考及關鍵字的醒目提示;
 Regex;
 規則運算式;
 游標下的相關元件;

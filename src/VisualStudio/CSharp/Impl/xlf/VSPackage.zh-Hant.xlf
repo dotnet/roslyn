@@ -35,6 +35,7 @@
       <trans-unit id="306">
         <source>Underline reassigned variables;
 Display inline hints;
+Display inlay hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -94,7 +95,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="translated">為重新指派的變數加上底線;
+        <target state="needs-review-translation">為重新指派的變數加上底線;
 顯示內嵌提示;
 顯示已關閉檔案的診斷;
 為規則運算式上色; 
