@@ -328,9 +328,32 @@
         }
       }
     },
-    // SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles
-    "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles": {
+    // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution
+    "textEditor.csharpAndVisualBasic.sourceGenerators.sourceGeneratorExecution": {
       "title": "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": "true",
+      "alternateDefault": {
+        // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag
+        "flagName": "Roslyn.SourceGeneratorExecutionBalanced",
+        "default": "true"
+      },
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.sourceGenerators",
+          "order": 10
+        }
+      ],
+      "migration": {
+        "input": {
+          "store": "SettingsManager",
+          "path": "TextEditor.Roslyn.Specific.SourceGeneratorExecution"
+        }
+      }
+    },
+    // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution
+    "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles": {
+      "title": "@Analyze_source_generated_files;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": "false",
       "alternateDefault": {
@@ -341,7 +364,7 @@
       "placements": [
         {
           "category": "textEditor.csharp.advanced.sourceGenerators",
-          "order": 10
+          "order": 20
         }
       ],
       "migration": {
