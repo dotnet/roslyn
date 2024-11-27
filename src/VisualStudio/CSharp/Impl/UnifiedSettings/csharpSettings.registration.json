@@ -1079,13 +1079,13 @@
       }
     },
     // InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1
-    "textEditor.csharpAndVisualBasic.advanced.inlayHints.displayInlineHintsWhilePressingAltF1": {
+    "textEditor.csharpAndVisualBasic.advanced.inlineHints.displayInlineHintsWhilePressingAltF1": {
       "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "placements": [
         {
-          "category": "textEditor.csharp.advanced.inlayHints",
+          "category": "textEditor.csharp.advanced.inlineHints",
           "order": 0
         }
       ],
@@ -1099,7 +1099,7 @@
       }
     },
     // InlineHintsViewOptionsStorage.ColorHints
-    "textEditor.csharp.advanced.inlayHints.colorizeInlineHints": {
+    "textEditor.csharp.advanced.inlineHints.colorizeInlineHints": {
       "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -1114,7 +1114,7 @@
       }
     },
     // InlineHintsOptionsStorage.EnabledForParameters
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters": {
       "title": "@Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
@@ -1129,9 +1129,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForLiteralParameters
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForLiteralParameters": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForLiteralParameters": {
       "title": "@Show_hints_for_literals;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
       "order": 30,
@@ -1145,9 +1145,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForObjectCreationParameters
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForObjectCreationParameters": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForObjectCreationParameters": {
       "title": "@Show_hints_for_new_expressions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
       "order": 40,
@@ -1161,9 +1161,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForOtherParameters
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForOtherParameters": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForOtherParameters": {
       "title": "@Show_hints_for_everything_else;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": false,
       "order": 50,
@@ -1177,9 +1177,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForIndexerParameters
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForIndexerParameters": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForIndexerParameters": {
       "title": "@Show_hints_for_indexers;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
       "order": 60,
@@ -1193,9 +1193,9 @@
       }
     },
     // InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent
-    "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatMatchMethodIntent": {
+    "textEditor.csharp.advanced.inlineHints.suppressInlayHintsForParametersThatMatchMethodIntent": {
       "title": "@Suppress_hints_when_parameter_name_matches_the_method_s_intent;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
       "order": 70,
@@ -1209,9 +1209,9 @@
       }
     },
     // InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix
-    "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": {
+    "textEditor.csharp.advanced.inlineHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": {
       "title": "@Suppress_hints_when_parameter_names_differ_only_by_suffix;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
       "order": 80,
@@ -1225,9 +1225,9 @@
       }
     },
     // InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName
-    "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatMatchArgumentName": {
+    "textEditor.csharp.advanced.inlineHints.suppressInlayHintsForParametersThatMatchArgumentName": {
       "title": "@Suppress_hints_when_argument_matches_parameter_name;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
       "default": true,
       "order": 90,
@@ -1241,7 +1241,7 @@
       }
     },
     // InlineHintsOptionsStorage.EnabledForTypes
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForTypes": {
       "title": "@Display_inline_type_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
@@ -1256,9 +1256,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForImplicitVariableTypes
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForImplicitVariableTypes": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForImplicitVariableTypes": {
       "title": "@Show_hints_for_variables_with_inferred_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
       "order": 110,
@@ -1272,9 +1272,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForLambdaParameterTypes
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForLambdaParameterTypes": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForLambdaParameterTypes": {
       "title": "@Show_hints_for_lambda_parameter_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
       "order": 120,
@@ -1288,9 +1288,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForImplicitObjectCreation
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForImplicitObjectCreation": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForImplicitObjectCreation": {
       "title": "@Show_hints_for_implicit_object_creation;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
       "order": 130,
@@ -1304,9 +1304,9 @@
       }
     },
     // InlineHintsOptionsStorage.ForCollectionExpressions
-    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForCollectionExpressions": {
+    "textEditor.csharp.advanced.inlineHints.enableInlayHintsForCollectionExpressions": {
       "title": "@Show_hints_for_collection_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlineHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
       "default": true,
       "order": 140,
@@ -1644,65 +1644,77 @@
       "title": "@Analysis;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 0
     },
+    "textEditor.csharp.advanced.sourceGenerators": {
+      "title": "@Source_Generators;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 10
+    },
+    "textEditor.csharp.advanced.goToDefinition": {
+      "title": "@Go_To_Definition;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 20
+    },
+    "textEditor.csharp.advanced.rename": {
+      "title": "@Rename;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 30
+    },
     "textEditor.csharp.advanced.usingDirectives": {
       "title": "@Using_Directives;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-      "order": 10
+      "order": 40
     },
     "textEditor.csharp.advanced.highlighting": {
       "title": "@Highlighting;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-      "order": 20
+      "order": 50
     },
     "textEditor.csharp.advanced.outlining": {
       "title": "@Outlining;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 30
+      "order": 60
     },
     "textEditor.csharp.advanced.fading": {
       "title": "@Fading;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 40
+      "order": 70
     },
     "textEditor.csharp.advanced.blockStructureGuides": {
       "title": "@Block_Structure_Guides;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 50
+      "order": 80
     },
     "textEditor.csharp.advanced.comments": {
       "title": "@Comments;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 60
+      "order": 90
     },
     "textEditor.csharp.advanced.editorHelp": {
       "title": "@Editor_Help;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-      "order": 70
+      "order": 100
     },
     "textEditor.csharp.advanced.regularExpression": {
       "title": "@Regular_Expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 80
+      "order": 110
     },
     "textEditor.csharp.advanced.jsonStrings": {
       "title": "@JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 90
+      "order": 120
     },
     "textEditor.csharp.advanced.editorColorScheme": {
       "title": "@Editor_Color_Scheme;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 100
+      "order": 130
     },
     "textEditor.csharp.advanced.implementInterfaceOrAbstractClass": {
       "title": "@Implement_Interface_or_Abstract_Class;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 100
+      "order": 140
     },
-    "textEditor.csharp.advanced.inlayHints": {
+    "textEditor.csharp.advanced.inlineHints": {
       "title": "@Inline_Hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 110
+      "order": 150
     },
     "textEditor.csharp.advanced.inheritanceMargin": {
       "title": "@Inheritance_Margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 120
+      "order": 160
     },
     "textEditor.csharp.advanced.stackTraceExplorer": {
       "title": "@Stack_Trace_Explorer;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 130
+      "order": 170
     },
     "textEditor.csharp.advanced.documentOutline": {
       "title": "@Document_Outline;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "order": 140
+      "order": 180
     }
   }
 }
