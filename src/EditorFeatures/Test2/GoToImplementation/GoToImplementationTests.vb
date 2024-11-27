@@ -39,6 +39,7 @@ $$
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithSingleClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -137,6 +138,7 @@ enum [|$$C|]
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithNonAbstractClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -188,6 +190,7 @@ interface $$I { }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_01(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -203,6 +206,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_02(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -218,6 +222,7 @@ interface I { void $$M() {} }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_03(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -252,6 +257,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_05(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -428,6 +434,7 @@ class C
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOverridableMethodOnBase(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -475,6 +482,7 @@ class D : C
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/19700")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithIntermediateAbstractOverrides(host As TestHost) As Task
             Dim workspace =
 <Workspace>
