@@ -340,14 +340,15 @@
       },
       "placements": [
         {
-          "category": "textEditor.csharp.advanced.sourceGenerators",
-          "order": 10
+          "category": "textEditor.csharp.advanced.sourceGenerators"
         }
       ],
       "migration": {
-        "input": {
-          "store": "SettingsManager",
-          "path": "TextEditor.Roslyn.Specific.SourceGeneratorExecution"
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Roslyn.Specific.SourceGeneratorExecution"
+          }
         }
       }
     },
@@ -363,14 +364,15 @@
       },
       "placements": [
         {
-          "category": "textEditor.csharp.advanced.sourceGenerators",
-          "order": 20
+          "category": "textEditor.csharp.advanced.sourceGenerators"
         }
       ],
       "migration": {
-        "input": {
-          "store": "SettingsManager",
-          "path": "TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment"
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment"
+          }
         }
       }
     },
@@ -391,9 +393,11 @@
         }
       ],
       "migration": {
-        "input": {
-          "store": "SettingsManager",
-          "path": "TextEditor.Specific.CommitRenameAsynchronously"
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.Specific.CommitRenameAsynchronously"
+          }
         }
       }
     },
@@ -409,9 +413,11 @@
         }
       ],
       "migration": {
-        "input": {
-          "store": "SettingsManager",
-          "path": "TextEditor.RenameUseInlineAdornment"
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.RenameUseInlineAdornment"
+          }
         }
       }
     },
