@@ -1532,6 +1532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
                      ERRID.WRN_Experimental,
+                     ERRID.WRN_ExperimentalWithMessage,
                      ERRID.WRN_AttributeNotSupportedInVB,
                      ERRID.WRN_GeneratorFailedDuringInitialization,
                      ERRID.WRN_GeneratorFailedDuringGeneration,

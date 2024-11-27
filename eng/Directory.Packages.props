@@ -184,7 +184,7 @@
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3" />
-    <PackageVersion Include="System.Buffers" Version="4.5.1" />
+    <PackageVersion Include="System.Buffers" Version="$(SystemBuffersVersion)" />
     <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
@@ -194,9 +194,9 @@
     <PackageVersion Include="System.IO.Hashing" Version="$(SystemIOHashingVersion)" />
     <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
-    <PackageVersion Include="System.Memory" Version="4.5.5" />
-    <PackageVersion Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageVersion Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageVersion Include="System.Numerics.Vectors" Version="$(SystemNumericsVectorsVersion)" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageVersion Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(SystemSecurityCryptographyProtectedDataVersion)" />
@@ -205,7 +205,7 @@
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageVersion Include="System.Text.Encoding.Extensions" Version="4.3.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
-    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageVersion Include="System.Windows.Extensions" Version="$(SystemWindowsExtensionsVersion)" />
 
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
@@ -233,7 +233,7 @@
     -->
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
-    <PackageVersion Include="Microsoft.IO.Redist" Version="6.0.1" />
+    <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
@@ -307,11 +307,7 @@
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
-    <!--
-    Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
-    When it updates its referenced System.Data.SqlClient version this should be removed
-    -->
-    <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
     <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="7.0.2" />

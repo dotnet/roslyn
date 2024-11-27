@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryCastCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-public class RemoveUnnecessaryCastTests
+public sealed class RemoveUnnecessaryCastTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
@@ -13927,6 +13927,168 @@ public class RemoveUnnecessaryCastTests
                         public void AppendFormatted<T>(T value)
                         {
                         }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75424")]
+    public async Task KeepNecessaryObjectOverrideCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public void M()
+                    {
+                        var x = ((byte)3).GetType();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestObjectToDynamic1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public T? M<T>(object? o)
+                    {
+                        return (dynamic?)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestObjectToDynamic2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public T M<T>(object o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestNumericThroughDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int M(long o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestNullableThroughDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int M(int? o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestEnumThroughDynamic1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public int M(ConsoleColor o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestEnumThroughDynamic2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public ConsoleColor M(int o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestConstantThroughDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public int M()
+                    {
+                        return (dynamic)0L;
                     }
                 }
                 """,

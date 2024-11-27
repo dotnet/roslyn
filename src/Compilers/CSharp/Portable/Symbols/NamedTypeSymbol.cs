@@ -204,17 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         /// <summary>
-        /// Get the operators for this type by their metadata name
+        /// Adds the operators for this type by their metadata name to <paramref name="operators"/>
         /// </summary>
-        internal ImmutableArray<MethodSymbol> GetOperators(string name)
+        internal void AddOperators(string name, ArrayBuilder<MethodSymbol> operators)
         {
             ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(name);
             if (candidates.IsEmpty)
-            {
-                return ImmutableArray<MethodSymbol>.Empty;
-            }
+                return;
 
-            var operators = ArrayBuilder<MethodSymbol>.GetInstance(candidates.Length);
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -222,8 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     operators.Add(method);
                 }
             }
-
-            return operators.ToImmutableAndFree();
         }
 
         /// <summary>

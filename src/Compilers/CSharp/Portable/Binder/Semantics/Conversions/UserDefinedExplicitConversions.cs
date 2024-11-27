@@ -217,15 +217,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ImmutableArray<MethodSymbol> operators = declaringType.GetOperators(
-                isExplicit ? (isChecked ? WellKnownMemberNames.CheckedExplicitConversionName : WellKnownMemberNames.ExplicitConversionName) : WellKnownMemberNames.ImplicitConversionName);
+            var operators = ArrayBuilder<MethodSymbol>.GetInstance();
+            declaringType.AddOperators(
+                isExplicit ? (isChecked ? WellKnownMemberNames.CheckedExplicitConversionName : WellKnownMemberNames.ExplicitConversionName) : WellKnownMemberNames.ImplicitConversionName,
+                operators);
 
-            var candidates = ArrayBuilder<MethodSymbol>.GetInstance(operators.Length);
+            var candidates = ArrayBuilder<MethodSymbol>.GetInstance(operators.Count);
             candidates.AddRange(operators);
 
             if (isExplicit && isChecked)
             {
-                ImmutableArray<MethodSymbol> operators2 = declaringType.GetOperators(WellKnownMemberNames.ExplicitConversionName);
+                var operators2 = ArrayBuilder<MethodSymbol>.GetInstance();
+                declaringType.AddOperators(WellKnownMemberNames.ExplicitConversionName, operators2);
 
                 // Add regular operators as well.
                 if (operators.IsEmpty)
@@ -254,6 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                operators2.Free();
             }
 
             foreach (MethodSymbol op in candidates)
@@ -359,6 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            operators.Free();
             candidates.Free();
         }
 

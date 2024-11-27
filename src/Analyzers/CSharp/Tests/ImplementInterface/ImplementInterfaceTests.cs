@@ -4730,7 +4730,7 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
             """,
             Options = { AllOptionsOff },
 
-            // 🐛 one value is generated with 0L instead of 0
+            // 🐛 one value is generated with 100L instead of 100
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }

@@ -514,7 +514,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                foreach (MethodSymbol op in type.GetOperators(name))
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                type.AddOperators(name, typeOperators);
+
+                foreach (MethodSymbol op in typeOperators)
                 {
                     // If we're in error recovery, we might have bad operators. Just ignore it.
                     if (op.ParameterCount != 1 || op.ReturnsVoid)
@@ -527,6 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
                 }
+
+                typeOperators.Free();
             }
 
             void addLiftedOperators(TypeSymbol constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
