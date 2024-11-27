@@ -261,17 +261,11 @@
   <data name="Unmerged_change_from_project_0" xml:space="preserve">
     <value>Unmerged change from project '{0}'</value>
   </data>
-  <data name="Added_colon" xml:space="preserve">
-    <value>Added:</value>
-  </data>
-  <data name="After_colon" xml:space="preserve">
-    <value>After:</value>
+  <data name="After" xml:space="preserve">
+    <value>After</value>
   </data>
   <data name="Before_colon" xml:space="preserve">
     <value>Before:</value>
-  </data>
-  <data name="Removed_colon" xml:space="preserve">
-    <value>Removed:</value>
   </data>
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>

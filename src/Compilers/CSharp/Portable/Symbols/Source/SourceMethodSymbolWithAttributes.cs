@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
-            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
+        internal override int TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
     }
 }

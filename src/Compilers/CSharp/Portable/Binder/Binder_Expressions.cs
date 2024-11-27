@@ -1465,9 +1465,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
+            // Field will be null when binding a field expression in a speculative
+            // semantic model when the property does not have a backing field.
             if (field is null)
             {
-                throw ExceptionUtilities.UnexpectedValue(ContainingMember());
+                diagnostics.Add(ErrorCode.ERR_NoSuchMember, node, ContainingMember(), "field");
+                return BadExpression(node);
             }
 
             var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);

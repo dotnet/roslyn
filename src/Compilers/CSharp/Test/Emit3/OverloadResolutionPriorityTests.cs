@@ -2780,4 +2780,44 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "E1.R(int)").VerifyDiagnostics();
     }
+
+    [Fact]
+    public void ParamsVsNormal_01()
+    {
+        var code = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            M1(1);
+
+            partial class Program
+            {
+                static void M1(int i) => throw null;
+                [OverloadResolutionPriority(1)]
+                static void M1(params int[] i) => Console.Write("params");
+            }
+            """;
+
+        CompileAndVerify([code, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "params").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ParamsVsNormal_02()
+    {
+        var code = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            M1(1);
+
+            partial class Program
+            {
+                [OverloadResolutionPriority(-1)]
+                static void M1(int i) => throw null;
+                static void M1(params int[] i) => Console.Write("params");
+            }
+            """;
+
+        CompileAndVerify([code, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "params").VerifyDiagnostics();
+    }
 }

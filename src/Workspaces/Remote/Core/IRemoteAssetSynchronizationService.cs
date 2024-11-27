@@ -26,7 +26,7 @@ internal interface IRemoteAssetSynchronizationService
     /// <em>entire</em> contents of the file over.
     /// </summary>
     ValueTask SynchronizeTextChangesAsync(
-        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges)> changes,
+        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges, Checksum newTextChecksum)> changes,
         CancellationToken cancellationToken);
 
     /// <summary>

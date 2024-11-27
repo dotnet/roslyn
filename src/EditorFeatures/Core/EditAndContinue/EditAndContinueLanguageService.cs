@@ -400,6 +400,13 @@ internal sealed class EditAndContinueLanguageService(
 
         UpdateApplyChangesDiagnostics(result.Diagnostics);
 
-        return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), result.GetAllDiagnostics().FromContract());
+        return new ManagedHotReloadUpdates(
+            result.ModuleUpdates.Updates.FromContract(),
+            result.GetAllDiagnostics().FromContract(),
+            GetProjectPaths(result.ProjectsToRebuild),
+            GetProjectPaths(result.ProjectsToRestart));
+
+        ImmutableArray<string> GetProjectPaths(ImmutableArray<ProjectId> ids)
+            => ids.SelectAsArray(static (id, solution) => solution.GetRequiredProject(id).FilePath!, solution);
     }
 }

@@ -625,6 +625,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
 
         System_Linq_Enumerable__ToList,
+        System_Linq_Enumerable__ToArray,
 
         System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression,
         System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions,

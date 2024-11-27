@@ -630,7 +630,6 @@ public class ConvertSwitchStatementToExpressionTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = CSharp9,
         }.RunAsync();
     }

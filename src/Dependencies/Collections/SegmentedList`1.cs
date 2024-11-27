@@ -148,26 +148,31 @@ namespace Microsoft.CodeAnalysis.Collections
                 else
                 {
                     // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
-                    var segments = SegmentedCollectionsMarshal.AsSegments(_items);
-
-                    var oldSegmentCount = segments.Length;
-                    var newSegmentCount = (value + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
-
-                    // Grow the array of segments, if necessary
-                    Array.Resize(ref segments, newSegmentCount);
-
-                    // Resize all segments to full segment size from the last old segment to the next to last
-                    // new segment.
-                    for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
-                        Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
-
-                    // Resize the last segment
-                    var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
-                    Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
-
-                    _items = SegmentedCollectionsMarshal.AsSegmentedArray(value, segments);
+                    _items = CreateNewSegmentedArrayReusingOldSegments(_items, value);
                 }
             }
+        }
+
+        private static SegmentedArray<T> CreateNewSegmentedArrayReusingOldSegments(SegmentedArray<T> oldArray, int newSize)
+        {
+            var segments = SegmentedCollectionsMarshal.AsSegments(oldArray);
+
+            var oldSegmentCount = segments.Length;
+            var newSegmentCount = (newSize + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+
+            // Grow the array of segments, if necessary
+            Array.Resize(ref segments, newSegmentCount);
+
+            // Resize all segments to full segment size from the last old segment to the next to last
+            // new segment.
+            for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
+                Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
+
+            // Resize the last segment
+            var lastSegmentSize = newSize - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
+            Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
+
+            return SegmentedCollectionsMarshal.AsSegmentedArray(newSize, segments);
         }
 
         // Read-only property describing how many elements are in the SegmentedList.

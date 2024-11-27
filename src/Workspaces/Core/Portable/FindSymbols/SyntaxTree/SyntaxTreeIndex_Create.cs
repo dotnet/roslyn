@@ -73,6 +73,8 @@ internal sealed partial class SyntaxTreeIndex
             var containsGlobalKeyword = false;
             var containsCollectionInitializer = false;
             var containsAttribute = false;
+            var containsDirective = root.ContainsDirectives;
+            var containsPrimaryConstructorBaseType = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -104,6 +106,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
+                        containsPrimaryConstructorBaseType = containsPrimaryConstructorBaseType || syntaxFacts.IsPrimaryConstructorBaseType(node);
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
@@ -196,7 +199,9 @@ internal sealed partial class SyntaxTreeIndex
                     containsConversion,
                     containsGlobalKeyword,
                     containsCollectionInitializer,
-                    containsAttribute),
+                    containsAttribute,
+                    containsDirective,
+                    containsPrimaryConstructorBaseType),
                 aliasInfo,
                 interceptsLocationInfo);
         }
