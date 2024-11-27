@@ -10,7 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" GenerateSource="true" Link="CSharpCodeFixesResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +97,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\CSharpUnsealClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateProjectToAllowUnsafe\CSharpUpdateProjectToAllowUnsafeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitArrayInExpressionTree\CSharpUseExplicitArrayInExpressionTreeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForBuilderCodeFixProvider.cs" />
