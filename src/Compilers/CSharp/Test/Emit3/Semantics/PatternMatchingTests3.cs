@@ -6493,7 +6493,10 @@ class C
                 Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string t").WithLocation(12, 15),
                 // (17,13): warning CS8793: The given expression always matches the provided pattern.
                 //         if (s is not string t) return;
-                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "s is not string t").WithLocation(17, 13));
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "s is not string t").WithLocation(17, 13),
+                // (18,9): warning CS0162: Unreachable code detected
+                //         WriteLine(t.Length);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "WriteLine").WithLocation(18, 9));
             var verifier = CompileAndVerify(source, expectedOutput: "");
             var expectedIL =
 @"{
@@ -6765,7 +6768,10 @@ class C
                 Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, $"i is {pattern}").WithLocation(12, 15),
                 // (17,13): warning CS8519: The given expression never matches the provided pattern.
                 //         if (i is not (2 and int t)) return;
-                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, $"i is not ({pattern})").WithLocation(17, 13)
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, $"i is not ({pattern})").WithLocation(17, 13),
+                // (17,39): warning CS0162: Unreachable code detected
+                //         if (i is not (2 and int t)) return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return")
                 );
             var verifier = CompileAndVerify(source, expectedOutput: "22");
             var expectedIL =
@@ -6823,7 +6829,10 @@ class C
                 Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, $"i is {pattern}").WithLocation(12, 15),
                 // (17,13): warning CS8519: The given expression never matches the provided pattern.
                 //         if (i is not (2 and int t)) return;
-                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, $"i is not ({pattern})").WithLocation(17, 13)
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, $"i is not ({pattern})").WithLocation(17, 13),
+                // (18,9): warning CS0162: Unreachable code detected
+                //         Write(t.ToString());
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(18, 9)
             );
             var verifier = CompileAndVerify(comp, expectedOutput: "");
             var expectedIL =

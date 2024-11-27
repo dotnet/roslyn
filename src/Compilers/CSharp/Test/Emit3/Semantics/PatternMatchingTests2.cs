@@ -1459,18 +1459,21 @@ class Program1
     {
         int j;
         const string s = null;
-        if (s is string { Length: 3 })
+        if (s is string { Length: 3 }) // 1
         {
-            System.Console.WriteLine(j);
+            System.Console.WriteLine(j); // 2
         }
     }
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,13): warning CS8416: The given expression never matches the provided pattern.
-                //         if (s is string { Length: 3 })
-                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string { Length: 3 }").WithLocation(7, 13)
+                // 0.cs(7,13): warning CS8519: The given expression never matches the provided pattern.
+                //         if (s is string { Length: 3 }) // 1
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string { Length: 3 }").WithLocation(7, 13),
+                // 0.cs(9,13): warning CS0162: Unreachable code detected
+                //             System.Console.WriteLine(j); // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 13)
                 );
         }
 
@@ -1485,21 +1488,24 @@ class Program1
         int j;
         const int N = 3;
         const int M = 3;
-        if (N is M)
+        if (N is M) // 1
         {
         }
         else
         {
-            System.Console.WriteLine(j);
+            System.Console.WriteLine(j); // 2
         }
     }
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,13): warning CS8417: The given expression always matches the provided constant.
-                //         if (N is M)
-                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "N is M").WithLocation(8, 13)
+                // 0.cs(8,13): warning CS8520: The given expression always matches the provided constant.
+                //         if (N is M) // 1
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "N is M").WithLocation(8, 13),
+                // 0.cs(13,13): warning CS0162: Unreachable code detected
+                //             System.Console.WriteLine(j); // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(13, 13)
                 );
         }
 

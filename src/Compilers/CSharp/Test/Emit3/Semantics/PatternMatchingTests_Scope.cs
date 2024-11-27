@@ -7168,7 +7168,10 @@ public class X
             compilation.VerifyDiagnostics(
                 // (17,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9),
+                // (17,9): warning CS0162: Unreachable code detected
+                //         x1++;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x1").WithLocation(17, 9)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -7491,7 +7494,10 @@ public class X
             compilation.VerifyDiagnostics(
                 // (18,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 9)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 9),
+                // (18,9): warning CS0162: Unreachable code detected
+                //         x1++;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x1").WithLocation(18, 9)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

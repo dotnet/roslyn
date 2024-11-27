@@ -5446,13 +5446,32 @@ class C
         }
         else
         {
-            x = x + 1; // reachable, and x is definitely assigned here
+            x = x + 1; // unreachable
         }
 
         Console.WriteLine(j);
     }
 }
 ";
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+                // (13,13): warning CS0162: Unreachable code detected
+                //             x = x + 1;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(13, 13));
+        }
+
+        [Fact, WorkItem(14651, "https://github.com/dotnet/roslyn/issues/14651")]
+        public void IrrefutablePattern_2()
+        {
+            var source = """
+class C
+{
+    void TestFunc(int i)
+    {
+        if (i is int j) { }
+        System.Console.WriteLine(j);
+    }
+}
+""";
             CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 

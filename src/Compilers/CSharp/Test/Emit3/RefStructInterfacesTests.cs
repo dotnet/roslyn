@@ -25069,7 +25069,7 @@ class Helper1<T>
         }
         else
         {
-            System.Console.Write(2);
+            System.Console.Write(2); // 1
         }
     }
 }
@@ -25085,7 +25085,7 @@ class Helper2
         }
         else
         {
-            System.Console.Write(4);
+            System.Console.Write(4); // 2
         }
     }
 }
@@ -25112,7 +25112,13 @@ class Program
                 comp,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "113" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
-            VerifyDiagnostics();
+            VerifyDiagnostics(
+                // (14,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write(2); // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(14, 13),
+                // (30,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write(4); // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(30, 13));
 
             verifier.VerifyIL("Helper1<T>.Test1(T)",
 @"

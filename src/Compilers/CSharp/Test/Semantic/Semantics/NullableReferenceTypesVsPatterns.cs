@@ -293,7 +293,7 @@ class C
         }
         else
         {
-            x.ToString();
+            x.ToString(); // 3
         }
     }
     void Test2(object x)
@@ -305,19 +305,25 @@ class C
         }
         else
         {
-            x.ToString();
+            x.ToString(); // 4
         }
     }
 }
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                // 0.cs(8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
-                // (9,13): warning CS8602: Dereference of a possibly null reference.
+                // 0.cs(9,13): warning CS8602: Dereference of a possibly null reference.
                 //             c /*T:object?*/ .ToString(); // warn 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13),
+                // 0.cs(14,13): warning CS0162: Unreachable code detected
+                //             x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(14, 13),
+                // 0.cs(26,13): warning CS0162: Unreachable code detected
+                //             x.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(26, 13)
                 );
         }
 
@@ -335,7 +341,7 @@ class C
         }
         else
         {
-            x.ToString();
+            x.ToString(); // 2
         }
     }
     void Test2(object x)
@@ -346,16 +352,22 @@ class C
         }
         else
         {
-            x.ToString();
+            x.ToString(); // 3
         }
     }
 }
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                // 0.cs(8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // 0.cs(12,13): warning CS0162: Unreachable code detected
+                //             x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(12, 13),
+                // 0.cs(23,13): warning CS0162: Unreachable code detected
+                //             x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(23, 13)
                 );
         }
 
@@ -571,15 +583,18 @@ class C
         }
         else
         {
-            s.ToString();
+            s.ToString(); // 2
         }
     }
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,13): warning CS8602: Dereference of a possibly null reference.
+                // 0.cs(7,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13),
+                // 0.cs(11,13): warning CS0162: Unreachable code detected
+                //             s.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "s").WithLocation(11, 13)
                 );
         }
 
@@ -1467,9 +1482,12 @@ class Test
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,13): warning CS8519: The given expression never matches the provided pattern.
+                // 0.cs(6,13): warning CS8519: The given expression never matches the provided pattern.
                 //         if (2 is 3)
-                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "2 is 3").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "2 is 3").WithLocation(6, 13),
+                // 0.cs(7,13): warning CS0162: Unreachable code detected
+                //             o = null;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "o").WithLocation(7, 13));
         }
 
         [Fact]
