@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Classification
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-    Public Class GoToImplementationTests
+    Public NotInheritable Class GoToImplementationTests
         Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True, Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,

@@ -153,6 +153,10 @@ internal abstract partial class AbstractFindUsagesService
             }
         }
 
+        // If we didn't find any implementations, then just return the original symbol.
+        if (result.Count == 0)
+            result.Add(symbol.OriginalDefinition);
+
         return [.. result];
     }
 
@@ -183,26 +187,17 @@ internal abstract partial class AbstractFindUsagesService
                 }
             }
 
-            if (!symbol.IsInterfaceType() &&
-                !symbol.IsAbstract)
-            {
-                implementationsAndOverrides.Add(symbol);
-            }
-
             return [.. implementationsAndOverrides];
         }
         else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
         {
-            var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            return derivedClasses.Concat(symbol).ToImmutableArray();
+            return ImmutableArray<ISymbol>.CastUp(await SymbolFinder.FindDerivedClassesArrayAsync(
+                namedType, solution, transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false));
         }
         else if (symbol.IsOverridable())
         {
-            var overrides = await SymbolFinder.FindOverridesAsync(
+            return await SymbolFinder.FindOverridesArrayAsync(
                 symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return overrides.Concat(symbol).ToImmutableArray();
         }
         else
         {
