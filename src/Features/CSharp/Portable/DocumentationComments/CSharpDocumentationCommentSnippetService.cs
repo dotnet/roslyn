@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
@@ -226,7 +227,7 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
         return false;
     }
 
-    protected override Dictionary<string, List<TextSpan>>? GetTagsForGreyText(TextSpan textSpan, string? comments)
+    protected override ImmutableArray<DocumentationCommentGreyText>? GetTagsForGreyText(TextSpan textSpan, string? comments)
     {
         if (comments == null)
         {

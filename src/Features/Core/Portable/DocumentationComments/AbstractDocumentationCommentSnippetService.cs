@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -44,7 +45,8 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken,
-        bool addIndentation = true)
+        bool addIndentation = true,
+        bool addGreyText = false)
     {
         if (!options.AutoXmlDocCommentGeneration)
         {
@@ -81,9 +83,14 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
 
-        var greyTextMap = GetTagsForGreyText(replaceSpan, comments);
+        var greyTextList = GetTagsForGreyText(replaceSpan, comments);
 
-        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, greyTextMap);
+        if (addGreyText)
+        {
+            return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, greyTextList);
+        }
+
+        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
     }
 
     private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)
@@ -430,7 +437,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         return firstNonWhitespaceColumn.CreateIndentationString(options.UseTabs, options.TabSize) + ExteriorTriviaText + extraIndent;
     }
 
-    protected virtual Dictionary<string, List<TextSpan>>? GetTagsForGreyText(TextSpan textSpan, string? comments)
+    protected virtual ImmutableArray<DocumentationCommentGreyText>? GetTagsForGreyText(TextSpan textSpan, string? comments)
     {
         return null;
     }

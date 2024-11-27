@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
@@ -24,13 +25,13 @@ internal sealed class DocumentationCommentSnippet
     /// </summary>
     public int CaretOffset { get; }
 
-    public Dictionary<string, List<TextSpan>>? GreyTextMap { get; }
+    public ImmutableArray<DocumentationCommentGreyText>? GreyTextSymbols { get; }
 
-    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, Dictionary<string, List<TextSpan>>? greyTextMap = null)
+    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, ImmutableArray<DocumentationCommentGreyText>? greyTextSymbols = null)
     {
         SpanToReplace = spanToReplace;
         SnippetText = snippetText;
         CaretOffset = caretOffset;
-        GreyTextMap = greyTextMap;
+        GreyTextSymbols = greyTextSymbols;
     }
 }

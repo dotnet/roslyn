@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -20,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-internal abstract class AbstractDocumentationCommentCommandHandler :
+internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionProviderBase,
     IChainedCommandHandler<TypeCharCommandArgs>,
     ICommandHandler<ReturnKeyCommandArgs>,
     ICommandHandler<InsertCommentCommandArgs>,
@@ -31,12 +32,15 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
+    private readonly SuggestionServiceBase _suggestionServiceBase;
+    private SuggestionManagerBase? _suggestionManagerBase;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
-        EditorOptionsService editorOptionsService)
+        EditorOptionsService editorOptionsService,
+        SuggestionServiceBase suggestionServiceBase)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -46,6 +50,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         _undoHistoryRegistry = undoHistoryRegistry;
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
+        _suggestionServiceBase = suggestionServiceBase;
     }
 
     protected abstract string ExteriorTriviaText { get; }
@@ -58,7 +63,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
     private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken);
+        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken, addGreyText: true);
 
     private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
         => service.GetDocumentationCommentSnippetOnEnterTyped(document, position, options, cancellationToken);
@@ -105,6 +110,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
                 returnValue = true;
+
+                snippet.GreyTextMap
             }
         }
 
@@ -129,6 +136,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         {
             return;
         }
+
+        _suggestionManagerBase = _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, )
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }
