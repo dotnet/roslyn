@@ -38,19 +38,21 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private readonly EditorOptionsService _editorOptionsService;
     private readonly SuggestionServiceBase _suggestionServiceBase;
     private SuggestionManagerBase? _suggestionManagerBase;
-    private readonly IThreadingContext _threadingContext;
+    private readonly IThreadingContext? _threadingContext;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
         EditorOptionsService editorOptionsService,
-        SuggestionServiceBase suggestionServiceBase,
-        IThreadingContext threadingContext)
+        SuggestionServiceBase? suggestionServiceBase,
+        IThreadingContext? threadingContext)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
         Contract.ThrowIfNull(editorOperationsFactoryService);
+        Contract.ThrowIfNull(suggestionServiceBase);
+        Contract.ThrowIfNull(threadingContext);
 
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _undoHistoryRegistry = undoHistoryRegistry;
@@ -121,8 +123,9 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 // Retrieve the locations for the proposals here
                 if (snippet.Proposal != null && _suggestionManagerBase != null)
                 {
+                    _threadingContext.ThrowIfNotOnUIThread();
                     var proposalEdits = GetProposedEdits(snippet.Proposal, subjectBuffer);
-                    var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition);
+                    var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
                     var suggestion = new DocumentationCommentSuggestion(this, proposal);
 
                     _threadingContext.JoinableTaskFactory.Run(async () =>

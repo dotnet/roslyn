@@ -59,12 +59,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     internal class DocumentationCommentHandlerProposal : ProposalBase
     {
         private readonly VirtualSnapshotPoint _snapshotPoint;
-        public DocumentationCommentHandlerProposal(VirtualSnapshotPoint snapshotPoint)
+        private readonly IReadOnlyList<ProposedEdit> _edits;
+
+        public DocumentationCommentHandlerProposal(VirtualSnapshotPoint snapshotPoint, IReadOnlyList<ProposedEdit> edits)
         {
             _snapshotPoint = snapshotPoint;
+            _edits = edits;
         }
 
-        public override IReadOnlyList<ProposedEdit> Edits => throw new NotImplementedException();
+        public override IReadOnlyList<ProposedEdit> Edits => _edits;
 
         public override VirtualSnapshotPoint Caret => _snapshotPoint;
 

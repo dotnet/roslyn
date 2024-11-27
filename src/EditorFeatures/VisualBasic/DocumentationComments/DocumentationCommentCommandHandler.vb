@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             editorOptionsService As EditorOptionsService)
 
-            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
+            MyBase.New(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService, Nothing, Nothing)
         End Sub
 
         Protected Overrides ReadOnly Property ExteriorTriviaText As String
