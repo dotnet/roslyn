@@ -1358,11 +1358,31 @@
       }
     },
     // InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports
+    "textEditor.csharpAndVisualBasic.advanced.inheritanceMargin.combineInheritanceAndIndicatorMargins": {
+      "title": "@Combine_inheritance_margin_with_indicator_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 160,
+      "placements": [
+        {
+          "category": "textEditor.csharp.advanced.inheritanceMargin"
+        }
+      ],
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.InheritanceMarginCombinedWithIndicatorMargin"
+          }
+        }
+      }
+    },
+    // InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports
     "textEditor.csharp.advanced.inheritanceMargin.showGlobalImportsInInheritanceMargin": {
       "title": "@Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
-      "order": 160,
+      "order": 170,
       "migration": {
         "pass": {
           "input": {
