@@ -5181,5 +5181,21 @@ System.Func<int> x = () =>
                 // System.Func<int> x = () =>
                 Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(3, 25));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76059")]
+        public void FlowAnalysis_VarPattern_Two()
+        {
+            var source = """
+M();
+
+int M()
+{
+    while (M2() is var number1 && M2() is var number2) { }
+}
+int M2() => throw null;
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

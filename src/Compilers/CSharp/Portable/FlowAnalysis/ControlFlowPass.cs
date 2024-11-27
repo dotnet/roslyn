@@ -117,25 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode Visit(BoundNode node)
-        {
-            // Except for some patterns (`is var x` always matches)
-            // and constant expressions (which are handled by the caller),
-            // there is no need to scan the contents of an expression, as expressions
-            // do not contribute to reachability analysis
-            if (node is BoundIsPatternExpression)
-            {
-                return base.Visit(node);
-            }
-
-            if (!(node is BoundExpression))
-            {
-                return base.Visit(node);
-            }
-
-            return null;
-        }
-
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
             this.Diagnostics.Clear();  // clear reported diagnostics
