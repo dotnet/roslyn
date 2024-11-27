@@ -9747,7 +9747,7 @@ class Program
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (8,28): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (8,28): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static ref S<T> F1<T>([UnscopedRef] ref S<T> x1)
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(8, 28),
                     // (15,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
@@ -11074,7 +11074,7 @@ class Program
                 // (9,31): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 31),
-                // (9,51): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (9,51): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute").WithLocation(9, 51),
                 // (10,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
@@ -22337,7 +22337,7 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,6): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (6,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref() => ref F;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
                 // (6,47): error CS8170: Struct members cannot return 'this' or other instance members by reference
@@ -22366,7 +22366,7 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,6): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (6,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref => ref F;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
                 // (6,45): error CS8170: Struct members cannot return 'this' or other instance members by reference
@@ -22397,7 +22397,7 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (4,13): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (4,13): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     void M([UnscopedRef] ref int x, out int y)
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 13));
 
@@ -22434,7 +22434,7 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,32): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (6,32): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     public static ref int Ref([UnscopedRef] out S s)
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 32));
             CreateCompilation(source,
@@ -22459,7 +22459,7 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (6,32): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (6,32): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 32),
                 // (6,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
@@ -22503,7 +22503,7 @@ using @scoped = System.Int32;
                 """;
             var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (4,6): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref() => throw null;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 6)).EmitToImageReference();
             var ref1b = CreateCompilation(source1,
@@ -22556,7 +22556,7 @@ using @scoped = System.Int32;
                 """;
             var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (4,6): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     [UnscopedRef] public ref int Ref => throw null;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 6)).EmitToImageReference();
             var ref1b = CreateCompilation(source1,
@@ -22650,7 +22650,7 @@ using @scoped = System.Int32;
             var ref1 = CreateCompilation([source1, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
-                    // (4,27): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (4,27): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     public static void M([UnscopedRef] ref int x) { }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 27))
                 .EmitToImageReference();
@@ -25269,25 +25269,25 @@ class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,6): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (5,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     [UnscopedRef] ref int F() => throw null;
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(5, 6),
-                    // (6,6): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (6,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     [UnscopedRef] ref int P => throw null;
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 6),
-                    // (10,21): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (10,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F1([UnscopedRef] out int i1) { i1 = 0; }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(10, 21),
-                    // (11,21): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (11,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F2([UnscopedRef] R r2) { }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(11, 21),
-                    // (12,21): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (12,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F3([UnscopedRef] ref R r3) { }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(12, 21),
-                    // (13,21): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (13,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F4([UnscopedRef] in R r4) { }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(13, 21),
-                    // (14,21): warning CS9268: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (14,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F5([UnscopedRef] out R r5) { }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(14, 21));
             }
