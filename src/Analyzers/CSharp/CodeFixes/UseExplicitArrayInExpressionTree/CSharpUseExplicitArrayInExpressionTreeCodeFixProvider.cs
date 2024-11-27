@@ -92,12 +92,14 @@ internal sealed partial class CSharpUseExplicitArrayInExpressionTreeCodeFixProvi
         if (node is InvocationExpressionSyntax invocationExpression)
         {
             var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var index = DetermineFirstArgumentIndexToWrap(semanticModel, invocationExpression, cancellationToken);
-
-            if (index != null)
+            if (semanticModel.Compilation.ArrayType() != null)
             {
-                RegisterCodeFix(
-                    context, CSharpCodeFixesResources.Use_explicit_array, nameof(CSharpCodeFixesResources.Use_explicit_array));
+                var index = DetermineFirstArgumentIndexToWrap(semanticModel, invocationExpression, cancellationToken);
+                if (index != null)
+                {
+                    RegisterCodeFix(
+                        context, CSharpCodeFixesResources.Use_explicit_array, nameof(CSharpCodeFixesResources.Use_explicit_array));
+                }
             }
         }
     }
@@ -109,7 +111,9 @@ internal sealed partial class CSharpUseExplicitArrayInExpressionTreeCodeFixProvi
             .WhereNotNull();
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var arrayType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Array).FullName)!;
+
+        var arrayType = semanticModel.Compilation.ArrayType();
+        Contract.ThrowIfNull(arrayType); // Validated in RegisterCodeFixesAsync
 
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
         {
