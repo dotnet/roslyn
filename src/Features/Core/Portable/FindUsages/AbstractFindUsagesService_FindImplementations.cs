@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -136,13 +137,13 @@ internal abstract partial class AbstractFindUsagesService
         Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
         var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-        var result = new HashSet<ISymbol>(implementations.Select(s => s.OriginalDefinition));
+        using var _ = PooledHashSet<ISymbol>.GetInstance(out var result);
+        result.AddRange(implementations.Select(s => s.OriginalDefinition));
 
         // For members, if we've found overrides of the original symbol, then filter out any abstract
         // members these inherit from.  The user has asked for literal implementations, and in the case
         // of an override, including the abstract as well isn't helpful.
-        var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
-        foreach (var ov in overrides)
+        foreach (var ov in result.Where(s => s.IsOverride))
         {
             for (var overridden = ov.GetOverriddenMember(allowLooseMatch: true);
                  overridden != null;
