@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -119,6 +120,10 @@ internal abstract partial class AbstractFindUsagesService
             }
         }
 
+        // If we didn't find any implementations, then just return the original symbol.
+        if (builder.Count == 0)
+            builder.Add(symbol.OriginalDefinition);
+
         return [.. builder];
 
         static bool AddedAllLocations(ISymbol implementation, HashSet<(string filePath, TextSpan span)> seenLocations)
@@ -137,13 +142,17 @@ internal abstract partial class AbstractFindUsagesService
         Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
         var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+
         using var _ = PooledHashSet<ISymbol>.GetInstance(out var result);
         result.AddRange(implementations.Select(s => s.OriginalDefinition));
 
         // For members, if we've found overrides of the original symbol, then filter out any abstract
         // members these inherit from.  The user has asked for literal implementations, and in the case
         // of an override, including the abstract as well isn't helpful.
-        foreach (var ov in result.Where(s => s.IsOverride))
+
+        // Make a copy of this list as we mutating it as we proceed.
+        var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
+        foreach (var ov in overrides)
         {
             for (var overridden = ov.GetOverriddenMember(allowLooseMatch: true);
                  overridden != null;
@@ -153,10 +162,6 @@ internal abstract partial class AbstractFindUsagesService
                     result.Remove(overridden.OriginalDefinition);
             }
         }
-
-        // If we didn't find any implementations, then just return the original symbol.
-        if (result.Count == 0)
-            result.Add(symbol.OriginalDefinition);
 
         return [.. result];
     }
@@ -172,7 +177,7 @@ internal abstract partial class AbstractFindUsagesService
             // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
             // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
             // is to just use a HashSet.
-            var implementationsAndOverrides = new HashSet<ISymbol>();
+            using var _ = PooledHashSet<ISymbol>.GetInstance(out var implementationsAndOverrides);
 
             foreach (var implementation in implementations)
             {
@@ -202,8 +207,7 @@ internal abstract partial class AbstractFindUsagesService
         }
         else
         {
-            // This is something boring like a regular method or type, so we'll just go there directly
-            return [symbol];
+            return [];
         }
     }
 }

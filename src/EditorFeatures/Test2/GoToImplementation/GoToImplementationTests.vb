@@ -58,7 +58,7 @@ class [|$$C|] { }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-abstract class [|$$C|]
+abstract class $$C
 {
 }
 
@@ -142,7 +142,7 @@ enum [|$$C|]
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class [|$$C|]
+class $$C
 {
 }
 
@@ -209,7 +209,7 @@ interface I { void $$M(); }
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { public void [|M|]() { } }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -224,7 +224,7 @@ interface I { void [|$$M|]() {} }
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { void I.[|M|]() { } }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -262,7 +262,7 @@ interface C : I
     void I.[|M|]() { }
     void M();
 }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -435,7 +435,7 @@ class C
         <Document>
 class C 
 {
-    public virtual void [|$$M|]() { }
+    public virtual void $$M() { }
 }
 
 class D : C
@@ -481,7 +481,7 @@ class D : C
     <Project Language="C#" CommonReferences="true">
         <Document>
     abstract class A {
-        public virtual void $$[|M|]() { }
+        public virtual void $$M() { }
     }
     abstract class B : A {
         public abstract override void M();
