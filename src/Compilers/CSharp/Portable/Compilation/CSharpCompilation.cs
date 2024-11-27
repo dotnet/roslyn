@@ -313,6 +313,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if this method should be processed with runtime async handling instead
+        /// of compiler async state machine generation.
+        /// </summary>
+        internal bool IsRuntimeAsyncEnabledIn(MethodSymbol method)
+        {
+            if (!Assembly.RuntimeSupportsAsync)
+            {
+                return false;
+            }
+
+            // PROTOTYPE: Check for attributes that turn on/off the feature member-by-member
+            return true;
+        }
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion

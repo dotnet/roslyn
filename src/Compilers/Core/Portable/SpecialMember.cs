@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr,
         System_Runtime_CompilerServices_RuntimeFeature__ByRefFields,
         System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics,
+        System_Runtime_CompilerServices_RuntimeFeature__Async,
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
         System_Runtime_CompilerServices_InlineArrayAttribute__ctor,

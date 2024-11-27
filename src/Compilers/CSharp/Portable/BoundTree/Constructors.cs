@@ -165,6 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
         }
 
+        public BoundCall Update(MethodSymbol method, TypeSymbol type)
+        {
+            return this.Update(ReceiverOpt, InitialBindingReceiverIsSubjectToCloning, method, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, type);
+        }
+
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method)
         {
             return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray<BoundExpression>.Empty);

@@ -349,6 +349,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsInlineArrayTypes
                 Case RuntimeCapability.ByRefLikeGenerics
                     Return Me.RuntimeSupportsByRefLikeGenerics
+                Case RuntimeCapability.RuntimeAsyncMethods
+                    Return Me.RuntimeSupportsAsync
             End Select
 
             Return False
@@ -418,6 +420,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Tracked by https://github.com/dotnet/roslyn/issues/61262
                 Return CorLibrary IsNot Nothing AndAlso
                        RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsAsync As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsAsync
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
             End Get
         End Property
 

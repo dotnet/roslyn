@@ -25,10 +25,12 @@ namespace Roslyn.Test.Utilities
     internal sealed class ILBuilderVisualizer : ILVisualizer
     {
         private readonly ITokenDeferral _tokenDeferral;
+        private readonly SymbolDisplayFormat _ilVisualizationFormat;
 
-        public ILBuilderVisualizer(ITokenDeferral tokenDeferral)
+        public ILBuilderVisualizer(ITokenDeferral tokenDeferral, SymbolDisplayFormat ilVisualizationFormat)
         {
             _tokenDeferral = tokenDeferral;
+            _ilVisualizationFormat = ilVisualizationFormat;
         }
 
         public override string VisualizeUserString(uint token)
@@ -60,12 +62,12 @@ namespace Roslyn.Test.Utilities
 
             object reference = _tokenDeferral.GetReferenceFromToken(token);
             ISymbol symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
-            return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
+            return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(_ilVisualizationFormat));
         }
 
         public override string VisualizeLocalType(object type)
         {
-            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(_ilVisualizationFormat) : type.ToString();
         }
 
         /// <summary>
@@ -137,9 +139,11 @@ namespace Roslyn.Test.Utilities
         internal static string ILBuilderToString(
             ILBuilder builder,
             Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null,
-            IReadOnlyDictionary<int, string> markers = null)
+            IReadOnlyDictionary<int, string> markers = null,
+            SymbolDisplayFormat ilSymbolDisplayFormat = null)
         {
             var sb = new StringBuilder();
+            ilSymbolDisplayFormat ??= SymbolDisplayFormat.ILVisualizationFormat;
 
             var ilStream = builder.RealizedIL;
             if (mapLocal == null)
@@ -148,7 +152,7 @@ namespace Roslyn.Test.Utilities
             }
 
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
-            var visualizer = new ILBuilderVisualizer(builder.module);
+            var visualizer = new ILBuilderVisualizer(builder.module, ilSymbolDisplayFormat);
 
             if (!ilStream.IsDefault)
             {
@@ -163,7 +167,7 @@ namespace Roslyn.Test.Utilities
                 var current = builder.leaderBlock;
                 while (current != null)
                 {
-                    DumpBlockIL(current, sb);
+                    DumpBlockIL(current, sb, ilSymbolDisplayFormat);
                     current = current.NextBlock;
                 }
 
@@ -175,7 +179,8 @@ namespace Roslyn.Test.Utilities
 
         internal static string LocalSignatureToString(
             ILBuilder builder,
-            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null)
+            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null,
+            SymbolDisplayFormat ilVisualizationFormat = null)
         {
             var sb = new StringBuilder();
 
@@ -185,31 +190,31 @@ namespace Roslyn.Test.Utilities
             }
 
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
-            var visualizer = new ILBuilderVisualizer(builder.module);
+            var visualizer = new ILBuilderVisualizer(builder.module, ilVisualizationFormat ?? SymbolDisplayFormat.ILVisualizationFormat);
 
             visualizer.VisualizeHeader(sb, -1, -1, locals);
             return sb.ToString();
         }
 
-        private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
+        private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb, SymbolDisplayFormat ilSymbolDisplayFormat)
         {
             if (block is ILBuilder.SwitchBlock switchBlock)
             {
-                DumpSwitchBlockIL(switchBlock, sb);
+                DumpSwitchBlockIL(switchBlock, sb, ilSymbolDisplayFormat);
             }
             else
             {
-                DumpBasicBlockIL(block, sb);
+                DumpBasicBlockIL(block, sb, ilSymbolDisplayFormat);
             }
         }
 
-        private static void DumpBasicBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
+        private static void DumpBasicBlockIL(ILBuilder.BasicBlock block, StringBuilder sb, SymbolDisplayFormat ilSymbolDisplayFormat)
         {
             var instrCnt = block.RegularInstructionsLength;
             if (instrCnt != 0)
             {
                 var il = block.RegularInstructions.ToImmutableArray();
-                new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, instrCnt, sb, Array.Empty<ILVisualizer.HandlerSpan>(), block.Start);
+                new ILBuilderVisualizer(block.builder.module, ilSymbolDisplayFormat).DumpILBlock(il, instrCnt, sb, Array.Empty<ILVisualizer.HandlerSpan>(), block.Start);
             }
 
             if (block.BranchCode != ILOpCode.Nop)
@@ -235,10 +240,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb)
+        private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb, SymbolDisplayFormat ilSymbolDisplayFormat)
         {
             var il = block.RegularInstructions.ToImmutableArray();
-            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, Array.Empty<HandlerSpan>(), block.Start);
+            new ILBuilderVisualizer(block.builder.module, ilSymbolDisplayFormat).DumpILBlock(il, il.Length, sb, Array.Empty<HandlerSpan>(), block.Start);
 
             // switch (N, t1, t2... tN)
             //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >

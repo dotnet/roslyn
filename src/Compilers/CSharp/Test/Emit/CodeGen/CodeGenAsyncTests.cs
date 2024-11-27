@@ -13,11 +13,18 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using System.Runtime.CompilerServices;
+using System.Reflection;
+
+// PROTOTYPE: Verify execution of runtime async methods
+// PROTOTYPE: ILVerify for runtime async?
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
+        private static readonly SymbolDisplayFormat ILWithModReqDisplayFormat = SymbolDisplayFormat.ILVisualizationFormat.WithCompilerInternalOptions(SymbolDisplayFormat.ILVisualizationFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
+
         internal static string ExpectedOutput(string output)
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -137,7 +144,6 @@ class Test
         {
             var source = @"
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 class Test
@@ -163,6 +169,38 @@ class Test
 42
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CreateCompilation(source);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  3
+                  IL_0000:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0005:  ldsfld     "System.Action Test.<>c.<>9__1_0"
+                  IL_000a:  dup
+                  IL_000b:  brtrue.s   IL_0024
+                  IL_000d:  pop
+                  IL_000e:  ldsfld     "Test.<>c Test.<>c.<>9"
+                  IL_0013:  ldftn      "void Test.<>c.<F>b__1_0()"
+                  IL_0019:  newobj     "System.Action..ctor(object, System.IntPtr)"
+                  IL_001e:  dup
+                  IL_001f:  stsfld     "System.Action Test.<>c.<>9__1_0"
+                  IL_0024:  callvirt   "void modreq(System.Threading.Tasks.Task) System.Threading.Tasks.TaskFactory.StartNew(System.Action)"
+                  IL_0029:  pop
+                  IL_002a:  ret
+                }
+                """, ilSymbolDisplayFormat: ILWithModReqDisplayFormat);
+
+            void verify(ModuleSymbol module)
+            {
+                var f = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("F");
+                Assert.Equal((MethodImplAttributes)1024, f.ImplementationAttributes);
+            }
         }
 
         [Fact]
