@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -27,16 +24,16 @@ class C
     }
 }
 ";
-            CreateCompilation(text).
-                VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
-                    Diagnostic(ErrorCode.ERR_IllegalStatement, "j > 5"),
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "k").WithArguments("k")
-                );
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,39): error CS1002: ; expected
+                //         for (int k = 0, j = 0; k < 100, j > 5; k++)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 39),
+                // (6,46): error CS1003: Syntax error, ',' expected
+                //         for (int k = 0, j = 0; k < 100, j > 5; k++)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 46),
+                // (6,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         for (int k = 0, j = 0; k < 100, j > 5; k++)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "j > 5").WithLocation(6, 41));
         }
 
         // Condition expression must be bool type
@@ -94,11 +91,16 @@ class C
     }
 }
 ";
-            CreateCompilation(text).
-                VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
-                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")")
-                );
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,34): error CS1525: Invalid expression term ';'
+                //         for (int i = 10; i < 100;;);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 34),
+                // (6,34): error CS1003: Syntax error, ',' expected
+                //         for (int i = 10; i < 100;;);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 34),
+                // (6,35): error CS1525: Invalid expression term ')'
+                //         for (int i = 10; i < 100;;);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 35));
 
             text =
 @"

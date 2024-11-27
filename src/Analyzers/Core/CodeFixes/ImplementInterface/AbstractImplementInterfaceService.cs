@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -43,21 +44,20 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             if (state == null)
                 return document;
 
-            // TODO: https://github.com/dotnet/roslyn/issues/60990
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
-            var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false);
+            var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state.Info, explicitly: false);
             var generator = new ImplementInterfaceGenerator(
-                this, document, state, options, new() { OnlyRemaining = true, ImplementDisposePattern = implementDisposePattern });
+                this, document, state.Info, options, new() { OnlyRemaining = true, ImplementDisposePattern = implementDisposePattern });
 
             return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
-    public async Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
+    public async Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken)
     {
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        return State.Generate(this, document, model, interfaceType, cancellationToken);
+        return State.Generate(this, document, model, interfaceType, cancellationToken)?.Info;
     }
 
     protected TNode AddComment<TNode>(string comment, TNode node) where TNode : SyntaxNode
@@ -85,7 +85,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 
     public async Task<Document> ImplementInterfaceAsync(
         Document document,
-        IImplementInterfaceInfo info,
+        ImplementInterfaceInfo info,
         ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken)
@@ -93,5 +93,32 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public ImmutableArray<ISymbol> ImplementInterfaceMember(
+        Document document,
+        ImplementInterfaceInfo info,
+        ImplementTypeOptions options,
+        ImplementInterfaceConfiguration configuration,
+        Compilation compilation,
+        ISymbol interfaceMember)
+    {
+        var generator = new ImplementInterfaceGenerator(
+            this, document, info, options, configuration);
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        var implementedMembers = generator.GenerateMembers(
+            compilation,
+            interfaceMember,
+            conflictingMember: null,
+            memberName: interfaceMember.Name,
+            generateInvisibly: generator.ShouldGenerateInvisibleMember(document.Project.ParseOptions!, interfaceMember, interfaceMember.Name),
+            generateAbstractly: configuration.Abstractly,
+            addNew: false,
+            interfaceMember.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(info.ContextNode),
+            options.PropertyGenerationBehavior);
+
+        return implementedMembers;
     }
 }

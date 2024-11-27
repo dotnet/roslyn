@@ -134,14 +134,17 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Goo()
+                void IGoo.Goo()
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
         await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
     public async Task CommitOnParen()
     {
         var markup = """
@@ -164,11 +167,14 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Goo(
+                void IGoo.Goo()
+                {
+                    throw new System.NotImplementedException();$$
+                }
             }
             """;
 
-        await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
+        await VerifyCustomCommitProviderAsync(markup, "Goo", expected, commitChar: '(');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19947")]
@@ -445,7 +451,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic<K, V>(K key, V value)
+                int IGoo.Generic<K, V>(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -475,7 +484,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic<
+                 void IGoo.<
             }
             """;
 
@@ -505,14 +514,17 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic(K key, V value)
+                int IGoo.Generic(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
         await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
     }
 
-    [Fact]
+    [WpfFact]
     public async Task VerifySignatureCommit_Method_OpenBrace()
     {
         var markup = """
@@ -535,11 +547,14 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic(
+                int IGoo.Generic(K key, V value)
+                {
+                    throw new System.NotImplementedException();$$
+                }
             }
             """;
 
-        await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
+        await VerifyCustomCommitProviderAsync(markup, "Generic", expected, commitChar: '(');
     }
 
     [Fact]
@@ -565,7 +580,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.this[K key, V value]
+                int IGoo.this[K key, V value] => throw new System.NotImplementedException();
             }
             """;
 
@@ -595,7 +610,67 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.this[
+                 void IGoo.[
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+    }
+
+    [Fact]
+    public async Task VerifySignatureCommit_IndexerGetSet_Tab()
+    {
+        var markup = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                 void IGoo.$$
+            }
+            """;
+
+        var expected = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                int IGoo.this[K key, V value] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
+    }
+
+    [Fact]
+    public async Task VerifySignatureCommit_IndexerGetSet_OpenBrace()
+    {
+        var markup = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                 void IGoo.$$
+            }
+            """;
+
+        var expected = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                 void IGoo.[
             }
             """;
 
@@ -606,33 +681,47 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
     [InlineData("ref")]
     [InlineData("in")]
     [InlineData("out")]
+    [InlineData("ref readonly")]
+    [InlineData("scoped")]
+    [InlineData("scoped ref")]
     public async Task TestWithRefKind(string refKind)
     {
-        var markup = $@"
-interface I
-{{
-    void M({refKind} string s);
-}}
+        var markup = $$"""
+            using System;
 
-class C : I
-{{
-    void I.$$
-}}
-";
+            ref struct S { }
 
-        var expected = $@"
-interface I
-{{
-    void M({refKind} string s);
-}}
+            interface I
+            {
+                void M({{refKind}} S s);
+            }
 
-class C : I
-{{
-    void I.M({refKind} string s)
-}}
-";
+            class C : I
+            {
+                void I.$$
+            }
+            """;
 
-        await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
+        var expected = $$"""
+            using System;
+            
+            ref struct S { }
+
+            interface I
+            {
+                void M({{refKind}} S s);
+            }
+
+            class C : I
+            {
+                void I.M({{refKind}} S s)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, $"M({refKind} S s)", expected, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
@@ -659,6 +748,9 @@ class C : I
             class Test2 : I2<Test2>
             {
                 static implicit I2<Test2>.operator int(Test2 x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -691,6 +783,9 @@ class C : I
             class C : I<C>
             {
                 static bool I<C>.operator true(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -721,6 +816,9 @@ class C : I
             class C : I<C>
             {
                 static C I<C>.operator +(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -751,6 +849,9 @@ class C : I
             class C : I<C>
             {
                 static C I<C>.operator +(C x, C y)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -781,14 +882,16 @@ class C : I
             class C : I
             {
                 void I.M(params string[] args)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
         await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72224")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
     public async Task TestWithParamsCollectionParameter()
     {
         var markup = """
@@ -816,6 +919,9 @@ class C : I
             class C : I
             {
                 void I.M(params IEnumerable<string> args)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -849,7 +955,10 @@ class C : I
 
             class C : I
             {
-                void I.M<T>(T? x)
+                void I.M<T>(T? x) where T : default
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -880,6 +989,9 @@ class C : I
             class C : I
             {
                 void I.M(string @class)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -910,6 +1022,9 @@ class C : I
             class C : I
             {
                 void I.M<@class>()
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -940,9 +1055,11 @@ class C : I
             class C : I
             {
                 void I.M(int x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
-        // TODO: Consider adding the default value too.
         await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
     }
 
@@ -974,6 +1091,9 @@ class C : I
             class C : I1<C>
             {
                 static C I1<C>.operator checked -(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -1008,6 +1128,9 @@ class C : I
             class C : I1<C>
             {
                 static C I1<C>.operator checked +(C x, C y)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -1041,10 +1164,668 @@ class C : I
 
             class C3 : I1<C3>
             {
-                static C3 I1<C3>.operator checked string(C3 x)
+                static explicit I1<C3>.operator checked string(C3 x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
         await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70458")]
+    public async Task TestExlicitImplementationWithAttributesOnNullableParameters()
+    {
+        var markup = """
+            #nullable enable
+
+            using Example.Namespace;
+
+            interface IFoo
+            {
+                static abstract bool TryDecode([NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage);
+            }
+
+            class C : IFoo
+            {
+                IFoo.$$
+            }
+
+            class NotNullWhenAttribute(bool _) : System.Attribute;
+
+            namespace Example.Namespace
+            {
+                public record DecodeError;
+            }
+            """;
+
+        var expected = """
+            #nullable enable
+
+            using Example.Namespace;
+            
+            interface IFoo
+            {
+                static abstract bool TryDecode([NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage);
+            }
+            
+            class C : IFoo
+            {
+                static bool IFoo.TryDecode(out DecodeError? decodeError, out string? errorMessage)
+                {
+                    throw new System.NotImplementedException();$$
+                }
+            }
+            
+            class NotNullWhenAttribute(bool _) : System.Attribute;
+            
+            namespace Example.Namespace
+            {
+                public record DecodeError;
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markup, "TryDecode", expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_01()
+    {
+        var markup = """
+            interface IGoo
+            {
+                void Goo();
+                static abstract void StaticGoo();
+            }
+
+            class Bar : IGoo
+            {
+                IGoo.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "StaticGoo", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_02()
+    {
+        var markup = """
+            interface IGoo
+            {
+                void Goo();
+            }
+
+            class Bar : IGoo
+            {
+                void Test()
+                {
+                    IGoo.$$
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Goo");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_03()
+    {
+        var markup = """
+            class Outer
+            {
+                public interface IGoo
+                {
+                    void Goo();
+                    static abstract void StaticGoo();
+                }
+            }
+
+            class Bar : Outer.IGoo
+            {
+                Outer.IGoo.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "StaticGoo", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_04()
+    {
+        var markup = """
+            interface IGoo
+            {
+                int Generic<K, V>(K key, V value);
+            }
+
+            class Bar : IGoo
+            {
+                IGoo.$$
+            }
+            """;
+
+        var expected = """
+            interface IGoo
+            {
+                int Generic<K, V>(K key, V value);
+            }
+
+            class Bar : IGoo
+            {
+                int IGoo.Generic<K, V>(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_05()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool operator true(T x);
+                abstract static bool operator false(T x);
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool operator true(T x);
+                abstract static bool operator false(T x);
+            }
+
+            class C : I<C>
+            {
+                static bool I<C>.operator true(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_06()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static ref bool Goo(ref int a, out int b);
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                abstract static ref bool Goo(ref int a, out int b);
+            }
+
+            class C : I<C>
+            {
+                static ref bool I<C>.Goo(ref int a, out int b)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo(ref int a, out int b)", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_07()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool Goo { set; }
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool Goo { set; }
+            }
+
+            class C : I<C>
+            {
+                static bool I<C>.Goo { set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_08()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            using System;
+
+            interface I<T> where T : I<T>
+            {
+                abstract static event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                static event Action I<C>.Goo
+                {
+                    add
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    remove
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_09()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                bool Goo { get; set; }
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                bool Goo { get; set; }
+            }
+
+            class C : I<C>
+            {
+                bool I<C>.Goo { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_10()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            using System;
+
+            interface I<T> where T : I<T>
+            {
+                event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                event Action I<C>.Goo
+                {
+                    add
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    remove
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_11()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                bool this[int a, T b] { get; set; }
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                bool this[int a, T b] { get; set; }
+            }
+
+            class C : I<C>
+            {
+                bool I<C>.this[int a, C b] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "this[int a, C b]", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_12()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter
+            {
+                IOuter.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Method", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "Method1", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "Method2", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "IInner");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_13()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter
+            {
+                IOuter.$$
+            }
+            """;
+
+        var expected = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : IOuter
+            {
+                void IOuter.Method()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Method()", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_14()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter.IInner
+            {
+                IOuter.IInner.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "Method1", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "Method2", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "IInner");
+
+        // We do not provide that item, maybe consider this expansion in the future
+        await VerifyItemIsAbsentAsync(markup, "IInner.Method1", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_15()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter.IInner
+            {
+                IOuter.IInner.$$
+            }
+            """;
+
+        var expected = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : IOuter.IInner
+            {
+                void IOuter.IInner.Method1()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Method1()", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_16()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter
+            {
+                IOuter.IInner.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method1", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_17()
+    {
+        var markup = """
+            interface IInterface
+            {
+                void Method();
+            }
+
+            class C
+            {
+                IInterface.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_18()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C
+            {
+                IOuter.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_19()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : IOuter.IInner
+            {
+                IOuter.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_20()
+    {
+        var markup = """
+            class Outer
+            {
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : Outer.IInner
+            {
+                Outer.IInner.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Method1", displayTextSuffix: "()");
     }
 }

@@ -72,14 +72,66 @@ internal static partial class ISymbolExtensions
         return visibility;
     }
 
-    public static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-        => symbol switch
+    public static ISymbol? GetOverriddenMember(this ISymbol? symbol, bool allowLooseMatch = false)
+    {
+        if (symbol is null)
+            return null;
+
+        ISymbol? exactMatch = symbol switch
         {
             IMethodSymbol method => method.OverriddenMethod,
             IPropertySymbol property => property.OverriddenProperty,
             IEventSymbol @event => @event.OverriddenEvent,
             _ => null,
         };
+
+        if (exactMatch != null)
+            return exactMatch;
+
+        if (allowLooseMatch &&
+            (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride))
+        {
+            foreach (var baseType in symbol.ContainingType.GetBaseTypes())
+            {
+                if (TryFindLooseMatch(symbol, baseType, out var looseMatch))
+                    return looseMatch;
+            }
+        }
+
+        return null;
+
+        bool TryFindLooseMatch(ISymbol symbol, INamedTypeSymbol baseType, [NotNullWhen(true)] out ISymbol? looseMatch)
+        {
+            IMethodSymbol? bestMethod = null;
+            var parameterCount = symbol.GetParameters().Length;
+
+            foreach (var member in baseType.GetMembers(symbol.Name))
+            {
+                if (member.Kind != symbol.Kind)
+                    continue;
+
+                if (!member.IsOverridable())
+                    continue;
+
+                if (symbol.Kind is SymbolKind.Event or SymbolKind.Property)
+                {
+                    // We've found a matching event/property in the base type (perhaps differing by return type). This
+                    // is a good enough match to return as a loose match for the starting symbol.
+                    looseMatch = member;
+                    return true;
+                }
+                else if (member is IMethodSymbol method)
+                {
+                    // Prefer methods that are closed in parameter count to the original method we started with.
+                    if (bestMethod is null || Math.Abs(method.Parameters.Length - parameterCount) < Math.Abs(bestMethod.Parameters.Length - parameterCount))
+                        bestMethod = method;
+                }
+            }
+
+            looseMatch = bestMethod;
+            return looseMatch != null;
+        }
+    }
 
     public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
         => symbol switch
@@ -109,11 +161,9 @@ internal static partial class ISymbolExtensions
 
     public static bool IsOverridable([NotNullWhen(true)] this ISymbol? symbol)
     {
-        // Members can only have overrides if they are virtual, abstract or override and is not
-        // sealed.
-        return symbol?.ContainingType?.TypeKind == TypeKind.Class &&
-               (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
-               !symbol.IsSealed;
+        // Members can only have overrides if they are virtual, abstract or override and is not sealed.
+        return symbol is { ContainingType.TypeKind: TypeKind.Class, IsSealed: false } &&
+               (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
     }
 
     public static bool IsImplementableMember([NotNullWhen(true)] this ISymbol? symbol)
@@ -280,6 +330,7 @@ internal static partial class ISymbolExtensions
             IMethodSymbol methodSymbol => methodSymbol.ReturnType,
             IEventSymbol eventSymbol => eventSymbol.Type,
             IParameterSymbol parameterSymbol => parameterSymbol.Type,
+            ILocalSymbol localSymbol => localSymbol.Type,
             _ => null,
         };
 
@@ -745,4 +796,12 @@ internal static partial class ISymbolExtensions
             MetadataName: nameof(ObsoleteAttribute),
             ContainingNamespace.Name: nameof(System),
         });
+
+    public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeClass)
+    {
+        if (symbol is null || attributeClass is null)
+            return false;
+
+        return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute.AttributeClass), attributeClass);
+    }
 }

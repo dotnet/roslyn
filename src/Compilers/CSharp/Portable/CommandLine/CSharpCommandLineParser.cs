@@ -1816,6 +1816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "arm64":
                     return Platform.Arm64;
                 default:
+                    // This switch supports architectures that .NET Framework runs on Windows only.
+                    // Non-Windows architectures that .NET runs on are intentionally not supported here.
                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadPlatformType, value);
                     return Platform.AnyCpu;
             }

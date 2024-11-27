@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -198,21 +199,18 @@ internal readonly struct EmbeddedLanguageDetector(
         return HasMatchingStringSyntaxAttribute(method.Parameters[0], out identifier);
     }
 
-    private bool IsEmbeddedLanguageStringLiteralToken(
+    /// <summary>
+    /// Checks for a string literal <em>directly</em> used in a location we can tell is controlled by a
+    /// <c>[StringSyntax]</c> attribute.
+    /// </summary>
+    private bool IsEmbeddedLanguageStringLiteralToken_Direct(
         SyntaxToken token,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        [NotNullWhen(true)] out string? identifier,
-        out IEnumerable<string>? options)
+        [NotNullWhen(true)] out string? identifier)
     {
         identifier = null;
-        options = null;
         var syntaxFacts = Info.SyntaxFacts;
-        if (!syntaxFacts.IsLiteralExpression(token.Parent))
-            return false;
-
-        if (HasLanguageComment(token, syntaxFacts, out identifier, out options))
-            return true;
 
         // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
         // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
@@ -269,6 +267,111 @@ internal readonly struct EmbeddedLanguageDetector(
 
                     if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
                         return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsEmbeddedLanguageStringLiteralToken(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier,
+        out IEnumerable<string>? options)
+    {
+        identifier = null;
+        options = null;
+        var syntaxFacts = Info.SyntaxFacts;
+        if (!syntaxFacts.IsLiteralExpression(token.Parent))
+            return false;
+
+        if (HasLanguageComment(token, syntaxFacts, out identifier, out options))
+            return true;
+
+        // Check for *direct* usage of this token that indicates it's an embedded language string.  Like passing it to
+        // an argument which has the StringSyntax attribute on it.
+        if (IsEmbeddedLanguageStringLiteralToken_Direct(
+                token, semanticModel, cancellationToken, out identifier))
+        {
+            return true;
+        }
+
+        // Now check for if the literal was assigned to a local that we then see is passed along to something that
+        // indicates an embedded language string at some later point.
+
+        var container = TryFindContainer(token);
+        if (container is null)
+            return false;
+
+        var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+        if (syntaxFacts.IsSimpleAssignmentStatement(statement))
+        {
+            syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+            return container == right &&
+                IsLocalConsumedByApiWithStringSyntaxAttribute(
+                    semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol(), container, semanticModel, cancellationToken, out identifier);
+        }
+
+        if (syntaxFacts.IsEqualsValueClause(container.Parent) &&
+            syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
+        {
+            var variableDeclarator = container.Parent.Parent;
+            var symbol =
+                semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+
+            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, container, semanticModel, cancellationToken, out identifier);
+        }
+
+        return false;
+    }
+
+    private bool IsLocalConsumedByApiWithStringSyntaxAttribute(
+        ISymbol? symbol,
+        SyntaxNode tokenParent,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier)
+    {
+        identifier = null;
+        if (symbol is not ILocalSymbol localSymbol)
+            return false;
+
+        var blockFacts = this.Info.BlockFacts;
+        var syntaxFacts = this.Info.SyntaxFacts;
+
+        var block = tokenParent.AncestorsAndSelf().FirstOrDefault(blockFacts.IsExecutableBlock);
+        if (block is null)
+            return false;
+
+        var localName = localSymbol.Name;
+        if (localName == "")
+            return false;
+
+        // Now look at the next statements that follow for usages of this local variable.
+        foreach (var statement in blockFacts.GetExecutableBlockStatements(block))
+        {
+            foreach (var descendent in statement.DescendantNodesAndSelf())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!syntaxFacts.IsIdentifierName(descendent))
+                    continue;
+
+                var identifierToken = syntaxFacts.GetIdentifierOfIdentifierName(descendent);
+                if (identifierToken.ValueText != localName)
+                    continue;
+
+                var otherSymbol = semanticModel.GetSymbolInfo(descendent, cancellationToken).GetAnySymbol();
+
+                // Only do a direct check here.  We don't want to continually do indirect checks where a string literal
+                // is assigned to one local, assigned to another local, assigned to another local, and so on.
+                if (localSymbol.Equals(otherSymbol) &&
+                    IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
+                {
+                    return true;
                 }
             }
         }

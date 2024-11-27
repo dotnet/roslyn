@@ -216,7 +216,8 @@ internal static class ImplementHelpers
         return false;
     }
 
-    public static bool ShouldImplementDisposePattern(Compilation compilation, IImplementInterfaceInfo state, bool explicitly)
+    public static bool ShouldImplementDisposePattern(
+        Compilation compilation, ImplementInterfaceInfo state, bool explicitly)
     {
         // Dispose pattern should be implemented only if -
         // 1. An interface named 'System.IDisposable' is unimplemented.

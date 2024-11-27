@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
-                            => requiredMember is SourcePropertySymbol { IsAutoProperty: true } prop ? prop.BackingField : requiredMember;
+                            => requiredMember is SourcePropertySymbolBase { BackingField: { } backingField } ? backingField : requiredMember;
                     }
                 }
             }

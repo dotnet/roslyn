@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritdoc;
@@ -16,24 +17,21 @@ using VerifyCS = CSharpCodeFixVerifier<
     AddInheritdocCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
-public class AddInheritdocTests
+public sealed class AddInheritdocTests
 {
-    private static async Task TestAsync(string initialMarkup, string expectedMarkup)
-    {
-        var test = new VerifyCS.Test
+    private static Task TestAsync(string initialMarkup, string expectedMarkup)
+        => new VerifyCS.Test
         {
             TestCode = initialMarkup,
             FixedCode = expectedMarkup,
             CodeActionValidationMode = CodeActionValidationMode.Full,
-        };
-        await test.RunAsync();
-    }
+        }.RunAsync();
 
-    private static async Task TestMissingAsync(string initialMarkup)
-        => await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
+    private static Task TestMissingAsync(string initialMarkup)
+        => VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
 
     [Fact]
-    public async Task AddMissingInheritdocOnOverridenMethod()
+    public async Task AddMissingInheritdocOnOverriddenMethod()
     {
         await TestAsync(
             """
@@ -69,7 +67,7 @@ public class AddInheritdocTests
     [InlineData("public void {|CS1591:OtherMethod|}() { }")]
     [InlineData("public void {|CS1591:M|}() { }")]
     [InlineData("public new void {|CS1591:M|}() { }")]
-    public async Task DoNotOfferOnNotOverridenMethod(string methodDefintion)
+    public async Task DoNotOfferOnNotOverriddenMethod(string methodDefinition)
     {
         await TestMissingAsync(
         $$"""
@@ -82,7 +80,7 @@ public class AddInheritdocTests
         /// Some doc.
         public class Derived: BaseClass
         {
-            {{methodDefintion}}
+            {{methodDefinition}}
         }
         """);
     }
@@ -139,7 +137,7 @@ public class AddInheritdocTests
             """);
     }
     [Fact]
-    public async Task AddMissingInheritdocOnOverridenProperty()
+    public async Task AddMissingInheritdocOnOverriddenProperty()
     {
         await TestAsync(
             """
@@ -269,8 +267,8 @@ public class AddInheritdocTests
             /// Some doc.
             public class Derived: BaseClass
             {
-                /// <inheritdoc/>
                 // Comment
+                /// <inheritdoc/>
                 public override void M() { }
             }
             """);
@@ -304,9 +302,9 @@ public class AddInheritdocTests
             /// Some doc.
             public class Derived: BaseClass
             {
-                               /// <inheritdoc/>
                                // Comment 1
-              /* Comment 2 */  public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
+              /* Comment 2 */  /// <inheritdoc/>
+              public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
             }
             """);
     }
@@ -394,6 +392,67 @@ public class AddInheritdocTests
                 public override void M() { }
                 /// <inheritdoc/>
                 public override string P { get; }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61562")]
+    public async Task TestOverrideBelowMember()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            /// <summary>
+            /// Hello C1
+            /// </summary>
+            public abstract class Class1
+            {
+                /// <summary>
+                /// Hello C1.DoStuff
+                /// </summary>
+                public abstract void DoStuff();
+            }
+
+            /// <summary>
+            /// Hello C2
+            /// </summary>
+            public class Class2 : Class1
+            {
+                private const int Number = 1;
+
+                public override void {|CS1591:DoStuff|}()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            /// <summary>
+            /// Hello C1
+            /// </summary>
+            public abstract class Class1
+            {
+                /// <summary>
+                /// Hello C1.DoStuff
+                /// </summary>
+                public abstract void DoStuff();
+            }
+            
+            /// <summary>
+            /// Hello C2
+            /// </summary>
+            public class Class2 : Class1
+            {
+                private const int Number = 1;
+            
+                /// <inheritdoc/>
+                public override void {|CS1591:DoStuff|}()
+                {
+                    throw new NotImplementedException();
+                }
             }
             """);
     }

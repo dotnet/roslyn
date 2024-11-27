@@ -114,7 +114,6 @@ public class AddAccessibilityModifiersTests
                         event Action I.e6 { add { } remove { } }
 
                         static C() { }
-
                         private C() { }
                         public C(int i) { }
 
@@ -622,7 +621,6 @@ public class AddAccessibilityModifiersTests
         var test = new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
         };
@@ -645,7 +643,6 @@ public class AddAccessibilityModifiersTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -658,7 +655,6 @@ public class AddAccessibilityModifiersTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }

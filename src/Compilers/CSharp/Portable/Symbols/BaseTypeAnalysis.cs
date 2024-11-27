@@ -66,30 +66,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)on != null);
             Debug.Assert(on.IsDefinition);
 
-            var hs = PooledHashSet<Symbol>.GetInstance();
-            StructDependsClosure(depends, hs, on);
+            var hs = PooledHashSet<NamedTypeSymbol>.GetInstance();
+            var typesWithCycle = PooledHashSet<NamedTypeSymbol>.GetInstance();
+            StructDependsClosure(depends, hs, typesWithCycle, ConsList<NamedTypeSymbol>.Empty.Prepend(on));
 
-            var result = hs.Contains(on);
+            var result = typesWithCycle.Contains(on);
+            typesWithCycle.Free();
             hs.Free();
 
             return result;
         }
 
-        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<Symbol> partialClosure, NamedTypeSymbol on)
+        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<NamedTypeSymbol> partialClosure, HashSet<NamedTypeSymbol> typesWithCycle, ConsList<NamedTypeSymbol> on)
         {
             Debug.Assert((object)type != null);
 
-            if ((object)type.OriginalDefinition == on)
+            if (typesWithCycle.Contains(type.OriginalDefinition))
+            {
+                return;
+            }
+
+            if (on.ContainsReference(type.OriginalDefinition))
             {
                 // found a possibly expanding cycle, for example
                 //     struct X<T> { public T t; }
                 //     struct W<T> { X<W<W<T>>> x; }
                 // while not explicitly forbidden by the spec, it should be.
-                partialClosure.Add(on);
+                typesWithCycle.Add(type.OriginalDefinition);
                 return;
             }
 
             if (partialClosure.Add(type))
+            {
+                if (!type.IsDefinition)
+                {
+                    // First, visit type as a definition in order to detect the fact that it itself has a cycle.
+                    // This prevents us from going into an infinite generic expansion while visiting constructed form
+                    // of the type below.
+                    visitFields(type.OriginalDefinition, partialClosure, typesWithCycle, on.Prepend(type.OriginalDefinition));
+                }
+
+                visitFields(type, partialClosure, typesWithCycle, on);
+            }
+
+            static void visitFields(NamedTypeSymbol type, HashSet<NamedTypeSymbol> partialClosure, HashSet<NamedTypeSymbol> typesWithCycle, ConsList<NamedTypeSymbol> on)
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
@@ -100,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, typesWithCycle, on);
                 }
             }
         }

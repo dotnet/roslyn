@@ -102,6 +102,10 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 
     public abstract SyntaxNode IsNotTypeExpression(SyntaxNode expression, SyntaxNode type);
 
+    internal static bool ParameterIsScoped(IParameterSymbol symbol)
+        => symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
+                  or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue };
+
     #region Patterns
 
     public abstract bool SupportsPatterns(ParseOptions options);
