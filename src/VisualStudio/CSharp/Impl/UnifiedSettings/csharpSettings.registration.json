@@ -1080,7 +1080,7 @@
     },
     // InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1
     "textEditor.csharpAndVisualBasic.advanced.inlineHints.displayInlineHintsWhilePressingAltF1": {
-      "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Display_all_hints_while_pressing_Alt_F1;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "placements": [
