@@ -1351,7 +1351,7 @@
     },
     // StackTraceExplorerOptionsStorage.OpenOnFocus
     "textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus": {
-      "title": "@Stack_Trace_Explorer;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Automatically_open_stack_trace_explorer_on_focus;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
       "order": 0,
@@ -1629,9 +1629,6 @@
     }
   },
   "categories": {
-    "textEditor.csharpAndVisualBasic":{
-      "title": "@CSharpAndVisualBasic;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-    },
     "textEditor.csharp":{
       "title": "C#"
     },
@@ -1683,6 +1680,10 @@
       "title": "@JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 90
     },
+    "textEditor.csharp.advanced.editorColorScheme": {
+      "title": "@Editor_Color_Scheme;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 100
+    },
     "textEditor.csharp.advanced.implementInterfaceOrAbstractClass": {
       "title": "@Implement_Interface_or_Abstract_Class;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 100
@@ -1694,6 +1695,14 @@
     "textEditor.csharp.advanced.inheritanceMargin": {
       "title": "@Inheritance_Margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 120
+    },
+    "textEditor.csharp.advanced.stackTraceExplorer": {
+      "title": "@Stack_Trace_Explorer;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 130
+    },
+    "textEditor.csharp.advanced.documentOutline": {
+      "title": "@Document_Outline;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 140
     }
   }
 }
