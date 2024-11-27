@@ -227,47 +227,72 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
         return false;
     }
 
-    protected override ImmutableArray<DocumentationCommentGreyText>? GetTagsForGreyText(TextSpan textSpan, string? comments)
+    protected override DocumentationCommentProposal? GetProposal(TextSpan textSpan, string? comments, MemberDeclarationSyntax? memberNode, int startIndex)
     {
-        if (comments == null)
+        if (comments is null)
         {
             return null;
         }
 
-        var map = new Dictionary<string, List<TextSpan>>();
+        if (memberNode is null)
+        {
+            return null;
+        }
 
+        var proposedEdits = new List<DocumentationCommentProposedEdit>();
         var index = 0;
         while (index < comments.Length)
         {
+            var documentIndex = startIndex + index;
             var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
             if (summaryEndTag != -1)
             {
-                map.Add("summary", [new TextSpan(index, 0)]);
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), "summary"));
             }
 
             var paramEndTag = comments.IndexOf("</param>", index, StringComparison.Ordinal);
             if (paramEndTag != -1)
             {
-                map.GetOrAdd("param", _ => new List<TextSpan>()).Add(new TextSpan(index, 0));
+                var paramStartTag = comments.LastIndexOf("<param name=\"", paramEndTag, StringComparison.Ordinal);
+                if (paramStartTag != -1)
+                {
+                    var paramNameStart = paramStartTag + "<param name=\"".Length;
+                    var paramNameEnd = comments.IndexOf("\">", paramNameStart, StringComparison.Ordinal);
+                    if (paramNameEnd != -1)
+                    {
+                        var parameterName = comments.Substring(paramNameStart, paramNameEnd - paramNameStart);
+                        proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), parameterName));
+                    }
+                }
             }
 
             var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
             if (returnsEndTag != -1)
             {
-                map.Add("returns", [new TextSpan(index, 0)]);
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), "returns"));
             }
 
             var exceptionEndTag = comments.IndexOf("</exception>", index, StringComparison.Ordinal);
             if (exceptionEndTag != -1)
             {
-                map.GetOrAdd("exception", _ => new List<TextSpan>()).Add(new TextSpan(index, 0));
+                var exceptionStartTag = comments.LastIndexOf("<exception cref=\"", exceptionEndTag, StringComparison.Ordinal);
+                if (exceptionStartTag != -1)
+                {
+                    var exceptionNameStart = exceptionStartTag + "<exception cref=\"".Length;
+                    var exceptionNameEnd = comments.IndexOf("\">", exceptionNameStart, StringComparison.Ordinal);
+                    if (exceptionNameEnd != -1)
+                    {
+                        var exceptionName = comments.Substring(exceptionNameStart, exceptionNameEnd - exceptionNameStart);
+                        proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), exceptionName));
+                    }
+                }
             }
 
             index++;
 
         }
 
-        return map;
+        return new DocumentationCommentProposal(memberNode.ToFullString(), proposedEdits.ToImmutableArray());
     }
 
     protected override SyntaxToken GetTokenToRight(

@@ -25,13 +25,13 @@ internal sealed class DocumentationCommentSnippet
     /// </summary>
     public int CaretOffset { get; }
 
-    public ImmutableArray<DocumentationCommentGreyText>? GreyTextSymbols { get; }
+    public DocumentationCommentProposal? Proposal { get; }
 
-    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, ImmutableArray<DocumentationCommentGreyText>? greyTextSymbols = null)
+    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, DocumentationCommentProposal? proposal = null)
     {
         SpanToReplace = spanToReplace;
         SnippetText = snippetText;
         CaretOffset = caretOffset;
-        GreyTextSymbols = greyTextSymbols;
+        Proposal = proposal;
     }
 }

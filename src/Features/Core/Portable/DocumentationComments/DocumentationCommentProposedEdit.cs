@@ -7,18 +7,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-internal sealed class DocumentationCommentGreyText
+internal sealed class DocumentationCommentProposedEdit
 {
     public TextSpan SpanToReplace { get; }
 
-    public string SnippetText { get; }
+    public string SymbolName { get; }
 
-    public string SymbolString { get; }
-
-    internal DocumentationCommentGreyText(TextSpan spanToReplace, string snippetText, string symbolString)
+    internal DocumentationCommentProposedEdit(TextSpan spanToReplace, string symbolName)
     {
         SpanToReplace = spanToReplace;
-        SnippetText = snippetText;
-        SymbolString = symbolString;
+        SymbolName = symbolName;
     }
 }

@@ -83,11 +83,12 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
 
-        var greyTextList = GetTagsForGreyText(replaceSpan, comments);
+        var memberNode = GetContainingMember(syntaxTree, position, cancellationToken);
+        var proposal = GetProposal(replaceSpan, comments, memberNode, position);
 
         if (addGreyText)
         {
-            return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, greyTextList);
+            return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, proposal);
         }
 
         return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
@@ -437,7 +438,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         return firstNonWhitespaceColumn.CreateIndentationString(options.UseTabs, options.TabSize) + ExteriorTriviaText + extraIndent;
     }
 
-    protected virtual ImmutableArray<DocumentationCommentGreyText>? GetTagsForGreyText(TextSpan textSpan, string? comments)
+    protected virtual DocumentationCommentProposal? GetProposal(TextSpan textSpan, string? comments, TMemberNode? memberNode, int startIndex)
     {
         return null;
     }
