@@ -10,9 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" GenerateSource="true" Link="CSharpCodeFixesResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />
   </ItemGroup>
   <ItemGroup>
