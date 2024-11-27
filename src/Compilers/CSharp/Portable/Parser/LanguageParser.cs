@@ -9225,7 +9225,7 @@ done:
 
                 if (isDeclaration)
                 {
-                    return (ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement, ParsePossibleScopedKeyword(isFunctionPointerParameter: false)), initializers: default);
+                    return (ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement, ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false)), initializers: default);
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
