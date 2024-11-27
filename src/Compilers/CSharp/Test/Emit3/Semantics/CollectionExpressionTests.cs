@@ -11713,7 +11713,8 @@ static class Program
                                 int V_10,
                                 int V_11,
                                 int V_12,
-                                int V_13)
+                                int V_13,
+                                System.Span<int> V_14)
                   IL_0000:  ldstr      "A"
                   IL_0005:  ldc.i4.2
                   IL_0006:  newarr     "int"
@@ -11830,8 +11831,8 @@ static class Program
                   IL_0105:  ldloca.s   V_6
                   IL_0107:  ldloc.s    V_4
                   IL_0109:  newobj     "System.Span<int>..ctor(int[])"
-                  IL_010e:  stloc.s    V_7
-                  IL_0110:  ldloca.s   V_7
+                  IL_010e:  stloc.s    V_14
+                  IL_0110:  ldloca.s   V_14
                   IL_0112:  ldloc.3
                   IL_0113:  ldloca.s   V_6
                   IL_0115:  call       "int System.Span<int>.Length.get"
@@ -33877,7 +33878,8 @@ partial class Program
                                 C[] V_6,
                                 System.ReadOnlySpan<D>.Enumerator V_7,
                                 D V_8,
-                                System.ReadOnlySpan<C> V_9)
+                                System.ReadOnlySpan<D>.Enumerator V_9,
+                                System.ReadOnlySpan<C> V_10)
                   IL_0000:  newobj     "D..ctor()"
                   IL_0005:  stloc.1
                   IL_0006:  ldloca.s   V_1
@@ -33920,9 +33922,9 @@ partial class Program
                   IL_0061:  brtrue.s   IL_0043
                   IL_0063:  ldloca.s   V_4
                   IL_0065:  call       "System.ReadOnlySpan<D>.Enumerator System.ReadOnlySpan<D>.GetEnumerator()"
-                  IL_006a:  stloc.s    V_7
+                  IL_006a:  stloc.s    V_9
                   IL_006c:  br.s       IL_0085
-                  IL_006e:  ldloca.s   V_7
+                  IL_006e:  ldloca.s   V_9
                   IL_0070:  call       "ref readonly D System.ReadOnlySpan<D>.Enumerator.Current.get"
                   IL_0075:  ldind.ref
                   IL_0076:  stloc.s    V_8
@@ -33934,13 +33936,13 @@ partial class Program
                   IL_0081:  ldc.i4.1
                   IL_0082:  add
                   IL_0083:  stloc.s    V_5
-                  IL_0085:  ldloca.s   V_7
+                  IL_0085:  ldloca.s   V_9
                   IL_0087:  call       "bool System.ReadOnlySpan<D>.Enumerator.MoveNext()"
                   IL_008c:  brtrue.s   IL_006e
                   IL_008e:  ldloc.s    V_6
                   IL_0090:  call       "System.ReadOnlySpan<C> System.ReadOnlySpan<C>.op_Implicit(C[])"
-                  IL_0095:  stloc.s    V_9
-                  IL_0097:  ldloca.s   V_9
+                  IL_0095:  stloc.s    V_10
+                  IL_0097:  ldloca.s   V_10
                   IL_0099:  call       "void CollectionExtensions.Report<C>(in System.ReadOnlySpan<C>)"
                   IL_009e:  ret
                 }
@@ -35650,13 +35652,14 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      146 (0x92)
+                  // Code size      147 (0x93)
                   .maxstack  4
                   .locals init (int V_0,
                                 System.Span<int> V_1,
                                 int V_2,
                                 System.Collections.Generic.List<int> V_3,
-                                System.Span<int> V_4)
+                                System.Span<int> V_4,
+                                System.Span<int> V_5)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -35706,27 +35709,27 @@ partial class Program
                   IL_0055:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
                   IL_005a:  ldloc.3
                   IL_005b:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0060:  stloc.1
-                  IL_0061:  ldc.i4.0
-                  IL_0062:  stloc.0
-                  IL_0063:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0068:  stloc.s    V_4
-                  IL_006a:  ldloca.s   V_4
-                  IL_006c:  ldloca.s   V_1
-                  IL_006e:  ldloc.0
-                  IL_006f:  ldloca.s   V_4
-                  IL_0071:  call       "int System.Span<int>.Length.get"
-                  IL_0076:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
-                  IL_007b:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
-                  IL_0080:  ldloc.0
-                  IL_0081:  ldloca.s   V_4
-                  IL_0083:  call       "int System.Span<int>.Length.get"
-                  IL_0088:  add
-                  IL_0089:  stloc.0
-                  IL_008a:  ldloc.3
-                  IL_008b:  ldc.i4.0
-                  IL_008c:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0091:  ret
+                  IL_0060:  stloc.s    V_4
+                  IL_0062:  ldc.i4.0
+                  IL_0063:  stloc.0
+                  IL_0064:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0069:  stloc.s    V_5
+                  IL_006b:  ldloca.s   V_5
+                  IL_006d:  ldloca.s   V_4
+                  IL_006f:  ldloc.0
+                  IL_0070:  ldloca.s   V_5
+                  IL_0072:  call       "int System.Span<int>.Length.get"
+                  IL_0077:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                  IL_007c:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                  IL_0081:  ldloc.0
+                  IL_0082:  ldloca.s   V_5
+                  IL_0084:  call       "int System.Span<int>.Length.get"
+                  IL_0089:  add
+                  IL_008a:  stloc.0
+                  IL_008b:  ldloc.3
+                  IL_008c:  ldc.i4.0
+                  IL_008d:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0092:  ret
                 }
                 """);
         }
@@ -37417,15 +37420,16 @@ partial class Program
             // Ideally we'd like to be able to use *both* something like AddRange, *and* AsSpan/CopyTo/etc. while building the same target collection
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      181 (0xb5)
+                  // Code size      182 (0xb6)
                   .maxstack  3
                   .locals init (int V_0,
                                 System.Span<int> V_1,
                                 int V_2,
                                 System.Collections.Generic.ICollection<int> V_3,
                                 System.Collections.Generic.List<int> V_4,
-                                System.Collections.Generic.IEnumerator<int> V_5,
-                                int V_6)
+                                System.Span<int> V_5,
+                                System.Collections.Generic.IEnumerator<int> V_6,
+                                int V_7)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -37478,49 +37482,49 @@ partial class Program
                   IL_005a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
                   IL_005f:  ldloc.s    V_4
                   IL_0061:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0066:  stloc.1
-                  IL_0067:  ldc.i4.0
-                  IL_0068:  stloc.0
-                  IL_0069:  ldloc.3
-                  IL_006a:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
-                  IL_006f:  stloc.s    V_5
+                  IL_0066:  stloc.s    V_5
+                  IL_0068:  ldc.i4.0
+                  IL_0069:  stloc.0
+                  IL_006a:  ldloc.3
+                  IL_006b:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_0070:  stloc.s    V_6
                   .try
                   {
-                    IL_0071:  br.s       IL_008b
-                    IL_0073:  ldloc.s    V_5
-                    IL_0075:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
-                    IL_007a:  stloc.s    V_6
-                    IL_007c:  ldloca.s   V_1
-                    IL_007e:  ldloc.0
-                    IL_007f:  call       "ref int System.Span<int>.this[int].get"
-                    IL_0084:  ldloc.s    V_6
-                    IL_0086:  stind.i4
-                    IL_0087:  ldloc.0
-                    IL_0088:  ldc.i4.1
-                    IL_0089:  add
-                    IL_008a:  stloc.0
-                    IL_008b:  ldloc.s    V_5
-                    IL_008d:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0092:  brtrue.s   IL_0073
-                    IL_0094:  leave.s    IL_00a2
+                    IL_0072:  br.s       IL_008c
+                    IL_0074:  ldloc.s    V_6
+                    IL_0076:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_007b:  stloc.s    V_7
+                    IL_007d:  ldloca.s   V_5
+                    IL_007f:  ldloc.0
+                    IL_0080:  call       "ref int System.Span<int>.this[int].get"
+                    IL_0085:  ldloc.s    V_7
+                    IL_0087:  stind.i4
+                    IL_0088:  ldloc.0
+                    IL_0089:  ldc.i4.1
+                    IL_008a:  add
+                    IL_008b:  stloc.0
+                    IL_008c:  ldloc.s    V_6
+                    IL_008e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0093:  brtrue.s   IL_0074
+                    IL_0095:  leave.s    IL_00a3
                   }
                   finally
                   {
-                    IL_0096:  ldloc.s    V_5
-                    IL_0098:  brfalse.s  IL_00a1
-                    IL_009a:  ldloc.s    V_5
-                    IL_009c:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_00a1:  endfinally
+                    IL_0097:  ldloc.s    V_6
+                    IL_0099:  brfalse.s  IL_00a2
+                    IL_009b:  ldloc.s    V_6
+                    IL_009d:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_00a2:  endfinally
                   }
-                  IL_00a2:  ldloca.s   V_1
-                  IL_00a4:  ldloc.0
-                  IL_00a5:  call       "ref int System.Span<int>.this[int].get"
-                  IL_00aa:  ldc.i4.4
-                  IL_00ab:  stind.i4
-                  IL_00ac:  ldloc.s    V_4
-                  IL_00ae:  ldc.i4.0
-                  IL_00af:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_00b4:  ret
+                  IL_00a3:  ldloca.s   V_5
+                  IL_00a5:  ldloc.0
+                  IL_00a6:  call       "ref int System.Span<int>.this[int].get"
+                  IL_00ab:  ldc.i4.4
+                  IL_00ac:  stind.i4
+                  IL_00ad:  ldloc.s    V_4
+                  IL_00af:  ldc.i4.0
+                  IL_00b0:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_00b5:  ret
                 }
                 """);
         }

@@ -1628,7 +1628,8 @@ F: Returned
   .maxstack  4
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 S V_1, //x
-                S V_2)
+                S V_2,
+                S V_3)
   // sequence point: <hidden>
   IL_0000:  ldtoken    ""void S.F(S)""
   IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
@@ -1659,8 +1660,8 @@ F: Returned
     IL_0043:  ldarg.0
     IL_0044:  dup
     IL_0045:  stloc.1
-    IL_0046:  stloc.2
-    IL_0047:  ldloca.s   V_2
+    IL_0046:  stloc.3
+    IL_0047:  ldloca.s   V_3
     IL_0049:  constrained. ""S""
     IL_004f:  callvirt   ""string object.ToString()""
     IL_0054:  ldc.i4.1

@@ -8818,7 +8818,8 @@ class Program
   // Code size       32 (0x20)
   .maxstack  2
   .locals init (Buffer10<int> V_0,
-                int V_1)
+                int V_1,
+                Buffer10<int> V_2)
   IL_0000:  call       ""Buffer10<int> Program.M3()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -8826,9 +8827,9 @@ class Program
   IL_000d:  ldind.i4
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
-  IL_0011:  ldloca.s   V_0
+  IL_0011:  ldloca.s   V_2
   IL_0013:  initobj    ""Buffer10<int>""
-  IL_0019:  ldloc.0
+  IL_0019:  ldloc.2
   IL_001a:  call       ""int Program.M4(in int, Buffer10<int>)""
   IL_001f:  ret
 }
