@@ -105,8 +105,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Always_use_default_symbol_servers_for_navigation}" />
-                    <CheckBox x:Name="Navigate_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
                 </StackPanel>
             </GroupBox>
 
