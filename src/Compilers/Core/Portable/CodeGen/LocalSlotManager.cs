@@ -259,12 +259,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void MarkLocalAsNotReusable(LocalDefinition slot)
-        {
-            _nonReusableLocals ??= new HashSet<LocalDefinition>(ReferenceEqualityComparer.Instance);
-            _nonReusableLocals.Add(slot);
-        }
-
         internal int? StartScopeOfTrackingAddressedLocals()
         {
             if (_addressedLocals is null)
@@ -288,11 +282,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(_addressedLocals != null);
 
-            if (markAsNotReusable)
+            if (markAsNotReusable && (countBefore ?? 0) < _addressedLocals.Count)
             {
+                _nonReusableLocals ??= new HashSet<LocalDefinition>(ReferenceEqualityComparer.Instance);
                 for (var i = countBefore ?? 0; i < _addressedLocals.Count; i++)
                 {
-                    MarkLocalAsNotReusable(_addressedLocals[i]);
+                    _nonReusableLocals.Add(_addressedLocals[i]);
                 }
             }
 
