@@ -2351,6 +2351,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_IteratorRefLikeElementType = 9267,
 
+        WRN_ExperimentalWithMessage = 9268,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 

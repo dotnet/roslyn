@@ -75,6 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property TrueKeyword As Integer = SyntaxKind.TrueKeyword Implements ISyntaxKinds.TrueKeyword
         Public ReadOnly Property UsingKeyword As Integer = SyntaxKind.UsingKeyword Implements ISyntaxKinds.UsingKeyword
 
+        Public ReadOnly Property AliasQualifiedName As Integer? Implements ISyntaxKinds.AliasQualifiedName
         Public ReadOnly Property GenericName As Integer = SyntaxKind.GenericName Implements ISyntaxKinds.GenericName
         Public ReadOnly Property IdentifierName As Integer = SyntaxKind.IdentifierName Implements ISyntaxKinds.IdentifierName
         Public ReadOnly Property QualifiedName As Integer = SyntaxKind.QualifiedName Implements ISyntaxKinds.QualifiedName
@@ -179,5 +180,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression
         Public ReadOnly Property InterpolatedStringText As Integer = SyntaxKind.InterpolatedStringText Implements ISyntaxKinds.InterpolatedStringText
         Public ReadOnly Property IndexerMemberCref As Integer? Implements ISyntaxKinds.IndexerMemberCref
+        Public ReadOnly Property PrimaryConstructorBaseType As Integer? Implements ISyntaxKinds.PrimaryConstructorBaseType
     End Class
 End Namespace

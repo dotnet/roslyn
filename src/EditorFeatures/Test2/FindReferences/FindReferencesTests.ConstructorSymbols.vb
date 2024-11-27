@@ -1281,5 +1281,77 @@ End Namespace]]>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
+        Public Async Function TestPrimaryConstructor1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Program
+        {
+            public {|Definition:$$Program|}(int i)
+            {
+            }
+        }
+
+        class Derived() : [|Program|](0)
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
+        Public Async Function TestPrimaryConstructor2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Program
+        {
+            public {|Definition:$$Program|}(int i)
+            {
+            }
+        }
+
+        class Derived() : global::[|Program|](0)
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
+        Public Async Function TestPrimaryConstructor3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        namespace N
+        {
+            class Program
+            {
+                public {|Definition:$$Program|}(int i)
+                {
+                }
+            }
+        }
+
+        class Derived() : N.[|Program|](0)
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

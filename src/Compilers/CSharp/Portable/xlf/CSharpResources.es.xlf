@@ -2952,6 +2952,16 @@
         <target state="translated">Usar la variable en este contexto puede exponer variables a las que se hace referencia fuera de su ámbito de declaración</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
         <target state="translated">En la versión del lenguaje {0}, la palabra clave "campo" se vincula a un campo de respaldo sintetizado para la propiedad. Para evitar generar un campo de respaldo sintetizado y hacer referencia a la suscripción existente, utilice en su lugar "this.field" o "@field".</target>
@@ -12971,7 +12981,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="translated">"{0}" se incluye con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones. Suprima este diagnóstico para continuar.</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

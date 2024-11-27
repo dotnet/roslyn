@@ -119,14 +119,15 @@ internal static class MethodGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier != null;
         var methodDeclaration = MethodDeclaration(
-            attributeLists: GenerateAttributes(method, info, explicitInterfaceSpecifier != null),
+            attributeLists: GenerateAttributes(method, isExplicit, info),
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -192,15 +193,17 @@ internal static class MethodGenerator
     }
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IMethodSymbol method, CSharpCodeGenerationContextInfo info, bool isExplicit)
+        IMethodSymbol method, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
+        if (isExplicit)
+        {
+            return default;
+        }
+
         var attributes = new List<AttributeListSyntax>();
 
-        if (!isExplicit)
-        {
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
-        }
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
 
         return [.. attributes];
     }

@@ -114,7 +114,6 @@ public class AddAccessibilityModifiersTests
                         event Action I.e6 { add { } remove { } }
 
                         static C() { }
-
                         private C() { }
                         public C(int i) { }
 

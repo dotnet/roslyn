@@ -1585,6 +1585,14 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     #region GetPartsOfXXX members
 
+    public void GetPartsOfAliasQualifiedName(SyntaxNode node, out SyntaxNode alias, out SyntaxToken colonColonToken, out SyntaxNode name)
+    {
+        var qualifiedName = (AliasQualifiedNameSyntax)node;
+        alias = qualifiedName.Alias;
+        colonColonToken = qualifiedName.ColonColonToken;
+        name = qualifiedName.Name;
+    }
+
     public void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken)
     {
         var argumentListNode = (ArgumentListSyntax)node;

@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertConcatenationToInter
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-public class ConvertConcatenationToInterpolatedStringTests
+public sealed class ConvertConcatenationToInterpolatedStringTests
 {
     [Fact]
     public async Task TestMissingOnSimpleString()
@@ -515,105 +515,97 @@ public class ConvertConcatenationToInterpolatedStringTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
     public async Task TestWithStringLiteralWithBraces()
     {
-        {
-            await VerifyCS.VerifyRefactoringAsync(
-                """
-                public class C
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = 1 + [||]"{string}";
-                    }
+                    var v = 1 + [||]"{string}";
                 }
-                """,
-                """
-                public class C
+            }
+            """,
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = $"{1}{{string}}";
-                    }
+                    var v = $"{1}{{string}}";
                 }
-                """);
-        }
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
     public async Task TestWithStringLiteralWithBraces2()
     {
-        {
-            await VerifyCS.VerifyRefactoringAsync(
-                """
-                public class C
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = 1 + [||]"{string}" + "{string}";
-                    }
+                    var v = 1 + [||]"{string}" + "{string}";
                 }
-                """,
-                """
-                public class C
+            }
+            """,
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = $"{1}{{string}}{{string}}";
-                    }
+                    var v = $"{1}{{string}}{{string}}";
                 }
-                """);
-        }
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
     public async Task TestWithStringLiteralWithDoubleBraces()
     {
-        {
-            await VerifyCS.VerifyRefactoringAsync(
-                """
-                public class C
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = 1 + [||]"{{string}}";
-                    }
+                    var v = 1 + [||]"{{string}}";
                 }
-                """,
-                """
-                public class C
+            }
+            """,
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = $"{1}{{{{string}}}}";
-                    }
+                    var v = $"{1}{{{{string}}}}";
                 }
-                """);
-        }
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
     public async Task TestWithMultipleStringLiteralsWithBraces()
     {
-        {
-            await VerifyCS.VerifyRefactoringAsync(
-                """
-                public class C
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = "{" + 1 + [||]"}";
-                    }
+                    var v = "{" + 1 + [||]"}";
                 }
-                """,
-                """
-                public class C
+            }
+            """,
+            """
+            public class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var v = $"{{{1}}}";
-                    }
+                    var v = $"{{{1}}}";
                 }
-                """);
-        }
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
@@ -1408,6 +1400,51 @@ class C
                 }
                 """",
             LanguageVersion = LanguageVersion.CSharp11,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68425")]
+    public async Task TestQuoteCharacter1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = [||]'"' + args[0] + '"';
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = $"\"{args[0]}\"";
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68425")]
+    public async Task TestQuoteCharacter2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = [||]@"a" + args[0] + '"';
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
     }
 }
