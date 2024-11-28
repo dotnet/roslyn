@@ -46,9 +46,10 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
-                                         .OrderByDescending(i => i.SpanStart)
-                                         .ToImmutableArray();
+        var invocationNodes = diagnostics
+            .Select(d => GetInvocationExpression(d, cancellationToken))
+            .OrderByDescending(i => i.SpanStart)
+            .ToImmutableArray();
         var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
         await editor.ApplyExpressionLevelSemanticEditsAsync(
@@ -88,7 +89,7 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
         var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
         var arguments = SingletonSeparatedList(argument);
 
-        if (result.MemberInfo.OverloadedMethodOpt == null)
+        if (result.MemberInfo.OverloadedMethod == null)
         {
             var argList = invocation.ArgumentList;
             var argumentList = BracketedArgumentList(

@@ -12,10 +12,14 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
 {
     public enum ResultKind
     {
-        // like s.Substring(expr, s.Length - expr) or s.Substring(expr).  'expr' has to match on both sides.
+        /// <summary>
+        /// like s.Substring(expr, s.Length - expr) or s.Substring(expr).  'expr' has to match on both sides.
+        /// </summary>
         Computed,
 
-        // like s.Substring(constant1, s.Length - constant2).  the constants don't have to match.
+        /// <summary>
+        /// like s.Substring(constant1, s.Length - constant2).  the constants don't have to match.
+        /// </summary>
         Constant,
     }
 
@@ -25,7 +29,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         InvocationExpressionSyntax invocation,
         IMethodSymbol sliceLikeMethod,
         MemberInfo memberInfo,
-        IOperation op1,
+        IOperation? op1,
         IOperation? op2)
     {
         public readonly ResultKind Kind = kind;
@@ -33,7 +37,11 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         public readonly InvocationExpressionSyntax Invocation = invocation;
         public readonly IMethodSymbol SliceLikeMethod = sliceLikeMethod;
         public readonly MemberInfo MemberInfo = memberInfo;
-        public readonly IOperation Op1 = op1;
+
+        /// <summary>
+        /// Can be null, to representing a starting index of 0.
+        /// </summary>
+        public readonly IOperation? Op1 = op1;
 
         /// <summary>
         /// Can be null, if we are dealing with one-argument call to a slice-like method.
