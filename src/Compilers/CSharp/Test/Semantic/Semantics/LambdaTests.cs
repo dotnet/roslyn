@@ -8563,5 +8563,28 @@ class Program
                 //         D d = (ref a) => { };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref a").WithArguments("simple lambda parameter modifiers").WithLocation(7, 16));
         }
+
+        [Fact]
+        public void IncorrectlyTypedLambdaWithCorrectRefNess()
+        {
+            var source = """
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = (ref byte a) => { };
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,25): error CS1678: Parameter 1 is declared as type 'ref byte' but should be 'ref int'
+                //         D d = (ref byte a) => { };
+                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("1", "ref ", "byte", "ref ", "int").WithLocation(7, 25),
+                // (7,28): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                //         D d = (ref byte a) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D").WithLocation(7, 28));
+        }
     }
 }
