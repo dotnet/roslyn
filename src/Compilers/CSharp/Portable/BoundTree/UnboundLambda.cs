@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// explicit type syntax included.  Examples of where this is true are: `() => ...` `(int a) => ...` `(int a,
         /// ref int b) => ...` and so on.
         /// 
-        /// Examples of where this is false is `a => ...` `(a) => ...` `(a, b) => ...` `(ref a) => ...`.
+        /// Examples of where this is false is `a => ...` `(a) => ...` `(a, b) => ...` `(ref a) => ...` `(int a, ref b) => ...`.
         /// 
         /// Note 1: in the case where some parameters have types and some do not, this will return false.  That case is an
         /// error case and an error will already be reported to the user.  In this case, we treat the parameter list as
