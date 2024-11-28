@@ -1349,7 +1349,7 @@ public sealed class UseRangeOperatorTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40438")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
     public async Task TestRemoveFromZeroToArbitraryLocation()
     {
         await new VerifyCS.Test
@@ -1376,7 +1376,7 @@ public sealed class UseRangeOperatorTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40438")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
     public async Task TestRemoveFromZeroToLengthMinusSomeAmount()
     {
         await new VerifyCS.Test
@@ -1403,7 +1403,7 @@ public sealed class UseRangeOperatorTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40438")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
     public async Task TestRemoveFromPositionToLengthMinusThatPosition()
     {
         await new VerifyCS.Test
@@ -1430,7 +1430,7 @@ public sealed class UseRangeOperatorTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40438")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
     public async Task TestRemoveFromLengthMinusPositionToPosition()
     {
         await new VerifyCS.Test
