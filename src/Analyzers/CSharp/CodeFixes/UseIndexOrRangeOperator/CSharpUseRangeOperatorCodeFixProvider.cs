@@ -151,17 +151,34 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
         {
             if (IsStringRemoveMethod(result.InvocationOperation.TargetMethod))
             {
-                if (IsSubtraction(result.InvocationOperation.Arguments[1].Value, out var subtraction) &&
-                    IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                if (result.Invocation.ArgumentList.Arguments.Count == 1)
                 {
-                    // `string.Remove(0, string.Length - x)` becomes `string[^x..]`
-                    return ((ExpressionSyntax)subtraction.RightOperand.Syntax, startFromEnd: true, endExpr: null, false);
+                    if (IsSubtraction(result.InvocationOperation.Arguments[0].Value, out var subtraction) &&
+                        IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                    {
+                        // `string.Remove(string.Length - x)` becomes `string[..^x]`
+                        return (startExpr: null, startFromEnd: false, (ExpressionSyntax)subtraction.RightOperand.Syntax, endFromEnd: true);
+                    }
+                    else
+                    {
+                        // `string.Remove(x)` becomes `string[..x]`
+                        return (startExpr: null, startFromEnd: false, (ExpressionSyntax)result.InvocationOperation.Arguments[0].Value.Syntax, endFromEnd: false);
+                    }
                 }
                 else
                 {
+                    if (IsSubtraction(result.InvocationOperation.Arguments[1].Value, out var subtraction) &&
+                        IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                    {
+                        // `string.Remove(0, string.Length - x)` becomes `string[^x..]`
+                        return ((ExpressionSyntax)subtraction.RightOperand.Syntax, startFromEnd: true, endExpr: null, false);
+                    }
+                    else
+                    {
 
-                    // `string.Remove(0, x)` becomes `string[x..]`
-                    return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, false);
+                        // `string.Remove(0, x)` becomes `string[x..]`
+                        return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, false);
+                    }
                 }
             }
 
