@@ -6463,6 +6463,48 @@ class C {
             EOF();
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp13)]
+        [InlineData(LanguageVersion.Preview)]
+        public void TestParameterModifierNoType9(LanguageVersion languageVersion)
+        {
+            // 'scoped' is always a type here as the `= null` is not legal in an implicitly typed lambda.
+            string source = "(scoped a = null) => { }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void TestOptionalImplicitParameter()
         {
