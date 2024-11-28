@@ -747,7 +747,7 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
         [InlineData("CS1591")]
         [InlineData("CS1591, IDE0010")]
         [InlineData(" , CS1591, IDE0010 ")]
-        public async Task SingleString_NoWarnsCSharpAsync(string noWarns)
+        public async Task SingleString_NoWarnsCSharpAsync(string noWarn)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -756,7 +756,7 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
   </data>"
                 + ResxFooter;
 
-            var id = string.Join("_", noWarns.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
+            var id = string.Join("_", noWarn.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
 
             await new VerifyCS.Test(identifier: id)
             {
@@ -769,7 +769,7 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
 is_global = true
 
 [/0/Resources.resx]
-build_metadata.AdditionalFiles.NoWarns = {noWarns}
+build_metadata.AdditionalFiles.NoWarn = {noWarn}
 "),
                     },
                 },
@@ -781,7 +781,7 @@ build_metadata.AdditionalFiles.NoWarns = {noWarns}
         [InlineData("CS1591")]
         [InlineData("CS1591, IDE0010")]
         [InlineData(" , CS1591, IDE0010 ")]
-        public async Task SingleString_NoWarnsVisualBasicAsync(string noWarns)
+        public async Task SingleString_NoWarnsVisualBasicAsync(string noWarn)
         {
             var code = ResxHeader
                 + @"  <data name=""Name"" xml:space=""preserve"">
@@ -790,7 +790,7 @@ build_metadata.AdditionalFiles.NoWarns = {noWarns}
   </data>"
                 + ResxFooter;
 
-            var id = string.Join("_", noWarns.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
+            var id = string.Join("_", noWarn.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
 
             await new VerifyVB.Test(identifier: id)
             {
@@ -803,7 +803,7 @@ build_metadata.AdditionalFiles.NoWarns = {noWarns}
 is_global = true
 
 [/0/Resources.resx]
-build_metadata.AdditionalFiles.NoWarns = {noWarns}
+build_metadata.AdditionalFiles.NoWarn = {noWarn}
 "),
                     },
                 },
