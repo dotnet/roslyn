@@ -2184,8 +2184,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(anonymousFunction.HasExplicitlyTypedParameterList);
 
                 // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
-                //
-                // Or: There is a ref-kind mismatch.
 
                 conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, id, targetType);
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
