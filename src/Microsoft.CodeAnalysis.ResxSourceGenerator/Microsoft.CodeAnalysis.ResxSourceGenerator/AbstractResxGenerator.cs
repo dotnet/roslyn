@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     var noWarns = Array.Empty<string>();
                     if (options.TryGetValue("build_metadata.AdditionalFiles.NoWarns", out var noWarnsText))
                     {
-                        noWarns = noWarnsText.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries) ?? [];
+                        noWarns = noWarnsText.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()).ToArray() ?? [];
                     }
 
                     return new[]

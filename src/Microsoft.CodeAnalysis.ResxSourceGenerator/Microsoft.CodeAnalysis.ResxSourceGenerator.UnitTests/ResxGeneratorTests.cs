@@ -741,5 +741,73 @@ build_metadata.AdditionalFiles.Public = {(publicResource ? "true" : "false")}
                 },
             }.AddGeneratedSources().RunAsync();
         }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("CS1591")]
+        [InlineData("CS1591, IDE0010")]
+        [InlineData(" , CS1591, IDE0010 ")]
+        public async Task SingleString_NoWarnsCSharpAsync(string noWarns)
+        {
+            var code = ResxHeader
+                + @"  <data name=""Name"" xml:space=""preserve"">
+    <value>value</value>
+    <comment>comment</comment>
+  </data>"
+                + ResxFooter;
+
+            var id = string.Join("_", noWarns.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
+
+            await new VerifyCS.Test(identifier: id)
+            {
+                TestState =
+                {
+                    AdditionalFiles = { ("/0/Resources.resx", code) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", $@"
+is_global = true
+
+[/0/Resources.resx]
+build_metadata.AdditionalFiles.NoWarns = {noWarns}
+"),
+                    },
+                },
+            }.AddGeneratedSources().RunAsync();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("CS1591")]
+        [InlineData("CS1591, IDE0010")]
+        [InlineData(" , CS1591, IDE0010 ")]
+        public async Task SingleString_NoWarnsVisualBasicAsync(string noWarns)
+        {
+            var code = ResxHeader
+                + @"  <data name=""Name"" xml:space=""preserve"">
+    <value>value</value>
+    <comment>comment</comment>
+  </data>"
+                + ResxFooter;
+
+            var id = string.Join("_", noWarns.Replace(" ", "").Split(",", System.StringSplitOptions.TrimEntries | System.StringSplitOptions.RemoveEmptyEntries));
+
+            await new VerifyVB.Test(identifier: id)
+            {
+                TestState =
+                {
+                    AdditionalFiles = { ("/0/Resources.resx", code) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", $@"
+is_global = true
+
+[/0/Resources.resx]
+build_metadata.AdditionalFiles.NoWarns = {noWarns}
+"),
+                    },
+                },
+            }.AddGeneratedSources().RunAsync();
+        }
     }
 }
