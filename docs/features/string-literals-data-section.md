@@ -18,8 +18,8 @@ The feature is currently implemented only for C#, not VB.
 The feature flag can take a non-negative integer threshold. Only string literals whose length is over the threshold are emitted using the utf8 encoding strategy.
 By default, the threshold is 100. Specifying 0 means all string literals are considered for the feature. Specifying `off` turns off the feature (this is the default).
 
-The feature flag can be specified on the command line like `/features:utf8-string-literal-encoding` or `/features:utf8-string-literal-encoding=20`,
-or in a project file in a `<PropertyGroup>` like `<Features>$(Features);utf8-string-literal-encoding</Features>` or `<Features>$(Features);utf8-string-literal-encoding=20</Features>`.
+The feature flag can be specified on the command line like `/features:data-section-string-literals` or `/features:data-section-string-literals=20`,
+or in a project file in a `<PropertyGroup>` like `<Features>$(Features);data-section-string-literals</Features>` or `<Features>$(Features);data-section-string-literals=20</Features>`.
 
 ## Eligible string literals
 
