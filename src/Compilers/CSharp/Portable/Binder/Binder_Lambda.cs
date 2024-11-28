@@ -119,9 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (parameterSyntaxListOpt != null)
+            if (parameterSyntaxListOpt is { } parameterSyntaxList)
             {
-                var parameterSyntaxList = parameterSyntaxListOpt.Value;
                 var hasExplicitlyTypedParameterList = parameterSyntaxList.All(static p => p.Type != null);
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
