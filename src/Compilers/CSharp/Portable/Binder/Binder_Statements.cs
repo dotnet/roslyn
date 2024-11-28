@@ -2159,6 +2159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                Debug.Assert(diagnostics.DiagnosticBag?.Count is not 0);
                 return;
             }
 
