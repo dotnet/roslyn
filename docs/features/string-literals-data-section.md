@@ -57,14 +57,14 @@ using System.Text;
 [CompilerGenerated]
 internal static class <S>2D8BD7D9BB5F85BA643F0110D50CB506A1FE439E769A22503193EA6046BB87F7
 {
-	internal static readonly <PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 f = /* IL: data(48 65 6C 6C 6F 2E) */;
+    internal static readonly <PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 f = /* IL: data(48 65 6C 6C 6F 2E) */;
 
-	internal static readonly string s;
+    internal static readonly string s;
 
-	unsafe static <S>2D8BD7D9BB5F85BA643F0110D50CB506A1FE439E769A22503193EA6046BB87F7()
-	{
-		s = <PrivateImplementationDetails>.BytesToString((byte*)Unsafe.AsPointer(ref f), 6);
-	}
+    unsafe static <S>2D8BD7D9BB5F85BA643F0110D50CB506A1FE439E769A22503193EA6046BB87F7()
+    {
+        s = <PrivateImplementationDetails>.BytesToString((byte*)Unsafe.AsPointer(ref f), 6);
+    }
 }
 
 [CompilerGenerated]
