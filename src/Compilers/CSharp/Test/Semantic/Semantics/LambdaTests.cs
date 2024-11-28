@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaTests : SemanticModelTestBase
+    public sealed class LambdaTests : SemanticModelTestBase
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
@@ -8542,6 +8542,26 @@ class Program
                 // (1,19): error CS0027: Keyword 'this' is not available in the current context
                 // var lam = (params this int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedLambdaWithModifier_CSharp13()
+        {
+            var source = """
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = (ref a) => { };
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         D d = (ref a) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref a").WithArguments("simple lambda parameter modifiers").WithLocation(7, 16));
         }
     }
 }

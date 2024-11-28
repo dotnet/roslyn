@@ -8026,4 +8026,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
     <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
   </data>
+  <data name="IDS_FeatureSimpleLambdaParameterModifiers" xml:space="preserve">
+    <value>simple lambda parameter modifiers</value>
+  </data>
 </root>
