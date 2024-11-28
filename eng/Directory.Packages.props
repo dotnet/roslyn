@@ -262,7 +262,7 @@
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="xunit" Version="$(_xunitVersion)" />
-    <PackageVersion Include="xunit.analyzers" Version="1.15.0" />
+    <PackageVersion Include="xunit.analyzers" Version="1.17.0" />
     <PackageVersion Include="xunit.assert" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.core" Version="$(_xunitVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
