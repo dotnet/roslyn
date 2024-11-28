@@ -12221,7 +12221,7 @@ done:
                 if (IsParameterModifierIncludingScoped(this.CurrentToken))
                 {
                     SyntaxListBuilder modifiers = _pool.Allocate();
-                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
+                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: true);
                     _pool.Free(modifiers);
                 }
 
