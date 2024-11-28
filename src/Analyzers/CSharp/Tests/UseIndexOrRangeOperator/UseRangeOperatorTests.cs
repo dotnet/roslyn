@@ -1377,6 +1377,33 @@ public sealed class UseRangeOperatorTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromZeroToArbitraryLocation1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|0, x + 1|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[(x + 1)..];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
     public async Task TestRemoveFromZeroToLengthMinusSomeAmount()
     {
         await new VerifyCS.Test
@@ -1397,6 +1424,33 @@ public sealed class UseRangeOperatorTests
                     void Goo(string s, int x)
                     {
                         var v = s[^x..];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromZeroToLengthMinusSomeAmount1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|0, s.Length - (x + 1)|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[^(x + 1)..];
                     }
                 }
                 """,
@@ -1451,6 +1505,33 @@ public sealed class UseRangeOperatorTests
                     void Goo(string s, int x)
                     {
                         var v = s[..^x];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromLengthMinusPositionToPosition2()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|s.Length - (x + 1), x + 1|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..^(x + 1)];
                     }
                 }
                 """,
