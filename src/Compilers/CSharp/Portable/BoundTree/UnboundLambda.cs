@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Note 1: in the case where some parameters have types and some do not, this will return false.  That case is an
         /// error case and an error will already be reported to the user.  In this case, we treat the parameter list as
-        /// if no parameters were provided.
+        /// if no parameter types were provided.
         /// 
         /// Note 2: `(ref a) => ...` is legal.  So this property should not be used to determine if a parameter should
         /// have its ref/scoped/attributes checked.
