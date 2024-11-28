@@ -2144,7 +2144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateRefKind = delegateParameters[i].RefKind;
                     var lambdaRefKind = anonymousFunction.RefKind(i);
 
-                    if (lambdaRefKind != delegateRefKind)
+                    if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                            candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                            delegateParameterRefKind: delegateParameters[p].RefKind,
+                            this.Compilation))
                     {
                         var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
                         if (delegateRefKind == RefKind.None)
