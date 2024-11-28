@@ -52,21 +52,13 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
 
                 // We also support translating certain calls to .Remove to calls to the range member, if the user is
                 // trimming off the start or end of a string.
-                var remove1 = stringType
-                    .GetMembers(nameof(string.Remove))
-                    .OfType<IMethodSymbol>()
-                    .FirstOrDefault(IsOneArgumentSliceLikeMethod);
-
-                if (remove1 is not null)
-                    _methodToMemberInfo[remove1] = ComputeMemberInfo(remove1, requireRangeMember: false);
-
-                var remove2 = stringType
+                var removeMethod = stringType
                     .GetMembers(nameof(string.Remove))
                     .OfType<IMethodSymbol>()
                     .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
 
-                if (remove2 is not null)
-                    _methodToMemberInfo[remove2] = ComputeMemberInfo(remove2, requireRangeMember: false);
+                if (removeMethod is not null)
+                    _methodToMemberInfo[removeMethod] = ComputeMemberInfo(removeMethod, requireRangeMember: false);
             }
         }
 

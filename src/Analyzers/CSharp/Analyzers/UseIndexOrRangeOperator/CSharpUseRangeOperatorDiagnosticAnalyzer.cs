@@ -166,15 +166,15 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
         Contract.ThrowIfNull(invocation.Instance);
 
         var startOperation = invocation.Arguments[0].Value;
-        var lengthOperation = invocation.Arguments[0].Value;
+        var lengthOperation = invocation.Arguments[1].Value;
 
         if (!IsValidIndexing(invocation, infoCache, targetMethod))
             return null;
 
-        // `string.Remove(0, string.Length - x)` or `string.Remove(0, x)`
-        // Becomes `string[^x..]` or `string[x..]`
         if (IsConstantInt32(startOperation, value: 0))
         {
+            // `string.Remove(0, string.Length - x)` or `string.Remove(0, x)`
+            // Becomes `string[^x..]` or `string[x..]`
             return new Result(
                 ResultKind.Computed,
                 invocation, invocationSyntax,
@@ -196,8 +196,8 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
                ResultKind.Constant,
                invocation, invocationSyntax,
                targetMethod, memberInfo,
-               op1: null,
-               op2: lengthOperation);
+               op1: lengthOperation,
+               op2: null);
         }
         else if (IsSubtraction(lengthOperation, out subtraction))
         {
@@ -212,8 +212,8 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
                ResultKind.Constant,
                invocation, invocationSyntax,
                targetMethod, memberInfo,
-               op1: null,
-               op2: startOperation);
+               op1: startOperation,
+               op2: null);
         }
 
         return null;

@@ -29,7 +29,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         InvocationExpressionSyntax invocation,
         IMethodSymbol sliceLikeMethod,
         MemberInfo memberInfo,
-        IOperation? op1,
+        IOperation op1,
         IOperation? op2)
     {
         public readonly ResultKind Kind = kind;
@@ -41,7 +41,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         /// <summary>
         /// Can be null, to representing a starting index of 0.
         /// </summary>
-        public readonly IOperation? Op1 = op1;
+        public readonly IOperation Op1 = op1;
 
         /// <summary>
         /// Can be null, if we are dealing with one-argument call to a slice-like method.
