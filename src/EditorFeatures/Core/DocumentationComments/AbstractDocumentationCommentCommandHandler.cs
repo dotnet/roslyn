@@ -138,10 +138,12 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                         }
 
                         var proposalEdits = await GetProposedEditsAsync(snippet.Proposal, subjectBuffer, copilotService, cancellationToken).ConfigureAwait(false);
+
                         var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
                         var suggestion = new DocumentationCommentSuggestion(this, proposal);
 
                         var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+
                         if (session != null)
                         {
                             await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
@@ -157,15 +159,15 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
         DocumentationCommentProposal proposal, ITextBuffer textBuffer, ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
-        // Call into copilot here using the proposal and the propoededits
         var list = new List<ProposedEdit>();
-        foreach (var edit in proposal.ProposedEdits)
-        {
-            var textSpan = edit.SpanToReplace;
+        //foreach (var edit in proposal.ProposedEdits)
+        //{
+        var edit = proposal.ProposedEdits.First();
+        var textSpan = edit.SpanToReplace;
             var copilotText = await copilotService.GetDocumentationCommentAsync(proposal.SymbolToAnalyze, edit.SymbolName, edit.TagType.ToString(), cancellationToken).ConfigureAwait(false);
             var proposedEdit = new ProposedEdit(new SnapshotSpan(textBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), copilotText);
             list.Add(proposedEdit);
-        }
+        //}
 
         return list;
     }

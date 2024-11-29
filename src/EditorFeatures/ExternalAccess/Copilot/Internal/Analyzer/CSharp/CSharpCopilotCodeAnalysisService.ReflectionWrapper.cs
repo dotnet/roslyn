@@ -39,7 +39,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private const string StartRefinementSessionAsyncMethodName = "StartRefinementSessionAsync";
         private const string GetOnTheFlyDocsAsyncMethodName = "GetOnTheFlyDocsAsync";
         private const string IsFileExcludedAsyncMethodName = "IsFileExcludedAsync";
-        private const string GetDocumentationCommentAsyncMethodName = "IsDocumentationCommentAsync";
+        private const string GetDocumentationCommentAsyncMethodName = "GetDocumentationCommentAsync";
 
         // Create and cache closed delegate to ensure we use a singleton object and with better performance.
         private readonly Type? _analyzerType;

@@ -253,7 +253,7 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
         while (true)
         {
             var paramEndTag = comments.IndexOf("</param>", index, StringComparison.Ordinal);
-            var paramStartTag = comments.LastIndexOf("<param name=\"", index, StringComparison.Ordinal);
+            var paramStartTag = comments.IndexOf("<param name=\"", index, StringComparison.Ordinal);
 
             if (paramStartTag == -1 || paramEndTag == -1)
             {
@@ -280,7 +280,7 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
         while (true)
         {
             var exceptionEndTag = comments.IndexOf("</exception>", index, StringComparison.Ordinal);
-            var exceptionStartTag = comments.LastIndexOf("<exception cref=\"", index, StringComparison.Ordinal);
+            var exceptionStartTag = comments.IndexOf("<exception cref=\"", index, StringComparison.Ordinal);
 
             if (exceptionEndTag == -1 || exceptionStartTag == -1)
             {
