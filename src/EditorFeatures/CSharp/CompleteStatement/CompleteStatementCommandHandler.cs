@@ -100,14 +100,12 @@ internal sealed class CompleteStatementCommandHandler(
         if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             return SemicolonBehavior.None;
 
-        var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
-        if (!caretOpt.HasValue)
+        if (args.TextView.GetCaretPoint(args.SubjectBuffer) is not { } caret)
             return SemicolonBehavior.None;
 
         if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
             return SemicolonBehavior.None;
 
-        var caret = caretOpt.Value;
         var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
             return SemicolonBehavior.None;
@@ -119,9 +117,21 @@ internal sealed class CompleteStatementCommandHandler(
         if (!TryGetStartingNode(root, caret, out var tokenOnLeft, out var currentNode, cancellationToken))
             return SemicolonBehavior.None;
 
-        // If the user types `new;` complete it out to `new();`
+        // If the user types `= new;` complete it out to `= new();`
         if (tokenOnLeft.Kind() is SyntaxKind.NewKeyword &&
-            currentNode is BaseObjectCreationExpressionSyntax { Parent: EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax } })
+            currentNode is BaseObjectCreationExpressionSyntax
+            {
+                Parent: EqualsValueClauseSyntax
+                {
+                    Parent: VariableDeclaratorSyntax
+                    {
+                        Parent: VariableDeclarationSyntax
+                        {
+                            Parent: FieldDeclarationSyntax or LocalDeclarationStatementSyntax
+                        }
+                    }
+                }
+            })
         {
             if (!speculative)
             {
@@ -133,8 +143,8 @@ internal sealed class CompleteStatementCommandHandler(
             return SemicolonBehavior.Overtype;
         }
 
-        return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret: caret, caret, syntaxFacts, currentNode,
-            isInsideDelimiters: false, cancellationToken);
+        return MoveCaretToSemicolonPosition(
+            speculative, args, document, root, originalCaret: caret, caret, syntaxFacts, currentNode, isInsideDelimiters: false, cancellationToken);
     }
 
     /// <summary>
