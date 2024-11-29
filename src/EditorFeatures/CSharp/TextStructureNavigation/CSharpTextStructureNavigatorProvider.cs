@@ -27,39 +27,6 @@ internal class CSharpTextStructureNavigatorProvider(
     protected override bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia)
         => trivia.IsRegularOrDocComment();
 
-    protected override bool IsWithinNaturalLanguage(SyntaxToken token, int position)
-    {
-        switch (token.Kind())
-        {
-            case SyntaxKind.StringLiteralToken:
-            case SyntaxKind.Utf8StringLiteralToken:
-                // This, in combination with the override of GetExtentOfWordFromToken() below, treats the closing
-                // quote as a separate token.  This maintains behavior with VS2013.
-                return !IsAtClosingQuote(token, position);
-
-            case SyntaxKind.SingleLineRawStringLiteralToken:
-            case SyntaxKind.MultiLineRawStringLiteralToken:
-            case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
-            case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
-                {
-                    // Like with normal string literals, treat the closing quotes as as the end of the string so that
-                    // navigation ends there and doesn't go past them.
-                    var end = GetStartOfRawStringLiteralEndDelimiter(token);
-                    return position < end;
-                }
-
-            case SyntaxKind.CharacterLiteralToken:
-                // Before the ' is considered outside the character
-                return position != token.SpanStart;
-
-            case SyntaxKind.InterpolatedStringTextToken:
-            case SyntaxKind.XmlTextLiteralToken:
-                return true;
-        }
-
-        return false;
-    }
-
     private static int GetStartOfRawStringLiteralEndDelimiter(SyntaxToken token)
     {
         var text = token.ToString();
@@ -89,8 +56,57 @@ internal class CSharpTextStructureNavigatorProvider(
             _ => throw ExceptionUtilities.Unreachable()
         };
 
-    protected override TextExtent GetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position)
+    protected override bool TryGetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position, out TextExtent textExtent)
     {
+        textExtent = default;
+
+        // Legacy behavior.  We let the editor handle these.  Note: this can be revisited if we think we would do a better
+        // job handling these.
+        if (token.Kind() is SyntaxKind.InterpolatedStringTextToken or SyntaxKind.XmlTextLiteralToken)
+            return false;
+
+        // Legacy behavior.  If we're on the start of a char literal, we select the entire thing.  For anything else, we
+        // defer to the editor. Note: this can be revisited if we think we would do a better
+        if (token.Kind() is SyntaxKind.CharacterLiteralToken)
+        {
+            if (token.SpanStart == position)
+                return base.TryGetExtentOfWordFromToken(token, position, out textExtent);
+
+            return false;
+        }
+
+        // For string literals, if we're on the starting quote, we want to select the entire string.
+        //
+        // If we're on the closing quote, we want to treat it as separate token.  This allows the cursor to stop during
+        // word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the closing quote, just like it did in
+        // VS2013 and like it currently does for interpolated strings.
+        //
+        // If we're in the middle of the string, we want to let the editor take over.  but if it selects a span outside
+        // of the string, we'll clamp the result back to within the string.
+
+        if (token.Kind() is not (
+                SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken or
+                SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+        {
+            return base.TryGetExtentOfWordFromToken(token, position, out textExtent);
+        }
+
+        // At the start of the string, select the entire string.
+        var (startSpan, contentSpan, endSpan) = GetContentAndEndSpan(token);
+        if (startSpan.Contains(position))
+            return base.TryGetExtentOfWordFromToken(token, position, out textExtent);
+
+        // If at the end, select the end piece only.
+        if (endSpan.Contains(position))
+        {
+            textExtent = new TextExtent(new SnapshotSpan(position.Snapshot, endSpan), isSignificant: true);
+            return true;
+        }
+
+        // We're in the middle.  Defer to the editor.  But make sure we don't go outside of the middle section.
+        _natu
+
         if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken &&
             IsAtClosingQuote(token, position.Position))
         {
@@ -111,7 +127,6 @@ internal class CSharpTextStructureNavigatorProvider(
         }
         else
         {
-            return base.GetExtentOfWordFromToken(token, position);
         }
     }
 }
