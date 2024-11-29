@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -106,27 +107,21 @@ internal sealed partial class EventHookupSessionManager
 
             var asyncToken = asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
 
-            _eventNameTask = Task.Factory.SafeStartNewFromAsync(
-                () => DetermineIfEventHookupAndGetHandlerNameAsync(document, position, cancellationToken),
-                cancellationToken,
-                TaskScheduler.Default);
+            _eventNameTask = DetermineIfEventHookupAndGetHandlerNameAsync(document, position, cancellationToken);
 
-            var continuedTask = _eventNameTask.SafeContinueWithFromAsync(
-                async t =>
+            ContinueOnMainThreadAsync(_eventNameTask).CompletesAsyncOperation(asyncToken);
+
+            return;
+
+            async Task ContinueOnMainThreadAsync(Task<string?> eventNameTask)
+            {
+                var eventName = await eventNameTask.ConfigureAwait(true);
+                if (eventName != null)
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-                    // Once we compute the name, update the tooltip (if we haven't already been dismissed)
-                    if (this._eventNameTask != null && t.Result != null)
-                    {
-                        commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this, t.Result);
-                    }
-                },
-                cancellationToken,
-                TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
-            continuedTask.CompletesAsyncOperation(asyncToken);
+                    commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this, eventName);
+                }
+            }
         }
 
         public (Task<string?> eventNameTask, CancellationTokenSource cancellationTokenSource) DetachEventNameTask()
@@ -147,7 +142,7 @@ internal sealed partial class EventHookupSessionManager
 
         private async Task<string?> DetermineIfEventHookupAndGetHandlerNameAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            _threadingContext.ThrowIfNotOnBackgroundThread();
+            await TaskScheduler.Default;
 
             // For test purposes only!
             if (TESTSessionHookupMutex != null)
