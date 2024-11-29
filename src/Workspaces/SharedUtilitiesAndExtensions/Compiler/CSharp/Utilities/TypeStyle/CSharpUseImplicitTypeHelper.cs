@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
@@ -279,22 +280,19 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
 
         // var cannot be assigned null
         if (expression.IsKind(SyntaxKind.NullLiteralExpression))
-        {
             return false;
-        }
 
         // var cannot be used with target typed new
         if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
-        {
             return false;
-        }
 
         // cannot use implicit typing on method group or on dynamic
         var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
-        if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
-        {
+        if (declaredType is null)
             return false;
-        }
+
+        if (declaredType.TypeKind == TypeKind.Dynamic)
+            return false;
 
         // variables declared using var cannot be used further in the same initialization expression.
         if (initializer.DescendantNodesAndSelf()
@@ -322,15 +320,28 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
         }
 
         // Get the conversion that occurred between the expression's type and type implied by the expression's context
-        // and filter out implicit conversions. If an implicit conversion (other than identity) exists
-        // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
-        // initializer expression and thereby losing the conversion.
+        // and filter out implicit conversions. If an implicit conversion (other than identity) exists and if we're
+        // replacing the declaration with 'var' we'd be changing the semantics by inferring type of initializer
+        // expression and thereby losing the conversion.
         var conversion = semanticModel.GetConversion(expression, cancellationToken);
         if (conversion.IsIdentity)
         {
             // final check to compare type information on both sides of assignment.
             var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             return declaredType != null && declaredType.Equals(initializerType);
+        }
+
+        // This also applies to a lambda assigned to a variable.  This will have no conversion, but can be converted as
+        // long as the type is Func<> or Action<> as that's what the language will infer here.
+        if (!conversion.Exists && expression is LambdaExpressionSyntax && semanticModel.Compilation.LanguageVersion() >= LanguageVersion.CSharp10)
+        {
+            var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            return declaredType.Equals(initializerType) &&
+                declaredType is
+                {
+                    Name: nameof(Func<int>) or nameof(Action<int>),
+                    ContainingSymbol: INamespaceSymbol { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+                };
         }
 
         return false;
