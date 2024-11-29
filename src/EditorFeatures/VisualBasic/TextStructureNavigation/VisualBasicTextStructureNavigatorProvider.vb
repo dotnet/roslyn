@@ -55,20 +55,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
             Return False
         End Function
 
-        Protected Overrides Function TryGetExtentOfWordFromToken(navigator As ITextStructureNavigator, token As SyntaxToken, position As SnapshotPoint, ByRef textExtent As TextExtent) As Boolean
+        Protected Overrides Function GetExtentOfWordFromToken(navigator As ITextStructureNavigator, token As SyntaxToken, position As SnapshotPoint) As TextExtent
             If IsWithinNaturalLanguage(token, position) Then
-                Return False
+                ' Defer to the editor to determine this.
+                Return navigator.GetExtentOfWord(position)
             End If
 
             If token.Kind() = SyntaxKind.StringLiteralToken AndAlso position.Position = token.Span.End - 1 AndAlso token.Text.EndsWith("""", StringComparison.Ordinal) Then
                 ' Special case to treat the closing quote of a string literal as a separate token.  This allows the
                 ' cursor to stop during word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the
                 ' closing quote, just like it did in VS2013 and like it currently does for interpolated strings.
-                Dim Span = New Span(position.Position, 1)
-                textExtent = New TextExtent(New SnapshotSpan(position.Snapshot, Span), isSignificant:=True)
-                Return True
+                Dim span = New Span(position.Position, 1)
+                Return New TextExtent(New SnapshotSpan(position.Snapshot, Span), isSignificant:=True)
             Else
-                Return MyBase.TryGetExtentOfWordFromToken(navigator, token, position, textExtent)
+                Return GetTokenExtent(token, position.Snapshot)
             End If
         End Function
     End Class

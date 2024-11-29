@@ -8,10 +8,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation;
 
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation;
 [ContentType(ContentTypeNames.CSharpContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpTextStructureNavigatorProvider(
+internal sealed class CSharpTextStructureNavigatorProvider(
     ITextStructureNavigatorSelectorService selectorService,
     IContentTypeRegistryService contentTypeService,
     IUIThreadOperationExecutor uIThreadOperationExecutor) : AbstractTextStructureNavigatorProvider(selectorService, contentTypeService, uIThreadOperationExecutor)
@@ -27,52 +28,23 @@ internal class CSharpTextStructureNavigatorProvider(
     protected override bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia)
         => trivia.IsRegularOrDocComment();
 
-    private static int GetStartOfRawStringLiteralEndDelimiter(SyntaxToken token)
+    protected override TextExtent GetExtentOfWordFromToken(ITextStructureNavigator naturalLanguageNavigator, SyntaxToken token, SnapshotPoint position)
     {
-        var text = token.ToString();
-        var start = 0;
-        var end = text.Length;
-
-        if (token.Kind() is SyntaxKind.Utf8MultiLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken)
-        {
-            // Skip past the u8 suffix
-            end -= "u8".Length;
-        }
-
-        while (start < end && text[start] == '"')
-            start++;
-
-        while (end > start && text[end - 1] == '"')
-            end--;
-
-        return token.SpanStart + end;
-    }
-
-    private static bool IsAtClosingQuote(SyntaxToken token, int position)
-        => token.Kind() switch
-        {
-            SyntaxKind.StringLiteralToken => position == token.Span.End - 1 && token.Text[^1] == '"',
-            SyntaxKind.Utf8StringLiteralToken => position == token.Span.End - 3 && token.Text is [.., '"', 'u' or 'U', '8'],
-            _ => throw ExceptionUtilities.Unreachable()
-        };
-
-    protected override bool TryGetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position, out TextExtent textExtent)
-    {
-        textExtent = default;
+        var snapshot = position.Snapshot;
 
         // Legacy behavior.  We let the editor handle these.  Note: this can be revisited if we think we would do a better
         // job handling these.
         if (token.Kind() is SyntaxKind.InterpolatedStringTextToken or SyntaxKind.XmlTextLiteralToken)
-            return false;
+            return naturalLanguageNavigator.GetExtentOfWord(position);
 
         // Legacy behavior.  If we're on the start of a char literal, we select the entire thing.  For anything else, we
         // defer to the editor. Note: this can be revisited if we think we would do a better
         if (token.Kind() is SyntaxKind.CharacterLiteralToken)
         {
             if (token.SpanStart == position)
-                return base.TryGetExtentOfWordFromToken(token, position, out textExtent);
+                return GetTokenExtent(token, snapshot);
 
-            return false;
+            return naturalLanguageNavigator.GetExtentOfWord(position);
         }
 
         // For string literals, if we're on the starting quote, we want to select the entire string.
@@ -84,49 +56,69 @@ internal class CSharpTextStructureNavigatorProvider(
         // If we're in the middle of the string, we want to let the editor take over.  but if it selects a span outside
         // of the string, we'll clamp the result back to within the string.
 
-        if (token.Kind() is not (
-                SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken or
-                SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken or
-                SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+        var isNormalStringLiteral = token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken;
+        var isRawStringLiteral = token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken;
+
+        if (!isNormalStringLiteral && !isRawStringLiteral)
         {
-            return base.TryGetExtentOfWordFromToken(token, position, out textExtent);
+            // Not a string literal. Just select the entire token.
+            return GetTokenExtent(token, snapshot);
         }
 
-        // At the start of the string, select the entire string.
-        var (startSpan, contentSpan, endSpan) = GetContentAndEndSpan(token);
+        // At the start of the string, select the start span.
+        var (startSpan, contentSpan, endSpan) = GetStringLiteralParts();
         if (startSpan.Contains(position))
-            return base.TryGetExtentOfWordFromToken(token, position, out textExtent);
+            return new TextExtent(startSpan.ToSnapshotSpan(snapshot), isSignificant: true);
 
         // If at the end, select the end piece only.
         if (endSpan.Contains(position))
-        {
-            textExtent = new TextExtent(new SnapshotSpan(position.Snapshot, endSpan), isSignificant: true);
-            return true;
-        }
+            return new TextExtent(endSpan.ToSnapshotSpan(snapshot), isSignificant: true);
 
         // We're in the middle.  Defer to the editor.  But make sure we don't go outside of the middle section.
-        _natu
+        var naturalExtent = naturalLanguageNavigator.GetExtentOfWord(position);
 
-        if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken &&
-            IsAtClosingQuote(token, position.Position))
+        var intersection = naturalExtent.Span.Intersection(contentSpan.ToSpan());
+        return intersection is null ? naturalExtent : new TextExtent(intersection.Value, isSignificant: naturalExtent.IsSignificant);
+
+        (TextSpan startSpan, TextSpan contentSpan, TextSpan endSpan) GetStringLiteralParts()
         {
-            // Special case to treat the closing quote of a string literal as a separate token.  This allows the
-            // cursor to stop during word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the
-            // closing quote, just like it did in VS2013 and like it currently does for interpolated strings.
-            var span = new Span(position.Position, token.Span.End - position.Position);
-            return new TextExtent(new SnapshotSpan(position.Snapshot, span), isSignificant: true);
+            var start = token.Span.Start;
+            var contentStart = start;
+
+            if (CharAt(contentStart) == '@')
+                contentStart++;
+
+            if (CharAt(contentStart) == '"')
+                contentStart++;
+
+            if (isRawStringLiteral)
+            {
+                while (CharAt(contentStart) == '"')
+                    contentStart++;
+            }
+
+            var end = token.Span.End;
+            var contentEnd = end;
+
+            if (CharAt(contentEnd - 1) == '8')
+                contentEnd--;
+
+            if (CharAt(contentEnd - 1) is 'u' or 'U')
+                contentEnd--;
+
+            if (CharAt(contentEnd - 1) == '"')
+                contentEnd--;
+
+            if (isRawStringLiteral)
+            {
+                while (CharAt(contentEnd - 1) == '"')
+                    contentEnd--;
+            }
+
+            return (TextSpan.FromBounds(start, contentStart), TextSpan.FromBounds(contentStart, contentEnd), TextSpan.FromBounds(contentEnd, end));
         }
-        else if (token.Kind() is
-            SyntaxKind.SingleLineRawStringLiteralToken or
-            SyntaxKind.MultiLineRawStringLiteralToken or
-            SyntaxKind.Utf8SingleLineRawStringLiteralToken or
-            SyntaxKind.Utf8MultiLineRawStringLiteralToken)
-        {
-            var delimiterStart = GetStartOfRawStringLiteralEndDelimiter(token);
-            return new TextExtent(new SnapshotSpan(position.Snapshot, Span.FromBounds(delimiterStart, token.Span.End)), isSignificant: true);
-        }
-        else
-        {
-        }
+
+        char CharAt(int position)
+            => position >= 0 && position < snapshot.Length ? snapshot[position] : '\0';
     }
 }

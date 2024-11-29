@@ -20,11 +20,10 @@ internal abstract partial class AbstractTextStructureNavigatorProvider(
 
     protected abstract bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia);
 
-    protected virtual bool TryGetExtentOfWordFromToken(ITextStructureNavigator _naturalLanguageNavigator, SyntaxToken token, SnapshotPoint position, out TextExtent textExtent)
-    {
-        textExtent = new(token.Span.ToSnapshotSpan(position.Snapshot), isSignificant: true);
-        return true;
-    }
+    protected abstract TextExtent GetExtentOfWordFromToken(ITextStructureNavigator naturalLanguageNavigator, SyntaxToken token, SnapshotPoint position);
+
+    protected static TextExtent GetTokenExtent(SyntaxToken token, ITextSnapshot snapshot)
+        => new(token.Span.ToSnapshotSpan(snapshot), isSignificant: true);
 
     public ITextStructureNavigator CreateTextStructureNavigator(ITextBuffer subjectBuffer)
     {

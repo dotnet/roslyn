@@ -92,8 +92,8 @@ internal partial class AbstractTextStructureNavigatorProvider
                 if (token.Span.Length == 0 && token.Span.Start == textLength)
                     token = token.GetPreviousToken();
 
-                if (token.Span.Length > 0 && token.Span.Contains(position) && _provider.TryGetExtentOfWordFromToken(_naturalLanguageNavigator, token, position, out var extent))
-                    return extent;
+                if (token.Span.Length > 0 && token.Span.Contains(position))
+                    return _provider.GetExtentOfWordFromToken(_naturalLanguageNavigator, token, position);
             }
 
             // Fall back to natural language navigator do its thing.
