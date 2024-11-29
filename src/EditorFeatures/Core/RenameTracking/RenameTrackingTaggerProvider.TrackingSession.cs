@@ -132,17 +132,21 @@ internal sealed partial class RenameTrackingTaggerProvider
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            _newIdentifierBindsTask = _isRenamableIdentifierTask.SafeContinueWithFromAsync(
-                async t => t.Result != TriggerIdentifierKind.NotRenamable &&
-                           TriggerIdentifierKind.RenamableReference ==
-                               await DetermineIfRenamableIdentifierAsync(
-                                   TrackingSpan.GetSpan(snapshot),
-                                   initialCheck: false).ConfigureAwait(false),
-                _cancellationToken,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                TaskScheduler.Default);
+            _newIdentifierBindsTask = GetNewIdentifierBindsAsync(_isRenamableIdentifierTask);
 
             QueueUpdateToStateMachine(stateMachine, _newIdentifierBindsTask);
+
+            return;
+
+            async Task<bool> GetNewIdentifierBindsAsync(Task<TriggerIdentifierKind> task)
+            {
+                var result = await task.ConfigureAwait(false);
+
+                return result != TriggerIdentifierKind.NotRenamable &&
+                    TriggerIdentifierKind.RenamableReference == await DetermineIfRenamableIdentifierAsync(
+                        TrackingSpan.GetSpan(snapshot),
+                        initialCheck: false).ConfigureAwait(false);
+            }
         }
 
         internal bool IsDefinitelyRenamableIdentifier()
