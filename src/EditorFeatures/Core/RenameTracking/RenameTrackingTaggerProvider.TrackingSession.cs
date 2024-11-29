@@ -76,22 +76,22 @@ internal sealed partial class RenameTrackingTaggerProvider
 
                 var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask");
 
-                _isRenamableIdentifierTask.SafeContinueWithFromAsync(
-                    async t =>
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
-
-                        // Avoid throwing an exception in this common case
-                        if (_cancellationToken.IsCancellationRequested)
-                            return;
-
-                        stateMachine.UpdateTrackingSessionIfRenamable();
-                    },
-                    _cancellationToken,
-                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
-
+                SwitchToMainThreadAndUpdateTrackingSessionAsync(_isRenamableIdentifierTask).CompletesAsyncOperation(asyncToken);
                 QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
+
+                return;
+
+                async Task SwitchToMainThreadAndUpdateTrackingSessionAsync(Task task)
+                {
+                    await task.ConfigureAwait(false);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+
+                    // Avoid throwing an exception in this common case
+                    if (_cancellationToken.IsCancellationRequested)
+                        return;
+
+                    stateMachine.UpdateTrackingSessionIfRenamable();
+                }
             }
             else
             {
@@ -108,22 +108,24 @@ internal sealed partial class RenameTrackingTaggerProvider
         {
             var asyncToken = _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}");
 
-            task.SafeContinueWithFromAsync(async t =>
-               {
-                   await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+            SwitchToMainThreadAndUpdateStateMachineAsync(task).CompletesAsyncOperation(asyncToken);
+            return;
 
-                   // Avoid throwing an exception in this common case
-                   if (_cancellationToken.IsCancellationRequested)
-                       return;
+            async Task SwitchToMainThreadAndUpdateStateMachineAsync(Task task)
+            {
+                await task.ConfigureAwait(false);
 
-                   if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
-                   {
-                       stateMachine.OnTrackingSessionUpdated(this);
-                   }
-               },
-               _cancellationToken,
-               TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-               TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+
+                // Avoid throwing an exception in this common case
+                if (_cancellationToken.IsCancellationRequested)
+                    return;
+
+                if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
+                {
+                    stateMachine.OnTrackingSessionUpdated(this);
+                }
+            }
         }
 
         internal void CheckNewIdentifier(StateMachine stateMachine, ITextSnapshot snapshot)
