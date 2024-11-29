@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Conflict_s_detected" xml:space="preserve">
-    <value>Conflict(s) detected.</value>
-  </data>
   <data name="Invert_if" xml:space="preserve">
     <value>Invert if</value>
   </data>
@@ -151,20 +148,11 @@
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
   </data>
-  <data name="Simplify_name_0" xml:space="preserve">
-    <value>Simplify name '{0}'</value>
-  </data>
-  <data name="Simplify_member_access_0" xml:space="preserve">
-    <value>Simplify member access '{0}'</value>
-  </data>
   <data name="Remove_this_qualification" xml:space="preserve">
     <value>Remove 'this' qualification</value>
   </data>
   <data name="Cannot_determine_valid_range_of_statements_to_extract" xml:space="preserve">
     <value>Cannot determine valid range of statements to extract</value>
-  </data>
-  <data name="Not_all_code_paths_return" xml:space="preserve">
-    <value>Not all code paths return</value>
   </data>
   <data name="Selection_does_not_contain_a_valid_node" xml:space="preserve">
     <value>Selection does not contain a valid node</value>
@@ -381,20 +369,11 @@
   <data name="Autoselect_disabled_due_to_namespace_declaration" xml:space="preserve">
     <value>Autoselect disabled due to namespace declaration.</value>
   </data>
-  <data name="namespace_name" xml:space="preserve">
-    <value>&lt;namespace name&gt;</value>
-  </data>
   <data name="Autoselect_disabled_due_to_type_declaration" xml:space="preserve">
     <value>Autoselect disabled due to type declaration.</value>
   </data>
   <data name="Autoselect_disabled_due_to_possible_deconstruction_declaration" xml:space="preserve">
     <value>Autoselect disabled due to possible deconstruction declaration.</value>
-  </data>
-  <data name="class_name" xml:space="preserve">
-    <value>&lt;class name&gt;</value>
-  </data>
-  <data name="interface_name" xml:space="preserve">
-    <value>&lt;interface name&gt;</value>
   </data>
   <data name="designation_name" xml:space="preserve">
     <value>&lt;designation name&gt;</value>

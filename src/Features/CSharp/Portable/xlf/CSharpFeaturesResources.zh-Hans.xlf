@@ -202,11 +202,6 @@
         <target state="translated">全局 'using' 指令</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">检测到冲突。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">尽可能将私有字段设置为“只读”</target>
@@ -322,24 +317,9 @@
         <target state="translated">由于可能出现范围变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">简化名称“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">简化成员访问“{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">删除 "this" 资格</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">未返回所有代码路径</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">
@@ -657,11 +637,6 @@
         <target state="translated">自动选择由于命名空间声明而被禁用。</target>
         <note />
       </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;命名空间名称&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
         <source>Autoselect disabled due to type declaration.</source>
         <target state="translated">由于类型声明，自动选择被禁用。</target>
@@ -670,16 +645,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">由于可能有析构声明，禁用了自动选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;类名&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;接口名称&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">
