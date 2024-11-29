@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement;
 
 [Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-public class CSharpCompleteStatementCommandHandlerTests : AbstractCompleteStatementTests
+public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractCompleteStatementTests
 {
     private static string CreateTestWithMethodCall(string code)
     {
