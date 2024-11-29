@@ -129,25 +129,39 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 {
                     _threadingContext.ThrowIfNotOnUIThread();
 
-                    _threadingContext.JoinableTaskFactory.Run(async () =>
+                    _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                     {
-                        if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+                        await Task.Run(async () =>
                         {
-                            return;
-                        }
+                            if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+                            {
+                                return;
+                            }
 
-                        var proposalEdits = await GetProposedEditsAsync(snippet.Proposal, subjectBuffer, copilotService, cancellationToken).ConfigureAwait(false);
+                            var list = new List<ProposedEdit>();
 
-                        var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
-                        var suggestion = new DocumentationCommentSuggestion(this, proposal);
+                            foreach (var edit in snippet.Proposal.ProposedEdits)
+                            {
+                                var textSpan = edit.SpanToReplace;
+                                var copilotText = await copilotService.GetDocumentationCommentAsync(snippet.Proposal.SymbolToAnalyze, edit.SymbolName, edit.TagType.ToString(), cancellationToken).ConfigureAwait(false);
+                                var proposedEdit = new ProposedEdit(new SnapshotSpan(subjectBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), copilotText);
+                                list.Add(proposedEdit);
 
-                        var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
 
-                        if (session != null)
-                        {
-                            await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
-                        }
+                                //var proposalEdits = await GetProposedEditsAsync(snippet.Proposal, subjectBuffer, copilotService, cancellationToken).ConfigureAwait(false);
+
+                                var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, list);
+                                var suggestion = new DocumentationCommentSuggestion(this, proposal);
+
+                                var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+
+                                if (session != null)
+                                {
+                                    await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
+                                }
+                            }
+                        }).ConfigureAwait(false);
                     });
                 }
             }
@@ -160,14 +174,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         DocumentationCommentProposal proposal, ITextBuffer textBuffer, ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
         var list = new List<ProposedEdit>();
-        //foreach (var edit in proposal.ProposedEdits)
-        //{
-        var edit = proposal.ProposedEdits.First();
-        var textSpan = edit.SpanToReplace;
+        foreach (var edit in proposal.ProposedEdits)
+        {
+            //var edit = proposal.ProposedEdits.First();
+            var textSpan = edit.SpanToReplace;
             var copilotText = await copilotService.GetDocumentationCommentAsync(proposal.SymbolToAnalyze, edit.SymbolName, edit.TagType.ToString(), cancellationToken).ConfigureAwait(false);
             var proposedEdit = new ProposedEdit(new SnapshotSpan(textBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), copilotText);
             list.Add(proposedEdit);
-        //}
+        }
 
         return list;
     }
