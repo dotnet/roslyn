@@ -48,14 +48,8 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
     {
         foreach (var value in list)
         {
-            if (value)
-            {
-                this.Started?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                this.Stopped?.Invoke(this, EventArgs.Empty);
-            }
+            var eventHandler = value ? Started : Stopped;
+            eventHandler?.Invoke(this, EventArgs.Empty);
         }
 
         return ValueTaskFactory.CompletedTask;
