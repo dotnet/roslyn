@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             var updatedSolution = await testState.ExtractViaCodeAction();
             var updatedDocument = updatedSolution.GetDocument(testState.ExtractFromDocument.Id);
             var updatedCode = (await updatedDocument.GetTextAsync()).ToString();
-            Assert.Equal(expectedMarkup, updatedCode);
+            AssertEx.Equal(expectedMarkup, updatedCode);
         }
     }
 }
