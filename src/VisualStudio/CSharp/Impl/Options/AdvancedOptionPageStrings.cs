@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Run_background_code_analysis_for_colon;
 
         public static string Option_Background_Analysis_Scope_None
-            => ServicesVSResources.None;
+            => WorkspacesResources.None;
 
         public static string Option_Background_Analysis_Scope_Active_File
             => ServicesVSResources.Current_document;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Show_compiler_errors_and_warnings_for_colon;
 
         public static string Option_Compiler_Diagnostics_Scope_None
-            => ServicesVSResources.None;
+            => WorkspacesResources.None;
 
         public static string Option_Compiler_Diagnostics_Scope_Visible_Files
             => ServicesVSResources.Current_document; // We show "Current document" to users for consistency with term used elsewhere.
@@ -82,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Analyze_source_generated_files;
 
         public static string Option_Inline_Hints
-            => ServicesVSResources.Inline_Hints;
+            => EditorFeaturesResources.Inline_Hints;
 
         public static string Option_Display_all_hints_while_pressing_Alt_F1
             => ServicesVSResources.Display_all_hints_while_pressing_Alt_F1;
@@ -379,7 +380,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Navigate_asynchronously_exerimental;
 
         public static string Option_Rename
-            => ServicesVSResources.Rename;
+            => EditorFeaturesResources.Rename;
 
         public static string Option_Rename_asynchronously_experimental
             => ServicesVSResources.Rename_asynchronously_experimental;
