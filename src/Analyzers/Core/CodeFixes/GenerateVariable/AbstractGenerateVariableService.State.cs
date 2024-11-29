@@ -170,8 +170,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         internal bool CanGeneratePropertyOrField()
         {
-            return ContainingType is { IsImplicitClass: false }
-                && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
+            return this.TypeToGenerateIn is { IsImplicitClass: false }
+                && TypeToGenerateIn.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
         }
 
         internal bool CanGenerateLocal()
