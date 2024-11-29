@@ -187,11 +187,6 @@
         <target state="translated">종속 항목을 계산하는 중...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Call_Hierarchy">
-        <source>Call Hierarchy</source>
-        <target state="translated">호출 계층 구조</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">호출 사이트 값:</target>
@@ -447,11 +442,6 @@
         <target state="translated">전체 솔루션 및 외부 원본</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="translated">오류</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">표시 중지를 업데이트하는 동안 오류가 발생했습니다. {0}</target>
@@ -580,11 +570,6 @@
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">상속된 인터페이스</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_Hints">
-        <source>Inline Hints</source>
-        <target state="translated">인라인 힌트</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -877,11 +862,6 @@
         <target state="translated">탐색</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">안 함 </target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">필요한 경우 사용 안 함</target>
@@ -915,11 +895,6 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">public이 아닌 메서드</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="translated">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_applicable">
@@ -1157,11 +1132,6 @@
         <target state="translated">빠른 작업</target>
         <note />
       </trans-unit>
-      <trans-unit id="Refactoring_Only">
-        <source>Refactoring Only</source>
-        <target state="translated">리팩터링만</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">참조</target>
@@ -1180,16 +1150,6 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">불필요한 Using 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename">
-        <source>Rename</source>
-        <target state="translated">이름 바꾸기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename {0} to {1}</source>
-        <target state="translated">{0} 이름을 {1}(으)로 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
@@ -1452,11 +1412,6 @@
         <target state="translated">사용되지 않는 기호 취소</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="translated">제안</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
         <source>Suppress hints when argument matches parameter name</source>
         <target state="translated">인수가 매개 변수 이름과 일치하는 경우 힌트 표시 안 함</target>
@@ -1535,11 +1490,6 @@
       <trans-unit id="This_rule_is_not_configurable">
         <source>This rule is not configurable</source>
         <target state="translated">이 규칙은 구성할 수 없음</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Title">
-        <source>Title</source>
-        <target state="translated">제목</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1622,11 +1572,6 @@
         <target state="translated">여기에 할당된 값은 사용되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_colon">
-        <source>Value:</source>
-        <target state="translated">값:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">호출로 반환된 값은 암시적으로 무시됩니다.</target>
@@ -1650,11 +1595,6 @@
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
         <target state="translated">Visual Studio 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="translated">경고</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
@@ -1750,31 +1690,6 @@
       <trans-unit id="Preview_unavailable">
         <source>Preview unavailable</source>
         <target state="translated">미리 보기를 사용할 수 없음</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overrides_">
-        <source>Overrides</source>
-        <target state="translated">재정의</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overridden_By">
-        <source>Overridden By</source>
-        <target state="translated">재정의 수행자</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherits_">
-        <source>Inherits</source>
-        <target state="translated">상속</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implements_">
-        <source>Implements</source>
-        <target state="translated">구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implemented_By">
-        <source>Implemented By</source>
-        <target state="translated">구현자</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_access">
@@ -1902,39 +1817,14 @@
         <target state="translated">어셈블리 </target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">예외:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Member_of_0">
         <source>Member of {0}</source>
         <target state="translated">{0}의 멤버</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameters_colon1">
-        <source>Parameters:</source>
-        <target state="translated">매개 변수:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
         <target state="translated">프로젝트 </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remarks_colon">
-        <source>Remarks:</source>
-        <target state="translated">설명:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Returns_colon">
-        <source>Returns:</source>
-        <target state="translated">반환 값:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Summary_colon">
-        <source>Summary:</source>
-        <target state="translated">요약:</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Parameters_colon">
@@ -2019,11 +1909,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">모두 선택 취소(_D)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface</source>
-        <target state="translated">인터페이스 추출</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generated_name_colon">
         <source>Generated name:</source>
         <target state="translated">생성된 이름:</target>
@@ -2062,11 +1947,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="Add_to_existing_file">
         <source>Add to _existing file</source>
         <target state="translated">기존 파일에 추가(_E)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Signature">
-        <source>Change Signature</source>
-        <target state="translated">시그니처 변경</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_new_file">
@@ -2204,21 +2084,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">참조 1개</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
-        <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'{0}'에 오류가 발생하여 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable">
-        <source>Enable</source>
-        <target state="translated">사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_and_ignore_future_errors">
-        <source>Enable and ignore future errors</source>
-        <target state="translated">추가 오류 무시하고 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_Changes">
         <source>No Changes</source>
         <target state="translated">변경 내용 없음</target>
@@ -2232,11 +2097,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="Determining_current_block">
         <source>Determining current block.</source>
         <target state="translated">현재 블록을 확인하는 중입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAnalyzerReference">

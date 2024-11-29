@@ -187,11 +187,6 @@
         <target state="translated">Bağımlılar hesaplanıyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Call_Hierarchy">
-        <source>Call Hierarchy</source>
-        <target state="translated">Çağrı Hiyerarşisi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Çağrı konumu değeri:</target>
@@ -447,11 +442,6 @@
         <target state="translated">Tam Çözüm ve Dış Kaynaklar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="translated">Hata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Gizlemeler güncellenirken hata oluştu: {0}</target>
@@ -580,11 +570,6 @@
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">Devralınan arabirimler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_Hints">
-        <source>Inline Hints</source>
-        <target state="translated">Satır İçi İpuçları</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -877,11 +862,6 @@
         <target state="translated">Gidiliyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Hiçbir zaman</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Gereksizse hiçbir zaman</target>
@@ -915,11 +895,6 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">Ortak olmayan yöntemler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="translated">yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_applicable">
@@ -1157,11 +1132,6 @@
         <target state="translated">Hızlı Eylemler</target>
         <note />
       </trans-unit>
-      <trans-unit id="Refactoring_Only">
-        <source>Refactoring Only</source>
-        <target state="translated">Sadece Yeniden Düzenlenme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Başvuru</target>
@@ -1180,16 +1150,6 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Gereksiz Kullanımları Kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename">
-        <source>Rename</source>
-        <target state="translated">Yeniden adlandır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename {0} to {1}</source>
-        <target state="translated">{0} öğesini {1} olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
@@ -1452,11 +1412,6 @@
         <target state="translated">Kullanımdan kaldıran sembollerin üzerini çiz</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="translated">Öneri</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
         <source>Suppress hints when argument matches parameter name</source>
         <target state="translated">Bağımsız değişken parametre adıyla eşleştiğinde ipuçlarını bastır</target>
@@ -1535,11 +1490,6 @@
       <trans-unit id="This_rule_is_not_configurable">
         <source>This rule is not configurable</source>
         <target state="translated">Bu kural yapılandırılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Title">
-        <source>Title</source>
-        <target state="translated">Başlık</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1622,11 +1572,6 @@
         <target state="translated">Burada atanan değer hiçbir zaman kullanılmadı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_colon">
-        <source>Value:</source>
-        <target state="translated">Değer:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">Çağrı ile döndürülen değer örtük olarak yok sayıldı</target>
@@ -1650,11 +1595,6 @@
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
         <target state="translated">Visual Studio Ayarları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="translated">Uyarı</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
@@ -1750,31 +1690,6 @@
       <trans-unit id="Preview_unavailable">
         <source>Preview unavailable</source>
         <target state="translated">Önizleme kullanılamıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overrides_">
-        <source>Overrides</source>
-        <target state="translated">Geçersiz Kılan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overridden_By">
-        <source>Overridden By</source>
-        <target state="translated">Geçersiz Kılınan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherits_">
-        <source>Inherits</source>
-        <target state="translated">Devralınan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implements_">
-        <source>Implements</source>
-        <target state="translated">Uygulanan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implemented_By">
-        <source>Implemented By</source>
-        <target state="translated">Uygulayan</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_access">
@@ -1902,39 +1817,14 @@
         <target state="translated">Bütünleştirilmiş Kod </target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Özel Durumlar:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Member_of_0">
         <source>Member of {0}</source>
         <target state="translated">{0} üyesi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameters_colon1">
-        <source>Parameters:</source>
-        <target state="translated">Parametreler:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
         <target state="translated">Proje </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remarks_colon">
-        <source>Remarks:</source>
-        <target state="translated">Açıklamalar:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Returns_colon">
-        <source>Returns:</source>
-        <target state="translated">Döndürülenler:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Summary_colon">
-        <source>Summary:</source>
-        <target state="translated">Özet:</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Parameters_colon">
@@ -2019,11 +1909,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
         <target state="translated">_Tüm Seçimleri Kaldır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface</source>
-        <target state="translated">Arabirimi Ayıkla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generated_name_colon">
         <source>Generated name:</source>
         <target state="translated">Oluşturulan ad:</target>
@@ -2062,11 +1947,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       <trans-unit id="Add_to_existing_file">
         <source>Add to _existing file</source>
         <target state="translated">_Mevcut dosyaya ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Signature">
-        <source>Change Signature</source>
-        <target state="translated">İmzayı Değiştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_new_file">
@@ -2204,21 +2084,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
         <target state="translated">1 başvuru</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
-        <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'{0}' bir hatayla karşılaştı ve devre dışı bırakıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable">
-        <source>Enable</source>
-        <target state="translated">Etkinleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_and_ignore_future_errors">
-        <source>Enable and ignore future errors</source>
-        <target state="translated">Etkinleştir ve gelecekteki hataları yoksay</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_Changes">
         <source>No Changes</source>
         <target state="translated">Değişiklik Yok</target>
@@ -2232,11 +2097,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       <trans-unit id="Determining_current_block">
         <source>Determining current block.</source>
         <target state="translated">Geçerli blok belirleniyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAnalyzerReference">

@@ -2610,11 +2610,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">入れ子になった '{0}' ステートメントに分割</target>
         <note />
       </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
         <source>Strings must start with " not '</source>
         <target state="translated">文字列は "not' で始まる必要があります</target>

@@ -2610,11 +2610,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Dividir em instruções '{0}' aninhadas</target>
         <note />
       </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">O fluxo deve fornecer suporte a operações de leitura e busca.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
         <source>Strings must start with " not '</source>
         <target state="translated">As cadeias de caracteres devem começar com " não '</target>

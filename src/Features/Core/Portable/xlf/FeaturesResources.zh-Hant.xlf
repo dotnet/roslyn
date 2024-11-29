@@ -2610,11 +2610,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">分割成巢狀 '{0}' 陳述式</target>
         <note />
       </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">資料流必須支援讀取及搜尋作業。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
         <source>Strings must start with " not '</source>
         <target state="translated">字串開頭必須是 " not '</target>
