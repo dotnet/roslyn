@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 
@@ -23,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
              ServicesVSResources.Analyze_source_generated_files
 
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
-            ServicesVSResources.None
+            WorkspacesResources.None
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
             ServicesVSResources.Current_document
@@ -50,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Show_compiler_errors_and_warnings_for_colon
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_None As String =
-            ServicesVSResources.None
+            WorkspacesResources.None
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files As String =
             ServicesVSResources.Current_document ' We show "Current document" to users for consistency with term used elsewhere.
@@ -92,7 +93,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Color_hints
 
         Public ReadOnly Property Option_Inline_Hints As String =
-            ServicesVSResources.Inline_Hints
+            EditorFeaturesResources.Inline_Hints
 
         Public ReadOnly Property Option_Display_inline_parameter_name_hints As String =
             ServicesVSResources.Display_inline_parameter_name_hints
@@ -164,7 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Collapse_metadata_signature_files_on_open
 
         Public ReadOnly Property Option_ExtractMethod As String =
-            BasicVSResources.Extract_Method
+            EditorFeaturesResources.Extract_Method
 
         Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
             ServicesVSResources.Implement_Interface_or_Abstract_Class
@@ -201,7 +202,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_GoToDefinition As String
             Get
-                Return BasicVSResources.Go_to_Definition
+                Return EditorFeaturesResources.Go_to_Definition
             End Get
         End Property
 
@@ -367,7 +368,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Navigate_asynchronously_exerimental
 
         Public ReadOnly Property Option_Rename As String =
-            ServicesVSResources.Rename
+            EditorFeaturesResources.Rename
 
         Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
             ServicesVSResources.Rename_asynchronously_experimental

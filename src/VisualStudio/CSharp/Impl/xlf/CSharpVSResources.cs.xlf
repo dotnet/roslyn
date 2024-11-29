@@ -122,11 +122,6 @@
         <target state="translated">Uvnitř namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">Vně namespace</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Předvolby porovnávání vzorů:</target>
@@ -145,16 +140,6 @@
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Upřednostňovat implicitní vytvoření objektu, pokud je typ zřejmý</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">U kontrol rovnosti odkazů dávat přednost možnosti is null</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">Upřednostňovat kontrolu hodnoty null před kontrolou typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -177,11 +162,6 @@
         <target state="translated">Preferované umístění direktivy using</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">Odebrat nepotřebné direktivy using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
         <target state="translated">Spustit dotaz</target>
@@ -190,11 +170,6 @@
       <trans-unit id="RunQueryCommandToolTip">
         <source>Run (Ctrl+Enter)</source>
         <target state="translated">Spustit (Ctrl+Enter)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SemanticSearch">
-        <source>Semantic Search</source>
-        <target state="translated">Sémantické vyhledávání</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
@@ -552,11 +527,6 @@
         <target state="translated">P_o otevření souborů vejít do režimu osnovy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Extrahovat metodu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for ///</source>
         <target state="translated">_Generovat komentáře dokumentace XML pro ///</target>
@@ -820,11 +790,6 @@
       <trans-unit id="Automatically_format_when_typing">
         <source>Automatically format when typing</source>
         <target state="translated">Automaticky formátovat při psaní</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nikdy</target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">

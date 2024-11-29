@@ -122,11 +122,6 @@
         <target state="translated">namespace 내부</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">외부 namespace</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">패턴 일치 기본 설정:</target>
@@ -145,16 +140,6 @@
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">형식이 명백한 경우 암시적 개체 만들기 선호</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">형식 검사보다 'null' 검사 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -177,11 +162,6 @@
         <target state="translated">선호하는 'using' 지시문 배치</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">불필요한 Using 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
         <target state="translated">쿼리 실행</target>
@@ -190,11 +170,6 @@
       <trans-unit id="RunQueryCommandToolTip">
         <source>Run (Ctrl+Enter)</source>
         <target state="translated">보내기(Ctrl+Enter)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SemanticSearch">
-        <source>Semantic Search</source>
-        <target state="translated">의미 체계 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
@@ -552,11 +527,6 @@
         <target state="translated">개요 모드로 파일 열기(_O)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">메서드 추출</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for ///</source>
         <target state="translated">///에 대해 XML 문서 주석 생성(_G)</target>
@@ -820,11 +790,6 @@
       <trans-unit id="Automatically_format_when_typing">
         <source>Automatically format when typing</source>
         <target state="translated">입력할 때 서식 자동 지정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">안 함 </target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">

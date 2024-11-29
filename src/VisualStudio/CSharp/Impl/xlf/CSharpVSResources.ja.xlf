@@ -122,11 +122,6 @@
         <target state="translated">namespace 内</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">namespace 外</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">パターン マッチング設定:</target>
@@ -145,16 +140,6 @@
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">型が明白な場合に暗黙的なオブジェクトの作成を優先する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -177,11 +162,6 @@
         <target state="translated">優先する 'using' ディレクティブの配置</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
         <target state="translated">クエリの実行</target>
@@ -190,11 +170,6 @@
       <trans-unit id="RunQueryCommandToolTip">
         <source>Run (Ctrl+Enter)</source>
         <target state="translated">実行 (Ctrl + Enter)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SemanticSearch">
-        <source>Semantic Search</source>
-        <target state="translated">セマンティック検索</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
@@ -552,11 +527,6 @@
         <target state="translated">ファイルを開くときにアウトライン モードに入る(_O)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">メソッドの抽出</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for ///</source>
         <target state="translated">/// が入力されたとき、XML ドキュメント コメントを生成する(_G)</target>
@@ -820,11 +790,6 @@
       <trans-unit id="Automatically_format_when_typing">
         <source>Automatically format when typing</source>
         <target state="translated">入力時にオートフォーマットする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">行わない</target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">
