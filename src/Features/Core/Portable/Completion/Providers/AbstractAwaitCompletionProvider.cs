@@ -190,19 +190,19 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             }
 
             // Add the 'async' modifier at the appropriate location.
-            builder.Add(new TextChange(new TextSpan(GetAsyncKeywordInsertionPosition(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
+            var asyncChange = new TextChange(new TextSpan(GetAsyncKeywordInsertionPosition(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " ");
 
             // Try to fixup the return type to be task-like if needed.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var returnTypeChange = GetReturnTypeChange(semanticModel, declaration, cancellationToken);
-            if (returnTypeChange != null)
-            {
-                // If we did change the return type, then also try to add an import for System.Threading.Tasks if not
-                // already present.
-                builder.Add(returnTypeChange.Value);
-                builder.AddRange(await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(
-                    document, leftTokenPosition, "System.Threading.Tasks", cancellationToken).ConfigureAwait(false));
-            }
+            var addImportsChanges = returnTypeChange == null
+                ? []
+                : await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(
+                    document, leftTokenPosition, "System.Threading.Tasks", cancellationToken).ConfigureAwait(false);
+
+            builder.AddRange(addImportsChanges);
+            builder.Add(asyncChange);
+            builder.AddIfNotNull(returnTypeChange);
         }
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
