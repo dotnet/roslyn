@@ -32,11 +32,6 @@
         <target state="translated">Вставить фрагмент</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Автоматическая в_ставка членов Interface и MustOverride</target>
@@ -61,11 +56,6 @@
         <source>Prefer simplified object creation</source>
         <target state="translated">Предпочтение упрощенному созданию объектов</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_imports">
-        <source>Remove unnecessary imports</source>
-        <target state="translated">Удалить ненужные операции импорта</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -117,11 +107,6 @@
         <target state="translated">_Включать режим создания структуры при открытии файлов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Извлечение метода</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">_Создавать комментарии XML-документации для '''</target>
@@ -170,11 +155,6 @@
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
         <target state="translated">_Перейти в обозреватель объектов для символов, определенных в метаданных</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_to_Definition">
-        <source>Go to Definition</source>
-        <target state="translated">Перейти к определению</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">

@@ -248,6 +248,11 @@
         <target state="translated">hintName '{0}' の SourceText は、明示的なエンコード セットを含んでいる必要があります。</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">アナライザー '{0}' の 'SupportedDiagnostics' に null 記述子が含まれています。</target>
@@ -601,11 +606,6 @@
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
         <source>Invalid characters in assembly culture name</source>
         <target state="translated">アセンブリのカルチャ名に無効な文字があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">

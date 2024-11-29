@@ -32,11 +32,6 @@
         <target state="translated">Inserir Snippet</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">_Inserção automática de membros Interface e MustOverride</target>
@@ -61,11 +56,6 @@
         <source>Prefer simplified object creation</source>
         <target state="translated">Preferir a criação simplificada de objetos</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_imports">
-        <source>Remove unnecessary imports</source>
-        <target state="translated">Remover as Importações desnecessárias</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -117,11 +107,6 @@
         <target state="translated">_Entrar no modo de estrutura de tópicos quando os arquivos abrirem</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Extrair Método</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">_Gerar comentário da documentação XML para '''</target>
@@ -170,11 +155,6 @@
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
         <target state="translated">_Navegue para o Pesquisador de Objetos para símbolos definido nos metadados</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_to_Definition">
-        <source>Go to Definition</source>
-        <target state="translated">Ir para Definição</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">

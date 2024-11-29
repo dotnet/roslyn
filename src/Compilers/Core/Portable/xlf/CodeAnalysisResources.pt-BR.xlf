@@ -248,6 +248,11 @@
         <target state="translated">O SourceText com hintName '{0}' deve ter um conjunto de codificação explícito.</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">O analisador '{0}' contém um descritor nulo em seu 'SupportedDiagnostics'.</target>
@@ -601,11 +606,6 @@
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
         <source>Invalid characters in assembly culture name</source>
         <target state="translated">Caracteres inválidos no nome de cultura do assembly</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">O fluxo deve fornecer suporte a operações de leitura e busca.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">

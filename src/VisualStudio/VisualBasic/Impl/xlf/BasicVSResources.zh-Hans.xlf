@@ -32,11 +32,6 @@
         <target state="translated">插入片段</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">自动插入 Interface 和 MustOverride 成员(_I)</target>
@@ -61,11 +56,6 @@
         <source>Prefer simplified object creation</source>
         <target state="translated">更偏好简化的对象创建</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_imports">
-        <source>Remove unnecessary imports</source>
-        <target state="translated">移除不必要的导入</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -117,11 +107,6 @@
         <target state="translated">打开文件时进入大纲模式(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">提取方法</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">为 ''' 生成 XML 文档注释(_G)</target>
@@ -170,11 +155,6 @@
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
         <target state="translated">导航到对象浏览器以了解元数据中定义的符号(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_to_Definition">
-        <source>Go to Definition</source>
-        <target state="translated">转到定义</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">

@@ -248,6 +248,11 @@
         <target state="translated">SourceText'in '{0}'' hintName'i açık bir kodlama kümesi olmalıdır.</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">Çözümleyicisi '{0}', 'SupportedDiagnostics' boş bir tanımlayıcısı içerir.</target>
@@ -601,11 +606,6 @@
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
         <source>Invalid characters in assembly culture name</source>
         <target state="translated">Derleme kültürü adında geçersiz karakterler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">Akış okuma ve arama işlemlerini desteklemelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">

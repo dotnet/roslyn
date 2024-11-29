@@ -1967,7 +1967,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     internal override string GetDisplayName(INamedTypeSymbol symbol)
         => symbol.TypeKind switch
         {
-            TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : CSharpFeaturesResources.struct_,
+            TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : FeaturesResources.struct_,
             TypeKind.Class => symbol.IsRecord ? CSharpFeaturesResources.record_ : FeaturesResources.class_,
             _ => base.GetDisplayName(symbol)
         };
