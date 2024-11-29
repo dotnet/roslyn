@@ -1647,11 +1647,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">將中繼資料參考加入指定的組件及其所有相依性中，例如 #r "myLib.dll"。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">屬性</target>
-        <note />
-      </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
         <target state="translated">&lt;命名空間名稱&gt;</target>

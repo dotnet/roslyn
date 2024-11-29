@@ -1647,11 +1647,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">指定されたアセンブリとそのすべての依存関係へのメタデータ参照を追加します (例: #r "myLib.dll")。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">プロパティ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
         <target state="translated">&lt;名前空間名&gt;</target>

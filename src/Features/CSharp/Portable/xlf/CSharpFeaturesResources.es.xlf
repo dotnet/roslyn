@@ -652,11 +652,6 @@
         <target state="translated">El nombre '{0}' no existe en el contexto actual.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Propiedades</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">Se ha deshabilitado la selección automática durante la declaración del espacio de nombres.</target>

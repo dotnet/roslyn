@@ -652,11 +652,6 @@
         <target state="translated">이름 '{0}'이(가) 현재 컨텍스트에 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">속성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">네임스페이스 선언으로 인해 자동 선택을 사용할 수 없습니다.</target>

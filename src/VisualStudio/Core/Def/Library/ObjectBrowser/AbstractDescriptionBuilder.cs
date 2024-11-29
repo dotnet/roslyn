@@ -414,7 +414,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(FeaturesResources.Exceptions_colon);
+            AddName(WorkspacesResources.Exceptions_colon);
 
             foreach (var exceptionType in documentationComment.ExceptionTypes)
             {

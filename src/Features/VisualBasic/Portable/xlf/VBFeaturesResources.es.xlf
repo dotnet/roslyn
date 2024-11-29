@@ -1647,11 +1647,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <target state="translated">Agregue una referencia de metadatos al ensamblado especificado y todas sus dependencias, p. ej. #r "myLib.dll".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Propiedades</target>
-        <note />
-      </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
         <target state="translated">&lt;nombre de espacio de nombres&gt;</target>

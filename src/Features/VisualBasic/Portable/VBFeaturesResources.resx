@@ -1107,9 +1107,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Properties</value>
-  </data>
   <data name="namespace_name" xml:space="preserve">
     <value>&lt;namespace name&gt;</value>
   </data>
