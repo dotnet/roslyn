@@ -2422,11 +2422,6 @@ Ek bilgiler: {1}</target>
         <target state="translated">Blok Yapısı Kılavuzları</target>
         <note />
       </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">Ana Hat</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">Kod düzeyinde yapılar için kılavuzları göster</target>

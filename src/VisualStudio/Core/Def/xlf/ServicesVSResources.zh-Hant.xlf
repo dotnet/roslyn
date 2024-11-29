@@ -2422,11 +2422,6 @@ Additional information: {1}</source>
         <target state="translated">區塊結構輔助線</target>
         <note />
       </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">大綱</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">顯示程式碼層級建構的指南</target>

@@ -2422,11 +2422,6 @@ Informações adicionais: {1}</target>
         <target state="translated">Guias de Estrutura de Bloco</target>
         <note />
       </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">Estrutura de Tópicos</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">Mostrar guias para construções de nível de código</target>

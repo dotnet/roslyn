@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Quick_Actions;
 
         public static string Option_Outlining
-            => ServicesVSResources.Outlining;
+            => EditorFeaturesResources.Outlining;
 
         public static string Option_Collapse_regions_on_file_open
             => ServicesVSResources.Collapse_regions_on_file_open;

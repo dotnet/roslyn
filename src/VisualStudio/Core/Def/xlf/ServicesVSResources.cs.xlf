@@ -2422,11 +2422,6 @@ Další informace: {1}</target>
         <target state="translated">Vodítka pro strukturu bloku</target>
         <note />
       </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">Sbalení</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">Zobrazit vodítka pro konstrukty na úrovni kódu</target>

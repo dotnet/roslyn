@@ -2422,11 +2422,6 @@ Additional information: {1}</source>
         <target state="translated">块结构指南</target>
         <note />
       </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">大纲</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">显示代码级别构造的指南</target>

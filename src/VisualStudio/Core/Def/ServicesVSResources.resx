@@ -580,9 +580,6 @@ Additional information: {1}</value>
   <data name="Block_Structure_Guides" xml:space="preserve">
     <value>Block Structure Guides</value>
   </data>
-  <data name="Outlining" xml:space="preserve">
-    <value>Outlining</value>
-  </data>
   <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
     <value>Show guides for code level constructs</value>
   </data>

@@ -2422,11 +2422,6 @@ Additional information: {1}</source>
         <target state="translated">블록 구조 가이드</target>
         <note />
       </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="translated">개요</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">코드 수준 구문에 대한 가이드 표시</target>

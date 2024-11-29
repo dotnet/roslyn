@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_OptimizeForSolutionSize_Large As String =
             BasicVSResources.Large
 
-        Public ReadOnly Property Option_Outlining As String = ServicesVSResources.Outlining
+        Public ReadOnly Property Option_Outlining As String = EditorFeaturesResources.Outlining
 
         Public ReadOnly Property Option_Show_outlining_for_declaration_level_constructs As String =
             ServicesVSResources.Show_outlining_for_declaration_level_constructs
