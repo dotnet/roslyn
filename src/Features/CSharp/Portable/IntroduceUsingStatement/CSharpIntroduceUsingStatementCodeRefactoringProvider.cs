@@ -18,15 +18,15 @@ using static SyntaxFactory;
 
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), Shared]
-internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
-    : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax, TryStatementSyntax>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider()
+    : AbstractIntroduceUsingStatementCodeRefactoringProvider<
+        StatementSyntax,
+        ExpressionStatementSyntax,
+        LocalDeclarationStatementSyntax,
+        TryStatementSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpIntroduceUsingStatementCodeRefactoringProvider()
-    {
-    }
-
     protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
     protected override bool HasCatchBlocks(TryStatementSyntax tryStatement)
@@ -38,12 +38,12 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
     protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
         => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
-    protected override SyntaxList<StatementSyntax> GetSurroundingStatements(LocalDeclarationStatementSyntax declarationStatement)
-        => declarationStatement.GetRequiredParent() switch
+    protected override SyntaxList<StatementSyntax> GetSurroundingStatements(StatementSyntax statement)
+        => statement.GetRequiredParent() switch
         {
             BlockSyntax block => block.Statements,
             SwitchSectionSyntax switchSection => switchSection.Statements,
-            _ => [declarationStatement],
+            _ => [statement],
         };
 
     protected override SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<StatementSyntax> statements)
@@ -53,6 +53,15 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
             parentOfStatementsToSurround is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
             throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
     }
+
+    protected override StatementSyntax CreateUsingStatement(ExpressionStatementSyntax expressionStatement, SyntaxList<StatementSyntax> statementsToSurround)
+        => UsingStatement(
+            UsingKeyword.WithLeadingTrivia(expressionStatement.GetLeadingTrivia()),
+            OpenParenToken,
+            declaration: null,
+            expression: expressionStatement.Expression.WithoutTrivia(),
+            CloseParenToken.WithTrailingTrivia(expressionStatement.GetTrailingTrivia()),
+            statement: Block(statementsToSurround));
 
     protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxList<StatementSyntax> statementsToSurround)
         => UsingStatement(

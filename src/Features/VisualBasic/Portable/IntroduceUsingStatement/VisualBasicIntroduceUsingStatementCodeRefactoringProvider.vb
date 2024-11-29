@@ -13,7 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), [Shared]>
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
-        Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax, TryBlockSyntax)
+        Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of
+            StatementSyntax,
+            ExpressionStatementSyntax,
+            LocalDeclarationStatementSyntax,
+            TryBlockSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -35,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             Return parent.IsMultiLineExecutableBlock()
         End Function
 
-        Protected Overrides Function GetSurroundingStatements(declarationStatement As LocalDeclarationStatementSyntax) As SyntaxList(Of StatementSyntax)
+        Protected Overrides Function GetSurroundingStatements(declarationStatement As StatementSyntax) As SyntaxList(Of StatementSyntax)
             Return declarationStatement.GetRequiredParent().GetExecutableBlockStatements()
         End Function
 
@@ -49,6 +53,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             Dim usingStatement = SyntaxFactory.UsingStatement(
                 expression:=Nothing,
                 variables:=declarationStatement.Declarators).WithTriviaFrom(declarationStatement)
+            Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
+        End Function
+
+        Protected Overrides Function CreateUsingStatement(
+                expressionStatement As ExpressionStatementSyntax,
+                statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
+            Dim usingStatement = SyntaxFactory.UsingStatement(
+                expression:=expressionStatement.Expression.WithoutTrivia(),
+                variables:=Nothing).WithTriviaFrom(expressionStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
 

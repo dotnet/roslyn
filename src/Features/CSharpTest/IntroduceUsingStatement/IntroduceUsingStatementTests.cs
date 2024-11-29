@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,7 +20,10 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
-    private Task TestAsync(string initialMarkup, string expectedMarkup, LanguageVersion languageVersion = LanguageVersion.CSharp7)
+    private Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        LanguageVersion languageVersion = LanguageVersion.CSharp7)
         => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
 
     [Theory]
@@ -1416,5 +1420,41 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
                 }
             }
             """, LanguageVersion.CSharp8);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public async Task TestExpressionStatement()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    using (MethodThatReturnsDisposableThing())
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """);
     }
 }
