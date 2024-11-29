@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -20,6 +22,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -38,7 +41,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private readonly EditorOptionsService _editorOptionsService;
     private readonly SuggestionServiceBase _suggestionServiceBase;
     private SuggestionManagerBase? _suggestionManagerBase;
-    private readonly IThreadingContext? _threadingContext;
+    internal SuggestionSessionBase? _suggestionSession;
+    public readonly IThreadingContext? _threadingContext;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -124,13 +128,20 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 if (snippet.Proposal != null && _suggestionManagerBase != null)
                 {
                     _threadingContext.ThrowIfNotOnUIThread();
-                    var proposalEdits = GetProposedEdits(snippet.Proposal, subjectBuffer);
-                    var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
-                    var suggestion = new DocumentationCommentSuggestion(this, proposal);
 
                     _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
-                        var session = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+                        if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+                        {
+                            return;
+                        }
+
+                        var proposalEdits = await GetProposedEditsAsync(snippet.Proposal, subjectBuffer, copilotService, cancellationToken).ConfigureAwait(false);
+                        var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
+                        var suggestion = new DocumentationCommentSuggestion(this, proposal);
+
+                        var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
                         if (session != null)
                         {
                             await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
@@ -143,12 +154,20 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         return returnValue;
     }
 
-    private IReadOnlyList<ProposedEdit> GetProposedEdits(DocumentationCommentProposal proposal, ITextBuffer textBuffer)
+    private async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
+        DocumentationCommentProposal proposal, ITextBuffer textBuffer, ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
         // Call into copilot here using the proposal and the propoededits
-        var textSpan = proposal.ProposedEdits.First().SpanToReplace;
-        var proposedEdit = new ProposedEdit(new SnapshotSpan(textBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), "test replacement text");
-        return new List<ProposedEdit> { proposedEdit };
+        var list = new List<ProposedEdit>();
+        foreach (var edit in proposal.ProposedEdits)
+        {
+            var textSpan = edit.SpanToReplace;
+            var copilotText = await copilotService.GetDocumentationCommentAsync(proposal.SymbolToAnalyze, edit.SymbolName, edit.TagType.ToString(), cancellationToken).ConfigureAwait(false);
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(textBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), copilotText);
+            list.Add(proposedEdit);
+        }
+
+        return list;
     }
 
     private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)
@@ -164,6 +183,16 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         }
 
         return false;
+    }
+
+    public async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)
+    {
+        if (_suggestionSession != null)
+        {
+            await _suggestionSession.DismissAsync(reason, cancellationToken).ConfigureAwait(false);
+        }
+
+        _suggestionSession = null;
     }
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)

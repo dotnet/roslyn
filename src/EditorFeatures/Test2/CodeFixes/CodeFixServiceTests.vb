@@ -358,6 +358,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync
                 Return Task.FromResult(False)
             End Function
+
+            Public Function GetDocumentationCommentAsync(memberDeclaration As String, symbolName As String, tagType As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
+                Return Task.FromResult("")
+            End Function
         End Class
     End Class
 End Namespace

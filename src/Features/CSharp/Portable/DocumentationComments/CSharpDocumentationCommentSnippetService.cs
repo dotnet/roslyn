@@ -227,7 +227,8 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
         return false;
     }
 
-    protected override DocumentationCommentProposal? GetProposal(TextSpan textSpan, string? comments, MemberDeclarationSyntax? memberNode, int startIndex)
+    protected override DocumentationCommentProposal? GetProposal(
+        TextSpan textSpan, string? comments, MemberDeclarationSyntax? memberNode, int startIndex, int caret)
     {
         if (comments is null)
         {
@@ -241,55 +242,60 @@ internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationC
 
         var proposedEdits = new List<DocumentationCommentProposedEdit>();
         var index = 0;
-        while (index < comments.Length)
+
+        var summaryStartTag = comments.IndexOf("<summary>", index, StringComparison.Ordinal);
+        var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
+        if (summaryEndTag != -1 && summaryStartTag != -1)
         {
-            var documentIndex = startIndex + index;
-            var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
-            if (summaryEndTag != -1)
-            {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), "summary"));
-            }
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), null, DocumentationCommentTagType.Summary));
+        }
 
+        while (true)
+        {
             var paramEndTag = comments.IndexOf("</param>", index, StringComparison.Ordinal);
-            if (paramEndTag != -1)
+            var paramStartTag = comments.LastIndexOf("<param name=\"", index, StringComparison.Ordinal);
+
+            if (paramStartTag == -1 || paramEndTag == -1)
             {
-                var paramStartTag = comments.LastIndexOf("<param name=\"", paramEndTag, StringComparison.Ordinal);
-                if (paramStartTag != -1)
-                {
-                    var paramNameStart = paramStartTag + "<param name=\"".Length;
-                    var paramNameEnd = comments.IndexOf("\">", paramNameStart, StringComparison.Ordinal);
-                    if (paramNameEnd != -1)
-                    {
-                        var parameterName = comments.Substring(paramNameStart, paramNameEnd - paramNameStart);
-                        proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), parameterName));
-                    }
-                }
+                break;
             }
 
-            var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
-            if (returnsEndTag != -1)
+            var paramNameStart = paramStartTag + "<param name=\"".Length;
+            var paramNameEnd = comments.IndexOf("\">", paramNameStart, StringComparison.Ordinal);
+            if (paramNameEnd != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), "returns"));
+                var parameterName = comments.Substring(paramNameStart, paramNameEnd - paramNameStart);
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(paramEndTag + startIndex, 0), parameterName, DocumentationCommentTagType.Param));
             }
 
+            index = paramEndTag + "</param>".Length;
+        }
+
+        var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
+        if (returnsEndTag != -1)
+        {
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), null, DocumentationCommentTagType.Returns));
+        }
+
+        while (true)
+        {
             var exceptionEndTag = comments.IndexOf("</exception>", index, StringComparison.Ordinal);
-            if (exceptionEndTag != -1)
+            var exceptionStartTag = comments.LastIndexOf("<exception cref=\"", index, StringComparison.Ordinal);
+
+            if (exceptionEndTag == -1 || exceptionStartTag == -1)
             {
-                var exceptionStartTag = comments.LastIndexOf("<exception cref=\"", exceptionEndTag, StringComparison.Ordinal);
-                if (exceptionStartTag != -1)
-                {
-                    var exceptionNameStart = exceptionStartTag + "<exception cref=\"".Length;
-                    var exceptionNameEnd = comments.IndexOf("\">", exceptionNameStart, StringComparison.Ordinal);
-                    if (exceptionNameEnd != -1)
-                    {
-                        var exceptionName = comments.Substring(exceptionNameStart, exceptionNameEnd - exceptionNameStart);
-                        proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(documentIndex, 0), exceptionName));
-                    }
-                }
+                break;
             }
 
-            index++;
+            var exceptionNameStart = exceptionStartTag + "<exception cref=\"".Length;
+            var exceptionNameEnd = comments.IndexOf("\">", exceptionNameStart, StringComparison.Ordinal);
+            if (exceptionNameEnd != -1)
+            {
+                var exceptionName = comments.Substring(exceptionNameStart, exceptionNameEnd - exceptionNameStart);
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(exceptionEndTag + startIndex, 0), exceptionName, DocumentationCommentTagType.Exception));
+            }
 
+            index = exceptionEndTag + "</exception>".Length;
         }
 
         return new DocumentationCommentProposal(memberNode.ToFullString(), proposedEdits.ToImmutableArray());

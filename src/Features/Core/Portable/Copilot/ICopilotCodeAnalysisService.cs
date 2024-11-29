@@ -77,4 +77,6 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
+    Task<string> GetDocumentationCommentAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken);
+
 }

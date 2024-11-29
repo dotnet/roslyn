@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.ApplicationInsights.DataContracts;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             _handlerInstance = handlerInstance;
         }
 
-        public override TipStyle TipStyle => TipStyle.TipRightPlacement;
+        public override TipStyle TipStyle => TipStyle.AlwaysShowTip;
 
         public override EditDisplayStyle EditStyle => EditDisplayStyle.GrayText;
 
@@ -37,22 +38,30 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override Task OnAcceptedAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, ReasonForAccept reason, CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public override Task OnChangeProposalAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, bool forward, CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
-        public override Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
+        public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            await _handlerInstance._threadingContext!.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+
+            await _handlerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
+
         }
 
         public override Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            if (currentProposal is null)
+            {
+                return session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel);
+            }
+
+            return Task.CompletedTask;
         }
     }
 

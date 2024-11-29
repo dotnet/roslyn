@@ -22,6 +22,7 @@ using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnos
 using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<string>>;
 using IsAnyExclusionAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using IsFileExcludedAsyncDelegateType = Func<string, CancellationToken, Task<bool>>;
+using GetDocumentationCommentAsyncDelegateType = Func<string, string?, string, CancellationToken, Task<string>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -38,6 +39,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private const string StartRefinementSessionAsyncMethodName = "StartRefinementSessionAsync";
         private const string GetOnTheFlyDocsAsyncMethodName = "GetOnTheFlyDocsAsync";
         private const string IsFileExcludedAsyncMethodName = "IsFileExcludedAsync";
+        private const string GetDocumentationCommentAsyncMethodName = "IsDocumentationCommentAsync";
 
         // Create and cache closed delegate to ensure we use a singleton object and with better performance.
         private readonly Type? _analyzerType;
@@ -49,6 +51,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private readonly Lazy<StartRefinementSessionAsyncDelegateType?> _lazyStartRefinementSessionAsyncDelegate;
         private readonly Lazy<GetOnTheFlyDocsAsyncDelegateType?> _lazyGetOnTheFlyDocsAsyncDelegate;
         private readonly Lazy<IsFileExcludedAsyncDelegateType?> _lazyIsFileExcludedAsyncDelegate;
+        private readonly Lazy<GetDocumentationCommentAsyncDelegateType?> _lazyGetDocumentationCommentAsyncDelegate;
 
         public ReflectionWrapper(IServiceProvider serviceProvider, IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
         {
@@ -78,6 +81,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             _lazyStartRefinementSessionAsyncDelegate = new(CreateStartRefinementSessionAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyGetOnTheFlyDocsAsyncDelegate = new(CreateGetOnTheFlyDocsAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyIsFileExcludedAsyncDelegate = new(CreateIsFileExcludedAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
+            _lazyGetDocumentationCommentAsyncDelegate = new(CreateGetDocumentationCommentAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
         }
 
         private T? CreateDelegate<T>(string methodName, Type[] types) where T : Delegate
@@ -118,6 +122,9 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
 
         private IsFileExcludedAsyncDelegateType? CreateIsFileExcludedAsyncDelegate()
             => CreateDelegate<IsFileExcludedAsyncDelegateType>(IsFileExcludedAsyncMethodName, [typeof(string), typeof(CancellationToken)]);
+
+        private GetDocumentationCommentAsyncDelegateType? CreateGetDocumentationCommentAsyncDelegate()
+            => CreateDelegate<GetDocumentationCommentAsyncDelegateType>(GetDocumentationCommentAsyncMethodName, [typeof(string), typeof(string), typeof(string), typeof(CancellationToken)]);
 
         public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         {
@@ -173,6 +180,14 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
                 return false;
 
             return await _lazyIsFileExcludedAsyncDelegate.Value(filePath, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetDocumentationCommentAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken)
+        {
+            if (_lazyGetDocumentationCommentAsyncDelegate is null)
+                return string.Empty;
+
+            return await _lazyGetDocumentationCommentAsyncDelegate.Value(memberDeclaration, symbolName, tagType, cancellationToken).ConfigureAwait(false);
         }
     }
 }

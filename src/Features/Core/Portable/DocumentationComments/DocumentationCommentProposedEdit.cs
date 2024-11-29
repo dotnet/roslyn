@@ -11,11 +11,14 @@ internal sealed class DocumentationCommentProposedEdit
 {
     public TextSpan SpanToReplace { get; }
 
-    public string SymbolName { get; }
+    public string? SymbolName { get; }
 
-    internal DocumentationCommentProposedEdit(TextSpan spanToReplace, string symbolName)
+    public DocumentationCommentTagType TagType { get; }
+
+    internal DocumentationCommentProposedEdit(TextSpan spanToReplace, string? symbolName, DocumentationCommentTagType tagType)
     {
         SpanToReplace = spanToReplace;
         SymbolName = symbolName;
+        TagType = tagType;
     }
 }
