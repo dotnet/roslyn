@@ -126,9 +126,6 @@
   <data name="Indentation_and_spacing" xml:space="preserve">
     <value>Indentation and spacing</value>
   </data>
-  <data name="New_line_preferences" xml:space="preserve">
-    <value>New line preferences</value>
-  </data>
   <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
     <value>Value too large to be represented as a 30 bit unsigned integer.</value>
   </data>

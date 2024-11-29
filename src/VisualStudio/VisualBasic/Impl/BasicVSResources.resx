@@ -123,9 +123,6 @@
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="IntelliSense" xml:space="preserve">
-    <value>IntelliSense</value>
-  </data>
   <data name="Automatic_insertion_of_Interface_and_MustOverride_members" xml:space="preserve">
     <value>Automatic _insertion of Interface and MustOverride members</value>
   </data>
@@ -152,9 +149,6 @@
   </data>
   <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
     <value>_Enter outlining mode when files open</value>
-  </data>
-  <data name="Extract_Method" xml:space="preserve">
-    <value>Extract Method</value>
   </data>
   <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for '''</value>
@@ -183,9 +177,6 @@
   </data>
   <data name="Navigate_to_Object_Browser_for_symbols_defined_in_metadata" xml:space="preserve">
     <value>_Navigate to Object Browser for symbols defined in metadata</value>
-  </data>
-  <data name="Go_to_Definition" xml:space="preserve">
-    <value>Go to Definition</value>
   </data>
   <data name="Import_Directives" xml:space="preserve">
     <value>Import Directives</value>
@@ -301,10 +292,6 @@
   <data name="Add_missing_imports_on_paste" xml:space="preserve">
     <value>Add missing imports on paste</value>
     <comment>'import' is a Visual Basic keyword and should not be localized</comment>
-  </data>
-  <data name="Remove_unnecessary_imports" xml:space="preserve">
-    <value>Remove unnecessary imports</value>
-    <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
   <data name="Prefer_simplified_object_creation" xml:space="preserve">
     <value>Prefer simplified object creation</value>

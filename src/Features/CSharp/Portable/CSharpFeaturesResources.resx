@@ -324,9 +324,6 @@
   <data name="tuple" xml:space="preserve">
     <value>tuple</value>
   </data>
-  <data name="local_function" xml:space="preserve">
-    <value>local function</value>
-  </data>
   <data name="out_var" xml:space="preserve">
     <value>out variable</value>
     <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
@@ -350,10 +347,6 @@
   </data>
   <data name="using_directive" xml:space="preserve">
     <value>using directive</value>
-  </data>
-  <data name="struct_" xml:space="preserve">
-    <value>struct</value>
-    <comment>{Locked}</comment>
   </data>
   <data name="event_field" xml:space="preserve">
     <value>event field</value>
@@ -563,10 +556,6 @@
   </data>
   <data name="Apply_var_preferences" xml:space="preserve">
     <value>Apply 'var' preferences</value>
-  </data>
-  <data name="Add_await" xml:space="preserve">
-    <value>Add 'await'</value>
-    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Global_using_directives" xml:space="preserve">
     <value>Global 'using' directives</value>

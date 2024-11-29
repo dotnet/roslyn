@@ -156,21 +156,6 @@
   <data name="Preview_unavailable" xml:space="preserve">
     <value>Preview unavailable</value>
   </data>
-  <data name="Overrides_" xml:space="preserve">
-    <value>Overrides</value>
-  </data>
-  <data name="Overridden_By" xml:space="preserve">
-    <value>Overridden By</value>
-  </data>
-  <data name="Inherits_" xml:space="preserve">
-    <value>Inherits</value>
-  </data>
-  <data name="Implements_" xml:space="preserve">
-    <value>Implements</value>
-  </data>
-  <data name="Implemented_By" xml:space="preserve">
-    <value>Implemented By</value>
-  </data>
   <data name="Invalid_access" xml:space="preserve">
     <value>Invalid access.</value>
   </data>
@@ -222,26 +207,11 @@
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Member_of_0" xml:space="preserve">
     <value>Member of {0}</value>
   </data>
-  <data name="Parameters_colon1" xml:space="preserve">
-    <value>Parameters:</value>
-  </data>
   <data name="Project" xml:space="preserve">
     <value>Project </value>
-  </data>
-  <data name="Remarks_colon" xml:space="preserve">
-    <value>Remarks:</value>
-  </data>
-  <data name="Returns_colon" xml:space="preserve">
-    <value>Returns:</value>
-  </data>
-  <data name="Summary_colon" xml:space="preserve">
-    <value>Summary:</value>
   </data>
   <data name="Type_Parameters_colon" xml:space="preserve">
     <value>Type Parameters:</value>
@@ -291,9 +261,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Deselect_All" xml:space="preserve">
     <value>_Deselect All</value>
   </data>
-  <data name="Extract_Interface" xml:space="preserve">
-    <value>Extract Interface</value>
-  </data>
   <data name="Generated_name_colon" xml:space="preserve">
     <value>Generated name:</value>
   </data>
@@ -320,9 +287,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Add_to_current_file" xml:space="preserve">
     <value>Add to _current file</value>
-  </data>
-  <data name="Change_Signature" xml:space="preserve">
-    <value>Change Signature</value>
   </data>
   <data name="Create_new_file" xml:space="preserve">
     <value>_Create new file</value>
@@ -408,15 +372,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="_1_reference" xml:space="preserve">
     <value>1 reference</value>
   </data>
-  <data name="_0_encountered_an_error_and_has_been_disabled" xml:space="preserve">
-    <value>'{0}' encountered an error and has been disabled.</value>
-  </data>
-  <data name="Enable" xml:space="preserve">
-    <value>Enable</value>
-  </data>
-  <data name="Enable_and_ignore_future_errors" xml:space="preserve">
-    <value>Enable and ignore future errors</value>
-  </data>
   <data name="No_Changes" xml:space="preserve">
     <value>No Changes</value>
   </data>
@@ -425,9 +380,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Determining_current_block" xml:space="preserve">
     <value>Determining current block.</value>
-  </data>
-  <data name="IntelliSense" xml:space="preserve">
-    <value>IntelliSense</value>
   </data>
   <data name="MissingAnalyzerReference" xml:space="preserve">
     <value>MissingAnalyzerReference</value>
@@ -1066,9 +1018,6 @@ Additional information: {1}</value>
   <data name="A_type_and_name_must_be_provided" xml:space="preserve">
     <value>A type and name must be provided.</value>
   </data>
-  <data name="Rename_0_to_1" xml:space="preserve">
-    <value>Rename {0} to {1}</value>
-  </data>
   <data name="NamingSpecification_CSharp_Class" xml:space="preserve">
     <value>class</value>
     <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
@@ -1294,9 +1243,6 @@ Additional information: {1}</value>
   <data name="Value_to_inject_at_call_sites" xml:space="preserve">
     <value>Value to inject at call sites</value>
   </data>
-  <data name="Value_colon" xml:space="preserve">
-    <value>Value:</value>
-  </data>
   <data name="Editor_Color_Scheme" xml:space="preserve">
     <value>Editor Color Scheme</value>
   </data>
@@ -1364,9 +1310,6 @@ Additional information: {1}</value>
   <data name="Infer_from_context" xml:space="preserve">
     <value>Infer from context</value>
   </data>
-  <data name="None" xml:space="preserve">
-    <value>None</value>
-  </data>
   <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
     <value>Warning: duplicate parameter name</value>
   </data>
@@ -1406,9 +1349,6 @@ Additional information: {1}</value>
   </data>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
-  </data>
-  <data name="Inline_Hints" xml:space="preserve">
-    <value>Inline Hints</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
@@ -1543,9 +1483,6 @@ Additional information: {1}</value>
   <data name="Enabled" xml:space="preserve">
     <value>Enabled</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
   <data name="Whitespace" xml:space="preserve">
     <value>Whitespace</value>
   </data>
@@ -1555,20 +1492,8 @@ Additional information: {1}</value>
   <data name="Newline_n" xml:space="preserve">
     <value>Newline (\\n)</value>
   </data>
-  <data name="Refactoring_Only" xml:space="preserve">
-    <value>Refactoring Only</value>
-  </data>
-  <data name="Suggestion" xml:space="preserve">
-    <value>Suggestion</value>
-  </data>
-  <data name="Title" xml:space="preserve">
-    <value>Title</value>
-  </data>
   <data name="Value" xml:space="preserve">
     <value>Value</value>
-  </data>
-  <data name="Warning" xml:space="preserve">
-    <value>Warning</value>
   </data>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
@@ -1715,9 +1640,6 @@ Additional information: {1}</value>
   <data name="For_non_interface_members" xml:space="preserve">
     <value>For non interface members</value>
   </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
-  </data>
   <data name="Omit_if_default" xml:space="preserve">
     <value>Omit if default</value>
   </data>
@@ -1780,9 +1702,6 @@ Additional information: {1}</value>
   <data name="External_sources" xml:space="preserve">
     <value>External Sources</value>
   </data>
-  <data name="Call_Hierarchy" xml:space="preserve">
-    <value>Call Hierarchy</value>
-  </data>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating</value>
   </data>
@@ -1819,9 +1738,6 @@ Additional information: {1}</value>
   </data>
   <data name="Document_Outline_Search" xml:space="preserve">
     <value>Search Document Outline</value>
-  </data>
-  <data name="Rename" xml:space="preserve">
-    <value>Rename</value>
   </data>
   <data name="Rename_asynchronously_experimental" xml:space="preserve">
     <value>Rename asynchronously (experimental)</value>
