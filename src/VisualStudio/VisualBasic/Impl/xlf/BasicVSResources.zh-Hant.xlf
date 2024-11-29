@@ -37,11 +37,6 @@
         <target state="translated">自動插入 Interface 及 MustOverride 成員(_I)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">永不</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">建議使用 'IsNot' 運算式</target>

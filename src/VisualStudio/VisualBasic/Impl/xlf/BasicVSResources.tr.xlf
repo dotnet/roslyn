@@ -37,11 +37,6 @@
         <target state="translated">Interface ve MustOverride üyelerini otomatik olarak _ekle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Hiçbir zaman</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">'IsNot' ifadesini tercih edin</target>

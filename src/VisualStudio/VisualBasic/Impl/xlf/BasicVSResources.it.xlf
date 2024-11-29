@@ -37,11 +37,6 @@
         <target state="translated">_Inserimento automatico di membri Interface e MustOverride</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Mai</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">Preferisci l'espressione 'IsNot'</target>

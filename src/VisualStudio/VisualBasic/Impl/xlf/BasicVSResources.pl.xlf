@@ -37,11 +37,6 @@
         <target state="translated">Automatyczne _wstawianie składowych Interface i MustOverride</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nigdy</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">Preferuj wyrażenie „IsNot”</target>

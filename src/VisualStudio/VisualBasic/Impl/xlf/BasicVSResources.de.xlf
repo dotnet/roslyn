@@ -37,11 +37,6 @@
         <target state="translated">Automatisches _Einfügen von Schnittstellen- und MustOverride-Membern</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">Ausdruck "IsNot" bevorzugen</target>

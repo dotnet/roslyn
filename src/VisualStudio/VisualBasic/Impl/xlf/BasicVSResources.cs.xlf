@@ -37,11 +37,6 @@
         <target state="translated">Automatické _vkládání členů Interface a MustOverride</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nikdy</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">Upřednostňovat výraz IsNot</target>

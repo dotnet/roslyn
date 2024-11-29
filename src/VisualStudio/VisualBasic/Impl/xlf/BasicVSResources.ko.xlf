@@ -37,11 +37,6 @@
         <target state="translated">Interface 및 MustOverride 멤버 자동 삽입(_I)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">안 함 </target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">'IsNot' 식 선호</target>
