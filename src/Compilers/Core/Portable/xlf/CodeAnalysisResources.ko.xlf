@@ -248,11 +248,6 @@
         <target state="translated">hintName이 '{0}'인 SourceText에는 명시적 인코딩 집합이 있어야 합니다.</target>
         <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="new">Stream must support read and seek operations.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">'{0}' 분석기의 'SupportedDiagnostics'에 null 설명자가 포함되어 있습니다.</target>
@@ -606,6 +601,11 @@
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
         <source>Invalid characters in assembly culture name</source>
         <target state="translated">어셈블리 문화권 이름에 잘못된 문자가 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">스트림은 읽기 및 찾기 작업을 지원해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">
