@@ -191,7 +191,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
+            var returnTypeChange = await GetReturnTypeChangesAsync(semanticModel, declaration, cancellationToken)
         }
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
