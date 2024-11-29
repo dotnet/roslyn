@@ -78,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
         Public ReadOnly Property Option_DisplayLineSeparators As String =
-            BasicVSResources.Show_procedure_line_separators
+            ServicesVSResources.Show_procedure_line_separators
 
         Public ReadOnly Property Option_Underline_reassigned_variables As String =
             ServicesVSResources.Underline_reassigned_variables
@@ -132,16 +132,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
 
         Public ReadOnly Property Option_EditorHelp As String =
-            BasicVSResources.Editor_Help
+            ServicesVSResources.Editor_Help
 
         Public ReadOnly Property Option_EnableEndConstruct As String =
             BasicVSResources.A_utomatic_insertion_of_end_constructs
 
         Public ReadOnly Property Option_EnableHighlightKeywords As String =
-            BasicVSResources.Highlight_related_keywords_under_cursor
+            ServicesVSResources.Highlight_related_keywords_under_cursor
 
         Public ReadOnly Property Option_EnableHighlightReferences As String =
-            BasicVSResources.Highlight_references_to_symbol_under_cursor
+            ServicesVSResources.Highlight_references_to_symbol_under_cursor
 
         Public ReadOnly Property Option_EnableLineCommit As String =
             BasicVSResources.Pretty_listing_reformatting_of_code
@@ -194,44 +194,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments As String =
             BasicVSResources.Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments
 
-        Public ReadOnly Property Option_ShowRemarksInQuickInfo As String
-            Get
-                Return BasicVSResources.Show_remarks_in_Quick_Info
-            End Get
-        End Property
+        Public ReadOnly Property Option_ShowRemarksInQuickInfo As String =
+            ServicesVSResources.Show_remarks_in_Quick_Info
 
-        Public ReadOnly Property Option_GoToDefinition As String
-            Get
-                Return EditorFeaturesResources.Go_to_Definition
-            End Get
-        End Property
+        Public ReadOnly Property Option_GoToDefinition As String =
+            EditorFeaturesResources.Go_to_Definition
 
-        Public ReadOnly Property Option_Highlighting As String
-            Get
-                Return BasicVSResources.Highlighting
-            End Get
-        End Property
+        Public ReadOnly Property Option_Highlighting As String =
+            ServicesVSResources.Highlighting
 
-        Public ReadOnly Property Option_NavigateToObjectBrowser As String
-            Get
-                Return BasicVSResources.Navigate_to_Object_Browser_for_symbols_defined_in_metadata
-            End Get
-        End Property
+        Public ReadOnly Property Option_NavigateToObjectBrowser As String =
+            BasicVSResources.Navigate_to_Object_Browser_for_symbols_defined_in_metadata
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize As String
-            Get
-                Return BasicVSResources.Optimize_for_solution_size
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize As String =
+            ServicesVSResources.Optimize_for_solution_size
 
         Public ReadOnly Property Option_OptimizeForSolutionSize_Small As String =
-            BasicVSResources.Small
+            ServicesVSResources.Small
 
         Public ReadOnly Property Option_OptimizeForSolutionSize_Regular As String =
-            BasicVSResources.Regular
+            ServicesVSResources.Regular
 
         Public ReadOnly Property Option_OptimizeForSolutionSize_Large As String =
-            BasicVSResources.Large
+            ServicesVSResources.Large
 
         Public ReadOnly Property Option_Outlining As String = EditorFeaturesResources.Outlining
 
@@ -269,13 +254,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Fade_out_unused_imports
 
         Public ReadOnly Property Option_Performance As String =
-            BasicVSResources.Performance
+            ServicesVSResources.Performance
 
         Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String =
             BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
 
         Public ReadOnly Property Option_RenameTrackingPreview As String =
-            BasicVSResources.Show_preview_for_rename_tracking
+            ServicesVSResources.Show_preview_for_rename_tracking
 
         Public ReadOnly Property Option_Import_Directives As String =
             BasicVSResources.Import_Directives

@@ -72,6 +72,11 @@
         <target state="translated">Immer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>_Always add new line on enter</source>
+        <target state="new">_Always add new line on enter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Immer zur besseren Unterscheidung</target>
@@ -387,6 +392,11 @@
         <target state="translated">Editor-Farbschema</target>
         <note />
       </trans-unit>
+      <trans-unit id="Editor_Help">
+        <source>Editor Help</source>
+        <target state="new">Editor Help</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
         <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
         <target state="translated">Optionen für das Editor-Farbschema sind nur bei Verwendung eines im Lieferumfang von Visual Studio enthaltenen Farbdesigns verfügbar. Das Farbdesign kann über die Seite "Umgebung" &gt; "Allgemeine Optionen" konfiguriert werden.</target>
@@ -425,6 +435,11 @@
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">Geben Sie einen Aufrufsitewert ein, oder wählen Sie eine andere Art der Werteingabe aus.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_key_behavior_colon">
+        <source>Enter key behavior:</source>
+        <target state="new">Enter key behavior:</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_repository">
@@ -512,9 +527,29 @@
         <target state="translated">Zu Definition wechseln</target>
         <note />
       </trans-unit>
+      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="new">_Highlight matching portions of completion list items</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="new">_Highlight references to symbol under cursor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Zugehörige Komponenten unter dem Cursor markieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="new">Highlight related _keywords under cursor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighting">
+        <source>Highlighting</source>
+        <target state="new">Highlighting</target>
         <note />
       </trans-unit>
       <trans-unit id="Id">
@@ -572,6 +607,11 @@
         <target state="translated">Geerbte Schnittstelle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_Snippet">
+        <source>Insert Snippet</source>
+        <target state="new">Insert Snippet</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="translated">Der Wert der Aufrufsite "{0}" wird eingefügt.</target>
@@ -610,6 +650,11 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">Art</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Large">
+        <source>Large</source>
+        <target state="new">Large</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -867,9 +912,19 @@
         <target state="new">Never</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>_Never add new line on enter</source>
+        <target state="new">_Never add new line on enter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nie, wenn nicht erforderlich</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="new">Never include snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
@@ -917,6 +972,11 @@
         <target state="translated">Auslassen (nur bei optionalen Parametern)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Geöffnete Dokumente</target>
@@ -925,6 +985,11 @@
       <trans-unit id="Operator_placement_when_wrapping">
         <source>Operator placement when wrapping</source>
         <target state="translated">Operatorplatzierung beim Umschließen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optimize_for_solution_size">
+        <source>Optimize for solution size</source>
+        <target state="new">Optimize for solution size</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -1006,6 +1071,11 @@
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Fügen Sie eine Stapelüberwachung ein, und navigieren Sie durch ihre Werte.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
+      <trans-unit id="Performance">
+        <source>Performance</source>
+        <target state="new">Performance</target>
+        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1135,6 +1205,11 @@
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Verweis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular">
+        <source>Regular</source>
+        <target state="new">Regular</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1322,9 +1397,24 @@
         <target state="translated">Compilerfehler und -warnungen anzeigen für:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item _filters</source>
+        <target state="new">Show completion item _filters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Vervollständigungsliste anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is _deleted</source>
+        <target state="new">Show completion list after a character is _deleted</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="new">_Show completion list after a character is typed</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1372,9 +1462,39 @@
         <target state="translated">Vererbungsrand anzeigen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces</source>
+        <target state="new">Show items from unimported namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="new">Show preview for rename _tracking</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="new">_Show procedure line separators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="new">Show remarks in Quick Info</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
         <target state="translated">Analysetools für implizit ausgelöste Builds überspringen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Small">
+        <source>Small</source>
+        <target state="new">Small</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets_behavior">
+        <source>Snippets behavior</source>
+        <target state="new">Snippets behavior</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1520,6 +1640,11 @@
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
         <target state="translated">Neu zugewiesene Variablen unterstreichen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">

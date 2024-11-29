@@ -2457,7 +2457,7 @@ class C2
         {
             var unusedValuePreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Unused_local, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.Unused_local, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Discard, isChecked: true),
             };
 

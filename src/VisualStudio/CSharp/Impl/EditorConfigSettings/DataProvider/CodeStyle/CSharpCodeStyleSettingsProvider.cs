@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         private static IEnumerable<CodeStyleSetting> GetUnusedValueCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             var enumValues = new[] { UnusedValuePreference.UnusedLocalVariable, UnusedValuePreference.DiscardVariable };
-            var valueDescriptions = new[] { CSharpVSResources.Unused_local, CSharpVSResources.Discard };
+            var valueDescriptions = new[] { ServicesVSResources.Unused_local, CSharpVSResources.Discard };
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.UnusedValueAssignment, ServicesVSResources.Avoid_unused_value_assignments, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.UnusedValueExpressionStatement, ServicesVSResources.Avoid_expression_statements_that_implicitly_ignore_value, options, updater, enumValues, valueDescriptions);
