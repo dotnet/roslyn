@@ -2002,7 +2002,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54019")]
     public async Task TestStaticMember()
     {
         var markup = """
