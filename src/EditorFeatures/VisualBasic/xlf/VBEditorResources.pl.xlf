@@ -32,11 +32,6 @@
         <target state="translated">Trwa formatowanie dokumentu...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Wklej</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
         <target state="translated">Sformatuj przy zapisywaniu</target>

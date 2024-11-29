@@ -1002,11 +1002,6 @@
         <target state="translated">Preferências de parênteses:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Colar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Cole um rastreamento de pilha para exibir e navegar pelos seus valores.</target>

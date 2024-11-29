@@ -1002,11 +1002,6 @@
         <target state="translated">Voreinstellungen für Klammern:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Einfügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Fügen Sie eine Stapelüberwachung ein, und navigieren Sie durch ihre Werte.</target>

@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Private Sub CommitOnPaste(args As PasteCommandArgs, nextHandler As Action, cancellationToken As CancellationToken)
-            Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Paste)
+            Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Paste)
                 Dim oldVersion = args.SubjectBuffer.CurrentSnapshot.Version
 
                 ' Do the paste in the same transaction as the commit/format

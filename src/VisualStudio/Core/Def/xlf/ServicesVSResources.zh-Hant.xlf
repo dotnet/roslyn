@@ -1002,11 +1002,6 @@
         <target state="translated">括號喜好設定:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">貼上</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">貼上堆疊追蹤以檢視及瀏覽其值。</target>

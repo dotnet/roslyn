@@ -1002,11 +1002,6 @@
         <target state="translated">Preferenze per parentesi:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Incolla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Incollare un'analisi dello stack per visualizzare e spostarsi tra i valori.</target>

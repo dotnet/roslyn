@@ -1002,11 +1002,6 @@
         <target state="translated">かっこの優先順位:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">貼り付け</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">有効なスタック トレースを貼り付けて、値を表示して移動します。</target>

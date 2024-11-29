@@ -32,11 +32,6 @@
         <target state="translated">ドキュメントを書式設定しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">貼り付け</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
         <target state="translated">保存の形式</target>

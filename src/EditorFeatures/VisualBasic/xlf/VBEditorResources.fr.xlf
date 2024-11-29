@@ -32,11 +32,6 @@
         <target state="translated">Mise en forme du document...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Coller</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
         <target state="translated">Mettre en forme lors de l'enregistrement</target>

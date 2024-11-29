@@ -1002,11 +1002,6 @@
         <target state="translated">Preferencje dotyczące nawiasów:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Wklej</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Wklej prawidłowy ślad stosu, aby wyświetlić jego wartości i nawigować po nich.</target>

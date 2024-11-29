@@ -1002,11 +1002,6 @@
         <target state="translated">括号首选项:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">粘贴</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">粘贴堆栈跟踪以查看和导航其值。</target>

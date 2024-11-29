@@ -1679,9 +1679,6 @@ Additional information: {1}</value>
   <data name="Close_tab" xml:space="preserve">
     <value>Close Tab</value>
   </data>
-  <data name="Paste" xml:space="preserve">
-    <value>Paste</value>
-  </data>
   <data name="Stack_trace_0" xml:space="preserve">
     <value>Stack Trace {0}</value>
     <comment>Header for numbered stack trace view tabs</comment>
