@@ -2352,8 +2352,8 @@ class C2
         {
             var bracesPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(ServicesVSResources.Yes, isChecked: false),
-                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(EditorFeaturesResources.Yes, isChecked: false),
+                new CodeStylePreference(EditorFeaturesResources.No, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
             };
 

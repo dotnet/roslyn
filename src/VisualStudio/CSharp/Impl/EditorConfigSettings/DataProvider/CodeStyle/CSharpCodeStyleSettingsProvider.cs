@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, options, updater,
                 enumValues: [PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline],
-                valueDescriptions: [ServicesVSResources.Yes, ServicesVSResources.No, CSharpVSResources.When_on_multiple_lines]);
+                valueDescriptions: [EditorFeaturesResources.Yes, EditorFeaturesResources.No, CSharpVSResources.When_on_multiple_lines]);
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.NamespaceDeclarations, ServicesVSResources.Namespace_declarations, options, updater,
                 enumValues: [NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped],
