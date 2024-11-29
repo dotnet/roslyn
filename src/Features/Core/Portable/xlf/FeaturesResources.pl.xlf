@@ -3984,11 +3984,6 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
         <target state="translated">Zwraca:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Wyjątki:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
         <target state="translated">Uwagi:</target>

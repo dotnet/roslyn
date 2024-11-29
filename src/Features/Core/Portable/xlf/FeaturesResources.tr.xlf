@@ -3984,11 +3984,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Döndürülenler:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Özel Durumlar:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
         <target state="translated">Açıklamalar:</target>

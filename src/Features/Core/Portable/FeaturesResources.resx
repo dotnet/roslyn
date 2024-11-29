@@ -294,9 +294,6 @@
   <data name="Returns_colon" xml:space="preserve">
     <value>Returns:</value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Remarks_colon" xml:space="preserve">
     <value>Remarks:</value>
   </data>

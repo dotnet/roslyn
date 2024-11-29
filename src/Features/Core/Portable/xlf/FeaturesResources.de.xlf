@@ -3984,11 +3984,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Rückgabewerte:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Ausnahmen:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
         <target state="translated">Hinweise:</target>
