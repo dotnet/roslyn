@@ -163,10 +163,13 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
 
         // make sure all state machine change work is serialized so that cancellation
         // doesn't mess the state up.   
-        _lastTask = _lastTask.SafeContinueWithFromAsync(_ =>
+        _lastTask = ContinueAsync(_lastTask);
+
+        async Task ContinueAsync(Task task)
         {
-            return UpdateStateMachineWorkerAsync(cancellationToken);
-        }, cancellationToken, TaskScheduler.Default);
+            await task.NoThrowAwaitableInternal(captureContext: false);
+            await UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)

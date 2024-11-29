@@ -200,15 +200,6 @@ internal static partial class TaskExtensions
     }
 
     public static Task SafeContinueWithFromAsync(
-       this Task task,
-       Func<Task, Task> continuationFunction,
-       CancellationToken cancellationToken,
-       TaskScheduler scheduler)
-    {
-        return task.SafeContinueWithFromAsync(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
-    }
-
-    public static Task SafeContinueWithFromAsync(
         this Task task,
         Func<Task, Task> continuationFunction,
         CancellationToken cancellationToken,
