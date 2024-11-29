@@ -138,7 +138,7 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
     private async Task NavigateToAsync()
     {
         using var context = _provider.ThreadOperationExecutor.BeginExecute(
-            ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
+            EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
         await _navigableLocation.NavigateToAsync(
             NavigationOptions.Default with { PreferProvisionalTab = true }, context.UserCancellationToken).ConfigureAwait(false);
     }

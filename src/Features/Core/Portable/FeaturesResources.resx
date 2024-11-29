@@ -811,9 +811,6 @@ This version used in: {2}</value>
   <data name="Structures" xml:space="preserve">
     <value>Structures</value>
   </data>
-  <data name="Parameters_colon" xml:space="preserve">
-    <value>Parameters:</value>
-  </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
@@ -1246,6 +1243,9 @@ This version used in: {2}</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
+  </data>
+  <data name="Parameters_colon" xml:space="preserve">
+    <value>Parameters:</value>
   </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>

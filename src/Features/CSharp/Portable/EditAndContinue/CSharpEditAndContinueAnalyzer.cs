@@ -2026,7 +2026,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return FeaturesResources.class_;
 
             case SyntaxKind.StructDeclaration:
-                return CSharpFeaturesResources.struct_;
+                return FeaturesResources.struct_;
 
             case SyntaxKind.InterfaceDeclaration:
                 return FeaturesResources.interface_;
@@ -2237,7 +2237,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return CSharpFeaturesResources.tuple;
 
             case SyntaxKind.LocalFunctionStatement:
-                return CSharpFeaturesResources.local_function;
+                return FeaturesResources.local_function;
 
             case SyntaxKind.DeclarationExpression:
                 return CSharpFeaturesResources.out_var;
