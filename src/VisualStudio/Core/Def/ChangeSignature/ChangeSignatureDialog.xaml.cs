@@ -33,7 +33,7 @@ internal partial class ChangeSignatureDialog : DialogWindow
     public static string Restore { get { return ServicesVSResources.Restore; } }
     public static string Add { get { return ServicesVSResources.Add; } }
     public static string OK { get { return ServicesVSResources.OK; } }
-    public static string Cancel { get { return ServicesVSResources.Cancel; } }
+    public static string Cancel { get { return EditorFeaturesResources.Cancel; } }
     public static string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
     public static string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
 

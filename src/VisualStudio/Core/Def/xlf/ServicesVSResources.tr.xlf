@@ -1909,11 +1909,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
         <target state="translated">Çözümleyici bütünleştirilmiş kodu '{0}' değiştirildi. Visual Studio yeniden başlatılmazsa tanılama yanlış olabilir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">İptal</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Tüm Seçimleri Kaldır</target>

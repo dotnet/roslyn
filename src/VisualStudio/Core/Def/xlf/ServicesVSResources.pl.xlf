@@ -1909,11 +1909,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Zmieniono zestaw analizatora „{0}”. Diagnostyka może nie działać poprawnie do czasu ponownego uruchomienia programu Visual Studio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Anuluj</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Odznacz wszystkie</target>

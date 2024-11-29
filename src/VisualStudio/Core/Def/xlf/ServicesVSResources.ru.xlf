@@ -1909,11 +1909,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Сборка анализатора "{0}" была изменена. Перезапустите Visual Studio, в противном случае диагностика может быть неправильной.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Отмена</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Отменить все</target>

@@ -1909,11 +1909,6 @@ Use a lista suspensa para exibir e mudar entre outros projetos aos quais este ar
         <target state="translated">O assembly do analisador '{0}' mudou. O diagnóstico pode estar incorreto até que o Visual Studio seja reiniciado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Cancelar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Desmarcar Tudo</target>

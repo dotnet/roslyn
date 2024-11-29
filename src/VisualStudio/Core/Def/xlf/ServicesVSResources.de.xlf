@@ -1909,11 +1909,6 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
         <target state="translated">Die Analysetoolassembly "{0}" wurde geändert. Die Diagnose ist bis zu einem Neustart von Visual Studio möglicherweise nicht korrekt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Abbrechen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">Auswahl _aufheben</target>

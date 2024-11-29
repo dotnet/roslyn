@@ -1909,11 +1909,6 @@ V rozevíracím seznamu si můžete zobrazit jiné projekty, ke kterým by tento
         <target state="translated">Sestavení analyzátoru {0} se změnilo. Diagnostika možná nebude odpovídat skutečnosti, dokud se Visual Studio nerestartuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Storno</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Zrušit výběr</target>

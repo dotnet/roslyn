@@ -1909,11 +1909,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">アナライザー アセンブリ '{0}' が変更されました。Visual Studio を再起動するまで正しい診断ができない可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">キャンセル</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">すべて選択解除(_D)</target>

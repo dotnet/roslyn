@@ -1909,11 +1909,6 @@ Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auqu
         <target state="translated">L'assembly d'analyseur '{0}' a été modifié. Les diagnostics seront incorrects jusqu'au redémarrage de Visual Studio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Annuler</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Désélectionner tout</target>

@@ -27,7 +27,7 @@ internal partial class ExtractInterfaceDialog : DialogWindow
     public string SelectAll { get { return ServicesVSResources.Select_All; } }
     public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }
     public string OK { get { return ServicesVSResources.OK; } }
-    public string Cancel { get { return ServicesVSResources.Cancel; } }
+    public string Cancel { get { return EditorFeaturesResources.Cancel; } }
 
     public MemberSelection MemberSelectionControl { get; }
 

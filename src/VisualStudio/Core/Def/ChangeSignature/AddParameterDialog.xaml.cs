@@ -17,7 +17,7 @@ internal partial class AddParameterDialog : DialogWindow
     private readonly AddParameterDialogViewModel _viewModel;
 
     public string OK { get { return ServicesVSResources.OK; } }
-    public string Cancel { get { return ServicesVSResources.Cancel; } }
+    public string Cancel { get { return EditorFeaturesResources.Cancel; } }
     public string ParameterInformation { get { return ServicesVSResources.Parameter_information; } }
     public string TypeNameLabel { get { return ServicesVSResources.Type_Name; } }
     public string ParameterNameLabel { get { return ServicesVSResources.Parameter_Name; } }

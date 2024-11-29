@@ -1909,11 +1909,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">분석기 어셈블리 '{0}'이(가) 변경되었습니다. Visual Studio를 다시 시작할 때까지 진단이 올바르지 않을 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">취소</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">모두 선택 취소(_D)</target>

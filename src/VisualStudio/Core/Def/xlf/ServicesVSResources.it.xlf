@@ -1909,11 +1909,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
         <target state="translated">L'assembly '{0}' dell'analizzatore è stato modificato. È possibile che la diagnostica non sia corretta fino al riavvio di Visual Studio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Annulla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Deseleziona tutto</target>

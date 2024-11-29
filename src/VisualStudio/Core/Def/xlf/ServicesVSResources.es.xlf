@@ -1909,11 +1909,6 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
         <target state="translated">El ensamblado del analizador "{0}" cambió. Los diagnósticos podrían ser incorrectos hasta que se reinicie Visual Studio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">Cancelar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Anular toda la selección</target>

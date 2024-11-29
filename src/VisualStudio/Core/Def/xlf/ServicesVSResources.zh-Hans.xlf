@@ -1909,11 +1909,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">分析器程序集“{0}”已更改。如果不重启 Visual Studio，诊断则可能出错。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="translated">取消</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">取消全选(_D)</target>
