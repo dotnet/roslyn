@@ -167,6 +167,8 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
 
         async Task ContinueAsync(Task task)
         {
+            // We always want to run UpdateStateMachineWorkerAsync no matter what happens with the prior task. So we use
+            // NoThrowAwaitableInternal to ensure that we always continue.
             await task.NoThrowAwaitableInternal(captureContext: false);
             await UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
         }
