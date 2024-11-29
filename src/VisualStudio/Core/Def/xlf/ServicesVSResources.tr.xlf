@@ -2299,16 +2299,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
         <target state="translated">&lt;Bilinmiyor&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">Hayır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Evet</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Bu Adlandırma Stili için bir başlık girin.</target>

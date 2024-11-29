@@ -2299,16 +2299,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">&lt;알 수 없음&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">아니요</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">예</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">이 명명 스타일의 제목을 입력하세요.</target>

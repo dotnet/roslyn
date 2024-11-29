@@ -2299,16 +2299,6 @@ Usare l'elenco a discesa per visualizzare e passare ad altri progetti a cui ques
         <target state="translated">&lt;Sconosciuto&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">No</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Sì</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Immettere un titolo per questo stile di denominazione.</target>

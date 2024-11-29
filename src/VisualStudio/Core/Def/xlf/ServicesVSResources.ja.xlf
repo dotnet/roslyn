@@ -2299,16 +2299,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">&lt;不明&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">いいえ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">はい</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">この名前付けスタイルのタイトルを入力してください。</target>

@@ -2299,16 +2299,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">&lt;Nieznany&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">Nie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Tak</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Wprowadź tytuł dla tego stylu nazewnictwa.</target>

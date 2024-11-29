@@ -2299,16 +2299,6 @@ Use a lista suspensa para exibir e mudar entre outros projetos aos quais este ar
         <target state="translated">&lt;Desconhecido&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">Não</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Sim</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Insira um título para esse Estilo de Nomenclatura.</target>

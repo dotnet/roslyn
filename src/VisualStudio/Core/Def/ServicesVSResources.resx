@@ -426,12 +426,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Unknown2" xml:space="preserve">
     <value>&lt;Unknown&gt;</value>
   </data>
-  <data name="No" xml:space="preserve">
-    <value>No</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
-  </data>
   <data name="Enter_a_title_for_this_Naming_Style" xml:space="preserve">
     <value>Enter a title for this Naming Style.</value>
   </data>

@@ -2299,16 +2299,6 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
         <target state="translated">&lt;Unbekannt&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">Nein</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Ja</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Geben Sie einen Titel für diesen Benennungsstil ein.</target>

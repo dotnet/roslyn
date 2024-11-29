@@ -2299,16 +2299,6 @@ Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auqu
         <target state="translated">&lt;Inconnu&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">Non</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Oui</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Entrez un titre pour ce style de nommage.</target>

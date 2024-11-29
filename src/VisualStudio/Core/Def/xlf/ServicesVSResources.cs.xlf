@@ -2299,16 +2299,6 @@ V rozevíracím seznamu si můžete zobrazit jiné projekty, ke kterým by tento
         <target state="translated">&lt;Neznámý&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">Ne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">Ano</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">Zadejte název tohoto stylu pojmenování.</target>
