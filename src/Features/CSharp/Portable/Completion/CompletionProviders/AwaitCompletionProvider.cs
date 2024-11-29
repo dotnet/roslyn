@@ -89,7 +89,7 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
             if (returnType is null or IErrorTypeSymbol || taskLikeTypes.IsTaskLike(returnType))
                 return null;
 
-            return $"Task<{existingReturnType}>";
+            return $"{nameof(Task)}<{existingReturnType}>";
         }
     }
 
