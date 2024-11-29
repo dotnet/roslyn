@@ -385,10 +385,10 @@ internal static partial class SemanticModelExtensions
                 return CodeAnalysis.Shared.Extensions.SemanticModelExtensions.Pluralize(word);
             }
 
-            if (current.Parent is AnonymousObjectMemberDeclaratorSyntax anonymousObjectMemberDeclarator &&
+            if (current.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: { } nameEquals } anonymousObjectMemberDeclarator &&
                 anonymousObjectMemberDeclarator.Expression == current)
             {
-                return anonymousObjectMemberDeclarator.NameEquals.Name.Identifier.ValueText.ToCamelCase();
+                return nameEquals.Name.Identifier.ValueText.ToCamelCase();
             }
 
             if (current is ConditionalAccessExpressionSyntax conditionalAccess)
