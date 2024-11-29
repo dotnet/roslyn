@@ -6311,4 +6311,34 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             }
             """, index: 1);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58495")]
+    public async Task UseImplicitObjectInitializerToPopulateProperties()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|Test|] x = new() { A = 1, B = 1 };
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    Test x = new() { A = 1, B = 1 };
+                }
+            }
+
+            internal class Test
+            {
+                public int A { get; set; }
+                public int B { get; set; }
+            }
+            """, index: 1);
+    }
 }
