@@ -5608,28 +5608,32 @@ public class Test
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
         public async Task FormatSwitchExpression_ListPatternAligned()
         {
-            var code = @"class C
-{
-    void M()
-    {
-        _ = Array.Empty<string>() switch
-        {
-        [] => 0,
-            _ => 1,
-        };
-    }
-}";
-            var expectedCode = @"class C
-{
-    void M()
-    {
-        _ = Array.Empty<string>() switch
-        {
-            [] => 0,
-            _ => 1,
-        };
-    }
-}";
+            var code = """
+                class C
+                {
+                    void M()
+                    {
+                        _ = Array.Empty<string>() switch
+                        {
+                        [] => 0,
+                            _ => 1,
+                        };
+                    }
+                }
+                """;
+            var expectedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        _ = Array.Empty<string>() switch
+                        {
+                            [] => 0,
+                            _ => 1,
+                        };
+                    }
+                }
+                """;
             await AssertFormatAsync(expectedCode, code);
         }
 
