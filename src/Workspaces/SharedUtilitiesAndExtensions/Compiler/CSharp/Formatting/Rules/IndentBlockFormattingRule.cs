@@ -252,6 +252,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
+        // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
+        // operations are skipped for switch patterns, as they are not formatted like blocks.
         if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
         {
             return;
