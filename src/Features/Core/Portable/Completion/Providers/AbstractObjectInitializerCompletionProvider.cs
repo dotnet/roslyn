@@ -133,6 +133,18 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
     {
         // NOTE: While in C# it is legal to write 'Member = {}' on a member of any of
         // the ruled out types below, it has no effects and is thus a needless recommendation
+        // Example of the above case:
+        /*
+            class C
+            {
+                string S { get; }
+            }
+
+            new C()
+            {
+                S = {},
+            };
+        */
 
         // We avoid some types that are common and easy to rule out
         switch (type.SpecialType)
@@ -144,7 +156,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
             case SpecialType.System_MulticastDelegate:
 
             // We cannot use collection initializers in Array members,
-            // but for members of an array type with a typed rank we can
+            // but for members of an array type with a specified rank we can
             // For example, assuming Array2D is int[,]:
             // Array2D = { [0, 0] = value, [0, 1] = value1 },
             case SpecialType.System_Array:
@@ -161,6 +173,8 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
             var definition = named.OriginalDefinition;
             switch (definition.SpecialType)
             {
+                // We cannot add to an enumerable or enumerator
+                // so we cannot use a collection initializer
                 case SpecialType.System_Collections_Generic_IEnumerable_T:
                 case SpecialType.System_Collections_Generic_IEnumerator_T:
                     return false;
