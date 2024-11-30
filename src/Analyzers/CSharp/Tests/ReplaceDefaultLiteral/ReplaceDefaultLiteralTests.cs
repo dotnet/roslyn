@@ -16,30 +16,24 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDefaultLiteral)]
-public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public ReplaceDefaultLiteralTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpReplaceDefaultLiteralCodeFixProvider());
 
     private static readonly ImmutableArray<LanguageVersion> s_csharp7_1above =
-        ImmutableArray.Create(
-            LanguageVersion.CSharp7_1,
-            LanguageVersion.Latest);
+        [LanguageVersion.CSharp7_1, LanguageVersion.Latest];
 
     private static readonly ImmutableArray<LanguageVersion> s_csharp7below =
-        ImmutableArray.Create(
+        [
             LanguageVersion.CSharp7,
             LanguageVersion.CSharp6,
             LanguageVersion.CSharp5,
             LanguageVersion.CSharp4,
             LanguageVersion.CSharp3,
             LanguageVersion.CSharp2,
-            LanguageVersion.CSharp1);
+            LanguageVersion.CSharp1,
+        ];
 
     private async Task TestWithLanguageVersionsAsync(string initialMarkup, string expectedMarkup, ImmutableArray<LanguageVersion> versions)
     {
@@ -765,9 +759,7 @@ public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProvide
 
     [Theory]
     [InlineData("System.Threading", "CancellationToken", "None")]
-    [InlineData("System", "IntPtr", "Zero")]
-    [InlineData("System", "UIntPtr", "Zero")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified(string @namespace, string type, string member)
+    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified1(string @namespace, string type, string member)
     {
         await TestWithLanguageVersionsAsync(
             $$"""
@@ -791,10 +783,60 @@ public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProvide
     }
 
     [Theory]
-    [InlineData("System.Threading", "CancellationToken", "None")]
     [InlineData("System", "IntPtr", "Zero")]
     [InlineData("System", "UIntPtr", "Zero")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing(string @namespace, string type, string member)
+    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified2(string @namespace, string type, string member)
+    {
+        await TestWithLanguageVersionsAsync(
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    if (default({{@namespace}}.{{type}}) is [||]default) { }
+                }
+            }
+            """,
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    if (default({{@namespace}}.{{type}}) is {{@namespace}}.{{type}}.{{member}}) { }
+                }
+            }
+            """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10]);
+    }
+
+    [Theory]
+    [InlineData("System", "IntPtr", "nint.Zero")]
+    [InlineData("System", "UIntPtr", "nuint.Zero")]
+    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified3(string @namespace, string type, string replacement)
+    {
+        await TestWithLanguageVersionsAsync(
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    if (default({{@namespace}}.{{type}}) is [||]default) { }
+                }
+            }
+            """,
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    if (default({{@namespace}}.{{type}}) is {{replacement}}) { }
+                }
+            }
+            """, [LanguageVersion.CSharp11, LanguageVersion.Latest]);
+    }
+
+    [Theory]
+    [InlineData("System.Threading", "CancellationToken", "None")]
+    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing1(string @namespace, string type, string member)
     {
         await TestWithLanguageVersionsAsync(
             $$"""
@@ -817,6 +859,62 @@ public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, s_csharp7_1above);
+    }
+
+    [Theory]
+    [InlineData("System", "IntPtr", "Zero")]
+    [InlineData("System", "UIntPtr", "Zero")]
+    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing2(string @namespace, string type, string member)
+    {
+        await TestWithLanguageVersionsAsync(
+            $$"""
+            using {{@namespace}};
+            class C
+            {
+                void M()
+                {
+                    if (default({{type}}) is [||]default) { }
+                }
+            }
+            """,
+            $$"""
+            using {{@namespace}};
+            class C
+            {
+                void M()
+                {
+                    if (default({{type}}) is {{type}}.{{member}}) { }
+                }
+            }
+            """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10]);
+    }
+
+    [Theory]
+    [InlineData("System", "IntPtr", "nint.Zero")]
+    [InlineData("System", "UIntPtr", "nuint.Zero")]
+    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing3(string @namespace, string type, string replacement)
+    {
+        await TestWithLanguageVersionsAsync(
+            $$"""
+            using {{@namespace}};
+            class C
+            {
+                void M()
+                {
+                    if (default({{type}}) is [||]default) { }
+                }
+            }
+            """,
+            $$"""
+            using {{@namespace}};
+            class C
+            {
+                void M()
+                {
+                    if (default({{type}}) is {{replacement}}) { }
+                }
+            }
+            """, [LanguageVersion.CSharp11, LanguageVersion.Latest]);
     }
 
     [Theory]
@@ -906,7 +1004,7 @@ public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProvide
                     if (value is [||]default) { }
                 }
             }
-            """, ImmutableArray.Create(LanguageVersion.CSharp7_1));
+            """, [LanguageVersion.CSharp7_1]);
     }
 
     [Fact]
@@ -932,7 +1030,7 @@ public sealed class ReplaceDefaultLiteralTests : AbstractCSharpDiagnosticProvide
                     if (value is null) { }
                 }
             }
-            """, ImmutableArray.Create(LanguageVersion.Latest));
+            """, [LanguageVersion.Latest]);
     }
 
     [Fact]
