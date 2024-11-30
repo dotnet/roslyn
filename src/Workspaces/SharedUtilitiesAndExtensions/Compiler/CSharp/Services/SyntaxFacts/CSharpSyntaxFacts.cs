@@ -72,6 +72,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool SupportsCollectionExpressionNaturalType(ParseOptions options)
         => false;
 
+    public bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
 

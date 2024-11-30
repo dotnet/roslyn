@@ -201,7 +201,10 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // See if we need to generate an invisible member.  If we do, then reset the name
             // back to what then member wants it to be.
-            var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName);
+            var supportsImplicitImplementationOfNonPublicInterfaceMembers = this.Document
+                .GetRequiredLanguageService<ISyntaxFactsService>()
+                .SupportsImplicitImplementationOfNonPublicInterfaceMembers(options);
+            var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName, supportsImplicitImplementationOfNonPublicInterfaceMembers);
             memberName = generateInvisibleMember ? member.Name : memberName;
 
             // The language doesn't allow static abstract implementations of interface methods. i.e,
@@ -222,7 +225,8 @@ internal abstract partial class AbstractImplementInterfaceService
                 addNew, addUnsafe, propertyGenerationBehavior);
         }
 
-        public bool ShouldGenerateInvisibleMember(ParseOptions options, ISymbol member, string memberName)
+        public bool ShouldGenerateInvisibleMember(
+            ParseOptions options, ISymbol member, string memberName, bool supportsImplementingLessAccessibleMember)
         {
             if (Service.HasHiddenExplicitImplementation)
             {
@@ -242,7 +246,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
                 // If the member contains a type is less accessible than type, for which we are implementing it, then
                 // only explicit implementation is valid.
-                if (ContainsTypeLessAccessibleThan(member, State.ClassOrStructType))
+                if (ContainsTypeLessAccessibleThan(member, State.ClassOrStructType, supportsImplementingLessAccessibleMember))
                     return true;
             }
 
