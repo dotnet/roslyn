@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 using static SymbolSpecification;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     private const string Span = """
         namespace System
