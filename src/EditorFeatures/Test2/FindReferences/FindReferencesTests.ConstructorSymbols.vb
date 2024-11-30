@@ -1283,7 +1283,7 @@ End Namespace]]>
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/40848")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60949")>
         Public Async Function TestImplicitObjectCreation(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
