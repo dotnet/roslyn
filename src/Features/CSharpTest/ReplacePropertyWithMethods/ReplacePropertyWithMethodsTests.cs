@@ -2515,4 +2515,31 @@ options: PreferExpressionBodiedMethods);
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75999")]
+    public async Task TestInterfacePropertyWithImplementation()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface I
+            {
+                public virtual string [||]Name
+                {
+                    get
+                    {
+                        return string.Empty;
+                    }
+                }
+            }
+            """,
+            """
+            interface I
+            {
+                public virtual string GetName()
+                {
+                    return string.Empty;
+                }
+            }
+            """);
+    }
 }
