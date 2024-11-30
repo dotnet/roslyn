@@ -84,11 +84,6 @@ internal static class ParameterGenerator
             list = list.Add(ThisKeyword);
         }
 
-        if (parameter.IsParams)
-        {
-            list = list.Add(ParamsKeyword);
-        }
-
         return list;
     }
 

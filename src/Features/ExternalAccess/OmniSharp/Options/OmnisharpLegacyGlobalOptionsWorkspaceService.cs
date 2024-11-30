@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
@@ -54,5 +55,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
         public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value)
         {
         }
+
+        public SyntaxFormattingOptions GetSyntaxFormattingOptions(LanguageServices languageServices)
+            => SyntaxFormattingOptions.CommonDefaults;
     }
 }

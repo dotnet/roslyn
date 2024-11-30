@@ -21,14 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using static CSharpSyntaxTokens;
 
 [ExportLanguageService(typeof(SyntaxGeneratorInternal), LanguageNames.CSharp), Shared]
-internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
-    public CSharpSyntaxGeneratorInternal()
-    {
-    }
-
     public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
 
     public override ISyntaxFacts SyntaxFacts
@@ -135,10 +131,10 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
 
     internal static SyntaxTokenList GetParameterModifiers(
         IParameterSymbol parameter, bool forFunctionPointerReturnParameter = false)
-        => GetParameterModifiers(ParameterIsScoped(parameter), parameter.RefKind, forFunctionPointerReturnParameter);
+        => GetParameterModifiers(ParameterIsScoped(parameter), parameter.RefKind, parameter.IsParams, forFunctionPointerReturnParameter);
 
     internal static SyntaxTokenList GetParameterModifiers(
-        bool isScoped, RefKind refKind, bool forFunctionPointerReturnParameter = false)
+        bool isScoped, RefKind refKind, bool isParams, bool forFunctionPointerReturnParameter = false)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
 
@@ -172,6 +168,9 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
                 result.Add(ReadOnlyKeyword);
                 break;
         }
+
+        if (isParams)
+            result.Add(ParamsKeyword);
 
         return SyntaxFactory.TokenList(result);
     }

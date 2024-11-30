@@ -343,6 +343,7 @@
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_UnassignedInternalRefField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
+                case ErrorCode.WRN_ExperimentalWithMessage:
                     return true;
                 default:
                     return false;

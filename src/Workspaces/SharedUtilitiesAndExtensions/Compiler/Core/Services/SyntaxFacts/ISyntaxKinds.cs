@@ -103,6 +103,7 @@ internal interface ISyntaxKinds
 
     #region names
 
+    int? AliasQualifiedName { get; }
     int GenericName { get; }
     int IdentifierName { get; }
     int QualifiedName { get; }
@@ -231,6 +232,7 @@ internal interface ISyntaxKinds
     int Interpolation { get; }
     int InterpolatedStringText { get; }
     int? IndexerMemberCref { get; }
+    int? PrimaryConstructorBaseType { get; }
 
     #endregion
 }

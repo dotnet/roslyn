@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Collections;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -61,16 +60,18 @@ internal static class ConversionGenerator
             ? CheckedKeyword
             : default;
 
+        var isExplicit = method.ExplicitInterfaceImplementations.Length > 0;
         var hasNoBody = !info.Context.GenerateMethodBodies || method.IsExtern;
+
         var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
-            modifiers: GenerateModifiers(destination, method),
+            modifiers: GenerateModifiers(method, destination),
             implicitOrExplicitKeyword: keyword,
             explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedKeyword,
             type: method.ReturnType.GenerateTypeSyntax(),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
             semicolonToken: hasNoBody ? SemicolonToken : default);
@@ -98,19 +99,22 @@ internal static class ConversionGenerator
         return declaration;
     }
 
-    private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination, IMethodSymbol method)
+    private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination)
     {
-        // Only "static" allowed if we're an explicit impl.
-        if (method.ExplicitInterfaceImplementations.Any())
-        {
-            return method.IsStatic ? [StaticKeyword] : [];
-        }
-        else
-        {
-            // If these appear in interfaces they must be static abstract
-            return destination is CodeGenerationDestination.InterfaceType
-                ? ([StaticKeyword, AbstractKeyword])
-                : ([PublicKeyword, StaticKeyword]);
-        }
+        // If these appear in interfaces they must be static abstract
+        if (destination is CodeGenerationDestination.InterfaceType)
+            return [StaticKeyword, AbstractKeyword];
+
+        using var tokens = TemporaryArray<SyntaxToken>.Empty;
+
+        if (method.ExplicitInterfaceImplementations.Length == 0)
+            tokens.Add(PublicKeyword);
+
+        tokens.Add(StaticKeyword);
+
+        if (method.IsAbstract)
+            tokens.Add(AbstractKeyword);
+
+        return [.. tokens.ToImmutableAndClear()];
     }
 }

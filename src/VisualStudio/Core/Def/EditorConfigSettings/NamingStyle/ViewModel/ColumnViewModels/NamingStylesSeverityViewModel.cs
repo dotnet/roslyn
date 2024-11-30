@@ -52,10 +52,9 @@ internal class NamingStylesSeverityViewModel
     public static ImmutableArray<string> Severities { get; } =
         [
             ServicesVSResources.Disabled,
-            ServicesVSResources.Refactoring_Only,
-            ServicesVSResources.Suggestion,
-            ServicesVSResources.Warning,
-            ServicesVSResources.Error
-,
+            WorkspacesResources.Refactoring_Only,
+            WorkspacesResources.Suggestion,
+            WorkspacesResources.Warning,
+            WorkspacesResources.Error,
         ];
 }

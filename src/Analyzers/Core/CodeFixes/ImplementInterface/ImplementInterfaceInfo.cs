@@ -6,29 +6,27 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal interface IImplementInterfaceInfo
+internal sealed record ImplementInterfaceInfo
 {
     /// <summary>
     /// The class or struct that is implementing the interface.
     /// </summary>
-    INamedTypeSymbol ClassOrStructType { get; }
+    public required INamedTypeSymbol ClassOrStructType { get; init; }
 
     /// <summary>
     /// The specific declaration node for <see cref="ClassOrStructType"/> that the interface implementations should be
     /// added to.
     /// </summary>
-    SyntaxNode ClassOrStructDecl { get; }
-
-    SyntaxNode InterfaceNode { get; }
+    public required SyntaxNode ContextNode { get; init; }
 
     /// <summary>
     /// Set of interfaces to implement.  Normally a single interface (when a user invokes the code action on a single
     /// entry in the interface-list for a type).  However, it may be multiple in the VB case where a user presses
     /// 'enter' at the end of the interfaces list, where we'll implement all the missing members for all listed interfaces.
     /// </summary>
-    ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; }
+    public ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; init; }
 
-    ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; }
-    ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation { get; }
-    ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; }
+    public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; init; } = [];
+    public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation { get; init; } = [];
+    public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; init; } = [];
 }
