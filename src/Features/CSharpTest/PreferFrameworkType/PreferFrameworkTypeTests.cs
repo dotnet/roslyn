@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.PreferFrameworkType;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -293,7 +294,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
         await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
     public async Task TestNint_WithoutNumericIntPtr_CSharp11()
     {
         await TestInRegularAndScript1Async("""
