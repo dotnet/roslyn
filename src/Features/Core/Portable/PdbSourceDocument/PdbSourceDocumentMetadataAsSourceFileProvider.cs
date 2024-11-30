@@ -236,6 +236,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         }
 
         var tempFilePath = Path.Combine(tempPath, projectId.Id.ToString());
+
         // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
         // to retry this a few times.
         var loopCount = 0;
@@ -243,7 +244,10 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         {
             // Protect against infinite loops.
             if (loopCount++ > 10)
+            {
+                _logger?.Log(FeaturesResources.Unable_to_create_0, tempFilePath);
                 return null;
+            }
 
             IOUtilities.PerformIO(() => Directory.CreateDirectory(tempFilePath));
         }
