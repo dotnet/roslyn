@@ -8612,8 +8612,13 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         protected int P1 {get;}
                     }
 
-                    class Class : {|CS0535:{|CS0535:IInterface|}|}
+                    class Class : {|CS0535:IInterface|}
                     {
+                        public void M1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
+
                         public void Method1()
                         {
                             throw new System.NotImplementedException();
@@ -8623,6 +8628,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
+            LanguageVersion = LanguageVersion.CSharp10,
             Options = { AllOptionsOff },
             CodeActionEquivalenceKey = "False;False;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
         }.RunAsync();
@@ -8633,18 +8639,18 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
     {
         await new VerifyCS.Test
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             TestCode = """
-            interface IInterface
-            {
-                protected void M1();
-                protected int P1 {get;}
-            }
+                interface IInterface
+                {
+                    protected void M1();
+                    protected int P1 {get;}
+                }
 
-            class Class : {|CS0535:{|CS0535:IInterface|}|}
-            {
-            }
-            """,
+                class Class : {|CS0535:{|CS0535:IInterface|}|}
+                {
+                }
+                """,
             FixedState =
             {
                 Sources =
@@ -8675,11 +8681,12 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
+            LanguageVersion = LanguageVersion.CSharp10,
             Options = { AllOptionsOff },
             DiagnosticSelector = diagnostics => diagnostics[1],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            CodeActionIndex = 0,
+            CodeActionIndex = 1,
         }.RunAsync();
     }
 
@@ -8715,14 +8722,16 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         protected int P1 {get;}
                     }
 
-                    abstract class Class : {|CS0535:{|CS0535:IInterface|}|}
+                    abstract class Class : {|CS0535:IInterface|}
                     {
+                        public abstract void M1();
                         public abstract void Method1();
                     }
                     """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
+            LanguageVersion = LanguageVersion.CSharp10,
             Options = { AllOptionsOff },
             CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
         }.RunAsync();
@@ -12128,5 +12137,50 @@ interface I
                 public void Reset() => throw new NotImplementedException();
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72380")]
+    public async Task TestImplementProtectedAbstract()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+
+                public class CI : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+            
+                public class CI : I
+                {
+                    public void Another()
+                    {
+                        throw new NotImplementedException();
+                    }
+                
+                    public void Method()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
     }
 }

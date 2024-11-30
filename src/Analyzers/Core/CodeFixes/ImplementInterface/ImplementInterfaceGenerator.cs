@@ -240,9 +240,9 @@ internal abstract partial class AbstractImplementInterfaceService
                 if (member.Name != memberName)
                     return true;
 
-                // If the member is less accessible than type, for which we are implementing it,
-                // then only explicit implementation is valid.
-                if (IsLessAccessibleThan(member, State.ClassOrStructType))
+                // If the member contains a type is less accessible than type, for which we are implementing it, then
+                // only explicit implementation is valid.
+                if (ContainsTypeLessAccessibleThan(member, State.ClassOrStructType))
                     return true;
             }
 

@@ -116,7 +116,7 @@ internal static class ImplementHelpers
         }
     }
 
-    public static bool IsLessAccessibleThan(ISymbol? first, INamedTypeSymbol second)
+    public static bool ContainsTypeLessAccessibleThan(ISymbol? first, INamedTypeSymbol second)
     {
         if (first is null)
             return false;
@@ -127,19 +127,16 @@ internal static class ImplementHelpers
             return false;
         }
 
-        if (first.DeclaredAccessibility < second.DeclaredAccessibility)
-            return true;
-
         switch (first)
         {
             case IPropertySymbol propertySymbol:
                 if (IsTypeLessAccessibleThanOtherType(propertySymbol.Type, second, []))
                     return true;
 
-                if (IsLessAccessibleThan(propertySymbol.GetMethod, second))
+                if (ContainsTypeLessAccessibleThan(propertySymbol.GetMethod, second))
                     return true;
 
-                if (IsLessAccessibleThan(propertySymbol.SetMethod, second))
+                if (ContainsTypeLessAccessibleThan(propertySymbol.SetMethod, second))
                     return true;
 
                 return false;

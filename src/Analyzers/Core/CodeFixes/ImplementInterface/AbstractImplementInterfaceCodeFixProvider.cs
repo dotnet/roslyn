@@ -137,7 +137,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                 {
                     totalMemberCount++;
 
-                    if (IsLessAccessibleThan(member, state.ClassOrStructType))
+                    if (ContainsTypeLessAccessibleThan(member, state.ClassOrStructType))
                         inaccessibleMemberCount++;
                 }
             }
