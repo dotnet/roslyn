@@ -142,7 +142,8 @@ internal abstract partial class AbstractDefinitionLocationService(
         // Ok, we were already on the definition. Look for better symbols we could show results for instead. This can be
         // expanded with other mappings in the future if appropriate.
         return await TryGetExplicitInterfaceLocationAsync().ConfigureAwait(false) ??
-               await TryGetInterceptedLocationAsync().ConfigureAwait(false);
+               await TryGetInterceptedLocationAsync().ConfigureAwait(false) ??
+               await TryGetOtherPartOfPartialAsync().ConfigureAwait(false);
 
         async ValueTask<INavigableLocation?> TryGetExplicitInterfaceLocationAsync()
         {
@@ -250,6 +251,24 @@ internal abstract partial class AbstractDefinitionLocationService(
                     return true;
                 });
             }
+        }
+        async ValueTask<INavigableLocation?> TryGetOtherPartOfPartialAsync()
+        {
+            ISymbol? otherPart = symbol is IMethodSymbol method ? method.PartialDefinitionPart ?? method.PartialImplementationPart : null;
+            otherPart ??= symbol is IPropertySymbol property ? property.PartialDefinitionPart ?? property.PartialImplementationPart : null;
+
+            if (otherPart is null || Equals(symbol, otherPart))
+                return null;
+
+            if (otherPart.Locations is not [{ SourceTree: { } sourceTree, SourceSpan: var span }])
+                return null;
+
+            var document = solution.GetDocument(sourceTree);
+            if (document is null)
+                return null;
+
+            var documentSpan = new DocumentSpan(document, span);
+            return await documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
