@@ -6876,7 +6876,7 @@ partial struct CustomHandler
         Assert.Equal(locationSpecifier.GetHashCode(), model.GetInterceptableLocation(node)!.GetHashCode());
 
         // If Data changes it might be the case that 'SourceText.GetContentHash()' has changed algorithms.
-        // In this case we need to adjust the SourceMethodSymbolWithAttributes.DecodeInterceptsLocationAttribute impl to remain compatible with v1 and consider introducing a v2 which uses the new content hash algorithm.
+        // In this case we need to adjust the SourceMethodSymbol.DecodeInterceptsLocationAttribute impl to remain compatible with v1 and consider introducing a v2 which uses the new content hash algorithm.
         AssertEx.Equal("xRCCFCvTOZMORzSr/fZQFlIAAABQcm9ncmFtLmNz", locationSpecifier.Data);
         AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "xRCCFCvTOZMORzSr/fZQFlIAAABQcm9ncmFtLmNz")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
 

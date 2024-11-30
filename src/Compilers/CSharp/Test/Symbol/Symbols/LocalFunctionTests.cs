@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -422,6 +423,106 @@ class C
                         => string.Empty;
                 }
                 """).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ContainingSymbol_LocalFunction()
+        {
+            var source = """
+public class C
+{
+    public void M()
+    {
+        local();
+        void local() { }
+    }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "local()");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void local()", symbol.ToTestDisplayString());
+            Assert.Equal("void C.M()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75543")]
+        public void ContainingSymbol_ConstructedLocalFunction()
+        {
+            var source = """
+public class C
+{
+    public void M()
+    {
+        local(new C());
+        void local<T>(T t) { }
+    }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "local(new C())");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void local<C>(C t)", symbol.ToTestDisplayString());
+            Assert.Equal("void C.M()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75543")]
+        public void ContainingSymbol_ConstructedLocalFunction_Nested()
+        {
+            var source = """
+public class C<T1>
+{
+    public void M<T2>()
+    {
+        outer<int>();
+
+        void outer<T3>()
+        {
+            local(42);
+            void local<T4>(T4 t) { }
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "local(42)");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void local<System.Int32>(System.Int32 t)", symbol.ToTestDisplayString());
+            Assert.Equal("void outer<T3>()", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("void C<T1>.M<T2>()", symbol.ContainingSymbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ContainingSymbol_ConstructedMethod()
+        {
+            var source = """
+C<int>.M<string>();
+
+public class C<T1>
+{
+    public static void M<T2>() { }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "C<int>.M<string>()");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void C<System.Int32>.M<System.String>()", symbol.ToTestDisplayString());
+            Assert.Equal("C<System.Int32>", symbol.ContainingSymbol.ToTestDisplayString());
         }
     }
 }

@@ -202,7 +202,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -226,7 +225,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -250,7 +248,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -275,7 +272,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -301,7 +297,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -328,7 +323,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -353,7 +347,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -383,7 +376,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -407,7 +399,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -431,7 +422,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
         }.RunAsync();
     }
 
@@ -455,7 +445,6 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
         await new VerifyCS.Test
         {
             TestCode = text,
-            FixedCode = text,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }

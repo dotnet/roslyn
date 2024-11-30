@@ -422,6 +422,11 @@
         <target state="translated">튜플을 사용하여 값 바꾸기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_unbound_generic_type">
+        <source>Use unbound generic type</source>
+        <target state="new">Use unbound generic type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
         <source>Using directives must be placed inside of a namespace declaration</source>
         <target state="translated">Using 지시문은 namespace 선언 내부에 배치되어야 합니다.</target>

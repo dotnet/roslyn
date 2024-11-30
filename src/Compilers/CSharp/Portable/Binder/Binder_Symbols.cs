@@ -1373,14 +1373,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
-                // Note: lookup won't have reported this, since the arity was correct.
-                // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
-                Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                if (this.IsInsideNameof)
+                {
+                    // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
+                    CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureUnboundGenericTypesInNameof, diagnostics);
 
-                // If the syntax looks like an unbound generic type, then they probably wanted the definition.
-                // Give an error indicating that the syntax is incorrect and then use the definition.
-                // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
-                // outside a typeof.
+                    // From the spec:
+                    //
+                    // Member lookup on an unbound type expression will be performed the same way as for a `this`
+                    // expression within that type declaration.
+                    //
+                    // So we want to just return the originating type symbol as is (e.g. List<T> in nameof(List<>)).
+                    // This is distinctly different than how typeof(List<>) works, where it returns an unbound generic
+                    // type.
+                }
+                else
+                {
+                    // Note: lookup won't have reported this, since the arity was correct.
+                    // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
+
+                    // If the syntax looks like an unbound generic type, then they probably wanted the definition.
+                    // Give an error indicating that the syntax is incorrect and then use the definition.
+                    // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
+                    // outside a typeof.
+                    Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                }
+
                 return type;
             }
             else

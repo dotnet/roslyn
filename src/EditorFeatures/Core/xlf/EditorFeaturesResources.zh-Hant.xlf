@@ -17,11 +17,6 @@
         <target state="translated">正在套用變更</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">無法巡覽至插入號下的符號。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">正在計算 [封裝欄位] 資訊</target>
@@ -44,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
+        <target state="translated">無法使用 '使用 Copilot 描述'，因為貴組織已排除參照的文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -795,11 +790,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">重新命名作業未正確完成。部分檔案可能尚未更新。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">將 '{0}' 重新命名為 '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">

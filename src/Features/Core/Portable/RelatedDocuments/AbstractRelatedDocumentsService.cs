@@ -135,7 +135,7 @@ internal abstract class AbstractRelatedDocumentsService<
             foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
             {
                 var documentId = solution.GetDocument(syntaxReference.SyntaxTree)?.Id;
-                if (documentId != null && seenDocumentIds.Add(documentId))
+                if (documentId != null && !documentId.IsSourceGenerated && seenDocumentIds.Add(documentId))
                     callback(documentId);
             }
         }

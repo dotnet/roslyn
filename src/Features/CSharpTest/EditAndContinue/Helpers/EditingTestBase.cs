@@ -62,7 +62,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             "class" => FeaturesResources.class_,
             "interface" => FeaturesResources.interface_,
             "delegate" => FeaturesResources.delegate_,
-            "struct" => CSharpFeaturesResources.struct_,
+            "struct" => FeaturesResources.struct_,
             "record" or "record class" => CSharpFeaturesResources.record_,
             "record struct" => CSharpFeaturesResources.record_struct,
             "static constructor" => FeaturesResources.static_constructor,

@@ -14,12 +14,6 @@ using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 
 namespace Roslyn.Utilities;
 
-#if CODE_STYLE
-using Resources = CodeStyleResources;
-#else
-using Resources = WorkspacesResources;
-#endif
-
 /// <summary>
 /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
 /// </summary>
@@ -435,7 +429,7 @@ internal sealed partial class ObjectWriter : IDisposable
         }
         else
         {
-            throw new ArgumentException(Resources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
+            throw new ArgumentException(CompilerExtensionsResources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
         }
     }
 

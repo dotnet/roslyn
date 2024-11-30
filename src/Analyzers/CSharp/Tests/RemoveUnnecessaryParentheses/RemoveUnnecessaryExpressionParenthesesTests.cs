@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -20,17 +21,16 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
-    private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
+    private async Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initial,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        bool offeredWhenRequireForClarityIsEnabled, int index = 0)
     {
         await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
 
@@ -3454,6 +3454,30 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                     var U = 8;
                     var N = 9;
                     var x = Goo(N < T, (U > (5 + 0)));
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestRemoveAroundCollectionExpression()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    int[] a = b ? $$([1]) : []; 
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    int[] a = b ? [1] : []; 
                 }
             }
             """);

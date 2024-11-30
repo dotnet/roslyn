@@ -4,9 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -152,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.FollowingCR,         // CR
                 (byte)QuickScanState.DoneAfterNext,       // LF
                 (byte)QuickScanState.Done,                // Letter
-                (byte)QuickScanState.Number,              // Digit
+                (byte)QuickScanState.Bad,                 // Dot followed by number.  Could be a fp `.0` or could be a range + num `..0`.  Can't tell here.
                 (byte)QuickScanState.Done,                // Punct
                 (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound

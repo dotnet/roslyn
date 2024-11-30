@@ -14448,7 +14448,7 @@ End Class
 <errors>
 BC32106: Type argument 'T' does not satisfy the 'Class' constraint for type parameter 'T2'.
     Dim field As List(Of (T, T))
-                             ~
+        ~~~~~
 BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type parameter 'T2'.
     Function M(Of U)(x As U) As (U, U)
                                 ~~~~~~
@@ -14516,7 +14516,7 @@ End Class
 <errors>
 BC32105: Type argument 'T' does not satisfy the 'Structure' constraint for type parameter 'T2'.
     Dim field As List(Of (T, T))
-                             ~
+        ~~~~~
 BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T2'.
     Function M(Of U As Class)(x As (U, U)) As (U, U)
                               ~

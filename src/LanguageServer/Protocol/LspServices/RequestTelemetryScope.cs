@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -29,6 +30,9 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
 
     public override void RecordException(Exception exception)
     {
+        // Report a NFW report for the request failure, as well as recording statistics on the failure.
+        ReportNonFatalError(exception);
+
         _result = RequestTelemetryLogger.Result.Failed;
     }
 
@@ -42,5 +46,19 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
         var requestDuration = _stopwatch.Elapsed;
 
         _telemetryLogger.UpdateTelemetryData(Name, Language, _queuedDuration, requestDuration, _result);
+    }
+
+    private static void ReportNonFatalError(Exception exception)
+    {
+        if (exception is StreamJsonRpc.LocalRpcException localRpcException && localRpcException.ErrorCode == LspErrorCodes.ContentModified)
+        {
+            // We throw content modified exceptions when asked to resolve code lens / inlay hints associated with a solution version we no longer have.
+            // This generally happens when the project changes underneath us.  The client is eventually told to refresh,
+            // but they can send us resolve requests for prior versions before they see the refresh.
+            // There is no need to report these exceptions as NFW since they are expected to occur in normal workflows.
+            return;
+        }
+
+        FatalError.ReportAndPropagateUnlessCanceled(exception, ErrorSeverity.Critical);
     }
 }

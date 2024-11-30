@@ -185,8 +185,27 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             cpsProject.SetOptions(ImmutableArray.Create("/checksumalgorithm:SHA1"));
 
-            var project = environment.Workspace.CurrentSolution.Projects.Single();
             Assert.Equal(SourceHashAlgorithm.Sha1, environment.Workspace.CurrentSolution.Projects.Single().State.ChecksumAlgorithm);
+        }
+
+        [WpfFact]
+        public async Task CompilerGeneratedFilesOutputPath_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+
+            Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+            var path = Path.Combine(TempRoot.Root, "generated");
+            cpsProject.SetOptions(["/generatedfilesout:" + path]);
+
+            AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+            // relative path is relative to the project dir:
+            cpsProject.SetOptions(["/generatedfilesout:gen2"]);
+            AssertEx.AreEqual(
+                Path.Combine(Path.GetDirectoryName(cpsProject.ProjectFilePath), "gen2"),
+                environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
         }
     }
 }

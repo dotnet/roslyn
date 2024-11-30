@@ -106,6 +106,6 @@ internal sealed partial class FormattingOptions2
 internal static class FormattingOptionGroups
 {
     public static readonly OptionGroup FormattingOptionGroup = new(name: "formatting", description: "", parent: CodeStyleOptionGroups.CodeStyle);
-    public static readonly OptionGroup IndentationAndSpacing = new(name: "indentation_and_spacing", description: WorkspacesResources.Indentation_and_spacing, priority: 1, parent: FormattingOptionGroup);
-    public static readonly OptionGroup NewLine = new(name: "new_line", description: WorkspacesResources.New_line_preferences, priority: 2, parent: FormattingOptionGroup);
+    public static readonly OptionGroup IndentationAndSpacing = new(name: "indentation_and_spacing", description: CompilerExtensionsResources.Indentation_and_spacing, priority: 1, parent: FormattingOptionGroup);
+    public static readonly OptionGroup NewLine = new(name: "new_line", description: CompilerExtensionsResources.New_line_preferences, priority: 2, parent: FormattingOptionGroup);
 }

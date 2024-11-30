@@ -25,7 +25,6 @@ public partial class UseObjectInitializerTests
         var test = new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         };
 
         if (languageVersion != null)
