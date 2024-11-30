@@ -252,6 +252,11 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
+        if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
+        {
+            return;
+        }
+
         var bracketPair = node.GetBracketPair();
 
         if (!bracketPair.IsValidBracketOrBracePair())
@@ -259,13 +264,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
         {
-            // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
             AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
-
-            if (IsSwitchExpressionPattern(node))
-            {
-                return;
-            }
 
             // If we have:
             //
@@ -282,11 +281,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
-    }
-
-    private static bool IsSwitchExpressionPattern(SyntaxNode node)
-    {
-        return node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node;
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
