@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PreferFrameworkType;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
+internal sealed class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
     PreferFrameworkTypeDiagnosticAnalyzerBase<
         SyntaxKind,
         ExpressionSyntax,
@@ -30,9 +30,22 @@ internal class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
 
     // Only offer to change nint->System.IntPtr when it would preserve semantics exactly.
     protected override bool IsIdentifierNameReplaceableWithFrameworkType(SemanticModel semanticModel, IdentifierNameSyntax node)
-        => (node.IsNint || node.IsNuint) &&
-           semanticModel.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9 &&
-           semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
+    {
+        if (node.IsNint || node.IsNuint)
+        {
+            var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
+
+            // In C# 11 we made it so that IntPtr and nint are identical, with no difference in semantics at all.
+            if (languageVersion >= LanguageVersion.CSharp11)
+                return true;
+
+            // For C# 9 and 10, the types are only identical if the runtime unifies them.
+            if (languageVersion >= LanguageVersion.CSharp9 && semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+                return true;
+        }
+
+        return false;
+    }
 
     protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
         => node.IsDirectChildOfMemberAccessExpression() || node.InsideCrefReference();
