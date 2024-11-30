@@ -17,11 +17,6 @@
         <target state="translated">Ajouter une instruction case par défaut</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Ajouter un cast explicite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Ajouter un en-tête de fichier</target>

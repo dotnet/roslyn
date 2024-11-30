@@ -97,16 +97,6 @@
         <target state="translated">Element „FixAllScope.Custom” nie jest obsługiwany w tym interfejsie API</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indentation_and_spacing">
-        <source>Indentation and spacing</source>
-        <target state="translated">Wcięcia i odstępy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_line_preferences">
-        <source>New line preferences</source>
-        <target state="translated">Preferencje nowego wiersza</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
         <source>Only submission project can reference submission projects.</source>
         <target state="translated">Tylko przesyłany projekt może odwoływać się do przesyłanych projektów.</target>
@@ -342,16 +332,6 @@
         <target state="translated">'Element „{0}” nie jest otwarty.</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
-        <source>A language name cannot be specified for this option.</source>
-        <target state="translated">Nie można określić nazwy języka dla tej opcji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_must_be_specified_for_this_option">
-        <source>A language name must be specified for this option.</source>
-        <target state="translated">Nazwa języka musi zostać określona dla tej opcji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">Plik został zmodyfikowany na zewnątrz: {0}.</target>
@@ -395,11 +375,6 @@
       <trans-unit id="_0_is_still_open">
         <source>{0} is still open.</source>
         <target state="translated">Element {0} jest nadal otwarty.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Wartość jest zbyt duża, dlatego nie może być reprezentowana jako 30-bitowa liczba całkowita bez znaku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -595,11 +570,6 @@
       <trans-unit id="Show_Stack_Trace">
         <source>Show Stack Trace</source>
         <target state="translated">Pokaż ślad stosu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Stream_is_too_long">
-        <source>Stream is too long.</source>
-        <target state="translated">Strumień jest za długi.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

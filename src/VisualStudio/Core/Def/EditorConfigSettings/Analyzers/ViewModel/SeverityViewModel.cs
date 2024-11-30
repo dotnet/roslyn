@@ -13,10 +13,10 @@ internal class SeverityViewModel
     private static readonly string[] s_severities =
     [
         ServicesVSResources.Disabled,
-        ServicesVSResources.Refactoring_Only,
-        ServicesVSResources.Suggestion,
-        ServicesVSResources.Warning,
-        ServicesVSResources.Error
+        WorkspacesResources.Refactoring_Only,
+        WorkspacesResources.Suggestion,
+        WorkspacesResources.Warning,
+        WorkspacesResources.Error
     ];
 
     private readonly int _selectedSeverityIndex;

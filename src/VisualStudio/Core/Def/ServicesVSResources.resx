@@ -156,21 +156,6 @@
   <data name="Preview_unavailable" xml:space="preserve">
     <value>Preview unavailable</value>
   </data>
-  <data name="Overrides_" xml:space="preserve">
-    <value>Overrides</value>
-  </data>
-  <data name="Overridden_By" xml:space="preserve">
-    <value>Overridden By</value>
-  </data>
-  <data name="Inherits_" xml:space="preserve">
-    <value>Inherits</value>
-  </data>
-  <data name="Implements_" xml:space="preserve">
-    <value>Implements</value>
-  </data>
-  <data name="Implemented_By" xml:space="preserve">
-    <value>Implemented By</value>
-  </data>
   <data name="Invalid_access" xml:space="preserve">
     <value>Invalid access.</value>
   </data>
@@ -222,26 +207,11 @@
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Member_of_0" xml:space="preserve">
     <value>Member of {0}</value>
   </data>
-  <data name="Parameters_colon1" xml:space="preserve">
-    <value>Parameters:</value>
-  </data>
   <data name="Project" xml:space="preserve">
     <value>Project </value>
-  </data>
-  <data name="Remarks_colon" xml:space="preserve">
-    <value>Remarks:</value>
-  </data>
-  <data name="Returns_colon" xml:space="preserve">
-    <value>Returns:</value>
-  </data>
-  <data name="Summary_colon" xml:space="preserve">
-    <value>Summary:</value>
   </data>
   <data name="Type_Parameters_colon" xml:space="preserve">
     <value>Type Parameters:</value>
@@ -285,14 +255,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted" xml:space="preserve">
     <value>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
   <data name="Deselect_All" xml:space="preserve">
     <value>_Deselect All</value>
-  </data>
-  <data name="Extract_Interface" xml:space="preserve">
-    <value>Extract Interface</value>
   </data>
   <data name="Generated_name_colon" xml:space="preserve">
     <value>Generated name:</value>
@@ -320,9 +284,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Add_to_current_file" xml:space="preserve">
     <value>Add to _current file</value>
-  </data>
-  <data name="Change_Signature" xml:space="preserve">
-    <value>Change Signature</value>
   </data>
   <data name="Create_new_file" xml:space="preserve">
     <value>_Create new file</value>
@@ -408,15 +369,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="_1_reference" xml:space="preserve">
     <value>1 reference</value>
   </data>
-  <data name="_0_encountered_an_error_and_has_been_disabled" xml:space="preserve">
-    <value>'{0}' encountered an error and has been disabled.</value>
-  </data>
-  <data name="Enable" xml:space="preserve">
-    <value>Enable</value>
-  </data>
-  <data name="Enable_and_ignore_future_errors" xml:space="preserve">
-    <value>Enable and ignore future errors</value>
-  </data>
   <data name="No_Changes" xml:space="preserve">
     <value>No Changes</value>
   </data>
@@ -425,9 +377,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Determining_current_block" xml:space="preserve">
     <value>Determining current block.</value>
-  </data>
-  <data name="IntelliSense" xml:space="preserve">
-    <value>IntelliSense</value>
   </data>
   <data name="MissingAnalyzerReference" xml:space="preserve">
     <value>MissingAnalyzerReference</value>
@@ -476,12 +425,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Unknown2" xml:space="preserve">
     <value>&lt;Unknown&gt;</value>
-  </data>
-  <data name="No" xml:space="preserve">
-    <value>No</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
   </data>
   <data name="Enter_a_title_for_this_Naming_Style" xml:space="preserve">
     <value>Enter a title for this Naming Style.</value>
@@ -630,9 +573,6 @@ Additional information: {1}</value>
   </data>
   <data name="Block_Structure_Guides" xml:space="preserve">
     <value>Block Structure Guides</value>
-  </data>
-  <data name="Outlining" xml:space="preserve">
-    <value>Outlining</value>
   </data>
   <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
     <value>Show guides for code level constructs</value>
@@ -837,6 +777,12 @@ Additional information: {1}</value>
   </data>
   <data name="In_other_operators" xml:space="preserve">
     <value>In other operators</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
   </data>
   <data name="Never_if_unnecessary" xml:space="preserve">
     <value>Never if unnecessary</value>
@@ -1066,9 +1012,6 @@ Additional information: {1}</value>
   <data name="A_type_and_name_must_be_provided" xml:space="preserve">
     <value>A type and name must be provided.</value>
   </data>
-  <data name="Rename_0_to_1" xml:space="preserve">
-    <value>Rename {0} to {1}</value>
-  </data>
   <data name="NamingSpecification_CSharp_Class" xml:space="preserve">
     <value>class</value>
     <comment>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</comment>
@@ -1294,9 +1237,6 @@ Additional information: {1}</value>
   <data name="Value_to_inject_at_call_sites" xml:space="preserve">
     <value>Value to inject at call sites</value>
   </data>
-  <data name="Value_colon" xml:space="preserve">
-    <value>Value:</value>
-  </data>
   <data name="Editor_Color_Scheme" xml:space="preserve">
     <value>Editor Color Scheme</value>
   </data>
@@ -1364,9 +1304,6 @@ Additional information: {1}</value>
   <data name="Infer_from_context" xml:space="preserve">
     <value>Infer from context</value>
   </data>
-  <data name="None" xml:space="preserve">
-    <value>None</value>
-  </data>
   <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
     <value>Warning: duplicate parameter name</value>
   </data>
@@ -1406,9 +1343,6 @@ Additional information: {1}</value>
   </data>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
-  </data>
-  <data name="Inline_Hints" xml:space="preserve">
-    <value>Inline Hints</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
@@ -1543,9 +1477,6 @@ Additional information: {1}</value>
   <data name="Enabled" xml:space="preserve">
     <value>Enabled</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
   <data name="Whitespace" xml:space="preserve">
     <value>Whitespace</value>
   </data>
@@ -1555,20 +1486,8 @@ Additional information: {1}</value>
   <data name="Newline_n" xml:space="preserve">
     <value>Newline (\\n)</value>
   </data>
-  <data name="Refactoring_Only" xml:space="preserve">
-    <value>Refactoring Only</value>
-  </data>
-  <data name="Suggestion" xml:space="preserve">
-    <value>Suggestion</value>
-  </data>
-  <data name="Title" xml:space="preserve">
-    <value>Title</value>
-  </data>
   <data name="Value" xml:space="preserve">
     <value>Value</value>
-  </data>
-  <data name="Warning" xml:space="preserve">
-    <value>Warning</value>
   </data>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
@@ -1715,9 +1634,6 @@ Additional information: {1}</value>
   <data name="For_non_interface_members" xml:space="preserve">
     <value>For non interface members</value>
   </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
-  </data>
   <data name="Omit_if_default" xml:space="preserve">
     <value>Omit if default</value>
   </data>
@@ -1754,9 +1670,6 @@ Additional information: {1}</value>
   <data name="Close_tab" xml:space="preserve">
     <value>Close Tab</value>
   </data>
-  <data name="Paste" xml:space="preserve">
-    <value>Paste</value>
-  </data>
   <data name="Stack_trace_0" xml:space="preserve">
     <value>Stack Trace {0}</value>
     <comment>Header for numbered stack trace view tabs</comment>
@@ -1779,9 +1692,6 @@ Additional information: {1}</value>
   </data>
   <data name="External_sources" xml:space="preserve">
     <value>External Sources</value>
-  </data>
-  <data name="Call_Hierarchy" xml:space="preserve">
-    <value>Call Hierarchy</value>
   </data>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating</value>
@@ -1819,9 +1729,6 @@ Additional information: {1}</value>
   </data>
   <data name="Document_Outline_Search" xml:space="preserve">
     <value>Search Document Outline</value>
-  </data>
-  <data name="Rename" xml:space="preserve">
-    <value>Rename</value>
   </data>
   <data name="Rename_asynchronously_experimental" xml:space="preserve">
     <value>Rename asynchronously (experimental)</value>
@@ -1945,5 +1852,80 @@ Additional information: {1}</value>
   </data>
   <data name="Automatically_reload_updated_analyzers_and_generators" xml:space="preserve">
     <value>Automatically reload updated analyzers and generators (requires restart)</value>
+  </data>
+  <data name="Insert_Snippet" xml:space="preserve">
+    <value>Insert Snippet</value>
+  </data>
+  <data name="Show_procedure_line_separators" xml:space="preserve">
+    <value>_Show procedure line separators</value>
+  </data>
+  <data name="Editor_Help" xml:space="preserve">
+    <value>Editor Help</value>
+  </data>
+  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
+    <value>Highlight related _keywords under cursor</value>
+  </data>
+  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
+    <value>_Highlight references to symbol under cursor</value>
+  </data>
+  <data name="Optimize_for_solution_size" xml:space="preserve">
+    <value>Optimize for solution size</value>
+  </data>
+  <data name="Large" xml:space="preserve">
+    <value>Large</value>
+  </data>
+  <data name="Regular" xml:space="preserve">
+    <value>Regular</value>
+  </data>
+  <data name="Small" xml:space="preserve">
+    <value>Small</value>
+  </data>
+  <data name="Performance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
+    <value>_Show completion list after a character is typed</value>
+  </data>
+  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>_Highlight matching portions of completion list items</value>
+  </data>
+  <data name="Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item _filters</value>
+  </data>
+  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Snippets_behavior" xml:space="preserve">
+    <value>Snippets behavior</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is _deleted</value>
+  </data>
+  <data name="Never_include_snippets" xml:space="preserve">
+    <value>Never include snippets</value>
+  </data>
+  <data name="Always_add_new_line_on_enter" xml:space="preserve">
+    <value>_Always add new line on enter</value>
+  </data>
+  <data name="Never_add_new_line_on_enter" xml:space="preserve">
+    <value>_Never add new line on enter</value>
+  </data>
+  <data name="Highlighting" xml:space="preserve">
+    <value>Highlighting</value>
+  </data>
+  <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
+    <value>Show remarks in Quick Info</value>
+  </data>
+  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Show items from unimported namespaces</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="Enter_key_behavior_colon" xml:space="preserve">
+    <value>Enter key behavior:</value>
+  </data>
+  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
+    <value>Show preview for rename _tracking</value>
   </data>
 </root>
