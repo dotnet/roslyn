@@ -14806,9 +14806,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemIsAbsentAsync(markup, "X");
-        await VerifyItemIsAbsentAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
@@ -14830,9 +14831,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemIsAbsentAsync(markup, "X");
-        await VerifyItemIsAbsentAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
@@ -14856,9 +14858,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemIsAbsentAsync(markup, "X");
-        await VerifyItemIsAbsentAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
@@ -14879,15 +14882,15 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemExistsAsync(markup, "X");
-        await VerifyItemExistsAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
     [InlineData("record class")]
-    // Skip is not respected by the runner
-    //[InlineData("class", Skip = "Class primary constructor parameter used in base constructor not recommended even inside nameof")]
+    [InlineData("class")]
     public async Task RecommendedPrimaryConstructorParameters05(string typeKind)
     {
         var markup = $$"""
@@ -14904,15 +14907,15 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemExistsAsync(markup, "X");
-        await VerifyItemExistsAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
     [InlineData("record")]
-    // Skip is not respected by the runner
-    //[InlineData("class", Skip = "Class primary constructor parameter used in base constructor not recommended even inside nameof")]
+    [InlineData("class")]
     public async Task RecommendedPrimaryConstructorParameters06(string typeKind)
     {
         var markup = $$"""
@@ -14931,9 +14934,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemExistsAsync(markup, "X");
-        await VerifyItemExistsAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
@@ -14956,9 +14960,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemIsAbsentAsync(markup, "X");
-        await VerifyItemExistsAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
@@ -14981,9 +14986,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
             }
             """;
-
-        await VerifyItemExistsAsync(markup, "X");
-        await VerifyItemExistsAsync(markup, "Y");
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
     }
 
     private static string MakeMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, string languageVersion = "Preview")
