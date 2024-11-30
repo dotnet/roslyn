@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpImplementAbstractClassCodeFixProvider());
@@ -2551,6 +2551,38 @@ class D<T> : B<{passToBase}>{constraint}
                     throw new System.NotImplementedException();
                 }
             }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
+    public async Task InsertMissingBraces()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            abstract class A
+            {
+                public abstract void M();
+            }
+
+            class [|B|] : A
+
+            file class C;
+            """,
+            """
+            abstract class A
+            {
+                public abstract void M();
+            }
+
+            class B : A
+            {
+                public override void M()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+
+            file class C;
             """);
     }
 }
