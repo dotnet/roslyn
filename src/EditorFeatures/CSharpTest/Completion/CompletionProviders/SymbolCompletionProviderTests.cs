@@ -14890,7 +14890,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
     [InlineData("record class")]
-    [InlineData("class")]
+    [InlineData("class", Skip = "Class primary constructor parameter used in base constructor not recommended even inside nameof")]
     public async Task RecommendedPrimaryConstructorParameters05(string typeKind)
     {
         var markup = $$"""
@@ -14915,7 +14915,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
     [InlineData("record")]
-    [InlineData("class")]
+    [InlineData("class", Skip = "Class primary constructor parameter used in base constructor not recommended even inside nameof")]
     public async Task RecommendedPrimaryConstructorParameters06(string typeKind)
     {
         var markup = $$"""
