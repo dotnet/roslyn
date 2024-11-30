@@ -14096,4 +14096,27 @@ public sealed class RemoveUnnecessaryCastTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68307")]
+    [InlineData(nameof(Delegate))]
+    [InlineData(nameof(MulticastDelegate))]
+    public async Task KeepNecessaryCastToDelegateAssignedToObject(string typeName)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    public void M()
+                    {
+                        object o = ({{typeName}})Console.Clear;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
