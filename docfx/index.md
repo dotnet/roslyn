@@ -6,4 +6,4 @@ _layout: landing
 
 This is your docfx landing page.
 
-Click "Docs" across the top to get get started.
+Click "Docs" across the top to get started.
