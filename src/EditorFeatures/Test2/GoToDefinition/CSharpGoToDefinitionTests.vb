@@ -4219,7 +4219,7 @@ public partial class Program
         <Document>
             partial class Test
             {
-                public partial string [|Prop|]()
+                public partial string [|Prop|]
                 {
                     get
                     {
@@ -4252,7 +4252,7 @@ public partial class Program
         <Document>
             partial class Test
             {
-                public partial string $$Prop()
+                public partial string $$Prop
                 {
                     get
                     {

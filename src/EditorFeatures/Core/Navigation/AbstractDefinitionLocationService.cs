@@ -126,15 +126,12 @@ internal abstract partial class AbstractDefinitionLocationService(
     {
         var solution = project.Solution;
 
-        var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
-        if (sourceLocations.Length != 1)
+        if (symbol.DeclaringSyntaxReferences is not [{ SyntaxTree: { } definitionTree, Span: var definitionSpan }])
             return null;
 
-        var definitionLocation = sourceLocations[0];
-        if (!definitionLocation.SourceSpan.IntersectsWith(position))
+        if (!definitionSpan.IntersectsWith(position))
             return null;
 
-        var definitionTree = definitionLocation.SourceTree;
         var definitionDocument = solution.GetDocument(definitionTree);
         if (definitionDocument != originalDocument)
             return null;
