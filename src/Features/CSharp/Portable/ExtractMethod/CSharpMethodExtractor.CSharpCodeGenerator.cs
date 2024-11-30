@@ -472,7 +472,7 @@ internal sealed partial class CSharpMethodExtractor
                             }
 
                             var identifier = designation.Identifier;
-                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+                            var annotation = ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected);
                             var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
                             var newDesignation = designation.WithIdentifier(newIdentifier);
                             replacements.Add(pattern, pattern.WithDesignation(newDesignation));

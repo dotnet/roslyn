@@ -302,7 +302,7 @@ internal abstract partial class AbstractDescriptionBuilder
         if (documentationComment.SummaryText != null)
         {
             AddLineBreak();
-            AddName(ServicesVSResources.Summary_colon);
+            AddName(FeaturesResources.Summary_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.SummaryText, compilation));
@@ -343,7 +343,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Parameters_colon1);
+            AddName(FeaturesResources.Parameters_colon);
 
             foreach (var parameterName in documentationComment.ParameterNames)
             {
@@ -369,7 +369,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Returns_colon);
+            AddName(FeaturesResources.Returns_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.ReturnsText, compilation));
@@ -384,7 +384,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Value_colon);
+            AddName(FeaturesResources.Value_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.ValueText, compilation));
@@ -399,7 +399,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Remarks_colon);
+            AddName(FeaturesResources.Remarks_colon);
             AddLineBreak();
 
             AddText(formattingService.Format(documentationComment.RemarksText, compilation));
@@ -414,7 +414,7 @@ internal abstract partial class AbstractDescriptionBuilder
             }
 
             AddLineBreak();
-            AddName(ServicesVSResources.Exceptions_colon);
+            AddName(WorkspacesResources.Exceptions_colon);
 
             foreach (var exceptionType in documentationComment.ExceptionTypes)
             {
