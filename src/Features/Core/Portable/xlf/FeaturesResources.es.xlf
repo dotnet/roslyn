@@ -2740,6 +2740,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">No se puede leer el archivo de código fuente "{0}" o el PDB compilado para el proyecto que lo contiene. Los cambios realizados en este archivo durante la depuración no se aplicarán hasta que su contenido coincida con el del código fuente compilado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
         <target state="translated">No se ha podido cargar el tipo "{0}": "{1}"</target>
