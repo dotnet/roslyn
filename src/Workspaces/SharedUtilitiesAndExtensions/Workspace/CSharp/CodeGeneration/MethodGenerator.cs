@@ -140,7 +140,6 @@ internal static class MethodGenerator
         return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
     }
 
-
     private static IParameterSymbol FilterAttributes(IParameterSymbol parameter, CodeGenerationDestination destination)
         => parameter.WithAttributes(parameter.GetAttributes().WhereAsArray(static (a, destination) => FilterAttribute(a, destination), destination));
 
