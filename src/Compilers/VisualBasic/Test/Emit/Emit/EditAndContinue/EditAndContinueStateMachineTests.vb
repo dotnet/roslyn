@@ -982,7 +982,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub AsyncMethodOverloads()
             Using New EditAndContinueTest(_logger).
                 AddBaseline(
@@ -1099,7 +1099,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub UpdateIterator_NoVariables()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -1233,7 +1233,7 @@ End Class",
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub UpdateAsync_NoVariables()
             Using New EditAndContinueTest().
                 AddBaseline(

@@ -143,9 +143,14 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
-        - powershell: Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$('$(Build.BuildNumber)')"
+        - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
+          inputs:
+            targetType: inline
+            script: |
+              $originalBuildNumber = "$(Build.BuildNumber)".Split(' - ')[0]
+              Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$originalBuildNumber"
 
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable

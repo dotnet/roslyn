@@ -75,8 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSpecialNames(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -97,8 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameTrivia(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -114,9 +112,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
-        <CombinatorialData>
-        Public Sub CannotRenameCandidateSymbol(host As RenameTestHost)
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10914")>
+        Public Sub CanRenameCandidateSymbol(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -132,12 +131,11 @@ class Program
                         </Project>
                     </Workspace>, host)
 
-                AssertTokenNotRenamable(workspace)
+                AssertTokenRenamable(workspace)
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSyntheticDefinition(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -158,8 +156,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameXmlLiteralProperty(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -176,8 +173,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSymbolDefinedInMetaData(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -198,8 +194,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSymbolInReadOnlyBuffer(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -227,8 +222,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSymbolThatBindsToErrorType(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -249,8 +243,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
         Public Sub CannotRenameSynthesizedParameters(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -635,8 +628,7 @@ namespace System
         End Sub
 
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/14600")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteralRegress14600(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(

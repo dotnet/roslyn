@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -45,13 +49,11 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService = diagnosticAnalyzerService;
 
     /// <summary>
-    /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
-    /// changed. The <see cref="VersionStamp"/> is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
-    /// <see cref="Checksum"/> is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
-    /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
-    /// update the version stamp but not the content (for example, forking LSP text).
+    /// Map of diagnostic category to the diagnostics cache for that category.
+    /// Each category has a separate cache as they have disjoint resultIds and diagnostics.  For example, we may have
+    /// one cache for DocumentSyntax, another for DocumentSemantic, another for WorkspaceSemantic, etc etc.
     /// </summary>
-    private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = [];
+    private readonly ConcurrentDictionary<string, DiagnosticsPullCache> _categoryToVersionedCache = [];
 
     protected virtual bool PotentialDuplicate => false;
 
@@ -156,18 +158,18 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
                 var project = diagnosticSource.GetProject();
+                var cacheState = new DiagnosticsRequestState(project, globalStateVersion, context, diagnosticSource);
 
-                var newResultId = await versionedCache.GetNewResultIdAsync(
+                var newResult = await versionedCache.GetOrComputeNewDataAsync(
                     documentIdToPreviousDiagnosticParams,
                     diagnosticSource.GetId(),
                     project,
-                    computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
-                    computeExpensiveVersionAsync: async () => (globalStateVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
+                    cacheState,
                     cancellationToken).ConfigureAwait(false);
-                if (newResultId != null)
+                if (newResult != null)
                 {
-                    await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, progress, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
+                    ReportCurrentDiagnostics(
+                        diagnosticSource, newResult.Value.Data, progress, newResult.Value.ResultId, clientCapabilities);
                 }
                 else
                 {
@@ -269,16 +271,14 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         }
     }
 
-    private async Task ComputeAndReportCurrentDiagnosticsAsync(
-        RequestContext context,
+    private void ReportCurrentDiagnostics(
         IDiagnosticSource diagnosticSource,
+        ImmutableArray<DiagnosticData> diagnostics,
         BufferedProgress<TReport> progress,
-        string resultId,
-        ClientCapabilities clientCapabilities,
-        CancellationToken cancellationToken)
+        string newResultId,
+        ClientCapabilities clientCapabilities)
     {
         using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-        var diagnostics = await diagnosticSource.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
 
         // If we can't get a text document identifier we can't report diagnostics for this source.
         // This can happen for 'fake' projects (e.g. used for TS script blocks).
@@ -290,12 +290,10 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             return;
         }
 
-        context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
-
         foreach (var diagnostic in diagnostics)
             result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-        var report = CreateReport(documentIdentifier, result.ToArray(), resultId);
+        var report = CreateReport(documentIdentifier, result.ToArray(), newResultId);
         progress.Report(report);
     }
 

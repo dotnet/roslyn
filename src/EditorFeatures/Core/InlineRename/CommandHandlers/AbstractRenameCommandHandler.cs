@@ -6,6 +6,8 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 internal abstract partial class AbstractRenameCommandHandler(
     IThreadingContext threadingContext,
     InlineRenameService renameService,
+    IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener)
 {
     public string DisplayName => EditorFeaturesResources.Rename;
@@ -57,6 +60,7 @@ internal abstract partial class AbstractRenameCommandHandler(
 
         if (renameService.ActiveSession.IsCommitInProgress)
         {
+            // When rename commit is in progress, swallow the command so it won't change the workspace
             return;
         }
 
@@ -78,9 +82,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            // It's in a read-only area that is open, so let's commit the rename 
-            // and then let the character go through
-            CommitIfActive(args, operationContext);
+            HandleTypingOutsideEditableSpan(args, operationContext);
             nextHandler();
         }
         else
@@ -90,18 +92,34 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    private void HandleTypingOutsideEditableSpan(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+        => CommitIfSynchronousOrCancelIfAsynchronous(args, operationContext, placeCaretAtTheEndOfIdentifier: true);
+
+    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier = true)
     {
         if (renameService.ActiveSession != null)
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
             Commit(operationContext);
-
-            var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-            args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-            args.TextView.Caret.MoveTo(translatedSelection.End);
+            if (placeCaretAtTheEndOfIdentifier)
+            {
+                var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
+                args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
+                args.TextView.Caret.MoveTo(translatedSelection.End);
+            }
         }
+    }
+
+    /// <summary>
+    /// Commit() will be called if rename commit is sync. Editor command would be executed after the rename operation complete and it is our legacy behavior.
+    /// Cancel() will be called if rename is async. It also matches the other editor's behavior (like VS LSP and VSCode).
+    /// </summary>
+    private void CommitIfSynchronousOrCancelIfAsynchronous(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier)
+    {
+        if (globalOptionService.ShouldCommitAsynchronously())
+            renameService.ActiveSession?.Cancel();
+        else
+            CommitIfActive(args, operationContext, placeCaretAtTheEndOfIdentifier);
     }
 
     private void Commit(IUIThreadOperationContext operationContext)

@@ -118,7 +118,7 @@ End Class</text>
     End Sub
 
     Private Sub IBar_Goo() Implements IBar.Goo
-        Throw New NotImplementedException()
+        Goo()
     End Sub</text>
 
             Test(code,
@@ -484,7 +484,7 @@ Class C
     End Sub
 
     Private Sub IB_Goo() Implements IB.Goo
-        Throw New NotImplementedException()
+        goo()
     End Sub
 End Class</text>
 

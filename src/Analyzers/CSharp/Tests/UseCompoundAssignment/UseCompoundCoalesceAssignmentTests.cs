@@ -33,7 +33,6 @@ public class UseCompoundCoalesceAssignmentTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = languageVersion,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();

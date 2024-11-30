@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -107,9 +108,7 @@ internal static class ListExtensions
         for (var i = 0; i < list.Count; i++)
         {
             if (predicate(list[i]))
-            {
                 return i;
-            }
         }
 
         return -1;
@@ -120,9 +119,7 @@ internal static class ListExtensions
         for (var i = 0; i < list.Count; i++)
         {
             if (predicate(list[i], arg))
-            {
                 return i;
-            }
         }
 
         return -1;

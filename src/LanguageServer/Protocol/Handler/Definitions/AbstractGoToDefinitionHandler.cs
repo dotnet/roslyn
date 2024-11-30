@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
-        protected Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
+        protected Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool forSymbolType, RequestContext context, CancellationToken cancellationToken)
         {
             var workspace = context.Workspace;
             var document = context.Document;
@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
 
-            return GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, typeOnly, linePosition, cancellationToken);
+            return GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, forSymbolType, linePosition, cancellationToken);
         }
 
-        internal static async Task<LSP.Location[]?> GetDefinitionsAsync(IGlobalOptionService globalOptions, IMetadataAsSourceFileService? metadataAsSourceFileService, Workspace workspace, Document document, bool typeOnly, LinePosition linePosition, CancellationToken cancellationToken)
+        internal static async Task<LSP.Location[]?> GetDefinitionsAsync(IGlobalOptionService globalOptions, IMetadataAsSourceFileService? metadataAsSourceFileService, Workspace workspace, Document document, bool forSymbolType, LinePosition linePosition, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (service is null)
                 return null;
 
-            var definitions = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var definitions = await service.GetNavigableItemsAsync(document, position, forSymbolType, cancellationToken).ConfigureAwait(false);
             if (definitions.Length > 0)
             {
                 foreach (var definition in definitions)
                 {
-                    if (!ShouldInclude(definition, typeOnly))
+                    if (!ShouldInclude(definition, forSymbolType))
                         continue;
 
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
@@ -76,27 +76,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (forSymbolType)
+                    symbol = symbol?.GetSymbolType();
+
                 if (symbol != null && metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
-                    if (!typeOnly || symbol is ITypeSymbol)
-                    {
-                        var options = globalOptions.GetMetadataAsSourceOptions();
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var options = globalOptions.GetMetadataAsSourceOptions();
+                    var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                        var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                        locations.Add(new LSP.Location
-                        {
-                            Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
-                            Range = ProtocolConversions.LinePositionToRange(linePosSpan),
-                        });
-                    }
+                    var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+                    locations.Add(new LSP.Location
+                    {
+                        Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
+                        Range = ProtocolConversions.LinePositionToRange(linePosSpan),
+                    });
                 }
             }
 
             return locations.ToArrayAndFree();
 
             // local functions
-            static bool ShouldInclude(INavigableItem item, bool typeOnly)
+            static bool ShouldInclude(INavigableItem item, bool forSymbolType)
             {
                 if (item.Glyph is Glyph.Namespace)
                 {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return false;
                 }
 
-                if (!typeOnly)
+                if (!forSymbolType)
                 {
                     return true;
                 }

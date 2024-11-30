@@ -1137,6 +1137,11 @@
         <target state="translated">首选元组交换</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_unbound_generic_type_in_nameof">
+        <source>Prefer unbound generic type in 'nameof'</source>
+        <target state="new">Prefer unbound generic type in 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
         <target state="translated">项目</target>

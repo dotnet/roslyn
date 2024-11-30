@@ -25,6 +25,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
     where TNamespaceSyntax : SyntaxNode
 {
     public abstract AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSyntaxKind, TNamespaceSyntax> DiagnosticAnalyzer { get; }
+    public abstract bool IsHostAnalyzer { get; }
     public abstract AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; }
 
     /// <inheritdoc/>
@@ -38,7 +39,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
 
         var solution = projects[0].Solution;
         var diagnosticAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(DiagnosticAnalyzer);
-        var diagnosticsByProject = await GetDiagnosticsByProjectAsync(projects, diagnosticAnalyzers, cancellationToken).ConfigureAwait(false);
+        var diagnosticsByProject = await GetDiagnosticsByProjectAsync(projects, diagnosticAnalyzers, IsHostAnalyzer, cancellationToken).ConfigureAwait(false);
 
         // If no diagnostics are reported, then there is nothing to fix.
         if (diagnosticsByProject.Values.All(diagnostics => diagnostics.IsEmpty))
@@ -57,13 +58,14 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
     private static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetDiagnosticsByProjectAsync(
         ImmutableArray<Project> projects,
         ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
+        bool isHostAnalyzer,
         CancellationToken cancellationToken)
     {
         var builder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
 
         foreach (var project in projects)
         {
-            var diagnostics = await GetDiagnosticsAsync(project, diagnosticAnalyzers, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsAsync(project, diagnosticAnalyzers, isHostAnalyzer, cancellationToken).ConfigureAwait(false);
             builder.Add(project, diagnostics);
         }
 
@@ -73,13 +75,14 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
         Project project,
         ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
+        bool isHostAnalyzer,
         CancellationToken cancellationToken)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         RoslynDebug.AssertNotNull(compilation);
 
         var analyzerOptions = new CompilationWithAnalyzersOptions(
-            project.AnalyzerOptions,
+            isHostAnalyzer ? project.HostAnalyzerOptions : project.AnalyzerOptions,
             onAnalyzerException: null,
             concurrentAnalysis: true,
             logAnalyzerExecutionTime: false,

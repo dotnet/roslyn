@@ -79,7 +79,10 @@ internal static class ICompilationExtensions
         => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName!);
 
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+
+    public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
@@ -140,6 +143,12 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? IReadOnlyListOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
+
+    public static INamedTypeSymbol? ISetOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName!);
+
+    public static INamedTypeSymbol? IReadOnlySetOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
 
     public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");

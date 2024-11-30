@@ -17,6 +17,11 @@
         <target state="translated">L'aggiunta di documenti di configurazione dell'analizzatore non è supportata.</target>
         <note />
       </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="new">After</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Si è verificato un errore durante la lettura del file di configurazione specificato: {0}</target>
@@ -432,24 +437,9 @@
         <target state="translated">Modifica senza merge dal progetto '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Added_colon">
-        <source>Added:</source>
-        <target state="translated">Aggiunto:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">Dopo:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Before_colon">
         <source>Before:</source>
         <target state="translated">Prima:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removed_colon">
-        <source>Removed:</source>
-        <target state="translated">Elementi rimossi:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">

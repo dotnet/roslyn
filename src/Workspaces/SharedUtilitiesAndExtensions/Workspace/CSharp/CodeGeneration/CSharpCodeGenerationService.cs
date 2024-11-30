@@ -344,10 +344,12 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
 
         if (destination is EnumDeclarationSyntax enumDeclaration)
         {
+            enumDeclaration.EnsureOpenAndCloseBraceTokens();
             return Cast<TDeclarationNode>(enumDeclaration.AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
         }
         else if (destination is TypeDeclarationSyntax typeDeclaration)
         {
+            typeDeclaration = typeDeclaration.EnsureOpenAndCloseBraceTokens();
             return Cast<TDeclarationNode>(typeDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
         }
         else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)

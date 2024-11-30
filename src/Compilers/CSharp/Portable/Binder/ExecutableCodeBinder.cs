@@ -147,6 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
                 }
             }
+            else if (elementType.IsRefLikeOrAllowsRefLikeType())
+            {
+                Error(diagnostics, ErrorCode.ERR_IteratorRefLikeElementType, errorLocation);
+            }
 
             bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(compilation, refKind, returnType);
             if (asyncInterface && !iterator.IsAsync)

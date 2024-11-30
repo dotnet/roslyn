@@ -1137,7 +1137,7 @@
     </Property>
     <Property Name="IsRef" Type="bool">
       <Comments>
-        <value><see langword="true"/> if the result is by-reference.</value>
+        <summary><see langword="true"/> if the result is by-reference.</summary>
         <remarks>This occurs in C# for ternaries whose branches use <see langword="ref"/>.</remarks>
       </Comments>
     </Property>

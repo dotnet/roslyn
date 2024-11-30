@@ -3969,7 +3969,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 
