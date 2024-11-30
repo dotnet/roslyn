@@ -14,6 +14,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -178,9 +179,11 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
 
         ImmutableDictionary<string, string> pdbCompilationOptions;
         ImmutableArray<SourceDocument> sourceDocuments;
-        // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
-        using (var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, options.AlwaysUseDefaultSymbolServers, telemetryMessage, cancellationToken).ConfigureAwait(false))
+
+        try
         {
+            // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (wherever it may be)
+            using var documentDebugInfoReader = await _pdbFileLocatorService.GetDocumentDebugInfoReaderAsync(dllPath, options.AlwaysUseDefaultSymbolServers, telemetryMessage, cancellationToken).ConfigureAwait(false);
             if (documentDebugInfoReader is null)
                 return null;
 
@@ -191,11 +194,17 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
 
             // Try to find some actual document information from the PDB
             sourceDocuments = documentDebugInfoReader.FindSourceDocuments(handle);
-            if (sourceDocuments.Length == 0)
-            {
-                _logger?.Log(FeaturesResources.No_source_document_info_found_in_PDB);
-                return null;
-            }
+        }
+        catch (BadImageFormatException ex) when (FatalError.ReportAndCatch(ex))
+        {
+            _logger?.Log(ex.Message);
+            return null;
+        }
+
+        if (sourceDocuments.Length == 0)
+        {
+            _logger?.Log(FeaturesResources.No_source_document_info_found_in_PDB);
+            return null;
         }
 
         Encoding? defaultEncoding = null;
