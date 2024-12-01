@@ -26,16 +26,8 @@ internal enum TaggerTextChangeBehavior
     RemoveTagsThatIntersectEdits = 1 << 1,
 
     /// <summary>
-    /// Removes tags if the edit intersects the start position of the tag.  This is for cases where we want to keep the
-    /// tag around if the edit is within, as standard editor tracking will keep it in the right location, however edits
-    /// at the start will distractingly move the tag.  For example, with structure, edits at the start will move the
-    /// structure tag line 
-    /// </summary>
-    RemoveTagsWithStartPositionThatIntersectEdits = 1 << 2,
-
-    /// <summary>
     /// The async tagger infrastructure will track text changes to the subject buffer it is attached to. On any edit all
     /// tags will we be removed.
     /// </summary>
-    RemoveAllTags = 1 << 3,
+    RemoveAllTags = 1 << 2,
 }

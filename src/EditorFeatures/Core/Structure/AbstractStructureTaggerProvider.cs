@@ -52,15 +52,6 @@ internal abstract partial class AbstractStructureTaggerProvider(
 
     protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-    ///// <summary>
-    ///// We want edge-negative spans here as we want edits at the start of a block to cause the span to grow backward
-    ///// into that edit.  For example, if the user types modifiers before an existing member, we want the span to
-    ///// encompass that modifier immediately, instead of moving forward distractingly, only to snap back when the final
-    ///// tags are computed.
-    ///// </summary>
-    //protected sealed override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
-    protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsWithStartPositionThatIntersectEdits;
-
     protected sealed override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
     {
         // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
