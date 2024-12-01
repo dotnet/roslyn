@@ -73,7 +73,7 @@ internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCo
         Document document;
 
         using (var context = _threadOperationExecutor.BeginExecute(
-            ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
+            EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
         {
             document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
                 commandExecutionContext.OperationContext).ConfigureAwait(true);

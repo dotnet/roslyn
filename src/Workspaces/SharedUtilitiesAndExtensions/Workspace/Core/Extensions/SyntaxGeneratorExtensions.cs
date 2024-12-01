@@ -189,8 +189,12 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
-        this SyntaxGenerator generator, Compilation compilation,
-        IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
+        this SyntaxGenerator generator,
+        Compilation compilation,
+        IPropertySymbol property,
+        IPropertySymbol? conflictingProperty,
+        ISymbol? throughMember,
+        bool preferAutoProperties)
     {
         if (throughMember != null)
         {
@@ -209,12 +213,27 @@ internal static partial class SyntaxGeneratorExtensions
             return [generator.ReturnStatement(expression)];
         }
 
-        return preferAutoProperties ? default : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        if (preferAutoProperties)
+            return default;
+
+        // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
+        if (conflictingProperty is { GetMethod: not null, Parameters.Length: 0 } &&
+            property is { GetMethod: not null, Parameters.Length: 0 })
+        {
+            if (compilation.ClassifyCommonConversion(conflictingProperty.Type, property.Type) is { Exists: true, IsImplicit: true })
+                return [generator.ReturnStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name))];
+        }
+
+        return generator.CreateThrowNotImplementedStatementBlock(compilation);
     }
 
     public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
-        this SyntaxGenerator generator, Compilation compilation,
-        IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
+        this SyntaxGenerator generator,
+        Compilation compilation,
+        IPropertySymbol property,
+        IPropertySymbol? conflictingProperty,
+        ISymbol? throughMember,
+        bool preferAutoProperties)
     {
         if (throughMember != null)
         {
@@ -235,9 +254,18 @@ internal static partial class SyntaxGeneratorExtensions
             return [generator.ExpressionStatement(expression)];
         }
 
-        return preferAutoProperties
-            ? default
-            : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        if (preferAutoProperties)
+            return default;
+
+        // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
+        if (conflictingProperty is { SetMethod.Parameters.Length: 1 } &&
+            property is { SetMethod.Parameters: [var parameter] })
+        {
+            if (compilation.ClassifyCommonConversion(property.Type, conflictingProperty.Type) is { Exists: true, IsImplicit: true })
+                return [generator.ExpressionStatement(generator.AssignmentStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name), generator.IdentifierName(parameter.Name)))];
+        }
+
+        return generator.CreateThrowNotImplementedStatementBlock(compilation);
     }
 
     private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)

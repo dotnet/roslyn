@@ -32,21 +32,6 @@
         <target state="translated">Formattazione del documento...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_new_line">
-        <source>Insert new line</source>
-        <target state="translated">Inserisci nuova riga</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_pasted_text">
-        <source>Formatting pasted text...</source>
-        <target state="translated">Formattazione del testo incollato...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Incolla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
         <target state="translated">Formatta dopo salvataggio</target>

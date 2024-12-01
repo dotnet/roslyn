@@ -1076,11 +1076,11 @@ record C
             AssertEx.Equal(new[] {
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
-                "System.Int32 C.<X>k__BackingField",
+                "System.Int32 C.X.field",
                 "System.Int32 C.X { get; init; }",
                 "System.Int32 C.X.get",
                 "void C.X.init",
-                "System.String! C.<Y>k__BackingField",
+                "System.String! C.Y.field",
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",

@@ -53,7 +53,7 @@ internal readonly struct StructuralTypeDisplayInfo
                 if (structuralTypeToName.TryGetValue(type, out var name) &&
                     part.ToString() != name)
                 {
-                    newParts.Add(new SymbolDisplayPart(part.Kind, part.Symbol, name));
+                    newParts.Add(new SymbolDisplayPart(part.Kind, symbol: null, name));
                     changed = true;
                     continue;
                 }

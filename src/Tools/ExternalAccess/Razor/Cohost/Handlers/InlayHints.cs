@@ -26,6 +26,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
             // always just result in the defaults, which for inline hints are to not show anything. However, the editor has a
             // setting for LSP inlay hints, so we can assume that if we get a request from the client, the user wants hints.
             // When overriding however, Roslyn does a nicer job if type hints are off.
+            var options = GetOptions(displayAllOverride);
+
+            return InlayHintHandler.GetInlayHintsAsync(document, textDocumentIdentifier, range, options, displayAllOverride, s_resolveCache, cancellationToken);
+        }
+
+        public static Task<InlayHint> ResolveInlayHintAsync(Document document, InlayHint request, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(s_resolveCache, "Cache should never be null for resolve, since it should have been created by the original request");
+            var data = InlayHintResolveHandler.GetInlayHintResolveData(request);
+            var options = GetOptions(data.DisplayAllOverride);
+            return InlayHintResolveHandler.ResolveInlayHintAsync(document, request, s_resolveCache, data, options, cancellationToken);
+        }
+
+        private static InlineHintsOptions GetOptions(bool displayAllOverride)
+        {
             var options = InlineHintsOptions.Default;
             if (!displayAllOverride)
             {
@@ -36,14 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
                 };
             }
 
-            return InlayHintHandler.GetInlayHintsAsync(document, textDocumentIdentifier, range, options, displayAllOverride, s_resolveCache, cancellationToken);
-        }
-
-        public static Task<InlayHint> ResolveInlayHintAsync(Document document, InlayHint request, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(s_resolveCache, "Cache should never be null for resolve, since it should have been created by the original request");
-
-            return InlayHintResolveHandler.ResolveInlayHintAsync(document, request, s_resolveCache, cancellationToken);
+            return options;
         }
     }
 }

@@ -220,7 +220,6 @@ public class UseExplicitTupleNameTests
         await new VerifyCS.Test()
         {
             TestCode = code,
-            FixedCode = code,
             Options =
             {
                 { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
@@ -245,7 +244,6 @@ public class UseExplicitTupleNameTests
         await new VerifyCS.Test()
         {
             TestCode = code,
-            FixedCode = code,
             Options =
             {
                 { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
@@ -298,7 +296,6 @@ public class UseExplicitTupleNameTests
         await new VerifyCS.Test()
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp11
         }.RunAsync();
     }

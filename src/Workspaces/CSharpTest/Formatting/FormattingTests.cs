@@ -5764,8 +5764,7 @@ void bar()
 
             var expected = @"class C
 {
-}
-#line default
+}#line default
 
 #line hidden";
 

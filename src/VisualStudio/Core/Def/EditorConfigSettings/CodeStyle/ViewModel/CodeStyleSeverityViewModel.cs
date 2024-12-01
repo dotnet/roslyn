@@ -17,10 +17,10 @@ internal class CodeStyleSeverityViewModel
     //       analyzers to turn themselves off when 'option.Notification.Severity is ReportDiagnostic.Suppress'
     private static readonly string[] s_severities =
     [
-        ServicesVSResources.Refactoring_Only,
-        ServicesVSResources.Suggestion,
-        ServicesVSResources.Warning,
-        ServicesVSResources.Error
+        WorkspacesResources.Refactoring_Only,
+        WorkspacesResources.Suggestion,
+        WorkspacesResources.Warning,
+        WorkspacesResources.Error
     ];
 
     private readonly int _selectedSeverityIndex;

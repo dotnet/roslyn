@@ -102,9 +102,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private protected class OrderLocations : Comparer<LSP.Location>
+        private protected class OrderLocations : Comparer<LSP.Location?>
         {
-            public override int Compare(LSP.Location x, LSP.Location y) => CompareLocations(x, y);
+            public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
         }
 
         protected virtual TestComposition Composition => EditorFeaturesLspComposition;
@@ -148,8 +148,17 @@ namespace Roslyn.Test.Utilities
             AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
         }
 
-        private protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
+        private protected static int CompareLocations(LSP.Location? l1, LSP.Location? l2)
         {
+            if (ReferenceEquals(l1, l2))
+                return 0;
+
+            if (l1 is null)
+                return -1;
+
+            if (l2 is null)
+                return 1;
+
             var compareDocument = l1.Uri.AbsoluteUri.CompareTo(l2.Uri.AbsoluteUri);
             var compareRange = CompareRange(l1.Range, l2.Range);
             return compareDocument != 0 ? compareDocument : compareRange;

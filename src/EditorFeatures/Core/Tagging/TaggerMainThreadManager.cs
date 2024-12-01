@@ -14,7 +14,7 @@ using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint?
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-using QueueData = (Func<TaggerUIData> action, TaskCompletionSource<TaggerUIData> taskCompletionSource, CancellationToken cancellationToken);
+using QueueData = (Func<TaggerUIData?> action, TaskCompletionSource<TaggerUIData?> taskCompletionSource, CancellationToken cancellationToken);
 
 internal sealed class TaggerMainThreadManager
 {
@@ -36,8 +36,8 @@ internal sealed class TaggerMainThreadManager
 
     /// <remarks>This will not ever throw.</remarks>
     private static void RunActionAndUpdateCompletionSource_NoThrow(
-        Func<TaggerUIData> action,
-        TaskCompletionSource<TaggerUIData> taskCompletionSource,
+        Func<TaggerUIData?> action,
+        TaskCompletionSource<TaggerUIData?> taskCompletionSource,
         CancellationToken cancellationToken)
     {
         try
@@ -60,7 +60,7 @@ internal sealed class TaggerMainThreadManager
         }
         finally
         {
-            taskCompletionSource.TrySetResult(default);
+            taskCompletionSource.TrySetResult(null);
             Contract.ThrowIfFalse(taskCompletionSource.Task.IsCompleted);
         }
     }
@@ -69,9 +69,9 @@ internal sealed class TaggerMainThreadManager
     /// Adds the provided action to a queue that will run on the UI thread in the near future (batched with other
     /// registered actions).  If the cancellation token is triggered before the action runs, it will not be run.
     /// </summary>
-    public async ValueTask<TaggerUIData> PerformWorkOnMainThreadAsync(Func<TaggerUIData> action, CancellationToken cancellationToken)
+    public async ValueTask<TaggerUIData?> PerformWorkOnMainThreadAsync(Func<TaggerUIData?> action, CancellationToken cancellationToken)
     {
-        var taskSource = new TaskCompletionSource<TaggerUIData>();
+        var taskSource = new TaskCompletionSource<TaggerUIData?>();
 
         // If we're already on the main thread, just run the action directly without any delay.  This is important
         // for cases where the tagger is performing a blocking call to get tags synchronously on the UI thread (for
@@ -84,7 +84,7 @@ internal sealed class TaggerMainThreadManager
         {
             // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
             var registration = _threadingContext.DisposalToken.Register(
-                static taskSourceObj => ((TaskCompletionSource<TaggerUIData>)taskSourceObj!).TrySetCanceled(), taskSource);
+                static taskSourceObj => ((TaskCompletionSource<TaggerUIData?>)taskSourceObj!).TrySetCanceled(), taskSource);
 
             _workQueue.AddWork((action, taskSource, cancellationToken));
 

@@ -18,6 +18,9 @@ dotnet_diagnostic.IDE0170.severity = suggestion
 # IDE0090: Simplify new expression
 dotnet_diagnostic.IDE0090.severity = none
 
+# IDE0130: Namespaces should match folder structure
+dotnet_diagnostic.IDE0130.severity = none
+
 # CSharp code style settings:
 [*.cs]
 csharp_style_var_for_built_in_types = false:none
