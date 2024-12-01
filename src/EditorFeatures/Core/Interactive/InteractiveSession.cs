@@ -27,11 +27,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive;
 
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
 using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
 internal sealed class InteractiveSession : IDisposable
 {
     public InteractiveHost Host { get; }
+    public IContentType ContentType { get; }
 
     private readonly IThreadingContext _threadingContext;
     private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
@@ -81,7 +83,8 @@ internal sealed class InteractiveSession : IDisposable
         ITextDocumentFactoryService documentFactory,
         EditorOptionsService editorOptionsService,
         InteractiveEvaluatorLanguageInfoProvider languageInfo,
-        string initialWorkingDirectory)
+        string initialWorkingDirectory,
+        IContentType contentType)
     {
         _workspace = workspace;
         _threadingContext = threadingContext;
@@ -99,6 +102,8 @@ internal sealed class InteractiveSession : IDisposable
         _workingDirectory = initialWorkingDirectory;
 
         _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location)!, "InteractiveHost");
+
+        ContentType = contentType;
 
         Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
         Host.ProcessInitialized += ProcessInitialized;
@@ -220,6 +225,18 @@ internal sealed class InteractiveSession : IDisposable
         // Associate the path with both the editor document and our roslyn document so LSP can make requests on it.
         _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
         textDocument.Rename(newSubmissionFilePath);
+
+        submissionBuffer.ContentTypeChanged += (_, args) =>
+        {
+            if (args.BeforeContentType == ContentType)
+            {
+                _workspace.CloseDocument(newSubmissionDocumentId);
+            }
+            else
+            {
+                _workspace.OpenDocument(newSubmissionDocumentId, submissionBuffer.AsTextContainer());
+            }
+        };
 
         // Chain projects to the the last submission that successfully executed.
         _workspace.SetCurrentSolution(solution =>
