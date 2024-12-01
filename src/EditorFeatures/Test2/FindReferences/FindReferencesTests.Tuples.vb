@@ -633,5 +633,31 @@ class C
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleImplicitNamesOnSameTupleType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    void M(int {|Definition:x|}, int y)
+    {
+        var t = ($$[|{|Definition:x|}|], y);
+        t = ([|x|], y);
+        t = ([|x|]: y, y: [|x|]);
+        b = t.[|x|];
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
