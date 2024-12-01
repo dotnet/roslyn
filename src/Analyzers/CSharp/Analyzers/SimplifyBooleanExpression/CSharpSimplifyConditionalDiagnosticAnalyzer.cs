@@ -10,19 +10,18 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.SimplifyBooleanExpression;
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyBooleanExpression
-{
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpSimplifyConditionalDiagnosticAnalyzer :
-        AbstractSimplifyConditionalDiagnosticAnalyzer<
-            SyntaxKind,
-            ExpressionSyntax,
-            ConditionalExpressionSyntax>
-    {
-        protected override ISyntaxFacts SyntaxFacts
-            => CSharpSyntaxFacts.Instance;
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyBooleanExpression;
 
-        protected override CommonConversion GetConversion(SemanticModel semanticModel, ExpressionSyntax node, CancellationToken cancellationToken)
-            => semanticModel.GetConversion(node, cancellationToken).ToCommonConversion();
-    }
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpSimplifyConditionalDiagnosticAnalyzer :
+    AbstractSimplifyConditionalDiagnosticAnalyzer<
+        SyntaxKind,
+        ExpressionSyntax,
+        ConditionalExpressionSyntax>
+{
+    protected override ISyntaxFacts SyntaxFacts
+        => CSharpSyntaxFacts.Instance;
+
+    protected override CommonConversion GetConversion(SemanticModel semanticModel, ExpressionSyntax node, CancellationToken cancellationToken)
+        => semanticModel.GetConversion(node, cancellationToken).ToCommonConversion();
 }

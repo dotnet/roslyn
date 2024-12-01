@@ -140,7 +140,7 @@
             <Separator Name="HeaderSeparator" Margin="0" Visibility="Collapsed"/>
         </StackPanel>
         <DockPanel Name="PreviewDockPanel" DockPanel.Dock="Top" Visibility="Collapsed">
-            <ScrollViewer Name="PreviewScrollViewer" IsTabStop="True"
+            <ScrollViewer Name="PreviewScrollViewer" IsTabStop="False"
                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                           Padding="3 1 3 1"
                           AutomationProperties.Name="{Binding ElementName=ThisPane, Path=AutomationName}"/>

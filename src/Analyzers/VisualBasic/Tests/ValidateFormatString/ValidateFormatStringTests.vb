@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     <Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
     Public Class ValidateFormatStringTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(
                 workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -27,7 +27,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42764")>
         Public Async Function LiteralArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C

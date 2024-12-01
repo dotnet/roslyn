@@ -70,16 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken)
         End Function
 
-        Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, checksumAlgorithm As SourceHashAlgorithm, root As SyntaxNode) As SyntaxTree
+        Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, encoding As Encoding, checksumAlgorithm As SourceHashAlgorithm, root As SyntaxNode) As SyntaxTree
             If options Is Nothing Then
                 options = GetDefaultParseOptions()
             End If
 
-            Return New ParsedSyntaxTree(lazyText:=Nothing, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
-        End Function
-
-        Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode
-            Return VisualBasicSyntaxNode.DeserializeFrom(stream, cancellationToken)
+            Return New ParsedSyntaxTree(text, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
         End Function
     End Class
 End Namespace

@@ -9,68 +9,58 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerable<T>
 {
-    internal readonly struct ConcatImmutableArray<T> : IEnumerable<T>
+    public int Length => first.Length + second.Length;
+
+    public bool Any(Func<T, bool> predicate)
+        => first.Any(predicate) || second.Any(predicate);
+
+    public Enumerator GetEnumerator()
+        => new(first, second);
+
+    public ImmutableArray<T> ToImmutableArray()
+        => first.NullToEmpty().AddRange(second.NullToEmpty());
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    public struct Enumerator(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerator<T>
     {
-        private readonly ImmutableArray<T> _first;
-        private readonly ImmutableArray<T> _second;
+        private ImmutableArray<T>.Enumerator _current = first.NullToEmpty().GetEnumerator();
+        private ImmutableArray<T> _next = second.NullToEmpty();
 
-        public ConcatImmutableArray(ImmutableArray<T> first, ImmutableArray<T> second)
+        public T Current => _current.Current;
+        object? IEnumerator.Current => Current;
+
+        public bool MoveNext()
         {
-            _first = first;
-            _second = second;
+            if (_current.MoveNext())
+            {
+                return true;
+            }
+
+            _current = _next.GetEnumerator();
+            _next = [];
+            return _current.MoveNext();
         }
 
-        public int Length => _first.Length + _second.Length;
-
-        public bool Any(Func<T, bool> predicate)
-            => _first.Any(predicate) || _second.Any(predicate);
-
-        public Enumerator GetEnumerator()
-            => new(_first, _second);
-
-        public ImmutableArray<T> ToImmutableArray()
-            => _first.NullToEmpty().AddRange(_second.NullToEmpty());
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
-
-        public struct Enumerator : IEnumerator<T>
+        readonly void IDisposable.Dispose()
         {
-            private ImmutableArray<T>.Enumerator _current;
-            private ImmutableArray<T> _next;
-
-            public Enumerator(ImmutableArray<T> first, ImmutableArray<T> second)
-            {
-                _current = first.NullToEmpty().GetEnumerator();
-                _next = second.NullToEmpty();
-            }
-
-            public T Current => _current.Current;
-            object? IEnumerator.Current => Current;
-
-            public bool MoveNext()
-            {
-                if (_current.MoveNext())
-                {
-                    return true;
-                }
-
-                _current = _next.GetEnumerator();
-                _next = ImmutableArray<T>.Empty;
-                return _current.MoveNext();
-            }
-
-            void IDisposable.Dispose()
-            {
-            }
-
-            void IEnumerator.Reset()
-                => throw new NotSupportedException();
         }
+
+        void IEnumerator.Reset()
+            => throw new NotSupportedException();
     }
+}
+
+internal static partial class ImmutableArrayExtensions
+{
+    public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+        => new(first, second);
 }

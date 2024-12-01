@@ -7,18 +7,11 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Organizing.Organizers
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportSyntaxNodeOrganizerAttribute : ExportAttribute
-    {
-        public ExportSyntaxNodeOrganizerAttribute(string languageName)
-            : base(typeof(ISyntaxOrganizer))
-        {
-            Language = languageName;
-        }
+namespace Microsoft.CodeAnalysis.Organizing.Organizers;
 
-        public string Language { get; }
-    }
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportSyntaxNodeOrganizerAttribute(string languageName) : ExportAttribute(typeof(ISyntaxOrganizer))
+{
+    public string Language { get; } = languageName;
 }

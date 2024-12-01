@@ -5,34 +5,24 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal abstract partial class Matcher<T>
 {
-    internal partial class Matcher<T>
+    private sealed class SingleMatcher(Func<T, bool> predicate, string description) : Matcher<T>
     {
-        private class SingleMatcher : Matcher<T>
+        public override bool TryMatch(IList<T> sequence, ref int index)
         {
-            private readonly Func<T, bool> _predicate;
-            private readonly string _description;
-
-            public SingleMatcher(Func<T, bool> predicate, string description)
+            if (index < sequence.Count && predicate(sequence[index]))
             {
-                _predicate = predicate;
-                _description = description;
+                index++;
+                return true;
             }
 
-            public override bool TryMatch(IList<T> sequence, ref int index)
-            {
-                if (index < sequence.Count && _predicate(sequence[index]))
-                {
-                    index++;
-                    return true;
-                }
-
-                return false;
-            }
-
-            public override string ToString()
-                => _description;
+            return false;
         }
+
+        public override string ToString()
+            => description;
     }
 }

@@ -70,6 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
 
+        Public MustOverride ReadOnly Property IsRequired As Boolean
+
         ''' <summary>
         ''' If this variable serves as a backing variable for an automatically generated
         ''' property or event, returns that property or event. 
@@ -405,6 +407,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbolInternal_Type As ITypeSymbolInternal Implements IFieldSymbolInternal.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbolInternal_AssociatedSymbol As ISymbolInternal Implements IFieldSymbolInternal.AssociatedSymbol
+            Get
+                Return Me.AssociatedSymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_IsConst As Boolean Implements IFieldSymbol.IsConst
             Get
                 Return Me.IsConst
@@ -419,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldSymbol_IsRequired As Boolean Implements IFieldSymbol.IsRequired
             Get
-                Return False
+                Return Me.IsRequired
             End Get
         End Property
 

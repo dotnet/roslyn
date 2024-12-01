@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.CSharp
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.CustomModifiers.Modifiers,
-                                TestMetadata.ResourcesNet40.mscorlib
+                                Net40.Resources.mscorlib
                              })
 
             Dim modifiersModule = assemblies(0).Modules(0)
@@ -109,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         End Sub
 
         <Fact>
-        Public Sub UnmanagedConstraint_RejectedSymbol_OnClass()
+        Public Sub UnmanagedConstraint_OnClass()
             Dim reference = CreateCSharpCompilation("
 public class TestRef<T> where T : unmanaged
 {
@@ -121,6 +122,7 @@ public class TestRef<T> where T : unmanaged
 Class Test
     Shared Sub Main() 
         Dim x = New TestRef(Of String)()
+        Dim y = New TestRef(Of Integer)()
     End Sub
 End Class
     </file>
@@ -128,24 +130,63 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference})
 
-            AssertTheseDiagnostics(compilation, <expected>
-BC30649: '' is an unsupported type.
-        Dim x = New TestRef(Of String)()
-                               ~~~~~~
-BC32044: Type argument 'String' does not inherit from or implement the constraint type '?'.
-        Dim x = New TestRef(Of String)()
-                               ~~~~~~
+            Dim errs As XElement =
+<expected>
 BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'T'.
         Dim x = New TestRef(Of String)()
                                ~~~~~~
+BC37332: Type argument 'String' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
+        Dim x = New TestRef(Of String)()
+                               ~~~~~~
+</expected>
+
+            AssertTheseDiagnostics(compilation, errs)
+
+            Dim typeParameter = compilation.GetTypeByMetadataName("TestRef`1").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint)
+
+            typeParameter = compilation.GetTypeByMetadataName("System.Nullable`1").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.False(typeParameter.HasUnmanagedTypeConstraint)
+
+            compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference}, parseOptions:=TestOptions.Regular17_13)
+            AssertTheseDiagnostics(compilation, errs)
+
+            typeParameter = compilation.GetTypeByMetadataName("TestRef`1").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint)
+            compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference}, parseOptions:=TestOptions.RegularLatest)
+
+            AssertTheseDiagnostics(compilation, errs)
+
+            typeParameter = compilation.GetTypeByMetadataName("TestRef`1").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint)
+
+            compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference}, parseOptions:=TestOptions.Regular16_9)
+            AssertTheseDiagnostics(compilation, <expected>
+BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'T'.
+        Dim x = New TestRef(Of String)()
+                               ~~~~~~
+BC36716: Visual Basic 16.9 does not support recognizing 'unmanaged' constraint.
+        Dim x = New TestRef(Of String)()
+                               ~~~~~~
+BC37332: Type argument 'String' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
+        Dim x = New TestRef(Of String)()
+                               ~~~~~~
+BC36716: Visual Basic 16.9 does not support recognizing 'unmanaged' constraint.
+        Dim y = New TestRef(Of Integer)()
+                               ~~~~~~~
                                                 </expected>)
 
-            Dim badTypeParameter = compilation.GetTypeByMetadataName("TestRef`1").TypeParameters.Single()
-            Assert.True(badTypeParameter.HasValueTypeConstraint)
+            typeParameter = compilation.GetTypeByMetadataName("TestRef`1").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint)
         End Sub
 
         <Fact>
-        Public Sub UnmanagedConstraint_RejectedSymbol_OnMethod()
+        Public Sub UnmanagedConstraint_OnMethod()
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
@@ -169,17 +210,21 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30649: '' is an unsupported type.
+BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'T'.
         x.M(Of String)()
-        ~~~~~~~~~~~~~~~~
+          ~~~~~~~~~~~~
+BC37332: Type argument 'String' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
+        x.M(Of String)()
+          ~~~~~~~~~~~~
                                                 </expected>)
 
-            Dim badTypeParameter = compilation.GetTypeByMetadataName("TestRef").GetMethod("M").TypeParameters.Single()
-            Assert.True(badTypeParameter.HasValueTypeConstraint)
+            Dim typeParameter = compilation.GetTypeByMetadataName("TestRef").GetMethod("M").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint)
         End Sub
 
         <Fact>
-        Public Sub UnmanagedConstraint_RejectedSymbol_OnDelegate()
+        Public Sub UnmanagedConstraint_OnDelegate()
             Dim reference = CreateCSharpCompilation("
 public delegate T D<T>() where T : unmanaged;
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
@@ -191,25 +236,23 @@ Class Test
     Shared Sub Main(del As D(Of String)) 
     End Sub
 End Class
-    </file>
+                    </file>
                 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30649: '' is an unsupported type.
-    Shared Sub Main(del As D(Of String)) 
-                    ~~~
-BC32044: Type argument 'String' does not inherit from or implement the constraint type '?'.
-    Shared Sub Main(del As D(Of String)) 
-                    ~~~
 BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'T'.
+    Shared Sub Main(del As D(Of String)) 
+                    ~~~
+BC37332: Type argument 'String' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
     Shared Sub Main(del As D(Of String)) 
                     ~~~
                                                 </expected>)
 
-            Dim badTypeParameter = compilation.GetTypeByMetadataName("D`1").TypeParameters.Single()
-            Assert.True(badTypeParameter.HasValueTypeConstraint)
+            Dim typeParameter = compilation.GetTypeByMetadataName("D`1").TypeParameters.Single()
+            Assert.True(typeParameter.HasValueTypeConstraint)
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint)
         End Sub
 
     End Class

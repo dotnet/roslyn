@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class TypeInferenceSimplifierTests
         Inherits AbstractSimplificationTests
-        <Fact, WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
-        Public Async Function TestDontSimplify1() As Task
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
+        Public Async Function TestDoNotSimplify1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
         Public Async Function TestSimplify_ArrayElementConversion() As Task
             Dim input =
         <Workspace>
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         <Fact>
-        Public Async Function TestDontSimplify_Using() As Task
+        Public Async Function TestDoNotSimplify_Using() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         <Fact>
-        Public Async Function TestDontSimplify_For_0() As Task
+        Public Async Function TestDoNotSimplify_For_0() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         <Fact>
-        Public Async Function TestDontSimplify_For_1() As Task
+        Public Async Function TestDoNotSimplify_For_1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
         Public Async Function TestSimplify1() As Task
             Dim input =
         <Workspace>
@@ -507,7 +507,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
         Public Async Function TestVisualBasic_ExplicitTypeDecl_FieldDecl() As Task
             Dim input =
         <Workspace>
@@ -550,7 +550,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(860111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860111")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860111")>
         Public Async Function TestVisualBasic_ExplicitTypeDecl_MustGetNewSMForAnyReducer() As Task
             Dim input =
         <Workspace>

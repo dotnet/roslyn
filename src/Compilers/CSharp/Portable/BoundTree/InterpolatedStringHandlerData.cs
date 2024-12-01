@@ -10,14 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal readonly struct InterpolatedStringHandlerData
     {
-        public readonly TypeSymbol BuilderType;
+        public readonly TypeSymbol? BuilderType;
         public readonly BoundExpression Construction;
         public readonly bool UsesBoolReturns;
-        /// <summary>
-        /// The scope of the expression that contained the interpolated string during initial binding. This is used to determine the SafeToEscape rules
-        /// for the builder during lowering.
-        /// </summary>
-        public readonly uint ScopeOfContainingExpression;
         /// <summary>
         /// The placeholders that are used for <see cref="Construction"/>.
         /// </summary>
@@ -27,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasTrailingHandlerValidityParameter => ArgumentPlaceholders.Length > 0 && ArgumentPlaceholders[^1].ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter;
 
-        public readonly BoundInterpolatedStringHandlerPlaceholder ReceiverPlaceholder;
+        public readonly BoundInterpolatedStringHandlerPlaceholder? ReceiverPlaceholder;
 
         public bool IsDefault => Construction is null;
 
@@ -35,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol builderType,
             BoundExpression construction,
             bool usesBoolReturns,
-            uint scopeOfContainingExpression,
             ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders,
             ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>> positionInfo,
             BoundInterpolatedStringHandlerPlaceholder receiverPlaceholder)
@@ -48,17 +42,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BuilderType = builderType;
             Construction = construction;
             UsesBoolReturns = usesBoolReturns;
-            ScopeOfContainingExpression = scopeOfContainingExpression;
             ArgumentPlaceholders = placeholders;
             PositionInfo = positionInfo;
             ReceiverPlaceholder = receiverPlaceholder;
         }
 
-        /// <summary>
-        /// Simple helper method to get the object creation expression for this data. This should only be used in
-        /// scenarios where the data in <see cref="Construction"/> is known to be valid, or it will throw.
-        /// </summary>
-        public readonly BoundObjectCreationExpression GetValidConstructor()
-            => (BoundObjectCreationExpression)Construction;
+        public InterpolatedStringHandlerData(BoundExpression construction)
+        {
+            BuilderType = null;
+            Construction = construction;
+            UsesBoolReturns = false;
+            ArgumentPlaceholders = default;
+            PositionInfo = default;
+            ReceiverPlaceholder = null;
+        }
     }
 }

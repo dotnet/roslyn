@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 
 #if DEBUG
 using System.Diagnostics;
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static readonly Entry[] s_sharedTable = new Entry[SharedSize];
+        private static readonly SegmentedArray<Entry> s_sharedTable = new SegmentedArray<Entry>(SharedSize);
 
         // essentially a random number 
         // the usage pattern will randomly use and increment this
@@ -698,6 +698,16 @@ foundIdx:
                 return false;
             }
 
+#if NETCOREAPP3_1_OR_GREATER
+            int chunkOffset = 0;
+            foreach (var chunk in text.GetChunks())
+            {
+                if (!chunk.Span.Equals(array.AsSpan().Slice(chunkOffset, chunk.Length), StringComparison.Ordinal))
+                    return false;
+
+                chunkOffset += chunk.Length;
+            }
+#else
             // interestingly, stringbuilder holds the list of chunks by the tail
             // so accessing positions at the beginning may cost more than those at the end.
             for (var i = array.Length - 1; i >= 0; i--)
@@ -707,6 +717,7 @@ foundIdx:
                     return false;
                 }
             }
+#endif
 
             return true;
         }
@@ -716,7 +727,7 @@ foundIdx:
 #if DEBUG
             for (var i = 0; i < ascii.Length; i++)
             {
-                Debug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
+                RoslynDebug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
             }
 #endif
 

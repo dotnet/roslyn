@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 if (result is AnalyzerConfigOptionsResult r)
                 {
                     DiagnosticOptions = r.TreeOptions;
-                    IsGenerated = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(r.AnalyzerOptions);
+                    IsGenerated = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(r.AnalyzerOptions);
                 }
                 else
                 {

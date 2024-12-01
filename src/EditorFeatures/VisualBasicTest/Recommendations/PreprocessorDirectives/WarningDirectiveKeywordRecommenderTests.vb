@@ -135,7 +135,7 @@ End Function</ClassDeclaration>, "#Enable Warning")
                                          </File>, "Warning")
         End Sub
 
-        <Fact, WorkItem(1020079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020079")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020079")>
         Public Sub NotInEnumTest()
             VerifyRecommendationsMissing(<File>
 Enum E
@@ -145,7 +145,7 @@ End Enum
                                          </File>, "#Enable Warning", "#Disable Warning")
         End Sub
 
-        <Fact, WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6389")>
         Public Sub NotAfterHashRegionTest()
             VerifyRecommendationsMissing(<File>
                                          Class C

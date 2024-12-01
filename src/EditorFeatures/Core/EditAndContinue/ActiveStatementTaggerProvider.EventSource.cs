@@ -5,35 +5,29 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal partial class ActiveStatementTaggerProvider
 {
-    internal partial class ActiveStatementTaggerProvider
+    private sealed class EventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
-        private sealed class EventSource : AbstractWorkspaceTrackingTaggerEventSource
+        protected override void ConnectToWorkspace(Workspace workspace)
         {
-            public EventSource(ITextBuffer subjectBuffer)
-                : base(subjectBuffer)
+            var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();
+            if (trackingService != null)
             {
+                trackingService.TrackingChanged += RaiseChanged;
+                RaiseChanged();
             }
+        }
 
-            protected override void ConnectToWorkspace(Workspace workspace)
+        protected override void DisconnectFromWorkspace(Workspace workspace)
+        {
+            var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();
+            if (trackingService != null)
             {
-                var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();
-                if (trackingService != null)
-                {
-                    trackingService.TrackingChanged += RaiseChanged;
-                    RaiseChanged();
-                }
-            }
-
-            protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();
-                if (trackingService != null)
-                {
-                    trackingService.TrackingChanged -= RaiseChanged;
-                    RaiseChanged();
-                }
+                trackingService.TrackingChanged -= RaiseChanged;
+                RaiseChanged();
             }
         }
     }

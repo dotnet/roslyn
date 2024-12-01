@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : IDisposable
     {
-        internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
+        internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Core;
 
         /// <summary>
         /// Use Unicode encoding for STDOUT and STDERR of the InteractiveHost process.

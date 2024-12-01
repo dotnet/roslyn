@@ -8,20 +8,14 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
-{
-    [Shared]
-    [ExportLanguageService(typeof(VSTypeScriptDiagnosticAnalyzerLanguageService), InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptDiagnosticAnalyzerLanguageService : ILanguageService
-    {
-        internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation? Implementation;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptDiagnosticAnalyzerLanguageService(
-            [Import(AllowDefault = true)] IVSTypeScriptDiagnosticAnalyzerImplementation? implementation = null)
-        {
-            Implementation = implementation;
-        }
-    }
+[Shared]
+[ExportLanguageService(typeof(VSTypeScriptDiagnosticAnalyzerLanguageService), InternalLanguageNames.TypeScript)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptDiagnosticAnalyzerLanguageService(
+    [Import(AllowDefault = true)] IVSTypeScriptDiagnosticAnalyzerImplementation? implementation = null) : ILanguageService
+{
+    internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation? Implementation = implementation;
 }

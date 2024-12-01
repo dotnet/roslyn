@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             get
             {
-                if (index < 0 || index > _count)
+                if (index < 0 || index >= _count)
                 {
                     throw new IndexOutOfRangeException();
                 }
@@ -81,18 +81,24 @@ namespace Microsoft.CodeAnalysis.Syntax
         }
 
         public void Add(SyntaxTrivia[] items)
+            => Add(items.AsSpan());
+
+        public void Add(ReadOnlySpan<SyntaxTrivia> items)
         {
             this.Add(items, 0, items.Length);
         }
 
         public void Add(SyntaxTrivia[] items, int offset, int length)
+            => Add(items.AsSpan(), offset, length);
+
+        public void Add(ReadOnlySpan<SyntaxTrivia> items, int offset, int length)
         {
             if (_count + length > _nodes.Length)
             {
                 this.Grow(_count + length);
             }
 
-            Array.Copy(items, offset, _nodes, _count, length);
+            items.Slice(offset, length).CopyTo(_nodes.AsSpan().Slice(_count, length));
             _count += length;
         }
 

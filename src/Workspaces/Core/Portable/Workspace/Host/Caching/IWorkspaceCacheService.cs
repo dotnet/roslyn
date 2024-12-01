@@ -6,17 +6,16 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+/// <summary>
+/// Workspace service for cache implementations.
+/// </summary>
+internal interface IWorkspaceCacheService : IWorkspaceService
 {
     /// <summary>
-    /// Workspace service for cache implementations.
+    /// May be raised by a Workspace host when available memory is getting low in order to request
+    /// that caches be flushed.
     /// </summary>
-    internal interface IWorkspaceCacheService : IWorkspaceService
-    {
-        /// <summary>
-        /// May be raised by a Workspace host when available memory is getting low in order to request
-        /// that caches be flushed.
-        /// </summary>
-        event EventHandler CacheFlushRequested;
-    }
+    event EventHandler CacheFlushRequested;
 }

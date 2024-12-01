@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -19,13 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             body As BoundBlock,
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
-            instrumentForDynamicAnalysis As Boolean,
-            <Out> ByRef dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
+            instrumentations As MethodInstrumentation,
+            <Out> ByRef codeCoverageSpans As ImmutableArray(Of SourceSpan),
             debugDocumentProvider As DebugDocumentProvider,
             diagnostics As BindingDiagnosticBag,
             ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
-            lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
-            closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
+            lambdaDebugInfoBuilder As ArrayBuilder(Of EncLambdaInfo),
+            lambdaRuntimeRudeEditsBuilder As ArrayBuilder(Of LambdaRuntimeRudeEditInfo),
+            closureDebugInfoBuilder As ArrayBuilder(Of EncClosureInfo),
             stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
             ByRef delegateRelaxationIdDispenser As Integer,
             <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol,
@@ -43,12 +45,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
             Dim localDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
             Debug.Assert(localDiagnostics.AccumulatesDiagnostics)
-            dynamicAnalysisSpans = ImmutableArray(Of SourceSpan).Empty
 
             Try
-                Dim dynamicInstrumenter As DynamicAnalysisInjector =
-                    If(instrumentForDynamicAnalysis,
-                        DynamicAnalysisInjector.TryCreate(method, body, New SyntheticBoundNodeFactory(method, method, body.Syntax, compilationState, diagnostics), diagnostics, debugDocumentProvider, Instrumenter.NoOp),
+                Dim codeCoverageInstrumenter As CodeCoverageInstrumenter =
+                    If(Not isBodySynthesized AndAlso instrumentations.Kinds.Contains(InstrumentationKind.TestCoverage),
+                        CodeCoverageInstrumenter.TryCreate(method, body, New SyntheticBoundNodeFactory(method, method, body.Syntax, compilationState, diagnostics), diagnostics, debugDocumentProvider, Instrumenter.NoOp),
                         Nothing)
 
                 ' We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
@@ -62,12 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     sawLambdas,
                                                     symbolsCapturedWithoutCopyCtor,
                                                     flags,
-                                                    If(dynamicInstrumenter IsNot Nothing, New DebugInfoInjector(dynamicInstrumenter), DebugInfoInjector.Singleton),
+                                                    If(codeCoverageInstrumenter IsNot Nothing, New DebugInfoInjector(codeCoverageInstrumenter), DebugInfoInjector.Singleton),
                                                     currentMethod:=Nothing)
 
-                If dynamicInstrumenter IsNot Nothing Then
-                    dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans
-                End If
+                codeCoverageSpans = If(codeCoverageInstrumenter IsNot Nothing, codeCoverageInstrumenter.DynamicAnalysisSpans, ImmutableArray(Of SourceSpan).Empty)
 
                 If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then
                     diagnostics.AddRangeAndFree(localDiagnostics)
@@ -95,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             method,
                                                             methodOrdinal,
                                                             lambdaDebugInfoBuilder,
+                                                            lambdaRuntimeRudeEditsBuilder,
                                                             closureDebugInfoBuilder,
                                                             delegateRelaxationIdDispenser,
                                                             lazyVariableSlotAllocator,

@@ -30,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim opKind As UnaryOperatorKind = node.OperatorKind And UnaryOperatorKind.OpMask
             Dim isChecked As Boolean = node.Checked AndAlso origArgUnderlyingType.IsIntegralType
-            Dim helperName As String = Nothing
 
             Debug.Assert((node.OperatorKind And UnaryOperatorKind.UserDefined) = 0)
 
@@ -44,16 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim method As MethodSymbol = GetHelperForObjectUnaryOperation(opKind)
-                    Return If(method Is Nothing, argument, ConvertRuntimeHelperToExpressionTree("UnaryPlus", argument, Me._factory.MethodInfo(method)))
+                    Return If(method Is Nothing,
+                              argument,
+                              ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__UnaryPlus,
+                                                                   argument, Me._factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo))))
 
-                Case UnaryOperatorKind.Minus
-                    helperName = If(isChecked, "NegateChecked", "Negate")
-                    GoTo lNotAndMinus
-
-                Case UnaryOperatorKind.Not
-                    helperName = "Not"
-
-lNotAndMinus:
+                Case UnaryOperatorKind.Minus,
+                     UnaryOperatorKind.Not
                     ' NOTE: Both '-' and 'Not' processed by the code below
 
                     Dim method As MethodSymbol = Nothing
@@ -63,11 +59,28 @@ lNotAndMinus:
                         method = GetHelperForDecimalUnaryOperation(opKind)
                     End If
 
+                    Dim helper As WellKnownMember
+
                     If method IsNot Nothing Then
-                        Return ConvertRuntimeHelperToExpressionTree(helperName, argument, Me._factory.MethodInfo(method))
+                        If opKind = UnaryOperatorKind.Minus Then
+                            helper = If(isChecked,
+                                WellKnownMember.System_Linq_Expressions_Expression__NegateChecked_Expression_MethodInfo,
+                                WellKnownMember.System_Linq_Expressions_Expression__Negate_Expression_MethodInfo)
+                        Else
+                            helper = WellKnownMember.System_Linq_Expressions_Expression__Not_Expression_MethodInfo
+                        End If
+
+                        Return ConvertRuntimeHelperToExpressionTree(helper, argument, Me._factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
                     End If
 
                     ' No standard method
+                    If opKind = UnaryOperatorKind.Minus Then
+                        helper = If(isChecked,
+                                WellKnownMember.System_Linq_Expressions_Expression__NegateChecked_Expression,
+                                WellKnownMember.System_Linq_Expressions_Expression__Negate_Expression)
+                    Else
+                        helper = WellKnownMember.System_Linq_Expressions_Expression__Not_Expression
+                    End If
 
                     ' convert i1, u1 to i4 if needed 
                     Dim needToCastBackToByteOrSByte As Boolean = origArgUnderlyingSpecialType = SpecialType.System_Byte OrElse
@@ -81,7 +94,7 @@ lNotAndMinus:
                                                                       isChecked AndAlso IsIntegralType(origArgUnderlyingType),
                                                                       needToCastBackToByteOrSByte)
 
-                    Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(helperName, argument)
+                    Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(helper, argument)
 
                     ' convert i4 back to i1, u1 
                     If needToCastBackToByteOrSByte Then
@@ -124,7 +137,7 @@ lNotAndMinus:
                     Dim paramSymbol As ParameterSymbol = CreateCoalesceLambdaParameterSymbol(udoOperandType)
                     Dim lambdaBody As BoundExpression = BuildLambdaBodyForCoalesce(userDefinedOperator.OperatorKind, [call], node.Type, paramSymbol)
                     Dim coalesceLambda As BoundExpression = BuildLambdaForCoalesceCall(node.Type, paramSymbol, lambdaBody)
-                    Return ConvertRuntimeHelperToExpressionTree("Coalesce", Visit(userDefinedOperator.Operand), Visit(Me._factory.Literal(False)), coalesceLambda)
+                    Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Coalesce_Lambda, Visit(userDefinedOperator.Operand), Visit(Me._factory.Literal(False)), coalesceLambda)
             End Select
 
             If operand.Kind = BoundKind.ObjectCreationExpression Then
@@ -135,7 +148,7 @@ lNotAndMinus:
                 End If
             End If
 
-            Return ConvertRuntimeHelperToExpressionTree("Coalesce", Visit(operand), Visit(Me._factory.Literal(False)))
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Coalesce, Visit(operand), Visit(Me._factory.Literal(False)))
         End Function
 
         Private Function BuildLambdaBodyForCoalesce(opKind As UnaryOperatorKind, [call] As BoundCall, resultType As TypeSymbol, lambdaParameter As ParameterSymbol) As BoundExpression
@@ -175,9 +188,9 @@ lNotAndMinus:
                     ' See description in DiagnosticsPass.VisitUserDefinedUnaryOperator
                     Debug.Assert(Not isLifted OrElse Not node.Call.Method.ReturnType.IsNullableType)
 
-                    Return ConvertRuntimeHelperToExpressionTree(GetUnaryOperatorMethodName(opKind, False),
+                    Return ConvertRuntimeHelperToExpressionTree(GetUnaryOperatorFactoryMethod(opKind),
                                                                 Visit(node.Operand),
-                                                                _factory.MethodInfo(node.Call.Method))
+                                                                _factory.MethodInfo(node.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
@@ -237,14 +250,14 @@ lNotAndMinus:
         ''' <summary>
         ''' Get the name of the expression tree function for a particular unary operator
         ''' </summary>
-        Private Shared Function GetUnaryOperatorMethodName(opKind As UnaryOperatorKind, isChecked As Boolean) As String
+        Private Shared Function GetUnaryOperatorFactoryMethod(opKind As UnaryOperatorKind) As WellKnownMember
             Select Case (opKind And UnaryOperatorKind.OpMask)
                 Case UnaryOperatorKind.Not
-                    Return "Not"
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Not_Expression_MethodInfo
                 Case UnaryOperatorKind.Plus
-                    Return "UnaryPlus"
+                    Return WellKnownMember.System_Linq_Expressions_Expression__UnaryPlus
                 Case UnaryOperatorKind.Minus
-                    Return If(isChecked, "NegateChecked", "Negate")
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Negate_Expression_MethodInfo
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select

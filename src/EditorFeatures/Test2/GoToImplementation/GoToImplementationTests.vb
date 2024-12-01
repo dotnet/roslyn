@@ -5,19 +5,20 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Classification
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-    Public Class GoToImplementationTests
-
+    Public NotInheritable Class GoToImplementationTests
         Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True, Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
                 host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
-                    Await findUsagesService.FindImplementationsAsync(context, document, position, CancellationToken.None).ConfigureAwait(False)
+                    Dim options = New TestOptionsProvider(Of ClassificationOptions)(ClassificationOptions.Default)
+                    Await findUsagesService.FindImplementationsAsync(context, document, position, options, CancellationToken.None).ConfigureAwait(False)
                 End Function,
                 shouldSucceed,
                 metadataDefinitions)
@@ -38,6 +39,7 @@ $$
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithSingleClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -57,7 +59,7 @@ class [|$$C|] { }
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-abstract class [|$$C|]
+abstract class $$C
 {
 }
 
@@ -136,12 +138,13 @@ enum [|$$C|]
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithNonAbstractClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class [|$$C|]
+class $$C
 {
 }
 
@@ -187,6 +190,7 @@ interface $$I { }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_01(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -202,13 +206,14 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_02(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { public void [|M|]() { } }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -217,13 +222,14 @@ interface I { void [|$$M|]() {} }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_03(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { void I.[|M|]() { } }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -251,6 +257,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOneMethodImplementation_05(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -261,7 +268,7 @@ interface C : I
     void I.[|M|]() { }
     void M();
 }
-interface I { void [|$$M|]() {} }
+interface I { void $$M() {} }
         </Document>
     </Project>
 </Workspace>
@@ -319,7 +326,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -336,7 +343,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -353,7 +360,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -370,7 +377,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/6752")>
         Public Async Function TestWithAbstractMethodImplementation(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -427,6 +434,7 @@ class C
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithOverridableMethodOnBase(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -434,7 +442,7 @@ class C
         <Document>
 class C 
 {
-    public virtual void [|$$M|]() { }
+    public virtual void $$M() { }
 }
 
 class D : C
@@ -473,14 +481,15 @@ class D : C
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(19700, "https://github.com/dotnet/roslyn/issues/19700")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19700")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75974")>
         Public Async Function TestWithIntermediateAbstractOverrides(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
     abstract class A {
-        public virtual void $$[|M|]() { }
+        public virtual void $$M() { }
     }
     abstract class B : A {
         public abstract override void M();
@@ -499,8 +508,8 @@ class D : C
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(43093, "https://github.com/dotnet/roslyn/issues/43093")>
-        Public Async Function TestMultiTargetting1(host As TestHost) As Task
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43093")>
+        Public Async Function TestMultiTargeting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -531,8 +540,8 @@ public class [|Impl|] : IInterface
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
-        Public Async Function TestCrossTargetting1(host As TestHost) As Task
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargeting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -541,7 +550,7 @@ public class [|Impl|] : IInterface
 using System;
 using System.Threading.Tasks;
 
-namespace MultiTargettingCore
+namespace MultiTargetingCore
 {
     public class Class1
     {
@@ -578,8 +587,8 @@ public class StringCreator : IStringCreator
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
-        Public Async Function TestCrossTargetting2(host As TestHost) As Task
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargeting2(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -588,7 +597,7 @@ public class StringCreator : IStringCreator
 using System;
 using System.Threading.Tasks;
 
-namespace MultiTargettingCore
+namespace MultiTargetingCore
 {
     public class Class1
     {
@@ -625,8 +634,8 @@ public class StringCreator : IStringCreator
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
-        Public Async Function TestCrossTargetting3(host As TestHost) As Task
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargeting3(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -635,7 +644,7 @@ public class StringCreator : IStringCreator
 using System;
 using System.Threading.Tasks;
 
-namespace MultiTargettingCore
+namespace MultiTargetingCore
 {
     public class Class1
     {
@@ -672,7 +681,7 @@ public class StringCreator : IStringCreator
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/26167")>
         Public Async Function SkipIntermediaryAbstractMethodIfOverridden(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -689,7 +698,7 @@ interface I { void $$M(); }
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/26167")>
         Public Async Function IncludeAbstractMethodIfNotOverridden(host As TestHost) As Task
             Dim workspace =
 <Workspace>
@@ -728,6 +737,83 @@ interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
 class C : I&lt;C&gt; { static C I&lt;C&gt;.operator [|>>>|](C x, int y) { return x; } }
 interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
         </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInSourceGeneratedDocument1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+interface I { void $$M(); }
+class C : I { public abstract void M() { } }
+class D : C { public override void [|M|]() { } }}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInSourceGeneratedDocument2(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+interface I { void $$M(); }
+class C : I { public abstract void M() { } }
+        </DocumentFromSourceGenerator>
+        <DocumentFromSourceGenerator>
+class D : C { public override void [|M|]() { } }}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInSourceGeneratedDocument3(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+interface I { void $$M(); }
+class C : I { public abstract void M() { } }
+        </DocumentFromSourceGenerator>
+        <Document>
+class D : C { public override void [|M|]() { } }}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function FindLooseMatch1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public abstract void $$Foo() { }
+}
+
+class D : C
+{
+    public override void [|Foo|](int i)
+    {
+        base.Foo();
+    }
+}        </Document>
     </Project>
 </Workspace>
 

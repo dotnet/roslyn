@@ -4,15 +4,12 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal class RQNamespace : RQTypeOrNamespace
-    {
-        public RQNamespace(IList<string> namespaceNames) : base(namespaceNames) { }
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.Namespace; }
-        }
+internal sealed class RQNamespace(IList<string> namespaceNames) : RQTypeOrNamespace(namespaceNames)
+{
+    protected override string RQKeyword
+    {
+        get { return RQNameStrings.Namespace; }
     }
 }

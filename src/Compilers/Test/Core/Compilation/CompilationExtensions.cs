@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using SeparatedWithManyChildren = Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -34,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         internal static bool EnableVerifyIOperation { get; } =
 #if ROSLYN_TEST_IOPERATION
-            true;
+                                    true;
 #else
-            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+                        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
 #endif
 
         internal static bool EnableVerifyUsedAssemblies { get; } =
@@ -275,10 +276,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var compilation = createCompilation();
             var roots = ArrayBuilder<(IOperation operation, ISymbol associatedSymbol)>.GetInstance();
             var stopWatch = new Stopwatch();
-            if (!System.Diagnostics.Debugger.IsAttached)
-            {
-                stopWatch.Start();
-            }
+            start(stopWatch);
 
             void checkTimeout()
             {
@@ -315,6 +313,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                     }
                 }
+
+                tree.VerifyChildNodePositions();
             }
 
             var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
@@ -343,12 +343,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 stopWatch.Stop();
                 checkControlFlowGraph(root, associatedSymbol);
-                stopWatch.Start();
+                start(stopWatch);
             }
 
             roots.Free();
             stopWatch.Stop();
             return;
+
+            static void start(Stopwatch stopWatch)
+            {
+                if (!System.Diagnostics.Debugger.IsAttached)
+                {
+                    stopWatch.Start();
+                }
+            }
 
             void checkControlFlowGraph(IOperation root, ISymbol associatedSymbol)
             {
@@ -378,6 +386,72 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                         break;
                 }
+            }
+        }
+
+        internal static void VerifyChildNodePositions(this SyntaxTree tree)
+        {
+            var nodes = tree.GetRoot().DescendantNodesAndSelf();
+            foreach (var node in nodes)
+            {
+                var childNodesAndTokens = node.ChildNodesAndTokens();
+                if (childNodesAndTokens.Node is { } container)
+                {
+                    for (int i = 0; i < childNodesAndTokens.Count; i++)
+                    {
+                        if (container.GetNodeSlot(i) is SeparatedWithManyChildren separatedList)
+                        {
+                            verifyPositions(separatedList);
+                        }
+                    }
+                }
+            }
+
+            static void verifyPositions(SeparatedWithManyChildren separatedList)
+            {
+                var green = (Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList)separatedList.Green;
+
+                // Calculate positions from start, using existing cache.
+                int[] positions = getPositionsFromStart(separatedList);
+
+                // Calculate positions from end, using existing cache.
+                AssertEx.Equal(positions, getPositionsFromEnd(separatedList));
+
+                // Avoid testing without caches if the number of children is large.
+                if (separatedList.SlotCount > 100)
+                {
+                    return;
+                }
+
+                // Calculate positions from start, with empty cache.
+                AssertEx.Equal(positions, getPositionsFromStart(new SeparatedWithManyChildren(green, null, separatedList.Position)));
+
+                // Calculate positions from end, with empty cache.
+                AssertEx.Equal(positions, getPositionsFromEnd(new SeparatedWithManyChildren(green, null, separatedList.Position)));
+            }
+
+            // Calculate positions from start, using any existing cache of red nodes on separated list.
+            static int[] getPositionsFromStart(SeparatedWithManyChildren separatedList)
+            {
+                int n = separatedList.SlotCount;
+                var positions = new int[n];
+                for (int i = 0; i < n; i++)
+                {
+                    positions[i] = separatedList.GetChildPosition(i);
+                }
+                return positions;
+            }
+
+            // Calculate positions from end, using any existing cache of red nodes on separated list.
+            static int[] getPositionsFromEnd(SeparatedWithManyChildren separatedList)
+            {
+                int n = separatedList.SlotCount;
+                var positions = new int[n];
+                for (int i = n - 1; i >= 0; i--)
+                {
+                    positions[i] = separatedList.GetChildPositionFromEnd(i);
+                }
+                return positions;
             }
         }
 

@@ -420,9 +420,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
                     Dim directives = directiveSyntax.GetMatchingConditionalDirectives(cancellationToken)
-                    If directives IsNot Nothing AndAlso directives.Count > 0 Then
+                    If directives.Any() Then
                         If Not textSpan.Contains(directives(0).SpanStart) OrElse
-                           Not textSpan.Contains(directives(directives.Count - 1).SpanStart) Then
+                           Not textSpan.Contains(directives.Last().SpanStart) Then
                             ' This else/elif belongs to a pp span that isn't 
                             ' entirely within this node.
                             Return True
@@ -573,35 +573,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' Returns child node or token that contains given position.
-        ''' </summary>
-        ''' <remarks>
-        ''' This is a copy of <see cref="SyntaxNode.ChildThatContainsPosition"/>  that also returns the index of the child node.
-        ''' </remarks>
-        <Extension>
-        Friend Function ChildThatContainsPosition(self As SyntaxNode, position As Integer, ByRef childIndex As Integer) As SyntaxNodeOrToken
-            Dim childList = self.ChildNodesAndTokens()
-            Dim left As Integer = 0
-            Dim right As Integer = childList.Count - 1
-            While left <= right
-                Dim middle As Integer = left + (right - left) \ 2
-                Dim node As SyntaxNodeOrToken = childList(middle)
-                Dim span = node.FullSpan
-                If position < span.Start Then
-                    right = middle - 1
-                ElseIf position >= span.End Then
-                    left = middle + 1
-                Else
-                    childIndex = middle
-                    Return node
-                End If
-            End While
-
-            Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
         <Extension()>

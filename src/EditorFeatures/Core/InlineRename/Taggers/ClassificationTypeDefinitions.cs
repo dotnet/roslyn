@@ -7,16 +7,15 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
-{
-    internal sealed class ClassificationTypeDefinitions
-    {
-        // Only used for theming, does not need localized
-        public const string InlineRenameField = "Inline Rename Field Text";
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-        [Export]
-        [Name(InlineRenameField)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition? InlineRenameFieldTypeDefinition;
-    }
+internal sealed class ClassificationTypeDefinitions
+{
+    // Only used for theming, does not need localized
+    public const string InlineRenameField = "Inline Rename Field Text";
+
+    [Export]
+    [Name(InlineRenameField)]
+    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    internal readonly ClassificationTypeDefinition? InlineRenameFieldTypeDefinition;
 }

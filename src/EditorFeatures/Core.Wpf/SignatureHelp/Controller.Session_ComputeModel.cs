@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -84,12 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             }
                         }
 
-                        var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
-
                         // first try to query the providers that can trigger on the specified character
-                        var (provider, items) = await ComputeItemsAsync(
-                            providers, caretPosition, triggerInfo,
-                            options, document, cancellationToken).ConfigureAwait(false);
+                        var (provider, items) = await SignatureHelpService.GetSignatureHelpAsync(
+                            providers,
+                            document,
+                            caretPosition,
+                            triggerInfo,
+                            cancellationToken).ConfigureAwait(false);
 
                         if (provider == null)
                         {
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             currentModel.Provider == provider &&
                             currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
                             currentModel.Items.IndexOf(currentModel.SelectedItem) == items.SelectedItemIndex &&
-                            currentModel.ArgumentIndex == items.ArgumentIndex &&
-                            currentModel.ArgumentCount == items.ArgumentCount &&
+                            currentModel.SemanticParameterIndex == items.SemanticParameterIndex &&
+                            currentModel.SyntacticArgumentCount == items.SyntacticArgumentCount &&
                             currentModel.ArgumentName == items.ArgumentName)
                         {
                             // The new model is the same as the current model.  Return the currentModel
@@ -112,14 +112,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         var selectedItem = GetSelectedItem(currentModel, items, provider, out var userSelected);
 
-                        var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
-                            items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,
-                            selectedParameter: 0, userSelected);
+                        var model = new Model(
+                            disconnectedBufferGraph,
+                            items.ApplicableSpan,
+                            provider,
+                            items.Items,
+                            selectedItem,
+                            items.SemanticParameterIndex,
+                            items.SyntacticArgumentCount,
+                            items.ArgumentName,
+                            selectedParameter: 0,
+                            userSelected);
 
                         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                         var isCaseSensitive = syntaxFactsService == null || syntaxFactsService.IsCaseSensitive;
-                        var selection = DefaultSignatureHelpSelector.GetSelection(model.Items,
-                            model.SelectedItem, model.UserSelected, model.ArgumentIndex, model.ArgumentCount, model.ArgumentName, isCaseSensitive);
+                        var selection = DefaultSignatureHelpSelector.GetSelection(
+                            model.Items,
+                            model.SelectedItem,
+                            model.UserSelected,
+                            model.SemanticParameterIndex,
+                            model.SyntacticArgumentCount,
+                            model.ArgumentName,
+                            isCaseSensitive);
 
                         return model.WithSelectedItem(selection.SelectedItem, selection.UserSelected)
                                     .WithSelectedParameter(selection.SelectedParameter);
@@ -174,66 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             private static bool CompareParts(TaggedText p1, TaggedText p2)
                 => p1.ToString() == p2.ToString();
-
-            private static async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
-                ImmutableArray<ISignatureHelpProvider> providers,
-                SnapshotPoint caretPosition,
-                SignatureHelpTriggerInfo triggerInfo,
-                SignatureHelpOptions options,
-                Document document,
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    ISignatureHelpProvider bestProvider = null;
-                    SignatureHelpItems bestItems = null;
-
-                    // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
-                    // to the extension crashing.
-                    foreach (var provider in providers)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, options, cancellationToken).ConfigureAwait(false);
-                        if (currentItems != null && currentItems.ApplicableSpan.IntersectsWith(caretPosition.Position))
-                        {
-                            // If another provider provides sig help items, then only take them if they
-                            // start after the last batch of items.  i.e. we want the set of items that
-                            // conceptually are closer to where the caret position is.  This way if you have:
-                            //
-                            //  Goo(new Bar($$
-                            //
-                            // Then invoking sig help will only show the items for "new Bar(" and not also
-                            // the items for "Goo(..."
-                            if (IsBetter(bestItems, currentItems.ApplicableSpan))
-                            {
-                                bestItems = currentItems;
-                                bestProvider = provider;
-                            }
-                        }
-                    }
-
-                    return (bestProvider, bestItems);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    return (null, null);
-                }
-            }
-
-            private static bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
-            {
-                // If we have no best text span, then this span is definitely better.
-                if (bestItems == null)
-                {
-                    return true;
-                }
-
-                // Otherwise we want the one that is conceptually the innermost signature.  So it's
-                // only better if the distance from it to the caret position is less than the best
-                // one so far.
-                return currentTextSpan.Value.Start > bestItems.ApplicableSpan.Start;
-            }
         }
     }
 }

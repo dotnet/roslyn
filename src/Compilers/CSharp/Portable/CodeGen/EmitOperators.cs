@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression child = expression.Left;
 
-            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
             {
                 EmitBinaryOperatorSimple(expression);
                 return;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack.Push(binary);
                 child = binary.Left;
 
-                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
                 {
                     break;
                 }
@@ -357,12 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BinaryOperatorKind.Equal:
 
-                    var constant = binOp.Left.ConstantValue;
+                    var constant = binOp.Left.ConstantValueOpt;
                     var comparand = binOp.Right;
 
                     if (constant == null)
                     {
-                        constant = comparand.ConstantValue;
+                        constant = comparand.ConstantValueOpt;
                         comparand = binOp.Left;
                     }
 
@@ -372,6 +372,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         {
                             if (!constant.IsFloating)
                             {
+                                if (comparand is BoundConversion { Type.SpecialType: SpecialType.System_Object, ConversionKind: ConversionKind.Boxing, Operand.Type: TypeParameterSymbol { AllowsRefLikeType: true } } &&
+                                    constant.IsNull)
+                                {
+                                    // Boxing is not supported for ref like type parameters, therefore the code that we usually emit 'box; ldnull; ceq/cgt'
+                                    // is not going to work. There is, however, an exception for 'box; brtrue/brfalse' sequence (https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md#special-il-sequences).
+                                    EmitExpression(comparand, true);
+
+                                    object falseLabel = new object();
+                                    object endLabel = new object();
+                                    _builder.EmitBranch(sense ? ILOpCode.Brtrue_s : ILOpCode.Brfalse_s, falseLabel);
+                                    _builder.EmitBoolConstant(true);
+                                    _builder.EmitBranch(ILOpCode.Br, endLabel);
+
+                                    _builder.AdjustStack(-1);
+                                    _builder.MarkLabel(falseLabel);
+                                    _builder.EmitBoolConstant(false);
+                                    _builder.MarkLabel(endLabel);
+                                    return;
+                                }
+
                                 if (sense)
                                 {
                                     EmitIsNullOrZero(comparand, constant);
@@ -471,17 +491,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // this will leave a value on the stack which conforms to sense, ie:(condition == sense)
         private void EmitCondExpr(BoundExpression condition, bool sense)
         {
-            while (condition.Kind == BoundKind.UnaryOperator)
-            {
-                var unOp = (BoundUnaryOperator)condition;
-                Debug.Assert(unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
-                condition = unOp.Operand;
-                sense = !sense;
-            }
+            RemoveNegation(ref condition, ref sense);
 
             Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
 
-            var constantValue = condition.ConstantValue;
+            var constantValue = condition.ConstantValueOpt;
             if (constantValue != null)
             {
                 Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
@@ -504,6 +518,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitIsSense(sense);
 
             return;
+        }
+
+        /// <summary>
+        /// Emits boolean expression without branching if possible (i.e., no logical operators, only comparisons).
+        /// Leaves a boolean (int32, 0 or 1) value on the stack which conforms to sense, i.e., <c>condition == sense</c>.
+        /// </summary>
+        private bool TryEmitComparison(BoundExpression condition, bool sense)
+        {
+            RemoveNegation(ref condition, ref sense);
+
+            Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
+
+            if (condition.ConstantValueOpt is { } constantValue)
+            {
+                Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
+                _builder.EmitBoolConstant(constantValue.BooleanValue == sense);
+                return true;
+            }
+
+            if (condition is BoundBinaryOperator binOp)
+            {
+                // Intentionally don't optimize logical operators, they need branches to short-circuit.
+                if (binOp.OperatorKind.IsComparison())
+                {
+                    EmitBinaryCondOperator(binOp, sense: sense);
+                    return true;
+                }
+            }
+            else if (condition is BoundIsOperator isOp)
+            {
+                EmitIsExpression(isOp, used: true, omitBooleanConversion: true);
+
+                // Convert to 1 or 0.
+                _builder.EmitOpCode(ILOpCode.Ldnull);
+                _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                return true;
+            }
+            else
+            {
+                EmitExpression(condition, used: true);
+
+                // Convert to 1 or 0 (although `condition` is of type `bool`, it can contain any integer).
+                _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                _builder.EmitOpCode(sense ? ILOpCode.Cgt_un : ILOpCode.Ceq);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void RemoveNegation(ref BoundExpression condition, ref bool sense)
+        {
+            while (condition is BoundUnaryOperator unOp)
+            {
+                Debug.Assert(unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
+                condition = unOp.Operand;
+                sense = !sense;
+            }
         }
 
         private void EmitUnaryCheckedOperatorExpression(BoundUnaryOperator expression, bool used)

@@ -41,8 +41,8 @@ public class RazorLineFormattingOptionsTests
         using var workspace = new AdhocWorkspace(hostServices);
 
         var globalOptions = ((IMefHostExportProvider)hostServices).GetExportedValue<IGlobalOptionService>();
-        globalOptions.SetGlobalOption(new OptionKey(RazorLineFormattingOptionsStorage.UseTabs), true);
-        globalOptions.SetGlobalOption(new OptionKey(RazorLineFormattingOptionsStorage.TabSize), 10);
+        globalOptions.SetGlobalOption(RazorLineFormattingOptionsStorage.UseTabs, true);
+        globalOptions.SetGlobalOption(RazorLineFormattingOptionsStorage.TabSize, 10);
 
         var project = workspace.AddProject("Test", LanguageNames.CSharp);
 

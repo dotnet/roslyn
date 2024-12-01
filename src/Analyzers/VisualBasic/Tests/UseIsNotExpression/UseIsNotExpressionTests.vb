@@ -9,7 +9,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNotExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
     Partial Public Class UseIsNotExpressionTests
-        <Fact, WorkItem(46706, "https://github.com/dotnet/roslyn/issues/46706")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46706")>
         Public Async Function TestIsExpression() As Task
             Await New VerifyVB.Test With {
                 .TestCode = "

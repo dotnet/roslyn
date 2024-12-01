@@ -12,23 +12,22 @@ using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
+
+internal abstract class AbstractCodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
 {
-    internal abstract class AbstractCodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
+    private readonly ImmutableArray<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
+
+    protected AbstractCodeCleanUpFixerProvider(
+        IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
     {
-        private readonly ImmutableArray<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
-
-        protected AbstractCodeCleanUpFixerProvider(
-            IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
-        {
-            _codeCleanUpFixers = codeCleanUpFixers.ToImmutableArray();
-        }
-
-        public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()
-            => _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
-
-        public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
-            => _codeCleanUpFixers.WhereAsArray(handler => handler.Metadata.ContentTypes.Any(contentType.IsOfType))
-                                 .SelectAsArray(l => l.Value);
+        _codeCleanUpFixers = codeCleanUpFixers.ToImmutableArray();
     }
+
+    public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()
+        => _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
+
+    public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
+        => _codeCleanUpFixers.WhereAsArray(handler => handler.Metadata.ContentTypes.Any(contentType.IsOfType))
+                             .SelectAsArray(l => l.Value);
 }

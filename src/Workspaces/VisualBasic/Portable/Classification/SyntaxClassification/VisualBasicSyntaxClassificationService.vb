@@ -7,13 +7,13 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportLanguageService(GetType(ISyntaxClassificationService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(ISyntaxClassificationService), LanguageNames.VisualBasic), Export, [Shared]>
     Partial Friend Class VisualBasicSyntaxClassificationService
         Inherits AbstractSyntaxClassificationService
 
@@ -32,12 +32,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return s_defaultSyntaxClassifiers
         End Function
 
-        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
-        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
+        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpans As ImmutableArray(Of TextSpan), result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            For Each textSpan In textSpans
+                Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
+            Next
         End Sub
 
         Public Overrides Function FixClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan

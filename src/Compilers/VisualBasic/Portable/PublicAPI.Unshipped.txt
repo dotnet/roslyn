@@ -1,1 +1,1 @@
-*REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic17_13 = 1713 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion

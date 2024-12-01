@@ -31,13 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
                 },
                 hasInitializer: false,
-                isAutoProperty: false,
+                hasExplicitAccessMod: false,
+                hasAutoPropertyGet: false,
+                hasAutoPropertySet: false,
                 isExpressionBodied: false,
-                isInitOnly: false,
+                accessorsHaveImplementation: true,
+                getterUsesFieldKeyword: false,
+                setterUsesFieldKeyword: false,
                 RefKind.None,
                 PropertyName,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                containingType.Locations[0],
+                containingType.GetFirstLocation(),
                 diagnostics)
         {
             Debug.Assert(!containingType.IsRecordStruct);
@@ -47,13 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => new SyntaxList<AttributeListSyntax>();
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+
+        protected override SourcePropertySymbolBase? BoundAttributesSource => null;
 
         public override IAttributeTargetSymbol AttributesOwner => this;
 
         protected override Location TypeLocation
-            => ContainingType.Locations[0];
+            => ContainingType.GetFirstLocation();
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingType,
                 this,
                 _modifiers,
-                ContainingType.Locations[0],
+                ContainingType.GetFirstLocation(),
                 (CSharpSyntaxNode)((SourceMemberContainerTypeSymbol)ContainingType).SyntaxReferences[0].GetSyntax(),
                 diagnostics);
         }
@@ -76,8 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (TypeWithAnnotations.Create(Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Type, diagnostics, Location), NullableAnnotation.NotAnnotated),
                     ImmutableArray<ParameterSymbol>.Empty);
         }
-
-        protected override bool HasPointerTypeSyntactically => false;
 
         protected override void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.Locations[0], overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
             }
         }
 
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        propertyModifiers,
                        location,
                        syntax,
-                       hasBody: true,
+                       hasBlockBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
                        modifiers: default,
@@ -163,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
             internal override bool SynthesizesLoweredBoundBody => true;
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
@@ -171,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 try
                 {
                     F.CurrentFunction = this;
-                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType))));
+                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType, ReturnType))));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

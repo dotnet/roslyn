@@ -21,13 +21,12 @@ namespace Microsoft.CodeAnalysis.Scripting
     internal sealed class ScriptExecutionState
     {
         private object[] _submissionStates;
-        private int _count;
         private int _frozen;
 
         private ScriptExecutionState(object[] submissionStates, int count)
         {
             _submissionStates = submissionStates;
-            _count = count;
+            SubmissionStateCount = count;
         }
 
         public static ScriptExecutionState Create(object globals)
@@ -47,22 +46,22 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 // since only one state can add to the submissions, if its already been frozen and clone before
                 // make a copy of the visible contents for the new state.
-                var copy = new object[_count];
-                Array.Copy(_submissionStates, copy, _count);
-                return new ScriptExecutionState(copy, _count);
+                var copy = new object[SubmissionStateCount];
+                Array.Copy(_submissionStates, copy, SubmissionStateCount);
+                return new ScriptExecutionState(copy, SubmissionStateCount);
             }
             else
             {
                 // cloned state can continue to add submission states
-                return new ScriptExecutionState(_submissionStates, _count);
+                return new ScriptExecutionState(_submissionStates, SubmissionStateCount);
             }
         }
 
-        public int SubmissionStateCount => _count;
+        public int SubmissionStateCount { get; private set; }
 
         public object GetSubmissionState(int index)
         {
-            Debug.Assert(index >= 0 && index < _count);
+            Debug.Assert(index >= 0 && index < SubmissionStateCount);
             return _submissionStates[index];
         }
 
@@ -158,18 +157,18 @@ namespace Microsoft.CodeAnalysis.Scripting
         private void EnsureStateCapacity()
         {
             // make sure there is enough free space for the submission to add its state
-            if (_count >= _submissionStates.Length)
+            if (SubmissionStateCount >= _submissionStates.Length)
             {
-                Array.Resize(ref _submissionStates, Math.Max(_count, _submissionStates.Length * 2));
+                Array.Resize(ref _submissionStates, Math.Max(SubmissionStateCount, _submissionStates.Length * 2));
             }
         }
 
         private void AdvanceStateCounter()
         {
             // check to see if state was added (submissions that don't make declarations don't add state)
-            if (_submissionStates[_count] != null)
+            if (_submissionStates[SubmissionStateCount] != null)
             {
-                _count++;
+                SubmissionStateCount++;
             }
         }
     }

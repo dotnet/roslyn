@@ -72,8 +72,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WorkItem(21801, "https://github.com/dotnet/roslyn/issues/21801")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
         Public Async Function SnippetNotOfferedInComments() As Task
             Dim markup = <File>
 Class C
@@ -83,14 +82,13 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'T")
                 Await testState.AssertNoCompletionSession()
             End Using
         End Function
 
-        <WorkItem(21801, "https://github.com/dotnet/roslyn/issues/21801")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
         Public Async Function SnippetsNotOfferedInDocComments() As Task
             Dim markup = <File>
 Class C
@@ -100,7 +98,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'''T")
                 Await testState.AssertNoCompletionSession()
             End Using
@@ -116,7 +114,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("Shortcut")
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
             End Using

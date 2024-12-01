@@ -6,61 +6,56 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+
+[ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Host), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioChangeSignatureOptionsService(
+    IClassificationFormatMapService classificationFormatMapService,
+    ClassificationTypeMap classificationTypeMap,
+    IThreadingContext threadingContext) : IChangeSignatureOptionsService
 {
-    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioChangeSignatureOptionsService : ForegroundThreadAffinitizedObject, IChangeSignatureOptionsService
+    private readonly IClassificationFormatMap _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
+    private readonly ClassificationTypeMap _classificationTypeMap = classificationTypeMap;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+
+    public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
+        Document document,
+        int positionForTypeBinding,
+        ISymbol symbol,
+        ParameterConfiguration parameters)
     {
-        private readonly IClassificationFormatMap _classificationFormatMap;
-        private readonly ClassificationTypeMap _classificationTypeMap;
+        _threadingContext.ThrowIfNotOnUIThread();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioChangeSignatureOptionsService(
-            IClassificationFormatMapService classificationFormatMapService,
-            ClassificationTypeMap classificationTypeMap,
-            IThreadingContext threadingContext) : base(threadingContext)
+        var viewModel = new ChangeSignatureDialogViewModel(
+            parameters,
+            symbol,
+            document,
+            positionForTypeBinding,
+            _classificationFormatMap,
+            _classificationTypeMap);
+
+        ChangeSignatureLogger.LogChangeSignatureDialogLaunched();
+
+        var dialog = new ChangeSignatureDialog(viewModel);
+        var result = dialog.ShowModal();
+
+        if (result.HasValue && result.Value)
         {
-            _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
-            _classificationTypeMap = classificationTypeMap;
+            ChangeSignatureLogger.LogChangeSignatureDialogCommitted();
+
+            var signatureChange = new SignatureChange(parameters, viewModel.GetParameterConfiguration());
+            signatureChange.LogTelemetry();
+
+            return new ChangeSignatureOptionsResult(signatureChange, previewChanges: viewModel.PreviewChanges);
         }
 
-        public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
-            Document document,
-            int positionForTypeBinding,
-            ISymbol symbol,
-            ParameterConfiguration parameters)
-        {
-            this.AssertIsForeground();
-
-            var viewModel = new ChangeSignatureDialogViewModel(
-                parameters,
-                symbol,
-                document,
-                positionForTypeBinding,
-                _classificationFormatMap,
-                _classificationTypeMap);
-
-            ChangeSignatureLogger.LogChangeSignatureDialogLaunched();
-
-            var dialog = new ChangeSignatureDialog(viewModel);
-            var result = dialog.ShowModal();
-
-            if (result.HasValue && result.Value)
-            {
-                ChangeSignatureLogger.LogChangeSignatureDialogCommitted();
-
-                var signatureChange = new SignatureChange(parameters, viewModel.GetParameterConfiguration());
-                signatureChange.LogTelemetry();
-
-                return new ChangeSignatureOptionsResult(signatureChange, previewChanges: viewModel.PreviewChanges);
-            }
-
-            return null;
-        }
+        return null;
     }
 }

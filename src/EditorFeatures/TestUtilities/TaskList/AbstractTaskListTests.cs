@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
@@ -21,17 +19,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TaskList
         private static readonly TestComposition s_inProcessComposition = EditorTestCompositions.EditorFeatures;
         private static readonly TestComposition s_outOffProcessComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess);
 
-        protected TestWorkspace CreateWorkspace(string codeWithMarker, TestHost host)
+        protected EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestHost host)
             => CreateWorkspace(codeWithMarker, host == TestHost.OutOfProcess ? s_outOffProcessComposition : s_inProcessComposition);
 
-        protected abstract TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition testComposition);
+        protected abstract EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition testComposition);
 
         protected async Task TestAsync(string codeWithMarker, TestHost host)
         {
             using var workspace = CreateWorkspace(codeWithMarker, host);
 
             var descriptors = TaskListOptions.Default.Descriptors;
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TaskListOptionsStorage.Descriptors), descriptors);
+            workspace.GlobalOptions.SetGlobalOption(TaskListOptionsStorage.Descriptors, descriptors);
 
             var hostDocument = workspace.Documents.First();
             var initialTextSnapshot = hostDocument.GetTextBuffer().CurrentSnapshot;

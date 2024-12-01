@@ -97,7 +97,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestChangeSignatureCommandDisabledInSubmission()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -115,8 +115,7 @@ End Module
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = New VisualBasicChangeSignatureCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    workspace.GlobalOptions)
+                    workspace.GetService(Of IThreadingContext))
 
                 Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
@@ -127,7 +126,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49941")>
         Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
             Dim markup = <Text><![CDATA[
@@ -145,6 +144,34 @@ Class C
         M
         M()
         M()
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/66547")>
+        Public Async Function RemoveParameters_SpecialSymbolNamedParameter() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub $$M(param As Object, Optional [new] As Boolean = False)
+    End Sub
+
+    Sub M2()
+        M(Nothing, [new]:=True)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {1}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(Optional [new] As Boolean = False)
+    End Sub
+
+    Sub M2()
+        M([new]:=True)
     End Sub
 End Class]]></Text>.NormalizedValue()
 

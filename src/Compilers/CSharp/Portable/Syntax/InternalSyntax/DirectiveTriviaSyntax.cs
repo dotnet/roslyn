@@ -16,5 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return stack.Add(new Directive(this));
         }
+
+        public sealed override bool IsDirective => true;
     }
 }

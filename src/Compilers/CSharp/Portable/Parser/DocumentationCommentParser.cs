@@ -32,15 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     // trying to understand them, e.g. like comments or CDATA, so that they are available
     // to whoever processes these comments and do not produce an error. 
 
-    internal class DocumentationCommentParser : SyntaxParser
+    internal sealed class DocumentationCommentParser : SyntaxParser
     {
         private readonly SyntaxListPool _pool = new SyntaxListPool();
         private bool _isDelimited;
 
-        internal DocumentationCommentParser(Lexer lexer, LexerMode modeflags)
-            : base(lexer, LexerMode.XmlDocComment | LexerMode.XmlDocCommentLocationStart | modeflags, null, null, true)
+        internal DocumentationCommentParser(Lexer lexer)
+            : base(lexer, LexerMode.None, oldTree: null, changes: null, allowModeReset: true)
         {
-            _isDelimited = (modeflags & LexerMode.XmlDocCommentStyleDelimited) != 0;
         }
 
         internal void ReInitialize(LexerMode modeflags)
@@ -330,13 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var attr = this.ParseXmlAttribute(elementName);
                     string attrName = attr.Name.ToString();
-                    if (_attributesSeen.Contains(attrName))
+                    if (!_attributesSeen.Add(attrName))
                     {
                         attr = this.WithXmlParseError(attr, XmlParseErrorCode.XML_DuplicateAttribute, attrName);
-                    }
-                    else
-                    {
-                        _attributesSeen.Add(attrName);
                     }
 
                     attrs.Add(attr);
@@ -1129,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (CurrentToken.Kind == SyntaxKind.UncheckedKeyword)
                 {
                     // if we encounter `operator unchecked`, we place the `unchecked` as skipped trivia on `operator`
-                    var misplacedToken = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedUnchecked);
+                    var misplacedToken = AddErrorAsWarning(EatToken(), ErrorCode.ERR_MisplacedUnchecked);
                     operatorKeyword = AddTrailingSkippedSyntax(operatorKeyword, misplacedToken);
                     return null;
                 }
@@ -1248,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Parse an element of a cref parameter list.
         /// </summary>
         /// <remarks>
-        /// "ref" and "out" work, but "params", "this", and "__arglist" don't.
+        /// "ref", "ref readonly", "in", "out" work, but "params", "this", and "__arglist" don't.
         /// </remarks>
         private CrefParameterSyntax ParseCrefParameter()
         {
@@ -1262,8 +1257,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
+            SyntaxToken readOnlyOpt = null;
+            if (CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword && refKindOpt is not null)
+            {
+                if (refKindOpt.Kind != SyntaxKind.RefKeyword)
+                {
+                    // if we encounter `readonly` after `in` or `out`, we place the `readonly` as skipped trivia on the previous keyword
+                    var misplacedToken = AddErrorAsWarning(EatToken(), ErrorCode.ERR_RefReadOnlyWrongOrdering);
+                    refKindOpt = AddTrailingSkippedSyntax(refKindOpt, misplacedToken);
+                }
+                else
+                {
+                    readOnlyOpt = EatToken();
+                }
+            }
+
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
-            return SyntaxFactory.CrefParameter(refKindOpt, type);
+            return SyntaxFactory.CrefParameter(refKindKeyword: refKindOpt, readOnlyKeyword: readOnlyOpt, type);
         }
 
         /// <summary>

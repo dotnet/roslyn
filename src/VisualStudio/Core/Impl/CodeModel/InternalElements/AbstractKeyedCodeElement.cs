@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
     /// </summary>
     public abstract class AbstractKeyedCodeElement : AbstractCodeElement
     {
-        private SyntaxNodeKey _nodeKey;
         private readonly string _name;
 
         internal AbstractKeyedCodeElement(
@@ -28,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             int? nodeKind)
             : base(state, fileCodeModel, nodeKind)
         {
-            _nodeKey = nodeKey;
+            NodeKey = nodeKey;
             _name = null;
         }
 
@@ -40,25 +39,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             string name)
             : base(state, fileCodeModel, nodeKind)
         {
-            _nodeKey = new SyntaxNodeKey(name, -1);
+            NodeKey = new SyntaxNodeKey(name, -1);
             _name = name;
         }
 
-        internal SyntaxNodeKey NodeKey
-        {
-            get { return _nodeKey; }
-        }
+        internal SyntaxNodeKey NodeKey { get; private set; }
 
         internal bool IsUnknown
         {
-            get { return _nodeKey.Ordinal == -1; }
+            get { return NodeKey.Ordinal == -1; }
         }
 
         internal override SyntaxNode LookupNode()
-            => CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
+            => CodeModelService.LookupNode(NodeKey, GetSyntaxTree());
 
         internal override bool TryLookupNode(out SyntaxNode node)
-            => CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
+            => CodeModelService.TryLookupNode(NodeKey, GetSyntaxTree(), out node);
 
         /// <summary>
         /// This function re-acquires the key for this code element using the given syntax path.
@@ -73,9 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             var newNodeKey = CodeModelService.GetNodeKey(node);
 
-            FileCodeModel.UpdateCodeElementNodeKey(this, _nodeKey, newNodeKey);
+            FileCodeModel.UpdateCodeElementNodeKey(this, NodeKey, newNodeKey);
 
-            _nodeKey = newNodeKey;
+            NodeKey = newNodeKey;
         }
 
         protected void UpdateNodeAndReacquireNodeKey<T>(Action<SyntaxNode, T> updater, T value, bool trackKinds = true)
@@ -97,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             var result = base.DeleteCore(document);
 
-            FileCodeModel.OnCodeElementDeleted(_nodeKey);
+            FileCodeModel.OnCodeElementDeleted(NodeKey);
 
             return result;
         }

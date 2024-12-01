@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -343,6 +344,169 @@ class C {
         }
 
         [Fact]
+        public void TestContainsDirective()
+        {
+            // Empty compilation unit shouldn't have any directives in it.
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(kind));
+
+            // basic file shouldn't have any directives in it.
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
+
+            // directive in trailing trivia is not a thing
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+            {
+                var compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N { } #if false");
+                compilationUnit.GetDiagnostics().Verify(
+                    // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17));
+                Assert.False(compilationUnit.ContainsDirective(kind));
+            }
+
+            testContainsHelper1("#define x", SyntaxKind.DefineDirectiveTrivia);
+            testContainsHelper1("#if true\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            testContainsHelper1("#if false\r\n#elif true", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            testContainsHelper1("#if false\r\n#elif false", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia);
+            testContainsHelper1("#elif true", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#if true\r\n#else", SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia);
+            testContainsHelper1("#else", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#if true\r\n#endif", SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+            testContainsHelper1("#endif", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#region\r\n#endregion", SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+            testContainsHelper1("#endregion", SyntaxKind.BadDirectiveTrivia);
+            testContainsHelper1("#error", SyntaxKind.ErrorDirectiveTrivia);
+            testContainsHelper1("#if true", SyntaxKind.IfDirectiveTrivia);
+            testContainsHelper1("#nullable enable", SyntaxKind.NullableDirectiveTrivia);
+            testContainsHelper1("#region enable", SyntaxKind.RegionDirectiveTrivia);
+            testContainsHelper1("#undef x", SyntaxKind.UndefDirectiveTrivia);
+            testContainsHelper1("#warning", SyntaxKind.WarningDirectiveTrivia);
+
+            // #! is special and is only recognized at start of a script file and nowhere else.
+            testContainsHelper2(new[] { SyntaxKind.ShebangDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit(" #!command", options: TestOptions.Script));
+            testContainsHelper2(new[] { SyntaxKind.BadDirectiveTrivia }, SyntaxFactory.ParseCompilationUnit("#!command", options: TestOptions.Regular));
+
+            return;
+
+            static void testContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
+            {
+                Assert.True(directiveKinds.Length > 0);
+
+                // directive on its own.
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive));
+
+                // Two of the same directive back to back.
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    {{directive}}
+                    {{directive}}
+                    """));
+
+                // Two of the same directive back to back with additional trivia
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                       {{directive}}
+                       {{directive}}
+                    """));
+
+                // Directive inside a namespace
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                    }
+                    """));
+
+                // Multiple Directive inside a namespace
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                    {{directive}}
+                    }
+                    """));
+
+                // Multiple Directive inside a namespace with additional trivia
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                       {{directive}}
+                       {{directive}}
+                    }
+                    """));
+
+                // Directives on different elements in a namespace
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                    {{directive}}
+                        class C
+                        {
+                        }
+                    {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+
+                // Directives on different elements in a namespace with additional trivia
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    namespace N
+                    {
+                        {{directive}}
+                        class C
+                        {
+                        }
+                        {{directive}}
+                        class D
+                        {
+                        }
+                    }
+                    """));
+            }
+
+            static void testContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
+            {
+                Assert.True(compilationUnit.ContainsDirectives);
+                foreach (var directiveKind in directiveKinds)
+                    Assert.True(compilationUnit.ContainsDirective(directiveKind));
+
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+                {
+                    if (!directiveKinds.Contains(kind))
+                        Assert.False(compilationUnit.ContainsDirective(kind));
+                }
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void TestContainsDirective_IfIf()
+        {
+            var compilationUnit = SyntaxFactory.ParseCompilationUnit("""
+                if (#if)
+                """);
+            compilationUnit.GetDiagnostics().Verify(
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1026: ) expected
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1002: ; expected
+                // if (#if)
+                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
+            Assert.False(compilationUnit.ContainsDirectives);
+            Assert.False(compilationUnit.ContainsDirective(SyntaxKind.IfDirectiveTrivia));
+        }
+
+        [Fact]
         public void TestGetAllAnnotatedNodesUsingDescendantNodes()
         {
             var text = "a + (b - (c * (d / e)))";
@@ -514,8 +678,8 @@ a + b";
             Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
         }
 
-        [Fact]
-        public void TestFindTokenInLargeList()
+        [Theory, CombinatorialData]
+        public void TestFindTokenInLargeList(bool collectionExpression)
         {
             var identifier = SyntaxFactory.Identifier("x");
             var missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
@@ -538,7 +702,9 @@ a + b";
                 missingArgument, missingComma,
                 argument);
 
-            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
+            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(collectionExpression
+                ? [.. nodesAndTokens]
+                : SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
             var invocation = SyntaxFactory.InvocationExpression(name, argumentList);
             CheckFindToken(invocation);
         }
@@ -1111,7 +1277,7 @@ using goo.bar;
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
             List<SyntaxToken> list = new List<SyntaxToken>();
-            SyntaxToken token = ((SyntaxToken)((SyntaxTree)syntaxTree).GetCompilationUnitRoot().EndOfFileToken).GetPreviousToken(includeZeroWidth: true);
+            SyntaxToken token = syntaxTree.GetCompilationUnitRoot().EndOfFileToken.GetPreviousToken(includeZeroWidth: true);
             while (token.RawKind != 0)
             {
                 list.Add(token);
@@ -1676,14 +1842,16 @@ namespace Microsoft.CSharp.Test
             Assert.False(trivia.IsDirective);
         }
 
-        [Fact]
-        public void SyntaxNames()
+        [Theory, CombinatorialData]
+        public void SyntaxNames(bool collectionExpression)
         {
             var cc = SyntaxFactory.Token(SyntaxKind.ColonColonToken);
             var lt = SyntaxFactory.Token(SyntaxKind.LessThanToken);
             var gt = SyntaxFactory.Token(SyntaxKind.GreaterThanToken);
             var dot = SyntaxFactory.Token(SyntaxKind.DotToken);
-            var gp = SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
+            var gp = collectionExpression
+                ? [SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))]
+                : SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
 
             var externAlias = SyntaxFactory.IdentifierName("alias");
             var goo = SyntaxFactory.IdentifierName("Goo");
@@ -1725,11 +1893,13 @@ namespace Microsoft.CSharp.Test
             Assert.Equal("Bar", aliasQualifiedGeneric.GetUnqualifiedName().Identifier.ValueText);
         }
 
-        [Fact]
-        public void ZeroWidthTokensInListAreUnique()
+        [Theory, CombinatorialData]
+        public void ZeroWidthTokensInListAreUnique1(bool collectionExpression)
         {
             var someToken = SyntaxFactory.MissingToken(SyntaxKind.IntKeyword);
-            var list = SyntaxFactory.TokenList(someToken, someToken);
+            var list = collectionExpression
+                ? [someToken, someToken]
+                : SyntaxFactory.TokenList(someToken, someToken);
             Assert.Equal(someToken, someToken);
             Assert.NotEqual(list[0], list[1]);
         }
@@ -1761,15 +1931,20 @@ namespace Microsoft.CSharp.Test
             Assert.NotEqual(sizes.GetSeparator(1), sizes.GetSeparator(2));
         }
 
-        [Fact]
-        public void ZeroWidthStructuredTrivia()
+        [Theory, CombinatorialData]
+        public void ZeroWidthStructuredTrivia(bool collectionExpression)
         {
             // create zero width structured trivia (not sure how these come about but its not impossible)
             var zeroWidth = SyntaxFactory.ElseDirectiveTrivia(SyntaxFactory.MissingToken(SyntaxKind.HashToken), SyntaxFactory.MissingToken(SyntaxKind.ElseKeyword), SyntaxFactory.MissingToken(SyntaxKind.EndOfDirectiveToken), false, false);
             Assert.Equal(0, zeroWidth.Width);
 
             // create token with more than one instance of same zero width structured trivia!
-            var someToken = SyntaxFactory.Identifier(default(SyntaxTriviaList), "goo", SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
+            var someToken = SyntaxFactory.Identifier(
+                default(SyntaxTriviaList),
+                "goo",
+                collectionExpression
+                    ? [SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)]
+                    : SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
 
             // create node with this token
             var someNode = SyntaxFactory.IdentifierName(someToken);
@@ -2728,7 +2903,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } \r\n#endregion", text);
+            Assert.Equal("class A { } ", text);
         }
 
         [Fact]
@@ -3093,7 +3268,7 @@ class A { } #endregion";
 
             var expectedText = @"
 #region A
-#endregion";
+";
 
             TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
             {

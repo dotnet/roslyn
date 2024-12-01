@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.Classification;
 internal readonly record struct ClassificationOptions
 {
     [DataMember] public bool ClassifyReassignedVariables { get; init; } = false;
+    [DataMember] public bool ClassifyObsoleteSymbols { get; init; } = true;
     [DataMember] public bool ColorizeRegexPatterns { get; init; } = true;
     [DataMember] public bool ColorizeJsonPatterns { get; init; } = true;
-    [DataMember] public bool ForceFrozenPartialSemanticsForCrossProcessOperations { get; init; } = false;
+    [DataMember] public bool FrozenPartialSemantics { get; init; } = false;
 
     public ClassificationOptions()
     {

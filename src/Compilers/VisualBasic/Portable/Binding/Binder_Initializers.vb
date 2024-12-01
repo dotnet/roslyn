@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim boundInitValueHasErrorsOrConstTypeIsWrong As Boolean =
-                    initValueDiagnostics.HasAnyErrors OrElse fieldSymbol.HasDeclaredType AndAlso Not targetType.IsValidTypeForConstField()
+                    initValueDiagnostics.HasAnyResolvedErrors OrElse fieldSymbol.HasDeclaredType AndAlso Not targetType.IsValidTypeForConstField()
 
                 ' NOTE: we'll only report ERR_RequiredConstConversion2 ("Conversion from '...' to '.' cannot occur in 
                 ' NOTE: a constant expression") and ERR_RequiredConstExpr ("Constant expression is required") in case

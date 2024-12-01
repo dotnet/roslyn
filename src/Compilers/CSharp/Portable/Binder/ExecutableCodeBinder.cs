@@ -111,15 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (parameter.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.GetFirstLocation());
                 }
-                else if (parameter.Type.IsUnsafe())
+                else if (parameter.Type.IsPointerOrFunctionPointer())
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.GetFirstLocation());
                 }
             }
 
-            Location errorLocation = (iterator as SynthesizedSimpleProgramEntryPointSymbol)?.ReturnTypeSyntax.GetLocation() ?? iterator.Locations[0];
+            Location errorLocation = (iterator as SynthesizedSimpleProgramEntryPointSymbol)?.ReturnTypeSyntax.GetLocation() ?? iterator.GetFirstLocation();
             if (iterator.IsVararg)
             {
                 // error CS1636: __arglist is not allowed in the parameter list of iterators
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
                 && compilation.Options.AllowUnsafe) // Don't cascade
             {
-                diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+                MessageID.IDS_FeatureRefUnsafeInIteratorAsync.CheckFeatureAvailability(diagnostics, compilation, errorLocation);
             }
 
             var returnType = iterator.ReturnType;
@@ -146,6 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
                 }
+            }
+            else if (elementType.IsRefLikeOrAllowsRefLikeType())
+            {
+                Error(diagnostics, ErrorCode.ERR_IteratorRefLikeElementType, errorLocation);
             }
 
             bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(compilation, refKind, returnType);

@@ -7,9 +7,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
@@ -46,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             CSharpParseOptions parseOptions = null);
 
         protected abstract Task AssertNoContentAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             Document document,
             int position);
 
         protected abstract Task AssertContentIsAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             Document document,
             int position,
             string expectedContent,

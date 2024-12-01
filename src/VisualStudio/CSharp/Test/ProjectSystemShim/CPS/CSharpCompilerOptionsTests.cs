@@ -90,11 +90,18 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(newBinPath, project.BinOutputPath);
 
-            // Change bin output folder to non-normalized path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
+            // Change bin output folder to non-absolute path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
             newBinPath = @"test.dll";
             var expectedNewBinPath = Path.Combine(Path.GetTempPath(), newBinPath);
             project.BinOutputPath = newBinPath;
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
+            Assert.Equal(expectedNewBinPath, project.BinOutputPath);
+
+            // Change obj  folder to non-canonical path - verify that objOutputPath changes to normalized path, but binOutputPath is unchanged.
+            var relativeObjPath = @"..\folder\\test.dll";
+            var absoluteObjPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), relativeObjPath));
+            project.SetOptions(ImmutableArray.Create($"/out:{relativeObjPath}"));
+            Assert.Equal(absoluteObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(expectedNewBinPath, project.BinOutputPath);
         }
 
@@ -178,8 +185,27 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             cpsProject.SetOptions(ImmutableArray.Create("/checksumalgorithm:SHA1"));
 
-            var project = environment.Workspace.CurrentSolution.Projects.Single();
             Assert.Equal(SourceHashAlgorithm.Sha1, environment.Workspace.CurrentSolution.Projects.Single().State.ChecksumAlgorithm);
+        }
+
+        [WpfFact]
+        public async Task CompilerGeneratedFilesOutputPath_CPS()
+        {
+            using var environment = new TestEnvironment();
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+
+            Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+            var path = Path.Combine(TempRoot.Root, "generated");
+            cpsProject.SetOptions(["/generatedfilesout:" + path]);
+
+            AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+            // relative path is relative to the project dir:
+            cpsProject.SetOptions(["/generatedfilesout:gen2"]);
+            AssertEx.AreEqual(
+                Path.Combine(Path.GetDirectoryName(cpsProject.ProjectFilePath), "gen2"),
+                environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
         }
     }
 }

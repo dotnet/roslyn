@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,21 +15,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 
 [Export]
 [Shared]
-internal class UnitTestGeneratorOrganizeImportsAccessor
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class UnitTestGeneratorOrganizeImportsAccessor()
 {
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UnitTestGeneratorOrganizeImportsAccessor(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
-
+#pragma warning disable CA1822 // Mark members as static
     public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
+#pragma warning restore CA1822 // Mark members as static
     {
         var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-        var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
         return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
     }
 }

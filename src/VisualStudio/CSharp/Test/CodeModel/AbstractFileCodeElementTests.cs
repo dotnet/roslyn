@@ -7,7 +7,6 @@
 using System;
 using System.Linq;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Roslyn.Test.Utilities;
@@ -23,14 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
         private readonly string _contents;
-        private (TestWorkspace workspace, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
+        private (EditorTestWorkspace workspace, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
 
         protected AbstractFileCodeElementTests(string contents)
         {
             _contents = contents;
         }
 
-        public (TestWorkspace workspace, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
+        public (EditorTestWorkspace workspace, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
         {
             get
             {
@@ -38,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             }
         }
 
-        protected TestWorkspace GetWorkspace()
+        protected EditorTestWorkspace GetWorkspace()
         {
             return WorkspaceAndCodeModel.workspace;
         }
@@ -57,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
             => GetCurrentProject().Documents.Single();
 
-        protected static (TestWorkspace workspace, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
+        protected static (EditorTestWorkspace workspace, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected CodeElement GetCodeElement(params object[] path)

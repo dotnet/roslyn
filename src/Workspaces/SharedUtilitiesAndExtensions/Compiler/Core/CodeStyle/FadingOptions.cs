@@ -5,16 +5,10 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
-{
-    internal static class FadingOptions
-    {
-        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
-        "FadingOptions", "FadeOutUnusedImports", defaultValue: true,
-        storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports"));
+namespace Microsoft.CodeAnalysis.CodeStyle;
 
-        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
-            "FadingOptions", "FadeOutUnreachableCode", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode"));
-    }
+internal static class FadingOptions
+{
+    public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new("dotnet_fade_out_unused_imports", defaultValue: true);
+    public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("dotnet_fade_out_unreachable_code", defaultValue: true);
 }

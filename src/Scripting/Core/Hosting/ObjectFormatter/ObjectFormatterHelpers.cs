@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                             proxyType = proxyType.MakeGenericType(type.GenericTypeArguments);
                         }
 
-                        return Activator.CreateInstance(proxyType, new object[] { obj });
+                        return Activator.CreateInstance(proxyType, [obj]);
                     }
                 }
                 catch (Exception)

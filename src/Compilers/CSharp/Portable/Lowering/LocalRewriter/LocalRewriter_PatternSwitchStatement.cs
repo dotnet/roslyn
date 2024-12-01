@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // EnC: We need to insert a hidden sequence point to handle function remapping in case
                     // the containing method is edited while methods invoked in the expression are being executed.
-                    var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
-                    if (loweredSwitchGoverningExpression.ConstantValue == null)
+                    var instrumentedExpression = _localRewriter.Instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
+                    if (loweredSwitchGoverningExpression.ConstantValueOpt == null)
                     {
                         loweredSwitchGoverningExpression = instrumentedExpression;
                     }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
                 if (GenerateInstrumentation)
-                    translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
+                    translatedSwitch = _localRewriter.Instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
 
                 return translatedSwitch;
             }

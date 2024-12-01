@@ -4,22 +4,15 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal sealed class RQArrayType(int rank, RQType elementType) : RQArrayOrPointerType(elementType)
 {
-    internal class RQArrayType : RQArrayOrPointerType
+    public readonly int Rank = rank;
+
+    public override SimpleTreeNode ToSimpleTree()
     {
-        public readonly int Rank;
-
-        public RQArrayType(int rank, RQType elementType)
-            : base(elementType)
-        {
-            Rank = rank;
-        }
-
-        public override SimpleTreeNode ToSimpleTree()
-        {
-            var rankNode = new SimpleLeafNode(Rank.ToString());
-            return new SimpleGroupNode(RQNameStrings.Array, rankNode, ElementType.ToSimpleTree());
-        }
+        var rankNode = new SimpleLeafNode(Rank.ToString());
+        return new SimpleGroupNode(RQNameStrings.Array, rankNode, ElementType.ToSimpleTree());
     }
 }

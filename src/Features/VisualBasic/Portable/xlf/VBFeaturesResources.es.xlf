@@ -67,11 +67,6 @@
         <target state="translated">Inserte el "{0}" que falta.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Conflicto(s) detectado(s).</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">Introducir instrucción "Using"</target>
@@ -222,16 +217,6 @@
         <target state="translated">Corregir tipo devuelto de función incorrecto</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">Simplificar nombre "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">Simplificar acceso a miembros "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Quitar calificación "Me"</target>
@@ -240,11 +225,6 @@
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
         <source>can't determine valid range of statements to extract out</source>
         <target state="translated">no se puede determinar el intervalo válido de instrucciones para extraer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">No todas las rutas de acceso de código vuelven</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -1452,11 +1432,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <target state="translated">Habilita la creación de informes de advertencias concretas en la parte del archivo de código fuente situada debajo de la línea actual.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Convertir {0} en una función Async.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Utilizar la variable de control correcta</target>
@@ -1465,16 +1440,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
       <trans-unit id="NameOf_function">
         <source>NameOf function</source>
         <target state="translated">Función NameOf</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Generar conversión de restricción en "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Generar conversión de ampliación en "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1662,16 +1627,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <target state="translated">Agregue una referencia de metadatos al ensamblado especificado y todas sus dependencias, p. ej. #r "myLib.dll".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Propiedades</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nombre de espacio de nombres&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">Escriba aquí un nombre para declarar un espacio de nombres.</target>
@@ -1680,16 +1635,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">Escriba aquí un nombre para declarar una clase parcial.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nombre de la clase&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;nombre de la interfaz&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">
@@ -1736,16 +1681,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <source>{0}.set</source>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
-      </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">Convertir función en asincrónica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">Convertir Sub en asincrónico</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>

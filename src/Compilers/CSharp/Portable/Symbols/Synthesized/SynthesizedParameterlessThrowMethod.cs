@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly MethodSymbol _exceptionConstructor;
 
-        internal SynthesizedParameterlessThrowMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string synthesizedMethodName, MethodSymbol exceptionConstructor)
-            : base(containingModule, privateImplType, returnType, synthesizedMethodName)
+        internal SynthesizedParameterlessThrowMethod(SynthesizedPrivateImplementationDetailsType privateImplType, TypeSymbol returnType, string synthesizedMethodName, MethodSymbol exceptionConstructor)
+            : base(privateImplType, returnType, synthesizedMethodName)
         {
             _exceptionConstructor = exceptionConstructor;
             this.SetParameters(ImmutableArray<ParameterSymbol>.Empty);

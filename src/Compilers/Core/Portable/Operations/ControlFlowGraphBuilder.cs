@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
         }
 
-        [return: NotNullIfNotNull("result")]
+        [return: NotNullIfNotNull(nameof(result))]
         private IOperation? FinishVisitingStatement(IOperation originalOperation, IOperation? result = null)
         {
             Debug.Assert(((Operation)originalOperation).OwningSemanticModel != null, "Not an original node.");
@@ -1536,51 +1536,57 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (operation == _currentStatement)
             {
-                if (operation.WhenFalse == null)
-                {
-                    // if (condition)
-                    //   consequence;
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition afterif;
-                    // consequence;
-                    // afterif:
+                // if (condition)
+                //   consequence;
+                //
+                // becomes
+                //
+                // GotoIfFalse condition afterif;
+                // consequence;
+                // afterif:
 
-                    BasicBlockBuilder? afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
-                    VisitStatement(operation.WhenTrue);
-                    AppendNewBlock(afterIf);
-                }
-                else
-                {
-                    // if (condition)
-                    //     consequence;
-                    // else
-                    //     alternative
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition alt;
-                    // consequence
-                    // goto afterif;
-                    // alt:
-                    // alternative;
-                    // afterif:
+                // if (condition)
+                //     consequence;
+                // else
+                //     alternative
+                //
+                // becomes
+                //
+                // GotoIfFalse condition alt;
+                // consequence
+                // goto afterif;
+                // alt:
+                // alternative;
+                // afterif:
 
+                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                while (true)
+                {
                     BasicBlockBuilder? whenFalse = null;
                     VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
-
+                    Debug.Assert(whenFalse is { });
                     VisitStatement(operation.WhenTrue);
-
-                    var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                     UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
-                    VisitStatement(operation.WhenFalse);
 
-                    AppendNewBlock(afterIf);
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+
+                if (operation.WhenFalse is not null)
+                {
+                    VisitStatement(operation.WhenFalse);
+                }
+
+                AppendNewBlock(afterIf);
 
                 return null;
             }
@@ -2129,6 +2135,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation instance = PopOperand();
             PopStackFrame(frame);
             return new ImplicitIndexerReferenceOperation(instance, argument, operation.LengthSymbol, operation.IndexerSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new InlineArrayAccessOperation(instance, argument, semanticModel: null,
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -3935,7 +3952,8 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous,
+            Func<IOperation, IOperation>? visitResource = null)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
@@ -3946,6 +3964,8 @@ oneMoreTime:
 
             if (resources is IVariableDeclarationGroupOperation declarationGroup)
             {
+                Debug.Assert(visitResource is null);
+
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
 
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
@@ -3966,7 +3986,7 @@ oneMoreTime:
                 Debug.Assert(resources.Kind != OperationKind.VariableDeclarator);
 
                 EvalStackFrame frame = PushStackFrame();
-                IOperation resource = VisitRequired(resources);
+                IOperation resource = visitResource != null ? visitResource(resources) : VisitRequired(resources);
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
@@ -4092,6 +4112,7 @@ oneMoreTime:
         private void AddDisposingFinally(IOperation resource, bool requiresRuntimeConversion, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, bool isAsynchronous)
         {
             Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
+            Debug.Assert(resource.Type is not null);
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
             endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
@@ -4107,6 +4128,7 @@ oneMoreTime:
                 int captureId = GetNextCaptureId(finallyRegion);
                 AddStatement(new FlowCaptureOperation(captureId, resource.Syntax, resource));
                 resource = GetCaptureReference(captureId, resource);
+                Debug.Assert(resource.Type is not null);
             }
 
             if (requiresRuntimeConversion || !isNotNullableValueType(resource.Type))
@@ -4118,7 +4140,14 @@ oneMoreTime:
 
             if (!iDisposable.Equals(resource.Type) && disposeMethod is null)
             {
-                resource = ConvertToIDisposable(resource, iDisposable);
+                if (resource.Type.IsReferenceType)
+                {
+                    resource = ConvertToIDisposable(resource, iDisposable);
+                }
+                else if (ITypeSymbolHelpers.IsNullableType(resource.Type))
+                {
+                    resource = CallNullableMember(resource, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                }
             }
 
             EvalStackFrame disposeFrame = PushStackFrame();
@@ -4136,7 +4165,8 @@ oneMoreTime:
 
             IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || (value.Type!.Equals(iDisposable) && disposeArguments.IsDefaultOrEmpty));
+                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) ||
+                             ((value.Type!.Equals(iDisposable) || (!value.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(value.Type))) && disposeArguments.IsDefaultOrEmpty));
 
                 var method = disposeMethod ?? (isAsynchronous
                     ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
@@ -4156,7 +4186,7 @@ oneMoreTime:
                         args = ImmutableArray<IArgumentOperation>.Empty;
                     }
 
-                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod?.IsVirtual ?? true,
+                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod is (null or { IsVirtual: true } or { IsAbstract: true }),
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
 
@@ -4188,6 +4218,57 @@ oneMoreTime:
         public override IOperation? VisitLock(ILockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+
+            // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterScope()) { }`.
+            if (operation.LockedValue.Type?.IsWellKnownTypeLock() == true)
+            {
+                if (operation.LockedValue.Type.TryFindLockTypeInfo() is { } lockTypeInfo)
+                {
+                    HandleUsingOperationParts(
+                        resources: operation.LockedValue,
+                        body: operation.Body,
+                        disposeMethod: lockTypeInfo.ScopeDisposeMethod,
+                        disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
+                        locals: ImmutableArray<ILocalSymbol>.Empty,
+                        isAsynchronous: false,
+                        visitResource: (resource) =>
+                        {
+                            var lockObject = VisitRequired(resource);
+
+                            return new InvocationOperation(
+                                targetMethod: lockTypeInfo.EnterScopeMethod,
+                                constrainedToType: null,
+                                instance: lockObject,
+                                isVirtual: lockTypeInfo.EnterScopeMethod.IsVirtual ||
+                                    lockTypeInfo.EnterScopeMethod.IsAbstract ||
+                                    lockTypeInfo.EnterScopeMethod.IsOverride,
+                                arguments: ImmutableArray<IArgumentOperation>.Empty,
+                                semanticModel: null,
+                                syntax: lockObject.Syntax,
+                                type: lockTypeInfo.EnterScopeMethod.ReturnType,
+                                isImplicit: true);
+                        });
+
+                    return FinishVisitingStatement(operation);
+                }
+                else
+                {
+                    IOperation? underlying = Visit(operation.LockedValue);
+
+                    if (underlying is not null)
+                    {
+                        AddStatement(new ExpressionStatementOperation(
+                            MakeInvalidOperation(type: null, underlying),
+                            semanticModel: null,
+                            operation.Syntax,
+                            IsImplicit(operation)));
+                    }
+
+                    VisitStatement(operation.Body);
+
+                    return FinishVisitingStatement(operation);
+                }
+            }
 
             ITypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
@@ -4493,9 +4574,25 @@ oneMoreTime:
 
                 if (info?.GetEnumeratorMethod != null)
                 {
+                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection);
+
+                    if (collection is not null && info.InlineArrayConversion is { } inlineArrayConversion)
+                    {
+                        if (info.CollectionIsInlineArrayValue)
+                        {
+                            // We cannot convert a value to a span, need to make a local copy and convert that.
+                            int localCopyCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
+                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, operation.Collection.Syntax, collection));
+
+                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, operation.Collection.Syntax, collection.Type, constantValue: null);
+                        }
+
+                        collection = applyConversion(inlineArrayConversion, collection, info.GetEnumeratorMethod.ContainingType);
+                    }
+
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
-                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           collection,
                                                            info.GetEnumeratorArguments);
 
                     int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
@@ -5964,7 +6061,8 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
+                                                               OperationKind.InterpolatedString);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();
@@ -6042,6 +6140,14 @@ oneMoreTime:
                 // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
                 // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
 
+                if (onlyContainsEmptyLeafNestedInitializers(memberInitializer))
+                {
+                    // However, when the leaf nested initializers are empty, we won't access the chain of initialized members
+                    // and we only evaluate the arguments/indexes they contain.
+                    addIndexes(memberInitializer);
+                    return;
+                }
+
                 EvalStackFrame frame = PushStackFrame();
                 bool pushSuccess = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember) : VisitRequired(memberInitializer.InitializedMember);
@@ -6082,6 +6188,13 @@ oneMoreTime:
                         VisitAndPushArray(arrayReference.Indices);
                         SpillEvalStack();
                         PushOperand(VisitRequired(arrayReference.ArrayReference));
+                        return true;
+
+                    case OperationKind.ImplicitIndexerReference:
+                        var implicitIndexerReference = (IImplicitIndexerReferenceOperation)instance;
+                        PushOperand(VisitRequired(implicitIndexerReference.Argument));
+                        SpillEvalStack();
+                        PushOperand(VisitRequired(implicitIndexerReference.Instance));
                         return true;
 
                     case OperationKind.DynamicIndexerAccess:
@@ -6135,6 +6248,14 @@ oneMoreTime:
                         instance = PopOperand();
                         ImmutableArray<IOperation> indices = PopArray(arrayElementReference.Indices);
                         return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
+                    case OperationKind.ImplicitIndexerReference:
+                        var indexerReference = (IImplicitIndexerReferenceOperation)originalTarget;
+                        instance = PopOperand();
+                        IOperation index = PopOperand();
+                        return new ImplicitIndexerReferenceOperation(instance, index, indexerReference.LengthSymbol, indexerReference.IndexerSymbol,
+                                                                      semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
+
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (DynamicIndexerAccessOperation)originalTarget;
                         instance = PopOperand();
@@ -6151,6 +6272,84 @@ oneMoreTime:
                         // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
                         // this must be one of the explicitly handled kinds
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
+                }
+            }
+
+            static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
+            {
+                // Guard on the cases understood by addIndexes below
+                if (memberInitializer.InitializedMember is IPropertyReferenceOperation
+                    or IImplicitIndexerReferenceOperation
+                    or IArrayElementReferenceOperation
+                    or IDynamicIndexerAccessOperation
+                    or IFieldReferenceOperation
+                    or IEventReferenceOperation
+                    || memberInitializer.InitializedMember is NoneOperation { ChildOperations: var children } && children.ToImmutableArray() is [IInstanceReferenceOperation, _])
+                {
+                    // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
+                    return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
+                        && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+                }
+
+                return false;
+            }
+
+            void addIndexes(IMemberInitializerOperation memberInitializer)
+            {
+                var lhs = memberInitializer.InitializedMember;
+                // If we have an element access of the form `[arguments] = { ... }`, we'll evaluate `arguments` only
+                if (lhs is IPropertyReferenceOperation propertyReference)
+                {
+                    foreach (var argument in propertyReference.Arguments)
+                    {
+                        if (argument is { ArgumentKind: ArgumentKind.ParamArray, Value: IArrayCreationOperation array })
+                        {
+                            Debug.Assert(array.Initializer is not null);
+
+                            foreach (var element in array.Initializer.ElementValues)
+                            {
+                                AddStatement(Visit(element));
+                            }
+                        }
+                        else
+                        {
+                            AddStatement(Visit(argument.Value));
+                        }
+                    }
+                }
+                else if (lhs is IImplicitIndexerReferenceOperation implicitIndexer)
+                {
+                    AddStatement(Visit(implicitIndexer.Argument));
+                }
+                else if (lhs is IArrayElementReferenceOperation arrayAccess)
+                {
+                    foreach (var index in arrayAccess.Indices)
+                    {
+                        AddStatement(Visit(index));
+                    }
+                }
+                else if (lhs is IDynamicIndexerAccessOperation dynamicIndexerAccess)
+                {
+                    foreach (var argument in dynamicIndexerAccess.Arguments)
+                    {
+                        AddStatement(Visit(argument));
+                    }
+                }
+                else if (lhs is NoneOperation { ChildOperations: var children } &&
+                    children.ToImmutableArray() is [IInstanceReferenceOperation, var index])
+                {
+                    // Proper pointer element access support tracked by https://github.com/dotnet/roslyn/issues/21295
+                    AddStatement(Visit(index));
+                }
+                else if (lhs is not (FieldReferenceOperation or EventReferenceOperation))
+                {
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
+                }
+
+                // And any nested indexes
+                foreach (var initializer in memberInitializer.Initializer.Initializers)
+                {
+                    addIndexes((IMemberInitializerOperation)initializer);
                 }
             }
         }
@@ -6340,6 +6539,44 @@ oneMoreTime:
             }
         }
 
+        public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            var elements = VisitArray(
+                operation.Elements,
+                unwrapper: static (IOperation element) =>
+                {
+                    return element is ISpreadOperation spread ?
+                        spread.Operand :
+                        element;
+                },
+                wrapper: (IOperation operation, int index, ImmutableArray<IOperation> elements) =>
+                {
+                    return elements[index] is ISpreadOperation spread ?
+                        new SpreadOperation(
+                            operation,
+                            elementType: spread.ElementType,
+                            elementConversion: ((SpreadOperation)spread).ElementConversionConvertible,
+                            semanticModel: null,
+                            spread.Syntax,
+                            IsImplicit(spread)) :
+                        operation;
+                });
+            PopStackFrame(frame);
+            return new CollectionExpressionOperation(
+                operation.ConstructMethod,
+                elements,
+                semanticModel: null,
+                operation.Syntax,
+                operation.Type,
+                IsImplicit(operation));
+        }
+
+        public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             switch (operation.ReferenceKind)
@@ -6354,7 +6591,8 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Fail("This code path should not be reachable.");
+                        Debug.Assert(operation.Parent is InvocationOperation { Parent: CollectionExpressionOperation ce } && ce.HasErrors(_compilation),
+                            "Expected to reach this only in collection expression infinite chain cases.");
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
 
@@ -7327,15 +7565,43 @@ oneMoreTime:
 
         public override IOperation VisitBinaryPattern(IBinaryPatternOperation operation, int? argument)
         {
-            return new BinaryPatternOperation(
-                operatorKind: operation.OperatorKind,
-                leftPattern: (IPatternOperation)VisitRequired(operation.LeftPattern),
-                rightPattern: (IPatternOperation)VisitRequired(operation.RightPattern),
-                inputType: operation.InputType,
-                narrowedType: operation.NarrowedType,
-                semanticModel: null,
-                syntax: operation.Syntax,
-                isImplicit: IsImplicit(operation));
+            if (operation.LeftPattern is not IBinaryPatternOperation)
+            {
+                return createOperation(this, operation, (IPatternOperation)VisitRequired(operation.LeftPattern));
+            }
+
+            // Use a manual stack to avoid overflowing on deeply-nested binary patterns
+            var stack = ArrayBuilder<IBinaryPatternOperation>.GetInstance();
+            IBinaryPatternOperation? current = operation;
+
+            do
+            {
+                stack.Push(current);
+                current = current.LeftPattern as IBinaryPatternOperation;
+            } while (current != null);
+
+            current = stack.Pop();
+            var result = (IPatternOperation)VisitRequired(current.LeftPattern);
+            do
+            {
+                result = createOperation(this, current, result);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
+            return result;
+
+            static BinaryPatternOperation createOperation(ControlFlowGraphBuilder @this, IBinaryPatternOperation operation, IPatternOperation left)
+            {
+                return new BinaryPatternOperation(
+                            operatorKind: operation.OperatorKind,
+                            leftPattern: left,
+                            rightPattern: (IPatternOperation)@this.VisitRequired(operation.RightPattern),
+                            inputType: operation.InputType,
+                            narrowedType: operation.NarrowedType,
+                            semanticModel: null,
+                            syntax: operation.Syntax,
+                            isImplicit: @this.IsImplicit(operation));
+            }
         }
 
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)
@@ -7592,7 +7858,7 @@ oneMoreTime:
             return Visit(operation, argument: null);
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IOperation? VisitRequired(IOperation? operation, int? argument = null)
         {
@@ -7602,7 +7868,7 @@ oneMoreTime:
             return result;
         }
 
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IOperation? BaseVisitRequired(IOperation? operation, int? argument)
         {

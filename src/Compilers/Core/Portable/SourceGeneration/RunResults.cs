@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDiagnostics.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDiagnostics, Results.SelectMany(r => r.Diagnostics).ToImmutableArray());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDiagnostics, Results.Where(r => !r.Diagnostics.IsDefaultOrEmpty).SelectMany(r => r.Diagnostics).ToImmutableArray());
                 }
                 return _lazyDiagnostics;
             }
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyGeneratedTrees.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyGeneratedTrees, Results.SelectMany(r => r.GeneratedSources.Select(g => g.SyntaxTree)).ToImmutableArray());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyGeneratedTrees, Results.Where(r => !r.GeneratedSources.IsDefaultOrEmpty).SelectMany(r => r.GeneratedSources.Select(g => g.SyntaxTree)).ToImmutableArray());
                 }
                 return _lazyGeneratedTrees;
             }
@@ -77,7 +78,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorRunResult
     {
-        internal GeneratorRunResult(ISourceGenerator generator, ImmutableArray<GeneratedSourceResult> generatedSources, ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> namedSteps, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps, Exception? exception, TimeSpan elapsedTime)
+        internal GeneratorRunResult(
+            ISourceGenerator generator,
+            ImmutableArray<GeneratedSourceResult> generatedSources,
+            ImmutableArray<Diagnostic> diagnostics,
+            ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> namedSteps,
+            ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
+            ImmutableDictionary<string, object> hostOutputs,
+            Exception? exception,
+            TimeSpan elapsedTime)
         {
             Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
 
@@ -86,6 +95,9 @@ namespace Microsoft.CodeAnalysis
             this.Diagnostics = diagnostics;
             this.TrackedSteps = namedSteps;
             this.TrackedOutputSteps = outputSteps;
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            this.HostOutputs = hostOutputs;
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
         }
@@ -110,6 +122,12 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
         /// <summary>
+        /// A collection of items added via <see cref="HostOutputProductionContext.AddOutput(string, object)"/>.
+        /// </summary>
+        [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
+        public ImmutableDictionary<string, object> HostOutputs { get; }
+
+        /// <summary>
         /// An <see cref="System.Exception"/> instance that was thrown by the generator, or <c>null</c> if the generator completed without error.
         /// </summary>
         /// <remarks>
@@ -124,13 +142,20 @@ namespace Microsoft.CodeAnalysis
         internal TimeSpan ElapsedTime { get; }
 
         /// <summary>
-        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// A collection of the named incremental steps (both intermediate and final output ones)
+        /// executed during the generator pass this result represents.
         /// </summary>
+        /// <remarks>
+        /// Steps can be named by extension method WithTrackingName.
+        /// </remarks>
         public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedSteps { get; }
 
         /// <summary>
-        /// A collection of the named incremental steps executed during the generator pass this result represents.
+        /// A collection of the named output steps executed during the generator pass this result represents.
         /// </summary>
+        /// <remarks>
+        /// Steps can be named by extension method WithTrackingName.
+        /// </remarks>
         public ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> TrackedOutputSteps { get; }
     }
 

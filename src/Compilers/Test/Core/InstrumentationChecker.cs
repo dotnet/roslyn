@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return (index == length - 1) ? ";" : "";
         }
 
-        public const string InstrumentationHelperSource = @"
+        public static readonly string InstrumentationHelperSource = @"
 namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Runtime
 
         public static void FlushPayload()
         {
-            Console.WriteLine(""Flushing"");
+            System.Console.WriteLine(""Flushing"");
             if (_payloads == null)
             {
                 return;
@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis.Runtime
                 bool[] payload = _payloads[i];
                 if (payload != null)
                 {
-                    Console.WriteLine(""Method "" + i.ToString());
+                    System.Console.WriteLine(""Method "" + i.ToString());
                     for (int j = 0; j < _fileIndices[i].Length; j++)
                     {
-                        Console.WriteLine(""File "" + _fileIndices[i][j].ToString());
+                        System.Console.WriteLine(""File "" + _fileIndices[i][j].ToString());
                     }
                     for (int j = 0; j < payload.Length; j++)
                     {
-                        Console.WriteLine(payload[j]);
+                        System.Console.WriteLine(payload[j]);
                         payload[j] = false;
                     }
                 }
@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Runtime
             return (index == length - 1) ? "" : ".";
         }
 
-        public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
-        public const string InstrumentationHelperSourceStr = @"
+        public static readonly string InstrumentationHelperSourceStr = @"
 Namespace Microsoft.CodeAnalysis.Runtime
 
     Public Class Instrumentation
@@ -271,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.Runtime
     End Class
 End Namespace
 ";
+        public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
     }
 
     public abstract class BaseInstrumentationChecker
@@ -335,7 +335,7 @@ End Namespace
                 var actualSnippets = GetActualSnippets(method, reader, sourceLines);
                 var expectedSnippets = _spanExpectations[method].SnippetExpectations;
 
-                AssertEx.Equal(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
+                AssertEx.SequenceEqual(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
             }
         }
 

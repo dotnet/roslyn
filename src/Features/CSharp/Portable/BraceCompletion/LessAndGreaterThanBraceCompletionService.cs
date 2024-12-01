@@ -12,66 +12,60 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
+namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
+
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class LessAndGreaterThanBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
-    [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class LessAndGreaterThanBraceCompletionService : AbstractCSharpBraceCompletionService
+    protected override bool NeedsSemantics => true;
+
+    protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;
+    protected override char ClosingBrace => LessAndGreaterThan.CloseCharacter;
+
+    public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+        => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
+
+    protected override bool IsValidOpeningBraceToken(SyntaxToken token)
+        => token.IsKind(SyntaxKind.LessThanToken);
+
+    protected override bool IsValidClosingBraceToken(SyntaxToken token)
+        => token.IsKind(SyntaxKind.GreaterThanToken);
+
+    protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LessAndGreaterThanBraceCompletionService()
+        // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
+        // type argument or parameter list
+        if (token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
+            token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) ||
+            token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token))
         {
+            return Task.FromResult(true);
         }
 
-        protected override bool NeedsSemantics => true;
+        // type argument can be easily ambiguous with normal < operations
+        if (token.Parent is not BinaryExpressionSyntax(SyntaxKind.LessThanExpression) node || node.OperatorToken != token)
+            return Task.FromResult(false);
 
-        protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;
-        protected override char ClosingBrace => LessAndGreaterThan.CloseCharacter;
+        // type_argument_list only shows up in the following grammar construct:
+        //
+        // generic_name
+        //  : identifier_token type_argument_list
+        //
+        // So if the prior token is not an identifier, this could not be a type-argument-list.
+        var previousToken = token.GetPreviousToken();
+        if (previousToken.Parent is not IdentifierNameSyntax identifier)
+            return Task.FromResult(false);
 
-        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
+        return IsSemanticTypeArgumentAsync(document, node.SpanStart, identifier, cancellationToken);
 
-        protected override bool IsValidOpeningBraceToken(SyntaxToken token)
-            => token.IsKind(SyntaxKind.LessThanToken);
-
-        protected override bool IsValidClosingBraceToken(SyntaxToken token)
-            => token.IsKind(SyntaxKind.GreaterThanToken);
-
-        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+        static async Task<bool> IsSemanticTypeArgumentAsync(Document document, int position, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
         {
-            // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
-            // type argument or parameter list
-            if (token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
-                token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) ||
-                token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token))
-            {
-                return Task.FromResult(true);
-            }
-
-            // type argument can be easily ambiguous with normal < operations
-            if (token.Parent is not BinaryExpressionSyntax(SyntaxKind.LessThanExpression) node || node.OperatorToken != token)
-                return Task.FromResult(false);
-
-            // type_argument_list only shows up in the following grammar construct:
-            //
-            // generic_name
-            //  : identifier_token type_argument_list
-            //
-            // So if the prior token is not an identifier, this could not be a type-argument-list.
-            var previousToken = token.GetPreviousToken();
-            if (previousToken.Parent is not IdentifierNameSyntax identifier)
-                return Task.FromResult(false);
-
-            return IsSemanticTypeArgumentAsync(document, node.SpanStart, identifier, cancellationToken);
-
-            static async Task<bool> IsSemanticTypeArgumentAsync(Document document, int position, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
-            {
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
-                return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
-            }
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var info = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+            return info.CandidateSymbols.Any(static s => s.GetArity() > 0);
         }
     }
 }

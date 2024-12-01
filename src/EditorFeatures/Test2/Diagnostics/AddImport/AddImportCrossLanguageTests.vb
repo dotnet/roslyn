@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         Public Async Function TestExtensionMethods1() As Task
             Dim input =
                 <Workspace>
@@ -170,7 +170,7 @@ namespace CSAssembly1
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <Fact, WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         Public Async Function TestExtensionMethods2() As Task
             Dim input =
                 <Workspace>
@@ -271,7 +271,7 @@ namespace CSAssembly2
                 onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
-        <Fact, WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12169")>
         Public Async Function AddProjectReference_CSharpToCSharp_StaticField() As Task
             Dim input =
                 <Workspace>
@@ -404,7 +404,7 @@ namespace CSAssembly2
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName",
                             glyphTags:=WellKnownTagArrays.CSharpProject.Add(CodeAction.RequiresNonDocumentChange),
                             onAfterWorkspaceCreated:=
-                            Async Function(workspace As TestWorkspace)
+                            Async Function(workspace As EditorTestWorkspace)
                                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
                                 workspace.OnProjectNameChanged(project.Id, "NewName", "NewFilePath")
                                 Await WaitForSymbolTreeInfoCache(workspace)
@@ -452,7 +452,7 @@ End Namespace
                 onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
-        Private Async Function WaitForSymbolTreeInfoCache(workspace As TestWorkspace) As Task
+        Private Async Function WaitForSymbolTreeInfoCache(workspace As EditorTestWorkspace) As Task
             Dim service = DirectCast(
                 workspace.Services.GetRequiredService(Of ISymbolTreeInfoCacheService),
                 SymbolTreeInfoCacheServiceFactory.SymbolTreeInfoCacheService)
@@ -460,7 +460,7 @@ End Namespace
             Await service.GetTestAccessor().AnalyzeSolutionAsync()
         End Function
 
-        <Fact, WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
+        <Fact, WorkItem("https://github.com/dotnet/Roslyn/issues/8036")>
         Public Async Function TestAddProjectReference_CSharpToVB_ExtensionMethod() As Task
             Dim input =
                 <Workspace>
@@ -501,7 +501,7 @@ class C
             Await TestMissing(input)
         End Function
 
-        <WpfFact, WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16022")>
         Public Async Function TestAddProjectReference_EvenWithExistingUsing() As Task
             Dim input =
                 <Workspace>
@@ -568,10 +568,10 @@ namespace CSAssembly2
                                                   Optional expected As String = Nothing,
                                                   Optional codeActionIndex As Integer = 0,
                                                   Optional addedReference As String = Nothing,
-                                                  Optional onAfterWorkspaceCreated As Func(Of TestWorkspace, Task) = Nothing,
+                                                  Optional onAfterWorkspaceCreated As Func(Of EditorTestWorkspace, Task) = Nothing,
                                                   Optional glyphTags As ImmutableArray(Of String) = Nothing) As Task
             Dim verifySolutions As Func(Of Solution, Solution, Task) = Nothing
-            Dim workspace As TestWorkspace = Nothing
+            Dim workspace As EditorTestWorkspace = Nothing
 
             If addedReference IsNot Nothing Then
                 verifySolutions =
@@ -597,7 +597,7 @@ namespace CSAssembly2
             Await TestAsync(definition, expected, codeActionIndex,
                             verifySolutions:=verifySolutions,
                             glyphTags:=glyphTags,
-                            onAfterWorkspaceCreated:=Async Function(ws As TestWorkspace)
+                            onAfterWorkspaceCreated:=Async Function(ws As EditorTestWorkspace)
                                                          workspace = ws
                                                          If onAfterWorkspaceCreated IsNot Nothing Then
                                                              Await onAfterWorkspaceCreated(ws)

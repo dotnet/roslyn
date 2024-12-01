@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -69,23 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? Visit(BoundNode? node)
         {
-            var expression = node as BoundExpression;
-            if (expression != null)
+            if (node is BoundExpression or BoundPattern)
             {
-                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
             }
 
             return base.Visit(node);
         }
 
-        protected BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
         {
-            return VisitExpressionWithStackGuard(ref _recursionDepth, node);
+            return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
         }
 
-        protected sealed override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)base.Visit(node);
+            Debug.Assert(node is BoundExpression or BoundPattern);
+            return base.Visit(node);
         }
     }
 
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.Left.Kind != BoundKind.BinaryOperator)
+            if (node.Left is not BoundBinaryOperator binary)
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -112,27 +113,144 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rightOperands.Push(node.Right);
 
-            var binary = (BoundBinaryOperator)node.Left;
-
+            BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
             rightOperands.Push(binary.Right);
 
-            BoundExpression current = binary.Left;
+            BoundExpression? current = binary.Left;
 
             while (current.Kind == BoundKind.BinaryOperator)
             {
                 binary = (BoundBinaryOperator)current;
+                BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
                 rightOperands.Push(binary.Right);
                 current = binary.Left;
             }
 
             this.Visit(current);
 
-            while (rightOperands.Count > 0)
+            current = rightOperands.Pop();
+            do
             {
-                this.Visit(rightOperands.Pop());
-            }
+                this.Visit(current);
+            } while (rightOperands.TryPop(out current));
 
             rightOperands.Free();
+            return null;
+        }
+
+        protected virtual void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+        {
+        }
+
+        public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            if (node.Left is not BoundBinaryPattern binary)
+            {
+                return base.VisitBinaryPattern(node);
+            }
+
+            var rightOperands = ArrayBuilder<BoundPattern>.GetInstance();
+
+            rightOperands.Push(node.Right);
+            rightOperands.Push(binary.Right);
+
+            BoundPattern? current = binary.Left;
+
+            while (current.Kind == BoundKind.BinaryPattern)
+            {
+                binary = (BoundBinaryPattern)current;
+                rightOperands.Push(binary.Right);
+                current = binary.Left;
+            }
+
+            Visit(current);
+
+            current = rightOperands.Pop();
+
+            do
+            {
+                Visit(current);
+            } while (rightOperands.TryPop(out current));
+
+            rightOperands.Free();
+            return null;
+        }
+
+        public sealed override BoundNode? VisitCall(BoundCall node)
+        {
+            if (node.ReceiverOpt is BoundCall receiver1)
+            {
+                var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+                calls.Push(node);
+
+                node = receiver1;
+                while (node.ReceiverOpt is BoundCall receiver2)
+                {
+                    BeforeVisitingSkippedBoundCallChildren(node);
+                    calls.Push(node);
+                    node = receiver2;
+                }
+
+                BeforeVisitingSkippedBoundCallChildren(node);
+
+                VisitReceiver(node);
+
+                do
+                {
+                    VisitArguments(node);
+                }
+                while (calls.TryPop(out node!));
+
+                calls.Free();
+            }
+            else
+            {
+                VisitReceiver(node);
+                VisitArguments(node);
+            }
+
+            return null;
+        }
+
+        protected virtual void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+        {
+        }
+
+        /// <summary>
+        /// Called only for the first (in evaluation order) <see cref="BoundCall"/> in the chain.
+        /// </summary>
+        protected virtual void VisitReceiver(BoundCall node)
+        {
+            this.Visit(node.ReceiverOpt);
+        }
+
+        protected virtual void VisitArguments(BoundCall node)
+        {
+            this.VisitList(node.Arguments);
+        }
+
+        public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            while (true)
+            {
+                Visit(node.Condition);
+                Visit(node.Consequence);
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    break;
+                }
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    Visit(alternative);
+                    break;
+                }
+            }
             return null;
         }
     }

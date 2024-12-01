@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class MeMyBaseMyClassTests
@@ -1438,7 +1439,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
+</compilation>, references:={Net40.References.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1471,6 +1472,81 @@ End Structure
   IL_0001:  constrained. "s1"
   IL_0007:  callvirt   "Function System.ValueType.ToString() As String"
   IL_000c:  call       "Sub System.Console.WriteLine(String)"
+  IL_0011:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub MyClassUsedInStructureWithMutation()
+            CompileAndVerify(
+<compilation name="MyClassUsedInStructure">
+    <file name="a.vb">
+Imports System
+Structure S1
+    Dim i As Integer
+
+    Public Shared Sub Main()
+        Dim s = New S1()
+        s.Goo()
+        s.Goo()
+    End Sub
+
+    Sub Goo()
+        Console.Write(MyClass.M())
+    End Sub
+
+    Function M() As String
+        i = i + 1
+        Return i.ToString()
+    End Function
+End Structure
+    </file>
+</compilation>, expectedOutput:="12").VerifyIL("S1.Goo", <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function S1.M() As String"
+  IL_0006:  call       "Sub System.Console.Write(String)"
+  IL_000b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub MyClassUsedInStructureWithMutationInOverride()
+            CompileAndVerify(
+<compilation name="MyClassUsedInStructure">
+    <file name="a.vb">
+Imports System
+Structure S1
+    Dim i As Integer
+
+    Public Shared Sub Main()
+        Dim s = New S1()
+        s.Goo()
+        s.Goo()
+    End Sub
+
+    Sub Goo()
+        Console.Write(MyClass.ToString())
+    End Sub
+
+    Public Overrides Function ToString() As String
+        i = i + 1
+        Return i.ToString()
+    End Function
+End Structure
+    </file>
+</compilation>, expectedOutput:="12").VerifyIL("S1.Goo", <![CDATA[
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. "S1"
+  IL_0007:  callvirt   "Function Object.ToString() As String"
+  IL_000c:  call       "Sub System.Console.Write(String)"
   IL_0011:  ret
 }
 ]]>)

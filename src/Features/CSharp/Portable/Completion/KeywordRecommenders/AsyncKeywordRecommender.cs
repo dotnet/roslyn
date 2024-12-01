@@ -8,43 +8,42 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class AsyncKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class AsyncKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    public AsyncKeywordRecommender()
+        : base(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)
     {
-        public AsyncKeywordRecommender()
-            : base(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)
+    }
+
+    private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    {
+        SyntaxKind.StaticKeyword,
+        SyntaxKind.UnsafeKeyword
+    };
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ||
+            context.PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword))
         {
+            return false;
         }
 
-        private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.StaticKeyword,
-            SyntaxKind.UnsafeKeyword
-        };
+        return InMemberDeclarationContext(position, context, cancellationToken)
+            || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
+            || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
+    }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ||
-                context.PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword))
-            {
-                return false;
-            }
-
-            return InMemberDeclarationContext(position, context, cancellationToken)
-                || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
-                || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
-        }
-
-        private static bool InMemberDeclarationContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.IsGlobalStatementContext
-                || context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken)
-                || context.IsMemberDeclarationContext(
-                    validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                    canBePartial: true,
-                    cancellationToken: cancellationToken);
-        }
+    private static bool InMemberDeclarationContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return context.IsGlobalStatementContext
+            || context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken)
+            || context.IsMemberDeclarationContext(
+                validModifiers: SyntaxKindSet.AllMemberModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                canBePartial: true,
+                cancellationToken: cancellationToken);
     }
 }

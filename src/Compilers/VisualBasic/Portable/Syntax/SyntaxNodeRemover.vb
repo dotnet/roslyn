@@ -2,17 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
 Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-    Public Class SyntaxNodeRemover
+    Public NotInheritable Class SyntaxNodeRemover
         Friend Shared Function RemoveNodes(Of TRoot As SyntaxNode)(root As TRoot, nodes As IEnumerable(Of SyntaxNode), options As SyntaxRemoveOptions) As TRoot
             Dim nodesToRemove As SyntaxNode() = nodes.ToArray()
 

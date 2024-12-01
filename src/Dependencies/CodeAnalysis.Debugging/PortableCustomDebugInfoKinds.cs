@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Debugging
@@ -23,5 +21,6 @@ namespace Microsoft.CodeAnalysis.Debugging
         public static readonly Guid CompilationMetadataReferences = new("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
         public static readonly Guid CompilationOptions = new("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
         public static readonly Guid TypeDefinitionDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
+        public static readonly Guid PrimaryConstructorInformationBlob = new("9D40ACE1-C703-4D0E-BF41-7243060A8FB5");
     }
 }

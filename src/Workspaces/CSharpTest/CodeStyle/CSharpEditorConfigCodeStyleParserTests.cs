@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData("none", BinaryOperatorSpacingOptions.Remove)]
         [InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
 
-        [WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27685")]
         [InlineData(" ignore ", BinaryOperatorSpacingOptions.Ignore)]
         [InlineData(" none ", BinaryOperatorSpacingOptions.Remove)]
         [InlineData(" before_and_after ", BinaryOperatorSpacingOptions.Single)]
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData("no_change", LabelPositionOptions.NoIndent)]
         [InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
 
-        [WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27685")]
         [InlineData(" flush_left ", LabelPositionOptions.LeftMost)]
         [InlineData(" no_change ", LabelPositionOptions.NoIndent)]
         [InlineData(" one_less_than_current ", LabelPositionOptions.OneLess)]
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData("true:warning", (int)ExpressionBodyPreference.WhenPossible, ReportDiagnostic.Warn)]
         [InlineData("when_on_single_line:error", (int)ExpressionBodyPreference.WhenOnSingleLine, ReportDiagnostic.Error)]
 
-        [WorkItem(27685, "https://github.com/dotnet/roslyn/issues/27685")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/27685")]
         [InlineData("false : none", (int)ExpressionBodyPreference.Never, ReportDiagnostic.Suppress)]
         [InlineData("true : warning", (int)ExpressionBodyPreference.WhenPossible, ReportDiagnostic.Warn)]
         [InlineData("when_on_single_line : error", (int)ExpressionBodyPreference.WhenOnSingleLine, ReportDiagnostic.Error)]

@@ -6,25 +6,17 @@
 
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixes;
+
+internal sealed partial class FixMultipleCodeAction(
+    IFixAllState fixAllState,
+    string title,
+    string computingFixWaitDialogMessage) : AbstractFixAllCodeFixCodeAction(fixAllState, showPreviewChangesDialog: false)
 {
-    internal partial class FixMultipleCodeAction : AbstractFixAllCodeFixCodeAction
-    {
-        private readonly string _title;
-        private readonly string _computingFixWaitDialogMessage;
+    private readonly string _title = title;
+    private readonly string _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
 
-        public FixMultipleCodeAction(
-            IFixAllState fixAllState,
-            string title,
-            string computingFixWaitDialogMessage)
-            : base(fixAllState, showPreviewChangesDialog: false)
-        {
-            _title = title;
-            _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
-        }
+    public override string Title => _title;
 
-        public override string Title => _title;
-
-        internal override string Message => _computingFixWaitDialogMessage;
-    }
+    internal override string Message => _computingFixWaitDialogMessage;
 }

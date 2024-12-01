@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool HasUnsafeParameter(this Symbol member)
+        internal static bool HasParameterContainingPointerType(this Symbol member)
         {
             foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.Type.IsUnsafe())
+                if (parameterType.Type.ContainsPointer())
                 {
                     return true;
                 }
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Don't emit partial methods without an implementation part.
-            if (method.IsPartialMethod() && method.PartialImplementationPart is null)
+            if (method.IsPartialMember() && method.PartialImplementationPart is null)
             {
                 return false;
             }
@@ -545,22 +545,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool IsPartialMethod(this Symbol member)
+        internal static bool IsPartialMember(this Symbol member)
         {
-            var sms = member as SourceMemberMethodSymbol;
-            return sms?.IsPartial == true;
+            Debug.Assert(member.IsDefinition);
+            return member
+                is SourceOrdinaryMethodSymbol { IsPartial: true }
+                or SourcePropertySymbol { IsPartial: true }
+                or SourcePropertyAccessorSymbol { IsPartial: true };
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
         {
-            var sms = member as SourceOrdinaryMethodSymbol;
-            return sms?.IsPartialImplementation == true;
+            Debug.Assert(member.IsDefinition);
+            return member
+                is SourceOrdinaryMethodSymbol { IsPartialImplementation: true }
+                or SourcePropertySymbol { IsPartialImplementation: true }
+                or SourcePropertyAccessorSymbol { IsPartialImplementation: true };
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
         {
-            var sms = member as SourceOrdinaryMethodSymbol;
-            return sms?.IsPartialDefinition == true;
+            Debug.Assert(member.IsDefinition);
+            return member
+                is SourceOrdinaryMethodSymbol { IsPartialDefinition: true }
+                or SourcePropertySymbol { IsPartialDefinition: true }
+                or SourcePropertyAccessorSymbol { IsPartialDefinition: true };
         }
 
         internal static bool ContainsTupleNames(this Symbol member)
