@@ -214,18 +214,7 @@ internal abstract partial class AbstractStructureTaggerProvider(
         foreach (var span in multiLineSpans)
         {
             var tag = new StructureTag(this, span, snapshot);
-
-            var headerSpan = tag.HeaderSpan;
-            var outliningSpan = tag.OutliningSpan;
-
-            // For our own tracking, consider the final span to the be the union of the header and the outlining span
-            // so that we track the entirety of the buffer the structure tag corresponds to.
-            var finalSpan = Span.FromBounds(
-                Math.Min(headerSpan.Start, outliningSpan.Start),
-                Math.Max(headerSpan.End, outliningSpan.End));
-
-            var finalSnapshotSpan = new SnapshotSpan(snapshot, finalSpan);
-            context.AddTag(new TagSpan<IContainerStructureTag>(finalSnapshotSpan, tag));
+            context.AddTag(new TagSpan<IContainerStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
         }
     }
 
@@ -244,10 +233,11 @@ internal abstract partial class AbstractStructureTaggerProvider(
         if (previousStructureStart.TranslateTo(latestSnapshot, PointTrackingMode.Negative) !=
             previousStructureStart.TranslateTo(latestSnapshot, PointTrackingMode.Positive))
         {
-            // How we think this block existing block start didn't necessary move how the editor will move this block.
-            // We don't want to reuse this tag as its stale data (as mapped by the editor) may not be where we'd expect
-            // the new block's data to be.  This can happen when the user types right at the start of a structure tag,
-            // causing it to move inwards undesirably.
+            // We can't know that how we think this block moved is actually how the editor actually moved it.
+            // Specifically, the tracking mode is an implementation detail.  As such, we don't want to reuse this tag as
+            // its stale data (as mapped by the editor) may not be where we'd expect the new block's data to be.  This
+            // can happen when the user types right at the start of a structure tag, causing it to move inwards
+            // undesirably.
 
             // Only consider these tags the same if they are the same object in memory.  Otherwise, consider them
             // different so that we remove the old one and add the new one.
