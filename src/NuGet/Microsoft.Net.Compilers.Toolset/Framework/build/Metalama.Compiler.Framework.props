@@ -6,7 +6,7 @@
     inside of dotnet build it should be a no-op.
   -->
   <Import
-    Project="$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.Toolset.Framework.Core.props"
+    Project="$(MSBuildThisFileDirectory)Metalama.Compiler.Framework.Core.props"
     Condition="'$(MSBuildRuntimeType)' == 'Full'" />
 
 </Project>

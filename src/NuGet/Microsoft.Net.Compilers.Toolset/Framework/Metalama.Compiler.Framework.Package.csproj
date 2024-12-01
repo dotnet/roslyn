@@ -32,8 +32,7 @@
 
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
-    <NoWarn>$(NoWarn);NU5100;NU5128;NU5129</NoWarn>
-
+    <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
     <_DependsOn>InitializeDesktopCompilerArtifacts</_DependsOn>
     <!-- <Metalama> -->
     <_DependsOn>$(_DependsOn);InitializeMetalamaCompilerBinArtifacts</_DependsOn>

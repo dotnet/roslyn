@@ -10,6 +10,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Enable portable PDB so it can be included in the symbols NuGet package (.snupkg). -->
     <DebugType>Portable</DebugType>
+    <!-- The assembly 'tasks\<tfm>\Metalama.Compiler.BuildTasks.dll' is not inside the 'lib' folder and hence it won't be added as a reference when the package is installed into a
+ project. -->
+    <!-- This warning is irrelevant for this assembly, since it's not a regular referenced assembly. -->
     <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
   
