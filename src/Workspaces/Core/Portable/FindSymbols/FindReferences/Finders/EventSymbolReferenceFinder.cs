@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -18,7 +17,6 @@ internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEve
     protected override bool CanFind(IEventSymbol symbol)
         => true;
 
-    // old change
     protected sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IEventSymbol symbol,
         Solution solution,

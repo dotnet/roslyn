@@ -965,7 +965,6 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         // Instead of getting all the declared symbols from the document, invoke this semantic operation in every node we encounter
         foreach (var descendantNode in root.DescendantNodes())
         {
-            // Discover all the declared type symbols in the document
             var documentSymbol = semanticModel.GetDeclaredSymbol(descendantNode, cancellationToken);
             if (documentSymbol is not ITypeSymbol documentTypeSymbol)
                 continue;
