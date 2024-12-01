@@ -1847,9 +1847,9 @@ End Class
             Assert.Null(symbolInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
-            Assert.Equal({"Sub X.Add(x As System.Collections.Generic.List(Of System.Byte))",
+            AssertEx.Equal({"Sub X.Add(x As System.Collections.Generic.List(Of System.Byte))",
                           "Sub X.Add(x As X)"},
-                         Roslyn.Utilities.EnumerableExtensions.Order(symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString())).ToArray())
+                         (symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString()).Order()).ToArray())
         End Sub
 
         <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>

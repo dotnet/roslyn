@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -35,14 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         public virtual event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
 
-        private readonly string _name;
+        protected readonly string Name;
 
         public BaseItem(string name)
         {
-            _name = name;
+            Name = name;
         }
 
-        public IEnumerable<string> Children => SpecializedCollections.EmptyEnumerable<string>();
+        public IEnumerable<string> Children => [];
 
         public bool IsExpandable => true;
 
@@ -63,12 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public virtual ImageMoniker StateIconMoniker => default;
         public string? StateToolTipText => null;
         public override string ToString() => Text;
-        public string Text => _name;
+        public string Text => Name;
         public object? ToolTipContent => null;
-        public string ToolTipText => _name;
+        public string ToolTipText => Name;
 
-        private static readonly HashSet<Type> s_supportedPatterns = new HashSet<Type>()
-        {
+        private static readonly HashSet<Type> s_supportedPatterns =
+        [
             typeof(ISupportExpansionEvents),
             typeof(IRenamePattern),
             typeof(IInvocationPattern),
@@ -78,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             typeof(IBrowsablePattern),
             typeof(ITreeDisplayItem),
             typeof(ISupportDisposalNotification)
-        };
+        ];
 
         public TPattern? GetPattern<TPattern>() where TPattern : class
         {

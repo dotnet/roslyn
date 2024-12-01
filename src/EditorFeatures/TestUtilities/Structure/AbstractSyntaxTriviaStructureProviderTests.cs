@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
             var outliner = CreateProvider();
-            using var actualRegions = TemporaryArray<BlockSpan>.Empty;
-            outliner.CollectBlockSpans(trivia, ref actualRegions.AsRef(), options, CancellationToken.None);
+            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var actualRegions);
+            outliner.CollectBlockSpans(trivia, actualRegions, options, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
             return actualRegions.ToImmutableAndClear();

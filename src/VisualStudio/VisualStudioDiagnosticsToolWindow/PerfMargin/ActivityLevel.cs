@@ -26,7 +26,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
         public ActivityLevel(string name)
         {
             Name = name;
-            _children = new List<ActivityLevel>();
+            _children = [];
         }
 
         public ActivityLevel(string name, ActivityLevel parent, bool createChildList)
@@ -37,7 +37,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
             if (createChildList)
             {
-                _children = new List<ActivityLevel>();
+                _children = [];
             }
         }
 

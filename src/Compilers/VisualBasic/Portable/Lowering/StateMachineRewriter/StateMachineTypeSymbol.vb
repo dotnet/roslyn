@@ -68,8 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Inherit some attributes from the container of the kickoff method
                 Dim kickoffType = KickoffMethod.ContainingType
                 For Each attribute In kickoffType.GetAttributes()
-                    If attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerNonUserCodeAttribute) OrElse
-                       attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerStepThroughAttribute) Then
+                    If attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) OrElse
+                       attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute) Then
                         If builder Is Nothing Then
                             builder = ArrayBuilder(Of VisualBasicAttributeData).GetInstance(2) ' only 2 different attributes are inherited at the moment
                         End If

@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
@@ -1308,7 +1308,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1388,7 +1388,7 @@ End Class
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseWinMD)
 
             ' This diagnostic is from binding the return type of the AddHandler, not from checking the parameter type
             ' of the ReturnHandler.  The key point is that a cascading ERR_RemoveParamWrongForWinRT is not reported.
@@ -1421,7 +1421,7 @@ End Namespace
         </file>
 </compilation>
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseWinMD)
             AssertTheseDeclarationDiagnostics(comp, <errors><![CDATA[
 BC31091: Import of type 'EventRegistrationTokenTable(Of )' from assembly or module 'test.winmdobj' failed.
     Event E As System.Action    

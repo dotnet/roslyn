@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<File>Public |</File>, "Module")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub ModuleAfterEndModuleTest()
             Dim code =
 <File>

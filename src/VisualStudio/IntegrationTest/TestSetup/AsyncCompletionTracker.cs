@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -43,18 +44,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         private void HandleAsyncCompletionTriggered(object sender, CompletionTriggeredEventArgs e)
         {
+            var cancellationSource = new CancellationTokenSource();
             var listener = _asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CompletionSet);
             var token = listener.BeginAsyncOperation(nameof(IAsyncCompletionBroker.CompletionTriggered));
 
-            e.CompletionSession.Dismissed += ReleaseToken;
-            e.CompletionSession.ItemCommitted += ReleaseToken;
-            e.CompletionSession.ItemsUpdated += ReleaseToken;
+            e.CompletionSession.Dismissed += ReleaseTokenHandler;
+            e.CompletionSession.ItemCommitted += ReleaseTokenHandler;
+
+            _ = Task.Run(async () =>
+                {
+                    // AsyncCompletion might fire multiple ItemsUpdated events per keystroke typed, which means
+                    // we could see the first ItemsUpdated event even though items don't change (but computation finished).
+                    // If test attempts to assert state after seeing first event it would cause flakiness. 
+                    // Use SelectedItemProvider to wait for all pending work to be completed.
+                    var item = await ((ISelectedItemProvider)e.CompletionSession).GetSelectedItemAsync(GetSelectedItemOptions.WaitForContextAndComputation, cancellationSource.Token);
+                    ReleaseToken();
+                }, cancellationSource.Token);
 
             return;
 
             // Local function
-            void ReleaseToken(object sender, EventArgs e)
-                => Interlocked.Exchange<IAsyncToken?>(ref token, null)?.Dispose();
+            void ReleaseTokenHandler(object sender, EventArgs e) => ReleaseToken();
+
+            void ReleaseToken()
+            {
+                Interlocked.Exchange(ref token, null)?.Dispose();
+                if (Interlocked.Exchange(ref cancellationSource, null) is { } source)
+                {
+                    source.Cancel();
+                    source.Dispose();
+                }
+            }
         }
     }
 }

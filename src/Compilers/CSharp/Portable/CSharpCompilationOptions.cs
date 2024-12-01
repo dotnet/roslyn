@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
+                   Hash.Combine(((uint)TopLevelBinderFlags).GetHashCode(), ((int)this.NullableContextOptions).GetHashCode()))));
         }
 
         internal override Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken)

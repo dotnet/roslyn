@@ -31,7 +31,7 @@ End Class]]>
                 endCaretPos:={3, 21})
         End Sub
 
-        <WpfFact()>
+        <WpfFact>
         Public Sub TestXmlEndConstructNotApplied()
             VerifyEndConstructNotAppliedAfterChar(
                 before:=<Code>

@@ -18,15 +18,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterHashIfWhenEndIfExists()
+        Public Sub DoNotApplyAfterHashIfWhenEndIfExists()
             VerifyStatementEndConstructNotApplied(
                 text:="#If True Then
 #End If",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, WorkItem(537976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537976")>
-        Public Sub DontApplyAfterHashElseIfWhenEndIfExists()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537976")>
+        Public Sub DoNotApplyAfterHashElseIfWhenEndIfExists()
             VerifyStatementEndConstructNotApplied(
                 text:="#If True Then
 #ElseIf True Then

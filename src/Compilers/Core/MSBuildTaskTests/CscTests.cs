@@ -11,11 +11,19 @@ using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class CscTests
     {
+        public ITestOutputHelper TestOutputHelper { get; }
+
+        public CscTests(ITestOutputHelper testOutputHelper)
+        {
+            TestOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void SingleSource()
         {
@@ -203,6 +211,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             test(",a;b ");
             test(";a;;b;");
             test(",a,,b,");
+        }
+
+        [Fact]
+        public void FeaturesInterceptors()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreview()
+        {
+            var csc = new Csc();
+            csc.InterceptorsPreviewNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewBoth()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.InterceptorsPreviewNamespaces = "NS5.NS6;NS7.NS8";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4;NS5.NS6;NS7.NS8" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -434,13 +470,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = "";
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolExe = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.Equal(Path.Combine("path", "to", "custom_csc"), csc.GeneratePathToTool());
         }
 
@@ -451,14 +487,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             // StartsWith because it can be csc.exe or csc.dll
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            Assert.Equal("", csc.GenerateCommandLine());
+            Assert.Equal("", csc.GenerateCommandLineContents());
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
         }
 
@@ -515,6 +551,106 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 LogFunc = delegate { throw new Exception(""); }
             });
             Assert.False(string.IsNullOrEmpty(engine.Log));
+        }
+
+        [Fact]
+        public void ReportIVTsSwitch()
+        {
+            var csc = new Csc();
+            csc.ReportIVTs = true;
+            AssertEx.Equal("/reportivts", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void CommandLineArgs1()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.exe", "test.cs");
+        }
+
+        [Fact]
+        public void CommandLineArgs2()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs", "blah.cs"),
+                TargetType = "library"
+            };
+
+            TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
+        public void ReferenceForms()
+        {
+            parse(@"util.dll", null, @"/reference:util.dll");
+            parse(@"util.dll", "global", @"/reference:util.dll");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"""util.dll""", "global", @"/reference:""\""util.dll\""""");
+            parse(@"c:\a=util.dll", null, @"/reference:""c:\a=util.dll""");
+            parse(@"c:\a=util.dll", "global", @"/reference:""c:\a=util.dll""");
+            parse(@"""c:\a=util.dll""", "global", @"/reference:""\""c:\a=util.dll\""""");
+            parse(@"a=util.dll", null, @"/reference:""a=util.dll""");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+            parse(@"util.dll", null, @"/link:util.dll", true);
+            parse(@"util.dll", "global", @"/link:util.dll", true);
+            parse(@"util.dll", "lib", @"/link:lib=util.dll", true);
+            parseMultiple(@"util.dll", "global,a", @"/reference:util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"util.dll", "b,a", @"/reference:b=util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "global,c", @"/reference:""c:\a=b\util.dll""", @"/reference:c=c:\a=b\util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "x,z", @"/reference:x=c:\a=b\util.dll", @"/reference:z=c:\a=b\util.dll");
+
+            void parse(string refText, string? alias, string expectedArg, bool embedInteropTypes = false) =>
+                parseCore(refText, alias, embedInteropTypes, [expectedArg]);
+
+            void parseMultiple(string refText, string? alias, params string[] expectedArgs) =>
+                parseCore(refText, alias, embedInteropTypes: false, expectedArgs);
+
+            void parseCore(string refText, string? alias, bool embedInteropTypes, string[] expectedArgs)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias: alias, embedInteropTypes)],
+                };
+
+                TaskTestUtil.AssertCommandLine(csc, engine, [.. expectedArgs, "/out:test.dll", "/target:library", "test.cs"]);
+            }
+        }
+
+        [Fact]
+        public void ReferenceErrors()
+        {
+            parseRef(@"util.dll", "a=b");
+            parseRef(@"util.dll", "a b");
+            parseRef(@"util.dll", "a;b");
+            parseRef(@"util.dll", @"a""b");
+
+            void parseRef(string refText, string alias)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias)]
+                };
+
+                Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
+            }
         }
     }
 }

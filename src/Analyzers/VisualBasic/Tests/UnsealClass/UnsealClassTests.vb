@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnsealClass
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UnsealClass
     <Trait(Traits.Feature, Traits.Features.CodeActionsUnsealClass)>
     Public NotInheritable Class UnsealClassTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicUnsealClassCodeFixProvider())
@@ -143,7 +143,7 @@ end class")
         Public Async Function RemovedFromAllPartialClassDeclarationsAcrossFiles() As Task
             Await TestInRegularAndScriptAsync(
 <Workspace>
-    <Project Language="Visual Basic">
+    <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 partial public notinheritable class C
 end class
@@ -162,7 +162,7 @@ end class
     </Project>
 </Workspace>.ToString(),
 <Workspace>
-    <Project Language="Visual Basic">
+    <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 partial public class C
 end class

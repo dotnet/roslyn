@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SyntaxDiagnosticInfo : DiagnosticInfo
     {
-        static SyntaxDiagnosticInfo()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxDiagnosticInfo), r => new SyntaxDiagnosticInfo(r));
-        }
-
         internal readonly int Offset;
         internal readonly int Width;
 
@@ -46,22 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxDiagnosticInfo(offset, this.Width, (ErrorCode)this.Code, this.Arguments);
         }
 
-        #region Serialization
-
-        protected override void WriteTo(ObjectWriter writer)
+        protected SyntaxDiagnosticInfo(SyntaxDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
         {
-            base.WriteTo(writer);
-            writer.WriteInt32(this.Offset);
-            writer.WriteInt32(this.Width);
+            Offset = original.Offset;
+            Width = original.Width;
         }
 
-        protected SyntaxDiagnosticInfo(ObjectReader reader)
-            : base(reader)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
-            this.Offset = reader.ReadInt32();
-            this.Width = reader.ReadInt32();
+            return new SyntaxDiagnosticInfo(this, severity);
         }
-
-        #endregion
     }
 }

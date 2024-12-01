@@ -338,6 +338,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
+        Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            Return OriginalDefinition.GetGuidString(guidString)
+        End Function
+
         Private NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType
 

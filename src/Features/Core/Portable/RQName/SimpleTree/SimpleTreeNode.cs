@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree
-{
-    internal abstract class SimpleTreeNode
-    {
-        public readonly string Text;
+namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-        public SimpleTreeNode(string text)
-            => Text = text;
-    }
+internal abstract class SimpleTreeNode(string text)
+{
+    public readonly string Text = text;
 }

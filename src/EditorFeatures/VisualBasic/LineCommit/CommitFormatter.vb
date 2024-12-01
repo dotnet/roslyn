@@ -12,14 +12,10 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
@@ -64,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse _editorOptionsService.GlobalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
@@ -76,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
+                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.Services,
@@ -170,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             oldTree As SyntaxTree,
             newDirtySpan As SnapshotSpan,
             newTree As SyntaxTree,
-            cancellationToken As CancellationToken) As IEnumerable(Of AbstractFormattingRule)
+            cancellationToken As CancellationToken) As ImmutableArray(Of AbstractFormattingRule)
 
             ' if the span we are going to format is same as the span that got changed, don't bother to do anything special.
             ' just do full format of the span.
@@ -216,12 +212,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' for now, do very simple checking. basically, we see whether we get same number of indent operation for the give span. alternative, but little bit
             ' more expensive and complex, we can actually calculate indentation right after the span, and see whether that is changed. not sure whether that much granularity
             ' is needed.
+            Dim coreRules = Formatter.GetDefaultFormattingRules(languageServices)
+
             If GetNumberOfIndentOperations(languageServices, options, oldTree, oldDirtySpan, cancellationToken) =
                GetNumberOfIndentOperations(languageServices, options, newTree, newDirtySpan, cancellationToken) Then
-                Return (New NoAnchorFormatterRule()).Concat(Formatter.GetDefaultFormattingRules(languageServices))
+                Dim result = New FixedSizeArrayBuilder(Of AbstractFormattingRule)(coreRules.Length + 1)
+                result.Add(New NoAnchorFormatterRule())
+                result.AddRange(coreRules)
+                Return result.MoveToImmutable()
             End If
 
-            Return Formatter.GetDefaultFormattingRules(languageServices)
+            Return coreRules
         End Function
 
         Private Shared Function GetNumberOfIndentOperations(

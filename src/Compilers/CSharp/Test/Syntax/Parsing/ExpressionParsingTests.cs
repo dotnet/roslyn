@@ -1368,6 +1368,468 @@ class C
         }
 
         [Fact]
+        public void TopLevel_NewPartialArray_Incomplete()
+        {
+            UsingTree("new partial[",
+                // (1,13): error CS1003: Syntax error, ']' expected
+                // new partial[
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 13),
+                // (1,13): error CS1002: ; expected
+                // new partial[
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 13));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "partial");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_NewContextualKeywordArray_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                [
+                """,
+                // (2,2): error CS1003: Syntax error, ']' expected
+                // [
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, keyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_NewScopedArray()
+        {
+            UsingTree($"""
+                new scoped[1];
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_NewContextualKeywordArray(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}[1
+                ];
+                """,
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // ];
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, keyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_ScopedObjectCreation_Incomplete()
+        {
+            UsingTree($"""
+                new scoped
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_ContextualKeywordObjectCreation_Incomplete(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                (
+                """,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new {keyword}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, keyword).WithLocation(1, 5),
+                // (2,2): error CS1733: Expected expression
+                // (
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, keyword);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_ScopedObjectCreation()
+        {
+            UsingTree($"new scoped();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("file")]
+        [InlineData("required")]
+        [InlineData("async")]
+        public void TopLevel_ContextualModifierObjectCreation(string keyword)
+        {
+            UsingTree($"""
+                new {keyword}
+                ();
+                """,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // new {keyword}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, keyword).WithLocation(1, 5),
+                // (2,2): error CS1525: Invalid expression term ')'
+                // ();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, keyword);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_NewPartialArray()
+        {
+            UsingTree($"new partial[1];");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "partial");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_PartialObjectCreation_Incomplete()
+        {
+            UsingTree($"""
+                new partial
+                (
+                """,
+                // (2,2): error CS1026: ) expected
+                // (
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (2,2): error CS1002: ; expected
+                // (
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevel_PartialObjectCreation()
+        {
+            UsingTree($"new partial();");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestNewArrayWithInitializer()
         {
             var text = "new a[] {b}";
@@ -4822,7 +5284,7 @@ select t";
         public void RangeExpression_ThreeDots()
         {
             UsingExpression("1...2",
-                // (1,2): error CS8401: Unexpected character sequence '...'
+                // (1,2): error CS8635: Unexpected character sequence '...'
                 // 1...2
                 Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
 
@@ -4835,7 +5297,7 @@ select t";
                 N(SyntaxKind.DotDotToken);
                 N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.NumericLiteralToken, ".2");
+                    N(SyntaxKind.NumericLiteralToken, "2");
                 }
             }
             EOF();
@@ -5613,20 +6075,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRefElementAccess()
         {
             UsingExpression("new[] { ref[] }",
                 // (1,9): error CS1525: Invalid expression term 'ref'
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
-                // (1,12): error CS1525: Invalid expression term '['
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
-                // (1,13): error CS0443: Syntax error; value expected
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5639,24 +6094,10 @@ select t";
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                M(SyntaxKind.Argument);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
@@ -5952,14 +6393,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
-                // (1,9): error CS1003: Syntax error, ',' expected
+                // (1,9): error CS1041: Identifier expected; 'in' is a keyword
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5969,20 +6409,24 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
-                    // (1,9): error CS1003: Syntax error, ',' expected
-                    // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(1, 9));
+                // (1,9): error CS1041: Identifier expected; 'out' is a keyword
+                // new[] { out[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5992,6 +6436,11 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
@@ -6372,6 +6821,207 @@ select t";
                 }
                 EOF();
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression1()
+        {
+            var text = "x is X ? from item in collection select item : null";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "collection");
+                        }
+                    }
+                    N(SyntaxKind.QueryBody);
+                    {
+                        N(SyntaxKind.SelectClause);
+                        {
+                            N(SyntaxKind.SelectKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression2()
+        {
+            var text = "x is X.Y ? from item in collection select item : null";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "collection");
+                        }
+                    }
+                    N(SyntaxKind.QueryBody);
+                    {
+                        N(SyntaxKind.SelectClause);
+                        {
+                            N(SyntaxKind.SelectKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression_Incomplete()
+        {
+            var text = "x is X.Y ? from item";
+
+            UsingExpression(text,
+                // (1,21): error CS1001: Identifier expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, 'in' expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("in").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21),
+                // (1,21): error CS0742: A query body must end with a select clause or a group clause
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpectedSelectOrGroup, "").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, ':' expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.InKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.QueryBody);
+                    {
+                        M(SyntaxKind.SelectClause);
+                        {
+                            M(SyntaxKind.SelectKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
         }
     }
 }

@@ -7,19 +7,15 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
+
+[ExportContentTypeLanguageService(ContentTypeNames.CSharpContentType, LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry) : IContentTypeLanguageService
 {
-    [ExportContentTypeLanguageService(ContentTypeNames.CSharpContentType, LanguageNames.CSharp), Shared]
-    internal class CSharpContentTypeLanguageService : IContentTypeLanguageService
-    {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
+    private readonly IContentTypeRegistryService _contentTypeRegistry = contentTypeRegistry;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-            => _contentTypeRegistry = contentTypeRegistry;
-
-        public IContentType GetDefaultContentType()
-            => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
-    }
+    public IContentType GetDefaultContentType()
+        => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
 }

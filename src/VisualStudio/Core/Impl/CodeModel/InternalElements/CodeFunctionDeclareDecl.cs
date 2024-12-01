@@ -4,15 +4,8 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {

@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;

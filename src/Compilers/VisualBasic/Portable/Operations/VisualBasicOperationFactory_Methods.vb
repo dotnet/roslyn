@@ -317,6 +317,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim builder = ArrayBuilder(Of IOperation).GetInstance(expression.Arguments.Length)
             Dim currentDeclarationIndex = 0
             For i As Integer = 0 To expression.Arguments.Length - 1
+                Dim [property] As IPropertySymbol = properties(i)
                 Dim value As IOperation = Create(expression.Arguments(i))
 
                 Dim target As IOperation
@@ -326,7 +327,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 If currentDeclarationIndex >= expression.Declarations.Length OrElse
                    i <> expression.Declarations(currentDeclarationIndex).PropertyIndex Then
                     ' No matching declaration, synthesize a property reference with an implicit receiver to be assigned.
-                    Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
                     target = New PropertyReferenceOperation(
                         [property], constrainedToType:=Nothing,
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     isImplicitAssignment = True
                 Else
                     Debug.Assert(i = expression.Declarations(currentDeclarationIndex).PropertyIndex)
-                    target = CreateBoundAnonymousTypePropertyAccessOperation(expression.Declarations(currentDeclarationIndex))
+                    target = CreateBoundAnonymousTypePropertyAccessOperation(expression.Declarations(currentDeclarationIndex), [property])
                     currentDeclarationIndex = currentDeclarationIndex + 1
                     isImplicitAssignment = expression.WasCompilerGenerated
                 End If

@@ -6,10 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal interface IChecksummedPersistentStorageService
 {
-    internal interface IChecksummedPersistentStorageService
-    {
-        ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken);
-    }
+    ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken);
 }

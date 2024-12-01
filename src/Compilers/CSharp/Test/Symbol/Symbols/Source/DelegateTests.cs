@@ -756,8 +756,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,11): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D' because it has one or more out parameters
                 //     D d = delegate { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate { }").WithArguments("D").WithLocation(4, 11)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("D").WithLocation(4, 11));
 
             var syntaxTree = comp.SyntaxTrees.Single();
             var root = syntaxTree.GetRoot();
@@ -774,7 +773,7 @@ class C
         {
             var source = @"delegate ref int D();";
 
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -791,7 +790,7 @@ class C
         {
             var source = @"delegate ref readonly int D(in int arg);";
 
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -821,7 +820,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(tree);
 

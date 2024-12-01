@@ -17,6 +17,12 @@ namespace Microsoft.Cci
     {
         private readonly HashSet<IReferenceOrISignature> _alreadySeen = new();
         private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new();
+
+        /// <summary>
+        /// Set true before a type reference is visited but only if a token needs to be created for the type reference.
+        /// E.g. not set before return type of a method is visited since the type reference is encoded in the signature blob of the method.
+        /// On the other hand, it is true before the type of an event definition is visited since Event table stores the type of the event as a coded token (TypeDef/Ref/Spec).
+        /// </summary>
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)
@@ -38,6 +44,7 @@ namespace Microsoft.Cci
         {
             this.typeReferenceNeedsToken = true;
             this.Visit(customModifier.GetModifier(Context));
+            Debug.Assert(!this.typeReferenceNeedsToken);
         }
 
         public override void Visit(IEventDefinition eventDefinition)
@@ -83,6 +90,13 @@ namespace Microsoft.Cci
 
         public override void Visit(IGenericParameter genericParameter)
         {
+            if (genericParameter.IsEncDeleted)
+            {
+                // Attributes and constraints do not contribute to a method signature and
+                // are not available for deleted generic parameters.
+                return;
+            }
+
             this.Visit(genericParameter.GetAttributes(Context));
             this.VisitTypeReferencesThatNeedTokens(genericParameter.GetConstraints(Context));
         }

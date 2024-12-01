@@ -65,7 +65,7 @@ public partial struct SyntaxValueProvider
     /// cref="SyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="INamedTypeSymbol"/> with the
     /// same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
     /// name="fullyQualifiedMetadataName"/> should be the fully-qualified, metadata name of the attribute, including the
-    /// <c>Attribute</c> suffix.  For example <c>"System.CLSCompliantAttribute</c> for <see
+    /// <c>Attribute</c> suffix.  For example <c>"System.CLSCompliantAttribute"</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
     /// </summary>
     /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> attribute target (<see

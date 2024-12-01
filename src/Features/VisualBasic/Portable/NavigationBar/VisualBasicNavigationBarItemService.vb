@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 type As INamedTypeSymbol,
                 position As Integer,
                 semanticModel As SemanticModel,
-                workspaceSupportsDocumentChanges As Boolean,
+        workspaceSupportsDocumentChanges As Boolean,
                 symbolDeclarationService As ISymbolDeclarationService,
                 cancellationToken As CancellationToken) As ImmutableArray(Of RoslynNavigationBarItem)
 
@@ -341,8 +341,9 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
 
             ' Generate an item for each event
             For Each e In accessibleEvents
-                If eventToImplementingMethods.ContainsKey(e) Then
-                    Dim methodLocation = GetSymbolLocation(solution, eventToImplementingMethods(e).First(), semanticModel.SyntaxTree, symbolDeclarationService)
+                Dim methods As List(Of IMethodSymbol) = Nothing
+                If eventToImplementingMethods.TryGetValue(e, methods) Then
+                    Dim methodLocation = GetSymbolLocation(solution, methods.First(), semanticModel.SyntaxTree, symbolDeclarationService)
                     If methodLocation IsNot Nothing Then
                         rightHandMemberItems.Add(New SymbolItem(
                             e.Name,

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property Visibility As Cci.TypeMemberVisibility
             Get
-                Return PEModuleBuilder.MemberVisibility(UnderlyingEvent.AdaptedEventSymbol)
+                Return UnderlyingEvent.AdaptedEventSymbol.MetadataVisibility
             End Get
         End Property
 
@@ -64,11 +64,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim underlyingContainingType = ContainingType.UnderlyingNamedType
 
             For Each attrData In underlyingContainingType.AdaptedNamedTypeSymbol.GetAttributes()
-                If attrData.IsTargetAttribute(underlyingContainingType.AdaptedNamedTypeSymbol, AttributeDescription.ComEventInterfaceAttribute) Then
+                Dim signatureIndex As Integer = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute)
+
+                If signatureIndex = 0 Then
                     Dim foundMatch = False
                     Dim sourceInterface As NamedTypeSymbol = Nothing
 
-                    If attrData.CommonConstructorArguments.Length = 2 Then
+                    Dim errorInfo As DiagnosticInfo = attrData.ErrorInfo
+                    If errorInfo IsNot Nothing Then
+                        diagnostics.Add(errorInfo, If(syntaxNodeOpt?.Location, NoLocation.Singleton))
+                    End If
+
+                    If Not attrData.HasErrors Then
                         sourceInterface = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, NamedTypeSymbol)
                         If sourceInterface IsNot Nothing Then
                             foundMatch = EmbedMatchingInterfaceMethods(sourceInterface, syntaxNodeOpt, diagnostics)

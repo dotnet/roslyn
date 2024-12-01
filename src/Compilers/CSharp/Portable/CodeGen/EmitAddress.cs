@@ -5,14 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -111,10 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     var call = (BoundCall)expression;
-                    var methodRefKind = call.Method.RefKind;
 
-                    if (methodRefKind == RefKind.Ref ||
-                        (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
+                    if (UseCallResultAsAddress(call, addressKind))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);
                         break;
@@ -178,6 +174,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return null;
         }
 
+        private static bool UseCallResultAsAddress(BoundCall call, AddressKind addressKind)
+        {
+            var methodRefKind = call.Method.RefKind;
+            return methodRefKind == RefKind.Ref ||
+                   (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
+        }
+
         private LocalDefinition EmitPassByCopyAddress(BoundPassByCopy passByCopyExpr, AddressKind addressKind)
         {
             // Normally we can just defer PassByCopy to the `default`,
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitConditionalOperatorAddress(BoundConditionalOperator expr, AddressKind addressKind)
         {
-            Debug.Assert(expr.ConstantValue == null, "Constant value should have been emitted directly");
+            Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
             object consequenceLabel = new object();
             object doneLabel = new object();
@@ -461,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// such cases it is possible to get a reference without loading into a temporary.
         /// </summary>
         private bool HasHome(BoundExpression expression, AddressKind addressKind)
-            => Binder.HasHome(expression, addressKind, _method, IsPeVerifyCompatEnabled(), _stackLocals);
+            => HasHome(expression, addressKind, _method, IsPeVerifyCompatEnabled(), _stackLocals);
 
         private LocalDefinition EmitParameterAddress(BoundParameter parameter, AddressKind addressKind)
         {
@@ -505,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return null;
             }
 
-            if (receiverType.TypeKind == TypeKind.TypeParameter)
+            if (BoxNonVerifierReferenceReceiver(receiverType, addressKind))
             {
                 //[Note: Constraints on a generic parameter only restrict the types that 
                 //the generic parameter may be instantiated with. Verification (see Partition III) 
@@ -514,24 +517,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 //via the generic parameter unless it is first boxed (see Partition III) or 
                 //the callvirt instruction is prefixed with the constrained. prefix instruction 
                 //(see Partition III). end note]
-                if (addressKind == AddressKind.Constrained)
+                EmitExpression(receiver, used: true);
+                // conditional receivers are already boxed if needed when pushed
+                if (receiver.Kind != BoundKind.ConditionalReceiver)
                 {
-                    return EmitAddress(receiver, addressKind);
+                    EmitBox(receiver.Type, receiver.Syntax);
                 }
-                else
-                {
-                    EmitExpression(receiver, used: true);
-                    // conditional receivers are already boxed if needed when pushed
-                    if (receiver.Kind != BoundKind.ConditionalReceiver)
-                    {
-                        EmitBox(receiver.Type, receiver.Syntax);
-                    }
-                    return null;
-                }
+
+                return null;
             }
 
-            Debug.Assert(receiverType.IsVerifierValue());
+            Debug.Assert(receiverType.TypeKind == TypeKind.TypeParameter || receiverType.IsValueType);
             return EmitAddress(receiver, addressKind);
+        }
+
+        private static bool BoxNonVerifierReferenceReceiver(TypeSymbol receiverType, AddressKind addressKind)
+        {
+            Debug.Assert(!receiverType.IsVerifierReference());
+            return receiverType.TypeKind == TypeKind.TypeParameter && addressKind != AddressKind.Constrained;
         }
 
         /// <summary>

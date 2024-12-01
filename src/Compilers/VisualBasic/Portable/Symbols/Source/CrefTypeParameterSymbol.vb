@@ -67,9 +67,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 Return ImmutableArray(Of TypeSymbol).Empty
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return False
             End Get
         End Property
 

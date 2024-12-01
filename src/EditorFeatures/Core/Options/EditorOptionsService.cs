@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -15,18 +13,11 @@ namespace Microsoft.CodeAnalysis.Options;
 /// Aggregates services necessary to retrieve editor options.
 /// </summary>
 [Export(typeof(EditorOptionsService)), Shared]
-internal sealed class EditorOptionsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditorOptionsService(IGlobalOptionService globalOptions, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager)
 {
-    public readonly IGlobalOptionService GlobalOptions;
-    public readonly IEditorOptionsFactoryService Factory;
-    public readonly IIndentationManagerService IndentationManager;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditorOptionsService(IGlobalOptionService globalOptions, IEditorOptionsFactoryService factory, IIndentationManagerService indentationManager)
-    {
-        GlobalOptions = globalOptions;
-        Factory = factory;
-        IndentationManager = indentationManager;
-    }
+    public readonly IGlobalOptionService GlobalOptions = globalOptions;
+    public readonly IEditorOptionsFactoryService Factory = factory;
+    public readonly IIndentationManagerService IndentationManager = indentationManager;
 }

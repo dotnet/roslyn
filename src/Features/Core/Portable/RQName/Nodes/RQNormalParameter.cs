@@ -4,13 +4,10 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal class RQNormalParameter : RQParameter
-    {
-        public RQNormalParameter(RQType type) : base(type) { }
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        public override SimpleTreeNode CreateSimpleTreeForType()
-            => Type.ToSimpleTree();
-    }
+internal sealed class RQNormalParameter(RQType type) : RQParameter(type)
+{
+    public override SimpleTreeNode CreateSimpleTreeForType()
+        => Type.ToSimpleTree();
 }

@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>Shared |</ClassDeclaration>, "Sub")
         End Sub
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub SubInDelegateCreationTest()
             Dim code = <ModuleDeclaration>
 Module Program
@@ -194,7 +194,7 @@ Sub M()
             VerifyRecommendationsMissing(code, "Sub")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub NotAfterEolTest()
             VerifyRecommendationsMissing(
 <ClassDeclaration>
@@ -204,7 +204,7 @@ Sub M()
 </ClassDeclaration>, "Sub")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AfterExplicitLineContinuationTest()
             VerifyRecommendationsContain(
 <ClassDeclaration>
@@ -224,7 +224,7 @@ Sub M()
 </ClassDeclaration>, "Sub")
         End Sub
 
-        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub AfterAsyncTest()
             VerifyRecommendationsContain(<ClassDeclaration>Async |</ClassDeclaration>, "Sub")
         End Sub
@@ -234,7 +234,7 @@ Sub M()
             VerifyRecommendationsMissing(<ClassDeclaration>Iterator |</ClassDeclaration>, "Sub")
         End Sub
 
-        <Fact, WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System
@@ -248,7 +248,7 @@ End Module
 </File>, "Sub")
         End Sub
 
-        <Fact, WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterExtensionAttribute()
             VerifyRecommendationsContain(<ClassDeclaration>&lt;Extension&gt; |</ClassDeclaration>, "Sub")
         End Sub

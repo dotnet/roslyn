@@ -2,41 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    /// <summary>
+    /// SearchScope used for searching *all* the symbols contained within a project/compilation.
+    /// i.e. the symbols created from source *and* symbols from references (both project and
+    /// metadata).
+    /// </summary>
+    private sealed class AllSymbolsProjectSearchScope(
+        AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+        Project project,
+        bool exact) : ProjectSearchScope(provider, project, exact)
     {
-        /// <summary>
-        /// SearchScope used for searching *all* the symbols contained within a project/compilation.
-        /// i.e. the symbols created from source *and* symbols from references (both project and
-        /// metadata).
-        /// </summary>
-        private class AllSymbolsProjectSearchScope : ProjectSearchScope
+        protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
+            SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
         {
-            public AllSymbolsProjectSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                Project project,
-                bool exact,
-                CancellationToken cancellationToken)
-                : base(provider, project, exact, cancellationToken)
-            {
-            }
+            var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                _project, searchQuery, filter, cancellationToken).ConfigureAwait(false);
 
-            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
-            {
-                var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                    _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
-
-                return declarations;
-            }
+            return declarations;
         }
     }
 }

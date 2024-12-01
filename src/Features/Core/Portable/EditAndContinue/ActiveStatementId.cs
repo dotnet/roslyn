@@ -2,19 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
-{
-    internal readonly struct ActiveStatementId
-    {
-        public readonly DocumentId DocumentId;
-        public readonly int Ordinal;
+namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-        public ActiveStatementId(DocumentId documentId, int ordinal)
-        {
-            DocumentId = documentId;
-            Ordinal = ordinal;
-        }
-    }
-}
+[DataContract]
+internal readonly record struct ActiveStatementId([property: DataMember(Order = 0)] int Ordinal);
+

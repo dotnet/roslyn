@@ -17,7 +17,7 @@ An analyzer/compiler diagnostic would be considered a candidate for programmatic
    1. Declaratively provide all the analyzer and/or compiler diagnostic IDs that can be suppressed by it.
    2. For each such suppressible diagnostic ID, provide a unique suppression ID and justification. These are required to enable proper diagnosis and configuration of each suppression (covered in detail [later](https://gist.github.com/mavasani/fcac17a9581b5c54cef8a689eeec954a#example-experience-with-screenshots)).
    3. Register callbacks for reported analyzer and/or compiler diagnostics with these suppressible diagnostic IDs. The callback can analyze the syntax and/or semantics of the diagnostic location and report a suppression for it.
-   4. DiagnosticSuppressors would *not* be able to register any another analysis callbacks, and hence cannot report any new diagnostics.
+   4. DiagnosticSuppressors would *not* be able to register any other analysis callbacks, and hence cannot report any new diagnostics.
 2. _For end users:_
    1. Seamless development experience when targeting such a platform/library, whereby the users do not see false positives from analyzers/compiler in their development context.
    2. End users do not need to manually add and/or maintain source suppressions through pragmas/SuppressMessageAttributes for such context-specific false positives.
@@ -26,7 +26,7 @@ An analyzer/compiler diagnostic would be considered a candidate for programmatic
       2. Configuration: Each diagnostic suppression has an associated suppression ID. This is clearly indicated in the logged "Info" diagnostics for suppressions, and the end users can disable the bucket of suppressions under any specific suppression ID with simple command line argument or ruleset entries.
  3. _For analyzer driver:_
     1. Order of execution between analyzers/compiler and suppressors: For command line builds, all diagnostic suppressors will run **after** all the analyzer and compiler diagnostics have been computed. For live analysis in Visual Studio, diagnostic suppressors may be invoked with a subset of the full set of reported diagnostics, as an optimization for supporting incremental and partial analysis scenarios.
-    2. Order of execution between individual suppressors: Execution of diagnostic suppressors would be independent of other suppressors. Diagnostic suppressions reported by one suppressor would not affect the input set of reported diagnostics passed to any other suppressor. Each diagnostic might be programmatically suppressed by more then one suppressor, so the analyzer driver will union all the reported suppressions for each diagnostic. Command line compiler will log one suppression diagnostic per-suppression for each programmatically suppressed diagnostic.
+    2. Order of execution between individual suppressors: Execution of diagnostic suppressors would be independent of other suppressors. Diagnostic suppressions reported by one suppressor would not affect the input set of reported diagnostics passed to any other suppressor. Each diagnostic might be programmatically suppressed by more than one suppressor, so the analyzer driver will union all the reported suppressions for each diagnostic. Command line compiler will log one suppression diagnostic per-suppression for each programmatically suppressed diagnostic.
  
 # Development Experience Example
 

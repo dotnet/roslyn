@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetType(CompletionItemExclusiveCompletionProvider),
                 GetType(CompletionItemExclusive2CompletionProvider))
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace.Services.SolutionServices)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
+                    document, caretPosition:=0, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke)
 
                 Assert.NotEmpty(list.ItemsList)
                 Assert.True(list.ItemsList.Count = 2, "Completion List does not contain exactly two items.")

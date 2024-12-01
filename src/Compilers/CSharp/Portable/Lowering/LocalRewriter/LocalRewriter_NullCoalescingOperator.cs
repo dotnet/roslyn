@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -72,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return rewrittenRight;
                 }
 
-                if (rewrittenLeft.ConstantValue != null)
+                if (rewrittenLeft.ConstantValueOpt != null)
                 {
-                    Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
+                    Debug.Assert(!rewrittenLeft.ConstantValueOpt.IsNull);
 
                     return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftPlaceholder, leftConversion, rewrittenResultType);
                 }
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
             Debug.Assert(rewrittenLeft.Type is { });
             if (rewrittenLeft.Type.IsReferenceType &&
-                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsImplicit: true, IsUserDefined: false })
+                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { Kind: ConversionKind.Identity or ConversionKind.ImplicitReference })
             {
                 rewrittenLeft = ApplyConversionIfNotIdentity(leftConversion, leftPlaceholder, rewrittenLeft);
 
@@ -125,19 +123,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             whenNotNull: notNullAccess,
                             whenNullOpt: whenNullOpt,
                             id: conditionalAccess.Id,
+                            forceCopyOfNullableValueType: conditionalAccess.ForceCopyOfNullableValueType,
                             type: rewrittenResultType
                         );
                     }
                 }
             }
 
-            // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
-            if (rewrittenLeft.Type.IsNullableType()
-                && RemoveIdentityConversions(rewrittenRight).IsDefaultValue()
-                && rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
-                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+            if (rewrittenLeft.Type.IsNullableType() &&
+                rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions))
             {
-                return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
+                var unwrappedRight = RemoveIdentityConversions(rewrittenRight);
+
+                // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
+                if (unwrappedRight.IsDefaultValue() &&
+                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol? getValueOrDefault, isOptional: true))
+                {
+                    return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+                }
+
+                // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T
+                if (unwrappedRight is { ConstantValueOpt: not null } or BoundLocal { LocalSymbol.IsRef: false } or BoundParameter { ParameterSymbol.RefKind: RefKind.None } &&
+                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol? getValueOrDefaultDefaultValue, isOptional: true))
+                {
+                    return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);
+                }
             }
 
             // We lower left ?? right to
@@ -166,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenType: rewrittenResultType,
                 isRef: false);
 
-            Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
+            Debug.Assert(conditionalExpression.ConstantValueOpt == null); // we shouldn't have hit this else case otherwise
             Debug.Assert(conditionalExpression.Type!.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             return new BoundSequence(
@@ -245,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
-                rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
+                rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
                 if (TypeSymbol.Equals(strippedLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     return rewrittenLeft;

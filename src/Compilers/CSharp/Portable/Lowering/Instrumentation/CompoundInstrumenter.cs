@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// to the constructor of this class. Usually, derived types are going to let the base (this class) to do its work first
     /// and then operate on the result they get back.
     /// </summary>
-    internal class CompoundInstrumenter : Instrumenter
+    internal abstract class CompoundInstrumenter : Instrumenter
     {
         public CompoundInstrumenter(Instrumenter previous)
         {
@@ -23,6 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public Instrumenter Previous { get; }
+
+        /// <summary>
+        /// Returns <see cref="CompoundInstrumenter"/> with <see cref="Previous"/> instrumenter set to <paramref name="previous"/>.
+        /// </summary>
+        public CompoundInstrumenter WithPrevious(Instrumenter previous)
+            => ReferenceEquals(previous, Previous) ? this : WithPreviousImpl(previous);
+
+        protected abstract CompoundInstrumenter WithPreviousImpl(Instrumenter previous);
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {
@@ -69,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentBreakStatement(original, rewritten);
         }
 
-        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
+        public override void PreInstrumentBlock(BoundBlock original, LocalRewriter rewriter)
         {
-            return Previous.CreateBlockPrologue(original, out synthesizedLocal);
+            Previous.PreInstrumentBlock(original, rewriter);
         }
 
-        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
+        public override void InstrumentBlock(BoundBlock original, LocalRewriter rewriter, ref TemporaryArray<LocalSymbol> additionalLocals, out BoundStatement? prologue, out BoundStatement? epilogue, out BoundBlockInstrumentation? instrumentation)
         {
-            return Previous.CreateBlockEpilogue(original);
+            Previous.InstrumentBlock(original, rewriter, ref additionalLocals, out prologue, out epilogue, out instrumentation);
         }
 
         public override BoundExpression InstrumentDoStatementCondition(BoundDoStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
@@ -119,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentForStatementCondition(original, rewrittenCondition, factory);
         }
 
-        public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentIfStatementConditionalGoto(BoundIfStatement original, BoundStatement rewritten)
         {
-            return Previous.InstrumentIfStatement(original, rewritten);
+            return Previous.InstrumentIfStatementConditionalGoto(original, rewritten);
         }
 
         public override BoundExpression InstrumentIfStatementCondition(BoundIfStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
@@ -134,9 +146,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentLabelStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
+        public override BoundStatement InstrumentUserDefinedLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
-            return Previous.InstrumentLocalInitialization(original, rewritten);
+            return Previous.InstrumentUserDefinedLocalInitialization(original, rewritten);
+        }
+
+        public override BoundExpression InstrumentUserDefinedLocalAssignment(BoundAssignmentOperator original)
+        {
+            return Previous.InstrumentUserDefinedLocalAssignment(original);
+        }
+
+        public override BoundExpression InstrumentCall(BoundCall original, BoundExpression rewritten)
+        {
+            return Previous.InstrumentCall(original, rewritten);
+        }
+
+        public override void InterceptCallAndAdjustArguments(
+            ref MethodSymbol method,
+            ref BoundExpression? receiver,
+            ref ImmutableArray<BoundExpression> arguments,
+            ref ImmutableArray<RefKind> argumentRefKindsOpt)
+        {
+            Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt);
+        }
+
+        public override BoundExpression InstrumentObjectCreationExpression(BoundObjectCreationExpression original, BoundExpression rewritten)
+        {
+            return Previous.InstrumentObjectCreationExpression(original, rewritten);
+        }
+
+        public override BoundExpression InstrumentFunctionPointerInvocation(BoundFunctionPointerInvocation original, BoundExpression rewritten)
+        {
+            return Previous.InstrumentFunctionPointerInvocation(original, rewritten);
         }
 
         public override BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
@@ -174,9 +215,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart);
         }
 
-        public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
+        public override void InstrumentCatchBlock(
+            BoundCatchBlock original,
+            ref BoundExpression? rewrittenSource,
+            ref BoundStatementList? rewrittenFilterPrologue,
+            ref BoundExpression? rewrittenFilter,
+            ref BoundBlock rewrittenBody,
+            ref TypeSymbol? rewrittenType,
+            SyntheticBoundNodeFactory factory)
         {
-            return Previous.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
+            Previous.InstrumentCatchBlock(
+                original,
+                ref rewrittenSource,
+                ref rewrittenFilterPrologue,
+                ref rewrittenFilter,
+                ref rewrittenBody,
+                ref rewrittenType,
+                factory);
         }
 
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)

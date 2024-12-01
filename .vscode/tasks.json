@@ -26,30 +26,57 @@
         "group": "build"
     },
     {
-        "label": "build with analyzers",
-        "command": "./build.sh",
-        "type": "shell",
-        "args": [
-          "--runAnalyzers"
-        ],
-        "windows": {
-          "command": "${workspaceFolder}/build.cmd",
-          "args": [
-            "-runAnalyzers"
-          ],
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
         "label": "build csc",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
+        "command": "dotnet",
         "type": "shell",
         "args": [
           "msbuild",
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
-          "src/Compilers/CSharp/csc/csc.csproj"
+          "-tl:off",
+          "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Compilers.slnf",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Compilers.slnf"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.sln",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.sln"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.sln with analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=true",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.sln"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
@@ -57,25 +84,16 @@
     {
         "label": "build current project",
         "type": "shell",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
+        "command": "dotnet",
         "args": [
           "pwsh",
+          "-noprofile",
           "${workspaceFolder}/scripts/vscode-build.ps1",
           "-filePath",
           "${file}",
           "-msbuildEngine",
           "dotnet"
         ],
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "dotnet"
-          ],
-        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
@@ -98,7 +116,7 @@
     },
     {
         "label": "generate compiler code",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
+        "command": "dotnet",
         "type": "shell",
         "args": [
           "pwsh",
@@ -121,68 +139,28 @@
         "group": "build"
     },
     {
-        "label": "run tests in current file (netcoreapp3.1)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet",
-          "-framework",
-          "netcoreapp3.1",
-          "-filter",
-          "${fileBasenameNoExtension}"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
+      "label": "build language server",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "-c",
+        "Debug",
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
     },
     {
-        "label": "run tests in current project (netcoreapp3.1)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet",
-          "-framework",
-          "netcoreapp3.1"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
-    },
-    {
-        "label": "run tests in current file (all frameworks)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}",
-          "-filter",
-          "${fileBasenameNoExtension}"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
-    },
-    {
-        "label": "run tests in current project (all frameworks)",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-run-tests.ps1",
-          "-filePath",
-          "${file}"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "test"
+      "label": "launch vscode with language server",
+      "command": "${execPath}",
+      "type": "process",
+      "options": {
+        "env": {
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net8.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+        }
+      },
+      "dependsOn": [ "build language server" ]
     }
   ]
 }

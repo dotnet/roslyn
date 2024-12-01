@@ -8,35 +8,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ValueSetFactory
     {
-        private sealed class FloatingValueSetFactory<TFloating, TFloatingTC> : IValueSetFactory<TFloating> where TFloatingTC : struct, FloatingTC<TFloating>
+        private sealed class FloatingValueSetFactory<TFloating> : IValueSetFactory<TFloating>
         {
-            public static readonly FloatingValueSetFactory<TFloating, TFloatingTC> Instance = new FloatingValueSetFactory<TFloating, TFloatingTC>();
+            private readonly FloatingTC<TFloating> _tc;
 
-            private FloatingValueSetFactory() { }
+            public FloatingValueSetFactory(FloatingTC<TFloating> tc)
+            {
+                _tc = tc;
+            }
 
-            IValueSet IValueSetFactory.AllValues => FloatingValueSet<TFloating, TFloatingTC>.AllValues;
+            IValueSet IValueSetFactory.AllValues => FloatingValueSet<TFloating>.AllValues(_tc);
 
-            IValueSet IValueSetFactory.NoValues => FloatingValueSet<TFloating, TFloatingTC>.NoValues;
+            IValueSet IValueSetFactory.NoValues => FloatingValueSet<TFloating>.NoValues(_tc);
 
             public IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value) =>
-                FloatingValueSet<TFloating, TFloatingTC>.Related(relation, value);
+                FloatingValueSet<TFloating>.Related(relation, value, _tc);
 
             IValueSet IValueSetFactory.Random(int expectedSize, Random random) =>
-                FloatingValueSet<TFloating, TFloatingTC>.Random(expectedSize, random);
+                FloatingValueSet<TFloating>.Random(expectedSize, random, _tc);
 
             ConstantValue IValueSetFactory.RandomValue(Random random)
             {
-                TFloatingTC tc = default;
-                return tc.ToConstantValue(tc.Random(random));
+                return _tc.ToConstantValue(_tc.Random(random));
             }
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
-                value.IsBad ? FloatingValueSet<TFloating, TFloatingTC>.AllValues : FloatingValueSet<TFloating, TFloatingTC>.Related(relation, default(TFloatingTC).FromConstantValue(value));
+                value.IsBad
+                    ? FloatingValueSet<TFloating>.AllValues(_tc)
+                    : FloatingValueSet<TFloating>.Related(relation, _tc.FromConstantValue(value), _tc);
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
-                TFloatingTC tc = default;
-                return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
+                return _tc.Related(relation, _tc.FromConstantValue(left), _tc.FromConstantValue(right));
             }
         }
     }

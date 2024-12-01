@@ -4,12 +4,11 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
-{
-    internal interface ISplitCommentService : ILanguageService
-    {
-        string CommentStart { get; }
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 
-        bool IsAllowed(SyntaxNode root, SyntaxTrivia trivia);
-    }
+internal interface ISplitCommentService : ILanguageService
+{
+    string CommentStart { get; }
+
+    bool IsAllowed(SyntaxNode root, SyntaxTrivia trivia);
 }

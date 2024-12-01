@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis
     internal class StrongNameFileSystem
     {
         internal static readonly StrongNameFileSystem Instance = new StrongNameFileSystem();
-        internal readonly string? _customTempPath;
+        internal readonly string? _signingTempPath;
 
-        internal StrongNameFileSystem(string? customTempPath = null)
+        internal StrongNameFileSystem(string? signingTempPath = null)
         {
-            _customTempPath = customTempPath;
+            _signingTempPath = signingTempPath;
         }
 
         internal virtual FileStream CreateFileStream(string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
@@ -40,6 +40,20 @@ namespace Microsoft.CodeAnalysis
             return File.Exists(fullPath);
         }
 
-        internal virtual string GetTempPath() => _customTempPath ?? Path.GetTempPath();
+        internal string? GetSigningTempPath() => _signingTempPath;
+
+        public override int GetHashCode()
+            => _signingTempPath != null ? StringComparer.Ordinal.GetHashCode(_signingTempPath) : 0;
+
+        public override bool Equals(object? obj)
+            => Equals(obj as StrongNameFileSystem);
+
+        private bool Equals(StrongNameFileSystem? other)
+        {
+            if (this == other)
+                return true;
+
+            return this.GetType() == other?.GetType() && StringComparer.Ordinal.Equals(_signingTempPath, other?._signingTempPath);
+        }
     }
 }

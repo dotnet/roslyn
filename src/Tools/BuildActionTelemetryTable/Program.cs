@@ -197,7 +197,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression.CSharpRemoveConfusingSuppressionCodeFixProvider", "Remove Confusing Suppression" },
             { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastCodeFixProvider", "Remove Unnecessary Cast" },
             { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation.CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider", "Remove Unnecessary Discard Designation" },
-            { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports.CSharpRemoveUnnecessaryImportsCodeFixProvider", "Remove Unnecessary Imports" },
+            { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports.CSharpRemoveUnnecessaryImportsCodeFixProvider", "Remove unnecessary imports" },
             { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression.CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider", "Remove Unnecessary Lambda Expression" },
             { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses.CSharpRemoveUnnecessaryParenthesesCodeFixProvider", "Remove Unnecessary Parentheses" },
             { "Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode.CSharpRemoveUnreachableCodeCodeFixProvider", "Remove Unreachable Code" },
@@ -394,7 +394,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers.VisualBasicRemoveSharedFromModuleMembersCodeFixProvider", "Remove Shared From Module Members" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal.VisualBasicRemoveUnnecessaryByValCodeFixProvider", "Remove Unnecessary By Val" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast.VisualBasicRemoveUnnecessaryCastCodeFixProvider", "Remove Unnecessary Cast" },
-            { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports.VisualBasicRemoveUnnecessaryImportsCodeFixProvider", "Remove Unnecessary Imports" },
+            { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports.VisualBasicRemoveUnnecessaryImportsCodeFixProvider", "Remove unnecessary imports" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses.VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider", "Remove Unnecessary Parentheses" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers.VisualBasicRemoveUnusedMembersCodeFixProvider", "Remove Unused Members" },
             { "Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues.VisualBasicRemoveUnusedValuesCodeFixProvider", "Remove Unused Parameters And Values: Remove Unused Values" },
@@ -402,7 +402,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements.VisualBasicReplaceConditionalWithStatementsCodeRefactoringProvider", "Replace Conditional With Statements (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag.VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider", "Replace Doc Comment Text With Tag (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation.VisualBasicSimplifyInterpolationCodeFixProvider", "Simplify Interpolation" },
-            { "Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.VisualBasicSimplifyLinqExpressionCodeFixProvider", "Simplify Linq Expression" },
+            { "Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.SimplifyLinqExpressionCodeFixProvider", "Simplify Linq Expression" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationCodeFixProvider", "Simplify Object Creation" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe.VisualBasicSimplifyThisOrMeCodeFixProvider", "Simplify This Or Me" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames.SimplifyTypeNamesCodeFixProvider", "Simplify Type Names" },
@@ -678,7 +678,7 @@ namespace BuildActionTelemetryTable
                 builder.AppendLine(@$"            {{ ""{actionOrProviderTypeName}"", ""{description}"" }},");
             }
 
-            builder.Append("}");
+            builder.Append('}');
 
             return builder.ToString();
         }

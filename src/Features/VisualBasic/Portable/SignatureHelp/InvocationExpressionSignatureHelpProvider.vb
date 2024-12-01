@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = ")"c
         End Function
 
-        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState?
             Dim expression As InvocationExpressionSyntax = Nothing
             If TryGetInvocationExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, expression) AndAlso
                 currentSpan.Start = GetSignatureHelpSpan(expression.ArgumentList).Start Then
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim invocationExpression As InvocationExpressionSyntax = Nothing
@@ -134,7 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo.Symbol)
-            Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
+            Return CreateSignatureHelpItems(
+                items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
+                selectedItem, parameterIndexOverride:=-1)
         End Function
     End Class
 End Namespace

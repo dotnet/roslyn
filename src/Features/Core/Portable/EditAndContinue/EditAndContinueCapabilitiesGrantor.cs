@@ -2,27 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+/// <summary>
+/// Grants capabilities. 
+/// </summary>
+internal sealed class EditAndContinueCapabilitiesGrantor(EditAndContinueCapabilities availableCapabilities)
 {
-    /// <summary>
-    /// Grants capabilities. 
-    /// </summary>
-    internal sealed class EditAndContinueCapabilitiesGrantor
+    private readonly EditAndContinueCapabilities _availableCapabilities = availableCapabilities;
+
+    public EditAndContinueCapabilities GrantedCapabilities { get; private set; } = 0;
+
+    public bool Grant(EditAndContinueCapabilities capabilities)
     {
-        private readonly EditAndContinueCapabilities _availableCapabilities;
+        GrantedCapabilities |= capabilities;
+        return (_availableCapabilities & capabilities) == capabilities;
+    }
 
-        public EditAndContinueCapabilities GrantedCapabilities { get; private set; }
-
-        public EditAndContinueCapabilitiesGrantor(EditAndContinueCapabilities availableCapabilities)
+    public bool GrantNewTypeDefinition(INamedTypeSymbol type)
+    {
+        if (!Grant(EditAndContinueCapabilities.NewTypeDefinition))
         {
-            _availableCapabilities = availableCapabilities;
-            GrantedCapabilities = 0;
+            return false;
         }
 
-        public bool Grant(EditAndContinueCapabilities capabilities)
+        if (type.HasExplicitlyImplementedInterfaceMember() && !Grant(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
         {
-            GrantedCapabilities |= capabilities;
-            return (_availableCapabilities & capabilities) == capabilities;
+            return false;
         }
+
+        return true;
     }
 }

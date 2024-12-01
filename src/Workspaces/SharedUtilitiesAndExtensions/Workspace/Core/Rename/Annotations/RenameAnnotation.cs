@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
+namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
+
+internal class RenameAnnotation
 {
-    internal class RenameAnnotation
-    {
-        public const string Kind = "Rename";
-    }
+    public const string Kind = "Rename";
 }

@@ -8,15 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
+
+internal interface IDeclarationNameRecommender
 {
-    internal interface IDeclarationNameRecommender
-    {
-        Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
-            CompletionContext completionContext,
-            Document document,
-            CSharpSyntaxContext context,
-            NameDeclarationInfo nameInfo,
-            CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
+        CompletionContext completionContext,
+        Document document,
+        CSharpSyntaxContext context,
+        NameDeclarationInfo nameInfo,
+        CancellationToken cancellationToken);
 }

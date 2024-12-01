@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         StartDefaultSyntaxValue = 1 << 11,
         EndDefaultSyntaxValue = 1 << 12,
         EndDefaultSyntaxValueDiagnostics = 1 << 13,
-        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue | EndDefaultSyntaxValueDiagnostics,
+        StartMiscValidation = 1 << 14,
+        EndMiscValidation = 1 << 15,
+        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue | EndDefaultSyntaxValueDiagnostics | StartMiscValidation | EndMiscValidation,
 
         // For type parameter symbols
         TypeParameterConstraints = 1 << 11,

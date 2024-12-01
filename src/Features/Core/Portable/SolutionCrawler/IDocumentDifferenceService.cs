@@ -6,22 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+internal interface IDocumentDifferenceService : ILanguageService
 {
-    internal class DocumentDifferenceResult
-    {
-        public InvocationReasons ChangeType { get; }
-        public SyntaxNode? ChangedMember { get; }
-
-        public DocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
-        {
-            ChangeType = changeType;
-            ChangedMember = changedMember;
-        }
-    }
-
-    internal interface IDocumentDifferenceService : ILanguageService
-    {
-        Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
-    }
+    Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
 }

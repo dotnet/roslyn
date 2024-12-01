@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="RawView">
         <source>Raw View</source>
-        <target state="translated">列ビュー</target>
+        <target state="translated">生ビュー</target>
         <note>DebuggerTypeProxy "Raw View"</note>
       </trans-unit>
       <trans-unit id="ResultsView">

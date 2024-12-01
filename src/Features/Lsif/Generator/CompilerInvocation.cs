@@ -6,41 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
-    internal class CompilerInvocation
+    internal static class CompilerInvocation
     {
-        public Compilation Compilation { get; }
-        public LanguageServices LanguageServices { get; }
-        public string ProjectFilePath { get; }
-        public GeneratorOptions Options { get; }
-
-        public CompilerInvocation(Compilation compilation, LanguageServices languageServices, string projectFilePath, GeneratorOptions options)
-        {
-            Compilation = compilation;
-            LanguageServices = languageServices;
-            ProjectFilePath = projectFilePath;
-            Options = options;
-        }
-
-        public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
+        public static async Task<Project> CreateFromJsonAsync(string jsonContents)
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
             Assumes.Present(invocationInfo);
             return await CreateFromInvocationInfoAsync(invocationInfo);
         }
 
-        public static async Task<CompilerInvocation> CreateFromInvocationInfoAsync(CompilerInvocationInfo invocationInfo)
+        public static async Task<Project> CreateFromInvocationInfoAsync(CompilerInvocationInfo invocationInfo)
         {
             // We will use a Workspace to simplify the creation of the compilation, but will be careful not to return the Workspace instance from this class.
             // We will still provide the language services which are used by the generator itself, but we don't tie it to a Workspace object so we can
@@ -64,10 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 {
                     var rulesetPath = splitCommandLine[i][RuleSetSwitch.Length..];
 
-                    var quoted = rulesetPath.Length > 2 &&
-                        rulesetPath.StartsWith("\"", StringComparison.Ordinal) &&
-                        rulesetPath.EndsWith("\"", StringComparison.Ordinal);
-
+                    var quoted = rulesetPath is ['"', _, .., '"'];
                     if (quoted)
                     {
                         rulesetPath = rulesetPath[1..^1];
@@ -84,6 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
             }
 
+            var documentationProvider = workspace.Services.GetRequiredService<IDocumentationProviderService>();
             var commandLineParserService = languageServices.GetRequiredService<ICommandLineParserService>();
             var parsedCommandLine = commandLineParserService.Parse(splitCommandLine, Path.GetDirectoryName(invocationInfo.ProjectFilePath), isInteractive: false, sdkDirectory: null);
 
@@ -98,25 +79,29 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
                     assemblyName: parsedCommandLine.CompilationName!,
                     language: languageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: new CompilationOutputInfo(
+                        assemblyPath: parsedCommandLine.OutputFileName != null ? Path.Combine(parsedCommandLine.OutputDirectory, parsedCommandLine.OutputFileName) : null,
+                        generatedFilesOutputDirectory: parsedCommandLine.GeneratedFilesOutputDirectory),
                     checksumAlgorithm: parsedCommandLine.ChecksumAlgorithm,
                     filePath: invocationInfo.ProjectFilePath,
-                    outputFilePath: parsedCommandLine.OutputFileName),
+                    outputRefFilePath: parsedCommandLine.OutputRefFilePath),
                 parsedCommandLine.CompilationOptions,
                 parsedCommandLine.ParseOptions,
                 parsedCommandLine.SourceFiles.Select(s => CreateDocumentInfo(unmappedPath: s.Path)),
                 projectReferences: null,
-                metadataReferences: parsedCommandLine.MetadataReferences.Select(r => MetadataReference.CreateFromFile(mapPath(r.Reference), r.Properties)),
+                metadataReferences: parsedCommandLine.MetadataReferences.Select(
+                    r =>
+                    {
+                        var mappedPath = mapPath(r.Reference);
+                        return MetadataReference.CreateFromFile(mappedPath, r.Properties, documentationProvider.GetDocumentationProvider(mappedPath));
+                    }),
                 additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)),
                 analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)),
                 analyzerConfigDocuments: parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo),
                 hostObjectType: null);
 
             var solution = workspace.CurrentSolution.AddProject(projectInfo);
-            var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
-            var options = GeneratorOptions.Default;
-
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, options);
+            return solution.GetRequiredProject(projectId);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)
@@ -201,15 +186,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             public string ProjectFilePath { get; set; }
 
-            public List<PathMapping> PathMappings { get; set; } = new List<PathMapping>();
+            public List<PathMapping> PathMappings { get; set; } = [];
 
             public sealed class PathMapping
             {
                 public string From { get; set; }
                 public string To { get; set; }
             }
-
-#nullable disable
         }
     }
 }

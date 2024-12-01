@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             try
             {
-                return await ProcessCore().ConfigureAwait(false);
+                return await ProcessCoreAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return CompletionData.RequestError;
             }
 
-            async Task<CompletionData> ProcessCore()
+            async Task<CompletionData> ProcessCoreAsync()
             {
                 using var clientConnection = await clientConnectionTask.ConfigureAwait(false);
                 var request = await clientConnection.ReadBuildRequestAsync(cancellationToken).ConfigureAwait(false);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, Guid requestId, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
+        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, string requestId, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
         {
             var message = response switch
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // suddenly disconnects we need to cancel the compilation that is occurring. It could be the 
             // client hit Ctrl-C due to a run away analyzer.
             var buildCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var compilationTask = ProcessCompilationRequestCore(CompilerServerHost, request, buildCancellationTokenSource.Token);
+            var compilationTask = ProcessCompilationRequestCoreAsync(CompilerServerHost, request, buildCancellationTokenSource.Token);
             await Task.WhenAny(compilationTask, clientConnection.DisconnectTask).ConfigureAwait(false);
 
             try
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 buildCancellationTokenSource.Cancel();
             }
 
-            static Task<BuildResponse> ProcessCompilationRequestCore(ICompilerServerHost compilerServerHost, BuildRequest buildRequest, CancellationToken cancellationToken)
+            static Task<BuildResponse> ProcessCompilationRequestCoreAsync(ICompilerServerHost compilerServerHost, BuildRequest buildRequest, CancellationToken cancellationToken)
             {
                 Func<BuildResponse> func = () =>
                 {

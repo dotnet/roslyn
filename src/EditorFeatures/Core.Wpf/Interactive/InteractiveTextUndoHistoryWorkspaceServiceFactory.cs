@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), WorkspaceKind.Interactive), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), [WorkspaceKind.Interactive]), Shared]
     internal sealed class InteractiveTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
         private readonly TextUndoHistoryWorkspaceService _serviceSingleton;

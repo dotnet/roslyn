@@ -7,17 +7,22 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace;
+
+[ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<Setting>)), Shared]
+internal sealed class CommonWhitespaceSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<WhitespaceSetting>)), Shared]
-    internal class CommonWhitespaceSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommonWhitespaceSettingsWorkspaceServiceFactory() { }
+    private readonly IGlobalOptionService _globalOptions;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new CommonWhitespaceSettingsProviderFactory(workspaceServices.Workspace);
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CommonWhitespaceSettingsWorkspaceServiceFactory(IGlobalOptionService globalOptions)
+    {
+        _globalOptions = globalOptions;
     }
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new CommonWhitespaceSettingsProviderFactory(workspaceServices.Workspace, _globalOptions);
 }

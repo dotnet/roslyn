@@ -6,38 +6,37 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private class CompositionEventSource : ITaggerEventSource
     {
-        private class CompositionEventSource : ITaggerEventSource
+        private readonly ITaggerEventSource[] _providers;
+
+        public CompositionEventSource(ITaggerEventSource[] providers)
         {
-            private readonly ITaggerEventSource[] _providers;
+            Contract.ThrowIfNull(providers);
 
-            public CompositionEventSource(ITaggerEventSource[] providers)
-            {
-                Contract.ThrowIfNull(providers);
+            _providers = providers;
+        }
 
-                _providers = providers;
-            }
+        public void Connect()
+            => _providers.Do(p => p.Connect());
 
-            public void Connect()
-                => _providers.Do(p => p.Connect());
+        public void Disconnect()
+            => _providers.Do(p => p.Disconnect());
 
-            public void Disconnect()
-                => _providers.Do(p => p.Disconnect());
+        public void Pause()
+            => _providers.Do(p => p.Pause());
 
-            public void Pause()
-                => _providers.Do(p => p.Pause());
+        public void Resume()
+            => _providers.Do(p => p.Resume());
 
-            public void Resume()
-                => _providers.Do(p => p.Resume());
-
-            public event EventHandler<TaggerEventArgs> Changed
-            {
-                add => _providers.Do(p => p.Changed += value);
-                remove => _providers.Do(p => p.Changed -= value);
-            }
+        public event EventHandler<TaggerEventArgs> Changed
+        {
+            add => _providers.Do(p => p.Changed += value);
+            remove => _providers.Do(p => p.Changed -= value);
         }
     }
 }

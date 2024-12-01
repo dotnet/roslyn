@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,118 +12,135 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatimString
-{
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseInterpolatedVerbatimString)]
-    public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-    {
-        public CSharpUseInterpolatedVerbatimStringCodeFixTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatimString;
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpUseInterpolatedVerbatimStringCodeFixProvider());
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseInterpolatedVerbatimString)]
+public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+{
+    public CSharpUseInterpolatedVerbatimStringCodeFixTests(ITestOutputHelper logger)
+      : base(logger)
+    {
+    }
 
-        [Fact]
-        public async Task Simple()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        var s = @[||]$""hello"";
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var s = $@""hello"";
-    }
-}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-        }
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpUseInterpolatedVerbatimStringCodeFixProvider());
 
-        [Fact]
-        public async Task AfterString()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task Simple()
     {
-        var s = @$""hello""[||];
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = @[||]$"hello";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = $@"hello";
+                }
+            }
+            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
     }
-}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-        }
 
-        [Fact]
-        public async Task InCall()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M(string x)
+    [Fact]
+    public async Task AfterString()
     {
-        var s = M(@[||]$""hello"");
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = @$"hello"[||];
+                }
+            }
+            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
     }
-}",
-@"class C
-{
-    void M(string x)
-    {
-        var s = M($@""hello"");
-    }
-}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-        }
 
-        [Fact]
-        public async Task FixAllInDocument()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task InCall()
     {
-        var s = {|FixAllInDocument:@$""|}hello"";
-        var s2 = @$""hello"";
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M(string x)
+                {
+                    var s = M(@[||]$"hello");
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(string x)
+                {
+                    var s = M($@"hello");
+                }
+            }
+            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
     }
-}",
-@"class C
-{
-    void M()
-    {
-        var s = $@""hello"";
-        var s2 = $@""hello"";
-    }
-}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-        }
 
-        [Fact]
-        public async Task MissingOnInterpolatedVerbatimString()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task FixAllInDocument()
     {
-        var s = $[||]@""hello"";
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = {|FixAllInDocument:@$"|}hello";
+                    var s2 = @$"hello";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = $@"hello";
+                    var s2 = $@"hello";
+                }
+            }
+            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
     }
-}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
-        }
 
-        [Fact]
-        public async Task MissingInCSharp8()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task MissingOnInterpolatedVerbatimString()
     {
-        var s = @[||]$""hello"";
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = $[||]@"hello";
+                }
+            }
+            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
     }
-}", parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp8)));
-        }
+
+    [Fact]
+    public async Task MissingInCSharp8()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var s = @[||]$"hello";
+                }
+            }
+            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp8)));
     }
 }

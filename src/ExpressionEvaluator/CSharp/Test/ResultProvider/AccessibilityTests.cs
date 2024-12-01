@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     public class AccessibilityTests : CSharpResultProviderTestBase
     {
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
-        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         public void HideNonPublicMembersBaseClass()
         {
             var sourceA =
@@ -96,7 +96,7 @@ class C
 
             using (ReflectionUtilities.LoadAssemblies(assemblyA, assemblyB))
             {
-                var runtime = new DkmClrRuntimeInstance(new[] { assemblyB });
+                var runtime = new DkmClrRuntimeInstance([assemblyB]);
                 var type = assemblyB.GetType("C", throwOnError: true);
                 value = CreateDkmClrValue(
                     Activator.CreateInstance(type),
@@ -180,7 +180,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21084")]
-        [WorkItem(889710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889710")]
         public void HideNonPublicMembersDerivedClass()
         {
             var sourceA =
@@ -257,7 +257,7 @@ class C
 
             using (ReflectionUtilities.LoadAssemblies(assemblyA, assemblyB))
             {
-                var runtime = new DkmClrRuntimeInstance(new[] { assemblyA });
+                var runtime = new DkmClrRuntimeInstance([assemblyA]);
                 var type = assemblyB.GetType("C", throwOnError: true);
                 value = CreateDkmClrValue(
                     Activator.CreateInstance(type),
@@ -358,7 +358,7 @@ class C
     object F;
 }";
             var assembly = GetAssembly(source);
-            var runtime = new DkmClrRuntimeInstance(new[] { assembly }, (r, a) => null);
+            var runtime = new DkmClrRuntimeInstance([assembly], (r, a) => null);
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(
                 Activator.CreateInstance(type),

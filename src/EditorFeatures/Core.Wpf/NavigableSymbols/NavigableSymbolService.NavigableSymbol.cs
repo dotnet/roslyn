@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public SnapshotSpan SymbolSpan { get; }
 
             public IEnumerable<INavigableRelationship> Relationships
-                => SpecializedCollections.SingletonEnumerable(PredefinedNavigableRelationships.Definition);
+                => [PredefinedNavigableRelationships.Definition];
 
             public void Navigate(INavigableRelationship relationship)
             {

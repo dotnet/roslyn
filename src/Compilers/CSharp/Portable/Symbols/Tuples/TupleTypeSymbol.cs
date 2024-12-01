@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -50,12 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol underlyingType = getTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
-
-            if (numElements >= ValueTupleRestPosition && diagnostics != null && !underlyingType.IsErrorType())
-            {
-                WellKnownMember wellKnownTupleRest = GetTupleTypeMember(ValueTupleRestPosition, ValueTupleRestPosition);
-                _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
-            }
 
             if (diagnostics?.DiagnosticBag is object && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
             {
@@ -506,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     useSiteInfo = useSiteInfo.AdjustDiagnosticInfo(null);
                 }
 
-                diagnostics.Add(useSiteInfo, syntax?.GetLocation() ?? Location.None);
+                diagnostics.Add(useSiteInfo, static syntax => syntax?.Location ?? Location.None, syntax);
             }
 
             return member;

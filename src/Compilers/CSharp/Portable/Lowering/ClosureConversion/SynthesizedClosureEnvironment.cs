@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SynthesizedClosureEnvironment : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol _topLevelMethod;
+        internal readonly MethodSymbol TopLevelMethod;
         internal readonly SyntaxNode ScopeSyntaxOpt;
-        internal readonly int ClosureOrdinal;
+
         /// <summary>
         /// The closest method/lambda that this frame is originally from. Null if nongeneric static closure.
         /// Useful because this frame's type parameters are constructed from this method and all methods containing this method.
@@ -38,20 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TypeKind TypeKind { get; }
         internal override MethodSymbol Constructor { get; }
 
+        // debug info:
+        public readonly DebugId ClosureId;
+        public readonly RuntimeRudeEdit? RudeEdit;
+
         internal SynthesizedClosureEnvironment(
             MethodSymbol topLevelMethod,
             MethodSymbol containingMethod,
             bool isStruct,
             SyntaxNode scopeSyntaxOpt,
             DebugId methodId,
-            DebugId closureId)
+            DebugId closureId,
+            RuntimeRudeEdit? rudeEdit)
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
             TypeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
-            _topLevelMethod = topLevelMethod;
+            TopLevelMethod = topLevelMethod;
             OriginalContainingMethodOpt = containingMethod;
             Constructor = isStruct ? null : new SynthesizedClosureEnvironmentConstructor(this);
-            this.ClosureOrdinal = closureId.Ordinal;
+
+            ClosureId = closureId;
+            RudeEdit = rudeEdit;
 
             // static lambdas technically have the class scope so the scope syntax is null 
             if (scopeSyntaxOpt == null)
@@ -129,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // display classes for static lambdas do not have any data and can be serialized.
         public override bool IsSerializable => (object)SingletonCache != null;
 
-        public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
+        public override Symbol ContainingSymbol => TopLevelMethod.ContainingSymbol;
 
         // Closures in the same method share the same SynthesizedClosureEnvironment. We must
         // always return true because two closures in the same method might have different
@@ -139,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The lambda method contains user code from the lambda
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
-        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => TopLevelMethod;
 
         internal override bool IsRecord => false;
         internal override bool IsRecordStruct => false;

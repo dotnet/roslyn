@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     internal static class FatalError
     {
         public delegate void ErrorReporterHandler(Exception exception, ErrorSeverity severity, bool forceDump);
+
         private static ErrorReporterHandler? s_handler;
+        private static ErrorReporterHandler? s_nonFatalHandler;
 
 #pragma warning disable IDE0052 // Remove unread private members - We want to hold onto last exception to make investigation easier
         private static Exception? s_reportedException;
@@ -37,21 +39,15 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <summary>
         /// Set by the host to handle an error report; this may crash the process or report telemetry.
         /// </summary>
-        [DisallowNull]
-        public static ErrorReporterHandler? Handler
+        /// <param name="nonFatalHandler">A handler that will not crash the process when called.  Used when calling <see
+        /// cref="ReportNonFatalError(Exception, ErrorSeverity, bool)"/></param>
+        public static void SetHandlers(ErrorReporterHandler handler, ErrorReporterHandler? nonFatalHandler)
         {
-            get
+            if (s_handler != handler)
             {
-                return s_handler;
-            }
-
-            set
-            {
-                if (s_handler != value)
-                {
-                    Debug.Assert(s_handler == null, "Handler already set");
-                    s_handler = value;
-                }
+                Debug.Assert(s_handler == null, "Handler already set");
+                s_handler = handler;
+                s_nonFatalHandler = nonFatalHandler;
             }
         }
 
@@ -72,25 +68,31 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// This file is in linked into multiple layers, but we want to ensure that all layers have the same copy.
         /// This lets us copy the handler in this instance into the same in another instance.
         /// </remarks>
-        public static void CopyHandlerTo(Assembly assembly)
+        public static void CopyHandlersTo(Assembly assembly)
         {
-            var targetType = assembly.GetType(typeof(FatalError).FullName!, throwOnError: true)!;
-            var targetHandlerProperty = targetType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
-            if (Handler is not null)
+            copyHandlerTo(assembly, s_handler, nameof(s_handler));
+            copyHandlerTo(assembly, s_nonFatalHandler, nameof(s_nonFatalHandler));
+
+            static void copyHandlerTo(Assembly assembly, ErrorReporterHandler? handler, string handlerName)
             {
-                // We need to convert the delegate type to the type in the linked copy since they won't have identity.
-                var convertedDelegate = Delegate.CreateDelegate(targetHandlerProperty.PropertyType, Handler.Target, method: Handler.Method);
-                targetHandlerProperty.SetValue(obj: null, value: convertedDelegate);
-            }
-            else
-            {
-                targetHandlerProperty.SetValue(obj: null, value: null);
+                var targetType = assembly.GetType(typeof(FatalError).FullName!, throwOnError: true)!;
+                var targetHandlerProperty = targetType.GetField(handlerName, BindingFlags.Static | BindingFlags.NonPublic)!;
+                if (handler is not null)
+                {
+                    // We need to convert the delegate type to the type in the linked copy since they won't have identity.
+                    var convertedDelegate = Delegate.CreateDelegate(targetHandlerProperty.FieldType, handler.Target, handler.Method);
+                    targetHandlerProperty.SetValue(obj: null, value: convertedDelegate);
+                }
+                else
+                {
+                    targetHandlerProperty.SetValue(obj: null, value: null);
+                }
             }
         }
 
         /// <summary>
         /// Use in an exception filter to report an error without catching the exception.
-        /// The error is reported by calling <see cref="Handler"/>.
+        /// The error is reported by calling <see cref="s_handler"/>.
         /// </summary>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report an error (by calling <see cref="Handler"/>), unless the
+        /// Use in an exception filter to report an error (by calling <see cref="s_handler"/>), unless the
         /// operation has been cancelled. The exception is never caught.
         /// </summary>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// <para>Use in an exception filter to report an error (by calling <see cref="Handler"/>), unless the
+        /// <para>Use in an exception filter to report an error (by calling <see cref="s_handler"/>), unless the
         /// operation has been cancelled at the request of <paramref name="contextCancellationToken"/>. The exception is
         /// never caught.</para>
         ///
@@ -145,14 +147,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return ReportAndPropagate(exception, severity);
         }
 
-        // Since the command line compiler has no way to catch exceptions, report them, and march on, we
-        // simply don't offer such a mechanism here to avoid accidental swallowing of exceptions.
-
-#if !COMPILERCORE
-
         /// <summary>
         /// Report an error.
-        /// Calls <see cref="Handler"/> and doesn't pass the exception through (the method returns true).
+        /// Calls <see cref="s_handler"/> and doesn't pass the exception through (the method returns true).
         /// This is generally expected to be used within an exception filter as that allows us to
         /// capture data at the point the exception is thrown rather than when it is handled.
         /// However, it can also be used outside of an exception filter. If the exception has not
@@ -167,6 +164,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return true;
         }
 
+        // Since the command line compiler has no way to catch exceptions, report them, and march on, we
+        // simply don't offer such a mechanism here to avoid accidental swallowing of exceptions.
+
+#if !COMPILERCORE
+
         [DebuggerHidden]
         public static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report an error (by calling <see cref="Handler"/>) and catch
+        /// Use in an exception filter to report an error (by calling <see cref="s_handler"/>) and catch
         /// the exception, unless the operation was cancelled.
         /// </summary>
         /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// <para>Use in an exception filter to report an error (by calling <see cref="Handler"/>) and
+        /// <para>Use in an exception filter to report an error (by calling <see cref="s_handler"/>) and
         /// catch the exception, unless the operation was cancelled at the request of
         /// <paramref name="contextCancellationToken"/>.</para>
         ///
@@ -223,7 +225,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
 #endif
 
-        private static readonly object s_reportedMarker = new();
+        // We use a Guid for the marker because it is used as a key in an exceptions Data dictionary, so we must make sure
+        // it's serializable if the exception crosses an RPC boundary. In particular System.Text.Json doesn't like plain
+        // object dictionary keys.
+        private static readonly object s_reportedMarker = Guid.NewGuid();
 
         // Do not allow this method to be inlined.  That way when we have a dump we can see this frame in the stack and
         // can examine things like s_reportedExceptionMessage.  Without this, it's a lot tricker as FatalError is linked
@@ -231,11 +236,27 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Report(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized, bool forceDump = false)
         {
+            ReportException(exception, severity, forceDump, s_handler);
+        }
+
+        /// <summary>
+        /// Used to report a non-fatal-watson (when possible) to report an exception.  The exception is not caught. Does
+        /// nothing if no non-fatal error handler is registered.  See the second argument to <see
+        /// cref="SetHandlers(ErrorReporterHandler, ErrorReporterHandler?)"/>.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void ReportNonFatalError(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized, bool forceDump = false)
+        {
+            ReportException(exception, severity, forceDump, s_nonFatalHandler);
+        }
+
+        private static void ReportException(Exception exception, ErrorSeverity severity, bool forceDump, ErrorReporterHandler? handler)
+        {
             // hold onto last exception to make investigation easier
             s_reportedException = exception;
             s_reportedExceptionMessage = exception.ToString();
 
-            if (s_handler == null)
+            if (handler == null)
             {
                 return;
             }
@@ -256,7 +277,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exception.Data[s_reportedMarker] = s_reportedMarker;
             }
 
-            s_handler(exception, severity, forceDump);
+            handler(exception, severity, forceDump);
         }
     }
 

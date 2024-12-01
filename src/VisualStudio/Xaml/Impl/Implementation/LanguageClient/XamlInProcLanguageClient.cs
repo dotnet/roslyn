@@ -5,26 +5,18 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
-using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 using Microsoft.VisualStudio.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -36,9 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     [Export(typeof(ILanguageClient))]
     internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly XamlProjectService _projectService;
-        private readonly IXamlLanguageServerFeedbackService? _feedbackService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClient(
@@ -46,13 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IGlobalOptionService globalOptions,
             ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            ExportProvider exportProvider,
-            XamlProjectService projectService,
-            [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
+            ExportProvider exportProvider)
             : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
         {
-            _projectService = projectService;
-            _feedbackService = feedbackService;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
@@ -62,16 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
 
             return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
-        }
-
-        public override AbstractLanguageServer<RequestContext> Create(
-            JsonRpc jsonRpc,
-            ICapabilitiesProvider capabilitiesProvider,
-            WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger,
-            HostServices hostServices)
-        {
-            return new XamlLanguageServer(LspServiceProvider, jsonRpc, capabilitiesProvider, logger, SupportedLanguages, serverKind, hostServices, _projectService, _feedbackService);
         }
 
         /// <summary>

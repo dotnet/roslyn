@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingTests_Patterns : CSharpFormattingTestBase
     {
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FormatRelationalPatterns1(
             [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
             BinaryOperatorSpacingOptions spacing)
@@ -76,8 +75,7 @@ class A
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FormatRelationalPatterns2(
             [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
             BinaryOperatorSpacingOptions spacing,
@@ -162,13 +160,12 @@ class A
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-                { CSharpFormattingOptions2.SpaceWithinExpressionParentheses, spaceWithinExpressionParentheses },
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
             };
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FormatNotPatterns1(BinaryOperatorSpacingOptions spacing)
         {
             var content = $@"
@@ -224,8 +221,7 @@ class A
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FormatNotPatterns2(
             BinaryOperatorSpacingOptions spacing,
             bool spaceWithinExpressionParentheses)
@@ -309,12 +305,12 @@ class A
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
-                { CSharpFormattingOptions2.SpaceWithinExpressionParentheses, spaceWithinExpressionParentheses },
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
             };
             await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
         }
 
-        [Fact, WorkItem(46284, "https://github.com/dotnet/roslyn/issues/46284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
         public async Task FormatMultiLinePattern1()
         {
             var content = @"
@@ -347,7 +343,7 @@ class TypeName
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, WorkItem(46284, "https://github.com/dotnet/roslyn/issues/46284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
         public async Task FormatMultiLinePattern2()
         {
             var content = @"
@@ -406,7 +402,7 @@ class TypeName
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, WorkItem(46284, "https://github.com/dotnet/roslyn/issues/46284")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
         public async Task FormatMultiLinePattern3()
         {
             var content = @"
@@ -465,7 +461,7 @@ class TypeName
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, WorkItem(42861, "https://github.com/dotnet/roslyn/issues/42861")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
         public async Task FormatMultiLinePattern4()
         {
             var content = @"
@@ -500,7 +496,7 @@ class TypeName
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact, WorkItem(42861, "https://github.com/dotnet/roslyn/issues/42861")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
         public async Task FormatMultiLinePattern5()
         {
             var content = @"
@@ -531,6 +527,134 @@ class TypeName
     }
 }
 ";
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern1()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [ [  ]  ])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[]])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern2()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [ [  ],[ ]     ])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[], []])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern3()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [    [  ],[ ]     , [   ]  ] )
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[], [], []])
+                        {
+                
+                        }
+                    }
+                }
+                """;
+
+            await AssertFormatAsync(expected, content);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+        public async Task FormatNestedListPattern4()
+        {
+            var content = """
+                class C
+                {
+                    void M(string[][] ss)
+                    {
+                        if (ss is [    [ [ ] ] ] )
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var expected = """
+                class C
+                {
+                    void M(string[][] ss)
+                    {
+                        if (ss is [[[]]])
+                        {
+                
+                        }
+                    }
+                }
+                """;
 
             await AssertFormatAsync(expected, content);
         }

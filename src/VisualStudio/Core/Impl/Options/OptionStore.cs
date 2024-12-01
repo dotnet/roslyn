@@ -2,84 +2,106 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// This class is intended to be used by Option pages. It will provide access to an options
-    /// from an optionset but will not persist changes automatically.
+    /// Stores values of options read from global options and values set to these options.
+    /// Not thread safe.
     /// </summary>
-    public class OptionStore
+    internal sealed class OptionStore : IOptionsReader
     {
-        public event EventHandler<OptionKey> OptionChanged;
+        public readonly IGlobalOptionService GlobalOptions;
 
-        private OptionSet _optionSet;
-        private IEnumerable<IOption> _registeredOptions;
+        public event EventHandler<OptionKey2>? OptionChanged;
 
-        public OptionStore(OptionSet optionSet, IEnumerable<IOption> registeredOptions)
+        /// <summary>
+        /// Cached values read from global options.
+        /// </summary>
+        private ImmutableDictionary<OptionKey2, object?> _globalValues;
+
+        /// <summary>
+        /// Updated values.
+        /// </summary>
+        private ImmutableDictionary<OptionKey2, object?> _updatedValues;
+
+        public OptionStore(IGlobalOptionService globalOptions)
         {
-            _optionSet = optionSet;
-            _registeredOptions = registeredOptions;
+            GlobalOptions = globalOptions;
+
+            _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+            _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
         }
 
-        public object GetOption(OptionKey optionKey) => _optionSet.GetOption(optionKey);
-        public T GetOption<T>(OptionKey optionKey) => _optionSet.GetOption<T>(optionKey);
-        public T GetOption<T>(Option<T> option) => _optionSet.GetOption(option);
-        internal T GetOption<T>(Option2<T> option) => _optionSet.GetOption(option);
-        public T GetOption<T>(PerLanguageOption<T> option, string language) => _optionSet.GetOption(option, language);
-        internal T GetOption<T>(PerLanguageOption2<T> option, string language) => _optionSet.GetOption(option, language);
-        public OptionSet GetOptions() => _optionSet;
-
-        public void SetOption(OptionKey optionKey, object value)
+        public void Clear()
         {
-            _optionSet = _optionSet.WithChangedOption(optionKey, value);
-
-            OnOptionChanged(optionKey);
+            _globalValues = ImmutableDictionary<OptionKey2, object?>.Empty;
+            _updatedValues = ImmutableDictionary<OptionKey2, object?>.Empty;
         }
 
-        public void SetOption<T>(Option<T> option, T value)
-        {
-            _optionSet = _optionSet.WithChangedOption(option, value);
+        public ImmutableArray<(OptionKey2 key, object? oldValue, object? newValue)> GetChangedOptions()
+            => _updatedValues.SelectAsArray(entry => (entry.Key, _globalValues[entry.Key], entry.Value));
 
-            OnOptionChanged(new OptionKey(option));
+        bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
+        {
+            value = (T)GetOption(optionKey)!;
+            return true;
         }
 
-        internal void SetOption<T>(Option2<T> option, T value)
-        {
-            _optionSet = _optionSet.WithChangedOption(option, value);
+        public T GetOption<T>(Option2<T> option)
+            => (T)GetOption(new OptionKey2(option))!;
 
-            OnOptionChanged(new OptionKey(option));
+        public T GetOption<T>(PerLanguageOption2<T> option, string language)
+            => (T)GetOption(new OptionKey2(option, language))!;
+
+        public T GetOption<T>(IOption2 option, string? language)
+        {
+            Debug.Assert(option.IsPerLanguage == language is not null);
+            return (T)GetOption(new OptionKey2(option, language))!;
         }
 
-        public void SetOption<T>(PerLanguageOption<T> option, string language, T value)
+        private object? GetOption(OptionKey2 optionKey)
         {
-            _optionSet = _optionSet.WithChangedOption(option, language, value);
+            if (_updatedValues.TryGetValue(optionKey, out var value))
+            {
+                return value;
+            }
 
-            OnOptionChanged(new OptionKey(option, language));
+            if (_globalValues.TryGetValue(optionKey, out value))
+            {
+                return value;
+            }
+
+            value = GlobalOptions.GetOption<object?>(optionKey);
+            _globalValues = _globalValues.Add(optionKey, value);
+            return value;
         }
 
-        internal void SetOption<T>(PerLanguageOption2<T> option, string language, T value)
-        {
-            _optionSet = _optionSet.WithChangedOption(option, language, value);
+        public void SetOption<T>(Option2<T> option, T value)
+            => SetOption(new OptionKey2(option), value);
 
-            OnOptionChanged(new OptionKey(option, language));
+        public void SetOption<T>(PerLanguageOption2<T> option, string language, T value)
+            => SetOption(new OptionKey2(option, language), value);
+
+        public void SetOption(IOption2 option, string? language, object? value)
+        {
+            Debug.Assert(option.IsPerLanguage == language is not null);
+            SetOption(new OptionKey2(option, language), value);
         }
 
-        public IEnumerable<IOption> GetRegisteredOptions()
-            => _registeredOptions;
-
-        public void SetOptions(OptionSet optionSet)
-            => _optionSet = optionSet;
-
-        public void SetRegisteredOptions(IEnumerable<IOption> registeredOptions)
-            => _registeredOptions = registeredOptions;
-
-        private void OnOptionChanged(OptionKey optionKey)
-            => OptionChanged?.Invoke(this, optionKey);
+        private void SetOption(OptionKey2 optionKey, object? value)
+        {
+            var currentValue = GetOption(optionKey);
+            if (!Equals(value, currentValue))
+            {
+                _updatedValues = _updatedValues.SetItem(optionKey, value);
+                OptionChanged?.Invoke(this, optionKey);
+            }
+        }
     }
 }

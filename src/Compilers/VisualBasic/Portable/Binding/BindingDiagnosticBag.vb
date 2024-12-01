@@ -10,26 +10,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class BindingDiagnosticBag
         Inherits BindingDiagnosticBag(Of AssemblySymbol)
 
+        Private Shared ReadOnly s_poolWithBoth As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithBoth, New DiagnosticBag(), New HashSet(Of AssemblySymbol)()))
+        Private Shared ReadOnly s_poolWithDiagnosticsOnly As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithDiagnosticsOnly, New DiagnosticBag(), dependenciesBag:=Nothing))
+        Private Shared ReadOnly s_poolWithDependenciesOnly As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithDependenciesOnly, diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)()))
+        Private Shared ReadOnly s_poolWithConcurrent As ObjectPool(Of BindingDiagnosticBag) = New ObjectPool(Of BindingDiagnosticBag)(Function() New BindingDiagnosticBag(s_poolWithConcurrent, New DiagnosticBag(), New ConcurrentSet(Of AssemblySymbol)()))
+
         Public Shared ReadOnly Discarded As New BindingDiagnosticBag(Nothing, Nothing)
 
-        Public Sub New()
-            MyBase.New(usePool:=False)
-        End Sub
+        Private ReadOnly _pool As ObjectPool(Of BindingDiagnosticBag)
 
-        Private Sub New(usePool As Boolean)
-            MyBase.New(usePool)
-        End Sub
-
-        Public Sub New(diagnosticBag As DiagnosticBag)
-            MyBase.New(diagnosticBag, dependenciesBag:=Nothing)
-        End Sub
-
-        Public Sub New(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
+        Private Sub New(diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
             MyBase.New(diagnosticBag, dependenciesBag)
         End Sub
 
+        Private Sub New(pool As ObjectPool(Of BindingDiagnosticBag), diagnosticBag As DiagnosticBag, dependenciesBag As ICollection(Of AssemblySymbol))
+            MyBase.New(diagnosticBag, dependenciesBag)
+            _pool = pool
+        End Sub
+
         Friend Shared Function GetInstance() As BindingDiagnosticBag
-            Return New BindingDiagnosticBag(usePool:=True)
+            Return s_poolWithBoth.Allocate()
         End Function
 
         Friend Shared Function GetInstance(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
@@ -38,10 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return GetInstance()
                 End If
 
-                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
+                Return s_poolWithDependenciesOnly.Allocate()
 
             ElseIf withDiagnostics Then
-                Return New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Return s_poolWithDiagnosticsOnly.Allocate()
             Else
                 Return Discarded
             End If
@@ -51,23 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetInstance(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
         End Function
 
-        Friend Shared Function Create(withDiagnostics As Boolean, withDependencies As Boolean) As BindingDiagnosticBag
-            If withDependencies Then
-                If withDiagnostics Then
-                    Return New BindingDiagnosticBag()
-                End If
-
-                Return New BindingDiagnosticBag(diagnosticBag:=Nothing, New HashSet(Of AssemblySymbol)())
-
-            ElseIf withDiagnostics Then
-                Return New BindingDiagnosticBag(New DiagnosticBag())
-            Else
-                Return Discarded
-            End If
-        End Function
-
-        Friend Shared Function Create(template As BindingDiagnosticBag) As BindingDiagnosticBag
-            Return Create(withDiagnostics:=template.AccumulatesDiagnostics, withDependencies:=template.AccumulatesDependencies)
+        ''' <summary>
+        ''' Get an instance suitable for concurrent additions to both underlying bags.
+        ''' </summary>
+        Friend Shared Function GetConcurrentInstance() As BindingDiagnosticBag
+            Return s_poolWithConcurrent.Allocate()
         End Function
 
         Friend ReadOnly Property IsEmpty As Boolean
@@ -75,6 +63,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return (DiagnosticBag Is Nothing OrElse DiagnosticBag.IsEmptyWithoutResolution) AndAlso DependenciesBag.IsNullOrEmpty()
             End Get
         End Property
+
+        Friend Overrides Sub Free()
+            If _pool IsNot Nothing Then
+                Clear()
+                _pool.Free(Me)
+            Else
+                MyBase.Free()
+            End If
+        End Sub
 
         Protected Overrides Function ReportUseSiteDiagnostic(diagnosticInfo As DiagnosticInfo, diagnosticBag As DiagnosticBag, location As Location) As Boolean
             Debug.Assert(diagnosticInfo.Severity = DiagnosticSeverity.Error)

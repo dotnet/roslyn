@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If initializationStyle = ArrayInitializerStyle.Element Then
                 Me.EmitElementInitializers(arrayType, initExprs, True)
             Else
-                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), 1, inits.Syntax, _diagnostics) ' alignment == 1 as there's no special need for alignment (.pack) here.
+                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), inits.Syntax, _diagnostics)
 
                 If initializationStyle = ArrayInitializerStyle.Mixed Then
                     EmitElementInitializers(arrayType, initExprs, False)
@@ -188,7 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         Private Function ShouldEmitBlockInitializer(elementType As TypeSymbol, inits As ImmutableArray(Of BoundExpression)) As ArrayInitializerStyle
-            If Not _module.SupportsPrivateImplClass Then
+            If _module.IsEncDelta Then
+                ' Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                ' Consider removing: https://github.com/dotnet/roslyn/issues/69480
                 Return ArrayInitializerStyle.Element
             End If
 

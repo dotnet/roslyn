@@ -51,5 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
                 variables:=declarationStatement.Declarators).WithTriviaFrom(declarationStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
+
+        Protected Overrides Function TryCreateUsingLocalDeclaration(options As ParseOptions, declarationStatement As LocalDeclarationStatementSyntax, ByRef usingDeclarationStatement As LocalDeclarationStatementSyntax) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

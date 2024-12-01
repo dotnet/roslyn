@@ -4,22 +4,14 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
-{
-    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
-    {
-        private readonly struct ConstructorCandidate
-        {
-            public readonly IMethodSymbol Constructor;
-            public readonly ImmutableArray<ISymbol> MissingMembers;
-            public readonly ImmutableArray<IParameterSymbol> MissingParameters;
+namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
-            public ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
-            {
-                Constructor = constructor;
-                MissingMembers = missingMembers;
-                MissingParameters = missingParameters;
-            }
-        }
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+{
+    private readonly struct ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
+    {
+        public readonly IMethodSymbol Constructor = constructor;
+        public readonly ImmutableArray<ISymbol> MissingMembers = missingMembers;
+        public readonly ImmutableArray<IParameterSymbol> MissingParameters = missingParameters;
     }
 }

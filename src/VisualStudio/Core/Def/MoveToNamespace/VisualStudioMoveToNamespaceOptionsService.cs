@@ -11,62 +11,61 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
+
+[Export(typeof(IMoveToNamespaceOptionsService)), Shared]
+internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
 {
-    [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
-    internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
+    private const int HistorySize = 3;
+
+    public readonly LinkedList<string> History = new();
+    private readonly Func<MoveToNamespaceDialogViewModel, bool?> _showDialog;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioMoveToNamespaceOptionsService()
     {
-        private const int HistorySize = 3;
+        _showDialog = viewModel => new MoveToNamespaceDialog(viewModel).ShowModal();
+    }
 
-        public readonly LinkedList<string> History = new();
-        private readonly Func<MoveToNamespaceDialogViewModel, bool?> _showDialog;
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Test constructor")]
+    internal VisualStudioMoveToNamespaceOptionsService(Func<MoveToNamespaceDialogViewModel, bool?> showDialog)
+    {
+        _showDialog = showDialog;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMoveToNamespaceOptionsService()
+    public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
+        string defaultNamespace,
+        ImmutableArray<string> availableNamespaces,
+        ISyntaxFacts syntaxFactsService)
+    {
+        var viewModel = new MoveToNamespaceDialogViewModel(
+            defaultNamespace,
+            availableNamespaces,
+            syntaxFactsService,
+            History.WhereNotNull().ToImmutableArray());
+
+        var result = _showDialog(viewModel);
+
+        if (result == true)
         {
-            _showDialog = viewModel => new MoveToNamespaceDialog(viewModel).ShowModal();
+            OnSelected(viewModel.NamespaceName);
+            return new MoveToNamespaceOptionsResult(viewModel.NamespaceName);
         }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Test constructor")]
-        internal VisualStudioMoveToNamespaceOptionsService(Func<MoveToNamespaceDialogViewModel, bool?> showDialog)
+        else
         {
-            _showDialog = showDialog;
+            return MoveToNamespaceOptionsResult.Cancelled;
         }
+    }
 
-        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
-            string defaultNamespace,
-            ImmutableArray<string> availableNamespaces,
-            ISyntaxFacts syntaxFactsService)
+    private void OnSelected(string namespaceName)
+    {
+        History.Remove(namespaceName);
+        History.AddFirst(namespaceName);
+
+        if (History.Count > HistorySize)
         {
-            var viewModel = new MoveToNamespaceDialogViewModel(
-                defaultNamespace,
-                availableNamespaces,
-                syntaxFactsService,
-                History.WhereNotNull().ToImmutableArray());
-
-            var result = _showDialog(viewModel);
-
-            if (result == true)
-            {
-                OnSelected(viewModel.NamespaceName);
-                return new MoveToNamespaceOptionsResult(viewModel.NamespaceName);
-            }
-            else
-            {
-                return MoveToNamespaceOptionsResult.Cancelled;
-            }
-        }
-
-        private void OnSelected(string namespaceName)
-        {
-            History.Remove(namespaceName);
-            History.AddFirst(namespaceName);
-
-            if (History.Count > HistorySize)
-            {
-                History.RemoveLast();
-            }
+            History.RemoveLast();
         }
     }
 }

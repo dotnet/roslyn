@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -35,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _exprReturnLabel As LabelSymbol
 
             ''' <summary>
-            ''' The exitLabel is used to label the final method body return at the end of the async state-machine 
-            ''' method. Is used in rewriting of return statements from Await expressions and a couple of other 
+            ''' The exitLabel is used to label the final method body return at the end of the async state-machine
+            ''' method. Is used in rewriting of return statements from Await expressions and a couple of other
             ''' places where the return is not accompanied by return of the value.
             ''' </summary>
             Private ReadOnly _exitLabel As LabelSymbol
@@ -94,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Protected Overrides ReadOnly Property EncMissingStateMessage As String
+            Protected Overrides ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode
                 Get
-                    Return CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod
+                    Return HotReloadExceptionCode.CannotResumeSuspendedAsyncMethod
                 End Get
             End Property
 
@@ -105,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Awaiters of the same type always share the same slot, regardless of what await expressions they belong to.
                 ' Even in case of nested await expressions only one awaiter Is active.
-                ' So we don't need to tie the awaiter variable to a particular await expression and only use its type 
+                ' So we don't need to tie the awaiter variable to a particular await expression and only use its type
                 ' to find the previous awaiter field.
                 If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
                     Dim slotIndex As Integer = -1
@@ -134,9 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
 
-                ' NOTE: We don't need to create/use any label after Dispatch inside Try block below 
-                ' NOTE: because 'Case' clauses inside dispatching Select statement map states to 
-                ' NOTE: correspondent Await points (or nested Try blocks) and 'NotStartedStateMachine' 
+                ' NOTE: We don't need to create/use any label after Dispatch inside Try block below
+                ' NOTE: because 'Case' clauses inside dispatching Select statement map states to
+                ' NOTE: correspondent Await points (or nested Try blocks) and 'NotStartedStateMachine'
                 ' NOTE: falls to the 'Case Else' category and just falls through to the [body] part
 
                 ' STMT:   Try
@@ -150,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' STMT:   Catch $ex As Exception
                 ' STMT:       state = finishedState
                 ' STMT:       builder.SetException($ex)
-                ' STMT:       Return 
+                ' STMT:       Return
                 ' STMT:   End Try
 
                 ' STMT:   cachedState = state
@@ -159,9 +160,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.F.Local(Me.CachedState, True),
                         Me.F.Field(Me.F.Me(), Me.StateField, False)))
 
-                ' Note that the first real sequence point comes after the dispatch jump table is because 
-                ' the Begin construct should map to the logical beginning of the method.  A breakpoint 
-                ' there should only be hit once, upon first entry into the method, and subsequent calls 
+                ' Note that the first real sequence point comes after the dispatch jump table is because
+                ' the Begin construct should map to the logical beginning of the method.  A breakpoint
+                ' there should only be hit once, upon first entry into the method, and subsequent calls
                 ' to MoveNext to resume the method should not hit that breakpoint.
                 Dim exceptionLocal = Me.F.SynthesizedLocal(Me.F.WellKnownType(WellKnownType.System_Exception))
                 bodyBuilder.Add(

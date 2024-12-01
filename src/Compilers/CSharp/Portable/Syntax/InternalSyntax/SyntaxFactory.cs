@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxTrivia Comment(string text)
         {
-            if (text.StartsWith("/*", StringComparison.Ordinal))
+            if (text is ['/' or '@', '*', ..])
             {
                 return SyntaxTrivia.Create(SyntaxKind.MultiLineCommentTrivia, text);
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxToken MissingToken(SyntaxKind kind)
         {
-            return SyntaxToken.CreateMissing(kind, null, null);
+            return SyntaxToken.CreateMissing(kind);
         }
 
         internal static SyntaxToken MissingToken(GreenNode leading, SyntaxKind kind, GreenNode trailing)

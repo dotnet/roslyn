@@ -45,7 +45,7 @@ namespace BoundTreeGenerator
         public List<Field> Fields;
     }
 
-    public class Node : TreeType
+    public class Node : AbstractNode
     {
         [XmlAttribute]
         public string Root;
@@ -62,9 +62,6 @@ namespace BoundTreeGenerator
 
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
-
-        [XmlElement(ElementName = "Field", Type = typeof(Field))]
-        public List<Field> Fields;
     }
 
     public class Kind

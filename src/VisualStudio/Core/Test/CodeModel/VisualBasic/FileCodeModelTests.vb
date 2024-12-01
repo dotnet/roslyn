@@ -118,7 +118,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(1111417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111417")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111417")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElementFullName()
             Dim code =
@@ -180,7 +180,7 @@ End Namespace</Document>
             End Using
         End Sub
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub NoChildrenForInvalidMembers()
             Dim code =
@@ -869,7 +869,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(579801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579801")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579801")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOptionStatement()
             Dim code =
@@ -952,7 +952,7 @@ End Class
 
         End Sub
 
-        <WorkItem(925569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ChangeClassNameAndGetNameOfChildFunction()
             Dim code =
@@ -979,7 +979,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2355")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function CreateUnknownElementForDeclarationFunctionAndSub() As Task
             Dim oldCode =
@@ -1011,7 +1011,7 @@ End Class
     </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
+                Using changedworkspace = EditorTestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
@@ -1051,7 +1051,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_InheritsStatements()
             Dim code =
@@ -1097,7 +1097,7 @@ End Class
                     End Sub)
         End Sub
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_ImplementsStatements()
             Dim code =
@@ -1143,7 +1143,7 @@ End Class
                     End Sub)
         End Sub
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_PropertyAccessor()
             Dim code =
@@ -1195,7 +1195,7 @@ End Class
                     End Sub)
         End Sub
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_EventAccessor()
             Dim code =
@@ -1254,7 +1254,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31735")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
             Dim code =

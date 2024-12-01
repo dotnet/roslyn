@@ -51,7 +51,7 @@ public class C
 }");
             using (new EnsureEnglishUICulture())
             {
-                var diags = new DiagnosticBag();
+                var diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 var badStream = new BrokenStream();
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
 
@@ -59,12 +59,13 @@ public class C
                     comp,
                     null,
                     badStream,
-                    new BindingDiagnosticBag(diags),
+                    diags,
                     default(CancellationToken));
 
-                diags.Verify(
+                diags.DiagnosticBag.Verify(
                     // error CS1569: Error writing to XML documentation file: I/O error occurred.
                     Diagnostic(ErrorCode.ERR_DocFileGen).WithArguments("I/O error occurred.").WithLocation(1, 1));
+                diags.Free();
             }
         }
 
@@ -3010,6 +3011,19 @@ public class Program
 
         [Fact]
         [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlSeeAlsoElementWithLink()
+        {
+            var docComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSeeAlsoElement(new Uri("https://dotnet.microsoft.com/"),
+                SyntaxFactory.List(new XmlNodeSyntax[] { SyntaxFactory.XmlText(".NET") })));
+
+            Assert.Equal(
+                "/// <seealso href=\"https://dotnet.microsoft.com/\">.NET</seealso>",
+                 docComment.ToFullString());
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlNewLineElement()
         {
             var expected =
@@ -3186,13 +3200,13 @@ public class Program
 /// </summary>
 ")});
 
-            var diags = DiagnosticBag.GetInstance();
+            var diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                new BindingDiagnosticBag(diags),
+                diags,
                 default(CancellationToken),
                 filterTree: comp.SyntaxTrees[0]);
 
@@ -3202,26 +3216,26 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(2, 1)
                 );
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                new BindingDiagnosticBag(diags),
+                diags,
                 default(CancellationToken),
                 filterTree: comp.SyntaxTrees[0],
                 filterSpanWithinTree: new TextSpan(0, 0));
 
             diags.ToReadOnlyAndFree().Verify();
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                new BindingDiagnosticBag(diags),
+                diags,
                 default(CancellationToken),
                 filterTree: comp.SyntaxTrees[1]);
 
@@ -3231,13 +3245,13 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
                 );
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                new BindingDiagnosticBag(diags),
+                diags,
                 default(CancellationToken),
                 filterTree: null);
 
@@ -3250,13 +3264,13 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 1)
                 );
 
-            diags = DiagnosticBag.GetInstance();
+            diags = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                new BindingDiagnosticBag(diags),
+                diags,
                 default(CancellationToken),
                 filterTree: null,
                 filterSpanWithinTree: new TextSpan(0, 0));

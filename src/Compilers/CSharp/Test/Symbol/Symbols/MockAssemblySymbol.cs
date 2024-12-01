@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { throw new NotImplementedException(); }
         }
 
+        internal override TypeConversions TypeConversions
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override ImmutableArray<ModuleSymbol> Modules
         {
             get { return ImmutableArray.Create<ModuleSymbol>(); }
@@ -45,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return ImmutableArray.Create<Location>(); }
         }
 
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
             throw new NotImplementedException();
         }
@@ -65,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return false; }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
+
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
             throw new NotImplementedException();
@@ -81,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
         {
             throw new NotImplementedException();
         }
@@ -116,6 +130,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {
             throw new NotImplementedException();
+        }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
         }
     }
 }

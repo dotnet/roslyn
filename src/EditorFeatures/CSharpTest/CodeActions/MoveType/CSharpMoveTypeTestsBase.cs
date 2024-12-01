@@ -4,16 +4,14 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.MoveType;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
+
+public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTest
 {
-    public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTest
-    {
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+    protected override ParseOptions GetScriptOptions() => TestOptions.Script;
 
-        protected internal override string GetLanguage() => LanguageNames.CSharp;
-    }
+    protected internal override string GetLanguage() => LanguageNames.CSharp;
 }

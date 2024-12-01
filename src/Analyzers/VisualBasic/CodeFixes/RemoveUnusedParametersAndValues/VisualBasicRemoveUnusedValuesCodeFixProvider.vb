@@ -25,9 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
-            Return VisualBasicSyntaxFormatting.Instance
-        End Function
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
 
         Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
             ' Unreachable code path as VB statements don't need to be wrapped in special BlockSyntax.
@@ -66,6 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
         Protected Overrides Function GetReplacementNodeForVarPattern(originalVarPattern As SyntaxNode, newNameNode As SyntaxNode) As SyntaxNode
             ' VB does not have var patterns
             Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected Overrides Function ComputeReplacementNode(originalOldNode As SyntaxNode, changedOldNode As SyntaxNode, proposedReplacementNode As SyntaxNode) As SyntaxNode
+            ' VB currently doesn't have recursive change scenarios
+            Return proposedReplacementNode.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
         Protected Overrides Function GetCandidateLocalDeclarationForRemoval(declarator As VariableDeclaratorSyntax) As LocalDeclarationStatementSyntax

@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal static class TextViewRoles
 {
-    internal static class TextViewRoles
-    {
-        public const string PreviewRole = "WorkspacePreviewRole";
-    }
+    public const string PreviewRole = "WorkspacePreviewRole";
 }
