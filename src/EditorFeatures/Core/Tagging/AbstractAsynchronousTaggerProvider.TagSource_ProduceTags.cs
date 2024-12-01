@@ -82,7 +82,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
 
             // Don't bother going forward if we're not going adjust any tags based on edits.
-            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits) ||
+                _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsWithStartPositionThatIntersectEdits))
             {
                 RemoveTagsThatIntersectEdit(e);
                 return;
@@ -105,7 +106,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 {
                     var (@this, e, tagsToRemove, allTagsList, allTagsSet) = args;
 
-                    // Compre-and-swap loops until we can successfully update the tag trees.  Clear out the collections
+                    var textChangeBehavior = @this._dataSource.TextChangeBehavior;
+
+                    // Compare-and-swap loops until we can successfully update the tag trees.  Clear out the collections
                     // so we're back in an initial state before performing any work in this lambda.
                     tagsToRemove.Clear();
                     allTagsList.Clear();
@@ -124,6 +127,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                             // Determine the final tags for the interval tree, using a set so that we can efficiently
                             // remove the intersecting tags.
                             treeForBuffer.AddAllSpans(snapshot, allTagsSet);
+
+                            if (textChangeBehavior == TaggerTextChangeBehavior.RemoveTagsWithStartPositionThatIntersectEdits)
+                            {
+
+                            }
+
                             allTagsSet.RemoveAll(tagsToRemove);
 
                             // Then, copy into a list so we can efficiently sort them and create the interval tree from
