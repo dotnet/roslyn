@@ -602,8 +602,9 @@ public sealed class ImplementInterfaceTests
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
-    public async Task TestMethodWhenClassBracesAreMissing2()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
+    public async Task TestMethodWhenClassBracesAreMissing2(
+        [CombinatorialValues(0, 1)] int behavior)
     {
         await new VerifyCS.Test
         {
@@ -643,54 +644,7 @@ public sealed class ImplementInterfaceTests
             {
                 new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind }
-                }
-            }
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
-    public async Task TestMethodWhenClassBracesAreMissing3()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-            
-                namespace WPFConsoleApplication1
-                {
-                    class Program
-                    {
-                        private class Test : {|CS0535:ICloneable|}{|CS1513:|}{|CS1514:|}
-            
-                        static void Main(string[] args) { }
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-            
-                namespace WPFConsoleApplication1
-                {
-                    class Program
-                    {
-                        private class Test : ICloneable
-                        {
-                            public object Clone()
-                            {
-                                throw new NotImplementedException();
-                            }
-                        }
-            
-                        static void Main(string[] args) { }
-                    }
-                }
-                """,
-            Options =
-            {
-                new OptionsCollection(LanguageNames.CSharp)
-                {
-                    { ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd }
+                    { ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)behavior }
                 }
             }
         }.RunAsync();
