@@ -440,11 +440,6 @@ Mostrar elementos de espacios de nombres no importados (experimental);</target>
         <target state="translated">No incluir nunca fragmentos de código</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Solo agregar una nueva línea al pulsar Intro cuando se haya terminado de escribir completamente una palabra</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

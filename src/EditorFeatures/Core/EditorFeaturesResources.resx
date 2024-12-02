@@ -303,9 +303,6 @@
   <data name="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated" xml:space="preserve">
     <value>Rename operation was not properly completed. Some file might not have been updated.</value>
   </data>
-  <data name="Rename_0_to_1" xml:space="preserve">
-    <value>Rename '{0}' to '{1}'</value>
-  </data>
   <data name="Preview_Warning" xml:space="preserve">
     <value>Preview Warning</value>
   </data>

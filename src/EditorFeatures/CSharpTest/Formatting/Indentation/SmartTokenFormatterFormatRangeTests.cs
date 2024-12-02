@@ -2467,35 +2467,41 @@ int         nextLine            =           30          ;$$
             SyntaxKind.ColonToken);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
+    [Fact]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537804")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/13981")]
     public async Task Colon_Label()
     {
-        var code = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-                    label   :$$
-        }
-    }
-}";
+        var code = """
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    void Test()
+                    {
+                                label   :$$
+                    }
+                }
+            }
+            """;
 
-        var expected = @"namespace ClassLibrary1
-{
-    public class Class1
-    {
-        void Test()
-        {
-                    label   :
-        }
-    }
-}";
+        var expected = """
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    void Test()
+                    {
+                    label:
+                    }
+                }
+            }
+            """;
 
         await AutoFormatOnColonAsync(
             code,
             expected,
-            SyntaxKind.None);
+            SyntaxKind.OpenBraceToken);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538793")]

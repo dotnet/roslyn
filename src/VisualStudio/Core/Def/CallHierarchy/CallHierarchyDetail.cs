@@ -64,7 +64,7 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
     private async Task NavigateToAsync()
     {
         using var context = _provider.ThreadOperationExecutor.BeginExecute(
-            ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
+            EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
 
         var solution = _workspace.CurrentSolution;
         var document = solution.GetDocument(_documentId);

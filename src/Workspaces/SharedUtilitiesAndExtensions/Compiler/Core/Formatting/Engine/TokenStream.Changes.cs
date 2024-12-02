@@ -36,9 +36,7 @@ internal sealed partial class TokenStream
         public readonly bool TryGet(int key, [NotNullWhen(true)] out TriviaData? triviaInfo)
         {
             triviaInfo = null;
-#pragma warning disable CS8762 // Parameter may not have a null value when exiting in some condition. https://github.com/dotnet/roslyn/issues/43241
             return _map?.TryGetValue(key, out triviaInfo) ?? false;
-#pragma warning restore CS8762 // Parameter may not have a null value when exiting in some condition.
         }
     }
 }
