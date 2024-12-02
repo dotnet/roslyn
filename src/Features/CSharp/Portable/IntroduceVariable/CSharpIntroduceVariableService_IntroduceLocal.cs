@@ -53,7 +53,7 @@ internal sealed partial class CSharpIntroduceVariableService
                 GetTypeSyntax(document, expression, cancellationToken),
                 [VariableDeclarator(
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
-                    null,
+                    argumentList: null,
                     EqualsValueClause(expression.WithoutTrivia()))]));
 
         switch (containerToGenerateInto)
@@ -109,8 +109,9 @@ internal sealed partial class CSharpIntroduceVariableService
             declarationStatement, isEntireLambdaBodySelected, rewrittenBody, shouldIncludeReturnStatement);
 
         // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
-        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
-                         .WithAdditionalAnnotations(Formatter.Annotation);
+        newBody = newBody
+            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
+            .WithAdditionalAnnotations(Formatter.Annotation);
 
         var newLambda = oldLambda.WithBody(newBody);
 
