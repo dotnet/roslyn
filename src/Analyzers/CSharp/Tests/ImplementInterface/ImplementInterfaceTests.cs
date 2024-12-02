@@ -12223,4 +12223,35 @@ interface I
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19721")]
+    public async Task TestMatchPropertyAgainstPropertyWithMoreAccessors1()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            interface ImmutableView
+            {
+                int Prop1 { get; }
+            }
+            interface MutableView : ImmutableView
+            {
+                new int Prop1 { get; set; }
+            }
+            class Implementation : {|CS0535:{|CS0535:MutableView|}|} { }
+            """,
+            """
+            interface ImmutableView
+            {
+                int Prop1 { get; }
+            }
+            interface MutableView : ImmutableView
+            {
+                new int Prop1 { get; set; }
+            }
+            class Implementation : MutableView
+            {
+                public int Prop1 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """);
+    }
 }
