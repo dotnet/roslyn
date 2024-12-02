@@ -161,7 +161,7 @@ internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() 
                 // If the user started on a string that didn't have an explicit \n in it, then don't update other string
                 // literals that do.  Note: if they did start on a string with an explicit \n, then we should update all
                 // other literals, regardless of whether they had an explicit \n or not.
-                if (!kind.HasFlag(ConvertToRawKind.ContainsEscapedEndOfLineCharacter) && canConvertParams.ContainsEscapedEndOfLineCharacter)
+                if ((kind & ConvertToRawKind.ContainsEscapedEndOfLineCharacter) == 0 && canConvertParams.ContainsEscapedEndOfLineCharacter)
                     continue;
 
                 // Ensure we have a matching kind to fix for this literal.

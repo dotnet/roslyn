@@ -184,7 +184,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
         SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
-        if (kind.HasFlag(ConvertToRawKind.SingleLine))
+        if ((kind & ConvertToRawKind.SingleLine) == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
 
         var indentationOptions = new IndentationOptions(formattingOptions);
@@ -237,7 +237,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
             var rawStringExpression = GetInitialMultiLineRawInterpolatedString(stringExpression, formattingOptions);
 
             // If requested, cleanup the whitespace in the expression.
-            var cleanedExpression = kind.HasFlag(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
+            var cleanedExpression = (kind & ConvertToRawKind.MultiLineWithoutLeadingWhitespace) == ConvertToRawKind.MultiLineWithoutLeadingWhitespace
                 ? CleanInterpolatedString(rawStringExpression, cancellationToken)
                 : rawStringExpression;
 

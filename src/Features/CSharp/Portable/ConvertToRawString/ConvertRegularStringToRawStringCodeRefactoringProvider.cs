@@ -145,7 +145,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
         Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
 
-        if (kind.HasFlag(ConvertToRawKind.SingleLine))
+        if ((kind & ConvertToRawKind.SingleLine) == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
 
         var indentationOptions = new IndentationOptions(formattingOptions);
@@ -203,7 +203,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         SyntaxToken ConvertToMultiLineRawIndentedString(string indentation)
         {
             // If the user asked to remove whitespace then do so now.
-            if (kind.HasFlag(ConvertToRawKind.MultiLineWithoutLeadingWhitespace))
+            if ((kind & ConvertToRawKind.MultiLineWithoutLeadingWhitespace) == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
                 characters = CleanupWhitespace(characters);
 
             // Have to make sure we have a delimiter longer than any quote sequence in the string.

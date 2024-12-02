@@ -1037,4 +1037,46 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
             """");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public async Task FixAllInDocument_EscapedCanAffectMultiLine2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = @"
+
+            ";
+
+                    var second = Regex.Replace(description, {|FixAllInDocument:|}"(\r\n)", "$1$1");
+                    var third = Regex.Replace(description, "(\r\n)", "$1$1");
+                }
+            }
+            """,
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+
+                        """;
+            
+                    var second = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                    var third = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                }
+            }
+            """");
+    }
 }
