@@ -3969,6 +3969,110 @@ End Class
             Await TestAPI(input, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function TestDisposeUsedInUsingDeclaration1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        struct S
+        {
+            public void {|Definition:$$Dispose|}() { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                [|using|] (var s = new S())
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function TestDisposeUsedInUsingDeclaration2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        struct S
+        {
+            public void {|Definition:Dispose|}() { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                [|$$using|] (var s = new S())
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function TestDisposeUsedInUsingDeclaration3(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        struct S
+        {
+            public void {|Definition:$$Dispose|}() { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                [|using|] var s = new S();
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function TestDisposeUsedInUsingDeclaration4(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        struct S
+        {
+            public void {|Definition:Dispose|}() { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                [|$$using|] var s = new S();
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
 #Region "Collection Initializers"
 
         <WpfTheory, CombinatorialData>

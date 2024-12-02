@@ -336,6 +336,7 @@ internal interface ISyntaxFacts
 
     bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);
+    bool IsUsingLocalDeclarationStatement(SyntaxNode node);
 
     /// <summary>
     /// Returns true for nodes that represent the body of a method.
