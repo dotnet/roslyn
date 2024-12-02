@@ -60,8 +60,7 @@ internal sealed partial class CSharpIntroduceVariableService
         // we're adding.  That way we don't end up having it and the starting statement be on
         // the same line (which will cause indentation to be computed incorrectly).
         var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        if (containerToGenerateInto is not CompilationUnitSyntax &&
-            !text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
+        if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
         {
             declarationStatement = declarationStatement.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
