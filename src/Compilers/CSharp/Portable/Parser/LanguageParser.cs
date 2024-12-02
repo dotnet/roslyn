@@ -4733,7 +4733,7 @@ parse_member_name:;
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
         {
-            var tryScoped = true;
+            bool tryScoped = true;
 
             while (IsParameterModifierExcludingScoped(this.CurrentToken))
             {
