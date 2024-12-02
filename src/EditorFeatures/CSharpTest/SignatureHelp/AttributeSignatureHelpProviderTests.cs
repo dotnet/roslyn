@@ -335,7 +335,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute({CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -432,7 +432,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute({CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -580,7 +580,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new SignatureHelpTestItem($"DerivedAttribute({FeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -612,7 +612,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -641,7 +641,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -670,7 +670,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -697,7 +697,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -724,7 +724,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 1)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.

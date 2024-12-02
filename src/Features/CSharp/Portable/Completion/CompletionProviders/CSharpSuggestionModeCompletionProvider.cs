@@ -69,20 +69,20 @@ internal class CSharpSuggestionModeCompletionProvider : AbstractSuggestionModeCo
             }
             else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
             {
-                return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
+                return CreateSuggestionModeItem(FeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
             }
             else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var typeDeclaration))
             {
                 switch (typeDeclaration.Keyword.Kind())
                 {
                     case SyntaxKind.ClassKeyword:
-                        return CreateSuggestionModeItem(CSharpFeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+                        return CreateSuggestionModeItem(FeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
 
                     case SyntaxKind.StructKeyword:
                         return CreateSuggestionModeItem(CSharpFeaturesResources.struct_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
 
                     case SyntaxKind.InterfaceKeyword:
-                        return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+                        return CreateSuggestionModeItem(FeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
                 }
             }
             else if (tree.IsPossibleDeconstructionDesignation(position, cancellationToken))

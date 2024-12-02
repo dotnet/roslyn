@@ -792,11 +792,6 @@
         <target state="translated">名前の変更操作は正常に終了しませんでした。ファイルのいくつかは更新されなかった可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">'{0}' を '{1}' に名前変更</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">警告のプレビュー</target>
