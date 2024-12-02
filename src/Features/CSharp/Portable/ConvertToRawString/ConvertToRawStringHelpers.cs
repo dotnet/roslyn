@@ -75,6 +75,11 @@ internal static class ConvertToRawStringHelpers
         return false;
     }
 
+    /// <summary>
+    /// Returns if this sequence of characters can be converted to a raw string.  If it can, also returns if it
+    /// contained an explicitly escaped newline (like <c>\r\n</c>) within it.  It it can't convert, then the value of
+    /// <paramref name="containsEscapedEndOfLineCharacter"/> is undefined.
+    /// </summary>
     public static bool CanConvert(VirtualCharSequence characters, out bool containsEscapedEndOfLineCharacter)
     {
         containsEscapedEndOfLineCharacter = false;
