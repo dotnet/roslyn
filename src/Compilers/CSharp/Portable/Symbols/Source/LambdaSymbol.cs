@@ -367,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = parameterTypes[p];
                     refKind = unboundLambda.RefKind(p);
                     scope = unboundLambda.DeclaredScope(p);
+                    paramSyntax = unboundLambda.ParameterSyntax(p);
                 }
                 else
                 {

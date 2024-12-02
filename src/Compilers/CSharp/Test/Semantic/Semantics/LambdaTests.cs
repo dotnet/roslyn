@@ -8586,5 +8586,37 @@ class Program
                 //         D d = (ref byte a) => { };
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D").WithLocation(7, 28));
         }
+
+        [Theory, CombinatorialData]
+        public void TestParamsWithImplicitExplicitLambdas(
+            [CombinatorialValues("params", "")] string delegateModifier,
+            [CombinatorialValues("params", "")] string lambdaModifier,
+            [CombinatorialValues("int[]", "")] string lambdaType)
+        {
+            var source = $$"""
+                delegate void D({{delegateModifier}} int[] i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = ({{lambdaModifier}} {{lambdaType}} a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+
+            if (delegateModifier == "" && lambdaModifier == "params")
+            {
+                compilation.VerifyDiagnostics(
+                    // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                    //         D d = (params  a) => { };
+                    Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "a").WithArguments("1"));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics();
+            }
+        }
     }
 }

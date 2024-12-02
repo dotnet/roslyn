@@ -493,6 +493,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<AttributeListSyntax> ParameterAttributes(int index) { return Data.ParameterAttributes(index); }
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
+
+        /// <summary>
+        /// Returns the corresponding <see cref="ParameterSyntax"/> at the given index if the lambda was declared with
+        /// explicit parameter syntax.
+        /// </summary>
         public ParameterSyntax? ParameterSyntax(int index) => Data.ParameterSyntax(index);
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
@@ -1561,7 +1566,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ParameterSyntax ParameterSyntax(int index)
         {
-
             Debug.Assert(_parameterSyntaxList is not null && 0 <= index && index < _parameterSyntaxList.Value.Count);
             return _parameterSyntaxList.Value[index];
         }
