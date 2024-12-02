@@ -311,11 +311,13 @@ internal sealed partial class CSharpIntroduceVariableService
         if (localFunction is { Body: not null } && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             scope = localFunction.Body;
 
-        var startingNodes = scope is ICompilationUnitSyntax
-            ? scope.ChildNodes().Where(n => n is GlobalStatementSyntax)
-            : [scope];
 
-        var matches = FindMatches(document, expression, document, startingNodes, allOccurrences, cancellationToken);
+        var matches = FindMatches(
+            document, expression, document,
+            scope is ICompilationUnitSyntax
+                ? scope.ChildNodes().OfType<GlobalStatementSyntax>()
+                : [scope],
+            allOccurrences, cancellationToken);
         Debug.Assert(matches.Contains(expression));
 
         var firstAffectedExpression = matches.OrderBy(m => m.SpanStart).First();
