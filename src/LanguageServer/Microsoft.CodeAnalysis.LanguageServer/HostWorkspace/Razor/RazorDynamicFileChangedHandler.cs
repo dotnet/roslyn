@@ -6,7 +6,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
 [Shared]
 [ExportCSharpVisualBasicStatelessLspService(typeof(RazorDynamicFileChangedHandler))]

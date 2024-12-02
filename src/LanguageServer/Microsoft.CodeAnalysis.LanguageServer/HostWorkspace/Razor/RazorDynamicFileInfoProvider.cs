@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -12,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
 [Shared]
 [Export(typeof(IDynamicFileInfoProvider))]
@@ -79,12 +80,9 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
         if (response.Edits is not null)
         {
-            var project = _workspaceFactory.Workspace.CurrentSolution.GetRequiredProject(projectId);
-            var document = project.Documents.FirstOrDefault(
-                d => d.FilePath is not null && PathUtilities.PathsEqual(d.FilePath, dynamicFileInfoFilePath));
-
+            var textDocument = await _workspaceFactory.Workspace.CurrentSolution.GetTextDocumentAsync(response.CSharpDocument, cancellationToken).ConfigureAwait(false);
             var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
-            var textLoader = new TextChangesTextLoader(document, textChanges);
+            var textLoader = new TextChangesTextLoader(textDocument, textChanges);
 
             return new DynamicFileInfo(
                 dynamicFileInfoFilePath,
@@ -140,7 +138,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         }
     }
 
-    private sealed class TextChangesTextLoader(Document? document, IEnumerable<TextChange> changes) : TextLoader
+    private sealed class TextChangesTextLoader(TextDocument? document, IEnumerable<TextChange> changes) : TextLoader
     {
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
