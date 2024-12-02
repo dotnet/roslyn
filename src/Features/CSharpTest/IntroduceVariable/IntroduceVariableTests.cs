@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
@@ -8983,5 +8984,24 @@ namespace ConsoleApp1
                 public string Bar { get; set; }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+            var v1 = random.Next();
+            var v2 = random.Next();
+            """, index: 1);
     }
 }

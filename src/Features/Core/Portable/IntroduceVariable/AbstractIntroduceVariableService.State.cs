@@ -29,6 +29,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         public bool InAttributeContext { get; private set; }
         public bool InBlockContext { get; private set; }
         public bool InConstructorInitializerContext { get; private set; }
+        public bool InGlobalStatementContext { get; private set; }
         public bool InFieldContext { get; private set; }
         public bool InParameterContext { get; private set; }
         public bool InQueryContext { get; private set; }
@@ -94,13 +95,25 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
             containingType ??= Document.SemanticModel.Compilation.ScriptClass;
 
-            if (containingType == null || containingType.TypeKind == TypeKind.Interface)
+            if (containingType?.TypeKind is TypeKind.Interface)
                 return false;
 
             if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 return false;
 
             IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
+
+            if (containingType is null)
+            {
+                var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
+                if (globalStatement != null)
+                {
+                    InGlobalStatementContext = true;
+                    return true;
+                }
+
+                return false;
+            }
 
             // Note: the ordering of these clauses are important.  They go, generally, from
             // innermost to outermost order.

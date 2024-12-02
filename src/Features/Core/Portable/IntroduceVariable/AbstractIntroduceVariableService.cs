@@ -70,19 +70,16 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             var state = await State.GenerateAsync((TService)this, semanticDocument, options, textSpan, cancellationToken).ConfigureAwait(false);
-            if (state != null)
+            var (title, actions) = CreateActions(state, cancellationToken);
+            if (actions.Length > 0)
             {
-                var (title, actions) = CreateActions(state, cancellationToken);
-                if (actions.Length > 0)
-                {
-                    // We may end up creating a lot of viable code actions for the selected
-                    // piece of code.  Create a top level code action so that we don't overwhelm
-                    // the light bulb if there are a lot of other options in the list.  Set 
-                    // the code action as 'inlinable' so that if the lightbulb is not cluttered
-                    // then the nested items can just be lifted into it, giving the user fast
-                    // access to them.
-                    return CodeAction.Create(title, actions, isInlinable: true);
-                }
+                // We may end up creating a lot of viable code actions for the selected
+                // piece of code.  Create a top level code action so that we don't overwhelm
+                // the light bulb if there are a lot of other options in the list.  Set 
+                // the code action as 'inlinable' so that if the lightbulb is not cluttered
+                // then the nested items can just be lifted into it, giving the user fast
+                // access to them.
+                return CodeAction.Create(title, actions, isInlinable: true);
             }
 
             return null;
@@ -91,6 +88,9 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
     private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
     {
+        if (state is null)
+            return (null, []);
+
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
         var title = AddActionsAndGetTitle(state, actions, cancellationToken);
 
@@ -168,6 +168,11 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
             return GetConstantOrLocalResource(state.IsConstant);
         }
+        else if (state.InGlobalStatementContext)
+        {
+            actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+            actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+        }
         else
         {
             return null;
@@ -244,15 +249,8 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         return false;
     }
 
-    private CodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal)
-    {
-        if (allOccurrences)
-        {
-            return new IntroduceVariableAllOccurrenceCodeAction((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
-        }
-
-        return new IntroduceVariableCodeAction((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
-    }
+    private IntroduceVariableCodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal)
+        => new((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
 
     protected static SyntaxToken GenerateUniqueFieldName(
         SemanticDocument semanticDocument,

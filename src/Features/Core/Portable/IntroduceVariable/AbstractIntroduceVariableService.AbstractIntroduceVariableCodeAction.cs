@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
 internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    private abstract class AbstractIntroduceVariableCodeAction : CodeAction
+    private sealed class IntroduceVariableCodeAction : CodeAction
     {
         private readonly bool _allOccurrences;
         private readonly bool _isConstant;
@@ -28,7 +28,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
         public readonly CodeCleanupOptions Options;
 
-        internal AbstractIntroduceVariableCodeAction(
+        public IntroduceVariableCodeAction(
             TService service,
             SemanticDocument document,
             CodeCleanupOptions options,
@@ -105,13 +105,13 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             return string.Format(formatString, nodeString);
         }
 
-        protected ITypeSymbol GetExpressionType(
-            CancellationToken cancellationToken)
-        {
-            var semanticModel = _semanticDocument.SemanticModel;
-            var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
+        //private ITypeSymbol GetExpressionType(
+        //    CancellationToken cancellationToken)
+        //{
+        //    var semanticModel = _semanticDocument.SemanticModel;
+        //    var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
 
-            return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
-        }
+        //    return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+        //}
     }
 }
