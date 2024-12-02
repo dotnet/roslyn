@@ -66,7 +66,8 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
     {
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+        var token = await syntaxTree.GetTouchingTokenAsync(
+            semanticModel: null, position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
         if (token == default)
             return default;

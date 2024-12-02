@@ -3819,6 +3819,50 @@ class Program
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_OnElementAccessExpression1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class C
+{
+    int [||]this[int i] => i;
+
+    void M(C c)
+    {
+        var v = c$$[0];
+    }
+}s
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_OnElementAccessExpression2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class C
+{
+    int [||]this[int i] => i;
+
+    void M(C c)
+    {
+        var v = c[0]$$;
+    }
+}s
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact>
         Public Async Function TestInterceptors_AttributeMissingVersion() As Task
             Dim workspace =
