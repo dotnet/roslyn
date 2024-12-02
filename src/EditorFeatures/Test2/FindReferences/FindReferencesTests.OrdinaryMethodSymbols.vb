@@ -3971,7 +3971,7 @@ End Class
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
-        Public Async Function TestDisposeUsedInUsingDeclaration1(host As TestHost) As Task
+        Public Async Function CSharp_TestDisposeUsedInUsingDeclaration1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3998,7 +3998,7 @@ End Class
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
-        Public Async Function TestDisposeUsedInUsingDeclaration2(host As TestHost) As Task
+        Public Async Function CSharp_TestDisposeUsedInUsingDeclaration2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -4025,7 +4025,7 @@ End Class
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
-        Public Async Function TestDisposeUsedInUsingDeclaration3(host As TestHost) As Task
+        Public Async Function CSharp_TestDisposeUsedInUsingDeclaration3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -4050,7 +4050,7 @@ End Class
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
-        Public Async Function TestDisposeUsedInUsingDeclaration4(host As TestHost) As Task
+        Public Async Function CSharp_TestDisposeUsedInUsingDeclaration4(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -4070,6 +4070,172 @@ End Class
         </Document>
     </Project>
 </Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function CSharp_TestDisposeUsedInUsingDeclaration5(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        struct S
+        {
+            public void {|Definition:$$Dispose|}() { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                [|using|] (new S())
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function CSharp_TestDisposeUsedInUsingDeclaration6(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        struct S
+        {
+            public void {|Definition:Dispose|}() { }
+        }
+
+        class C
+        {
+            void M()
+            {
+                [|$$using|] (new S())
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function VisualBasic_TestDisposeUsedInUsingDeclaration1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+        imports System
+        structure S
+            implements IDisposable
+
+            public sub {|Definition:$$Dispose|}() Implements IDisposable.[|Dispose|]
+            end sub
+        end structure
+
+        class C
+            sub M()
+                [|using|] (new S())
+                end using
+            end sub
+        end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function VisualBasic_TestDisposeUsedInUsingDeclaration2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+        imports System
+        structure S
+            implements IDisposable
+
+            public sub {|Definition:Dispose|}() Implements IDisposable.[|Dispose|]
+            end sub
+        end structure
+
+        class C
+            sub M()
+                [|$$using|] (new S())
+                end using
+            end sub
+        end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function VisualBasic_TestDisposeUsedInUsingDeclaration3(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+        imports System
+        structure S
+            implements IDisposable
+
+            public sub {|Definition:$$Dispose|}() Implements IDisposable.[|Dispose|]
+            end sub
+        end structure
+
+        class C
+            sub M()
+                [|using|] x = new S()
+                end using
+            end sub
+        end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34107")>
+        Public Async Function VisualBasic_TestDisposeUsedInUsingDeclaration4(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+        imports System
+        structure S
+            implements IDisposable
+
+            public sub {|Definition:Dispose|}() Implements IDisposable.[|Dispose|]
+            end sub
+        end structure
+
+        class C
+            sub M()
+                [|$$using|] x = new S()
+                end using
+            end sub
+        end class
+        </Document>
+    </Project>
+</Workspace>
+
             Await TestAPI(input, host)
         End Function
 
