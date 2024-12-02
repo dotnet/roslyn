@@ -311,7 +311,6 @@ internal sealed partial class CSharpIntroduceVariableService
         if (localFunction is { Body: not null } && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             scope = localFunction.Body;
 
-
         var matches = FindMatches(
             document, expression, document,
             scope is ICompilationUnitSyntax
