@@ -46,12 +46,10 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
 
     public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
     {
+        // If the type is already 'var' or 'ref var', this analyzer has no work to do
         var type = variableDeclaration.Type.StripRefIfNeeded();
         if (type.IsVar)
-        {
-            // If the type is already 'var' or 'ref var', this analyzer has no work to do
             return false;
-        }
 
         // The base analyzer may impose further limitations
         return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken);
@@ -59,15 +57,23 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
 
     protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var type = forEachStatement.Type;
-        if (type.IsVar || (type.Kind() == SyntaxKind.RefType && ((RefTypeSyntax)type).Type.IsVar))
-        {
-            // If the type is already 'var', this analyze has no work to do
+        // If the type is already 'var' or 'ref var', this analyzer has no work to do
+        var type = forEachStatement.Type.StripRefIfNeeded();
+        if (type.IsVar)
             return false;
-        }
 
         // The base analyzer may impose further limitations
         return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
+    }
+
+    protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        // If the type is already 'var' or 'ref var', this analyzer has no work to do
+        if (declaration.Type.StripRefIfNeeded().IsVar)
+            return false;
+
+        // The base analyzer may impose further limitations
+        return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
     }
 
     protected override bool IsStylePreferred(in State state)
@@ -328,17 +334,5 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
         var current = (initializer as RefExpressionSyntax)?.Expression ?? initializer;
         current = (current as CheckedExpressionSyntax)?.Expression ?? current;
         return current.WalkDownParentheses();
-    }
-
-    protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        if (declaration.Type.IsVar)
-        {
-            // If the type is already 'var', this analyze has no work to do
-            return false;
-        }
-
-        // The base analyzer may impose further limitations
-        return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
     }
 }
