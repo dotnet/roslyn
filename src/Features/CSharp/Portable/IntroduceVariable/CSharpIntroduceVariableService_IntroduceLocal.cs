@@ -219,10 +219,7 @@ internal sealed partial class CSharpIntroduceVariableService
     }
 
     private static TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
-    {
-        var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
-        return typeSymbol.GenerateTypeSyntax();
-    }
+        => GetTypeSymbol(document, expression, cancellationToken).GenerateTypeSyntax();
 
     private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
         SemanticDocument document,
@@ -246,14 +243,15 @@ internal sealed partial class CSharpIntroduceVariableService
             : (StatementSyntax)ExpressionStatement(newExpression);
 
         var newBody = Block(declarationStatement, convertedStatement)
-                                   .WithLeadingTrivia(leadingTrivia)
-                                   .WithTrailingTrivia(oldBody.GetTrailingTrivia());
+            .WithLeadingTrivia(leadingTrivia)
+            .WithTrailingTrivia(oldBody.GetTrailingTrivia());
 
         // Add an elastic newline so that the formatter will place this new block across multiple lines.
-        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
-                         .WithAdditionalAnnotations(Formatter.Annotation);
+        newBody = newBody
+            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
+            .WithAdditionalAnnotations(Formatter.Annotation);
 
-        var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody));
+        var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody).WithTriviaFrom(oldParentingNode));
         return document.Document.WithSyntaxRoot(newRoot);
     }
 
@@ -263,23 +261,19 @@ internal sealed partial class CSharpIntroduceVariableService
             BasePropertyDeclarationSyntax baseProperty => baseProperty
                 .TryWithExpressionBody(null)
                 .WithAccessorList(AccessorList([AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]))
-                .TryWithSemicolonToken(Token(SyntaxKind.None))
-                .WithTriviaFrom(baseProperty),
+                .TryWithSemicolonToken(Token(SyntaxKind.None)),
             AccessorDeclarationSyntax accessor => accessor
                 .WithExpressionBody(null)
                 .WithBody(body)
-                .WithSemicolonToken(Token(SyntaxKind.None))
-                .WithTriviaFrom(accessor),
+                .WithSemicolonToken(Token(SyntaxKind.None)),
             BaseMethodDeclarationSyntax baseMethod => baseMethod
                 .WithExpressionBody(null)
                 .WithBody(body)
-                .WithSemicolonToken(Token(SyntaxKind.None))
-                .WithTriviaFrom(baseMethod),
+                .WithSemicolonToken(Token(SyntaxKind.None)),
             LocalFunctionStatementSyntax localFunction => localFunction
                 .WithExpressionBody(null)
                 .WithBody(body)
-                .WithSemicolonToken(Token(SyntaxKind.None))
-                .WithTriviaFrom(localFunction),
+                .WithSemicolonToken(Token(SyntaxKind.None)),
             _ => throw ExceptionUtilities.UnexpectedValue(node),
         };
 
