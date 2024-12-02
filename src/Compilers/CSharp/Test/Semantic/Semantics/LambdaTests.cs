@@ -8558,10 +8558,20 @@ class Program
                     }
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         D d = (ref a) => { };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref a").WithArguments("simple lambda parameter modifiers").WithLocation(7, 16));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+
+            Assert.Equal(RefKind.Ref, symbol.Parameters[0].RefKind);
+            Assert.Equal(SpecialType.System_Int32, symbol.Parameters[0].Type.SpecialType);
         }
 
         [Fact]
