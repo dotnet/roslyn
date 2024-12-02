@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -8627,6 +8628,94 @@ class Program
             {
                 compilation.VerifyDiagnostics();
             }
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter_CSharp10()
+        {
+            var source = $$"""
+                using System;
+
+                class scoped { }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<scoped> f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (3,7): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(3, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter_CSharp13()
+        {
+            var source = $$"""
+                using System;
+
+                class scoped { }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<scoped> f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,7): error CS9062: Types and aliases cannot be named 'scoped'.
+                // class scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(3, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter()
+        {
+            var source = $$"""
+                class scoped { }
+                ref struct S { }
+                delegate void D(S s);
+
+                class C
+                {
+                    void M()
+                    {
+                        D f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
+                // class scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("S", symbol.Parameters[0].Type.Name);
         }
     }
 }
