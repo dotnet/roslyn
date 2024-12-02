@@ -171,13 +171,13 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
                         IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
                     {
                         // `string.Remove(0, string.Length - x)` becomes `string[^x..]`
-                        return ((ExpressionSyntax)subtraction.RightOperand.Syntax, startFromEnd: true, endExpr: null, false);
+                        return ((ExpressionSyntax)subtraction.RightOperand.Syntax, startFromEnd: true, endExpr: null, endFromEnd: false);
                     }
                     else
                     {
 
                         // `string.Remove(0, x)` becomes `string[x..]`
-                        return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, false);
+                        return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, endFromEnd: false);
                     }
                 }
             }
