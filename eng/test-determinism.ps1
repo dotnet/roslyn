@@ -67,6 +67,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:RepoRoot=$rootDir `
      /p:TreatWarningsAsErrors=true `
      /p:BootstrapBuildPath=$bootstrapDir `
+     /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
      /p:RunAnalyzersDuringBuild=false `
      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
@@ -286,8 +287,8 @@ try {
 
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
-    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "determinism"
-    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci
+    $bootstrapDir = Join-Path $ArtifactsDir (Join-Path "bootstrap" "determinism")
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -force
     Test-LastExitCode
   }
 
