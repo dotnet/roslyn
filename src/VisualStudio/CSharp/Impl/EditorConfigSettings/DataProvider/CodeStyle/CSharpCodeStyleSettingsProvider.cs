@@ -7,7 +7,9 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -70,14 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         {
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CSharpVSResources.Preferred_using_directive_placement, options, updater,
                 enumValues: [AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace],
-                valueDescriptions: [CSharpVSResources.Inside_namespace, CSharpVSResources.Outside_namespace]);
+                valueDescriptions: [CSharpVSResources.Inside_namespace, CSharpEditorResources.Outside_namespace]);
         }
 
         private static IEnumerable<CodeStyleSetting> GetNullCheckingCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, options, updater);
-            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, options, updater);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpAnalyzersResources.Prefer_null_check_over_type_check, options, updater);
         }
 
         private static IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
@@ -93,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, options, updater,
                 enumValues: [PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline],
-                valueDescriptions: [ServicesVSResources.Yes, ServicesVSResources.No, CSharpVSResources.When_on_multiple_lines]);
+                valueDescriptions: [EditorFeaturesResources.Yes, EditorFeaturesResources.No, CSharpVSResources.When_on_multiple_lines]);
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.NamespaceDeclarations, ServicesVSResources.Namespace_declarations, options, updater,
                 enumValues: [NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped],
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         private static IEnumerable<CodeStyleSetting> GetExpressionBodyCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             var enumValues = new[] { ExpressionBodyPreference.Never, ExpressionBodyPreference.WhenPossible, ExpressionBodyPreference.WhenOnSingleLine };
-            var valueDescriptions = new[] { CSharpVSResources.Never, CSharpVSResources.When_possible, CSharpVSResources.When_on_single_line };
+            var valueDescriptions = new[] { ServicesVSResources.Never, CSharpVSResources.When_possible, CSharpVSResources.When_on_single_line };
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ServicesVSResources.Use_expression_body_for_methods, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ServicesVSResources.Use_expression_body_for_constructors, options, updater, enumValues, valueDescriptions);
@@ -151,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         private static IEnumerable<CodeStyleSetting> GetUnusedValueCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             var enumValues = new[] { UnusedValuePreference.UnusedLocalVariable, UnusedValuePreference.DiscardVariable };
-            var valueDescriptions = new[] { CSharpVSResources.Unused_local, CSharpVSResources.Discard };
+            var valueDescriptions = new[] { ServicesVSResources.Unused_local, CSharpVSResources.Discard };
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.UnusedValueAssignment, ServicesVSResources.Avoid_unused_value_assignments, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.UnusedValueExpressionStatement, ServicesVSResources.Avoid_expression_statements_that_implicitly_ignore_value, options, updater, enumValues, valueDescriptions);
