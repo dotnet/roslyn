@@ -49,7 +49,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
         context.RegisterCodeFix(
             CodeAction.Create(
                 AnalyzersResources.Implement_abstract_class,
-                c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c),
+                cancellationToken => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, cancellationToken),
                 id),
             context.Diagnostics);
 
@@ -63,7 +63,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
             context.RegisterCodeFix(
                 CodeAction.Create(
                     string.Format(AnalyzersResources.Implement_through_0, through.Name),
-                    c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c),
+                    cancellationToken => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, cancellationToken),
                     id),
                 context.Diagnostics);
         }
