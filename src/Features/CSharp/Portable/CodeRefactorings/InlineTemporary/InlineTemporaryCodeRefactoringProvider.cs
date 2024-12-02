@@ -128,7 +128,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
     }
 
     private static SyntaxAnnotation CreateConflictAnnotation()
-        => ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+        => ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected);
 
     private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
     {

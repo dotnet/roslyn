@@ -118,7 +118,7 @@ class A : IA
         public async Task TestFindImplementationAsync_MultipleLocations(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|caret:|}{|implementation:A|} { }
+@"class {|caret:|}A { }
 
 class {|implementation:B|} : A { }
 
