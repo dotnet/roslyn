@@ -1458,7 +1458,7 @@ Delta.2: Test D2
                 loader.AddDependencyLocation(destFile);
 
                 var copiedAssembly = loader.LoadFromPath(destFile);
-                Assert.Single(AppDomain.CurrentDomain.GetAssemblies().Where(x => x.FullName == assembly.FullName));
+                Assert.Single(AppDomain.CurrentDomain.GetAssemblies(), x => x.FullName == assembly.FullName);
                 Assert.Same(copiedAssembly, assembly);
             });
         }
