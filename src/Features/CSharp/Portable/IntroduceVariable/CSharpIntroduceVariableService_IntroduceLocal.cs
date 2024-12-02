@@ -113,10 +113,8 @@ internal sealed partial class CSharpIntroduceVariableService
             .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
-        var newLambda = oldLambda.WithBody(newBody);
-
-        var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
-        return document.Document.WithSyntaxRoot(newRoot);
+        return document.Document.WithSyntaxRoot(
+            document.Root.ReplaceNode(oldLambda, oldLambda.WithBody(newBody)));
     }
 
     private static bool ShouldIncludeReturnStatement(
