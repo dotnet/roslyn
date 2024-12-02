@@ -294,17 +294,24 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         SemanticDocument originalDocument,
         TExpressionSyntax expressionInOriginal,
         SemanticDocument currentDocument,
-        SyntaxNode withinNodeInCurrent,
+        SyntaxNode startingNode,
+        bool allOccurrences,
+        CancellationToken cancellationToken)
+    {
+        return FindMatches(originalDocument, expressionInOriginal, currentDocument, [startingNode], allOccurrences, cancellationToken);
+    }
+
+    protected ISet<TExpressionSyntax> FindMatches(
+        SemanticDocument originalDocument,
+        TExpressionSyntax expressionInOriginal,
+        SemanticDocument currentDocument,
+        IEnumerable<SyntaxNode> startingNodes,
         bool allOccurrences,
         CancellationToken cancellationToken)
     {
         var syntaxFacts = currentDocument.Project.Services.GetService<ISyntaxFactsService>();
         var originalSemanticModel = originalDocument.SemanticModel;
         var currentSemanticModel = currentDocument.SemanticModel;
-
-        var startingNodes = withinNodeInCurrent is ICompilationUnitSyntax
-            ? withinNodeInCurrent.ChildNodes().Where(syntaxFacts.IsGlobalStatement)
-            : [withinNodeInCurrent];
 
         var matches =
             from startingNode in startingNodes

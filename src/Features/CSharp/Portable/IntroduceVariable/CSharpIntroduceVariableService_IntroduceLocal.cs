@@ -307,12 +307,17 @@ internal sealed partial class CSharpIntroduceVariableService
 
         SyntaxNode scope = compilationUnit;
 
-        // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
+        // If we're within a non-static local function, our scope for the new local declaration is expanded to include
+        // the enclosing member.
         var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
         if (localFunction is { Body: not null } && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             scope = localFunction.Body;
 
-        var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
+        var startingNodes = scope is ICompilationUnitSyntax
+            ? scope.ChildNodes().Where(n => n is GlobalStatementSyntax)
+            : [scope];
+
+        var matches = FindMatches(document, expression, document, startingNodes, allOccurrences, cancellationToken);
         Debug.Assert(matches.Contains(expression));
 
         var firstAffectedExpression = matches.OrderBy(m => m.SpanStart).First();
@@ -322,8 +327,7 @@ internal sealed partial class CSharpIntroduceVariableService
         // Parenthesize the variable, and go and replace anything we find with it. NOTE: we do not want elastic trivia
         // as we want to just replace the existing code as is, while preserving the trivia there.  We do not want to
         // update it.
-        var replacement = editor.Generator.AddParentheses(
-            newLocalName, includeElasticTrivia: false).WithAdditionalAnnotations(Formatter.Annotation);
+        var replacement = editor.Generator.AddParentheses(newLocalName, includeElasticTrivia: false);
         foreach (var match in matches)
             editor.ReplaceNode(match, replacement);
 

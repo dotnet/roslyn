@@ -104,14 +104,5 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
                 : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
             return string.Format(formatString, nodeString);
         }
-
-        //private ITypeSymbol GetExpressionType(
-        //    CancellationToken cancellationToken)
-        //{
-        //    var semanticModel = _semanticDocument.SemanticModel;
-        //    var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
-
-        //    return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
-        //}
     }
 }
