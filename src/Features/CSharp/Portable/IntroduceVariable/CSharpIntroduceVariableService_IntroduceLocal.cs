@@ -56,15 +56,6 @@ internal sealed partial class CSharpIntroduceVariableService
                     null,
                     EqualsValueClause(expression.WithoutTrivia()))]));
 
-        // If we're inserting into a multi-line parent, then add a newline after the local-var
-        // we're adding.  That way we don't end up having it and the starting statement be on
-        // the same line (which will cause indentation to be computed incorrectly).
-        var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
-        {
-            declarationStatement = declarationStatement.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
-        }
-
         switch (containerToGenerateInto)
         {
             case CompilationUnitSyntax compilationUnit:
