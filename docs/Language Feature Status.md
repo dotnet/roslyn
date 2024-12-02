@@ -25,6 +25,7 @@ efforts behind them.
 | Recognizing 'unmanaged' constraint | main | [Merged into 17.13 P2](https://github.com/dotnet/roslyn/pull/75665) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | (no IDE impact) | [jaredpar](https://github.com/jaredpar) |
 | Overload Resolution Priority | [features/VBOverloadResolutionPriority](https://github.com/dotnet/roslyn/tree/features/VBOverloadResolutionPriority) | In Progress | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [cston](https://github.com/cston) | (no IDE impact) | [333fred](https://github.com/333fred) |
 
+
 # C# 13.0
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
