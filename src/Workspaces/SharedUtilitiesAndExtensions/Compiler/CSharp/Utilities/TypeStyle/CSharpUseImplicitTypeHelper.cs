@@ -208,9 +208,10 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
         // If there was only one member in the group, and it was non-generic itself, then this
         // change is commonly safe to make without having to actually change to `var` and
         // speculatively determine if the change is ok or not.
-        if (declarationExpression.Parent is not ArgumentSyntax argument ||
-            argument.Parent is not ArgumentListSyntax argumentList ||
-            argumentList.Parent is not InvocationExpressionSyntax invocationExpression)
+        if (declarationExpression.Parent is not ArgumentSyntax
+            {
+                Parent: ArgumentListSyntax { Parent: InvocationExpressionSyntax invocationExpression }
+            } argument)
         {
             return false;
         }
@@ -219,33 +220,21 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
         if (memberGroup.Length != 1)
             return false;
 
-        var method = memberGroup[0] as IMethodSymbol;
-        if (method == null)
+        if (memberGroup[0] is not IMethodSymbol { TypeParameters.IsEmpty: true } method)
             return false;
 
-        if (!method.GetTypeParameters().IsEmpty)
-            return false;
+        // Looks pretty good so far.  However, this change is not allowed if the user is specifying something like `out
+        // (int x, int y) t` and the method signature has different names for those tuple elements.  Check and make sure
+        // the types are the same before proceeding.
 
-        // Looks pretty good so far.  However, this change is not allowed if the user is
-        // specifying something like `out (int x, int y) t` and the method signature has
-        // different names for those tuple elements.  Check and make sure the types are the
-        // same before proceeding.
-
-        var invocationOp = semanticModel.GetOperation(invocationExpression, cancellationToken) as IInvocationOperation;
-        if (invocationOp == null)
+        if (semanticModel.GetOperation(invocationExpression, cancellationToken) is not IInvocationOperation invocationOp)
             return false;
 
         var argumentOp = invocationOp.Arguments.FirstOrDefault(a => a.Syntax == argument);
-        if (argumentOp == null)
+        if (argumentOp is not { Value.Type: { } valueType, Parameter.Type: { } parameterType })
             return false;
 
-        if (argumentOp.Value?.Type == null)
-            return false;
-
-        if (argumentOp.Parameter?.Type == null)
-            return false;
-
-        return argumentOp.Value.Type.Equals(argumentOp.Parameter.Type);
+        return valueType.Equals(parameterType);
     }
 
     /// <summary>

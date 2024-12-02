@@ -194,24 +194,13 @@ internal static class TypeStyleHelper
     }
 
     private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
-    {
-        if (node is AwaitExpressionSyntax awaitExpression && awaitExpression.Expression != null)
+        => node switch
         {
-            return GetRightmostInvocationExpression(awaitExpression.Expression);
-        }
-
-        if (node is InvocationExpressionSyntax invocationExpression && invocationExpression.Expression != null)
-        {
-            return GetRightmostInvocationExpression(invocationExpression.Expression);
-        }
-
-        if (node is ConditionalAccessExpressionSyntax conditional)
-        {
-            return GetRightmostInvocationExpression(conditional.WhenNotNull);
-        }
-
-        return node;
-    }
+            AwaitExpressionSyntax { Expression: not null } awaitExpression => GetRightmostInvocationExpression(awaitExpression.Expression),
+            InvocationExpressionSyntax { Expression: not null } invocationExpression => GetRightmostInvocationExpression(invocationExpression.Expression),
+            ConditionalAccessExpressionSyntax conditional => GetRightmostInvocationExpression(conditional.WhenNotNull),
+            _ => node
+        };
 
     public static bool IsPredefinedType(TypeSyntax type)
         => type is PredefinedTypeSyntax predefinedType && SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind());
