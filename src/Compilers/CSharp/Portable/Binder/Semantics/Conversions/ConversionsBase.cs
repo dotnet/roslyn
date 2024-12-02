@@ -1504,9 +1504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LambdaConversionResult.BadParameterCount;
                 }
 
-                // SPEC: If F has an explicitly typed parameter list, each parameter in D has the same type 
-                // SPEC: and modifiers as the corresponding parameter in F.
-                // SPEC: If F has an implicitly typed parameter list, D has no ref or out parameters.
+                // SPEC: If F has an implicitly or explicitly typed parameter list, each parameter in D has the same
+                // SPEC: type and modifiers as the corresponding parameter in F.
 
                 for (int p = 0; p < delegateParameters.Length; ++p)
                 {
