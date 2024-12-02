@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
             Dim conflictAnnotationAdder = Function(oldNode As SyntaxNode, newNode As SyntaxNode) As SyntaxNode
                                               Return newNode _
-                                                  .WithAdditionalAnnotations(ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected))
+                                                  .WithAdditionalAnnotations(ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected))
                                           End Function
 
             Return Await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(False)

@@ -467,4 +467,44 @@ public partial class CSharpUseNotPatternTests
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62078")]
+    public async Task TestTypeVersusMemberAmbiguity()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Color { }
+
+                class C
+                {
+                    public const int Color = 0;
+
+                    void M(object x)
+                    {
+                        if (!(x [|is|] Color))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class Color { }
+
+                class C
+                {
+                    public const int Color = 0;
+
+                    void M(object x)
+                    {
+                        if (x is not global::Color)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            CodeActionValidationMode = Testing.CodeActionValidationMode.None,
+        }.RunAsync();
+    }
 }

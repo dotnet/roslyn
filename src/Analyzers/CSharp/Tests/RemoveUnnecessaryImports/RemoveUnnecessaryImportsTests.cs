@@ -19,8 +19,10 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryImportsCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
-public class RemoveUnnecessaryImportsTests
+public sealed class RemoveUnnecessaryImportsTests
 {
+    private static readonly string s_tab = "\t";
+
     [Fact]
     public async Task TestNoReferences()
     {
@@ -2245,5 +2247,37 @@ public class RemoveUnnecessaryImportsTests
             }
             """
         }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65114")]
+    public async Task DoNotTouchInnerNamespaceWithoutUsings()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            $$"""
+            [|{|IDE0005:using System;
+            using System.Collections.Generic;
+            using System.Linq;|}|]
+
+            namespace N
+            {
+            {{s_tab}}class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+            }
+            """,
+            $$"""
+            namespace N
+            {
+            {{s_tab}}class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+            }
+            """);
     }
 }

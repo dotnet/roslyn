@@ -2308,4 +2308,35 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
             }
             """);
     }
+
+    [Fact]
+    public async Task TestWithCollectionExpressions()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int[] M()
+                {
+                    [||]if (true)
+                    {
+                        return [0];
+                    }
+                    else
+                    {
+                        return [1];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int[] M()
+                {
+                    return true ? [0] : [1];
+                }
+            }
+            """);
+    }
 }

@@ -294,9 +294,6 @@
   <data name="Returns_colon" xml:space="preserve">
     <value>Returns:</value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Remarks_colon" xml:space="preserve">
     <value>Remarks:</value>
   </data>
@@ -811,9 +808,6 @@ This version used in: {2}</value>
   <data name="Structures" xml:space="preserve">
     <value>Structures</value>
   </data>
-  <data name="Parameters_colon" xml:space="preserve">
-    <value>Parameters:</value>
-  </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
@@ -1189,9 +1183,6 @@ This version used in: {2}</value>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
   </data>
-  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
-    <value>Stream must support read and seek operations.</value>
-  </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
   </data>
@@ -1249,6 +1240,9 @@ This version used in: {2}</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
+  </data>
+  <data name="Parameters_colon" xml:space="preserve">
+    <value>Parameters:</value>
   </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>
@@ -3173,5 +3167,26 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Symbol_search" xml:space="preserve">
     <value>Symbol search</value>
+  </data>
+  <data name="Conflict_s_detected" xml:space="preserve">
+    <value>Conflict(s) detected.</value>
+  </data>
+  <data name="Simplify_name_0" xml:space="preserve">
+    <value>Simplify name '{0}'</value>
+  </data>
+  <data name="Simplify_member_access_0" xml:space="preserve">
+    <value>Simplify member access '{0}'</value>
+  </data>
+  <data name="Not_all_code_paths_return" xml:space="preserve">
+    <value>Not all code paths return</value>
+  </data>
+  <data name="namespace_name" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
+  <data name="class_name" xml:space="preserve">
+    <value>&lt;class name&gt;</value>
+  </data>
+  <data name="interface_name" xml:space="preserve">
+    <value>&lt;interface name&gt;</value>
   </data>
 </root>

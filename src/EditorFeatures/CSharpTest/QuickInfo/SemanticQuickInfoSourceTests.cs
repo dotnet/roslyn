@@ -516,7 +516,9 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
         // SingleLine doc comment with '\r' line separators
         await TestAsync("""
-            ///<summary>Hello!            ///</summary>            class C { void M() { $$C obj; } }
+            ///<summary>Hello!
+            ///</summary>
+            class C { void M() { $$C obj; } }
             """,
             MainDescription("class C"),
             Documentation("Hello!"));
@@ -632,7 +634,12 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
         // Multiline doc comment with '\r' line separators
         await TestAsync("""
-            /**            * <summary>            * Hello!            * </summary>            */            class C { void M() { $$C obj; } }
+            /**
+            * <summary>
+            * Hello!
+            * </summary>
+            */
+            class C { void M() { $$C obj; } }
             """,
             MainDescription("class C"),
             Documentation("Hello!"));
@@ -8924,6 +8931,24 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
 MainDescription("string Person.First { get; init; }"),
 Documentation("The person's first name."));
+    }
+
+    [Fact]
+    public async Task QuickInfoFieldKeyword()
+    {
+        await TestWithOptionsAsync(
+            Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            class C
+            {
+                int Prop
+                {
+                    get => $$field;
+                    set => field = value;
+                }
+            }
+            """,
+MainDescription("(field) int C.Prop.field"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51615")]

@@ -29,7 +29,6 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
         var test = new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = languageVersion,
             Options = { options },
         };

@@ -4517,17 +4517,19 @@ class C
         );
     }
 
-    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [Theory, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
+    [InlineData("public string Property2 { get; set; }")]
+    [InlineData("public string Property2 { get => field; set => field = value; }")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03(string property2Definition)
     {
-        var code = """
+        var code = $$"""
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 class C
 {
     public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
-    public string Property2 { get; set; }
+    {{property2Definition}}
 
     public C() { }
     public C(bool unused) : this()
@@ -4549,17 +4551,19 @@ class C
         );
     }
 
-    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [Theory, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     [WorkItem(6754, "https://github.com/dotnet/csharplang/issues/6754")]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
+    [InlineData("public string Property2 { get; set; }")]
+    [InlineData("public string Property2 { get => field; set => field = value; }")]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04(string property2Definition)
     {
-        var code = """
+        var code = $$"""
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 class C
 {
     public required string Property1 { get => Property2; [MemberNotNull(nameof(Property2))] set => Property2 = value; }
-    public string Property2 { get; set; }
+    {{property2Definition}}
 
     public C() { }
     [SetsRequiredMembers]

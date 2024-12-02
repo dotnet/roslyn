@@ -741,7 +741,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         {
             var operationExecutor = LibraryManager.ComponentModel.GetService<IUIThreadOperationExecutor>();
 
-            using var context = operationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
+            using var context = operationExecutor.BeginExecute(EditorFeaturesResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
             var cancellationToken = context.UserCancellationToken;
             if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION &&

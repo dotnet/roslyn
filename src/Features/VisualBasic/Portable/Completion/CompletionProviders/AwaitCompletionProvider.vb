@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -23,15 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
-        Friend Overrides ReadOnly Property Language As String
-            Get
-                Return LanguageNames.VisualBasic
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerChars
 
-        Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer
+        Protected Overrides Function GetAsyncKeywordInsertionPosition(declaration As SyntaxNode) As Integer
             Select Case declaration.Kind()
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
@@ -44,6 +41,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End Select
 
             Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected Overrides Function GetReturnTypeChange(semanticModel As SemanticModel, declaration As SyntaxNode, cancellationToken As CancellationToken) As TextChange?
+            ' Todo: Add support if desired.
+            Return Nothing
         End Function
 
         Protected Overrides Function GetAsyncSupportingDeclaration(targetToken As SyntaxToken, position As Integer) As SyntaxNode

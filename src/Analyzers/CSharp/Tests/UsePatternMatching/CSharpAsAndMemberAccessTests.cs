@@ -67,7 +67,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -89,7 +88,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -109,7 +107,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -134,7 +131,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -156,7 +152,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -178,7 +173,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -200,7 +194,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -222,7 +215,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -247,7 +239,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -271,7 +262,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -367,7 +357,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -391,7 +380,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -608,7 +596,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -630,7 +617,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -652,7 +638,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -677,7 +662,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -847,7 +831,6 @@ public partial class CSharpAsAndMemberAccessTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
