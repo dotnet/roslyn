@@ -1,2 +1,3 @@
 @echo off
-powershell -noprofile -file "%~dp0\make-bootstrap.ps1" %* 
+set PSMODULEPATH=
+powershell -noprofile -executionPolicy Unrestricted -file "%~dp0\make-bootstrap.ps1" %* 
