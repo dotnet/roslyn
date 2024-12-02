@@ -2119,8 +2119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If any parameter type of the lambda is an error type then suppress
             // further errors. We've already reported errors on the bad type.
-            var hasExplicitlyTypedParameterList = anonymousFunction.HasExplicitlyTypedParameterList;
-            if (hasExplicitlyTypedParameterList)
+            if (anonymousFunction.HasExplicitlyTypedParameterList)
             {
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
