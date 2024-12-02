@@ -525,6 +525,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">設定所有分析器的嚴重性</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="new">Conflict(s) detected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Constructors_not_allowed">
         <source>Constructors not allowed</source>
         <target state="translated">不允許建構函式</target>
@@ -1243,6 +1248,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">沒有可執行擷取的有效選取範圍。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="new">Not all code paths return</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2580,6 +2590,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">靜音</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="new">Simplify member access '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="new">Simplify name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
         <target state="translated">排序 Import 或 Using</target>
@@ -2608,11 +2628,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">分割成巢狀 '{0}' 陳述式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">資料流必須支援讀取及搜尋作業。</target>
         <note />
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
@@ -3431,6 +3446,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">並直接更新呼叫位置</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="new">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
         <target state="translated">具有明確或循序配置的類別</target>
@@ -3612,6 +3632,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">在來源中 (屬性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="new">&lt;interface name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
         <target state="translated">轉換成擷取方法，以在呼叫位置叫用</target>
@@ -3728,6 +3753,11 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="month_full_description">
         <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
         <target state="translated">"MMMM" 自訂格式規範代表該月份的完整名稱。系統會從目前文化特性或指定文化特性的 DateTimeFormatInfo.MonthNames 屬性，擷取該月份的當地語系化名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="new">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -3987,11 +4017,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Returns_colon">
         <source>Returns:</source>
         <target state="translated">傳回:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">例外狀況:</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">

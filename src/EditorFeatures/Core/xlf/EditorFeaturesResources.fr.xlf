@@ -792,11 +792,6 @@
         <target state="translated">Le changement de nom ne s'est pas effectué correctement. Certains fichiers risquent de ne pas avoir été mis à jour.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Renommer '{0}' en '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">Avertissement sur la pré-version</target>

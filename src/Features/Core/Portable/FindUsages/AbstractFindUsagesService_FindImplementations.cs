@@ -5,10 +5,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -118,6 +120,10 @@ internal abstract partial class AbstractFindUsagesService
             }
         }
 
+        // If we didn't find any implementations, then just return the original symbol.
+        if (builder.Count == 0)
+            builder.Add(symbol.OriginalDefinition);
+
         return [.. builder];
 
         static bool AddedAllLocations(ISymbol implementation, HashSet<(string filePath, TextSpan span)> seenLocations)
@@ -136,11 +142,15 @@ internal abstract partial class AbstractFindUsagesService
         Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
         var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-        var result = new HashSet<ISymbol>(implementations.Select(s => s.OriginalDefinition));
+
+        using var _ = PooledHashSet<ISymbol>.GetInstance(out var result);
+        result.AddRange(implementations.Select(s => s.OriginalDefinition));
 
         // For members, if we've found overrides of the original symbol, then filter out any abstract
         // members these inherit from.  The user has asked for literal implementations, and in the case
         // of an override, including the abstract as well isn't helpful.
+
+        // Make a copy of this list as we mutating it as we proceed.
         var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
         foreach (var ov in overrides)
         {
@@ -167,7 +177,7 @@ internal abstract partial class AbstractFindUsagesService
             // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
             // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
             // is to just use a HashSet.
-            var implementationsAndOverrides = new HashSet<ISymbol>();
+            using var _ = PooledHashSet<ISymbol>.GetInstance(out var implementationsAndOverrides);
 
             foreach (var implementation in implementations)
             {
@@ -183,31 +193,21 @@ internal abstract partial class AbstractFindUsagesService
                 }
             }
 
-            if (!symbol.IsInterfaceType() &&
-                !symbol.IsAbstract)
-            {
-                implementationsAndOverrides.Add(symbol);
-            }
-
             return [.. implementationsAndOverrides];
         }
         else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
         {
-            var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                namedType, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            return derivedClasses.Concat(symbol).ToImmutableArray();
+            return ImmutableArray<ISymbol>.CastUp(await SymbolFinder.FindDerivedClassesArrayAsync(
+                namedType, solution, transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false));
         }
         else if (symbol.IsOverridable())
         {
-            var overrides = await SymbolFinder.FindOverridesAsync(
+            return await SymbolFinder.FindOverridesArrayAsync(
                 symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return overrides.Concat(symbol).ToImmutableArray();
         }
         else
         {
-            // This is something boring like a regular method or type, so we'll just go there directly
-            return [symbol];
+            return [];
         }
     }
 }
