@@ -55,15 +55,8 @@ internal sealed partial class CSharpUseExplicitArrayInExpressionTreeCodeFixProvi
                 if (!currentMethod.ReturnsVoid && !Equals(currentMethod.ReturnType, originalMethod.ReturnType))
                     continue;
 
-                for (int i = 0, n = currentMethod.Parameters.Length - 1; i < n; i++)
-                {
-                    var originalParameter = originalMethod.Parameters[i];
-                    var currentParameter = currentMethod.Parameters[i];
-
-                    // Different parameter types, look for another sibling that matches
-                    if (!originalParameter.Type.Equals(currentParameter.Type))
-                        continue;
-                }
+                if (!ParameterTypesMatch(originalMethod, currentMethod))
+                    continue;
 
                 // Sibling looks good. Determine the index of the first argument that needs to be wrapped with an array
                 // creation expression.
@@ -81,6 +74,21 @@ internal sealed partial class CSharpUseExplicitArrayInExpressionTreeCodeFixProvi
         }
 
         return null;
+
+        static bool ParameterTypesMatch(IMethodSymbol originalMethod, IMethodSymbol currentMethod)
+        {
+            for (int i = 0, n = currentMethod.Parameters.Length - 1; i < n; i++)
+            {
+                var originalParameter = originalMethod.Parameters[i];
+                var currentParameter = currentMethod.Parameters[i];
+
+                // Different parameter types, look for another sibling that matches
+                if (!originalParameter.Type.Equals(currentParameter.Type))
+                    return false;
+            }
+
+            return true;
+        }
     }
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
