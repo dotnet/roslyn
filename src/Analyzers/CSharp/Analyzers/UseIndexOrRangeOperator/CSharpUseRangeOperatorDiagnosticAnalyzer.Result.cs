@@ -39,7 +39,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         public readonly MemberInfo MemberInfo = memberInfo;
 
         /// <summary>
-        /// Can be null, to representing a starting index of 0.
+        /// Represents the starting operation of the range we are creating.
         /// </summary>
         public readonly IOperation Op1 = op1;
 
