@@ -56,8 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxListOpt = null;
             bool hasSignature;
 
-            var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
-
             if (syntax is LambdaExpressionSyntax lambdaSyntax)
             {
                 MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, lambdaSyntax.ArrowToken);
@@ -121,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameterSyntaxListOpt is { } parameterSyntaxList)
             {
+                var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
                 var hasExplicitlyTypedParameterList = parameterSyntaxList.All(static p => p.Type != null);
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
