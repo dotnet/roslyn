@@ -1565,9 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override ParameterSyntax? ParameterSyntax(int index)
-        {
-            return _parameterSyntaxList is null ? null : _parameterSyntaxList.Value[index];
-        }
+            => _parameterSyntaxList?[index];
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
         {
