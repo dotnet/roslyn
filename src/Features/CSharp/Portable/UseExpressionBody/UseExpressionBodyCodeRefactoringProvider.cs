@@ -28,18 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ExtractClass)]
-internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
     private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
     private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_equivalenceKeyMap
         = CreateEquivalanceKeyMap(UseExpressionBodyHelper.Helpers);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseExpressionBodyCodeRefactoringProvider()
-    {
-    }
 
     private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateEquivalanceKeyMap(
         ImmutableArray<UseExpressionBodyHelper> helpers)
@@ -127,9 +123,9 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
             context.RegisterRefactoring(
                 CodeAction.Create(
                     helper.UseExpressionBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
+                    cancellationToken => UpdateDocumentAsync(
                         document, root, declaration, helper,
-                        useExpressionBody: true, cancellationToken: c),
+                        useExpressionBody: true, cancellationToken),
                     s_equivalenceKeyMap[(helper, useExpressionBody: true)]),
                 declaration.Span);
             succeeded = true;
@@ -140,9 +136,9 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
             context.RegisterRefactoring(
                 CodeAction.Create(
                     helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
+                    cancellationToken => UpdateDocumentAsync(
                         document, root, declaration, helper,
-                        useExpressionBody: false, cancellationToken: c),
+                        useExpressionBody: false, cancellationToken),
                     s_equivalenceKeyMap[(helper, useExpressionBody: false)]),
                 declaration.Span);
             succeeded = true;

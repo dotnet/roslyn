@@ -549,7 +549,7 @@ public class Document : TextDocument
     {
         var newAsyncLazy = AsyncLazy.Create(static async (arg, cancellationToken) =>
         {
-            var options = await arg.self.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await arg.self.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new DocumentOptionSet(options, arg.solutionOptions, arg.self.Project.Language);
         },
         arg: (self: this, solutionOptions));
@@ -558,9 +558,9 @@ public class Document : TextDocument
     }
 #pragma warning restore
 
-    internal async ValueTask<StructuredAnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
+    internal async ValueTask<StructuredAnalyzerConfigOptions> GetHostAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
     {
-        var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+        var provider = (ProjectState.ProjectHostAnalyzerConfigOptionsProvider)Project.State.HostAnalyzerOptions.AnalyzerConfigOptionsProvider;
         return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
     }
 

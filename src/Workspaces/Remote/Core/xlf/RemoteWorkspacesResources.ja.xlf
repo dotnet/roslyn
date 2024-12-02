@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_RelatedDocuments">
         <source>Related documents</source>
-        <target state="new">Related documents</target>
+        <target state="translated">関連ドキュメント</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_Renamer">

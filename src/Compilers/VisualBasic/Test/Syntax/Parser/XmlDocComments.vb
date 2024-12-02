@@ -574,7 +574,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -594,7 +594,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -622,7 +622,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -665,7 +665,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -691,7 +691,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -718,7 +718,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -749,7 +749,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -774,7 +774,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
     <Fact>
@@ -799,7 +799,7 @@ End Module
 
         Dim actual = documentationComment.ToFullString()
 
-        Assert.Equal(Of String)(expected, actual)
+        AssertEx.Equal(Of String)(expected, actual)
     End Sub
 
 End Class

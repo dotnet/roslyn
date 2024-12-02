@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis
 
                         var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
-                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
+                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, this.ProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
                         if (runTransformers != null)
                             (compilationWithGeneratedDocuments, transformerDiagnostics) = runTransformers(compilationWithGeneratedDocuments);
                     }

@@ -19777,6 +19777,142 @@ class C1 (int p1)
             AssertEx.Equal("System.Int32 C.this[System.Int32 i] { get; }", info.Symbol.ToTestDisplayString());
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
+        [Fact]
+        public void PartialMembers_01()
+        {
+            var source1 = """
+                C c = null;
+                c.M();
+                _ = c.P;
+                """;
+            var source2 = """
+                #pragma warning disable 9113 // parameter is unread
+                partial class C(int p)
+                {
+                    public partial void M() { }
+                    public partial void M();
+                    public partial object P { get; }
+                    public partial object P { get => null; }
+                }
+                """;
+            var comp = CreateCompilation([source1, source2]);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
+            model.GetDiagnostics().Verify(
+                // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // c.M();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(2, 3),
+                // (3,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                // _ = c.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(3, 7));
+        }
+
+        [Fact]
+        public void NullableAttributes_01()
+        {
+            var source1 = """
+                #nullable enable
+                C c = null!;
+                object o;
+                o = c.M();
+                o = c.P;
+                """;
+            var source2 = """
+                #pragma warning disable 9113 // parameter is unread
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+                class C(int p)
+                {
+                    [return: MaybeNull] public object M() => new();
+                    [MaybeNull] public object P { get => new(); }
+                }
+                """;
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            model.GetDiagnostics().Verify(
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // o = c.M();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // o = c.P;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
+        [Fact]
+        public void NullableAttributes_PartialMembers_01()
+        {
+            var source1 = """
+                #nullable enable
+                C c = null!;
+                object o;
+                o = c.M();
+                o = c.P;
+                """;
+            var source2 = """
+                #pragma warning disable 9113 // parameter is unread
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+                partial class C(int p)
+                {
+                    public partial object M() => new();
+                    [return: MaybeNull] public partial object M();
+                    [MaybeNull] public partial object P { get; }
+                    public partial object P { get => new(); }
+                }
+                """;
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
+            model.GetDiagnostics().Verify(
+                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // o = c.M();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
+                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                // o = c.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
+        [Fact]
+        public void NullableAttributes_PartialMembers_02()
+        {
+            var source1 = """
+                #nullable enable
+                C c = null!;
+                object o;
+                o = c.M();
+                o = c.P;
+                """;
+            var source2 = """
+                #pragma warning disable 9113 // parameter is unread
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+                partial class C(int p)
+                {
+                    [return: MaybeNull] public partial object M() => new();
+                    public partial object M();
+                    public partial object P { get; }
+                    [MaybeNull] public partial object P { get => new(); }
+                }
+                """;
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
+            model.GetDiagnostics().Verify(
+                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // o = c.M();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
+                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                // o = c.P;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+        }
+
         [Fact]
         public void IllegalCapturingInStruct_01()
         {
