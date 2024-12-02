@@ -349,9 +349,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Go_To_Definition As String =
             ServicesVSResources.Go_To_Definition
 
-        Public ReadOnly Property Option_Navigate_asynchronously_exerimental As String =
-            ServicesVSResources.Navigate_asynchronously_exerimental
-
         Public ReadOnly Property Option_Rename As String =
             EditorFeaturesResources.Rename
 

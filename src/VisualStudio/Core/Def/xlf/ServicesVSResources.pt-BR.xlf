@@ -887,11 +887,6 @@
         <target state="translated">Regras de nomenclatura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_asynchronously_exerimental">
-        <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">Navegar de forma assíncrona (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Navegar até '{0}'</target>
