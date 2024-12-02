@@ -8602,8 +8602,10 @@ class Program
         public void TestParamsWithImplicitExplicitLambdas(
             [CombinatorialValues("params", "")] string delegateModifier,
             [CombinatorialValues("params", "")] string lambdaModifier,
-            [CombinatorialValues("int[]", "")] string lambdaType)
+            [CombinatorialValues("int[]", "")] string lambdaType,
+            bool isCSharp13)
         {
+            var options = isCSharp13 ? TestOptions.Regular13 : TestOptions.RegularNext;
             var source = $$"""
                 delegate void D({{delegateModifier}} int[] i);
 
@@ -8615,19 +8617,26 @@ class Program
                     }
                 }
                 """;
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: options);
+
+            var diagnostics = new List<DiagnosticDescription>();
+            if (isCSharp13 && lambdaModifier == "params" && lambdaType == "")
+            {
+                diagnostics.Add(
+                    // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         D d = (params  a) => { };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "params  a").WithArguments("simple lambda parameter modifiers"));
+            }
 
             if (delegateModifier == "" && lambdaModifier == "params")
             {
-                compilation.VerifyDiagnostics(
+                diagnostics.Add(
                     // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         D d = (params  a) => { };
                     Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "a").WithArguments("1"));
             }
-            else
-            {
-                compilation.VerifyDiagnostics();
-            }
+
+            compilation.VerifyDiagnostics([.. diagnostics]);
         }
 
         [Fact]
