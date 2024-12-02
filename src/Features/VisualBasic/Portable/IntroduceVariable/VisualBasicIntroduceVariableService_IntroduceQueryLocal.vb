@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                             SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         expression)).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, {oldOutermostQuery}, allOccurrences, cancellationToken)
             Dim innermostClauses = New HashSet(Of QueryClauseSyntax)(
                 matches.Select(Function(expr) expr.GetAncestor(Of QueryClauseSyntax)()))
 

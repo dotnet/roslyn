@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, {oldOutermostBlock}, allOccurrences, cancellationToken)
 
             Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
             document = complexified.newSemanticDocument

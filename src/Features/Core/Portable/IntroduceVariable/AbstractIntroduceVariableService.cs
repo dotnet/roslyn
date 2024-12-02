@@ -71,7 +71,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
             var state = await State.GenerateAsync((TService)this, semanticDocument, options, textSpan, cancellationToken).ConfigureAwait(false);
             var (title, actions) = CreateActions(state, cancellationToken);
-            if (actions.Length > 0)
+            if (!actions.IsDefaultOrEmpty)
             {
                 // We may end up creating a lot of viable code actions for the selected
                 // piece of code.  Create a top level code action so that we don't overwhelm
@@ -89,7 +89,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
     private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
     {
         if (state is null)
-            return (null, []);
+            return default;
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
         var title = AddActionsAndGetTitle(state, actions, cancellationToken);
@@ -294,17 +294,6 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         SemanticDocument originalDocument,
         TExpressionSyntax expressionInOriginal,
         SemanticDocument currentDocument,
-        SyntaxNode startingNode,
-        bool allOccurrences,
-        CancellationToken cancellationToken)
-    {
-        return FindMatches(originalDocument, expressionInOriginal, currentDocument, [startingNode], allOccurrences, cancellationToken);
-    }
-
-    protected ISet<TExpressionSyntax> FindMatches(
-        SemanticDocument originalDocument,
-        TExpressionSyntax expressionInOriginal,
-        SemanticDocument currentDocument,
         IEnumerable<SyntaxNode> startingNodes,
         bool allOccurrences,
         CancellationToken cancellationToken)
@@ -378,8 +367,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         return false;
 
         static bool IsInstanceMemberReference(IOperation operation)
-            => operation is IMemberReferenceOperation memberReferenceOperation &&
-                memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+            => operation is IMemberReferenceOperation { Instance.Kind: OperationKind.InstanceReference };
     }
 
     protected TNode Rewrite<TNode>(
@@ -393,13 +381,13 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         where TNode : SyntaxNode
     {
         var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
-        var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, cancellationToken);
+        var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, [withinNodeInCurrent], allOccurrences, cancellationToken);
 
         // Parenthesize the variable, and go and replace anything we find with it.
         // NOTE: we do not want elastic trivia as we want to just replace the existing code 
         // as is, while preserving the trivia there.  We do not want to update it.
-        var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
-                                     .WithAdditionalAnnotations(Formatter.Annotation);
+        var replacement = generator
+            .AddParentheses(variableName, includeElasticTrivia: false);
 
         return RewriteCore(withinNodeInCurrent, replacement, matches);
     }

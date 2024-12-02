@@ -37,7 +37,7 @@ internal sealed partial class CSharpIntroduceVariableService
             newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
             expression).WithAdditionalAnnotations(Formatter.Annotation);
 
-        var matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken);
+        var matches = FindMatches(document, expression, document, [oldOutermostQuery], allOccurrences, cancellationToken);
         var innermostClauses = new HashSet<SyntaxNode>(
             matches.Select(expr => expr.GetAncestorsOrThis<SyntaxNode>().First(IsAnyQueryClause)));
 

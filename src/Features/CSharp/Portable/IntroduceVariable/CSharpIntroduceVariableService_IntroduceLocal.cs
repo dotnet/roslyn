@@ -379,7 +379,7 @@ internal sealed partial class CSharpIntroduceVariableService
             scope = block.GetAncestor<MemberDeclarationSyntax>();
         }
 
-        var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
+        var matches = FindMatches(document, expression, document, [scope], allOccurrences, cancellationToken);
         Debug.Assert(matches.Contains(expression));
 
         (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
