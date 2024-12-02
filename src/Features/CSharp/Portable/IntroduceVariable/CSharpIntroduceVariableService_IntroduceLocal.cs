@@ -501,17 +501,18 @@ internal sealed partial class CSharpIntroduceVariableService
         var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
         if (precedingEndOfLine == default)
         {
+            if (nextStatementLeading is [(kind: SyntaxKind.WhitespaceTrivia) indentation])
+                newStatement = newStatement.WithLeadingTrivia(indentation).WithTrailingTrivia(CarriageReturnLineFeed);
+
             return oldStatements.ReplaceRange(
                 nextStatement, [newStatement, nextStatement]);
         }
 
-        var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
-
         return oldStatements.ReplaceRange(
             nextStatement,
             [
-                newStatement.WithLeadingTrivia(nextStatementLeading.Take(endOfLineIndex)),
-                nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(endOfLineIndex)),
+                newStatement.WithLeadingTrivia(nextStatementLeading).WithTrailingTrivia(precedingEndOfLine),
+                nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(nextStatementLeading.IndexOf(precedingEndOfLine) + 1)),
             ]);
     }
 

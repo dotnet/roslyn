@@ -9196,4 +9196,92 @@ namespace ConsoleApp1
             }
             """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
+    public async Task TestPreserveIndentationInLambda1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+                            [|Array.Empty<string>()|].Count();
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+                            var {|Rename:strings|} = Array.Empty<string>();
+                            strings.Count();
+                        }
+                    };
+                }
+            }
+            """, index: 0, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
+    public async Task TestPreserveIndentationInLambda2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+
+                            [|Array.Empty<string>()|].Count();
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+
+                            var {|Rename:strings|} = Array.Empty<string>();
+                            strings.Count();
+                        }
+                    };
+                }
+            }
+            """, index: 0, options: ImplicitTypingEverywhere());
+    }
 }
