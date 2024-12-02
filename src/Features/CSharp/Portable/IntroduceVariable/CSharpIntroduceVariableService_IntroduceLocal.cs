@@ -59,7 +59,6 @@ internal sealed partial class CSharpIntroduceVariableService
         switch (containerToGenerateInto)
         {
             case CompilationUnitSyntax compilationUnit:
-
                 return IntroduceLocalDeclarationIntoCompilationUnit(
                     document, compilationUnit, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
 
