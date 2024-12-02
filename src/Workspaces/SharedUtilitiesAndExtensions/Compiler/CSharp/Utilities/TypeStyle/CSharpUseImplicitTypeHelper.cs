@@ -110,23 +110,11 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
                 SyntaxKind.UsingStatement))
         {
             // implicitly typed variables cannot be constants.
-            if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
-            {
+            if (variableDeclaration.Parent is LocalDeclarationStatementSyntax { IsConst: true })
                 return false;
-            }
 
-            if (variableDeclaration.Variables.Count != 1)
-            {
+            if (variableDeclaration.Variables is not [{ Initializer.Value: var initializer } variable])
                 return false;
-            }
-
-            var variable = variableDeclaration.Variables[0];
-            if (variable.Initializer == null)
-            {
-                return false;
-            }
-
-            var initializer = variable.Initializer.Value;
 
             // Do not suggest var replacement for stackalloc span expressions.
             // This will change the bound type from a span to a pointer.
