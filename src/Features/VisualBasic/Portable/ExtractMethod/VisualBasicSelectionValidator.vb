@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' check control flow only if we are extracting statement level, not expression level.
                     ' you can't have goto that moves control out of scope in expression level (even in lambda)
                     With selectionInfo
-                        .Status = .Status.With(succeeded:=True, VBFeaturesResources.Not_all_code_paths_return)
+                        .Status = .Status.With(succeeded:=True, FeaturesResources.Not_all_code_paths_return)
                     End With
                 End If
             End If

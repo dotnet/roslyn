@@ -978,11 +978,11 @@ public class Goo
 """, async w =>
         {
             // Do one set of queries
-            Assert.Single((await _aggregator.GetItemsAsync("Goo")).Where(x => x.Kind != "Method"));
+            Assert.Single((await _aggregator.GetItemsAsync("Goo")), x => x.Kind != "Method");
             _provider.StopSearch();
 
             // Do the same query again, make sure nothing was left over
-            Assert.Single((await _aggregator.GetItemsAsync("Goo")).Where(x => x.Kind != "Method"));
+            Assert.Single((await _aggregator.GetItemsAsync("Goo")), x => x.Kind != "Method");
             _provider.StopSearch();
 
             // Dispose the provider

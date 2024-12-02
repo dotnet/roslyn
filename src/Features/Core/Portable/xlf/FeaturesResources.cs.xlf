@@ -525,6 +525,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Nakonfigurujte závažnost pro všechny analyzátory.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="new">Conflict(s) detected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Constructors_not_allowed">
         <source>Constructors not allowed</source>
         <target state="translated">Konstruktory nejsou povolené</target>
@@ -1243,6 +1248,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">Žádný platný výběr k provedení extrakce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="new">Not all code paths return</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2580,6 +2590,16 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Tichý</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="new">Simplify member access '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="new">Simplify name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
         <target state="translated">Seřadit importy nebo použití</target>
@@ -2608,11 +2628,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">Rozdělit do vnořených příkazů {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">Stream musí podporovat operace read a seek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
@@ -3431,6 +3446,11 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
         <target state="translated">a aktualizovat místa volání přímo</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="new">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
         <target state="translated">třída s explicitním nebo sekvenčním rozložením</target>
@@ -3612,6 +3632,11 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
         <target state="translated">in Source (atribut)</target>
         <note />
       </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="new">&lt;interface name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
         <target state="translated">do extrahované metody pro vyvolání na místech volání</target>
@@ -3728,6 +3753,11 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
       <trans-unit id="month_full_description">
         <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
         <target state="translated">Specifikátor vlastního formátu MMMM reprezentuje celý název měsíce. Lokalizovaný název měsíce se načítá z vlastnosti DateTimeFormatInfo.MonthNames aktuální nebo zadané jazykové verze.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="new">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -3987,11 +4017,6 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
       <trans-unit id="Returns_colon">
         <source>Returns:</source>
         <target state="translated">Vrácení:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Výjimky:</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">

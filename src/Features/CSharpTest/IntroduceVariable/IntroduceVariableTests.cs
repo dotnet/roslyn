@@ -20,7 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
@@ -6245,11 +6245,11 @@ class C
             {
                 class C
                 {
-                    private const int {|Rename:V|} = 1 + 1;
+                    private const int {|Rename:foo|} = 1 + 1;
 
                     void M()
                     {
-                        var t = new { foo = V };
+                        var t = new { foo = foo };
                     }
                 }
             }
@@ -8981,6 +8981,35 @@ namespace ConsoleApp1
 
                 [Example([|typeof(C)|])]
                 public string Bar { get; set; }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21602")]
+    public async Task DetermineNameFromAnonymousObjectMember()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var x = new { y = [|DateTime.Now.ToString()|] };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    string {|Rename:y|} = DateTime.Now.ToString();
+                    var x = new { y = y };
+                }
             }
             """);
     }

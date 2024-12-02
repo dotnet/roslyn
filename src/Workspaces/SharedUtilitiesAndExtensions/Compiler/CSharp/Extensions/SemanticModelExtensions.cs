@@ -362,44 +362,48 @@ internal static partial class SemanticModelExtensions
             current = current.WalkDownParentheses();
 
             if (current is IdentifierNameSyntax identifierName)
-            {
                 return identifierName.Identifier.ValueText.ToCamelCase();
-            }
-            else if (current is MemberAccessExpressionSyntax memberAccess)
-            {
+
+            if (current is MemberAccessExpressionSyntax memberAccess)
                 return memberAccess.Name.Identifier.ValueText.ToCamelCase();
-            }
-            else if (current is MemberBindingExpressionSyntax memberBinding)
-            {
+
+            if (current is MemberBindingExpressionSyntax memberBinding)
                 return memberBinding.Name.Identifier.ValueText.ToCamelCase();
-            }
-            else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
-            {
-                current = conditionalAccess.WhenNotNull;
-            }
-            else if (current is CastExpressionSyntax castExpression)
-            {
-                current = castExpression.Expression;
-            }
-            else if (current is DeclarationExpressionSyntax decl)
+
+            if (current is DeclarationExpressionSyntax decl)
             {
                 if (decl.Designation is not SingleVariableDesignationSyntax name)
-                {
                     break;
-                }
 
                 return name.Identifier.ValueText.ToCamelCase();
             }
-            else if (current.Parent is ForEachStatementSyntax foreachStatement &&
-                     foreachStatement.Expression == expression)
+
+            if (current.Parent is ForEachStatementSyntax foreachStatement &&
+                foreachStatement.Expression == expression)
             {
                 var word = foreachStatement.Identifier.ValueText.ToCamelCase();
                 return CodeAnalysis.Shared.Extensions.SemanticModelExtensions.Pluralize(word);
             }
-            else
+
+            if (current.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: { } nameEquals } anonymousObjectMemberDeclarator &&
+                anonymousObjectMemberDeclarator.Expression == current)
             {
-                break;
+                return nameEquals.Name.Identifier.ValueText.ToCamelCase();
             }
+
+            if (current is ConditionalAccessExpressionSyntax conditionalAccess)
+            {
+                current = conditionalAccess.WhenNotNull;
+                continue;
+            }
+
+            if (current is CastExpressionSyntax castExpression)
+            {
+                current = castExpression.Expression;
+                continue;
+            }
+
+            break;
         }
 
         // there was nothing in the expression to signify a name.  If we're in an argument
