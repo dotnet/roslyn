@@ -5,11 +5,11 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
-
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), [Shared]>
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
@@ -25,6 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
         End Sub
 
         Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement
+
+        Protected Overrides Function PreferSimpleUsingStatement(options As AnalyzerOptionsProvider) As Boolean
+            ' VB does not have simple using statements.
+            Return False
+        End Function
 
         Protected Overrides Function HasCatchBlocks(tryStatement As TryBlockSyntax) As Boolean
             Return tryStatement.CatchBlocks.Count > 0
@@ -56,13 +61,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
 
-        Protected Overrides Function CreateUsingStatement(
+        Protected Overrides Function CreateUsingBlockStatement(
                 expressionStatement As ExpressionStatementSyntax,
                 statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
             Dim usingStatement = SyntaxFactory.UsingStatement(
                 expression:=expressionStatement.Expression.WithoutTrivia(),
                 variables:=Nothing).WithTriviaFrom(expressionStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
+        End Function
+
+        Protected Overrides Function CreateUsingLocalDeclarationStatement(expressionStatement As ExpressionStatementSyntax, newVariableName As SyntaxToken) As StatementSyntax
+            Throw ExceptionUtilities.Unreachable()
         End Function
 
         Protected Overrides Function TryCreateUsingLocalDeclaration(options As ParseOptions, declarationStatement As LocalDeclarationStatementSyntax, ByRef usingDeclarationStatement As LocalDeclarationStatementSyntax) As Boolean

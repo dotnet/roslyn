@@ -5,9 +5,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,14 +20,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)]
 public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static OptionsCollection DoNotPreferSimpleUsingStatement => new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferSimpleUsingStatement, new CodeStyleOption2<bool>(false, NotificationOption2.Silent) }
+    };
+
+    private static OptionsCollection PreferSimpleUsingStatement => new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferSimpleUsingStatement, new CodeStyleOption2<bool>(true, NotificationOption2.Silent) }
+    };
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
     private Task TestAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
-        LanguageVersion languageVersion = LanguageVersion.CSharp7)
-        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+        LanguageVersion languageVersion = LanguageVersion.CSharp7,
+        OptionsCollection? options = null)
+        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion), options: options);
 
     [Theory]
     [InlineData("v[||]ar name = disposable;")]
@@ -1455,6 +1469,76 @@ public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_
             
                 IDisposable MethodThatReturnsDisposableThing() => null;
             }
-            """);
+            """, options: DoNotPreferSimpleUsingStatement);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public async Task TestExpressionStatement_PreferSimpleUsingStatement1()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    using var _ = MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: PreferSimpleUsingStatement);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public async Task TestExpressionStatement_PreferSimpleUsingStatement2()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var _ = true;
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    var _ = true;
+                    using var _1 = MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: PreferSimpleUsingStatement);
     }
 }

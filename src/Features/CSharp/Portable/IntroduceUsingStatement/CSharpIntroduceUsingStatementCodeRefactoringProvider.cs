@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,6 +29,9 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider()
         TryStatementSyntax>
 {
     protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
+
+    protected override bool PreferSimpleUsingStatement(AnalyzerOptionsProvider options)
+        => ((CSharpAnalyzerOptionsProvider)options).PreferSimpleUsingStatement.Value;
 
     protected override bool HasCatchBlocks(TryStatementSyntax tryStatement)
         => tryStatement.Catches.Count > 0;
@@ -54,7 +58,7 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider()
             throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
     }
 
-    protected override StatementSyntax CreateUsingStatement(ExpressionStatementSyntax expressionStatement, SyntaxList<StatementSyntax> statementsToSurround)
+    protected override StatementSyntax CreateUsingBlockStatement(ExpressionStatementSyntax expressionStatement, SyntaxList<StatementSyntax> statementsToSurround)
         => UsingStatement(
             UsingKeyword.WithLeadingTrivia(expressionStatement.GetLeadingTrivia()),
             OpenParenToken,
@@ -62,6 +66,19 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider()
             expression: expressionStatement.Expression.WithoutTrivia(),
             CloseParenToken.WithTrailingTrivia(expressionStatement.GetTrailingTrivia()),
             statement: Block(statementsToSurround));
+
+    protected override StatementSyntax CreateUsingLocalDeclarationStatement(
+        ExpressionStatementSyntax expressionStatement, SyntaxToken newVariableName)
+    {
+        return LocalDeclarationStatement(VariableDeclaration(
+                IdentifierName("var"),
+                SingletonSeparatedList(VariableDeclarator(
+                    newVariableName,
+                    argumentList: null,
+                    initializer: EqualsValueClause(expressionStatement.Expression)))))
+            .WithUsingKeyword(UsingKeyword)
+            .WithSemicolonToken(expressionStatement.SemicolonToken).WithTriviaFrom(expressionStatement);
+    }
 
     protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxList<StatementSyntax> statementsToSurround)
         => UsingStatement(

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -34,7 +35,9 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
 {
     protected abstract string CodeActionTitle { get; }
 
+    protected abstract bool PreferSimpleUsingStatement(AnalyzerOptionsProvider options);
     protected abstract bool CanRefactorToContainBlockStatements(SyntaxNode parent);
+
     protected abstract SyntaxList<TStatementSyntax> GetSurroundingStatements(TStatementSyntax declarationStatement);
     protected abstract SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<TStatementSyntax> statements);
 
@@ -42,7 +45,10 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
     protected abstract (SyntaxList<TStatementSyntax> tryStatements, SyntaxList<TStatementSyntax> finallyStatements) GetTryFinallyStatements(TTryStatementSyntax tryStatement);
 
     protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxList<TStatementSyntax> statementsToSurround);
-    protected abstract TStatementSyntax CreateUsingStatement(TExpressionStatementSyntax expressionStatement, SyntaxList<TStatementSyntax> statementsToSurround);
+
+    protected abstract TStatementSyntax CreateUsingBlockStatement(TExpressionStatementSyntax expressionStatement, SyntaxList<TStatementSyntax> statementsToSurround);
+    protected abstract TStatementSyntax CreateUsingLocalDeclarationStatement(TExpressionStatementSyntax expressionStatement, SyntaxToken newVariableName);
+
     protected abstract bool TryCreateUsingLocalDeclaration(ParseOptions options, TLocalDeclarationSyntax declarationStatement, [NotNullWhen(true)] out TLocalDeclarationSyntax? usingDeclarationStatement);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -203,15 +209,33 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
         TExpressionStatementSyntax expressionStatement,
         CancellationToken cancellationToken)
     {
+        var options = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+
         var surroundingStatements = GetSurroundingStatements(expressionStatement);
         var statementIndex = surroundingStatements.IndexOf(expressionStatement);
 
-        SyntaxList<TStatementSyntax> statementsToSurround = [.. surroundingStatements.Skip(statementIndex + 1)];
+        if (PreferSimpleUsingStatement(options))
+        {
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var usingStatement = CreateUsingStatement(expressionStatement, statementsToSurround);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var newName = semanticFacts.GenerateUniqueLocalName(semanticModel, expressionStatement, container: null, baseName: "_", cancellationToken);
+            var usingStatement = this.CreateUsingLocalDeclarationStatement(expressionStatement, newName);
 
-        return await ReplaceWithUsingStatementAsync(
-            document, expressionStatement, statementsToSurround, usingStatement, cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = root.ReplaceNode(expressionStatement, usingStatement);
+
+            return document.WithSyntaxRoot(newRoot);
+        }
+        else
+        {
+            SyntaxList<TStatementSyntax> statementsToSurround = [.. surroundingStatements.Skip(statementIndex + 1)];
+
+            var usingStatement = CreateUsingBlockStatement(expressionStatement, statementsToSurround);
+
+            return await ReplaceWithUsingStatementAsync(
+                document, expressionStatement, statementsToSurround, usingStatement, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private async Task<Document> ReplaceWithUsingStatementAsync(
