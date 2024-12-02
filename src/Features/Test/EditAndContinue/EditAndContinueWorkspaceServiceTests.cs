@@ -4331,6 +4331,9 @@ class C
         Assert.Empty(emitDiagnostics);
         Assert.False(updates.Updates.IsEmpty);
         Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+
+        CommitSolutionUpdate(debuggingSession);
+        EndDebuggingSession(debuggingSession);
     }
 
     [Fact]
