@@ -514,8 +514,7 @@ internal sealed partial class CSharpIntroduceVariableService
             ]);
     }
 
-    private static bool IsBlockLike(SyntaxNode node)
-        => node is BlockSyntax or SwitchSectionSyntax;
+    private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
 
     private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
         => blockLike switch
