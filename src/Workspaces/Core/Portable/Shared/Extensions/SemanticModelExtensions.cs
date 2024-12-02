@@ -100,8 +100,8 @@ internal static partial class SemanticModelExtensions
         else if (overridingIdentifier.HasValue)
         {
             // on an "override" token, we'll find the overridden symbol
-            var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overridingIdentifier.Value, cancellationToken);
-            var overriddenSymbol = overriddingSymbol.GetOverriddenMember(allowLooseMatch: true);
+            var overridingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overridingIdentifier.Value, cancellationToken);
+            var overriddenSymbol = overridingSymbol.GetOverriddenMember(allowLooseMatch: true);
 
             allSymbols = overriddenSymbol is null ? [] : [overriddenSymbol];
         }
