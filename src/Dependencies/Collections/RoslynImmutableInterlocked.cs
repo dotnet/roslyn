@@ -620,5 +620,18 @@ namespace Microsoft.CodeAnalysis.Collections
             Interlocked.MemoryBarrier();
             return value;
         }
+
+        /// <summary>
+        /// Writes to an ImmutableArray location, ensuring that a write barrier is inserted to prevent any prior writes from being reordered after this write.
+        /// </summary>
+        /// <remarks>
+        /// This method is not intended to be used to provide read barriers.
+        /// </remarks>
+        public static void VolatileWrite<T>(ref ImmutableArray<T> location, ImmutableArray<T> value)
+        {
+            // When Volatile.WriteBarrier() is available in .NET 10, it can be used here.
+            Interlocked.MemoryBarrier();
+            location = value;
+        }
     }
 }

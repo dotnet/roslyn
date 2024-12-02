@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                 diagnostics.Free();
                 _lazyIsVarArg = isVararg;
-                _lazyParameters = parameters;
+                RoslynImmutableInterlocked.VolatileWrite(ref _lazyParameters, parameters);
             }
         }
 
