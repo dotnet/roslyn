@@ -127,8 +127,6 @@ internal static class TypeStyleHelper
         if (semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type is not INamedTypeSymbol containingType)
             return false;
 
-        // The containing type was determined from an expression of the form ContainingType.MemberName, and the
-        // caller verifies that MemberName resolves to a method symbol.
         return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
             || IsPossibleConversionMethod(methodSymbol);
     }
