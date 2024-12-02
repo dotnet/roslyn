@@ -383,11 +383,10 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
         var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, [withinNodeInCurrent], allOccurrences, cancellationToken);
 
-        // Parenthesize the variable, and go and replace anything we find with it.
-        // NOTE: we do not want elastic trivia as we want to just replace the existing code 
-        // as is, while preserving the trivia there.  We do not want to update it.
-        var replacement = generator
-            .AddParentheses(variableName, includeElasticTrivia: false);
+        // Parenthesize the variable, and go and replace anything we find with it. NOTE: we do not want elastic trivia
+        // as we want to just replace the existing code as is, while preserving the trivia there.  We do not want to
+        // update it.
+        var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false);
 
         return RewriteCore(withinNodeInCurrent, replacement, matches);
     }
