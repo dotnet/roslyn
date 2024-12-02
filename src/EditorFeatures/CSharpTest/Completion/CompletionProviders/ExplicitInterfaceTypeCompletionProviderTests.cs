@@ -363,7 +363,6 @@ using System.Collections;
         var markup = """
             interface I1
             {
-
                 static abstract void M1();
             }
 
