@@ -172,6 +172,8 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         {
             actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
             actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+
+            return GetConstantOrLocalResource(state.IsConstant);
         }
         else
         {
@@ -300,13 +302,16 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         var originalSemanticModel = originalDocument.SemanticModel;
         var currentSemanticModel = currentDocument.SemanticModel;
 
-        var result = new HashSet<TExpressionSyntax>();
-        var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
-                      where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
-                      select nodeInCurrent;
-        result.AddRange(matches.OfType<TExpressionSyntax>());
+        var startingNodes = withinNodeInCurrent is ICompilationUnitSyntax
+            ? withinNodeInCurrent.ChildNodes().Where(syntaxFacts.IsGlobalStatement)
+            : [withinNodeInCurrent];
 
-        return result;
+        var matches =
+            from startingNode in startingNodes
+            from descendantExpression in startingNode.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
+            where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, descendantExpression, allOccurrences, cancellationToken)
+            select descendantExpression;
+        return matches.ToSet();
     }
 
     private bool NodeMatchesExpression(
@@ -342,8 +347,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             //      }
             //  }
 
-            if (SemanticEquivalence.AreEquivalent(
-                originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
+            if (SemanticEquivalence.AreEquivalent(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
             {
                 var originalOperation = originalSemanticModel.GetOperation(expressionInOriginal, cancellationToken);
                 if (IsInstanceMemberReference(originalOperation))
@@ -365,6 +369,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         }
 
         return false;
+
         static bool IsInstanceMemberReference(IOperation operation)
             => operation is IMemberReferenceOperation memberReferenceOperation &&
                 memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;

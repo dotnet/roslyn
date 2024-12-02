@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -32,16 +33,18 @@ internal sealed partial class CSharpIntroduceVariableService
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-            s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
+        var globalStatement = expression.GetAncestor<GlobalStatementSyntax>();
 
-        var newLocalNameToken = GenerateUniqueLocalName(
-            document, expression, isConstant, containerToGenerateInto, cancellationToken);
-        var newLocalName = IdentifierName(newLocalNameToken);
+        var containerToGenerateInto = globalStatement != null
+            ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
+            : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
         var modifiers = isConstant
             ? TokenList(ConstKeyword)
             : default;
+
+        var newLocalNameToken = GenerateUniqueLocalName(
+            document, expression, isConstant, containerToGenerateInto, cancellationToken);
 
         var declarationStatement = LocalDeclarationStatement(
             modifiers,
@@ -52,17 +55,25 @@ internal sealed partial class CSharpIntroduceVariableService
                     null,
                     EqualsValueClause(expression.WithoutTrivia()))]));
 
+        var newLocalName = IdentifierName(newLocalNameToken);
+
         // If we're inserting into a multi-line parent, then add a newline after the local-var
         // we're adding.  That way we don't end up having it and the starting statement be on
         // the same line (which will cause indentation to be computed incorrectly).
         var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
+        if (containerToGenerateInto is not CompilationUnitSyntax &&
+            !text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
         {
             declarationStatement = declarationStatement.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
 
         switch (containerToGenerateInto)
         {
+            case CompilationUnitSyntax compilationUnit:
+
+                return IntroduceLocalDeclarationIntoCompilationUnit(
+                    document, compilationUnit, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
+
             case BlockSyntax block:
                 return await IntroduceLocalDeclarationIntoBlockAsync(
                     document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
@@ -283,6 +294,69 @@ internal sealed partial class CSharpIntroduceVariableService
         }
     }
 
+    private Document IntroduceLocalDeclarationIntoCompilationUnit(
+        SemanticDocument document,
+        CompilationUnitSyntax compilationUnit,
+        ExpressionSyntax expression,
+        NameSyntax newLocalName,
+        LocalDeclarationStatementSyntax declarationStatement,
+        bool allOccurrences,
+        CancellationToken cancellationToken)
+    {
+        declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
+
+        SyntaxNode scope = compilationUnit;
+
+        // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
+        var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
+        if (localFunction is { Body: not null } && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
+            scope = localFunction.Body;
+
+        var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
+        Debug.Assert(matches.Contains(expression));
+
+        var firstAffectedExpression = matches.OrderBy(m => m.SpanStart).First();
+
+        var editor = new SyntaxEditor(compilationUnit, document.Project.Solution.Services);
+
+        // Parenthesize the variable, and go and replace anything we find with it. NOTE: we do not want elastic trivia
+        // as we want to just replace the existing code as is, while preserving the trivia there.  We do not want to
+        // update it.
+        var replacement = editor.Generator.AddParentheses(
+            newLocalName, includeElasticTrivia: false).WithAdditionalAnnotations(Formatter.Annotation);
+        foreach (var match in matches)
+            editor.ReplaceNode(match, replacement);
+
+        if (scope is BlockSyntax block)
+        {
+            var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>().Contains(s));
+            var firstAffectedStatementIndex = block.Statements.IndexOf(firstAffectedStatement);
+            editor.ReplaceNode(
+                block,
+                (current, generator) =>
+                {
+                    var currentBlock = (BlockSyntax)current;
+                    return currentBlock.WithStatements(
+                        currentBlock.Statements.Insert(firstAffectedStatementIndex, declarationStatement));
+                });
+        }
+        else
+        {
+            var firstAffectedGlobalStatement = compilationUnit.Members.OfType<GlobalStatementSyntax>().Single(s => firstAffectedExpression.GetAncestorOrThis<GlobalStatementSyntax>().Contains(s));
+            var firstAffectedGlobalStatementIndex = compilationUnit.Members.IndexOf(firstAffectedGlobalStatement);
+            editor.ReplaceNode(
+                compilationUnit,
+                (current, generator) =>
+                {
+                    var currentCompilationUnit = (CompilationUnitSyntax)current;
+                    return currentCompilationUnit.WithMembers(
+                        currentCompilationUnit.Members.Insert(firstAffectedGlobalStatementIndex, GlobalStatement(declarationStatement)));
+                });
+        }
+
+        return document.Document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
     private async Task<Document> IntroduceLocalDeclarationIntoBlockAsync(
         SemanticDocument document,
         BlockSyntax block,
@@ -362,12 +436,8 @@ internal sealed partial class CSharpIntroduceVariableService
         {
             // When determining where to put a local, we don't want to put it between the `else`
             // and `if` of a compound if-statement.
-
-            if (statement.Kind() == SyntaxKind.IfStatement &&
-                statement.IsParentKind(SyntaxKind.ElseClause))
-            {
+            if (statement.Kind() == SyntaxKind.IfStatement && statement.IsParentKind(SyntaxKind.ElseClause))
                 continue;
-            }
 
             yield return statement;
         }
@@ -442,7 +512,8 @@ internal sealed partial class CSharpIntroduceVariableService
             ]);
     }
 
-    private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
+    private static bool IsBlockLike(SyntaxNode node)
+        => node is BlockSyntax or SwitchSectionSyntax;
 
     private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
         => blockLike switch

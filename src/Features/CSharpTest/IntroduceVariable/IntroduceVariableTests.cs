@@ -9000,8 +9000,200 @@ namespace ConsoleApp1
             using System;
 
             var {|Rename:random|} = new Random();
+
             var v1 = random.Next();
             var v2 = random.Next();
-            """, index: 1);
+            """, index: 1, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+
+            void Local()
+            {
+                var v3 = new Random().Next();
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+            
+            void Local()
+            {
+                var v3 = random.Next();
+            }
+            """, index: 1, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+            
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """, index: 1, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = [|new Random()|].Next();
+
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+            
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """, index: 1, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+
+            static void Local()
+            {
+                var v3 = new Random().Next();
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+            
+            static void Local()
+            {
+                var v3 = new Random().Next();
+            }
+            """, index: 1, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = new Random().Next();
+
+            void Local()
+            {
+                var v3 = [|new Random()|].Next();
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+            
+            void Local()
+            {
+                var v3 = random.Next();
+            }
+            """, index: 1, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = new Random().Next();
+
+            static void Local()
+            {
+                var v3 = [|new Random()|].Next();
+            }
+            """,
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = new Random().Next();
+            
+            static void Local()
+            {
+                var {|Rename:random|} = new Random();
+                var v3 = random.Next();
+            }
+            """, index: 1, options: ImplicitTypingEverywhere());
     }
 }

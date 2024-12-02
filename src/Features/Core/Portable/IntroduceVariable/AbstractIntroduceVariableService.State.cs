@@ -98,11 +98,6 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             if (containingType?.TypeKind is TypeKind.Interface)
                 return false;
 
-            if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
-                return false;
-
-            IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
-
             if (containingType is null)
             {
                 var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
@@ -114,6 +109,11 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
                 return false;
             }
+
+            if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
+                return false;
+
+            IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
 
             // Note: the ordering of these clauses are important.  They go, generally, from
             // innermost to outermost order.
