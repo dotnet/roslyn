@@ -29,7 +29,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
-    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
 
     // specify all options explicitly to override defaults.
     private OptionsCollection ImplicitTypingEverywhere()
@@ -8989,7 +8989,7 @@ namespace ConsoleApp1
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public async Task TestTopLevel1()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9003,13 +9003,13 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
-    public async Task TestTopLevel3()
+    public async Task TestTopLevel2()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9033,13 +9033,13 @@ namespace ConsoleApp1
             {
                 var v3 = random.Next();
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
-    public async Task TestTopLevel4()
+    public async Task TestTopLevel3()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9069,13 +9069,13 @@ namespace ConsoleApp1
                     var v3 = new Random().Next();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
-    public async Task TestTopLevel5()
+    public async Task TestTopLevel4()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9105,13 +9105,13 @@ namespace ConsoleApp1
                     var v3 = new Random().Next();
                 }
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
-    public async Task TestTopLevel6()
+    public async Task TestTopLevel5()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9135,13 +9135,13 @@ namespace ConsoleApp1
             {
                 var v3 = new Random().Next();
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
-    public async Task TestTopLevel7()
+    public async Task TestTopLevel6()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9165,13 +9165,13 @@ namespace ConsoleApp1
             {
                 var v3 = random.Next();
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
-    public async Task TestTopLevel8()
+    public async Task TestTopLevel7()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             using System;
 
@@ -9194,6 +9194,6 @@ namespace ConsoleApp1
                 var {|Rename:random|} = new Random();
                 var v3 = random.Next();
             }
-            """, index: 1, options: ImplicitTypingEverywhere());
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
     }
 }
