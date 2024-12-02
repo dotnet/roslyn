@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -198,7 +197,7 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
                 var usingStatement = CreateUsingStatement(declarationStatement, statementsToSurround);
 
                 return await ReplaceWithUsingStatementAsync(
-                    document, declarationStatement, statementsToSurround, usingStatement, cancellationToken).ConfigureAwait(false);
+                    document, declarationStatement, statementsToSurround, usingStatement, surroundingStatements, declarationStatementIndex, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -233,7 +232,7 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
             var usingStatement = CreateUsingBlockStatement(expressionStatement, statementsToSurround);
 
             return await ReplaceWithUsingStatementAsync(
-                document, expressionStatement, statementsToSurround, usingStatement, cancellationToken).ConfigureAwait(false);
+                document, expressionStatement, statementsToSurround, usingStatement, surroundingStatements, statementIndex, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -242,12 +241,11 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
         TStatementSyntax statementToReplace,
         SyntaxList<TStatementSyntax> statementsToSurround,
         TStatementSyntax usingStatement,
+        SyntaxList<TStatementSyntax> surroundingStatements,
+        int statementIndex,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        var surroundingStatements = GetSurroundingStatements(statementToReplace);
-        var statementIndex = surroundingStatements.IndexOf(statementToReplace);
 
         if (statementsToSurround.Any())
         {
