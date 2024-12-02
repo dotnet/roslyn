@@ -114,10 +114,6 @@ internal sealed partial class CSharpUseExplicitArrayInExpressionTreeCodeFixProvi
 
     protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var invocationExpressions = diagnostics
-            .Select(d => d.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as InvocationExpressionSyntax)
-            .WhereNotNull();
-
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var arrayType = semanticModel.Compilation.ArrayType();
