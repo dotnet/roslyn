@@ -55,84 +55,83 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
     {
         var (document, span, cancellationToken) = context;
 
-        if (await FindDisposableLocalDeclarationAsync(document, span, cancellationToken).ConfigureAwait(false)
-                is var (declarationSyntax, variableName))
-        {
-            context.RegisterRefactoring(
-                CodeAction.Create(
-                    CodeActionTitle,
-                    cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, variableName, cancellationToken),
-                    CodeActionTitle),
-                declarationSyntax.Span);
-        }
-        else if (await FindDisposableExpressionStatementAsync(document, span, cancellationToken).ConfigureAwait(false) is { } expressionStatement)
-        {
-            context.RegisterRefactoring(
-                CodeAction.Create(
-                    CodeActionTitle,
-                    cancellationToken => IntroduceUsingStatementAsync(document, expressionStatement, cancellationToken),
-                    CodeActionTitle),
-                expressionStatement.Span);
-        }
-    }
+        var initialStatement =
+            (TStatementSyntax?)await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(span, cancellationToken).ConfigureAwait(false) ??
+            await document.TryGetRelevantNodeAsync<TExpressionStatementSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-    private async Task<TExpressionStatementSyntax?> FindDisposableExpressionStatementAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
-    {
-        var expressionStatement = await document.TryGetRelevantNodeAsync<TExpressionStatementSyntax>(selection, cancellationToken).ConfigureAwait(false);
-        if (expressionStatement is null || !CanRefactorToContainBlockStatements(expressionStatement.GetRequiredParent()))
-            return null;
+        if (initialStatement is null)
+            return;
+
+        if (!CanRefactorToContainBlockStatements(initialStatement.GetRequiredParent()))
+            return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
         var disposableType = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
         if (disposableType is null)
-            return null;
+            return;
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var expressionType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement), cancellationToken).Type;
 
-        if (!IsLegalUsingStatementType(semanticModel.Compilation, disposableType, expressionType))
-            return null;
+        if (initialStatement is TLocalDeclarationSyntax localDeclaration)
+        {
+            if (FindDisposableLocalDeclaration(localDeclaration) is string variableName)
+            {
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        CodeActionTitle,
+                        cancellationToken => IntroduceUsingStatementAsync(document, localDeclaration, variableName, cancellationToken),
+                        CodeActionTitle),
+                    localDeclaration.Span);
+            }
+        }
+        else
+        {
+            var expressionStatement = (TExpressionStatementSyntax)initialStatement;
+            var expressionType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement), cancellationToken).Type;
+            if (IsLegalUsingStatementType(semanticModel.Compilation, disposableType, expressionType))
+            {
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        CodeActionTitle,
+                        cancellationToken => IntroduceUsingStatementAsync(document, expressionStatement, cancellationToken),
+                        CodeActionTitle),
+                    expressionStatement.Span);
+            }
+        }
 
-        return expressionStatement;
-    }
+        return;
 
-    private async Task<(TLocalDeclarationSyntax declaration, string variableName)?> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
-    {
-        var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
-        if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.GetRequiredParent()))
-            return null;
+        string? FindDisposableLocalDeclaration(TLocalDeclarationSyntax declarationSyntax)
+        {
+            var disposableType = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+            if (disposableType is null)
+                return null;
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var operation = semanticModel.GetOperation(declarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
+            if (operation?.Declarations.Length != 1)
+                return null;
 
-        var disposableType = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
-        if (disposableType is null)
-            return null;
+            var localDeclaration = operation.Declarations[0];
+            if (localDeclaration.Declarators.Length != 1)
+                return null;
 
-        var operation = semanticModel.GetOperation(declarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
-        if (operation?.Declarations.Length != 1)
-            return null;
+            var declarator = localDeclaration.Declarators[0];
 
-        var localDeclaration = operation.Declarations[0];
-        if (localDeclaration.Declarators.Length != 1)
-            return null;
+            var localType = declarator.Symbol.Type;
+            if (localType is null)
+                return null;
 
-        var declarator = localDeclaration.Declarators[0];
+            var initializer = (localDeclaration.Initializer ?? declarator.Initializer)?.Value;
 
-        var localType = declarator.Symbol.Type;
-        if (localType is null)
-            return null;
+            // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
+            if (initializer is null || initializer.Kind == OperationKind.Invalid)
+                return null;
 
-        var initializer = (localDeclaration.Initializer ?? declarator.Initializer)?.Value;
+            if (!IsLegalUsingStatementType(semanticModel.Compilation, disposableType, localType))
+                return null;
 
-        // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
-        if (initializer is null || initializer.Kind == OperationKind.Invalid)
-            return null;
-
-        if (!IsLegalUsingStatementType(semanticModel.Compilation, disposableType, localType))
-            return null;
-
-        return (declarationSyntax, declarator.Symbol.Name);
+            return declarator.Symbol.Name;
+        }
     }
 
     /// <summary>
