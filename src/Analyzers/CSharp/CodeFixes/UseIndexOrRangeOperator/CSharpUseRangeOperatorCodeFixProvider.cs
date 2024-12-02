@@ -175,7 +175,6 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
                     }
                     else
                     {
-
                         // `string.Remove(0, x)` becomes `string[x..]`
                         return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, endFromEnd: false);
                     }
