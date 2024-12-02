@@ -414,7 +414,7 @@ internal sealed partial class CSharpIntroduceVariableService
         {
             // When determining where to put a local, we don't want to put it between the `else`
             // and `if` of a compound if-statement.
-            if (statement.Kind() == SyntaxKind.IfStatement && statement.IsParentKind(SyntaxKind.ElseClause))
+            if (statement is IfStatementSyntax { Parent: ElseClauseSyntax })
                 continue;
 
             yield return statement;
