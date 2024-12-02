@@ -39,12 +39,13 @@ internal sealed partial class CSharpIntroduceVariableService
             ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
             : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
+        var newLocalNameToken = GenerateUniqueLocalName(
+            document, expression, isConstant, containerToGenerateInto, cancellationToken);
+        var newLocalName = IdentifierName(newLocalNameToken);
+
         var modifiers = isConstant
             ? TokenList(ConstKeyword)
             : default;
-
-        var newLocalNameToken = GenerateUniqueLocalName(
-            document, expression, isConstant, containerToGenerateInto, cancellationToken);
 
         var declarationStatement = LocalDeclarationStatement(
             modifiers,
@@ -54,8 +55,6 @@ internal sealed partial class CSharpIntroduceVariableService
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     null,
                     EqualsValueClause(expression.WithoutTrivia()))]));
-
-        var newLocalName = IdentifierName(newLocalNameToken);
 
         // If we're inserting into a multi-line parent, then add a newline after the local-var
         // we're adding.  That way we don't end up having it and the starting statement be on
