@@ -228,11 +228,11 @@ internal sealed partial class CSharpIntroduceVariableService
 
         var newExpression = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
 
-        var convertedStatement = createReturnStatement
-            ? ReturnStatement(newExpression)
-            : (StatementSyntax)ExpressionStatement(newExpression);
-
-        var newBody = Block(declarationStatement, convertedStatement)
+        var newBody = Block(
+            declarationStatement,
+            createReturnStatement
+                ? ReturnStatement(newExpression)
+                : ExpressionStatement(newExpression))
             .WithLeadingTrivia(leadingTrivia)
             .WithTrailingTrivia(oldBody.GetTrailingTrivia());
 
