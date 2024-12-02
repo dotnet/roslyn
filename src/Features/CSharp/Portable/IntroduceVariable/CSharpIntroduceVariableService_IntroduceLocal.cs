@@ -228,16 +228,16 @@ internal sealed partial class CSharpIntroduceVariableService
 
         var newExpression = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
 
-        var newBody = Block(
-            declarationStatement,
-            createReturnStatement
-                ? ReturnStatement(newExpression)
-                : ExpressionStatement(newExpression));
+        var convertedStatement = createReturnStatement
+            ? ReturnStatement(newExpression)
+            : (StatementSyntax)ExpressionStatement(newExpression);
+
+        var newBody = Block(declarationStatement, convertedStatement)
+            .WithLeadingTrivia(leadingTrivia)
+            .WithTrailingTrivia(oldBody.GetTrailingTrivia());
 
         // Add an elastic newline so that the formatter will place this new block across multiple lines.
         newBody = newBody
-            .WithLeadingTrivia(leadingTrivia)
-            .WithTrailingTrivia(oldBody.GetTrailingTrivia())
             .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
