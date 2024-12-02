@@ -258,39 +258,30 @@ internal sealed partial class CSharpIntroduceVariableService
     }
 
     private static SyntaxNode WithBlockBody(SyntaxNode node, BlockSyntax body)
-    {
-        switch (node)
+        => node switch
         {
-            case BasePropertyDeclarationSyntax baseProperty:
-                var accessorList = AccessorList(
-                    [AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]);
-                return baseProperty
-                    .TryWithExpressionBody(null)
-                    .WithAccessorList(accessorList)
-                    .TryWithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(baseProperty);
-            case AccessorDeclarationSyntax accessor:
-                return accessor
-                    .WithExpressionBody(null)
-                    .WithBody(body)
-                    .WithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(accessor);
-            case BaseMethodDeclarationSyntax baseMethod:
-                return baseMethod
-                    .WithExpressionBody(null)
-                    .WithBody(body)
-                    .WithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(baseMethod);
-            case LocalFunctionStatementSyntax localFunction:
-                return localFunction
-                    .WithExpressionBody(null)
-                    .WithBody(body)
-                    .WithSemicolonToken(Token(SyntaxKind.None))
-                    .WithTriviaFrom(localFunction);
-            default:
-                throw ExceptionUtilities.UnexpectedValue(node);
-        }
-    }
+            BasePropertyDeclarationSyntax baseProperty => baseProperty
+                .TryWithExpressionBody(null)
+                .WithAccessorList(AccessorList([AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]))
+                .TryWithSemicolonToken(Token(SyntaxKind.None))
+                .WithTriviaFrom(baseProperty),
+            AccessorDeclarationSyntax accessor => accessor
+                .WithExpressionBody(null)
+                .WithBody(body)
+                .WithSemicolonToken(Token(SyntaxKind.None))
+                .WithTriviaFrom(accessor),
+            BaseMethodDeclarationSyntax baseMethod => baseMethod
+                .WithExpressionBody(null)
+                .WithBody(body)
+                .WithSemicolonToken(Token(SyntaxKind.None))
+                .WithTriviaFrom(baseMethod),
+            LocalFunctionStatementSyntax localFunction => localFunction
+                .WithExpressionBody(null)
+                .WithBody(body)
+                .WithSemicolonToken(Token(SyntaxKind.None))
+                .WithTriviaFrom(localFunction),
+            _ => throw ExceptionUtilities.UnexpectedValue(node),
+        };
 
     private Document IntroduceLocalDeclarationIntoCompilationUnit(
         SemanticDocument document,
