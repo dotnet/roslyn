@@ -1565,7 +1565,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override ParameterSyntax? ParameterSyntax(int index)
-            => _parameterSyntaxList?[index];
+        {
+            Debug.Assert(0 <= index && index < this.ParameterCount);
+            return _parameterSyntaxList?[index];
+        }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
         {
