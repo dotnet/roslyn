@@ -5,7 +5,7 @@
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
 internal class RazorProvideDynamicFileResponse
 {

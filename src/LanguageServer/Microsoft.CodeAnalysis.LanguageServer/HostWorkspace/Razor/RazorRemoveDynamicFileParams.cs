@@ -5,10 +5,10 @@
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
-internal class RazorProvideDynamicFileParams
+internal class RazorRemoveDynamicFileParams
 {
-    [JsonPropertyName("razorDocument")]
-    public required TextDocumentIdentifier RazorDocument { get; set; }
+    [JsonPropertyName("csharpDocument")]
+    public required TextDocumentIdentifier CSharpDocument { get; set; }
 }

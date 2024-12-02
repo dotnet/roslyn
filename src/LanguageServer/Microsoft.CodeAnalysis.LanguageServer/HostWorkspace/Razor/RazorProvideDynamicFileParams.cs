@@ -5,9 +5,9 @@
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
-internal class RazorDynamicFileChangedParams
+internal class RazorProvideDynamicFileParams
 {
     [JsonPropertyName("razorDocument")]
     public required TextDocumentIdentifier RazorDocument { get; set; }

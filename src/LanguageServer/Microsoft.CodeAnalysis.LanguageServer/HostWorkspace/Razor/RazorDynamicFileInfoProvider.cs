@@ -43,9 +43,6 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         _workspaceFactory = workspaceFactory;
     }
 
-    public bool MutatesSolutionState => false;
-    public bool RequiresLSPSolution => false;
-
     public event EventHandler<string>? Updated;
 
     public void Update(string filePath)
