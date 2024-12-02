@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             Contract.ThrowIfNull(line);
 
             var snapshot = line.Snapshot;
-            for (var i = 0; i < line.Length; i++)
+            for (var i = line.Start.Position; i < line.End.Position; i++)
             {
-                if (!char.IsWhiteSpace(snapshot[line.Start + i]))
+                if (!char.IsWhiteSpace(snapshot[i]))
                 {
                     return i;
                 }
