@@ -525,6 +525,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Configurar gravidade para todos os analisadores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="new">Conflict(s) detected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Constructors_not_allowed">
         <source>Constructors not allowed</source>
         <target state="translated">Construtores não permitidos</target>
@@ -1243,6 +1248,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">Nenhuma seleção válida para realizar a extração.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="new">Not all code paths return</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2580,6 +2590,16 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Silencioso</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="new">Simplify member access '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="new">Simplify name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
         <target state="translated">Classificar Importações ou usos</target>
@@ -2608,11 +2628,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">Dividir em instruções '{0}' aninhadas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">O fluxo deve fornecer suporte a operações de leitura e busca.</target>
         <note />
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
@@ -3431,6 +3446,11 @@ Se o especificador de formato "H" for usado sem outros especificadores de format
         <target state="translated">e atualizar sites de chamadas diretamente</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="new">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
         <target state="translated">classe com layout explícito ou sequencial</target>
@@ -3612,6 +3632,11 @@ O especificador de formato padrão "f" representa uma combinação de padrões d
         <target state="translated">na Origem (atributo)</target>
         <note />
       </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="new">&lt;interface name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
         <target state="translated">para o método extraído para invocar sites de chamada</target>
@@ -3728,6 +3753,11 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       <trans-unit id="month_full_description">
         <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
         <target state="translated">O especificador de formato personalizado "MMMM" representa o nome completo do mês. O nome localizado do mês é recuperado da propriedade DateTimeFormatInfo.MonthNames da cultura atual ou especificada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="new">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -3987,11 +4017,6 @@ Se o especificador de formato "g" for usado sem outros especificadores de format
       <trans-unit id="Returns_colon">
         <source>Returns:</source>
         <target state="translated">Devoluções:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Exceções:</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">
