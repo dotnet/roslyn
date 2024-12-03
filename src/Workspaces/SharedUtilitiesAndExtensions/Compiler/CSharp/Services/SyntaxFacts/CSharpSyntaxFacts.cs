@@ -209,6 +209,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
         => node is ForEachVariableStatementSyntax;
 
+    public bool IsUsingLocalDeclarationStatement([NotNullWhen(true)] SyntaxNode? node)
+        => node is LocalDeclarationStatementSyntax { UsingKeyword.RawKind: not (int)SyntaxKind.None };
+
     public bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node)
         => node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction();
 
