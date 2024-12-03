@@ -405,22 +405,35 @@ internal abstract partial class AbstractImplementInterfaceService
             return implementedVisibleMembers.Any(m => MembersMatch(m, member));
         }
 
-        private bool MembersMatch(ISymbol member1, ISymbol member2)
+        private bool MembersMatch(ISymbol existingMember, ISymbol memberToAdd)
         {
-            if (member1.Kind != member2.Kind)
+            if (existingMember.Kind != memberToAdd.Kind)
                 return false;
 
-            if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
-                member1.IsStatic != member2.IsStatic)
+            if (existingMember.DeclaredAccessibility != memberToAdd.DeclaredAccessibility ||
+                existingMember.IsStatic != memberToAdd.IsStatic)
             {
                 return false;
             }
 
-            if (member1.ExplicitInterfaceImplementations().Any() || member2.ExplicitInterfaceImplementations().Any())
+            if (existingMember.ExplicitInterfaceImplementations().Any() || memberToAdd.ExplicitInterfaceImplementations().Any())
                 return false;
 
-            return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
-                member1, member2, IsCaseSensitive);
+            if (!SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnType(existingMember, memberToAdd, IsCaseSensitive))
+                return false;
+
+            if (existingMember is IPropertySymbol existingProperty && memberToAdd is IPropertySymbol propertyToAdd)
+            {
+                // Have to make sure the accessors of the properties are complimentary.  Note: it's ok for the new
+                // property to have a subset of the accessors of the existing property.
+                if (propertyToAdd.GetMethod != null && SignatureComparer.BadPropertyAccessor(propertyToAdd.GetMethod, existingProperty.GetMethod))
+                    return false;
+
+                if (propertyToAdd.SetMethod != null && SignatureComparer.BadPropertyAccessor(propertyToAdd.SetMethod, existingProperty.SetMethod))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

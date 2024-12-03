@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -14,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(ExplicitInterfaceTypeCompletionProvider);
@@ -357,5 +355,23 @@ using System.Collections;
             """;
 
         await VerifyItemExistsAsync(markup, "I", displayTextSuffix: "<>");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54005")]
+    public async Task TestWithStaticKeyword()
+    {
+        var markup = """
+            interface I1
+            {
+                static abstract void M1();
+            }
+
+            class C1 : I1
+            {
+                static void $$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "I1", displayTextSuffix: "");
     }
 }

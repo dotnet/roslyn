@@ -1283,6 +1283,35 @@ End Namespace]]>
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60949")>
+        Public Async Function TestImplicitObjectCreation(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class D
+{
+    void M()
+    {
+        C c1 = new {|TypeOrNamespaceUsageInfo.ObjectCreation:[|C|]|}();
+        C c2 = {|TypeOrNamespaceUsageInfo.ObjectCreation:[|new|]|}();
+    }
+}
+
+class C
+{
+    public {|Definition:$$C|}()
+    {
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
         Public Async Function TestPrimaryConstructor1(kind As TestKind, host As TestHost) As Task
             Dim input =

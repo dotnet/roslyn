@@ -25,10 +25,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext> : LSPCompletionProvider
     where TSyntaxContext : SyntaxContext
 {
-    protected AbstractSymbolCompletionProvider()
-    {
-    }
-
     protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
 
     protected abstract Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(

@@ -887,11 +887,6 @@
         <target state="translated">Adlandırma kuralları</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_asynchronously_exerimental">
-        <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">Zaman uyumsuz olarak gezin (deneysel)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">'{0}' öğesine git</target>

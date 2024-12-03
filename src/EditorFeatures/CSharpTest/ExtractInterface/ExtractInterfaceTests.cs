@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -19,11 +20,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface;
 
-public class ExtractInterfaceTests : AbstractExtractInterfaceTests
+public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
 {
     [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
     public async Task ExtractInterface_Invocation_CaretInMethod()
@@ -1999,5 +1999,56 @@ public class ExtractInterfaceTests : AbstractExtractInterfaceTests
             markup,
             expectedSuccess: true,
             expectedInterfaceCode: expectedInterfaceCode);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/71718")]
+    public async Task RemoveEnumeratorCancellationAttribute()
+    {
+        var markup = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet8="true">
+                    <Document FilePath="z:\\file.cs"><![CDATA[using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            public class $$Class1(int count) 
+            {
+                public async IAsyncEnumerable<int> Foo([EnumeratorCancellation] CancellationToken token)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        await Task.Yield();
+                        yield return i;
+                    }
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var expectedMarkup = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            public interface IClass1
+            {
+                IAsyncEnumerable<int> Foo(CancellationToken token);
+            }
+
+            public class Class1(int count) : IClass1
+            {
+                public async IAsyncEnumerable<int> Foo([EnumeratorCancellation] CancellationToken token)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        await Task.Yield();
+                        yield return i;
+                    }
+                }
+            }
+            """;
+
+        await TestExtractInterfaceCodeActionCSharpAsync(markup, expectedMarkup);
     }
 }
