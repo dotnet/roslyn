@@ -397,11 +397,6 @@
         <target state="new">Editor Help</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
-        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="translated">只有在使用與 Visual Studio 配套的色彩佈景主題時，才可使用編輯器色彩配置選項。您可從 [環境] &gt; [一般選項] 頁面設定色彩佈景主題。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素無效。</target>
@@ -1490,11 +1485,6 @@
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="new">Snippets behavior</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
-        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="translated">[環境] &gt; [字型和色彩選項] 頁面中所做的變更覆寫了某些色彩配置的色彩。請選擇 [字型和色彩] 頁面中的 [使用預設] 來還原所有自訂。</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">

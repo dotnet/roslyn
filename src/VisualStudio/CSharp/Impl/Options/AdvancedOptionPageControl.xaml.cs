@@ -224,15 +224,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         // we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         internal override void OnLoad()
         {
-            var cancellationToken = _threadingContext.DisposalToken;
-            var (isSupportedTheme, isThemeCustomized) = _threadingContext.JoinableTaskFactory.Run(async () =>
-                (await _colorSchemeApplier.IsSupportedThemeAsync(cancellationToken).ConfigureAwait(false),
-                 await _colorSchemeApplier.IsThemeCustomizedAsync(cancellationToken).ConfigureAwait(false)));
-
-            Editor_color_scheme.IsEnabled = isSupportedTheme;
-            Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
-            Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
-
             UpdateInlineHintsOptions();
 
             base.OnLoad();
