@@ -146,6 +146,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseConditionalExpressionForReturn = nameof(UseConditionalExpressionForReturn);
     public const string UseDeconstruction = nameof(UseDeconstruction);
     public const string UseDefaultLiteral = nameof(UseDefaultLiteral);
+    public const string UseExplicitArrayInExpressionTree = nameof(UseExplicitArrayInExpressionTree);
     public const string UseExplicitTupleName = nameof(UseExplicitTupleName);
     public const string UseExplicitType = nameof(UseExplicitType);
     public const string UseExplicitTypeForConst = nameof(UseExplicitTypeForConst);
@@ -178,5 +179,6 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseSystemThreadingLock = nameof(UseSystemThreadingLock);
     public const string UseThrowExpression = nameof(UseThrowExpression);
     public const string UseTupleSwap = nameof(UseTupleSwap);
+    public const string UseUnboundGenericTypeInNameOf = nameof(UseUnboundGenericTypeInNameOf);
     public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
 }

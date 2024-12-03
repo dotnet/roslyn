@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -119,14 +120,17 @@ internal static class MethodGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier != null;
+        var parameters = method.Parameters.SelectAsArray(static (p, destination) => FilterAttributes(p, destination), destination);
+
         var methodDeclaration = MethodDeclaration(
-            attributeLists: GenerateAttributes(method, info, explicitInterfaceSpecifier != null),
+            attributeLists: GenerateAttributes(method, isExplicit, info),
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, info),
+            parameterList: ParameterGenerator.GenerateParameterList(parameters, isExplicit: isExplicit, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -134,6 +138,27 @@ internal static class MethodGenerator
 
         methodDeclaration = UseExpressionBodyIfDesired(info, methodDeclaration, cancellationToken);
         return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
+    }
+
+    private static IParameterSymbol FilterAttributes(IParameterSymbol parameter, CodeGenerationDestination destination)
+        => parameter.WithAttributes(parameter.GetAttributes().WhereAsArray(static (a, destination) => FilterAttribute(a, destination), destination));
+
+    private static bool FilterAttribute(AttributeData attribute, CodeGenerationDestination destination)
+    {
+        if (destination is CodeGenerationDestination.InterfaceType)
+        {
+            // EnumeratorCancellation serves no purpose in an interface.  Filter it out.
+            return attribute.AttributeClass is not
+            {
+                Name: nameof(EnumeratorCancellationAttribute),
+                ContainingNamespace.Name: nameof(System.Runtime.CompilerServices),
+                ContainingNamespace.ContainingNamespace.Name: nameof(System.Runtime),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+            };
+        }
+
+        return true;
     }
 
     private static LocalFunctionStatementSyntax GenerateLocalFunctionDeclarationWorker(
@@ -192,15 +217,17 @@ internal static class MethodGenerator
     }
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IMethodSymbol method, CSharpCodeGenerationContextInfo info, bool isExplicit)
+        IMethodSymbol method, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
+        if (isExplicit)
+        {
+            return default;
+        }
+
         var attributes = new List<AttributeListSyntax>();
 
-        if (!isExplicit)
-        {
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
-        }
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
 
         return [.. attributes];
     }

@@ -12154,55 +12154,112 @@ $@"namespace ClassLibrary9
     [InlineData("checked")]
     [InlineData("unchecked")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4950")]
+    public async Task ExtractMethodInvolvingUnsafeBlock_CSharp10(string keyword)
+    {
+        var code = $$"""
+            using System;
+
+            class Program {
+                static void Main(string[] args)
+                {
+                    object value = args;
+
+                    [|
+                    IntPtr p;
+                    {{keyword}}
+                    {
+                        object t = value;
+                        p = IntPtr.Zero;
+                    }
+                    |]
+
+                    Console.WriteLine(p);
+                }
+            }
+            """;
+        var expected = $$"""
+            using System;
+
+            class Program {
+                static void Main(string[] args)
+                {
+                    object value = args;
+
+                    IntPtr p = NewMethod(value);
+
+                    Console.WriteLine(p);
+                }
+
+                private static IntPtr NewMethod(object value)
+                {
+                    IntPtr p;
+                    {{keyword}}
+                    {
+                        object t = value;
+                        p = IntPtr.Zero;
+                    }
+
+                    return p;
+                }
+            }
+            """;
+        await TestExtractMethodAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+    }
+
+    [Theory]
+    [InlineData("unsafe")]
+    [InlineData("checked")]
+    [InlineData("unchecked")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/4950")]
     public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
     {
-        var code = $@"
-using System;
+        var code = $$"""
+            using System;
 
-class Program {{
-    static void Main(string[] args)
-    {{
-        object value = args;
+            class Program {
+                static void Main(string[] args)
+                {
+                    object value = args;
 
-        [|
-        IntPtr p;
-        {keyword}
-        {{
-            object t = value;
-            p = IntPtr.Zero;
-        }}
-        |]
+                    [|
+                    IntPtr p;
+                    {{keyword}}
+                    {
+                        object t = value;
+                        p = IntPtr.Zero;
+                    }
+                    |]
 
-        Console.WriteLine(p);
-    }}
-}}
-";
-        var expected = $@"
-using System;
+                    Console.WriteLine(p);
+                }
+            }
+            """;
+        var expected = $$"""
+            using System;
 
-class Program {{
-    static void Main(string[] args)
-    {{
-        object value = args;
+            class Program {
+                static void Main(string[] args)
+                {
+                    object value = args;
 
-        IntPtr p = NewMethod(value);
+                    nint p = NewMethod(value);
 
-        Console.WriteLine(p);
-    }}
+                    Console.WriteLine(p);
+                }
 
-    private static IntPtr NewMethod(object value)
-    {{
-        IntPtr p;
-        {keyword}
-        {{
-            object t = value;
-            p = IntPtr.Zero;
-        }}
+                private static nint NewMethod(object value)
+                {
+                    IntPtr p;
+                    {{keyword}}
+                    {
+                        object t = value;
+                        p = IntPtr.Zero;
+                    }
 
-        return p;
-    }}
-}}
-";
+                    return p;
+                }
+            }
+            """;
         await TestExtractMethodAsync(code, expected);
     }
 
@@ -12357,6 +12414,36 @@ class Program {{
                     return $"""
                         {y}
                         """;
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73044")]
+    public async Task CapturedPrimaryConstructorParameter()
+    {
+        var code = """"
+            public class Test(int value)
+            {
+                public int M()
+                {
+                    return [|value + 1|];
+                }
+            }
+            """";
+        var expected = """"
+            public class Test(int value)
+            {
+                public int M()
+                {
+                    return NewMethod();
+                }
+
+                private int NewMethod()
+                {
+                    return value + 1;
                 }
             }
             """";

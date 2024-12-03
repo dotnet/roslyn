@@ -17,7 +17,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod;
 
-public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ExtractMethodCodeRefactoringProvider();
@@ -590,7 +590,7 @@ public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
+                    Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
 
                     static Func<byte, byte> NewMethod()
                     {
@@ -632,7 +632,7 @@ public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
+                    Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
 
                     static Func<byte, byte> NewMethod()
                     {
@@ -5796,6 +5796,48 @@ class Program
             
                 public C(int x, System.Func<int, int> modX)
                 {
+                }
+            }
+            """;
+
+        await TestAsync(code, expected, TestOptions.Regular, index: CodeActionIndex);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/63917")]
+    [InlineData("true")]
+    [InlineData("false")]
+    public async Task TestAfterEndif(string ppDirective)
+    {
+        var code = $$"""
+            class C
+            {
+                void M()
+                {
+                    [|Console.WriteLine("test1");|]
+                    Console.WriteLine("test2");
+
+            #if {{ppDirective}}
+                    Console.WriteLine("test3");
+            #endif
+                }
+            }
+            """;
+
+        var expected = $$"""
+            class C
+            {
+                void M()
+                {
+                    {|Rename:NewMethod|}();
+                    Console.WriteLine("test2");
+            
+            #if {{ppDirective}}
+                    Console.WriteLine("test3");
+            #endif
+                    static void NewMethod()
+                    {
+                        Console.WriteLine("test1");
+                    }
                 }
             }
             """;

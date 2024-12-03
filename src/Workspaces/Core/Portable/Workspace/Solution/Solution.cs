@@ -1550,13 +1550,12 @@ public partial class Solution
     internal async Task<Solution> WithMergedLinkedFileChangesAsync(
         Solution oldSolution,
         SolutionChanges? solutionChanges = null,
-        IMergeConflictHandler? mergeConflictHandler = null,
         CancellationToken cancellationToken = default)
     {
         // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
         var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
-        return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
+        return (await session.MergeDiffsAsync(cancellationToken).ConfigureAwait(false)).MergedSolution;
     }
 
     internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages = false)

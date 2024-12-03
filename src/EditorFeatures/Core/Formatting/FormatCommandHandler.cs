@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class FormatCommandHandler(
+internal sealed partial class FormatCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     IGlobalOptionService globalOptions) :
