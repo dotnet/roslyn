@@ -3189,4 +3189,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="interface_name" xml:space="preserve">
     <value>&lt;interface name&gt;</value>
   </data>
+  <data name="Unable_to_create_0" xml:space="preserve">
+    <value>Unable to create '{0}'</value>
+  </data>
 </root>
