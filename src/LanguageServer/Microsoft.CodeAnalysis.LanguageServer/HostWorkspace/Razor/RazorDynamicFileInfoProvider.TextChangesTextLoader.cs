@@ -54,7 +54,7 @@ internal partial class RazorDynamicFileInfoProvider
                 return false;
             }
 
-            if (sourceText.Encoding?.CodePage == codePage)
+            if (sourceText.Encoding?.CodePage != codePage)
             {
                 return false;
             }
