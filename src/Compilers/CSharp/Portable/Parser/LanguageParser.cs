@@ -12169,6 +12169,7 @@ done:
             if (precedence > Precedence.Lambda)
                 return false;
 
+            //  (   ) =>
             //  ( x ) =>           or       ( ref x ) =>
             //  ( x , ... ) =>     or       ( ref x , ...) =>
             var index = 1;
