@@ -8006,7 +8006,7 @@ class TT
 		// Code size 20 (0x14)
 		.maxstack 1
 		.locals init (
-			[0] class [mscorlib]System.Threading.Tasks.Task`1<int32>
+			[0] int32
 		)
 		.try
 		{
