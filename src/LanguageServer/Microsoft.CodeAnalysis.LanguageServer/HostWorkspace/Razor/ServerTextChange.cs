@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
 internal class ServerTextChange
 {
