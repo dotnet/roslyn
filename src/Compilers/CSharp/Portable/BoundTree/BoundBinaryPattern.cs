@@ -9,11 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundBinaryPattern
     {
-        internal BoundNode? WithDisjunction(bool disjunction)
-        {
-            return new BoundBinaryPattern(this.Syntax, disjunction, this.Left, this.Right, this.InputType, this.NarrowedType, this.HasErrors);
-        }
-
+        // TODO2 do we need this?
         internal BoundBinaryPattern WithLeft(BoundPattern left)
         {
             return new BoundBinaryPattern(this.Syntax, this.Disjunction, left, this.Right, this.InputType, this.NarrowedType, this.HasErrors);

@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // TODO2 consider using a rewriter for this
             // The rewrite produces multiple sets, one for each `or` sequence within the pattern.
             // We take each `or` sequence in turn and bring it to the top-level, as long as it is not negated.
             // The caller is responsible for disposing the expansion sets
@@ -158,7 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 RewrittenOrSet resultOrSet = result.StartNewOrSet();
                                 foreach ((BoundPattern resultPattern, SyntaxNode syntax) in orSet.Set)
                                 {
-                                    BoundBinaryPattern resultBinaryPattern = makeBinaryOrPattern(binaryPattern, i, resultPattern);
+                                    BoundBinaryPattern? resultBinaryPattern = updateBinaryOrSequence(binaryPattern, i, resultPattern).updated;
+                                    Debug.Assert(resultBinaryPattern is not null);
                                     resultOrSet.Add(resultBinaryPattern, syntax);
                                 }
                             }
@@ -352,20 +354,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            // Produce `pattern1 or pattern2 or ... or patternN`, but with the i-th pattern substituted
-            static BoundBinaryPattern makeBinaryOrPattern(BoundBinaryPattern binaryPattern, int i, BoundPattern pattern)
+            // Update `pattern1 or pattern2 or ... or patternN` tree, but with the i-th pattern/leaf substituted.
+            // We return either an updated node or a count of leaves found in that node.
+            static (BoundBinaryPattern? updated, int leafCount) updateBinaryOrSequence(BoundBinaryPattern binaryPattern, int leafIndex, BoundPattern pattern)
             {
-                if (i == 0)
+                int leftLeafCount;
+                if (binaryPattern.Left is BoundBinaryPattern { Disjunction: true } left)
                 {
-                    return binaryPattern.WithLeft(pattern);
+                    (var updatedLeft, leftLeafCount) = updateBinaryOrSequence(left, leafIndex, pattern);
+                    if (updatedLeft is not null)
+                    {
+                        // The index we are looking for is on the left
+                        return (binaryPattern.WithLeft(updatedLeft), -1);
+                    }
+                }
+                else
+                {
+                    // Reached a leaf on the left
+                    leftLeafCount = 1;
+                    if (leafIndex == 0)
+                    {
+                        // The index we are looking for is on the left
+                        return (binaryPattern.WithLeft(pattern), -1);
+                    }
                 }
 
-                if (i == 1)
+                if (binaryPattern.Right is BoundBinaryPattern { Disjunction: true } right)
                 {
-                    return binaryPattern.WithRight(pattern);
+                    var (updatedRight, rightLeafCount) = updateBinaryOrSequence(right, leafIndex - leftLeafCount, pattern);
+                    if (updatedRight is not null)
+                    {
+                        return (binaryPattern.WithRight(updatedRight), -1);
+                    }
+
+                    return (null, leftLeafCount + rightLeafCount);
                 }
 
-                return binaryPattern.WithRight(makeBinaryOrPattern((BoundBinaryPattern)binaryPattern.Right, i--, pattern));
+                if (leafIndex == leftLeafCount)
+                {
+                    // The index we are looking for is on the right
+                    return (binaryPattern.WithRight(pattern), -1);
+                }
+
+                return (null, leftLeafCount + 1);
             }
 
             static void addPatternsFromOrTree(BoundPattern pattern, ArrayBuilder<BoundPattern> builder)

@@ -6396,7 +6396,7 @@ _ = o switch
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(40533, "https://github.com/dotnet/roslyn/issues/40533")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_DisallowDesignatorsUnderNotAndOr()
         {
             var source = """
@@ -6504,7 +6504,7 @@ class Derived : C { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(34, 34));
         }
 
-        [Fact, WorkItem(40533, "https://github.com/dotnet/roslyn/issues/40533")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_LeftBranches()
         {
             var source = """
@@ -6529,6 +6529,128 @@ class C
                 // (7,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is (1 or (2 or 3)) or int v3) { } // 3
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v3").WithLocation(7, 41));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_DifferentOrSequences()
+        {
+            var source = """
+class C
+{
+    void M(S s)
+    {
+        if (s is { Prop1: 42 or 43 } or { Prop2: 44 or 45 }) { }
+        if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 1, 2
+        if (s is { Prop1: (not 42 or 43) or 44 } or { Prop2: (not 45 or 45) or 46 }) { } // 3, 4, 5, 6
+        if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 7, 8, 9, 10
+
+        if (s is ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) or { Prop3: not 46 or 47 }) { } // 11, 12, 13
+        if (s is ({ Prop0: not 42 or 43 } or ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 })) or { Prop3: not 46 or 47 }) { } // 14, 15, 16, 17
+    }
+}
+
+public struct S
+{
+    public int Prop0 { get; set; }
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+    public int Prop3 { get; set; }
+}
+""";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,37): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 37),
+                // (6,64): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 64),
+                // (7,13): warning CS8794: An expression of type 'S' always matches the provided pattern.
+                //         if (s is { Prop1: (not 42 or 43) or 44 } or { Prop2: (not 45 or 45) or 46 }) { } // 3, 4, 5, 6
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is { Prop1: (not 42 or 43) or 44 } or { Prop2: (not 45 or 45) or 46 }").WithArguments("S").WithLocation(7, 13),
+                // (7,38): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (not 42 or 43) or 44 } or { Prop2: (not 45 or 45) or 46 }) { } // 3, 4, 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(7, 38),
+                // (7,45): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (not 42 or 43) or 44 } or { Prop2: (not 45 or 45) or 46 }) { } // 3, 4, 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "44").WithLocation(7, 45),
+                // (7,80): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (not 42 or 43) or 44 } or { Prop2: (not 45 or 45) or 46 }) { } // 3, 4, 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "46").WithLocation(7, 80),
+                // (8,45): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 7, 8, 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "44").WithLocation(8, 45),
+                // (8,53): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 7, 8, 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(8, 53),
+                // (8,88): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 7, 8, 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(8, 88),
+                // (8,96): warning CS9268: The pattern is redundant.
+                //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 7, 8, 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "46").WithLocation(8, 96),
+                // (10,38): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) or { Prop3: not 46 or 47 }) { } // 11, 12, 13
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 38),
+                // (10,65): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) or { Prop3: not 46 or 47 }) { } // 11, 12, 13
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(10, 65),
+                // (10,93): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) or { Prop3: not 46 or 47 }) { } // 11, 12, 13
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(10, 93),
+                // (11,38): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop0: not 42 or 43 } or ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 })) or { Prop3: not 46 or 47 }) { } // 14, 15, 16, 17
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 38),
+                // (11,66): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop0: not 42 or 43 } or ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 })) or { Prop3: not 46 or 47 }) { } // 14, 15, 16, 17
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 66),
+                // (11,93): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop0: not 42 or 43 } or ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 })) or { Prop3: not 46 or 47 }) { } // 14, 15, 16, 17
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(11, 93),
+                // (11,122): warning CS9268: The pattern is redundant.
+                //         if (s is ({ Prop0: not 42 or 43 } or ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 })) or { Prop3: not 46 or 47 }) { } // 14, 15, 16, 17
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(11, 122));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_DifferentOrSequences_TODO2()
+        {
+            var source = """
+class C
+{
+    void M(Container c)
+    {
+        if (c is { PropA: { Prop0: not 42 or 43 } or { Prop1: not 44 or 45 } } // 1, 2
+              or { PropB: { Prop2: not 46 or 47 } or { Prop3: not 48 or 49 } }) { } // 3, 4
+    }
+}
+public struct Container
+{
+    public S PropA { get; set; }
+    public S PropB { get; set; }
+}
+public struct S
+{
+    public int Prop0 { get; set; }
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+    public int Prop3 { get; set; }
+}
+""";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,46): warning CS9268: The pattern is redundant.
+                //         if (c is { PropA: { Prop0: not 42 or 43 } or { Prop1: not 44 or 45 } } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 46),
+                // (5,73): warning CS9268: The pattern is redundant.
+                //         if (c is { PropA: { Prop0: not 42 or 43 } or { Prop1: not 44 or 45 } } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(5, 73),
+                // (6,46): warning CS9268: The pattern is redundant.
+                //               or { PropB: { Prop2: not 46 or 47 } or { Prop3: not 48 or 49 } }) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(6, 46),
+                // (6,73): warning CS9268: The pattern is redundant.
+                //               or { PropB: { Prop2: not 46 or 47 } or { Prop3: not 48 or 49 } }) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "49").WithLocation(6, 73));
         }
     }
 }
