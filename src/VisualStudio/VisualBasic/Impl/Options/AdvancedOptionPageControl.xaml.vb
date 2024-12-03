@@ -48,14 +48,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Private ReadOnly _threadingContext As IThreadingContext
-        Private ReadOnly _colorSchemeApplier As ColorSchemeApplier
-
         Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
             MyBase.New(optionStore)
-
-            _threadingContext = componentModel.GetService(Of IThreadingContext)()
-            _colorSchemeApplier = componentModel.GetService(Of ColorSchemeApplier)()
 
             InitializeComponent()
 
