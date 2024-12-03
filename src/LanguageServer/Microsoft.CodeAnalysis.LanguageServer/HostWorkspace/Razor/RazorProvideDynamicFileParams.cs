@@ -11,4 +11,11 @@ internal class RazorProvideDynamicFileParams
 {
     [JsonPropertyName("razorDocument")]
     public required TextDocumentIdentifier RazorDocument { get; set; }
+
+    /// <summary>
+    /// When true, the full text of the document will be sent over as a single
+    /// edit instead of diff edits
+    /// </summary>
+    [JsonPropertyName("fullText")]
+    public bool FullText { get; set; }
 }

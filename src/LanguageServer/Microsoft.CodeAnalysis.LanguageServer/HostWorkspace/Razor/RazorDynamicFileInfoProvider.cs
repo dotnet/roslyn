@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [Export(typeof(IDynamicFileInfoProvider))]
 [Export(typeof(RazorDynamicFileInfoProvider))]
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
-internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
+internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
@@ -55,11 +54,12 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
+        var razorUri = ProtocolConversions.CreateAbsoluteUri(filePath);
         var requestParams = new RazorProvideDynamicFileParams
         {
             RazorDocument = new()
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(filePath)
+                Uri = razorUri
             }
         };
 
@@ -82,7 +82,13 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
             var textDocument = await _workspaceFactory.Workspace.CurrentSolution.GetTextDocumentAsync(response.CSharpDocument, cancellationToken).ConfigureAwait(false);
             var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
-            var textLoader = new TextChangesTextLoader(textDocument, textChanges);
+            var textLoader = new TextChangesTextLoader(
+                textDocument,
+                textChanges,
+                response.Checksum,
+                response.ChecksumAlgorithm,
+                response.EncodingName,
+                razorUri);
 
             return new DynamicFileInfo(
                 dynamicFileInfoFilePath,
@@ -137,22 +143,4 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
             return Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Default));
         }
     }
-
-    private sealed class TextChangesTextLoader(TextDocument? document, IEnumerable<TextChange> changes) : TextLoader
-    {
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        {
-            var sourceText = document is null
-                ? SourceText.From("")
-                : await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var version = document is null
-                ? VersionStamp.Default
-                : await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            var newText = sourceText.WithChanges(changes);
-            return TextAndVersion.Create(newText, version.GetNewerVersion());
-        }
-    }
-
 }

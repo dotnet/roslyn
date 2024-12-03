@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -14,4 +15,16 @@ internal class RazorProvideDynamicFileResponse
 
     [JsonPropertyName("edits")]
     public ServerTextChange[]? Edits { get; set; }
+
+    [JsonPropertyName("checksum")]
+    public required byte[] Checksum { get; set; }
+
+    [JsonPropertyName("checksumAlgorithm")]
+    public SourceHashAlgorithm ChecksumAlgorithm { get; set; }
+
+    /// <summary>
+    /// The IANA name associated with the encoding of the source text
+    /// </summary>
+    [JsonPropertyName("encodingName")]
+    public string? EncodingName { get; set; }
 }
