@@ -374,9 +374,9 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
             // we're generating into.
             if (property.ContainingType.TypeKind == TypeKind.Interface)
             {
-                members = members.Select(editor.Generator.AsInterfaceMember)
-                                 .WhereNotNull()
-                                 .ToImmutableArray();
+                members = members.SelectAsArray(m => editor.Generator.GetModifiers(m).IsAbstract
+                    ? editor.Generator.AsInterfaceMember(m)
+                    : m);
             }
 
             var nodeToReplace = service.GetPropertyNodeToReplace(declaration);
