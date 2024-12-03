@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -71,13 +70,12 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
+        // We need to update the theme whenever the Editor Color Scheme setting changes.
         await TaskScheduler.Default;
         var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
-        VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
         await TaskScheduler.Default;
 
@@ -107,9 +105,6 @@ internal sealed partial class ColorSchemeApplier
         await _settings.ApplyColorSchemeAsync(
             colorScheme.Value, _colorSchemeRegistryItems[colorScheme.Value], cancellationToken).ConfigureAwait(false);
     }
-
-    private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        => _workQueue.AddWork();
 
     private Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
     {
