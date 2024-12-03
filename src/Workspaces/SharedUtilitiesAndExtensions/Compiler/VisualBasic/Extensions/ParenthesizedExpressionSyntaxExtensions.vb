@@ -529,7 +529,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             Return False
                     End Select
 
-
                     If Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.DotToken) AndAlso
                             nextToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression)) AndAlso
                        Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.SelectKeyword) AndAlso
