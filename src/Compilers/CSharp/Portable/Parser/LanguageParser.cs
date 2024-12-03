@@ -2058,16 +2058,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (colon == null)
                 return null;
 
+            var list = _pool.AllocateSeparated<BaseTypeSyntax>();
+
             // Grammar requires at least one base type follow the colon.
             var firstType = this.ParseType();
-
-            var argumentList = this.CurrentToken.Kind == SyntaxKind.OpenParenToken
-                ? this.ParseParenthesizedArgumentList()
-                : null;
-
-            var list = _pool.AllocateSeparated<BaseTypeSyntax>();
-            list.Add(argumentList != null
-                ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList)
+            list.Add(this.CurrentToken.Kind == SyntaxKind.OpenParenToken
+                ? _syntaxFactory.PrimaryConstructorBaseType(firstType, this.ParseParenthesizedArgumentList())
                 : _syntaxFactory.SimpleBaseType(firstType));
 
             // Parse any optional base types that follow.
