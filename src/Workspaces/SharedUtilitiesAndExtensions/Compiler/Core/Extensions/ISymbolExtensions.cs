@@ -153,7 +153,9 @@ internal static partial class ISymbolExtensions
                     let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
                     where symbol.Equals(impl)
                     select interfaceMember;
-        return query.ToImmutableArray();
+        var implicitImplementations = query.ToImmutableArray();
+
+        return implicitImplementations.Concat(symbol.ExplicitInterfaceImplementations());
     }
 
     public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
