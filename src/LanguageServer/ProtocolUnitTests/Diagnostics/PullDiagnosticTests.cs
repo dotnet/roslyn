@@ -2045,7 +2045,8 @@ class A {";
         //    1.  LSP changed, which triggers immediately via the queue.
         //    2.  Workspace changed, which can be delayed until after the requests complete.
         // To ensure the workspace changed is processed, we need to wait for all workspace events.
-        await testLspServer.WaitForDiagnosticsAsync();
+        var listenerProvider = testLspServer.TestWorkspace.GetService<IAsynchronousOperationListenerProvider>();
+        await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(testLspServer.TestWorkspace);
 
         // Make new requests - these requests should again wait for new changes.
         resultTaskOne = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.WorkspaceDocumentsAndProject, triggerConnectionClose: false);
