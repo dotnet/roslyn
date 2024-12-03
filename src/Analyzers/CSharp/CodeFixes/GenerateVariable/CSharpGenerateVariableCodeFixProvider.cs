@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,7 +37,7 @@ internal sealed class CSharpGenerateVariableCodeFixProvider() : AbstractGenerate
     protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         => node is SimpleNameSyntax or PropertyDeclarationSyntax or MemberBindingExpressionSyntax;
 
-    protected override SyntaxNode GetTargetNode(SyntaxNode node)
+    protected override SyntaxNode? GetTargetNode(SyntaxNode node)
     {
         if (node.IsKind(SyntaxKind.MemberBindingExpression))
         {

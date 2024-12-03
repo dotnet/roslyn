@@ -28,7 +28,7 @@ internal abstract partial class AbstractMetadataAsSourceService
         private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
         private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
         private static readonly string s_valueHeader = FeaturesResources.Value_colon;
-        private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;
+        private static readonly string s_exceptionsHeader = WorkspacesResources.Exceptions_colon;
         private static readonly string s_remarksHeader = FeaturesResources.Remarks_colon;
 
         internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)

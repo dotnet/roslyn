@@ -1967,7 +1967,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
     internal override string GetDisplayName(INamedTypeSymbol symbol)
         => symbol.TypeKind switch
         {
-            TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : CSharpFeaturesResources.struct_,
+            TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : FeaturesResources.struct_,
             TypeKind.Class => symbol.IsRecord ? CSharpFeaturesResources.record_ : FeaturesResources.class_,
             _ => base.GetDisplayName(symbol)
         };
@@ -2026,7 +2026,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return FeaturesResources.class_;
 
             case SyntaxKind.StructDeclaration:
-                return CSharpFeaturesResources.struct_;
+                return FeaturesResources.struct_;
 
             case SyntaxKind.InterfaceDeclaration:
                 return FeaturesResources.interface_;
@@ -2237,7 +2237,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return CSharpFeaturesResources.tuple;
 
             case SyntaxKind.LocalFunctionStatement:
-                return CSharpFeaturesResources.local_function;
+                return FeaturesResources.local_function;
 
             case SyntaxKind.DeclarationExpression:
                 return CSharpFeaturesResources.out_var;

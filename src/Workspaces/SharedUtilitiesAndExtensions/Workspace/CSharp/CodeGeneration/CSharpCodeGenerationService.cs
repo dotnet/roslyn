@@ -582,9 +582,31 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
         var finalMember = baseMethodDeclaration
             .WithExpressionBody(null)
             .WithSemicolonToken(default)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
+    }
+
+    public static BlockSyntax AddStatementsToBlock(BlockSyntax block, IEnumerable<SyntaxNode> statements)
+    {
+        var statementsArray = StatementGenerator.GenerateStatements(statements);
+        if (statementsArray.Count > 0)
+        {
+            var closeBraceTrivia = block.CloseBraceToken.LeadingTrivia;
+            var lastEndIf = closeBraceTrivia.LastOrDefault(t => t.GetStructure() is EndIfDirectiveTriviaSyntax);
+            if (lastEndIf != default)
+            {
+                var splitIndex = closeBraceTrivia.IndexOf(lastEndIf) + 1;
+
+                statementsArray = statementsArray.Replace(
+                    statementsArray[0],
+                    statementsArray[0].WithPrependedLeadingTrivia(closeBraceTrivia.Take(splitIndex)));
+                block = block.WithCloseBraceToken(
+                    block.CloseBraceToken.WithLeadingTrivia(closeBraceTrivia.Skip(splitIndex)));
+            }
+        }
+
+        return block.WithStatements(block.Statements.AddRange(statementsArray));
     }
 
     private static TDeclarationNode AddStatementsToLocalFunctionStatement<TDeclarationNode>(
@@ -603,7 +625,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
         var finalMember = localFunctionStatement
             .WithExpressionBody(null)
             .WithSemicolonToken(default)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
     }
@@ -628,7 +650,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
 
         var finalMember = anonymousFunctionSyntax
             .WithExpressionBody(null)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
     }
