@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     SyntaxFactory.VariableDeclarator(
                         SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         asClause,
-                        SyntaxFactory.EqualsValue(value:=expression.WithoutTrailingTrivia().WithoutLeadingTrivia()))))
+                        SyntaxFactory.EqualsValue(value:=expression.Parenthesize().WithoutTrivia()))))
 
             If Not declarationStatement.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then
                 declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
@@ -132,13 +132,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim matches = FindMatches(document, expression, document, {oldOutermostBlock}, allOccurrences, cancellationToken)
 
-            Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
-            document = complexified.newSemanticDocument
-            matches = complexified.newMatches
+            'Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
+            'document = complexified.newSemanticDocument
+            'matches = complexified.newMatches
 
             ' Our original expression should have been one of the matches, which were tracked as part
             ' of complexification, so we can retrieve the latest version of the expression here.
-            expression = document.Root.GetCurrentNodes(expression).First()
+            ' expression = document.Root.GetCurrentNodes(expression).First()
 
             Dim innermostStatements = New HashSet(Of StatementSyntax)(matches.Select(Function(expr) expr.GetAncestorOrThis(Of StatementSyntax)()))
             If innermostStatements.Count = 1 Then

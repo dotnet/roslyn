@@ -1248,8 +1248,8 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer) Dim {|Rename:value|} As Integer = x + 1
-                    Console.WriteLine(value)
-                End Sub ' Introduce local 
+                    Console.WriteLine(value) ' Introduce local 
+                End Sub
     End Sub
 End Module")
         End Function
@@ -2151,8 +2151,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim {|Rename:x1|} As IEnumerable(Of Char) = From x In """"
-        [Take](x1)
+        Dim {|Rename:x1|} As IEnumerable(Of Char) = (From x In """")
+        Take(x1)
     End Sub
     Sub Take(x)
     End Sub
