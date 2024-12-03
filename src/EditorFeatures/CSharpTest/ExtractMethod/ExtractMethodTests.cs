@@ -12363,4 +12363,34 @@ class Program {{
 
         await TestExtractMethodAsync(code, expected);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73044")]
+    public async Task CapturedPrimaryConstructorParameter()
+    {
+        var code = """"
+            public class Test(int value)
+            {
+                public int M()
+                {
+                    return [|value + 1|];
+                }
+            }
+            """";
+        var expected = """"
+            public class Test(int value)
+            {
+                public int M()
+                {
+                    return NewMethod();
+                }
+
+                private int NewMethod()
+                {
+                    return value + 1;
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
 }
