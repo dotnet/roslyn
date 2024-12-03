@@ -178,8 +178,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
         RoslynDebug.Assert(!this.IsInPreparation);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
         try
         {
             this.IsInPreparation = true;
@@ -228,6 +229,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
         finally
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
             this.IsInPreparation = false;
         }
     }
