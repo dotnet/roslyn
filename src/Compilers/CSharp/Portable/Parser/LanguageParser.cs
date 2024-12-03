@@ -2054,6 +2054,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private BaseListSyntax ParseBaseList()
         {
+            // We are only called from ParseClassOrStructOrInterfaceDeclaration which unilaterally sets this.
+            Debug.Assert((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0);
+
             var colon = this.TryEatToken(SyntaxKind.ColonToken);
             if (colon == null)
                 return null;
@@ -2069,8 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Parse any optional base types that follow.
             while (true)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                    ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken ||
                     this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     break;
