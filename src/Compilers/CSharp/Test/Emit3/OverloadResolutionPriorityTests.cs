@@ -2600,30 +2600,29 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     {
         var source = """
             using System;
-            using System.Collections.Generic;
             using System.Linq.Expressions;
             using System.Runtime.CompilerServices;
 
-            Expression<Action> e = () => C.M(1, 2, 3);
+            Expression<Action> e = () => C.M("");
+            e.Compile()();
 
             public class C
             {
-                public static void M(params int[] a)
+                public static void M(string a)
                 {
+                    throw null;
                 }
 
                 [OverloadResolutionPriority(1)]
-                public static void M(params IEnumerable<int> e)
+                public static void M(object e)
                 {
+                    System.Console.Write(1);
                 }
             }
             """;
 
-        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
-            // (6,30): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
-            // Expression<Action> e = () => C.M(1, 2, 3);
-            Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "C.M(1, 2, 3)").WithLocation(6, 30)
-        );
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
     }
 
     [Fact]
