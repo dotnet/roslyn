@@ -12159,10 +12159,15 @@ done:
 
         private bool ScanParenthesizedLambda(Precedence precedence)
         {
-            return ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+            return ScanImplicitlyTypedLambdaOrSimpleExplicitlyTypedParenthesizedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
         }
 
-        private bool ScanParenthesizedImplicitlyTypedLambda(Precedence precedence)
+        /// <summary>
+        /// Scans implicitly typed  lambdas (like <c>(a, b) =></c>) as well as basic explicitly typed lambdas (like
+        /// <c>(A a, B b) =></c>.  More complex scanning of parenthesized lambdas happens in <see
+        /// cref="ScanExplicitlyTypedLambda"/>.
+        /// </summary>
+        private bool ScanImplicitlyTypedLambdaOrSimpleExplicitlyTypedParenthesizedLambda(Precedence precedence)
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
@@ -12178,7 +12183,9 @@ done:
             {
                 var token = this.PeekToken(index++);
 
-                // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
+                // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments. Note:
+                // this *will* grab explicitly typed lambdas like `(A b) =>`.  However, that's ok.  The only caller of
+                // this is ScanParenthesizedLambda, which just wants to know if it's on some form of lambda.
                 if (this.IsTrueIdentifier(token) ||
                     token.Kind is SyntaxKind.CommaToken ||
                     IsParameterModifierIncludingScoped(token))
