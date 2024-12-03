@@ -89,21 +89,28 @@ internal static class CastSimplifier
             {
                 Kind: OperationKind.MethodReference,
                 Parent.Kind: OperationKind.DelegateCreation,
-                Parent.Parent: IConversionOperation { Type.SpecialType: SpecialType.System_Object } conversionOperation
+                IsImplicit: false,
             })
         {
-            // If we have a double cast, report as unnecessary, e.g:
-            // (object)(object)MethodGroup
-            // (Delegate)(object)MethodGroup
-            // If we have a single object cast, don't report as unnecessary e.g:
-            // (object)MethodGroup
-            if (conversionOperation.Parent is IConversionOperation { Type: { } parentConversionType } &&
-                semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
-            {
-                return true;
-            }
+            var current = castExpressionOperation.Parent.Parent;
+            while (current is IConversionOperation { Type.SpecialType: SpecialType.System_Delegate or SpecialType.System_MulticastDelegate })
+                current = current.Parent;
 
-            return false;
+            if (current is IConversionOperation { Type.SpecialType: SpecialType.System_Object })
+            {
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                if (current.Parent is IConversionOperation { Type: { } parentConversionType, IsImplicit: false } &&
+                    semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);

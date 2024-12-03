@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -76,7 +74,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
         private string CreateDisplayText(TExpressionSyntax expression)
         {
-            var singleLineExpression = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
+            var singleLineExpression = _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
             var nodeString = singleLineExpression.ToString();
 
             return CreateDisplayText(nodeString);

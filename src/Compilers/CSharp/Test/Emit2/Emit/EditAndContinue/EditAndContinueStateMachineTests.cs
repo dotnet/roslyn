@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Iterator, CompilerFeature.Async, CompilerFeature.AsyncStreams)]
     public class EditAndContinueStateMachineTests(ITestOutputHelper logger) : EditAndContinueTestBase
     {
         private readonly ITestOutputHelper _logger = logger;
@@ -4747,7 +4748,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       33 (0x21)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4773,12 +4774,15 @@ class C
     IL_001d:  endfinally
   }
   IL_001e:  br.s       IL_0020
-  IL_0020:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.s   -2
+  IL_0023:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0028:  ret
 }
 ");
             diff1.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size      108 (0x6c)
+  // Code size      116 (0x74)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4843,7 +4847,10 @@ class C
     IL_0068:  endfinally
   }
   IL_0069:  br.s       IL_006b
-  IL_006b:  ret
+  IL_006b:  ldarg.0
+  IL_006c:  ldc.i4.s   -2
+  IL_006e:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0073:  ret
 }
 ");
 
@@ -5176,7 +5183,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       40 (0x28)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5205,12 +5212,15 @@ class C
   IL_0020:  ldarg.0
   IL_0021:  ldnull
   IL_0022:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
-  IL_0027:  ret
+  IL_0027:  ldarg.0
+  IL_0028:  ldc.i4.s   -2
+  IL_002a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_002f:  ret
 }
 ");
             diff1.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5241,7 +5251,10 @@ class C
   IL_0022:  ldarg.0
   IL_0023:  ldnull
   IL_0024:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
-  IL_0029:  ret
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.s   -2
+  IL_002c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0031:  ret
 }
 ");
 

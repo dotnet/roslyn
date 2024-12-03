@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -29,7 +28,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
-    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
     // specify all options explicitly to override defaults.
     private OptionsCollection ImplicitTypingEverywhere()
@@ -3423,7 +3422,7 @@ class C
     void Goo()
     {
         var {|Rename:v|} = int.Parse("12345");
-        var s = $"Alpha Beta { v } Gamma";
+        var s = $"Alpha Beta {v} Gamma";
     }
 }
 """;
@@ -6246,11 +6245,11 @@ class C
             {
                 class C
                 {
-                    private const int {|Rename:V|} = 1 + 1;
+                    private const int {|Rename:foo|} = 1 + 1;
 
                     void M()
                     {
-                        var t = new { foo = V };
+                        var t = new { foo = foo };
                     }
                 }
             }
@@ -8986,6 +8985,35 @@ namespace ConsoleApp1
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21602")]
+    public async Task DetermineNameFromAnonymousObjectMember()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var x = new { y = [|DateTime.Now.ToString()|] };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    string {|Rename:y|} = DateTime.Now.ToString();
+                    var x = new { y = y };
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
     public async Task TestTopLevel1()
     {
@@ -9028,7 +9056,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            
+
             void Local()
             {
                 var v3 = random.Next();
@@ -9061,7 +9089,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            
+
             class C
             {
                 void Local()
@@ -9097,7 +9125,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            
+
             class C
             {
                 void Local()
@@ -9130,7 +9158,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            
+
             static void Local()
             {
                 var v3 = new Random().Next();
@@ -9160,7 +9188,7 @@ namespace ConsoleApp1
 
             var v1 = random.Next();
             var v2 = random.Next();
-            
+
             void Local()
             {
                 var v3 = random.Next();
@@ -9188,7 +9216,7 @@ namespace ConsoleApp1
 
             var v1 = new Random().Next();
             var v2 = new Random().Next();
-            
+
             static void Local()
             {
                 var {|Rename:random|} = new Random();
@@ -9222,7 +9250,7 @@ namespace ConsoleApp1
             """
             using System;
             using System.Collections.Generic;
-            
+
             class C
             {
                 void M()
@@ -9266,7 +9294,7 @@ namespace ConsoleApp1
             """
             using System;
             using System.Collections.Generic;
-            
+
             class C
             {
                 void M()
