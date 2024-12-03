@@ -887,11 +887,6 @@
         <target state="translated">Reguły nazewnictwa</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_asynchronously_exerimental">
-        <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">Nawiguj asynchronicznie (eksperymentalne)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Przejdź do pozycji „{0}”</target>

@@ -376,9 +376,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Go_To_Definition
             => ServicesVSResources.Go_To_Definition;
 
-        public static string Option_Navigate_asynchronously_exerimental
-            => ServicesVSResources.Navigate_asynchronously_exerimental;
-
         public static string Option_Rename
             => EditorFeaturesResources.Rename;
 

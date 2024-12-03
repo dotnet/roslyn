@@ -2740,6 +2740,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">'{0}' kaynak dosyası veya içeren proje için oluşturulan PDB okunamıyor. Hata ayıklama sırasında bu dosyada yapılan değişiklikler, dosyanın içeriği oluşturulan kaynakla eşleşene kadar uygulanmaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
         <target state="translated">'{0}' türü yüklenemiyor: '{1}'</target>
