@@ -29,6 +29,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, string> s_statusMessageAccessor;
     private static readonly Func<object, bool> s_statusMessageVisibilityAccessor;
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
+    private static readonly Func<object, Guid> s_correlationIdAccessor;
     private static readonly Func<object?, object?>? s_renameContextImmutableListCreateBuilderAccessor;
     private static readonly Action<object, object>? s_renameContextImmutableListBuilderAddAccessor;
     private static readonly Func<object, object>? s_renameContextImmutableListBuilderToArrayAccessor;
@@ -52,6 +53,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_statusMessageAccessor = LightupHelpers.CreatePropertyAccessor<object, string>(s_wrappedType, nameof(StatusMessage), "");
         s_statusMessageVisibilityAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(StatusMessageVisibility), false);
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
+        s_correlationIdAccessor = LightupHelpers.CreatePropertyAccessor<object, Guid>(s_wrappedType, nameof(CorrelationId), Guid.Empty);
 
         if (s_wrappedRenameContextType is not null)
         {
@@ -93,6 +95,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     public string StatusMessage => s_statusMessageAccessor(_instance);
     public bool StatusMessageVisibility => s_statusMessageVisibilityAccessor(_instance);
     public IReadOnlyList<string> SuggestedNames => s_suggestedNamesAccessor(_instance);
+    public Guid CorrelationId => s_correlationIdAccessor(_instance);
 
     public event PropertyChangedEventHandler PropertyChanged
     {

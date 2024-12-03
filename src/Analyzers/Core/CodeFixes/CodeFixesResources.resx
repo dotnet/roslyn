@@ -159,9 +159,6 @@
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
   </data>
-  <data name="Add_explicit_cast" xml:space="preserve">
-    <value>Add explicit cast</value>
-  </data>
   <data name="Alias_ambiguous_type_0" xml:space="preserve">
     <value>Alias ambiguous type '{0}'</value>
   </data>

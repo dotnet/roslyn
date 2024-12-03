@@ -792,11 +792,6 @@
         <target state="translated">Operacja zmiany nazwy nie została prawidłowo ukończona. Niektóre pliki mogły nie zostać zaktualizowane.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Zmień nazwę elementu „{0}” na „{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">Ostrzeżenie (wersja zapoznawcza)</target>

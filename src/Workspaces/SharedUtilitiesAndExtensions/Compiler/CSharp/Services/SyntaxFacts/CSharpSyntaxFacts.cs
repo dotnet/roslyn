@@ -72,6 +72,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool SupportsCollectionExpressionNaturalType(ParseOptions options)
         => false;
 
+    public bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
 
@@ -507,7 +510,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     {
         if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
         {
-            switch ((SyntaxKind)token.RawKind)
+            switch (token.Kind())
             {
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.VoidKeyword:

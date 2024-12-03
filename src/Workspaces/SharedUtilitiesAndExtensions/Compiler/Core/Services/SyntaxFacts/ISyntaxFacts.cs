@@ -101,6 +101,7 @@ internal interface ISyntaxFacts
     bool SupportsConstantInterpolatedStrings(ParseOptions options);
     bool SupportsTupleDeconstruction(ParseOptions options);
     bool SupportsCollectionExpressionNaturalType(ParseOptions options);
+    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
 
     SyntaxToken ParseToken(string text);
     SyntaxTriviaList ParseLeadingTrivia(string text);

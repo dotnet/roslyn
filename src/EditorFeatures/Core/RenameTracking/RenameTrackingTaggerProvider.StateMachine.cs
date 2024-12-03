@@ -307,7 +307,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                     if (text.AreOnSameLine(userSpan.Start, snapshotSpan.Start))
                     {
                         var title = string.Format(
-                            EditorFeaturesResources.Rename_0_to_1,
+                            WorkspacesResources.Rename_0_to_1,
                             trackingSession.OriginalName,
                             snapshotSpan.GetText());
 

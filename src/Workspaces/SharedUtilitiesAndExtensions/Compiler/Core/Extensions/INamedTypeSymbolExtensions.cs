@@ -195,10 +195,12 @@ internal static partial class INamedTypeSymbolExtensions
         {
             if (type.TypeKind == TypeKind.Interface)
             {
-                return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
-                                                           m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                           !IsPropertyWithNonPublicImplementableAccessor(m) &&
-                                                           IsImplicitlyImplementable(m, within));
+                return type.GetMembers().WhereAsArray(
+                    m => m.DeclaredAccessibility is Accessibility.Public or Accessibility.Protected &&
+                    m.Kind != SymbolKind.NamedType &&
+                    IsImplementable(m) &&
+                    !IsPropertyWithNonPublicImplementableAccessor(m) &&
+                    IsImplicitlyImplementable(m, within));
             }
 
             return type.GetMembers();
