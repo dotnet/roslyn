@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -120,6 +121,8 @@ internal static class MethodGenerator
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
         var isExplicit = explicitInterfaceSpecifier != null;
+        var parameters = method.Parameters.SelectAsArray(static (p, destination) => FilterAttributes(p, destination), destination);
+
         var methodDeclaration = MethodDeclaration(
             attributeLists: GenerateAttributes(method, isExplicit, info),
             modifiers: GenerateModifiers(method, destination, info),
@@ -127,7 +130,7 @@ internal static class MethodGenerator
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info),
+            parameterList: ParameterGenerator.GenerateParameterList(parameters, isExplicit: isExplicit, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -135,6 +138,27 @@ internal static class MethodGenerator
 
         methodDeclaration = UseExpressionBodyIfDesired(info, methodDeclaration, cancellationToken);
         return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
+    }
+
+    private static IParameterSymbol FilterAttributes(IParameterSymbol parameter, CodeGenerationDestination destination)
+        => parameter.WithAttributes(parameter.GetAttributes().WhereAsArray(static (a, destination) => FilterAttribute(a, destination), destination));
+
+    private static bool FilterAttribute(AttributeData attribute, CodeGenerationDestination destination)
+    {
+        if (destination is CodeGenerationDestination.InterfaceType)
+        {
+            // EnumeratorCancellation serves no purpose in an interface.  Filter it out.
+            return attribute.AttributeClass is not
+            {
+                Name: nameof(EnumeratorCancellationAttribute),
+                ContainingNamespace.Name: nameof(System.Runtime.CompilerServices),
+                ContainingNamespace.ContainingNamespace.Name: nameof(System.Runtime),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+            };
+        }
+
+        return true;
     }
 
     private static LocalFunctionStatementSyntax GenerateLocalFunctionDeclarationWorker(

@@ -19,13 +19,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = null)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseImplicitTypeTests(ITestOutputHelper? logger = null)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
@@ -3324,5 +3320,86 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public async Task TestLambdaNaturalType1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    [|Func<int>|] s = int () => { };
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    var s = int () => { };
+                }
+            }
+            """, options: ImplicitTypeEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public async Task TestLambdaNaturalType1_CSharp9()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    [|Func<int>|] s = int () => { };
+                }
+            }
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9), options: ImplicitTypeEverywhere()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public async Task TestLambdaNaturalType2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            class C
+            {
+                static void M()
+                {
+                    [|Action<int>|] s = (a) => { };
+                }
+            }
+            """, new(options: ImplicitTypeEverywhere()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public async Task TestLambdaNaturalType3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            delegate int D()
+            
+            class C
+            {
+                static void M()
+                {
+                    [|D|] s = int () => { };
+                }
+            }
+            """, new(options: ImplicitTypeEverywhere()));
     }
 }

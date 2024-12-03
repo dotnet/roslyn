@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var solutionInfo = await msbuildProjectLoader.LoadSolutionInfoAsync(solutionFilePath);
             var projectInfo = Assert.Single(solutionInfo.Projects);
 
-            Assert.Single(projectInfo.Documents.Where(d => d.Name == "CSharpClass.cs"));
+            Assert.Single(projectInfo.Documents, d => d.Name == "CSharpClass.cs");
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3240,7 +3240,7 @@ class C { }";
 
             // We should have exactly one .editorconfig corresponding to the file we had. We may also
             // have other files if there is a .editorconfig floating around somewhere higher on the disk.
-            var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments.Where(d => d.FilePath == expectedEditorConfigPath));
+            var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments, d => d.FilePath == expectedEditorConfigPath);
             Assert.Equal(".editorconfig", analyzerConfigDocument.Name);
             var text = await analyzerConfigDocument.GetTextAsync();
             Assert.Equal("root = true", text.ToString());

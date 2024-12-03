@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 using static SymbolSpecification;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     private const string Span = """
         namespace System
@@ -337,13 +337,13 @@ public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionPr
     [InlineData("record struct")]
     public async Task TreatRecordPositionalParameterAsProperty(string record)
     {
-        var markup = $@"
-public class MyClass
-{{
-}}
+        var markup = $$"""
+            public class MyClass
+            {
+            }
 
-public {record} R(MyClass $$
-";
+            public {{record}} R(MyClass $$
+            """;
         await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
     }
 
@@ -352,13 +352,13 @@ public {record} R(MyClass $$
     [InlineData("struct")]
     public async Task DoNotTreatPrimaryConstructorParameterAsProperty(string record)
     {
-        var markup = $@"
-public class MyClass
-{{
-}}
+        var markup = $$"""
+            public class MyClass
+            {
+            }
 
-public {record} R(MyClass $$
-";
+            public {{record}} R(MyClass $$
+            """;
         await VerifyItemIsAbsentAsync(markup, "MyClass");
     }
 
@@ -2910,6 +2910,25 @@ public {record} R(MyClass $$
             {
                 void M(IEnumerable<Customer> $$)
                 {
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "customers");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63943")]
+    public async Task InferOffOfGenericNameInPattern()
+    {
+        var markup = """
+            using System.Collections.Generic;
+
+            class Customer { }
+
+            class V
+            {
+                void M(object o)
+                {
+                    if (o is List<Customer> $$
                 }
             }
             """;
