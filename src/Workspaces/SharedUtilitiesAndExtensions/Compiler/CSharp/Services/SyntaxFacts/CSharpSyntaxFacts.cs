@@ -507,7 +507,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     {
         if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
         {
-            switch ((SyntaxKind)token.RawKind)
+            switch (token.Kind())
             {
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.VoidKeyword:

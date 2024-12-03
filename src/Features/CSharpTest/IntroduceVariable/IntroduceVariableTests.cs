@@ -20,7 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
@@ -1852,7 +1852,7 @@ options: ImplicitTypingEverywhere());
                 {
                     int x = 2;
                     const int {|Rename:V|} = 1;
-                    Bar(x < V, (x > (2 + 3)));
+                    Bar(x < (V), x > (2 + 3));
                 }
             }
             """;
@@ -2589,7 +2589,7 @@ options: ImplicitTypingEverywhere());
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => { string {|Rename:v|} = Goo(x); v.ToString(); }, y), (object)null);
+                    Outer(y => Inner(x => { string {|Rename:v|} = Goo(x); v.ToString(); }, y), null);
                 }
             }
             """);
@@ -2624,7 +2624,7 @@ options: ImplicitTypingEverywhere());
                 {
                     byte z = 0;
                     Func<byte, byte> {|Rename:p|} = x => 0;
-                    Goo<byte, byte>(p, y => 0, z, z);
+                    Goo(p, y => 0, z, z);
                 }
 
                 static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
@@ -3422,7 +3422,7 @@ class C
     void Goo()
     {
         var {|Rename:v|} = int.Parse("12345");
-        var s = $"Alpha Beta {v} Gamma";
+        var s = $"Alpha Beta { v } Gamma";
     }
 }
 """;
@@ -5879,7 +5879,7 @@ class C
             {
                 int x = 1;
                 int {|Rename:y1|} = C.y;
-                var t = (y1, y1);
+                var t = (y: y1, y: y1);
             }
         }
         """;
@@ -6245,11 +6245,11 @@ class C
             {
                 class C
                 {
-                    private const int {|Rename:V|} = 1 + 1;
+                    private const int {|Rename:foo|} = 1 + 1;
 
                     void M()
                     {
-                        var t = new { foo = V };
+                        var t = new { foo = foo };
                     }
                 }
             }
@@ -8983,5 +8983,333 @@ namespace ConsoleApp1
                 public string Bar { get; set; }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21602")]
+    public async Task DetermineNameFromAnonymousObjectMember()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var x = new { y = [|DateTime.Now.ToString()|] };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    string {|Rename:y|} = DateTime.Now.ToString();
+                    var x = new { y = y };
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel1()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel2()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+
+            void Local()
+            {
+                var v3 = new Random().Next();
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+
+            void Local()
+            {
+                var v3 = random.Next();
+            }
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel3()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel4()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = [|new Random()|].Next();
+
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+
+            class C
+            {
+                void Local()
+                {
+                    var v3 = new Random().Next();
+                }
+            }
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel5()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = [|new Random()|].Next();
+            var v2 = new Random().Next();
+
+            static void Local()
+            {
+                var v3 = new Random().Next();
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+
+            static void Local()
+            {
+                var v3 = new Random().Next();
+            }
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel6()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = new Random().Next();
+
+            void Local()
+            {
+                var v3 = [|new Random()|].Next();
+            }
+            """,
+            """
+            using System;
+
+            var {|Rename:random|} = new Random();
+
+            var v1 = random.Next();
+            var v2 = random.Next();
+
+            void Local()
+            {
+                var v3 = random.Next();
+            }
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67270")]
+    public async Task TestTopLevel7()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = new Random().Next();
+
+            static void Local()
+            {
+                var v3 = [|new Random()|].Next();
+            }
+            """,
+            """
+            using System;
+
+            var v1 = new Random().Next();
+            var v2 = new Random().Next();
+
+            static void Local()
+            {
+                var {|Rename:random|} = new Random();
+                var v3 = random.Next();
+            }
+            """, index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
+    public async Task TestPreserveIndentationInLambda1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+                            [|Array.Empty<string>()|].Count();
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+                            var {|Rename:strings|} = Array.Empty<string>();
+                            strings.Count();
+                        }
+                    };
+                }
+            }
+            """, index: 0, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
+    public async Task TestPreserveIndentationInLambda2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+
+                            [|Array.Empty<string>()|].Count();
+                        }
+                    };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    new List<Action>
+                    {
+                        () =>
+                        {
+
+                            var {|Rename:strings|} = Array.Empty<string>();
+                            strings.Count();
+                        }
+                    };
+                }
+            }
+            """, index: 0, options: ImplicitTypingEverywhere());
     }
 }

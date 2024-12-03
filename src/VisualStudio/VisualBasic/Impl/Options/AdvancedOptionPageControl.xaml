@@ -96,14 +96,6 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox x:Uid="GoToDefinitionGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
-                <StackPanel>
-                    <CheckBox x:Name="Navigate_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
-                </StackPanel>
-            </GroupBox>
-
             <GroupBox x:Uid="RenameGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Rename}">
                 <StackPanel>
