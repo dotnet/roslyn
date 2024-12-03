@@ -2740,6 +2740,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">無法讀取來源檔案 '{0}' 或為包含該檔案之專案所建置的 PDB。等到此檔案的內容與已建置的來源一致後，才會套用於偵錯期間對此檔案所做的所有變更。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
         <target state="translated">無法載入類型 '{0}': '{1}'</target>

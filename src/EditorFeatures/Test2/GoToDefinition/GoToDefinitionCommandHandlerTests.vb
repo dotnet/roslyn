@@ -17,7 +17,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-    Public Class GoToDefinitionCommandHandlerTests
+    Public NotInheritable Class GoToDefinitionCommandHandlerTests
         <WpfFact>
         Public Async Function TestInLinkedFiles() As Task
             Dim definition =

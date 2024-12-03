@@ -33,29 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Protected Sub New()
         End Sub
 
-        Public ReadOnly Property IsCaseSensitive As Boolean Implements ISyntaxFacts.IsCaseSensitive
-            Get
-                Return False
-            End Get
-        End Property
+        Public ReadOnly Property IsCaseSensitive As Boolean = False Implements ISyntaxFacts.IsCaseSensitive
 
-        Public ReadOnly Property StringComparer As StringComparer Implements ISyntaxFacts.StringComparer
-            Get
-                Return CaseInsensitiveComparison.Comparer
-            End Get
-        End Property
+        Public ReadOnly Property StringComparer As StringComparer = CaseInsensitiveComparison.Comparer Implements ISyntaxFacts.StringComparer
 
-        Public ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFacts.ElasticMarker
-            Get
-                Return SyntaxFactory.ElasticMarker
-            End Get
-        End Property
+        Public ReadOnly Property ElasticMarker As SyntaxTrivia = SyntaxFactory.ElasticMarker Implements ISyntaxFacts.ElasticMarker
 
-        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFacts.ElasticCarriageReturnLineFeed
-            Get
-                Return SyntaxFactory.ElasticCarriageReturnLineFeed
-            End Get
-        End Property
+        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed Implements ISyntaxFacts.ElasticCarriageReturnLineFeed
 
         Public ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFacts.SyntaxKinds
 
@@ -93,6 +77,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function SupportsCollectionExpressionNaturalType(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsCollectionExpressionNaturalType
             Return False
+        End Function
+
+        Public Function SupportsImplicitImplementationOfNonPublicInterfaceMembers(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsImplicitImplementationOfNonPublicInterfaceMembers
+            Return True
         End Function
 
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
@@ -211,6 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Function IsDeconstructionForEachStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeconstructionForEachStatement
+            Return False
+        End Function
+
+        Public Function IsUsingLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingLocalDeclarationStatement
             Return False
         End Function
 

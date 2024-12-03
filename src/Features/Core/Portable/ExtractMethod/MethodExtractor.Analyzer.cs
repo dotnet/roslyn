@@ -140,8 +140,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             // gather initial local or parameter variable info
             GenerateVariableInfoMap(
-                bestEffort: false, model, dataFlowAnalysisData, symbolMap,
-                out var variableInfoMap, out var failedVariables);
+                bestEffort: false, model, dataFlowAnalysisData, symbolMap, out var variableInfoMap, out var failedVariables);
             if (failedVariables.Count > 0)
             {
                 // If we weren't able to figure something out, go back and regenerate the map
@@ -149,22 +148,32 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 // was a problem, but we allow them to proceed so they're not unnecessarily
                 // blocked just because we didn't understand something.
                 GenerateVariableInfoMap(
-                    bestEffort: true, model, dataFlowAnalysisData, symbolMap,
-                    out variableInfoMap, out var unused);
+                    bestEffort: true, model, dataFlowAnalysisData, symbolMap, out variableInfoMap, out var unused);
                 Contract.ThrowIfFalse(unused.Count == 0);
             }
 
             var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(IsThisParameter);
             var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(static s => IsThisParameter(s));
 
+            // Need to generate an instance method if any primary constructor parameter is read or written inside the selection.
+            var primaryConstructorParameterReadOrWritten = dataFlowAnalysisData.ReadInside
+                .Concat(dataFlowAnalysisData.WrittenInside)
+                .OfType<IParameterSymbol>()
+                .FirstOrDefault(s => s.IsPrimaryConstructor(this.CancellationToken)) != null;
+
             var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(static (l, self) => self.SelectionResult.FinalSpan.Contains(l.SourceSpan), this));
 
             // Checks to see if selection includes a local function call + if the given local function declaration is not included in the selection.
             var containsAnyLocalFunctionCallNotWithinSpan = localFunctionCallsNotWithinSpan.Any();
+
             // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
             var containsNonStaticLocalFunctionCallNotWithinSpan = containsAnyLocalFunctionCallNotWithinSpan && localFunctionCallsNotWithinSpan.Where(s => !s.IsStatic).Any();
 
-            var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalFunctionCallNotWithinSpan;
+            var instanceMemberIsUsed = thisParameterBeingRead != null
+                || isThisParameterWritten
+                || containsNonStaticLocalFunctionCallNotWithinSpan
+                || primaryConstructorParameterReadOrWritten;
+
             var shouldBeReadOnly = !isThisParameterWritten
                 && thisParameterBeingRead != null
                 && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
@@ -480,11 +489,16 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             foreach (var symbol in candidates)
             {
-                if (symbol.IsThisParameter() ||
-                    IsInteractiveSynthesizedParameter(symbol))
-                {
+                // We don't care about the 'this' parameter.  It will be available to an extracted method already.
+                if (symbol.IsThisParameter())
                     continue;
-                }
+
+                // Primary constructor parameters will be in scope for any extracted method.  No need to do anything special with them.
+                if (symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(this.CancellationToken))
+                    continue;
+
+                if (IsInteractiveSynthesizedParameter(symbol))
+                    continue;
 
                 var captured = capturedMap.Contains(symbol);
                 var dataFlowIn = dataFlowInMap.Contains(symbol);

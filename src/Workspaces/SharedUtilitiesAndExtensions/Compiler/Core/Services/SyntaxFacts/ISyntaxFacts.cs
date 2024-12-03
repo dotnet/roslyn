@@ -101,6 +101,7 @@ internal interface ISyntaxFacts
     bool SupportsConstantInterpolatedStrings(ParseOptions options);
     bool SupportsTupleDeconstruction(ParseOptions options);
     bool SupportsCollectionExpressionNaturalType(ParseOptions options);
+    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
 
     SyntaxToken ParseToken(string text);
     SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -336,6 +337,7 @@ internal interface ISyntaxFacts
 
     bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);
+    bool IsUsingLocalDeclarationStatement(SyntaxNode node);
 
     /// <summary>
     /// Returns true for nodes that represent the body of a method.
