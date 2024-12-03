@@ -3422,7 +3422,7 @@ class C
     void Goo()
     {
         var {|Rename:v|} = int.Parse("12345");
-        var s = $"Alpha Beta {v} Gamma";
+        var s = $"Alpha Beta { v } Gamma";
     }
 }
 """;

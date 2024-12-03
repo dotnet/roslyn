@@ -476,7 +476,10 @@ internal sealed partial class CSharpIntroduceVariableService
         if (precedingEndOfLine == default)
         {
             if (nextStatementLeading is [(kind: SyntaxKind.WhitespaceTrivia) indentation])
-                newStatement = newStatement.WithLeadingTrivia(indentation).WithTrailingTrivia(CarriageReturnLineFeed);
+            {
+                newStatement = newStatement.WithLeadingTrivia(indentation).WithTrailingTrivia(
+                    nextStatement.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia) endOfLine] ? endOfLine : ElasticCarriageReturnLineFeed);
+            }
 
             return oldStatements.ReplaceRange(
                 nextStatement, [newStatement, nextStatement]);
