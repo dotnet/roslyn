@@ -2057,6 +2057,8 @@
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <!-- Used for IOperation to enable translating the initializer to a IDynamicInvocationOperation -->
     <Field Name="ImplicitReceiverOpt" Type="BoundExpression?" />
+    <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />

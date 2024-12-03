@@ -6473,6 +6473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundCall.Method,
                         boundCall.Arguments,
                         boundCall.ReceiverOpt,
+                        boundCall.InitialBindingReceiverIsSubjectToCloning,
                         boundCall.Expanded,
                         boundCall.ArgsToParamsOpt,
                         boundCall.DefaultArguments,
