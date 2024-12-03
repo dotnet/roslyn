@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     Dim inferredName = node.Expression.TryGetInferredMemberName()
                     If inferredName IsNot Nothing Then
                         Return SyntaxFactory.NamedFieldInitializer(
-                            SyntaxFactory.IdentifierName(inferredName),
+                            SyntaxFactory.IdentifierName(inferredName.EscapeIdentifier(afterDot:=True)),
                             newNode.Expression.WithoutLeadingTrivia()).WithTriviaFrom(newNode)
                     End If
                 End If
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     Dim inferredName = node.Expression.TryGetInferredMemberName()
                     If inferredName IsNot Nothing Then
                         Return SyntaxFactory.SimpleArgument(
-                            SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(inferredName)),
+                            SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(inferredName.EscapeIdentifier())),
                             newNode.Expression.WithoutLeadingTrivia()).WithTriviaFrom(newNode)
                     End If
                 End If

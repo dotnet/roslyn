@@ -293,7 +293,7 @@ End Class"
 Class C
     Sub M()
         Dim {|Rename:tickCount|} As Integer = Environment.TickCount
-        Dim a As New With {tickCount}
+        Dim a As New With {.TickCount = tickCount}
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
@@ -2792,7 +2792,7 @@ Class C
     Shared Dim y As Integer = 2
     Sub M()
         Dim {|Rename:y1|} As Integer = C.y
-        Dim t = (y1, y1)
+        Dim t = (y:=y1, y:=y1)
     End Sub
 End Class
 "
@@ -2816,7 +2816,7 @@ Class C
     Sub M()
         Dim a As Integer = 1
         Dim {|Rename:rest1|} As Integer = C.rest
-        Dim t = (a, rest1)
+        Dim t = (a, rest:=rest1)
     End Sub
 End Class
 "
