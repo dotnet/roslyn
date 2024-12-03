@@ -2422,6 +2422,11 @@
         <target state="translated">wzorce właściwości rozszerzonych</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
         <target state="translated">słowo kluczowe pola</target>
@@ -8907,8 +8912,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Nieprawidłowy token „{0}” w deklaracji składowej klasy, rekordu, struktury lub interfejsu</target>
+        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <target state="needs-review-translation">Nieprawidłowy token „{0}” w deklaracji składowej klasy, rekordu, struktury lub interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

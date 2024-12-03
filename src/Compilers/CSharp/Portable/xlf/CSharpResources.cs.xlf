@@ -2422,6 +2422,11 @@
         <target state="translated">vzory rozšířených vlastností</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
         <target state="translated">klíčové slovo pole</target>
@@ -8907,8 +8912,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Neplatný token {0} v deklaraci člena rozhraní, třídy, záznamu nebo struktury</target>
+        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <target state="needs-review-translation">Neplatný token {0} v deklaraci člena rozhraní, třídy, záznamu nebo struktury</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

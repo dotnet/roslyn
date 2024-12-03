@@ -3617,6 +3617,59 @@
     </Field>
     <Field Name="EqualsValue" Type="EqualsValueClauseSyntax" Optional="true"/>
   </Node>
+  <Node Name="ExtensionContainerSyntax" Base="MemberDeclarationSyntax">
+    <TypeComment>
+      <summary>Extension container syntax.</summary>
+    </TypeComment>
+    <Kind Name="ExtensionContainer"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the extension keyword token.</summary>
+      </PropertyComment>
+      <ContextualKind Name="ExtensionKeyword"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="ReceiverParameter" Type="ReceiverParameterSyntax"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="ReceiverParameterSyntax" Base="BaseParameterSyntax">
+    <TypeComment>
+      <summary>Receiver parameter syntax.</summary>
+    </TypeComment>
+    <Kind Name="ReceiverParameter"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the attribute declaration list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true">
+      <PropertyComment>
+        <summary>Gets the modifier list.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Override="true"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
   <Node Name="BaseListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Base list syntax.</summary>

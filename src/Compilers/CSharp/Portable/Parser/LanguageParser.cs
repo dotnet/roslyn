@@ -1800,6 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 }
                                 else
                                 {
+                                    throw new System.Exception("JCOUV");
                                     // we get here if we couldn't parse the lookahead as a statement or a declaration (we haven't consumed any tokens):
                                     this.SkipBadMemberListTokens(ref openBrace, members);
                                 }
@@ -1959,6 +1960,151 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     default:
                         throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
                 }
+            }
+        }
+
+        private MemberDeclarationSyntax ParseExtensionContainer(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        {
+            Debug.Assert(!IsInAsync);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword);
+            SyntaxToken extensionKeyword = this.EatContextualToken(SyntaxKind.ExtensionKeyword);
+
+            var outerSaveTerm = _termState;
+            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
+
+            TypeParameterListSyntax typeParameters = this.ParseTypeParameterList();
+            ReceiverParameterSyntax receiverParameter = parseReceiverParameter(out var openParenToken, out var closeParenToken);
+
+            // Parse extension container body
+            bool parseMembers = true;
+            SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints = default;
+            SyntaxListBuilder<MemberDeclarationSyntax> members = default;
+            try
+            {
+                if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
+                {
+                    _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
+                    constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
+                    this.ParseTypeParameterConstraintClauses(constraints);
+                }
+
+                _termState = outerSaveTerm;
+
+                SyntaxToken? openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                SyntaxToken? closeBrace;
+
+                // ignore members if missing open curly
+                if (openBrace.IsMissing)
+                {
+                    parseMembers = false;
+                }
+
+                if (parseMembers)
+                {
+                    members = _pool.Allocate<MemberDeclarationSyntax>();
+
+                    while (true)
+                    {
+                        SyntaxKind kind = this.CurrentToken.Kind;
+
+                        if (CanStartMember(kind))
+                        {
+                            // This token can start a member -- go parse it
+                            var saveTerm = _termState;
+                            _termState |= TerminatorState.IsPossibleMemberStartOrStop;
+
+                            MemberDeclarationSyntax member = this.ParseMemberDeclaration(SyntaxKind.ExtensionContainer);
+                            if (member != null)
+                            {
+                                members.Add(member);
+                            }
+                            else
+                            {
+                                this.SkipBadMemberListTokens(ref openBrace, members);
+                            }
+
+                            _termState = saveTerm;
+                        }
+                        else if (kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken || this.IsTerminator())
+                        {
+                            // This marks the end of members of this extension container
+                            break;
+                        }
+                        else
+                        {
+                            // Error -- try to sync up with intended reality
+                            this.SkipBadMemberListTokens(ref openBrace, members);
+                        }
+                    }
+                }
+
+                if (openBrace.IsMissing)
+                {
+                    closeBrace = SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
+                    closeBrace = WithAdditionalDiagnostics(closeBrace, this.GetExpectedTokenError(SyntaxKind.CloseBraceToken, this.CurrentToken.Kind));
+                }
+                else
+                {
+                    closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+                }
+
+                var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
+                var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
+                var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
+
+                return _syntaxFactory.ExtensionContainer(
+                    attributes,
+                    modifiersList,
+                    extensionKeyword,
+                    typeParameters,
+                    openParenToken,
+                    receiverParameter,
+                    closeParenToken,
+                    constraintsList,
+                    openBrace,
+                    membersList,
+                    closeBrace);
+            }
+            finally
+            {
+                if (!members.IsNull)
+                {
+                    _pool.Free(members);
+                }
+
+                if (!constraints.IsNull)
+                {
+                    _pool.Free(constraints);
+                }
+            }
+
+            ReceiverParameterSyntax parseReceiverParameter(out SyntaxToken open, out SyntaxToken close)
+            {
+                open = this.EatToken(SyntaxKind.OpenParenToken);
+
+                SyntaxList<AttributeListSyntax> attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
+
+                SyntaxListBuilder modifiers = _pool.Allocate();
+                this.ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
+
+                TypeSyntax type = this.ParseType(mode: ParseTypeMode.Parameter);
+
+                SyntaxToken? identifier;
+                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                {
+                    identifier = null;
+                }
+                else
+                {
+                    identifier = this.ParseIdentifierToken();
+                }
+
+                close = this.EatToken(SyntaxKind.CloseParenToken);
+
+                return _syntaxFactory.ReceiverParameter(attributes, _pool.ToTokenListAndFree(modifiers), type, identifier);
             }
         }
 
@@ -3031,6 +3177,8 @@ parse_member_name:;
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
             var result = ParseMemberDeclarationCore(parentKind);
+            if (result is null)
+                throw new System.Exception("JCOUV3"); // TODO2
             _recursionDepth--;
             return result;
         }
@@ -3063,6 +3211,11 @@ parse_member_name:;
 
                 bool isPossibleTypeDeclaration;
                 this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
+
+                if (IsExtensionContainerStart())
+                {
+                    return this.ParseExtensionContainer(attributes, modifiers);
+                }
 
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -3190,6 +3343,22 @@ parse_member_name:;
             {
                 _pool.Free(modifiers);
                 _termState = saveTermState;
+            }
+        }
+
+        private bool IsExtensionContainerStart()
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.IdentifierToken:
+                    if (CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
+                    {
+                        return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    }
+                    return false;
+
+                default:
+                    return false;
             }
         }
 

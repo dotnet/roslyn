@@ -291,3 +291,18 @@ unsafe record struct R(
     public bool Equals(R other) => true;
 }
 ```
+
+## `extension` treated as a contextual keyword
+
+PROTOTYPE record which version this break is introduced in
+
+When the language version is updated to C# 14, `extension` is treated as a contextual keyword starting the declaration of an extension container.
+
+The compiler will parse this as an extension container rather than a constructor.
+```csharp
+class extension
+{
+    extension(object o) { }
+}
+```
+

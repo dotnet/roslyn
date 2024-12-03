@@ -2422,6 +2422,11 @@
         <target state="translated">genişletilmiş özellik desenleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
         <target state="translated">alan anahtar sözcüğü</target>
@@ -8907,8 +8912,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
+        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <target state="needs-review-translation">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

@@ -525,6 +525,12 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
     public virtual TResult? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a ExtensionContainerSyntax node.</summary>
+    public virtual TResult? VisitExtensionContainer(ExtensionContainerSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ReceiverParameterSyntax node.</summary>
+    public virtual TResult? VisitReceiverParameter(ReceiverParameterSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
     public virtual TResult? VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
@@ -1260,6 +1266,12 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
     public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a ExtensionContainerSyntax node.</summary>
+    public virtual void VisitExtensionContainer(ExtensionContainerSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a ReceiverParameterSyntax node.</summary>
+    public virtual void VisitReceiverParameter(ReceiverParameterSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
     public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
@@ -1994,6 +2006,12 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.EqualsValue));
+
+    public override SyntaxNode? VisitExtensionContainer(ExtensionContainerSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), (TypeParameterListSyntax?)Visit(node.TypeParameterList), VisitToken(node.OpenParenToken), (ReceiverParameterSyntax?)Visit(node.ReceiverParameter) ?? throw new ArgumentNullException("receiverParameter"), VisitToken(node.CloseParenToken), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken));
+
+    public override SyntaxNode? VisitReceiverParameter(ReceiverParameterSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.Identifier));
 
     public override SyntaxNode? VisitBaseList(BaseListSyntax node)
         => node.Update(VisitToken(node.ColonToken), VisitList(node.Types));
@@ -5145,6 +5163,42 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new EnumMemberDeclarationSyntax instance.</summary>
     public static EnumMemberDeclarationSyntax EnumMemberDeclaration(string identifier)
         => SyntaxFactory.EnumMemberDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Identifier(identifier), default);
+
+    /// <summary>Creates a new ExtensionContainerSyntax instance.</summary>
+    public static ExtensionContainerSyntax ExtensionContainer(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken)
+    {
+        if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+        if (receiverParameter == null) throw new ArgumentNullException(nameof(receiverParameter));
+        if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+        if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+        return (ExtensionContainerSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionContainer(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ReceiverParameterSyntax)receiverParameter.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new ExtensionContainerSyntax instance.</summary>
+    public static ExtensionContainerSyntax ExtensionContainer(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ReceiverParameterSyntax receiverParameter, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+        => SyntaxFactory.ExtensionContainer(attributeLists, modifiers, keyword, typeParameterList, SyntaxFactory.Token(SyntaxKind.OpenParenToken), receiverParameter, SyntaxFactory.Token(SyntaxKind.CloseParenToken), constraintClauses, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), members, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+
+    /// <summary>Creates a new ExtensionContainerSyntax instance.</summary>
+    public static ExtensionContainerSyntax ExtensionContainer(SyntaxToken keyword, ReceiverParameterSyntax receiverParameter)
+        => SyntaxFactory.ExtensionContainer(default, default(SyntaxTokenList), keyword, default, SyntaxFactory.Token(SyntaxKind.OpenParenToken), receiverParameter, SyntaxFactory.Token(SyntaxKind.CloseParenToken), default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+
+    /// <summary>Creates a new ReceiverParameterSyntax instance.</summary>
+    public static ReceiverParameterSyntax ReceiverParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier)
+    {
+        if (type == null) throw new ArgumentNullException(nameof(type));
+        switch (identifier.Kind())
+        {
+            case SyntaxKind.IdentifierToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(identifier));
+        }
+        return (ReceiverParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.ReceiverParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node).CreateRed();
+    }
+
+    /// <summary>Creates a new ReceiverParameterSyntax instance.</summary>
+    public static ReceiverParameterSyntax ReceiverParameter(TypeSyntax type)
+        => SyntaxFactory.ReceiverParameter(default, default(SyntaxTokenList), type, default);
 
     /// <summary>Creates a new BaseListSyntax instance.</summary>
     public static BaseListSyntax BaseList(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)

@@ -2422,6 +2422,11 @@
         <target state="translated">шаблоны расширенных свойств</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
         <target state="translated">ключевое слово поля</target>
@@ -8908,8 +8913,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
+        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <target state="needs-review-translation">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

@@ -2422,6 +2422,11 @@
         <target state="translated">criteri di proprietà estesa</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
         <target state="translated">parola chiave campo</target>
@@ -8907,8 +8912,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Il token '{0}' nella dichiarazione del membro di classe, record, struct o interfaccia non è valido</target>
+        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <target state="needs-review-translation">Il token '{0}' nella dichiarazione del membro di classe, record, struct o interfaccia non è valido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

@@ -18109,6 +18109,335 @@ internal sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSyn
         => new EnumMemberDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.identifier, this.equalsValue, GetDiagnostics(), annotations);
 }
 
+/// <summary>Extension container syntax.</summary>
+internal sealed partial class ExtensionContainerSyntax : MemberDeclarationSyntax
+{
+    internal readonly GreenNode? attributeLists;
+    internal readonly GreenNode? modifiers;
+    internal readonly SyntaxToken keyword;
+    internal readonly TypeParameterListSyntax? typeParameterList;
+    internal readonly SyntaxToken openParenToken;
+    internal readonly ReceiverParameterSyntax receiverParameter;
+    internal readonly SyntaxToken closeParenToken;
+    internal readonly GreenNode? constraintClauses;
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly GreenNode? members;
+    internal readonly SyntaxToken closeBraceToken;
+
+    internal ExtensionContainerSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 11;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        this.AdjustFlagsAndWidth(receiverParameter);
+        this.receiverParameter = receiverParameter;
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    internal ExtensionContainerSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 11;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        this.AdjustFlagsAndWidth(receiverParameter);
+        this.receiverParameter = receiverParameter;
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    internal ExtensionContainerSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, GreenNode? constraintClauses, SyntaxToken openBraceToken, GreenNode? members, SyntaxToken closeBraceToken)
+      : base(kind)
+    {
+        this.SlotCount = 11;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        this.AdjustFlagsAndWidth(receiverParameter);
+        this.receiverParameter = receiverParameter;
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    /// <summary>Gets the extension keyword token.</summary>
+    public SyntaxToken Keyword => this.keyword;
+    public TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public ReceiverParameterSyntax ReceiverParameter => this.receiverParameter;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            1 => this.modifiers,
+            2 => this.keyword,
+            3 => this.typeParameterList,
+            4 => this.openParenToken,
+            5 => this.receiverParameter,
+            6 => this.closeParenToken,
+            7 => this.constraintClauses,
+            8 => this.openBraceToken,
+            9 => this.members,
+            10 => this.closeBraceToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExtensionContainerSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionContainer(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExtensionContainer(this);
+
+    public ExtensionContainerSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken)
+    {
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || typeParameterList != this.TypeParameterList || openParenToken != this.OpenParenToken || receiverParameter != this.ReceiverParameter || closeParenToken != this.CloseParenToken || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.ExtensionContainer(attributeLists, modifiers, keyword, typeParameterList, openParenToken, receiverParameter, closeParenToken, constraintClauses, openBraceToken, members, closeBraceToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new ExtensionContainerSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.openParenToken, this.receiverParameter, this.closeParenToken, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new ExtensionContainerSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.openParenToken, this.receiverParameter, this.closeParenToken, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, GetDiagnostics(), annotations);
+}
+
+/// <summary>Receiver parameter syntax.</summary>
+internal sealed partial class ReceiverParameterSyntax : BaseParameterSyntax
+{
+    internal readonly GreenNode? attributeLists;
+    internal readonly GreenNode? modifiers;
+    internal readonly TypeSyntax type;
+    internal readonly SyntaxToken? identifier;
+
+    internal ReceiverParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax type, SyntaxToken? identifier, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(type);
+        this.type = type;
+        if (identifier != null)
+        {
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+        }
+    }
+
+    internal ReceiverParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax type, SyntaxToken? identifier, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(type);
+        this.type = type;
+        if (identifier != null)
+        {
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+        }
+    }
+
+    internal ReceiverParameterSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax type, SyntaxToken? identifier)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(type);
+        this.type = type;
+        if (identifier != null)
+        {
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+        }
+    }
+
+    /// <summary>Gets the attribute declaration list.</summary>
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    /// <summary>Gets the modifier list.</summary>
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override TypeSyntax Type => this.type;
+    /// <summary>Gets the identifier.</summary>
+    public SyntaxToken? Identifier => this.identifier;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            1 => this.modifiers,
+            2 => this.type,
+            3 => this.identifier,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ReceiverParameterSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReceiverParameter(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReceiverParameter(this);
+
+    public ReceiverParameterSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier)
+    {
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier)
+        {
+            var newNode = SyntaxFactory.ReceiverParameter(attributeLists, modifiers, type, identifier);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new ReceiverParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new ReceiverParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, GetDiagnostics(), annotations);
+}
+
 /// <summary>Base list syntax.</summary>
 internal sealed partial class BaseListSyntax : CSharpSyntaxNode
 {
@@ -26654,6 +26983,8 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitExtensionContainer(ExtensionContainerSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitReceiverParameter(ReceiverParameterSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
@@ -26902,6 +27233,8 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitExtensionContainer(ExtensionContainerSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitReceiverParameter(ReceiverParameterSyntax node) => this.DefaultVisit(node);
     public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
     public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
     public virtual void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
@@ -27489,6 +27822,12 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Identifier), (EqualsValueClauseSyntax)Visit(node.EqualsValue));
+
+    public override CSharpSyntaxNode VisitExtensionContainer(ExtensionContainerSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (TypeParameterListSyntax)Visit(node.TypeParameterList), (SyntaxToken)Visit(node.OpenParenToken), (ReceiverParameterSyntax)Visit(node.ReceiverParameter), (SyntaxToken)Visit(node.CloseParenToken), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken));
+
+    public override CSharpSyntaxNode VisitReceiverParameter(ReceiverParameterSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.Identifier));
 
     public override CSharpSyntaxNode VisitBaseList(BaseListSyntax node)
         => node.Update((SyntaxToken)Visit(node.ColonToken), VisitList(node.Types));
@@ -31414,6 +31753,42 @@ internal partial class ContextAwareSyntax
 #endif
 
         return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue, this.context);
+    }
+
+    public ExtensionContainerSyntax ExtensionContainer(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+        if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+        if (receiverParameter == null) throw new ArgumentNullException(nameof(receiverParameter));
+        if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+        if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+        if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+        if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+        if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+#endif
+
+        return new ExtensionContainerSyntax(SyntaxKind.ExtensionContainer, attributeLists.Node, modifiers.Node, keyword, typeParameterList, openParenToken, receiverParameter, closeParenToken, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, this.context);
+    }
+
+    public ReceiverParameterSyntax ReceiverParameter(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken? identifier)
+    {
+#if DEBUG
+        if (type == null) throw new ArgumentNullException(nameof(type));
+        if (identifier != null)
+        {
+            switch (identifier.Kind)
+            {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(identifier));
+            }
+        }
+#endif
+
+        return new ReceiverParameterSyntax(SyntaxKind.ReceiverParameter, attributeLists.Node, modifiers.Node, type, identifier, this.context);
     }
 
     public BaseListSyntax BaseList(SyntaxToken colonToken, CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
@@ -36682,6 +37057,42 @@ internal static partial class SyntaxFactory
 #endif
 
         return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue);
+    }
+
+    public static ExtensionContainerSyntax ExtensionContainer(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, SyntaxToken openParenToken, ReceiverParameterSyntax receiverParameter, SyntaxToken closeParenToken, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+        if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+        if (receiverParameter == null) throw new ArgumentNullException(nameof(receiverParameter));
+        if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+        if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+        if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+        if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+        if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+        if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+#endif
+
+        return new ExtensionContainerSyntax(SyntaxKind.ExtensionContainer, attributeLists.Node, modifiers.Node, keyword, typeParameterList, openParenToken, receiverParameter, closeParenToken, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken);
+    }
+
+    public static ReceiverParameterSyntax ReceiverParameter(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken? identifier)
+    {
+#if DEBUG
+        if (type == null) throw new ArgumentNullException(nameof(type));
+        if (identifier != null)
+        {
+            switch (identifier.Kind)
+            {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(identifier));
+            }
+        }
+#endif
+
+        return new ReceiverParameterSyntax(SyntaxKind.ReceiverParameter, attributeLists.Node, modifiers.Node, type, identifier);
     }
 
     public static BaseListSyntax BaseList(SyntaxToken colonToken, CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)

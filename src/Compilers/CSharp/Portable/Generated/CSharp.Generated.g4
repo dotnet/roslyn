@@ -81,6 +81,7 @@ member_declaration
   | base_type_declaration
   | delegate_declaration
   | enum_member_declaration
+  | extension_container
   | global_statement
   | incomplete_member
   ;
@@ -346,6 +347,14 @@ struct_declaration
 
 delegate_declaration
   : attribute_list* modifier* 'delegate' type identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* ';'
+  ;
+
+extension_container
+  : attribute_list* modifier* syntax_token type_parameter_list? '(' receiver_parameter ')' type_parameter_constraint_clause* '{' member_declaration* '}'
+  ;
+
+receiver_parameter
+  : attribute_list* modifier* type identifier_token?
   ;
 
 global_statement
@@ -1755,6 +1764,7 @@ base_parameter_list
 base_parameter
   : function_pointer_parameter
   | parameter
+  | receiver_parameter
   ;
 
 expression_or_pattern

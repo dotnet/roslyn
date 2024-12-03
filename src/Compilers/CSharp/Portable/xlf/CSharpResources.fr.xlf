@@ -2422,6 +2422,11 @@
         <target state="translated">modèles de propriétés étendues</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
         <target state="translated">mot-clé du champ</target>
@@ -8907,8 +8912,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Jeton '{0}' non valide dans la déclaration de membre de classe, d'enregistrement, de struct ou d'interface</target>
+        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <target state="needs-review-translation">Jeton '{0}' non valide dans la déclaration de membre de classe, d'enregistrement, de struct ou d'interface</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
