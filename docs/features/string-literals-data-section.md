@@ -1,6 +1,6 @@
 # String literals in data section
 
-This opt-in Roslyn feature allows changing how string literals in C# programs are emitted into PE files (`.dll`/`.exe`).
+This opt-in **experimental** Roslyn feature allows changing how string literals in C# programs are emitted into PE files (`.dll`/`.exe`).
 By default, string literals are emitted to the UserString heap which is limited to [2^24 bytes](https://github.com/dotnet/roslyn/issues/9852).
 When the limit is reached, the following compiler error is reported by Roslyn:
 
@@ -13,13 +13,19 @@ which does not have the same limit. The emit format is similar to [explicit u8 s
 
 The feature is currently implemented only for C#, not VB.
 
+> [!WARNING]
+> This feature is currently experimental and can be changed or removed at any time.
+
 ## Configuration
 
-The feature flag can take a non-negative integer threshold. Only string literals whose length is over the threshold are emitted using the utf8 encoding strategy.
-By default, the threshold is 100. Specifying 0 means all string literals are considered for the feature. Specifying `off` turns off the feature (this is the default).
+The feature flag can take a non-negative integer threshold.
+Only string literals whose length (number of characters, not bytes) is over the threshold are emitted using the utf8 encoding strategy.
+If the flag is set, but no value is specified, the threshold defaults to 100.
+Specifying 0 means all string literals are considered for the feature.
+Specifying `off` as the value turns the feature off (this is the default).
 
-The feature flag can be specified on the command line like `/features:data-section-string-literals` or `/features:data-section-string-literals=20`,
-or in a project file in a `<PropertyGroup>` like `<Features>$(Features);data-section-string-literals</Features>` or `<Features>$(Features);data-section-string-literals=20</Features>`.
+The feature flag can be specified on the command line like `/features:experimental-data-section-string-literals` or `/features:experimental-data-section-string-literals=20`,
+or in a project file in a `<PropertyGroup>` like `<Features>$(Features);experimental-data-section-string-literals</Features>` or `<Features>$(Features);experimental-data-section-string-literals=20</Features>`.
 
 ## Eligible string literals
 
@@ -37,9 +43,9 @@ That puts the string literal on the UserString heap of the PE file.
 
 The utf8 string literal encoding emit strategy emits `ldsfld` of a field in a generated class instead.
 
-For every string literal, a unique internal static class is generated which
-- has name composed of `<S>` followed by a hex-encoded SHA-256 hash of the string,
-- lives in the global namespace,
+For every string literal, a unique internal static class is generated which:
+- has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string,
+- lives in the global namespace (for consistency with other compiler-generated types),
 - has one `.data` field which is emitted the same way as for [explicit u8 string literals][u8-literals],
 - has one `string` field which is initialized in a static constructor of the class.
 
@@ -55,13 +61,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 [CompilerGenerated]
-internal static class <S>2D8BD7D9BB5F85BA643F0110D50CB506A1FE439E769A22503193EA6046BB87F7
+internal static class <S>F6D59F18520336E6E57244B792249482
 {
     internal static readonly <PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 f = /* IL: data(48 65 6C 6C 6F 2E) */;
 
     internal static readonly string s;
 
-    unsafe static <S>2D8BD7D9BB5F85BA643F0110D50CB506A1FE439E769A22503193EA6046BB87F7()
+    unsafe static <S>F6D59F18520336E6E57244B792249482()
     {
         s = <PrivateImplementationDetails>.BytesToString((byte*)Unsafe.AsPointer(ref f), 6);
     }
@@ -87,6 +93,24 @@ internal static class <PrivateImplementationDetails>
 The actual generated code does not call `(byte*)Unsafe.AsPointer`.
 It simply emits `ldsflda` of the data field.
 That works but does not pass IL/PE verification.
+
+## Runtime
+
+Throughput of `ldstr` vs `ldsfld` is very similar (both result in one or two move instructions).
+
+In the `ldsfld` emit strategy, the `string` instances won't ever be collected by the GC once the generated class is initialized.
+`ldstr` has similar behavior, but there are some optimizations in the runtime around `ldstr`,
+e.g., they are loaded into a different frozen heap so machine codegen can be more efficient (no need to worry about pointer moves).
+
+Generating new types by the compiler means more type loads and hence runtime impact,
+e.g., startup performance and the overhead of keeping track of these types.
+
+The generated types are returned from reflection like `Assembly.GetTypes()`
+which might impact the performance of Dependency Injection and similar systems.
+
+> [!NOTE]
+> In practice, there might not be many generated types, it depends on the kind of the program
+> (whether it has lots of short strings or a few large strings) and how [the threshold](#configuration) is configured.
 
 ## Implementation
 
@@ -157,6 +181,21 @@ For example, a histogram of string literal lengths encountered while emitting of
 We could emit the strings to data fields similarly but we would not synthesize the `string` fields and static constructors.
 Instead, at the place of `ldstr`, we would directly call a runtime-provided helper, passing a pointer to the data field.
 That runtime helper would be an intrinsic recognized by the JIT (with a fallback calling `Encoding.UTF8.GetString`).
+
+### Custom lazy initialization
+
+All the data and string fields could be part of one class, e.g., `<PrivateImplementationDetails>`,
+and the compiler could emit custom lazy initialization instead of relying on static constructors, something like:
+
+```cs
+static class <PrivateImplementationDetails>
+{
+    private static string _str1;
+    internal static string Str1 => _str1 ??= Load(str1DataSection);
+}
+```
+
+However, that would likely result in worse machine code due to more branches and function calls.
 
 <!-- links -->
 [u8-literals]: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-11.0/utf8-string-literals
