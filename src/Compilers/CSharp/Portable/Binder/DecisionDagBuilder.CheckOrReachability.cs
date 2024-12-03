@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For example, `A and (B or C)` is expanded to two cases: `A and B` and `A and C`.
         ///
         /// Similarly, `(A or B) and (C or D)` is expanded to two sets of two cases:
-        ///   1. `A` and `B` (we truncate tests that come after the `or` as they don't affect reachability for the branches of the `or`)
+        ///   1. `A and (C or D)` and `B and (C or D)`
         ///   2. `(A or B) and C` and `(A or B) and D`
         /// We then check the reachability for each of those cases in different sets.
         ///
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     ImmutableArray<BoundPropertySubpattern> properties = recursivePattern.Properties;
                                     BoundRecursivePattern resultRecursivePattern = recursivePattern
-                                        .WithProperties(truncateAndReplaceLast(properties, i, properties[i].WithPattern(resultPattern)));
+                                        .WithProperties(properties.SetItem(i, properties[i].WithPattern(resultPattern)));
 
                                     resultOrSet.Add(resultRecursivePattern, syntax);
                                 }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     ImmutableArray<BoundPositionalSubpattern> deconstruction = recursivePattern.Deconstruction;
                                     BoundRecursivePattern resultRecursivePattern = recursivePattern
-                                        .WithDeconstruction(truncateAndReplaceLast(deconstruction, i, deconstruction[i].WithPattern(resultPattern)));
+                                        .WithDeconstruction(deconstruction.SetItem(i, deconstruction[i].WithPattern(resultPattern)));
 
                                     resultOrSet.Add(resultRecursivePattern, syntax);
                                 }
@@ -264,16 +264,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return result;
-            }
-
-            // Whenever we expand an `or` in a `and` sequence, we can drop the patterns the follow the `or`.
-            // For example, `A and (B or C) and D` will be rewitten to `A and B` and `A and C`.
-            static ImmutableArray<T> truncateAndReplaceLast<T>(ImmutableArray<T> subpatterns, int index, T subpattern)
-            {
-                var builder = ArrayBuilder<T>.GetInstance(index + 1);
-                builder.AddRange(subpatterns, length: index);
-                builder.Add(subpattern);
-                return builder.ToImmutableAndFree();
             }
 
             static RewrittenOrSets rewriteList(BoundListPattern listPattern)
@@ -295,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             RewrittenOrSet resultOrSet = result.StartNewOrSet();
                             foreach ((BoundPattern resultPattern, SyntaxNode syntax) in orSet.Set)
                             {
-                                BoundListPattern resultListPattern = listPattern.WithSubpatterns(truncateAndReplaceLast(subpatterns, i, resultPattern));
+                                BoundListPattern resultListPattern = listPattern.WithSubpatterns(subpatterns.SetItem(i, resultPattern));
                                 resultOrSet.Add(resultListPattern, syntax);
                             }
                         }
@@ -343,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach ((BoundPattern resultPattern, SyntaxNode syntax) in orSet.Set)
                             {
                                 BoundITuplePattern resultITuplePattern = ituplePattern
-                                    .WithSubpatterns(truncateAndReplaceLast(positionalSubpatterns, i, positionalSubpatterns[i].WithPattern(resultPattern)));
+                                    .WithSubpatterns(positionalSubpatterns.SetItem(i, positionalSubpatterns[i].WithPattern(resultPattern)));
 
                                 resultOrSet.Add(resultITuplePattern, syntax);
                             }

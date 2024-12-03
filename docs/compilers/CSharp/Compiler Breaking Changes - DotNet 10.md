@@ -88,9 +88,11 @@ class C
 }
 ```
 
-## Warn for redundant pattern in `not ... or <redundant>` pattern
+## Warn for redundant pattern in simple `or` patterns
 
 ***Introduced in Visual Studio 2022 version 17.13***
+
+TODO2 update description
 
 In a disjunctive `or` pattern such as `is not null or 42` or `is not int or string`
 the second pattern is redundant and likely results from misunderstanding the precedence order
