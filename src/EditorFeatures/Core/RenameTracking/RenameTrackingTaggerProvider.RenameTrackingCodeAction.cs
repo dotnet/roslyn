@@ -103,7 +103,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
                     var snapshotSpan = stateMachine.TrackingSession.TrackingSpan.GetSpan(stateMachine.Buffer.CurrentSnapshot);
                     var newName = snapshotSpan.GetText();
-                    var displayText = string.Format(EditorFeaturesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
+                    var displayText = string.Format(WorkspacesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
                     _renameTrackingCommitter = new RenameTrackingCommitter(stateMachine, snapshotSpan, _refactorNotifyServices, _undoHistoryRegistry, displayText);
                     return true;
                 }

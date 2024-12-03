@@ -2494,19 +2494,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2, bool symmetricCheck = true)
         {
-            ImmutableArray<MethodSymbol> ops1 = this.GetOperators(operatorName1);
+            var ops1 = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.AddOperators(operatorName1, ops1);
 
             if (symmetricCheck)
             {
-                var ops2 = this.GetOperators(operatorName2);
+                var ops2 = ArrayBuilder<MethodSymbol>.GetInstance();
+                this.AddOperators(operatorName2, ops2);
                 CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportOperatorNeedsMatch);
                 CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1, reportOperatorNeedsMatch);
+                ops2.Free();
             }
             else if (!ops1.IsEmpty)
             {
-                var ops2 = this.GetOperators(operatorName2);
+                var ops2 = ArrayBuilder<MethodSymbol>.GetInstance();
+                this.AddOperators(operatorName2, ops2);
                 CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportCheckedOperatorNeedsMatch);
+                ops2.Free();
             }
+
+            ops1.Free();
+
+            return;
 
             static void reportOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
             {
@@ -2523,8 +2532,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void CheckForUnmatchedOperator(
             BindingDiagnosticBag diagnostics,
-            ImmutableArray<MethodSymbol> ops1,
-            ImmutableArray<MethodSymbol> ops2,
+            ArrayBuilder<MethodSymbol> ops1,
+            ArrayBuilder<MethodSymbol> ops2,
             string operatorName2,
             Action<BindingDiagnosticBag, string, MethodSymbol> reportMatchNotFoundError)
         {
@@ -2585,8 +2594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            bool hasOp = this.GetOperators(WellKnownMemberNames.EqualityOperatorName).Any() ||
-                this.GetOperators(WellKnownMemberNames.InequalityOperatorName).Any();
+            var ops = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.AddOperators(WellKnownMemberNames.EqualityOperatorName, ops);
+            this.AddOperators(WellKnownMemberNames.InequalityOperatorName, ops);
+
+            bool hasOp = ops.Any();
             bool overridesEquals = this.TypeOverridesObjectMethod("Equals");
 
             if (hasOp || overridesEquals)
@@ -2610,6 +2622,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.GetFirstLocation(), this);
                 }
             }
+
+            ops.Free();
         }
 
         private void CheckForRequiredMemberAttribute(BindingDiagnosticBag diagnostics)

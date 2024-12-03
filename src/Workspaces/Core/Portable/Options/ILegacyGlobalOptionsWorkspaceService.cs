@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -25,4 +26,6 @@ internal interface ILegacyGlobalOptionsWorkspaceService : IWorkspaceService
 
     public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language);
     public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value);
+
+    SyntaxFormattingOptions GetSyntaxFormattingOptions(LanguageServices languageServices);
 }

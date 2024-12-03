@@ -330,6 +330,7 @@ internal static partial class ISymbolExtensions
             IMethodSymbol methodSymbol => methodSymbol.ReturnType,
             IEventSymbol eventSymbol => eventSymbol.Type,
             IParameterSymbol parameterSymbol => parameterSymbol.Type,
+            ILocalSymbol localSymbol => localSymbol.Type,
             _ => null,
         };
 
@@ -795,4 +796,12 @@ internal static partial class ISymbolExtensions
             MetadataName: nameof(ObsoleteAttribute),
             ContainingNamespace.Name: nameof(System),
         });
+
+    public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeClass)
+    {
+        if (symbol is null || attributeClass is null)
+            return false;
+
+        return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute.AttributeClass), attributeClass);
+    }
 }

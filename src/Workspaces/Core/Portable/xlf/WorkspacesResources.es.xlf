@@ -17,6 +17,11 @@
         <target state="translated">No se permite agregar documentos de configuración del analizador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="new">After</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Error al leer el archivo de configuración especificado: {0}</target>
@@ -90,16 +95,6 @@
       <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
         <source>'FixAllScope.Custom' is not supported with this API</source>
         <target state="translated">"FixAllScope.Custom" no se admite con esta API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_and_spacing">
-        <source>Indentation and spacing</source>
-        <target state="translated">Sangría y espaciado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_line_preferences">
-        <source>New line preferences</source>
-        <target state="translated">Nuevas preferencias de línea</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
@@ -337,16 +332,6 @@
         <target state="translated">'{0}' no está abierto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
-        <source>A language name cannot be specified for this option.</source>
-        <target state="translated">No se puede especificar un nombre de lenguaje para esta opción.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_must_be_specified_for_this_option">
-        <source>A language name must be specified for this option.</source>
-        <target state="translated">Se debe especificar un nombre de lenguaje para esta opción.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">El archivo se modificó externamente: {0}.</target>
@@ -392,11 +377,6 @@
         <target state="translated">{0} aún está abierto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Valor demasiado largo para representarse como entero sin signo de 30 bits.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">No se puede abrir el proyecto '{0}' porque la extensión de archivo '{1}' no está asociada a un lenguaje.</target>
@@ -432,24 +412,9 @@
         <target state="translated">Cambio no fusionado mediante combinación del proyecto '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Added_colon">
-        <source>Added:</source>
-        <target state="translated">Agregado:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">Después:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Before_colon">
         <source>Before:</source>
         <target state="translated">Antes:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removed_colon">
-        <source>Removed:</source>
-        <target state="translated">Quitado:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
@@ -605,11 +570,6 @@
       <trans-unit id="Show_Stack_Trace">
         <source>Show Stack Trace</source>
         <target state="translated">Mostrar seguimiento de la pila</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Stream_is_too_long">
-        <source>Stream is too long.</source>
-        <target state="translated">Secuencia demasiado larga.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

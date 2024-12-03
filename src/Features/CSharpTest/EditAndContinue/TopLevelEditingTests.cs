@@ -901,7 +901,7 @@ class C
             "Update [public struct C { }]@0 -> [public ref struct C { }]@0");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "public ref struct C", CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "public ref struct C", FeaturesResources.struct_));
     }
 
     [Fact]
@@ -916,7 +916,7 @@ class C
             "Update [public ref struct C { }]@0 -> [public struct C { }]@0");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", FeaturesResources.struct_));
     }
 
     [Fact]
@@ -931,7 +931,7 @@ class C
             "Update [public struct C { }]@0 -> [public readonly struct C { }]@0");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly struct C", CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly struct C", FeaturesResources.struct_));
     }
 
     [Fact]
@@ -946,7 +946,7 @@ class C
             "Update [public readonly struct C { }]@0 -> [public struct C { }]@0");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", FeaturesResources.struct_));
     }
 
     [Theory]
@@ -1931,7 +1931,7 @@ public interface I
             "Update [struct X { }]@0 -> [ref struct X { }]@0");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", FeaturesResources.struct_));
     }
 
     [Fact]
@@ -2491,7 +2491,7 @@ interface I { void F() {} }
 
         GetTopEdits(src1, src2).VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "C")),
-            Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(CSharpFeaturesResources.struct_, "S")),
+            Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.struct_, "S")),
             Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.interface_, "I")));
     }
 

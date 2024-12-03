@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -20,14 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using static CSharpSyntaxTokens;
 
 [ExportLanguageService(typeof(SyntaxGeneratorInternal), LanguageNames.CSharp), Shared]
-internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
-    public CSharpSyntaxGeneratorInternal()
-    {
-    }
-
     public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
 
     public override ISyntaxFacts SyntaxFacts
@@ -132,20 +129,51 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     public override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
         => SyntaxFactory.TypeParameterList([.. typeParameterNames.Select(SyntaxFactory.TypeParameter)]);
 
-    internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
-        => refKind switch
+    internal static SyntaxTokenList GetParameterModifiers(
+        IParameterSymbol parameter, bool forFunctionPointerReturnParameter = false)
+        => GetParameterModifiers(ParameterIsScoped(parameter), parameter.RefKind, parameter.IsParams, forFunctionPointerReturnParameter);
+
+    internal static SyntaxTokenList GetParameterModifiers(
+        bool isScoped, RefKind refKind, bool isParams, bool forFunctionPointerReturnParameter = false)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+        if (isScoped)
+            result.Add(ScopedKeyword);
+
+        switch (refKind)
         {
-            RefKind.None => [],
-            RefKind.Out => [OutKeyword],
-            RefKind.Ref => [RefKeyword],
+            case RefKind.Out:
+                result.Add(OutKeyword);
+                break;
+
+            case RefKind.Ref:
+                result.Add(RefKeyword);
+                break;
+
             // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
             // ref kind syntax when generating for the return parameter vs other parameters.
             // The return parameter must use ref readonly, like regular methods.
-            RefKind.In when !forFunctionPointerReturnParameter => [InKeyword],
-            RefKind.RefReadOnly when forFunctionPointerReturnParameter => [RefKeyword, ReadOnlyKeyword],
-            RefKind.RefReadOnlyParameter => [RefKeyword, ReadOnlyKeyword],
-            _ => throw ExceptionUtilities.UnexpectedValue(refKind),
-        };
+            case RefKind.In when !forFunctionPointerReturnParameter:
+                result.Add(InKeyword);
+                break;
+
+            case RefKind.RefReadOnly when forFunctionPointerReturnParameter:
+                result.Add(RefKeyword);
+                result.Add(ReadOnlyKeyword);
+                break;
+
+            case RefKind.RefReadOnlyParameter:
+                result.Add(RefKeyword);
+                result.Add(ReadOnlyKeyword);
+                break;
+        }
+
+        if (isParams)
+            result.Add(ParamsKeyword);
+
+        return SyntaxFactory.TokenList(result);
+    }
 
     public override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
         => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();

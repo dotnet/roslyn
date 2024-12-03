@@ -58,7 +58,7 @@ internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<
 
         context.RegisterRefactoring(CodeAction.Create(
             FeaturesResources.Add_DebuggerDisplay_attribute,
-            c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c),
+            cancellationToken => ApplyAsync(document, type, debuggerAttributeTypeSymbol, cancellationToken),
             nameof(FeaturesResources.Add_DebuggerDisplay_attribute),
             priority));
     }
