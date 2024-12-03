@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType());
+            //Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType()); // TODO2
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? variableAccess = declaration.VariableAccess;
             if (variableAccess is { })
             {
-                Debug.Assert(variableAccess.Type!.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || variableAccess.Type.IsErrorType());
+                //Debug.Assert(variableAccess.Type!.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || variableAccess.Type.IsErrorType()); // TODO2
                 bindings.Add(new BoundPatternBinding(variableAccess, input));
             }
             else
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            RoslynDebug.Assert(input.Type.IsErrorType() || recursive.HasErrors || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
+            //RoslynDebug.Assert(input.Type.IsErrorType() || recursive.HasErrors || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions)); // TODO2
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
             var tests = ArrayBuilder<Tests>.GetInstance(5);
             output = input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);

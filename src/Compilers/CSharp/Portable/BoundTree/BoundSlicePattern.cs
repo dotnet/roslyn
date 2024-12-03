@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundSlicePattern
     {
-        internal BoundSlicePattern WithPattern(BoundPattern pattern)
+        internal BoundSlicePattern WithPattern(BoundPattern? pattern)
         {
             return new BoundSlicePattern(this.Syntax, pattern, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder,
                 this.InputType, this.NarrowedType, this.HasErrors);

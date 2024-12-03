@@ -9,13 +9,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundBinaryPattern
     {
+        internal BoundBinaryPattern WithDisjunction(bool disjunction)
+        {
+            // TODO2 assert node changed
+            return new BoundBinaryPattern(this.Syntax, disjunction, this.Left, this.Right, this.InputType, this.NarrowedType, this.HasErrors);
+        }
+
         internal BoundBinaryPattern WithLeft(BoundPattern left)
         {
+            // TODO2 assert node changed
             return new BoundBinaryPattern(this.Syntax, this.Disjunction, left, this.Right, this.InputType, this.NarrowedType, this.HasErrors);
         }
 
         internal BoundBinaryPattern WithRight(BoundPattern right)
         {
+            // TODO2 assert node changed
             return new BoundBinaryPattern(this.Syntax, this.Disjunction, this.Left, right, this.InputType, this.NarrowedType, this.HasErrors);
         }
     }
@@ -24,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundPropertySubpattern WithPattern(BoundPattern pattern)
         {
+            // TODO2 assert node changed
             return new BoundPropertySubpattern(this.Syntax, this.Member, this.IsLengthOrCount, pattern, this.HasErrors);
         }
     }
@@ -32,12 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundRecursivePattern WithDeconstruction(ImmutableArray<BoundPositionalSubpattern> deconstruction)
         {
+            // TODO2 assert node changed
             return new BoundRecursivePattern(this.Syntax, this.DeclaredType, this.DeconstructMethod, deconstruction,
                 this.Properties, this.IsExplicitNotNullTest, this.Variable, this.VariableAccess, this.InputType, this.NarrowedType, this.HasErrors);
         }
 
         internal BoundRecursivePattern WithProperties(ImmutableArray<BoundPropertySubpattern> properties)
         {
+            // TODO2 assert node changed
             return new BoundRecursivePattern(this.Syntax, this.DeclaredType, this.DeconstructMethod, this.Deconstruction, properties,
                 this.IsExplicitNotNullTest, this.Variable, this.VariableAccess, this.InputType, this.NarrowedType, this.HasErrors);
         }
