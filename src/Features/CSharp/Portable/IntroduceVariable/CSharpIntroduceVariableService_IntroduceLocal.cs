@@ -469,30 +469,45 @@ internal sealed partial class CSharpIntroduceVariableService
         if (nextStatement == null)
             return oldStatements.Insert(statementIndex, newStatement);
 
-        // Grab all the trivia before the line the next statement is on and move it to the new node.
-
-        var nextStatementLeading = nextStatement.GetLeadingTrivia();
-        var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
-        if (precedingEndOfLine == default)
+        var priorToken = nextStatement.GetFirstToken().GetPreviousToken();
+        if (!priorToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) &&
+            !nextStatement.GetLastToken().TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
         {
-            // Attempt to indent by the same amount as the next statement.
-            if (nextStatementLeading is [(kind: SyntaxKind.WhitespaceTrivia) indentation])
-                newStatement = newStatement.WithLeadingTrivia(indentation);
-
-            // Attempt to use the same end of line as the next statement.  Fall back to an elastic newline if not present.
-            newStatement = newStatement.WithTrailingTrivia(
-                nextStatement.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia) endOfLine] ? endOfLine : ElasticCarriageReturnLineFeed);
-
+            // A single statement that is on the same line as the construct that owns it.  In this case, just place the
+            // new statement in front of it.
             return oldStatements.ReplaceRange(
-                nextStatement, [newStatement, nextStatement]);
+                nextStatement,
+                [newStatement.WithoutLeadingTrivia().WithTrailingTrivia(Space), nextStatement]);
         }
 
+        // Grab all the trivia before the line the next statement is on and move it to the new node.
+
+        // If the next statement is on its own line, then move it's leading trivia (up through the new line) to the new
+        // statement (keeping the trivia after that with the next statement).
+        var nextStatementLeading = nextStatement.GetLeadingTrivia();
+        var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
+        if (precedingEndOfLine != default)
+        {
+            return oldStatements.ReplaceRange(
+                nextStatement,
+                [
+                    newStatement.WithLeadingTrivia(nextStatementLeading).WithTrailingTrivia(precedingEndOfLine),
+                    nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(nextStatementLeading.IndexOf(precedingEndOfLine) + 1)),
+                ]);
+        }
+
+        // Otherwise, the next statement has no leading new-line.  Try to figure out how to place the new statement.
+
+        // Attempt to indent by the same amount as the next statement.
+        if (nextStatementLeading is [(kind: SyntaxKind.WhitespaceTrivia) indentation])
+            newStatement = newStatement.WithLeadingTrivia(indentation);
+
+        // Attempt to use the same end of line as the next statement.  Fall back to an elastic newline if not present.
+        newStatement = newStatement.WithTrailingTrivia(
+            nextStatement.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia) endOfLine] ? endOfLine : ElasticCarriageReturnLineFeed);
+
         return oldStatements.ReplaceRange(
-            nextStatement,
-            [
-                newStatement.WithLeadingTrivia(nextStatementLeading).WithTrailingTrivia(precedingEndOfLine),
-                nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(nextStatementLeading.IndexOf(precedingEndOfLine) + 1)),
-            ]);
+            nextStatement, [newStatement, nextStatement]);
     }
 
     private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
