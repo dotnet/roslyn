@@ -608,7 +608,6 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             topNameNode = topNameNode.Parent;
 
         var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(topNameNode.Parent);
-
         return syntaxFacts.IsInNamespaceOrTypeContext(topNameNode)
             ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
             : GetSymbolUsageInfoCommon();
@@ -674,6 +673,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             else
             {
                 var operation = semanticModel.GetOperation(node, cancellationToken);
+                if (operation is IObjectCreationOperation)
+                    return SymbolUsageInfo.Create(TypeOrNamespaceUsageInfo.ObjectCreation);
+
                 switch (operation?.Parent)
                 {
                     case INameOfOperation:

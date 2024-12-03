@@ -21,13 +21,8 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public SimplifyTypeNamesTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
@@ -7225,7 +7220,7 @@ namespace N
     }
 
     [Fact]
-    public async Task TestNint1_NoNumericIntPtr()
+    public async Task TestNint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
         var source =
             """
@@ -7235,7 +7230,8 @@ namespace N
             }
             """;
         var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        await TestMissingInRegularAndScriptAsync(
+            source, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]
@@ -7278,8 +7274,48 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
+    public async Task TestNint1_WithNumericIntPtr_CSharp11_NoRuntimeSupport()
+    {
+        await TestInRegularAndScript1Async("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="11">
+                    <Document>class A
+            {
+                [|System.IntPtr|] i;
+            }</Document>
+                </Project>
+            </Workspace>
+            """, """
+            class A
+            {
+                nint i;
+            }
+            """, new TestParameters(options: PreferIntrinsicTypeEverywhere));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
+    public async Task TestNint1_WithNumericIntPtr_CSharp9_RuntimeSupport()
+    {
+        await TestInRegularAndScript1Async("""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="9">
+                    <Document>class A
+            {
+                [|System.IntPtr|] i;
+            }</Document>
+                </Project>
+            </Workspace>
+            """, """
+            class A
+            {
+                nint i;
+            }
+            """, new TestParameters(options: PreferIntrinsicTypeEverywhere));
+    }
+
     [Fact]
-    public async Task TestNUint1_NoNumericIntPtr()
+    public async Task TestNUint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
         var source =
             """
@@ -7289,7 +7325,8 @@ namespace N
             }
             """;
         var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        await TestMissingInRegularAndScriptAsync(
+            source, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]

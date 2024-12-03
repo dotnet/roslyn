@@ -24,7 +24,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
 public sealed class ImplementInterfaceTests
 {
-    private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
 
     private static OptionsCollection AllOptionsOff
         => new(LanguageNames.CSharp)
@@ -600,6 +600,54 @@ public sealed class ImplementInterfaceTests
             }
 
             """);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
+    public async Task TestMethodWhenClassBracesAreMissing2(
+        [CombinatorialValues(0, 1)] int behavior)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+            
+                namespace WPFConsoleApplication1
+                {
+                    class Program
+                    {
+                        private class Test : {|CS0535:ICloneable|}{|CS1513:|}{|CS1514:|}
+            
+                        static void Main(string[] args) { }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                namespace WPFConsoleApplication1
+                {
+                    class Program
+                    {
+                        private class Test : ICloneable
+                        {
+                            public object Clone()
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+            
+                        static void Main(string[] args) { }
+                    }
+                }
+                """,
+            Options =
+            {
+                new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)behavior }
+                }
+            }
+        }.RunAsync();
     }
 
     [Fact]
@@ -12126,6 +12174,37 @@ interface I
                 public void Dispose() => throw new NotImplementedException();
                 public bool MoveNext() => throw new NotImplementedException();
                 public void Reset() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19721")]
+    public async Task TestMatchPropertyAgainstPropertyWithMoreAccessors1()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            interface ImmutableView
+            {
+                int Prop1 { get; }
+            }
+            interface MutableView : ImmutableView
+            {
+                new int Prop1 { get; set; }
+            }
+            class Implementation : {|CS0535:{|CS0535:MutableView|}|} { }
+            """,
+            """
+            interface ImmutableView
+            {
+                int Prop1 { get; }
+            }
+            interface MutableView : ImmutableView
+            {
+                new int Prop1 { get; set; }
+            }
+            class Implementation : MutableView
+            {
+                public int Prop1 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
             """);
     }

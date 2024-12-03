@@ -21,7 +21,8 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class GenerateVariableTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private const int FieldIndex = 0;
     private const int ReadonlyFieldIndex = 1;
@@ -29,11 +30,6 @@ public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDi
     private const int LocalIndex = 3;
     private const int Parameter = 4;
     private const int ParameterAndOverrides = 5;
-
-    public GenerateVariableTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
 
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpGenerateVariableCodeFixProvider());
@@ -11132,6 +11128,25 @@ $@"class Program
                 {
                     List<int> list = new() { [|_field|] };
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58491")]
+    public async Task TestGeneratePropertiesFromTopLevel()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            var x = new Test() { [|A|] = 1, B = 1 };
+            class Test
+            {
+            }
+            """,
+            """
+            var x = new Test() { A = 1, B = 1 };
+            class Test
+            {
+                public int A { get; internal set; }
             }
             """);
     }

@@ -119,10 +119,7 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
         foreach (var reference in propertyReferences)
         {
             if (reference.Definition is IPropertySymbol property)
-            {
-                var backingField = GetBackingField(property);
-                definitionToBackingField[property] = backingField;
-            }
+                definitionToBackingField[property] = GetBackingField(property);
         }
 
         return definitionToBackingField.ToImmutable();
@@ -383,8 +380,7 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
             }
 
             var nodeToReplace = service.GetPropertyNodeToReplace(declaration);
-            editor.InsertAfter(nodeToReplace, members);
-            editor.RemoveNode(nodeToReplace);
+            editor.ReplaceNode(nodeToReplace, (_, _) => members);
         }
 
         return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());

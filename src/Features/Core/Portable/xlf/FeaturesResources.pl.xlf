@@ -2740,6 +2740,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Nie można odczytać pliku źródłowego „{0}” lub pliku PDB skompilowanego dla projektu, w którym jest on zawarty. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
         <target state="translated">Nie można załadować typu „{0}”: „{1}”.</target>

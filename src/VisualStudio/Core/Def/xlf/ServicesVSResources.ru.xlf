@@ -887,11 +887,6 @@
         <target state="translated">Правила именования</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_asynchronously_exerimental">
-        <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">Асинхронная навигация (экспериментальная функция)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Перейти к {0}</target>
