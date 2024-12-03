@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -276,13 +277,14 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
         await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
     }
 
-    [Fact]
-    public async Task TestNint_WithoutNumericIntPtr_CSharp10()
+    [Theory]
+    [InlineData("CommonReferences")]
+    [InlineData("CommonReferencesNet7")]
+    public async Task TestNint_WithoutNumericIntPtr_CSharp10(string references)
     {
-        var code =
-            """
+        var code = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="10">
+                <Project Language="C#" {{references}}="true" LanguageVersion="10">
                     <Document>using System;
             class Program
             {
@@ -294,12 +296,14 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
         await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
-    public async Task TestNint_WithoutNumericIntPtr_CSharp11()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.CSharp11)]
+    public async Task TestNint_WithoutNumericIntPtr(LanguageVersion version)
     {
-        await TestInRegularAndScript1Async("""
+        await TestMissingInRegularAndScriptAsync($$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="11">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{version.ToDisplayString()}}">
                     <Document>using System;
             class Program
             {
@@ -307,13 +311,6 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             }</Document>
                 </Project>
             </Workspace>
-            """,
-            """
-            using System;
-            class Program
-            {
-                IntPtr _myfield;
-            }
             """, new TestParameters(options: FrameworkTypeInDeclaration));
     }
 
