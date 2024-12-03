@@ -808,32 +808,6 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
             """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10, LanguageVersion.CSharp11, LanguageVersion.Latest]);
     }
 
-    //[Theory]
-    //[InlineData("System", "IntPtr", "nint.Zero")]
-    //[InlineData("System", "UIntPtr", "nuint.Zero")]
-    //public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified3(string @namespace, string type, string replacement)
-    //{
-    //    await TestWithLanguageVersionsAsync(
-    //        $$"""
-    //        class C
-    //        {
-    //            void M()
-    //            {
-    //                if (default({{@namespace}}.{{type}}) is [||]default) { }
-    //            }
-    //        }
-    //        """,
-    //        $$"""
-    //        class C
-    //        {
-    //            void M()
-    //            {
-    //                if (default({{@namespace}}.{{type}}) is {{replacement}}) { }
-    //            }
-    //        }
-    //        """, [LanguageVersion.CSharp11, LanguageVersion.Latest]);
-    //}
-
     [Theory]
     [InlineData("System.Threading", "CancellationToken", "None")]
     public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing1(string @namespace, string type, string member)
