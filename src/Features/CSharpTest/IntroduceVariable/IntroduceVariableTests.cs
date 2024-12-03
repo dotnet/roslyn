@@ -1852,7 +1852,7 @@ options: ImplicitTypingEverywhere());
                 {
                     int x = 2;
                     const int {|Rename:V|} = 1;
-                    Bar(x < V, (x > (2 + 3)));
+                    Bar(x < (V), x > (2 + 3));
                 }
             }
             """;
@@ -2589,7 +2589,7 @@ options: ImplicitTypingEverywhere());
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => { string {|Rename:v|} = Goo(x); v.ToString(); }, y), (object)null);
+                    Outer(y => Inner(x => { string {|Rename:v|} = Goo(x); v.ToString(); }, y), null);
                 }
             }
             """);
@@ -2624,7 +2624,7 @@ options: ImplicitTypingEverywhere());
                 {
                     byte z = 0;
                     Func<byte, byte> {|Rename:p|} = x => 0;
-                    Goo<byte, byte>(p, y => 0, z, z);
+                    Goo(p, y => 0, z, z);
                 }
 
                 static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
@@ -5879,7 +5879,7 @@ class C
             {
                 int x = 1;
                 int {|Rename:y1|} = C.y;
-                var t = (y1, y1);
+                var t = (y: y1, y: y1);
             }
         }
         """;

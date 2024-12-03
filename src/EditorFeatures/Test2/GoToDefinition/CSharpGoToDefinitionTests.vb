@@ -4153,6 +4153,124 @@ public partial class Program
             End Using
         End Function
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialMethodDefinition() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                partial void $$M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialMethodImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                partial void [|M|]();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                partial void $$M()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialPropertyDefinition() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial string $$Prop { get; set; }
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                public partial string [|Prop|]
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                    set
+                    {
+                        throw new NotImplementedException();
+                    }   
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialPropertyImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial string [|Prop|] { get; set; }
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                public partial string $$Prop
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                    set
+                    {
+                        throw new NotImplementedException();
+                    }   
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
 #Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
     End Class
 End Namespace

@@ -63,8 +63,8 @@ internal sealed partial class CSharpIntroduceVariableService
                     document, compilationUnit, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
 
             case BlockSyntax block:
-                return await IntroduceLocalDeclarationIntoBlockAsync(
-                    document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
+                return IntroduceLocalDeclarationIntoBlock(
+                    document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
 
             case ArrowExpressionClauseSyntax arrowExpression:
                 // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
@@ -334,7 +334,7 @@ internal sealed partial class CSharpIntroduceVariableService
         return document.Document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private async Task<Document> IntroduceLocalDeclarationIntoBlockAsync(
+    private Document IntroduceLocalDeclarationIntoBlock(
         SemanticDocument document,
         BlockSyntax block,
         ExpressionSyntax expression,
@@ -357,11 +357,11 @@ internal sealed partial class CSharpIntroduceVariableService
         var matches = FindMatches(document, expression, document, [scope], allOccurrences, cancellationToken);
         Debug.Assert(matches.Contains(expression));
 
-        (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
+        //(document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
 
-        // Our original expression should have been one of the matches, which were tracked as part
-        // of complexification, so we can retrieve the latest version of the expression here.
-        expression = document.Root.GetCurrentNode(expression);
+        //// Our original expression should have been one of the matches, which were tracked as part
+        //// of complexification, so we can retrieve the latest version of the expression here.
+        //expression = document.Root.GetCurrentNode(expression);
 
         var root = document.Root;
         ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => GetApplicableStatementAncestors(expr)));
@@ -383,9 +383,9 @@ internal sealed partial class CSharpIntroduceVariableService
                     Block(root.GetCurrentNode(statement)).WithAdditionalAnnotations(Formatter.Annotation));
 
                 expression = root.GetCurrentNode(expression);
-                allAffectedStatements = allAffectedStatements.Select(root.GetCurrentNode).ToSet();
-
                 statement = root.GetCurrentNode(statement);
+
+                allAffectedStatements = allAffectedStatements.Select(root.GetCurrentNode).ToSet();
             }
 
             innermostCommonBlock = statement.Parent;
