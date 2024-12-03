@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
@@ -16,14 +17,20 @@ internal partial class RazorDynamicFileInfoProvider
         IEnumerable<TextChange> changes,
         byte[] checksum,
         SourceHashAlgorithm checksumAlgorithm,
-        string? encoding,
+        int? codePage,
         Uri razorUri) : TextLoader
     {
+        private readonly Lazy<SourceText> _emptySourceText = new Lazy<SourceText>(() =>
+        {
+            var encoding = codePage is null ? null : Encoding.GetEncoding(codePage.Value);
+            return SourceText.From("", checksumAlgorithm: checksumAlgorithm, encoding: encoding);
+        });
+
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             if (document is null)
             {
-                var text = SourceText.From("").WithChanges(changes);
+                var text = _emptySourceText.Value.WithChanges(changes);
                 return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
             }
 
@@ -47,7 +54,7 @@ internal partial class RazorDynamicFileInfoProvider
                 return false;
             }
 
-            if (sourceText.Encoding?.WebName.Equals(encoding) == false)
+            if (sourceText.Encoding?.CodePage == codePage)
             {
                 return false;
             }
@@ -60,7 +67,7 @@ internal partial class RazorDynamicFileInfoProvider
             return true;
         }
 
-        private static async Task<TextAndVersion> GetFullDocumentFromServerAsync(Uri razorUri, CancellationToken cancellationToken)
+        private async Task<TextAndVersion> GetFullDocumentFromServerAsync(Uri razorUri, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
             var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
@@ -80,7 +87,7 @@ internal partial class RazorDynamicFileInfoProvider
             RoslynDebug.AssertNotNull(response.Edits);
 
             var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
-            var text = SourceText.From("").WithChanges(textChanges);
+            var text = _emptySourceText.Value.WithChanges(textChanges);
             return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
         }
     }

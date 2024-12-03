@@ -87,7 +87,7 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
                 textChanges,
                 response.Checksum,
                 response.ChecksumAlgorithm,
-                response.EncodingName,
+                response.SourceEncodingCodePage,
                 razorUri);
 
             return new DynamicFileInfo(

@@ -22,9 +22,6 @@ internal class RazorProvideDynamicFileResponse
     [JsonPropertyName("checksumAlgorithm")]
     public SourceHashAlgorithm ChecksumAlgorithm { get; set; }
 
-    /// <summary>
-    /// The IANA name associated with the encoding of the source text
-    /// </summary>
-    [JsonPropertyName("encodingName")]
-    public string? EncodingName { get; set; }
+    [JsonPropertyName("encodingCodePage")]
+    public int? SourceEncodingCodePage { get; set; }
 }
