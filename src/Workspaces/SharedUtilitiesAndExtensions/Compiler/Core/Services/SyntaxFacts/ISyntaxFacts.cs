@@ -377,7 +377,7 @@ internal interface ISyntaxFacts
     bool IsTypeCharacter(char c);
 
     // Violation.  This is a feature level API for QuickInfo.
-    bool IsBindableToken(SyntaxToken token);
+    bool IsBindableToken(SemanticModel? semanticModel, SyntaxToken token);
 
     bool IsInStaticContext(SyntaxNode node);
     bool IsUnsafeContext(SyntaxNode node);

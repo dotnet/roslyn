@@ -509,7 +509,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
         => token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken;
 
-    public bool IsBindableToken(SyntaxToken token)
+    public bool IsBindableToken(SemanticModel? semanticModel, SyntaxToken token)
     {
         if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
         {
@@ -525,14 +525,15 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
         // In the order by clause a comma might be bound to ThenBy or ThenByDescending
         if (token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.OrderByClause))
-        {
             return true;
-        }
 
-        if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
-            && token.Parent.IsKind(SyntaxKind.CollectionExpression))
+        if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken)
         {
-            return true;
+            if (token.Parent.IsKind(SyntaxKind.CollectionExpression))
+                return true;
+
+            if (semanticModel != null && token.Parent is BracketedArgumentListSyntax { Parent: ElementAccessExpressionSyntax elementAccessExpression })
+                return semanticModel.GetSymbolInfo(elementAccessExpression).GetAnySymbol() != null;
         }
 
         return false;
@@ -1006,45 +1007,34 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         {
             var parent = node.Parent;
 
-            // If this node is on the left side of a member access expression, don't ascend
-            // further or we'll end up binding to something else.
-            if (parent is MemberAccessExpressionSyntax memberAccess)
+            // If this node is on the left side of a member access expression, don't ascend further or we'll end up
+            // binding to something else.
+            if (parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == node)
+                break;
+
+            // If this node is on the left side of a qualified name, don't ascend further or we'll end up binding to
+            // something else.
+            if (parent is QualifiedNameSyntax qualifiedName && qualifiedName.Left == node)
+                break;
+
+            // If this node is on the left side of a alias-qualified name, don't ascend further or we'll end up binding
+            // to something else.
+            if (parent is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Alias == node)
+                break;
+
+            // If this node is the type of an object creation expression, return the object creation expression.
+            if (parent is ObjectCreationExpressionSyntax objectCreation && objectCreation.Type == node)
             {
-                if (memberAccess.Expression == node)
-                {
-                    break;
-                }
+                node = parent;
+                break;
             }
 
-            // If this node is on the left side of a qualified name, don't ascend
-            // further or we'll end up binding to something else.
-            if (parent is QualifiedNameSyntax qualifiedName)
+            // If we're on the argument list `[...]` of an index expression, return the index expression itself as we
+            // want to bind to whatever symbol that binds to.
+            if (parent is ElementAccessExpressionSyntax elementAccess && elementAccess.ArgumentList == node)
             {
-                if (qualifiedName.Left == node)
-                {
-                    break;
-                }
-            }
-
-            // If this node is on the left side of a alias-qualified name, don't ascend
-            // further or we'll end up binding to something else.
-            if (parent is AliasQualifiedNameSyntax aliasQualifiedName)
-            {
-                if (aliasQualifiedName.Alias == node)
-                {
-                    break;
-                }
-            }
-
-            // If this node is the type of an object creation expression, return the
-            // object creation expression.
-            if (parent is ObjectCreationExpressionSyntax objectCreation)
-            {
-                if (objectCreation.Type == node)
-                {
-                    node = parent;
-                    break;
-                }
+                node = parent;
+                break;
             }
 
             // The inside of an interpolated string is treated as its own token so we

@@ -42,7 +42,9 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
 
         async Task<(ISymbol symbol, Solution solution)?> GetSymbolAsync(Document document)
         {
-            var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
+            // No need for NRT analysis here as it doesn't affect navigation.
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
             var solution = project.Solution;
 
