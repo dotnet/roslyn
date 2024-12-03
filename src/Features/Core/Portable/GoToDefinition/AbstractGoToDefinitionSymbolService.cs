@@ -64,7 +64,7 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
     public async Task<(int? targetPosition, TextSpan tokenSpan)> GetTargetIfControlFlowAsync(
         Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = semanticModel.SyntaxTree;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var token = await syntaxTree.GetTouchingTokenAsync(
             semanticModel, position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
