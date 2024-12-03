@@ -26,71 +26,66 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpIntroduceVariableService
 {
-    protected override Task<Document> IntroduceLocalAsync(
+    protected override Document IntroduceLocal(
         SemanticDocument document,
         ExpressionSyntax expression,
         bool allOccurrences,
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(IntroduceLocal());
+        var globalStatement = expression.GetAncestor<GlobalStatementSyntax>();
 
-        Document IntroduceLocal()
-        {
-            var globalStatement = expression.GetAncestor<GlobalStatementSyntax>();
+        var containerToGenerateInto = globalStatement != null
+            ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
+            : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
-            var containerToGenerateInto = globalStatement != null
-                ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
-                : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
+        var newLocalNameToken = GenerateUniqueLocalName(
+            document, expression, isConstant, containerToGenerateInto, cancellationToken);
+        var newLocalName = IdentifierName(newLocalNameToken);
 
-            var newLocalNameToken = GenerateUniqueLocalName(
-                document, expression, isConstant, containerToGenerateInto, cancellationToken);
-            var newLocalName = IdentifierName(newLocalNameToken);
+        var modifiers = isConstant
+            ? TokenList(ConstKeyword)
+            : default;
 
-            var modifiers = isConstant
-                ? TokenList(ConstKeyword)
-                : default;
-
-            var declarationStatement = LocalDeclarationStatement(
-                modifiers,
-                VariableDeclaration(
-                    GetTypeSyntax(document, expression, cancellationToken),
-                    [VariableDeclarator(
+        var declarationStatement = LocalDeclarationStatement(
+            modifiers,
+            VariableDeclaration(
+                GetTypeSyntax(document, expression, cancellationToken),
+                [VariableDeclarator(
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     argumentList: null,
                     EqualsValueClause(expression.WithoutTrivia()))]));
 
-            switch (containerToGenerateInto)
-            {
-                case CompilationUnitSyntax compilationUnit:
-                    return IntroduceLocalDeclarationIntoCompilationUnit(
-                        document, compilationUnit, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
+        switch (containerToGenerateInto)
+        {
+            case CompilationUnitSyntax compilationUnit:
+                return IntroduceLocalDeclarationIntoCompilationUnit(
+                    document, compilationUnit, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
 
-                case BlockSyntax block:
-                    return IntroduceLocalDeclarationIntoBlock(
-                        document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
+            case BlockSyntax block:
+                return IntroduceLocalDeclarationIntoBlock(
+                    document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
 
-                case ArrowExpressionClauseSyntax arrowExpression:
-                    // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
-                    // both of which are a shorthand for the getter and always return a value
-                    var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
-                    var createReturnStatement = true;
+            case ArrowExpressionClauseSyntax arrowExpression:
+                // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
+                // both of which are a shorthand for the getter and always return a value
+                var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
+                var createReturnStatement = true;
 
-                    if (method is not null)
-                        createReturnStatement = !method.ReturnsVoid && !method.IsAsyncReturningVoidTask(document.SemanticModel.Compilation);
+                if (method is not null)
+                    createReturnStatement = !method.ReturnsVoid && !method.IsAsyncReturningVoidTask(document.SemanticModel.Compilation);
 
-                    return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
-                        document, arrowExpression, expression, newLocalName,
-                        declarationStatement, allOccurrences, createReturnStatement, cancellationToken);
+                return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+                    document, arrowExpression, expression, newLocalName,
+                    declarationStatement, allOccurrences, createReturnStatement, cancellationToken);
 
-                case LambdaExpressionSyntax lambda:
-                    return IntroduceLocalDeclarationIntoLambda(
-                        document, lambda, expression, newLocalName, declarationStatement,
-                        allOccurrences, cancellationToken);
-            }
-
-            throw new InvalidOperationException();
+            case LambdaExpressionSyntax lambda:
+                return IntroduceLocalDeclarationIntoLambda(
+                    document, lambda, expression, newLocalName, declarationStatement,
+                    allOccurrences, cancellationToken);
         }
+
+        throw new InvalidOperationException();
     }
 
     private Document IntroduceLocalDeclarationIntoLambda(

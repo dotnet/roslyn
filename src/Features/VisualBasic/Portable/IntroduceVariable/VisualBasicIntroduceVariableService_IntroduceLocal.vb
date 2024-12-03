@@ -11,12 +11,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Partial Friend Class VisualBasicIntroduceVariableService
-        Protected Overrides Async Function IntroduceLocalAsync(
+        Protected Overrides Function IntroduceLocal(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Document
 
             Dim container = GetContainerToGenerateInfo(document, expression, cancellationToken)
             Dim newLocalNameToken = GenerateUniqueLocalName(
@@ -45,9 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     document, DirectCast(container, SingleLineLambdaExpressionSyntax),
                     expression, newLocalName, declarationStatement, allOccurrences, cancellationToken)
             Else
-                Return Await IntroduceLocalDeclarationIntoBlockAsync(
+                Return IntroduceLocalDeclarationIntoBlock(
                     document, container, expression, newLocalName,
-                    declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(False)
+                    declarationStatement, allOccurrences, cancellationToken)
             End If
         End Function
 
@@ -113,14 +113,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return Nothing
         End Function
 
-        Private Async Function IntroduceLocalDeclarationIntoBlockAsync(
+        Private Function IntroduceLocalDeclarationIntoBlock(
                 document As SemanticDocument,
                 container As SyntaxNode,
                 expression As ExpressionSyntax,
                 newLocalName As NameSyntax,
                 declarationStatement As LocalDeclarationStatementSyntax,
                 allOccurrences As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Document
 
             Dim localAnnotation = New SyntaxAnnotation()
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
@@ -131,14 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
 
             Dim matches = FindMatches(document, expression, document, {oldOutermostBlock}, allOccurrences, cancellationToken)
-
-            'Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
-            'document = complexified.newSemanticDocument
-            'matches = complexified.newMatches
-
-            ' Our original expression should have been one of the matches, which were tracked as part
-            ' of complexification, so we can retrieve the latest version of the expression here.
-            ' expression = document.Root.GetCurrentNodes(expression).First()
 
             Dim innermostStatements = New HashSet(Of StatementSyntax)(matches.Select(Function(expr) expr.GetAncestorOrThis(Of StatementSyntax)()))
             If innermostStatements.Count = 1 Then
