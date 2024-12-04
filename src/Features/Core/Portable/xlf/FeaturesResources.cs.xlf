@@ -345,6 +345,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Nejde navigovat k symbolu pod stříškou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
+        <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
+        <target state="new">Capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
+      </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
         <source>Capture number cannot be zero</source>
         <target state="translated">Počet zachytávání nemůže být nulový</target>
@@ -499,16 +504,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>Comments not allowed</source>
         <target state="translated">Komentáře nejsou povolené</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number">
-        <source>Conditional alternation is missing a closing parenthesis after the group number</source>
-        <target state="new">Conditional alternation is missing a closing parenthesis after the group number</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
-      </trans-unit>
-      <trans-unit id="Conditional_alternation_refers_to_an_undefined_group_number_0">
-        <source>Conditional alternation refers to an undefined group number {0}</source>
-        <target state="new">Conditional alternation refers to an undefined group number {0}</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
@@ -1045,6 +1040,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Nastavení metody jako asynchronní vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Malformed">
+        <source>malformed</source>
+        <target state="new">malformed</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>
         <target state="translated">Chybně formátovaná řídicí sekvence znaků \p{X}</target>
@@ -1325,11 +1325,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="new">Quantifier '{0}' following nothing</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
-      <trans-unit id="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
-        <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue.</source>
-        <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue.</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
-      </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
         <target state="translated">Dotaz</target>
@@ -1341,9 +1336,14 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
-        <source>Reference to undefined group name '{0}'</source>
+        <source>Reference to undefined group name {0}</source>
         <target state="needs-review-translation">Odkaz na nedefinovaný název skupiny {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group_number_0">
+        <source>Reference to undefined group number {0}</source>
+        <target state="new">Reference to undefined group number {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
         <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>

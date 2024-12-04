@@ -1799,8 +1799,8 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Not enough )'s</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</comment>
   </data>
-  <data name="Quantifier_x_y_following_nothing" xml:space="preserve">
-    <value>Quantifier {x,y} following nothing</value>
+  <data name="Quantifier_0_following_nothing" xml:space="preserve">
+    <value>Quantifier '{0}' following nothing</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</comment>
   </data>
   <data name="Reference_to_undefined_group" xml:space="preserve">

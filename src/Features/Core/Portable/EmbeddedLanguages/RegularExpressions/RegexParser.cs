@@ -2046,7 +2046,7 @@ internal partial struct RegexParser
             current.Kind == RegexKind.SimpleOptionsGrouping)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
+                string.Format(FeaturesResources.Quantifier_0_following_nothing, token.VirtualChars.First()), token.GetSpan()));
         }
         else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
         {
