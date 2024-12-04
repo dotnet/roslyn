@@ -25367,9 +25367,9 @@ class Program
                     // (10,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F1([UnscopedRef] out int i1) { i1 = 0; }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(10, 21),
-                    // (11,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    // (11,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
                     //     static void F2([UnscopedRef] R r2) { }
-                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(11, 21),
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(11, 21),
                     // (12,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F3([UnscopedRef] ref R r3) { }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(12, 21),
