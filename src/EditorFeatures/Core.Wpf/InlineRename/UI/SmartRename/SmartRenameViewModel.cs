@@ -37,11 +37,15 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private CancellationTokenSource _cancellationTokenSource = new();
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
-    private Task _getSuggestionsTask = Task.CompletedTask;
-    private bool _isInPreparation = false;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
+    private Task? _getSuggestionsTask;
+
+    /// <summary>
+    /// Backing field for <see cref="IsInProgress"/>.
+    /// </summary>
+    private bool _isInProgress = false;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -53,17 +57,22 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public bool HasSuggestions => _smartRenameSession.HasSuggestions;
 
-    public bool IsInPreparation
+    /// <summary>
+    /// Indicates whether a request to get suggestions is in progress.
+    /// The request to get suggestions is comprised of initial short delay, <see cref="AutomaticFetchDelay"/>
+    /// and call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
+    /// When <c>true</c>, the UI shows the progress bar, and prevents <see cref="FetchSuggestions(bool)"/> from making parallel request.
+    /// </summary>
+    public bool IsInProgress
     {
-        get => _isInPreparation;
+        get => _isInProgress;
         set
         {
-            _isInPreparation = value;
-            NotifyPropertyChanged(nameof(IsInProgress)); // UI is bound to IsInProgress
+            _threadingContext.ThrowIfNotOnUIThread();
+            _isInProgress = value;
+            NotifyPropertyChanged(nameof(IsInProgress));
         }
     }
-
-    public bool IsInProgress => IsInPreparation || _smartRenameSession.IsInProgress;
 
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
@@ -161,29 +170,26 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private void FetchSuggestions(bool isAutomaticOnInitialization)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (this.SuggestedNames.Count > 0 || _isDisposed)
+        if (this.SuggestedNames.Count > 0 || _isDisposed || this.IsInProgress)
         {
             // Don't get suggestions again
             return;
         }
 
-        if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
-        {
-            var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-            _cancellationTokenSource.Dispose();
-            _cancellationTokenSource = new CancellationTokenSource();
-            _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
-        }
+        var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+        _cancellationTokenSource.Dispose();
+        _cancellationTokenSource = new CancellationTokenSource();
+        _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
 
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
-        RoslynDebug.Assert(!this.IsInPreparation);
+        RoslynDebug.Assert(!this.IsInProgress);
+        this.IsInProgress = true;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         try
         {
-            this.IsInPreparation = true;
             if (isAutomaticOnInitialization)
             {
                 await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
@@ -230,7 +236,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         finally
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-            this.IsInPreparation = false;
+            this.IsInProgress = false;
         }
     }
 
