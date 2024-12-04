@@ -8137,7 +8137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[13..13)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[13..13)" Text="" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[13..13)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -8457,7 +8457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[14..14)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[14..14)" Text="" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[14..14)" Text="" />
                   </Diagnostics>
                   <Captures>

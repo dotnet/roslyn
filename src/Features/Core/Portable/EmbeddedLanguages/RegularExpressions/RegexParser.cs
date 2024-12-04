@@ -1067,7 +1067,7 @@ internal partial struct RegexParser
             ConsumeCurrentToken(allowTrivia: false);
 
             openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
+                FeaturesResources.Unrecognized_grouping_construct,
                 GetTokenSpanIncludingEOF(_currentToken)));
 
             // If we weren't at the end of the text, go back to before whatever character
