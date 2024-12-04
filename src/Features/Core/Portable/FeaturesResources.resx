@@ -1792,7 +1792,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</comment>
   </data>
   <data name="Nested_quantifier_0" xml:space="preserve">
-    <value>Nested quantifier {0}</value>
+    <value>Nested quantifier '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</comment>
   </data>
   <data name="Not_enough_close_parens" xml:space="preserve">

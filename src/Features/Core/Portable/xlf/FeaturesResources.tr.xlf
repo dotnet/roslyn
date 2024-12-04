@@ -1226,8 +1226,8 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
-        <source>Nested quantifier {0}</source>
-        <target state="translated">İç içe geçmiş niceleyici {0}</target>
+        <source>Nested quantifier '{0}'</source>
+        <target state="needs-review-translation">İç içe geçmiş niceleyici {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
