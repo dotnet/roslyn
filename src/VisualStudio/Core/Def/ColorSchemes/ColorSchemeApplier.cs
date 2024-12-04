@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +14,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.Win32;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -29,14 +26,10 @@ namespace Microsoft.CodeAnalysis.ColorSchemes;
 [Export(typeof(ColorSchemeApplier))]
 internal sealed partial class ColorSchemeApplier
 {
-    private const string ColorThemeValueName = "Microsoft.VisualStudio.ColorTheme";
-    private const string ColorThemeNewValueName = "Microsoft.VisualStudio.ColorThemeNew";
-
     private readonly IThreadingContext _threadingContext;
     private readonly IServiceProvider _serviceProvider;
     private readonly IAsyncServiceProvider _asyncServiceProvider;
     private readonly ColorSchemeSettings _settings;
-    private readonly ClassificationVerifier _classificationVerifier;
     private readonly ImmutableDictionary<ColorSchemeName, ColorScheme> _colorSchemes;
     private readonly AsyncBatchingWorkQueue _workQueue;
 
@@ -60,7 +53,6 @@ internal sealed partial class ColorSchemeApplier
 
         _settings = new ColorSchemeSettings(threadingContext, _serviceProvider, globalOptions);
         _colorSchemes = ColorSchemeSettings.GetColorSchemes();
-        _classificationVerifier = new ClassificationVerifier(threadingContext, fontAndColorStorage, _colorSchemes);
         _workQueue = new(
             DelayTimeSpan.Idle,
             QueueColorSchemeUpdateAsync,
@@ -78,13 +70,12 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
+        // We need to update the theme whenever the Editor Color Scheme setting changes.
         await TaskScheduler.Default;
         var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
-        VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
         await TaskScheduler.Default;
 
@@ -115,9 +106,6 @@ internal sealed partial class ColorSchemeApplier
             colorScheme.Value, _colorSchemeRegistryItems[colorScheme.Value], cancellationToken).ConfigureAwait(false);
     }
 
-    private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        => _workQueue.AddWork();
-
     private Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
     {
         _workQueue.AddWork();
@@ -131,80 +119,20 @@ internal sealed partial class ColorSchemeApplier
     }
 
     /// <summary>
-    /// Returns true if the color scheme needs updating.
+    /// Returns a non-null value, if the color scheme needs updating.
     /// </summary>
     private async Task<ColorSchemeName?> TryGetUpdatedColorSchemeAsync(CancellationToken cancellationToken)
     {
         // The color scheme that is currently applied to the registry
         var appliedColorScheme = await _settings.GetAppliedColorSchemeAsync(cancellationToken).ConfigureAwait(false);
 
-        // If this is a supported theme then, use the users configured scheme, otherwise fallback to the VS 2017.
-        // Custom themes would be based on the MEF exported color information for classifications which matches the VS 2017 theme.
-        var configuredColorScheme = await IsSupportedThemeAsync(cancellationToken).ConfigureAwait(false)
-            ? _settings.GetConfiguredColorScheme()
-            : ColorSchemeName.VisualStudio2017;
+        // The color scheme configured in VS settings.
+        var configuredColorScheme = _settings.GetConfiguredColorScheme();
 
         if (appliedColorScheme == configuredColorScheme)
             return null;
 
         return configuredColorScheme;
-    }
-
-    public async Task<bool> IsSupportedThemeAsync(CancellationToken cancellationToken)
-        => IsSupportedTheme(await GetThemeIdAsync(cancellationToken).ConfigureAwait(false));
-
-    private bool IsSupportedTheme(Guid themeId)
-    {
-        return _colorSchemes.Values.Any(
-            scheme => scheme.Themes.Any(
-                static (theme, themeId) => theme.Guid == themeId, themeId));
-    }
-
-    public async Task<bool> IsThemeCustomizedAsync(CancellationToken cancellationToken)
-        => await _classificationVerifier.AreForegroundColorsCustomizedAsync(
-            _settings.GetConfiguredColorScheme(),
-            await GetThemeIdAsync(cancellationToken).ConfigureAwait(false),
-            cancellationToken).ConfigureAwait(false);
-
-    private async Task<Guid> GetThemeIdAsync(CancellationToken cancellationToken)
-    {
-        await TaskScheduler.Default;
-        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        //  Look up the value from the new roamed theme property first
-        //  Fallback to the original roamed theme property if that fails
-        var currentThemeString = settingsManager.GetValueOrDefault<string?>(ColorThemeNewValueName, defaultValue: null) ??
-            settingsManager.GetValueOrDefault<string?>(ColorThemeValueName, defaultValue: null);
-
-        if (currentThemeString is null)
-        {
-            // The ColorTheme setting is unpopulated when it has never been changed from its default.
-            // The default VS ColorTheme is Blue
-            return KnownColorThemes.Blue;
-        }
-
-        var themeId = Guid.Parse(currentThemeString);
-
-        if (themeId == KnownColorThemes.System)
-        {
-            themeId = ShouldAppsUseLightTheme()
-                ? KnownColorThemes.Light
-                : KnownColorThemes.Dark;
-        }
-
-        return themeId;
-    }
-
-    private static bool ShouldAppsUseLightTheme()
-    {
-        const string PersonalizeKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
-        const string AppsUseLightThemeValue = "AppsUseLightTheme";
-        const string appsUseDarkTheme = "0";
-
-        using var personalizeKey = Registry.CurrentUser.OpenSubKey(PersonalizeKey, writable: false);
-        var appsThemeValue = personalizeKey?.GetValue(AppsUseLightThemeValue)?.ToString();
-        return appsThemeValue != appsUseDarkTheme;
     }
 
     // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
