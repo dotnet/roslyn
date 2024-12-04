@@ -4454,52 +4454,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscapeOfObjectInitializer(initExpr, scopeOfTheContainingExpression);
 
                 case BoundKind.CollectionInitializerExpression:
-                    {
-                        var colExpr = (BoundCollectionInitializerExpression)expr;
-
-                        //    var c = new C() { element };
-                        //
-                        // is equivalent to
-                        //
-                        //    var c = new C();
-                        //    c.Add(element);
-                        //
-                        // So we check arg mixing of `(receiverPlaceholder).Add(element)` calls,
-                        // and make the result "scoped" if any call could cause the elements to escape.
-
-                        using var _ = new PlaceholderRegion(this, [(colExpr.Placeholder, SafeContext.CallingMethod)]) { ForceRemoveOnDispose = true };
-                        foreach (var initializer in colExpr.Initializers)
-                        {
-                            switch (initializer)
-                            {
-                                case BoundCollectionElementInitializer init:
-                                    if (!CheckInvocationArgMixing(
-                                            init.Syntax,
-                                            MethodInfo.Create(init.AddMethod),
-                                            receiverOpt: colExpr.Placeholder,
-                                            receiverIsSubjectToCloning: init.InitialBindingReceiverIsSubjectToCloning,
-                                            parameters: init.AddMethod.Parameters,
-                                            argsOpt: init.Arguments,
-                                            argRefKindsOpt: default,
-                                            argsToParamsOpt: init.ArgsToParamsOpt,
-                                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
-                                            BindingDiagnosticBag.Discarded))
-                                    {
-                                        return scopeOfTheContainingExpression;
-                                    }
-                                    break;
-
-                                case BoundDynamicCollectionElementInitializer dynamicInit:
-                                    break;
-
-                                default:
-                                    Debug.Fail($"{initializer.Kind} expression of {initializer.Type} type");
-                                    break;
-                            }
-                        }
-
-                        return SafeContext.CallingMethod;
-                    }
+                    var colExpr = (BoundCollectionInitializerExpression)expr;
+                    // If arg mixing fails when the receiver has calling-method scope (i.e., some arguments could escape into the receiver), make the value scoped.
+                    return
+                        !scopeOfTheContainingExpression.IsConvertibleTo(SafeContext.CallingMethod) &&
+                        !CheckValEscapeOfCollectionInitializer(colExpr, escapeFrom: scopeOfTheContainingExpression, escapeTo: SafeContext.CallingMethod, BindingDiagnosticBag.Discarded)
+                            ? scopeOfTheContainingExpression
+                            : SafeContext.CallingMethod;
 
                 case BoundKind.ObjectInitializerMember:
                     // this node generally makes no sense outside of the context of containing initializer
@@ -5317,51 +5278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckValEscapeOfObjectInitializer(initExpr, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.CollectionInitializerExpression:
-                    {
-                        var colExpr = (BoundCollectionInitializerExpression)expr;
-
-                        //    return new C() { element };
-                        //
-                        // is equivalent to
-                        //
-                        //    var c = new C();
-                        //    c.Add(element);
-                        //    return c;
-                        //
-                        // So we check arg mixing of `(receiverPlaceholder).Add(element)` calls
-                        // where the placeholder has `escapeTo` scope and the call has `escapeFrom` scope.
-
-                        bool result = true;
-                        using var _ = new PlaceholderRegion(this, [(colExpr.Placeholder, escapeTo)]) { ForceRemoveOnDispose = true };
-                        foreach (var initializer in colExpr.Initializers)
-                        {
-                            switch (initializer)
-                            {
-                                case BoundCollectionElementInitializer init:
-                                    result |= CheckInvocationArgMixing(
-                                        init.Syntax,
-                                        MethodInfo.Create(init.AddMethod),
-                                        receiverOpt: colExpr.Placeholder,
-                                        receiverIsSubjectToCloning: init.InitialBindingReceiverIsSubjectToCloning,
-                                        parameters: init.AddMethod.Parameters,
-                                        argsOpt: init.Arguments,
-                                        argRefKindsOpt: default,
-                                        argsToParamsOpt: init.ArgsToParamsOpt,
-                                        scopeOfTheContainingExpression: escapeFrom,
-                                        diagnostics);
-                                    break;
-
-                                case BoundDynamicCollectionElementInitializer dynamicInit:
-                                    break;
-
-                                default:
-                                    Debug.Fail($"{initializer.Kind} expression of {initializer.Type} type");
-                                    break;
-                            }
-                        }
-
-                        return result;
-                    }
+                    var colExpr = (BoundCollectionInitializerExpression)expr;
+                    return CheckValEscapeOfCollectionInitializer(colExpr, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.PointerElementAccess:
                     var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
@@ -5653,6 +5571,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private bool CheckValEscapeOfCollectionInitializer(BoundCollectionInitializerExpression colExpr, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
+        {
+            //    return new C() { element };
+            //
+            // is equivalent to
+            //
+            //    var c = new C();
+            //    c.Add(element);
+            //    return c;
+            //
+            // So we check arg mixing of `(receiverPlaceholder).Add(element)` calls
+            // where the placeholder has `escapeTo` scope and the call has `escapeFrom` scope.
+
+            bool result = true;
+            using var _ = new PlaceholderRegion(this, [(colExpr.Placeholder, escapeTo)]) { ForceRemoveOnDispose = true };
+            foreach (var initializer in colExpr.Initializers)
+            {
+                switch (initializer)
+                {
+                    case BoundCollectionElementInitializer init:
+                        result &= CheckInvocationArgMixing(
+                            init.Syntax,
+                            MethodInfo.Create(init.AddMethod),
+                            receiverOpt: colExpr.Placeholder,
+                            receiverIsSubjectToCloning: init.InitialBindingReceiverIsSubjectToCloning,
+                            parameters: init.AddMethod.Parameters,
+                            argsOpt: init.Arguments,
+                            argRefKindsOpt: default,
+                            argsToParamsOpt: init.ArgsToParamsOpt,
+                            scopeOfTheContainingExpression: escapeFrom,
+                            diagnostics);
+                        break;
+
+                    case BoundDynamicCollectionElementInitializer dynamicInit:
+                        break;
+
+                    default:
+                        Debug.Fail($"{initializer.Kind} expression of {initializer.Type} type");
+                        break;
+                }
+            }
+
+            return result;
         }
 
 #nullable disable
