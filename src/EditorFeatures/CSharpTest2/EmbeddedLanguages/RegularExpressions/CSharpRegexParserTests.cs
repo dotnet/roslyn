@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var actual = TreeToText(sourceText, tree)
                 .Replace("\"", DoubleQuoteEscaping)
                 .Replace("&quot;", DoubleQuoteEscaping);
-            Assert.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
+            AssertEx.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
         }
 
         private void TryParseSubTrees(

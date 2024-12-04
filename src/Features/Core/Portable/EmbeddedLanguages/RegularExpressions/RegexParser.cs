@@ -1036,7 +1036,7 @@ internal partial struct RegexParser
 
         if (_currentToken.Kind == RegexKind.EndOfFile)
         {
-            openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+            openParenToken = openParenToken.AddDiagnosticIfMissing(new EmbeddedDiagnostic(
                 FeaturesResources.Unrecognized_grouping_construct,
                 GetSpan(openParenToken, openToken)));
         }

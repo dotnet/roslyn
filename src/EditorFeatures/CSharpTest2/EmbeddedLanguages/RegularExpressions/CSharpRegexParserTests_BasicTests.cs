@@ -8138,6 +8138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[13..13)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..12)" Text="(?&lt;" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[13..13)" Text="" />
                   </Diagnostics>
                   <Captures>
