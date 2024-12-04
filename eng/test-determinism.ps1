@@ -223,7 +223,10 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
     Write-Host "`tVerified $relativeDir\$fileName"
   }
 
-  if (-not $allGood) {
+  if ($allGood) {
+    Write-Host "Determinism check succeeded"
+  }
+  else {
     Write-Host "Determinism failed for the following binaries:"
     foreach ($name in $errorList) {
       Write-Host "`t$name"
