@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddFileBanner;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -27,7 +28,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         string fileName,
         CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
     {
-
         /// <summary>
         /// Given a document and a type contained in it, moves the type
         /// out to its own document. The new document's name typically
@@ -111,8 +111,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAsync(DocumentId newDocumentId)
         {
             var document = SemanticDocument.Document;
-            Debug.Assert(document.Name != FileName,
-                         $"New document name is same as old document name:{FileName}");
+            Debug.Assert(document.Name != FileName, $"New document name is same as old document name:{FileName}");
 
             var root = SemanticDocument.Root;
             var projectToBeUpdated = document.Project;
@@ -135,6 +134,16 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             var modifiedRoot = documentEditor.GetChangedRoot();
             modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
+
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var oldBanner = bannerService.GetFileBanner(root);
+            var newBanner = AddFileBannerHelpers.GetBannerTriviaWithFileName(
+                AddFileBannerHelpers.GetBannerTextWithoutFileName(document, oldBanner),
+                document,
+                this.FileName);
+
+
+            bannerService.GetFileBanner
 
             // add an empty document to solution, so that we'll have options from the right context.
             var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(

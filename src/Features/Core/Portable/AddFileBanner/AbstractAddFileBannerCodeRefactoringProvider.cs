@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.AddFileBanner;
 
 internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
 {
-    private const string BannerFileNamePlaceholder = "{filename}";
-
     protected abstract bool IsCommentStartCharacter(char ch);
 
     protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
@@ -102,28 +100,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
     }
 
     private static string GetEquivalenceKey(Document document, ImmutableArray<SyntaxTrivia> banner)
-    {
-        var bannerText = banner.Select(trivia => trivia.ToFullString()).Join(string.Empty);
-
-        var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
-        if (!string.IsNullOrEmpty(fileName))
-            bannerText = bannerText.Replace(fileName, BannerFileNamePlaceholder);
-
-        return bannerText;
-    }
+        => AddFileBannerHelpers.GetBannerTextWithoutFileName(document, banner);
 
     private static ImmutableArray<SyntaxTrivia> GetBannerFromEquivalenceKey(string equivalenceKey, Document document)
-    {
-        var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
-        if (!string.IsNullOrEmpty(fileName))
-            equivalenceKey = equivalenceKey.Replace(BannerFileNamePlaceholder, fileName);
-
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var token = syntaxFacts.ParseToken(equivalenceKey);
-
-        var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
-        return bannerService.GetFileBanner(token);
-    }
+        => AddFileBannerHelpers.GetBannerTriviaWithFileName(equivalenceKey, document, IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath)));
 
     private Task<Document> AddBannerAsync(
         Document document, SyntaxNode root,
