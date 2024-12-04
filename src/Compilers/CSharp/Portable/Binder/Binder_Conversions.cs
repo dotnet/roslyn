@@ -1876,36 +1876,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                bool usesKeyValuePairs = ConversionsBase.CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
                 {
-                    if (element is BoundCollectionExpressionSpreadElement spreadElement)
+                    switch (element)
                     {
-                        var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
-                        if (enumeratorInfo is null)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_NoImplicitConv, spreadElement.Expression.Syntax, spreadElement.Expression.Display, elementType);
-                            reportedErrors = true;
-                        }
-                        else
-                        {
-                            Conversion elementConversion = Conversions.GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
-                            if (!elementConversion.Exists)
+                        case BoundCollectionExpressionSpreadElement spreadElement:
                             {
-                                GenerateImplicitConversionError(diagnostics, this.Compilation, spreadElement.Expression.Syntax, elementConversion, enumeratorInfo.ElementType, elementType);
+                                var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
+                                if (enumeratorInfo is null)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, spreadElement.Expression.Syntax, spreadElement.Expression.Display, elementType);
+                                    reportedErrors = true;
+                                }
+                                else
+                                {
+                                    Conversion elementConversion = Conversions.GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
+                                    if (!elementConversion.Exists)
+                                    {
+                                        GenerateImplicitConversionError(diagnostics, this.Compilation, spreadElement.Expression.Syntax, elementConversion, enumeratorInfo.ElementType, elementType);
+                                        reportedErrors = true;
+                                    }
+                                }
+                            }
+                            break;
+                        case BoundKeyValuePairElement keyValuePairElement:
+                            if (usesKeyValuePairs)
+                            {
+                                // PROTOTYPE: Report conversion errors.
+                                Debug.Assert(false);
+                            }
+                            else
+                            {
+                                Error(diagnostics, ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, keyValuePairElement.Syntax, targetType);
                                 reportedErrors = true;
                             }
-                        }
-                    }
-                    else
-                    {
-                        // PROTOTYPE: Handle k:v.
-                        Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
-                        if (!elementConversion.Exists)
-                        {
-                            GenerateImplicitConversionError(diagnostics, element.Syntax, elementConversion, (BoundExpression)element, elementType);
-                            reportedErrors = true;
-                        }
+                            break;
+                        default:
+                            {
+                                Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
+                                if (!elementConversion.Exists)
+                                {
+                                    GenerateImplicitConversionError(diagnostics, element.Syntax, elementConversion, (BoundExpression)element, elementType);
+                                    reportedErrors = true;
+                                }
+                            }
+                            break;
                     }
                 }
                 Debug.Assert(reportedErrors);

@@ -39,9 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             """;
 
         // PROTOTYPE: Test language version.
-        // PROTOTYPE: Test expression element.
-        // PROTOTYPE: Test spread element.
-        // PROTOTYPE: Report contents and verify output.
         [Fact]
         public void Dictionary()
         {
@@ -51,17 +48,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        Dictionary<int, string> d = [1:"one", 2:"two"];
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new KeyValuePair<int, string>(3, "three");
+                        F(x, new[] { y }).Report();
+                    }
+                    static Dictionary<long, object> F(KeyValuePair<int, string> x, IEnumerable<KeyValuePair<int, string>> y)
+                    {
+                        return [1:"one", x, ..y];
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation([source, s_dictionaryExtensions]);
+            comp.VerifyEmitDiagnostics(
+                // (12,16): error CS9215: Collection expression type 'Dictionary<long, object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         return [1:"one", x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[1:""one"", x, ..y]").WithArguments("System.Collections.Generic.Dictionary<long, object>").WithLocation(12, 16),
+                // (12,17): error CS9268: Collection expression type 'Dictionary<long, object>' does not support key-value pair elements.
+                //         return [1:"one", x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<long, object>").WithLocation(12, 17),
+                // (12,26): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<long, object>'
+                //         return [1:"one", x, ..y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<long, object>").WithLocation(12, 26),
+                // (12,31): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<long, object>'
+                //         return [1:"one", x, ..y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<long, object>").WithLocation(12, 31));
         }
 
         // PROTOTYPE: Test language version.
+        // PROTOTYPE: Test IReadOnlyDictionary<,>.
         [Fact]
-        public void Interface_01()
+        public void DictionaryInterface()
         {
             string source = """
                 using System.Collections.Generic;

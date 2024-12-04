@@ -2350,6 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AccessorDoesNotUseBackingField = 9266,
 
         ERR_IteratorRefLikeElementType = 9267,
+        ERR_CollectionExpressionKeyValuePairNotSupported = 9268,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

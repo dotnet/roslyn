@@ -202,10 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeWithAnnotations keyType;
-            TypeWithAnnotations valueType;
-            bool usesKeyValuePairs = IsKeyValuePairType(Compilation, elementType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out keyType, out valueType);
-
+            bool usesKeyValuePairs = CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {

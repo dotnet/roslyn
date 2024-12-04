@@ -1750,6 +1750,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             valueType = default;
             return false;
         }
+
+        internal static bool CollectionUsesKeyValuePairs(CSharpCompilation compilation, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol elementType, out TypeWithAnnotations keyType, out TypeWithAnnotations valueType)
+        {
+            // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
+            if (collectionTypeKind == CollectionExpressionTypeKind.DictionaryInterface)
+            {
+                bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out keyType, out valueType);
+                Debug.Assert(usesKeyValuePairs);
+                return usesKeyValuePairs;
+            }
+            keyType = default;
+            valueType = default;
+            return false;
+        }
 #nullable disable
 
         internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
