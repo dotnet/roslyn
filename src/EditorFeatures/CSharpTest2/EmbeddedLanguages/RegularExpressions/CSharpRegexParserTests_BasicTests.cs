@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[11..11)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[11..11)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[12..12)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[12..12)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -1906,7 +1906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..22)" Text="a{2147483648}" />
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..23)" Text="a{2147483648,}" />
@@ -2026,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[13..23)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[13..23)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..24)" Text="a{0,2147483648}" />
@@ -2479,7 +2479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[10..11)" Text="{" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_0_following_nothing}}" Span="[10..11)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="{1}" />
@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[10..11)" Text="{" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_0_following_nothing}}" Span="[10..11)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..15)" Text="{1,2}" />
@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[9..10)" Text="*" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[9..10)" Text="*" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="*" />
@@ -2625,7 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="*" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="*" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(*)" />
@@ -2682,7 +2682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[9..10)" Text="+" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[9..10)" Text="+" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="+" />
@@ -2713,7 +2713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="+" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="+" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(+)" />
@@ -2770,7 +2770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[9..10)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[9..10)" Text="?" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="?" />
@@ -2801,7 +2801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="?" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(?)" />
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[9..10)" Text="{" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_0_following_nothing}}" Span="[9..10)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="{0}" />
@@ -2897,7 +2897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[10..11)" Text="{" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_0_following_nothing}}" Span="[10..11)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..14)" Text="({0})" />
@@ -4519,7 +4519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 7)}" Span="[11..12)" Text="7" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 7)}" Span="[11..12)" Text="7" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\7" />
@@ -4571,7 +4571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 8)}" Span="[11..12)" Text="8" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 8)}" Span="[11..12)" Text="8" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\8" />
@@ -8795,7 +8795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[13..14)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[13..14)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..16)" Text="(?&lt;-1&gt;)" />
@@ -9168,7 +9168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[38..39)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[38..39)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..41)" Text="()()(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)" />
@@ -9250,7 +9250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[42..43)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[42..43)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..45)" Text="()(?&lt;a&gt;)(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)" />
@@ -9333,7 +9333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[42..43)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[42..43)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..45)" Text="(?&lt;a&gt;)()(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)" />
@@ -9420,7 +9420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[46..47)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[46..47)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..49)" Text="(?&lt;a&gt;)(?&lt;b&gt;)(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)" />
@@ -9500,7 +9500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..41)" Text="(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)()()" />
@@ -9582,10 +9582,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[39..40)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[40..41)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[40..41)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[41..41)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -9667,7 +9667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..45)" Text="(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)()(?&lt;a&gt;)" />
@@ -9750,7 +9750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..45)" Text="(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)(?&lt;a&gt;)()" />
@@ -9837,10 +9837,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[43..44)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[44..45)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[44..45)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[45..45)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -9927,7 +9927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..49)" Text="(?&lt;-0&gt;)(?&lt;-1&gt;)(?&lt;-2&gt;)(?&lt;-3&gt;)(?&lt;a&gt;)(?&lt;b&gt;)" />
@@ -10285,7 +10285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Malformed}" Span="[12..13)" Text="0" />
+                    <Diagnostic Message="{FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number}" Span="[12..13)" Text="0" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[13..13)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -10585,7 +10585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Malformed}" Span="[12..13)" Text="0" />
+                    <Diagnostic Message="{FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number}" Span="[12..13)" Text="0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..15)" Text="(?(0 )" />
@@ -11163,7 +11163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unterminated_regex_comment}" Span="[11..14)" Text="(?#" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[11..12)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[12..13)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[12..13)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[14..14)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -11207,7 +11207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Alternation_conditions_cannot_be_comments}" Span="[9..10)" Text="(" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[11..12)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[12..13)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[12..13)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[15..15)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -11251,7 +11251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Alternation_conditions_cannot_be_comments}" Span="[9..10)" Text="(" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[11..12)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[12..13)" Text="?" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[12..13)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[16..16)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -11535,7 +11535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[11..12)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[11..12)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\1" />
@@ -11564,7 +11564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[11..12)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[11..12)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\1 " />
@@ -16034,7 +16034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[13..14)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[13..14)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="()\2" />
@@ -16101,7 +16101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[13..14)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[13..14)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="()\1" />
@@ -16132,7 +16132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[13..14)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[13..14)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="()\2" />
@@ -16168,7 +16168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[15..16)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[15..16)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..16)" Text="()()\2" />
@@ -16259,7 +16259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..22)" Text="()(?n)()\1\2" />
@@ -16306,8 +16306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..22)" Text="(?n)()()\1\2" />
@@ -16353,8 +16353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..22)" Text="()()(?n)\1\2" />
@@ -16400,8 +16400,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..22)" Text="()(?n)()\1\2" />
@@ -16447,8 +16447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..22)" Text="(?n)()()\1\2" />
@@ -16629,8 +16629,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[20..21)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[20..21)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..23)" Text="()()(?-n)\1\2" />
@@ -16676,7 +16676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..23)" Text="()(?-n)()\1\2" />
@@ -16819,8 +16819,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[19..20)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[21..22)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..23)" Text="()()(?n:\1\2)" />
@@ -16917,8 +16917,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[20..21)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[20..21)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..24)" Text="()()(?-n:\1\2)" />
@@ -17013,8 +17013,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[20..21)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[20..21)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[22..23)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..23)" Text="(?n:)()()\1\2" />
@@ -17109,8 +17109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[21..22)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[23..24)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[21..22)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[23..24)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..24)" Text="(?-n:)()()\1\2" />
@@ -17264,8 +17264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[24..25)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[26..27)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[24..25)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[26..27)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..27)" Text="(?-n)(?n)()()\1\2" />
@@ -17317,8 +17317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 1)}" Span="[24..25)" Text="1" />
-                    <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[26..27)" Text="2" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[24..25)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 2)}" Span="[26..27)" Text="2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..27)" Text="(?-n)(?n)()()\1\2" />
