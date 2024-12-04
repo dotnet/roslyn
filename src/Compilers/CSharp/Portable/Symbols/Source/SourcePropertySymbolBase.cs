@@ -1568,7 +1568,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
-                if (this.IsValidUnscopedRefAttributeTarget())
+                bool validTarget = this.IsValidUnscopedRefAttributeTarget();
+                if (validTarget && this.ContainingModule.UseUpdatedEscapeRules)
                 {
                     arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
 
@@ -1579,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var code = !this.ContainingModule.UseUpdatedEscapeRules
+                    var code = validTarget
                         ? ErrorCode.WRN_UnscopedRefAttributeOldRules
                         : ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget;
                     diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);

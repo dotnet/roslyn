@@ -866,9 +866,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
-                if (!this.IsValidUnscopedRefAttributeTarget())
+                bool validTarget = this.IsValidUnscopedRefAttributeTarget();
+                if (!validTarget || !this.UseUpdatedEscapeRules)
                 {
-                    var code = !UseUpdatedEscapeRules
+                    var code = validTarget
                         ? ErrorCode.WRN_UnscopedRefAttributeOldRules
                         : ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget;
                     diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
@@ -882,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType()));
+            return RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType());
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)

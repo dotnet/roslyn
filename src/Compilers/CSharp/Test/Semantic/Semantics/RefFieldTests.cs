@@ -22721,6 +22721,95 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_InvalidLocation_Parameter()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    ref T F1<T>([UnscopedRef] R<T> r) => throw null;
+                    ref T F2<T>([UnscopedRef] T r) => throw null;
+                }
+                ref struct R<T> { }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     ref T F1<T>([UnscopedRef] R<T> r) => throw null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 18),
+                // (5,18): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     ref T F2<T>([UnscopedRef] T r) => throw null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 18)
+            };
+
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_InvalidLocation_Method()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    [UnscopedRef] object F() => null;
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] object F() => null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6)
+            };
+
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_InvalidLocation_Property()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                struct S
+                {
+                    [UnscopedRef] object P { get; init; }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] object P { get; init; }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6)
+            };
+
+            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
         public void RefSafetyRules_SynthesizedDelegate()
         {

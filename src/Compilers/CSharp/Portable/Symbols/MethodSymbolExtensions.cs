@@ -215,8 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsValidUnscopedRefAttributeTarget(this MethodSymbol method)
         {
-            return method.UseUpdatedEscapeRules &&
-                !method.IsStatic &&
+            return !method.IsStatic &&
                 method.ContainingType is NamedTypeSymbol containingType &&
                 (containingType.IsStructType() == true || (containingType.IsInterface && method.IsImplementable())) &&
                 method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet) &&
