@@ -17,7 +17,7 @@ internal class RazorProvideDynamicFileResponse
     public ServerTextChange[]? Edits { get; set; }
 
     [JsonPropertyName("checksum")]
-    public required byte[] Checksum { get; set; }
+    public required string Checksum { get; set; }
 
     [JsonPropertyName("checksumAlgorithm")]
     public SourceHashAlgorithm ChecksumAlgorithm { get; set; }

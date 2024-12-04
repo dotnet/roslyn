@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
@@ -82,10 +83,11 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
             var textDocument = await _workspaceFactory.Workspace.CurrentSolution.GetTextDocumentAsync(response.CSharpDocument, cancellationToken).ConfigureAwait(false);
             var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
+            var checksum = Convert.FromBase64String(response.Checksum);
             var textLoader = new TextChangesTextLoader(
                 textDocument,
                 textChanges,
-                response.Checksum,
+                checksum,
                 response.ChecksumAlgorithm,
                 response.SourceEncodingCodePage,
                 razorUri);
