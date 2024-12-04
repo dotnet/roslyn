@@ -303,7 +303,7 @@ internal struct RegexLexer
         if (error)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
+                FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
                 token.GetSpan()));
         }
 

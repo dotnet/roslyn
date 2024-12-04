@@ -811,7 +811,7 @@ internal partial struct RegexParser
             {
                 innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number,
+                    FeaturesResources.Malformed,
                     capture.GetSpan()));
                 MoveBackBeforePreviousScan();
             }
@@ -1103,7 +1103,7 @@ internal partial struct RegexParser
             if (!HasCapture(val))
             {
                 captureToken = captureToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, val),
+                    string.Format(FeaturesResources.Reference_to_undefined_group_number_0, val),
                     captureToken.GetSpan()));
             }
         }
@@ -2046,7 +2046,7 @@ internal partial struct RegexParser
             current.Kind == RegexKind.SimpleOptionsGrouping)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                string.Format(FeaturesResources.Quantifier_0_following_nothing, token.VirtualChars.First()), token.GetSpan()));
+                FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
         }
         else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
         {
