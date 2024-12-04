@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -17,34 +18,41 @@ internal static class AddFileBannerHelpers
 {
     public static async Task<Document> CopyBannerAsync(
         Document destinationDocument,
+        string? destinationFilePath,
         Document sourceDocument,
         CancellationToken cancellationToken)
     {
-        var service = destinationDocument.GetRequiredLanguageService<IFileBannerFactsService>();
+        var bannerService = destinationDocument.GetRequiredLanguageService<IFileBannerFactsService>();
 
         var fromRoot = await sourceDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var banner = service.GetFileBanner(fromRoot);
+        var sourceBanner = bannerService.GetFileBanner(fromRoot);
 
-        banner = UpdateEmbeddedFileNames(
-            sourceDocument, destinationDocument, banner, service.CreateTrivia);
+        sourceBanner = UpdateEmbeddedFileNames(
+            sourceDocument, destinationFilePath, sourceBanner, bannerService.CreateTrivia);
 
         var destinationRoot = await destinationDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newRoot = destinationRoot.WithPrependedLeadingTrivia(banner);
+        var destinationBanner = bannerService.GetFileBanner(destinationRoot);
+
+        var firstToken = destinationRoot.GetFirstToken();
+        var newRoot = destinationRoot.ReplaceToken(
+            firstToken,
+            firstToken.WithLeadingTrivia(
+                sourceBanner.Concat(firstToken.LeadingTrivia.Skip(destinationBanner.Length))));
         return destinationDocument.WithSyntaxRoot(newRoot);
     }
 
     /// <summary>
     /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
-    /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
+    /// in it.  If so, those names will be replaced with <paramref name="destinationFilePath"/>.
     /// </summary>
     private static ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
         Document sourceDocument,
-        Document destinationDocument,
+        string? destinationFilePath,
         ImmutableArray<SyntaxTrivia> banner,
         Func<SyntaxTrivia, string, SyntaxTrivia> createTrivia)
     {
         var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
-        var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
+        var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationFilePath));
         if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
             return banner;
 

@@ -146,7 +146,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // inside it needs.
             var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
             var newDocumentWithUpdatedBanner = await AddFileBannerHelpers.CopyBannerAsync(
-                newDocument, document, this.CancellationToken).ConfigureAwait(false);
+                newDocument, FileName, document, this.CancellationToken).ConfigureAwait(false);
 
             return newDocumentWithUpdatedBanner;
         }
@@ -196,6 +196,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
             var updatedDocument = documentEditor.GetChangedDocument();
+            updatedDocument = await AddFileBannerHelpers.CopyBannerAsync(updatedDocument, sourceDocument.FilePath, sourceDocument, this.CancellationToken).ConfigureAwait(false);
 
             return updatedDocument.Project.Solution;
         }

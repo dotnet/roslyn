@@ -79,7 +79,8 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CodeFixesResources.Add_file_header,
-                        cancellationToken => AddFileBannerHelpers.CopyBannerAsync(destinationDocument: document, sourceDocument: siblingDocument, cancellationToken),
+                        cancellationToken => AddFileBannerHelpers.CopyBannerAsync(
+                            destinationDocument: document, document.FilePath, sourceDocument: siblingDocument, cancellationToken),
                         equivalenceKey: GetEquivalenceKey(siblingDocument, siblingBanner)),
                     new TextSpan(position, length: 0));
                 return;
