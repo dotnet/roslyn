@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source property symbols.
-        /// Analogous to <see cref="SourceMethodSymbolWithAttributes.BoundAttributesSource"/>.
+        /// Analogous to <see cref="SourceMethodSymbol.BoundAttributesSource"/>.
         /// </summary>
         protected abstract SourcePropertySymbolBase BoundAttributesSource { get; }
 

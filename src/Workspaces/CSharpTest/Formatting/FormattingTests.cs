@@ -5605,6 +5605,45 @@ public class Test
             await AssertFormatAsync(expectedCode, code);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        [InlineData("[]")]
+        [InlineData("[a]")]
+        [InlineData("[a, b]")]
+        [InlineData("[..]")]
+        [InlineData("[var a, .., var b]")]
+        [InlineData("[{ } a, null]")]
+        [InlineData("[a, []]")]
+        public async Task FormatSwitchExpression_ListPatternAligned(string listPattern)
+        {
+            var code = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        _ = Array.Empty<string>() switch
+                        {
+                        {{listPattern}} => 0,
+                            _ => 1,
+                        };
+                    }
+                }
+                """;
+            var expectedCode = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        _ = Array.Empty<string>() switch
+                        {
+                            {{listPattern}} => 0,
+                            _ => 1,
+                        };
+                    }
+                }
+                """;
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact]
         public async Task FormatSwitchWithPropertyPattern()
         {

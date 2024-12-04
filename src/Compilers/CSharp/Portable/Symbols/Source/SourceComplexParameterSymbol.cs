@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.WithTypeParametersBinder;
+        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbol)?.WithTypeParametersBinder;
 
         internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 

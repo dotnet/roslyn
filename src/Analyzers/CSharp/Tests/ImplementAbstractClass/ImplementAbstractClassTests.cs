@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -38,8 +39,8 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
         };
 
     internal Task TestAllOptionsOffAsync(
-        string initialMarkup,
-        string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         int index = 0,
         OptionsCollection? options = null,
         ParseOptions? parseOptions = null)
@@ -2549,6 +2550,182 @@ class D<T> : B<{passToBase}>{constraint}
                 protected override void M()
                 {
                     throw new System.NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
+    public async Task TestConstrainedTypeParameter1()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+
+            class C { }
+
+            abstract class Problem
+            {
+                protected abstract void M<T>(I<T?> i) where T : C;
+            }
+
+            class [|Bad|] : Problem
+            {
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+            
+            class C { }
+            
+            abstract class Problem
+            {
+                protected abstract void M<T>(I<T?> i) where T : C;
+            }
+            
+            class Bad : Problem
+            {
+                protected override void M<T>(I<T?> i) where T : class
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
+    public async Task TestConstrainedTypeParameter2()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+
+            class C { }
+
+            abstract class Problem<U>
+            {
+                protected abstract void M<T>(I<T?> i) where T : U;
+            }
+
+            class [|Bad|] : Problem<int>
+            {
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+            
+            class C { }
+            
+            abstract class Problem<U>
+            {
+                protected abstract void M<T>(I<T?> i) where T : U;
+            }
+            
+            class Bad : Problem<int>
+            {
+                protected override void M<T>(I<T> i) where T : struct
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
+    public async Task TestConstrainedTypeParameter3()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+
+            class C { }
+
+            abstract class Problem<U>
+            {
+                protected abstract void M<T>(I<T?> i) where T : U;
+            }
+
+            class [|Bad|] : Problem<string>
+            {
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+            
+            class C { }
+            
+            abstract class Problem<U>
+            {
+                protected abstract void M<T>(I<T?> i) where T : U;
+            }
+            
+            class Bad : Problem<string>
+            {
+                protected override void M<T>(I<T?> i) where T : class
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
+    public async Task TestConstrainedTypeParameter4()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+
+            class C { }
+
+            abstract class Problem<U>
+            {
+                protected abstract void M<T>(I<T?> i) where T : U;
+            }
+
+            class [|Bad|] : Problem<int[]>
+            {
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            interface I<out T> { }
+            
+            class C { }
+            
+            abstract class Problem<U>
+            {
+                protected abstract void M<T>(I<T?> i) where T : U;
+            }
+            
+            class Bad : Problem<int[]>
+            {
+                protected override void M<T>(I<T?> i) where T : class
+                {
+                    throw new NotImplementedException();
                 }
             }
             """);

@@ -100,7 +100,8 @@ public static partial class SymbolFinder
         var syntaxTree = semanticModel.SyntaxTree;
         var syntaxFacts = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
-        return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
+        return syntaxTree.GetTouchingTokenAsync(
+            semanticModel, position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
     }
 
     public static async Task<ISymbol> FindSymbolAtPositionAsync(
