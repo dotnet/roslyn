@@ -2447,7 +2447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\x2" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\x2" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\x2" />
@@ -4779,7 +4779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\u" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\u" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\u" />
@@ -4806,7 +4806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\ua" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\ua" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\ua" />
@@ -4833,7 +4833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\u0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\u0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\u0" />
@@ -4860,7 +4860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\x" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\x" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\x" />

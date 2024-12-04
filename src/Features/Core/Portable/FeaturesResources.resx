@@ -1767,8 +1767,8 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Incomplete \p{X} character escape</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</comment>
   </data>
-  <data name="Insufficient_hexadecimal_digits" xml:space="preserve">
-    <value>Insufficient hexadecimal digits</value>
+  <data name="Insufficient_or_invalid_hexadecimal_digits" xml:space="preserve">
+    <value>Insufficient or invalid hexadecimal digits</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</comment>
   </data>
   <data name="Invalid_group_name_Group_names_must_begin_with_a_word_character" xml:space="preserve">

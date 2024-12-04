@@ -395,7 +395,7 @@ internal struct RegexLexer
         if (length != count)
         {
             result = result.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Insufficient_hexadecimal_digits,
+                FeaturesResources.Insufficient_or_invalid_hexadecimal_digits,
                 GetTextSpan(beforeSlash, Position)));
         }
 
