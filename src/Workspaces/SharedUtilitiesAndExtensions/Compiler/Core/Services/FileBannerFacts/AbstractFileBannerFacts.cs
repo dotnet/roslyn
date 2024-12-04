@@ -58,6 +58,8 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract IDocumentationCommentService DocumentationCommentService { get; }
 
+    public abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
     public string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken)
         => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 

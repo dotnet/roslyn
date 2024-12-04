@@ -135,16 +135,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var modifiedRoot = documentEditor.GetChangedRoot();
             modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
-            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
-            var oldBanner = bannerService.GetFileBanner(root);
-            var newBanner = AddFileBannerHelpers.GetBannerTriviaWithFileName(
-                AddFileBannerHelpers.GetBannerTextWithoutFileName(document, oldBanner),
-                document,
-                this.FileName);
-
-
-            bannerService.GetFileBanner
-
             // add an empty document to solution, so that we'll have options from the right context.
             var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
                 newDocumentId, FileName, text: string.Empty, folders: document.Folders);
@@ -155,7 +145,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // get the updated document, give it the minimal set of imports that the type
             // inside it needs.
             var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
-            return newDocument;
+            var newDocumentWithUpdatedBanner = await AddFileBannerHelpers.CopyBannerAsync(
+                newDocument, document, this.CancellationToken).ConfigureAwait(false);
+
+            return newDocumentWithUpdatedBanner;
         }
 
         /// <summary>

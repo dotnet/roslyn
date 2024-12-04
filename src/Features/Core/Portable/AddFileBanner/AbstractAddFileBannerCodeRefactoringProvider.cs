@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.AddFileBanner;
 
 internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
 {
-    protected abstract bool IsCommentStartCharacter(char ch);
+    private const string BannerFileNamePlaceholder = "{filename}";
 
-    protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+    protected abstract bool IsCommentStartCharacter(char ch);
 
     protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
         = [FixAllScope.Project, FixAllScope.Solution];
@@ -51,15 +51,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         var position = span.Start;
         var firstToken = root.GetFirstToken();
         if (!firstToken.FullSpan.IntersectsWith(position))
-        {
             return;
-        }
 
         if (HasExistingBanner(document, root))
-        {
-            // Already has a banner.
             return;
-        }
 
         // Process the other documents in this document's project.  Look at the
         // ones that we can get a root from (without having to parse).  Then
@@ -84,9 +79,9 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CodeFixesResources.Add_file_header,
-                        _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
+                        cancellationToken => AddFileBannerHelpers.CopyBannerAsync(destinationDocument: document, sourceDocument: siblingDocument, cancellationToken),
                         equivalenceKey: GetEquivalenceKey(siblingDocument, siblingBanner)),
-                    new Text.TextSpan(position, length: 0));
+                    new TextSpan(position, length: 0));
                 return;
             }
         }
@@ -100,41 +95,27 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
     }
 
     private static string GetEquivalenceKey(Document document, ImmutableArray<SyntaxTrivia> banner)
-        => AddFileBannerHelpers.GetBannerTextWithoutFileName(document, banner);
-
-    private static ImmutableArray<SyntaxTrivia> GetBannerFromEquivalenceKey(string equivalenceKey, Document document)
-        => AddFileBannerHelpers.GetBannerTriviaWithFileName(equivalenceKey, document, IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath)));
-
-    private Task<Document> AddBannerAsync(
-        Document document, SyntaxNode root,
-        Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
     {
-        banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
+        var bannerText = banner.Select(trivia => trivia.ToFullString()).Join(string.Empty);
 
-        var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
-        return Task.FromResult(document.WithSyntaxRoot(newRoot));
+        var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
+        if (!string.IsNullOrEmpty(fileName))
+            bannerText = bannerText.Replace(fileName, BannerFileNamePlaceholder);
+
+        return bannerText;
     }
 
-    /// <summary>
-    /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
-    /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
-    /// </summary>
-    private ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
-        Document sourceDocument, Document destinationDocument, ImmutableArray<SyntaxTrivia> banner)
+    private static ImmutableArray<SyntaxTrivia> GetBannerFromEquivalenceKey(string equivalenceKey, Document document)
     {
-        var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
-        var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
-        if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
-            return banner;
+        var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
+        if (!string.IsNullOrEmpty(fileName))
+            equivalenceKey = equivalenceKey.Replace(BannerFileNamePlaceholder, fileName);
 
-        var result = new FixedSizeArrayBuilder<SyntaxTrivia>(banner.Length);
-        foreach (var trivia in banner)
-        {
-            var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
-            result.Add(updated);
-        }
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var token = syntaxFacts.ParseToken(equivalenceKey);
 
-        return result.MoveToImmutable();
+        var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+        return bannerService.GetFileBanner(token);
     }
 
     private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
