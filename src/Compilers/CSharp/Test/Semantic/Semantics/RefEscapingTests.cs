@@ -10227,6 +10227,123 @@ public struct Vec4
             CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
+        public void InterpolatedString_UnscopedRef_Return()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return $"{local}";
+                    }
+                }
+
+                [InterpolatedStringHandlerAttribute]
+                ref struct R
+                {
+                    public R(int literalLength, int formattedCount) { }
+
+                    public void AppendFormatted([UnscopedRef] in int x) { }
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition, InterpolatedStringHandlerAttribute]).VerifyDiagnostics(
+                // (9,18): error CS8350: This combination of arguments to 'R.AppendFormatted(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return $"{local}";
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "{local}").WithArguments("R.AppendFormatted(in int)", "x").WithLocation(9, 18),
+                // (9,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         return $"{local}";
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(9, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
+        public void InterpolatedString_UnscopedRef_Assignment()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        R r = $"{local}";
+                        return r;
+                    }
+                }
+
+                [InterpolatedStringHandlerAttribute]
+                ref struct R
+                {
+                    public R(int literalLength, int formattedCount) { }
+
+                    public void AppendFormatted([UnscopedRef] in int x) { }
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition, InterpolatedStringHandlerAttribute]).VerifyDiagnostics(
+                // (10,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(10, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
+        public void InterpolatedString_ScopedRef_Return()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return $"{local}";
+                    }
+                }
+
+                [InterpolatedStringHandlerAttribute]
+                ref struct R
+                {
+                    public R(int literalLength, int formattedCount) { }
+
+                    public void AppendFormatted(in int x) { }
+                }
+                """;
+            CreateCompilation([source, InterpolatedStringHandlerAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
+        public void InterpolatedString_ScopedRef_Assignment()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        R r = $"{local}";
+                        return r;
+                    }
+                }
+
+                [InterpolatedStringHandlerAttribute]
+                ref struct R
+                {
+                    public R(int literalLength, int formattedCount) { }
+
+                    public void AppendFormatted(in int x) { }
+                }
+                """;
+            CreateCompilation([source, InterpolatedStringHandlerAttribute]).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
         public void SelfAssignment_ReturnOnly()
         {

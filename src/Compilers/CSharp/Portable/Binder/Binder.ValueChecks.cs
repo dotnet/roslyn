@@ -1940,6 +1940,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 escapeScope = escapeScope.Intersect(argEscape);
             }
 
+            if (!scopeOfTheContainingExpression.IsConvertibleTo(escapeScope) &&
+                !CheckInterpolatedStringHandlerInvocationArgMixing(expression, escapeFrom: scopeOfTheContainingExpression, escapeTo: escapeScope, BindingDiagnosticBag.Discarded))
+            {
+                escapeScope = scopeOfTheContainingExpression;
+            }
+
             arguments.Free();
             return escapeScope;
         }
@@ -4474,6 +4480,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    if (_placeholderScopes?.TryGetValue((BoundInterpolatedStringHandlerPlaceholder)expr, out var scope) == true)
+                    {
+                        return scope;
+                    }
+
                     // The handler placeholder cannot escape out of the current expression, as it's a compiler-synthesized
                     // location.
                     return scopeOfTheContainingExpression;
@@ -4767,6 +4778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
@@ -5610,6 +5622,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (result)
+            {
+                result = CheckInterpolatedStringHandlerInvocationArgMixing(expression, escapeFrom, escapeTo, diagnostics);
+            }
+
             arguments.Free();
             return result;
         }
@@ -5660,6 +5677,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.Add(call.Arguments[0]);
                 }
             }
+        }
+
+        private bool CheckInterpolatedStringHandlerInvocationArgMixing(BoundExpression expression, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
+        {
+            bool result = true;
+
+            while (true)
+            {
+                switch (expression)
+                {
+                    case BoundBinaryOperator binary:
+                        result &= CheckInterpolatedStringHandlerInvocationArgMixing(binary.Right, escapeFrom, escapeTo, diagnostics);
+                        expression = binary.Left;
+                        break;
+
+                    case BoundInterpolatedString interpolatedString:
+                        result &= CheckInterpolatedStringHandlerInvocationArgMixingParts(interpolatedString, escapeFrom, escapeTo, diagnostics);
+                        return result;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(expression.Kind);
+                }
+            }
+        }
+
+        private bool CheckInterpolatedStringHandlerInvocationArgMixingParts(BoundInterpolatedString interpolatedString, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
+        {
+            bool result = true;
+
+            foreach (var part in interpolatedString.Parts)
+            {
+                if (part is BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod } call)
+                {
+                    using var _ = new PlaceholderRegion(this, [((BoundInterpolatedStringHandlerPlaceholder)call.ReceiverOpt, escapeTo)]);
+                    result &= CheckInvocationArgMixing(
+                        call.Syntax,
+                        MethodInfo.Create(call.Method),
+                        receiverOpt: call.ReceiverOpt,
+                        receiverIsSubjectToCloning: call.InitialBindingReceiverIsSubjectToCloning,
+                        parameters: call.Method.Parameters,
+                        argsOpt: call.Arguments,
+                        argRefKindsOpt: call.ArgumentRefKindsOpt,
+                        argsToParamsOpt: call.ArgsToParamsOpt,
+                        scopeOfTheContainingExpression: escapeFrom,
+                        diagnostics);
+                }
+            }
+
+            return result;
         }
     }
 }
