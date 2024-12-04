@@ -48,11 +48,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
             var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
 
-            var commitCharacters = AbstractLspCompletionResultCreationService.DefaultCommitCharactersArray;
+            var commitCharacters = CompletionResultFactory.DefaultCommitCharactersArray;
             var triggerCharacters = _completionProviders.SelectMany(
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             capabilities.DefinitionProvider = true;
+            capabilities.TypeDefinitionProvider = true;
             capabilities.DocumentHighlightProvider = true;
             capabilities.RenameProvider = new RenameOptions
             {

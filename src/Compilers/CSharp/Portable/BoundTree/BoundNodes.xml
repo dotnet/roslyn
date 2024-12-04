@@ -39,6 +39,7 @@
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
   <ValueType Name="AccessorKind" />
+  <ValueType Name="SafeContext" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -108,7 +109,7 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
+    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--
@@ -2194,6 +2195,8 @@
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
+    <!-- The property accessor kind, set for properties with synthesized backing field only. -->
+    <Field Name="AutoPropertyAccessorKind" Type="AccessorKind" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 

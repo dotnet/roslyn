@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -28,18 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    internal partial class RenameCommandHandler : AbstractRenameCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class RenameCommandHandler(
+        IThreadingContext threadingContext,
+        InlineRenameService renameService,
+        IGlobalOptionService globalOptionService,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+        : AbstractRenameCommandHandler(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameCommandHandler(
-            IThreadingContext threadingContext,
-            InlineRenameService renameService,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
-        {
-        }
-
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
             => GetAdornment(textView) switch
             {

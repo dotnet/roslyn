@@ -53,11 +53,7 @@ internal sealed class LoadedProject : IDisposable
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
         _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
 
-        _fileChangeContext = fileWatcher.CreateContext([
-            new(_projectDirectory, ".cs"),
-            new(_projectDirectory, ".cshtml"),
-            new(_projectDirectory, ".razor")
-        ]);
+        _fileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
         _fileChangeContext.FileChanged += FileChangedContext_FileChanged;
 
         // Start watching for file changes for the project file as well
@@ -135,6 +131,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.DisplayName = projectDisplayName;
         _projectSystemProject.OutputFilePath = newProjectInfo.OutputFilePath;
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
+        _projectSystemProject.GeneratedFilesOutputDirectory = newProjectInfo.GeneratedFilesOutputDirectory;
         _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
     private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, SyntaxNode, CSharpCodeGenerationOptions>
     {
@@ -472,7 +472,7 @@ internal partial class CSharpMethodExtractor
                             }
 
                             var identifier = designation.Identifier;
-                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+                            var annotation = ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected);
                             var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
                             var newDesignation = designation.WithIdentifier(newIdentifier);
                             replacements.Add(pattern, pattern.WithDesignation(newDesignation));

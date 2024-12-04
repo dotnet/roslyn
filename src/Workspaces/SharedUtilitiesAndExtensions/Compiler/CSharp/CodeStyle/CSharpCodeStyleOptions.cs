@@ -88,6 +88,10 @@ internal static partial class CSharpCodeStyleOptions
         CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_utf8_string_literals",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferUnboundGenericTypeInNameOf = CreateOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_unbound_generic_type_in_nameof",
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
+
     public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSilentEnforcement =
         new(ExpressionBodyPreference.Never, NotificationOption2.Silent);
 

@@ -845,11 +845,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
     private static async Task<Solution> MergeDiffAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
     {
         var diffMergingSession = new LinkedFileDiffMergingSession(oldSolution, newSolution, newSolution.GetChanges(oldSolution));
-        var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var mergeResult = await diffMergingSession.MergeDiffsAsync(cancellationToken).ConfigureAwait(false);
         return mergeResult.MergedSolution;
     }
 
-    private class SyntaxNodeSpanStartComparer : IComparer<SyntaxNode>
+    private sealed class SyntaxNodeSpanStartComparer : IComparer<SyntaxNode>
     {
         private SyntaxNodeSpanStartComparer()
         {

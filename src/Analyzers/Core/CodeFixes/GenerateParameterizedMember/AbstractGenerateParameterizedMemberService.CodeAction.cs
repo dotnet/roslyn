@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
 internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    private partial class GenerateParameterizedMemberCodeAction : CodeAction
+    private sealed partial class GenerateParameterizedMemberCodeAction : CodeAction
     {
         private readonly TService _service;
         private readonly Document _document;

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -71,12 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, method, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, method, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, nonReusableFieldsForCleanup, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -121,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected sealed override string EncMissingStateMessage
-            => CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod;
+        protected sealed override HotReloadExceptionCode EncMissingStateErrorCode
+            => HotReloadExceptionCode.CannotResumeSuspendedAsyncMethod;
 
         protected sealed override StateMachineState FirstIncreasingResumableState
             => StateMachineState.FirstResumableAsyncState;
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
+                    F.CatchBlocks(generateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -175,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            bodyBuilder.Add(GenerateHoistedLocalsCleanup(rootScopeHoistedLocals));
+            bodyBuilder.Add(GenerateCleanupForExit(rootScopeHoistedLocals));
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -205,6 +208,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             newBody = F.Instrument(newBody, instrumentation);
 
             F.CloseMethod(newBody);
+            return;
+
+            BoundCatchBlock generateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
+            {
+                // catch (Exception ex)
+                // {
+                //     _state = finishedState;
+                //
+                //     for each hoisted local:
+                //     <>x__y = default
+                //
+                //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
+                //     return;
+                // }
+
+                // _state = finishedState;
+                BoundStatement assignFinishedState =
+                    F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)));
+
+                // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
+                BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
+
+                return new BoundCatchBlock(
+                    F.Syntax,
+                    ImmutableArray.Create(exceptionLocal),
+                    F.Local(exceptionLocal),
+                    exceptionLocal.Type,
+                    exceptionFilterPrologueOpt: null,
+                    exceptionFilterOpt: null,
+                    body: F.Block(
+                        assignFinishedState, // _state = finishedState;
+                        GenerateCleanupForExit(rootHoistedLocals),
+                        callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
+                        GenerateReturn(false)), // return;
+                    isSynthesizedAsyncCatchAll: true);
+            }
         }
 
         protected virtual BoundStatement GenerateTopLevelTry(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks)
@@ -222,48 +261,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ImmutableArray<BoundExpression>.Empty));
         }
 
-        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
-        {
-            // catch (Exception ex)
-            // {
-            //     _state = finishedState;
-            //
-            //     for each hoisted local:
-            //     <>x__y = default
-            //
-            //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
-            //     return;
-            // }
-
-            // _state = finishedState;
-            BoundStatement assignFinishedState =
-                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)));
-
-            // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
-            BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
-
-            return new BoundCatchBlock(
-                F.Syntax,
-                ImmutableArray.Create(exceptionLocal),
-                F.Local(exceptionLocal),
-                exceptionLocal.Type,
-                exceptionFilterPrologueOpt: null,
-                exceptionFilterOpt: null,
-                body: F.Block(
-                    assignFinishedState, // _state = finishedState;
-                    GenerateHoistedLocalsCleanup(hoistedLocals),
-                    callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
-                    GenerateReturn(false)), // return;
-                isSynthesizedAsyncCatchAll: true);
-        }
-
-        protected BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        protected virtual BoundStatement GenerateCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
             // Cleanup all hoisted local variables
             // so that they can be collected by GC if needed
-            foreach (var hoistedLocal in hoistedLocals)
+            foreach (var hoistedLocal in rootHoistedLocals)
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
                 var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
@@ -332,8 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+#nullable enable
+        protected virtual BoundStatement? MakeAwaitPreamble() { return null; }
+#nullable disable
+
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
+            BoundStatement preamble = MakeAwaitPreamble();
+
             var expression = (BoundExpression)Visit(node.Expression);
             var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
 
@@ -385,10 +395,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(resultPlace, getResultCall) :
                 F.ExpressionStatement(getResultCall);
 
-            return F.Block(
-                ImmutableArray.Create(awaiterTemp),
-                awaitIfIncomplete,
-                getResultStatement);
+            var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(preamble is null ? 2 : 3);
+            if (preamble is not null)
+            {
+                statementsBuilder.Add(preamble);
+            }
+            statementsBuilder.Add(awaitIfIncomplete);
+            statementsBuilder.Add(getResultStatement);
+
+            return F.Block([awaiterTemp], statementsBuilder.ToImmutableAndFree());
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)

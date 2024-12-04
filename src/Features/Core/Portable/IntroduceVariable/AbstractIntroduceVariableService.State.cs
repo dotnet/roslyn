@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
-internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
+internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
     private sealed partial class State(TService service, SemanticDocument document, CodeCleanupOptions options)
     {
@@ -29,6 +29,7 @@ internal partial class AbstractIntroduceVariableService<TService, TExpressionSyn
         public bool InAttributeContext { get; private set; }
         public bool InBlockContext { get; private set; }
         public bool InConstructorInitializerContext { get; private set; }
+        public bool InGlobalStatementContext { get; private set; }
         public bool InFieldContext { get; private set; }
         public bool InParameterContext { get; private set; }
         public bool InQueryContext { get; private set; }
@@ -94,8 +95,20 @@ internal partial class AbstractIntroduceVariableService<TService, TExpressionSyn
 
             containingType ??= Document.SemanticModel.Compilation.ScriptClass;
 
-            if (containingType == null || containingType.TypeKind == TypeKind.Interface)
+            if (containingType?.TypeKind is TypeKind.Interface)
                 return false;
+
+            if (containingType is null)
+            {
+                var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
+                if (globalStatement != null)
+                {
+                    InGlobalStatementContext = true;
+                    return true;
+                }
+
+                return false;
+            }
 
             if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 return false;

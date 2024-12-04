@@ -138,6 +138,9 @@
   <data name="Class1" xml:space="preserve">
     <value>class</value>
   </data>
+  <data name="Attribute" xml:space="preserve">
+    <value>attribute</value>
+  </data>
   <data name="Constructor" xml:space="preserve">
     <value>constructor</value>
   </data>
@@ -504,6 +507,9 @@
   <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
     <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
   </data>
+  <data name="SymWriterMetadataOverLimit" xml:space="preserve">
+    <value>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</value>
+  </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
   </data>
@@ -784,5 +790,11 @@
   </data>
   <data name="SigningTempPathUnavailable" xml:space="preserve">
     <value>The temporary path for legacy file signing is unavailable.</value>
+  </data>
+  <data name="Type0DoesNotHaveExpectedConstructor" xml:space="preserve">
+    <value>'{0}' type does not have the expected constructor</value>
+  </data>
+  <data name="ExceptionMessage_FileMayBeLockedBy" xml:space="preserve">
+    <value>{0}; file may be locked by {1}</value>
   </data>
 </root>

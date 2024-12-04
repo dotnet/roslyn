@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
@@ -551,14 +552,19 @@ if (true)
         Assert.NotEqual(0, info.RelatedSpans.Length);
 
         var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
-        var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-        var operationExecutor = workspace.ExportProvider.GetExportedValue<IUIThreadOperationExecutor>();
-        var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
+
+        var navigationActionFactory = new NavigationActionFactory(
+            document,
+            threadingContext: workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+            operationExecutor: workspace.ExportProvider.GetExportedValue<IUIThreadOperationExecutor>(),
+            AsynchronousOperationListenerProvider.NullListener,
+            streamingPresenter: workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>());
+
         var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(
             trackingSpan.Object, info, document,
-            ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
-            AsynchronousOperationListenerProvider.NullListener,
-            streamingPresenter, CancellationToken.None);
+            ClassificationOptions.Default, LineFormattingOptions.Default,
+            navigationActionFactory, CancellationToken.None);
+
         var containerElement = quickInfoItem.Item as ContainerElement;
 
         var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();

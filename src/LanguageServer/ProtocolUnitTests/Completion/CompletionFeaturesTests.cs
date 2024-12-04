@@ -292,8 +292,8 @@ class A { }";
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(1, 5), End = new(1, 9) }, NewText = "summary" };
 
-        Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
-        Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
+        Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+        Assert.Equal(nameof(CompletionResultFactory.CompleteComplexEditCommand), resolvedItem.Command.Title);
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
@@ -460,7 +460,7 @@ class A
         Assert.NotNull(results.ItemDefaults.CommitCharacters);
 
         var defaultCharArray = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
-        var nonDefaultCharArray = AbstractLspCompletionResultCreationService.CreateCommitCharacterArrayFromRules(mockService.NonDefaultRule);
+        var nonDefaultCharArray = CompletionResultFactory.CreateCommitCharacterArrayFromRules(mockService.NonDefaultRule);
 
         if (shouldPromoteDefaultCommitCharsToList)
         {
@@ -809,6 +809,58 @@ public class C
             Assert.Null(item.CommitCharacters);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7623")]
+    public async Task TestSoftSelectionForDiscardAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+public class A
+{
+    public void M()
+    {
+        var _someDiscard = 1;
+        _{|caret:|}
+    }
+}";
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, true);
+
+        var completionParams = CreateCompletionParams(
+            caretLocation,
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "_",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var actualItem = results.Items.First(i => i.Label == "_someDiscard");
+
+        Assert.True(results.IsIncomplete);
+        Assert.Empty(results.ItemDefaults.CommitCharacters);
+        Assert.Equal("_someDiscard", actualItem.Label);
+        Assert.Null(actualItem.CommitCharacters);
+
+        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caretLocation),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "s",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        actualItem = results.Items.First(i => i.Label == "_someDiscard");
+
+        Assert.False(results.IsIncomplete);
+        Assert.NotEmpty(results.ItemDefaults.CommitCharacters);
+        Assert.Equal("_someDiscard", actualItem.Label);
+        Assert.Null(actualItem.CommitCharacters);
+    }
+
     private sealed class CSharpLspThrowExceptionOnChangeCompletionService : CompletionService
     {
         private CSharpLspThrowExceptionOnChangeCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider) : base(services, listenerProvider)
@@ -866,7 +918,7 @@ public class C
         }
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/75611"), CombinatorialData]
     public async Task TestHandleExceptionFromGetCompletionChange(bool mutatingLspWorkspace)
     {
         var markup = "Item {|caret:|}";
@@ -924,8 +976,8 @@ public class C
                 Assert.Null(item.TextEdit);
                 Assert.Null(resolvedItem.AdditionalTextEdits);
 
-                Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
-                Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+                Assert.Equal(nameof(CompletionResultFactory.CompleteComplexEditCommand), resolvedItem.Command.Title);
+                Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
                 AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
@@ -981,8 +1033,8 @@ public class C
 
         Assert.Null(resolvedItem.AdditionalTextEdits);
 
-        Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
-        Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+        Assert.Equal(nameof(CompletionResultFactory.CompleteComplexEditCommand), resolvedItem.Command.Title);
+        Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 

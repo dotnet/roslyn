@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             var project = Workspace.CurrentSolution.GetRequiredProject(ProjectSystemProject.Id);
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace);
+            var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
 
             // If classNames is NULL, then we need to populate the number of valid startup
             // classes only

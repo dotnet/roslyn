@@ -294,9 +294,6 @@
   <data name="Returns_colon" xml:space="preserve">
     <value>Returns:</value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Remarks_colon" xml:space="preserve">
     <value>Remarks:</value>
   </data>
@@ -348,14 +345,17 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application.</value>
+  </data>
   <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a {1} requires restarting the application.</value>
+  <data name="Adding_or_moving_0_of_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of {1} requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_an_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface requires restarting the application.</value>
@@ -363,8 +363,11 @@
   <data name="Adding_0_into_an_interface_method_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface method requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a class with explicit or sequential layout requires restarting the application.</value>
+  <data name="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</value>
+  </data>
+  <data name="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of a COM interface requires restarting the application.</value>
   </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
@@ -805,9 +808,6 @@ This version used in: {2}</value>
   <data name="Structures" xml:space="preserve">
     <value>Structures</value>
   </data>
-  <data name="Parameters_colon" xml:space="preserve">
-    <value>Parameters:</value>
-  </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
@@ -945,7 +945,7 @@ This version used in: {2}</value>
     <value>Initialize property '{0}'</value>
   </data>
   <data name="Add_null_checks" xml:space="preserve">
-    <value>Add null checks</value>
+    <value>Add _null checks</value>
   </data>
   <data name="Generate_operators" xml:space="preserve">
     <value>Generate operators</value>
@@ -1150,8 +1150,8 @@ This version used in: {2}</value>
   <data name="Merge_with_next_0_statement" xml:space="preserve">
     <value>Merge with next '{0}' statement</value>
   </data>
-  <data name="Pull_0_up" xml:space="preserve">
-    <value>Pull '{0}' up</value>
+  <data name="Pull_0_up_to" xml:space="preserve">
+    <value>Pull '{0}' up to ...</value>
   </data>
   <data name="Pull_members_up_to_base_type" xml:space="preserve">
     <value>Pull members up to base type...</value>
@@ -1164,9 +1164,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_long_call_chain" xml:space="preserve">
     <value>Wrap long call chain</value>
-  </data>
-  <data name="Pull_0_up_to_1" xml:space="preserve">
-    <value>Pull '{0}' up to '{1}'</value>
   </data>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
@@ -1185,9 +1182,6 @@ This version used in: {2}</value>
   </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
-  </data>
-  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
-    <value>Stream must support read and seek operations.</value>
   </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
@@ -1246,6 +1240,9 @@ This version used in: {2}</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
+  </data>
+  <data name="Parameters_colon" xml:space="preserve">
+    <value>Parameters:</value>
   </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>
@@ -3170,5 +3167,29 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Symbol_search" xml:space="preserve">
     <value>Symbol search</value>
+  </data>
+  <data name="Conflict_s_detected" xml:space="preserve">
+    <value>Conflict(s) detected.</value>
+  </data>
+  <data name="Simplify_name_0" xml:space="preserve">
+    <value>Simplify name '{0}'</value>
+  </data>
+  <data name="Simplify_member_access_0" xml:space="preserve">
+    <value>Simplify member access '{0}'</value>
+  </data>
+  <data name="Not_all_code_paths_return" xml:space="preserve">
+    <value>Not all code paths return</value>
+  </data>
+  <data name="namespace_name" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
+  <data name="class_name" xml:space="preserve">
+    <value>&lt;class name&gt;</value>
+  </data>
+  <data name="interface_name" xml:space="preserve">
+    <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="Unable_to_create_0" xml:space="preserve">
+    <value>Unable to create '{0}'</value>
   </data>
 </root>

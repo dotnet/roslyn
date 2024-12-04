@@ -43,7 +43,6 @@ public partial class UseNullPropagationTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = languageVersion,
         }.RunAsync();
     }

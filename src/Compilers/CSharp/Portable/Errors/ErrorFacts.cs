@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableBackingField));
+
             NullableWarnings = nullableWarnings.ToImmutable();
         }
 
@@ -208,6 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_UnassignedInternalRefField:
+                    // Warning level 10 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 10 (C# 14) and that can be reported for pre-existing code.
+                    return 10;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -552,11 +558,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_ExperimentalWithMessage:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
-
+                case ErrorCode.WRN_FieldIsAmbiguous:
+                case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                     return 1;
                 default:
                     return 0;
@@ -1591,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NoCorrespondingArgument
                 or ErrorCode.ERR_ResourceFileNameNotUnique
                 or ErrorCode.ERR_DllImportOnGenericMethod
-                or ErrorCode.ERR_EncUpdateFailedMissingAttribute
+                or ErrorCode.ERR_EncUpdateFailedMissingSymbol
                 or ErrorCode.ERR_ParameterNotValidForType
                 or ErrorCode.ERR_AttributeParameterRequired1
                 or ErrorCode.ERR_AttributeParameterRequired2
@@ -2220,7 +2229,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ScopedMismatchInParameterOfTarget
                 or ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation
                 or ErrorCode.ERR_ScopedMismatchInParameterOfPartial
-                or ErrorCode.ERR_ParameterNullCheckingNotSupported
                 or ErrorCode.ERR_RawStringNotInDirectives
                 or ErrorCode.ERR_UnterminatedRawString
                 or ErrorCode.ERR_TooManyQuotesForRawString
@@ -2403,6 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FeatureNotAvailableInVersion12
                 or ErrorCode.ERR_CollectionExpressionEscape
                 or ErrorCode.WRN_Experimental
+                or ErrorCode.WRN_ExperimentalWithMessage
                 or ErrorCode.ERR_ExpectedInterpolatedString
                 or ErrorCode.ERR_InterceptorGlobalNamespace
                 or ErrorCode.WRN_CollectionExpressionRefStructMayAllocate
@@ -2450,11 +2459,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
-                or ErrorCode.INF_IdentifierConflictWithContextualKeyword
+                or ErrorCode.WRN_FieldIsAmbiguous
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
                 or ErrorCode.ERR_FeatureNotAvailableInVersion13
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
+                or ErrorCode.ERR_PartialPropertyDuplicateInitializer
+                or ErrorCode.WRN_UninitializedNonNullableBackingField
+                or ErrorCode.WRN_UnassignedInternalRefField
+                or ErrorCode.WRN_AccessorDoesNotUseBackingField
+                or ErrorCode.ERR_IteratorRefLikeElementType
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

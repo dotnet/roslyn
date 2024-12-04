@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletio
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -34,7 +33,7 @@ Imports Roslyn.Test.Utilities.TestGenerators
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Class CSharpCompletionCommandHandlerTests
+    Public NotInheritable Class CSharpCompletionCommandHandlerTests
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_SameFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -12618,6 +12617,140 @@ $$
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 Await state.AssertCompletionItemsContain("SwitchColor", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73120")>
+        Public Async Function TestAfterPrimaryConstructorAttribute(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C([X] $$ client)
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("int", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+public record Parent
+{
+    public List<Child>? Children { get; init; }
+}
+
+public record Child
+{
+    public string? Id { get; init; }
+}
+
+
+internal class Program
+{
+    public string ProgramProp { get; set; }
+
+    public void Main(string[] args)
+    {
+        var V1 = new Parent()
+        {
+            Children = [
+                new()
+                {
+                    $$
+                },
+            ],
+        };
+
+    }
+}]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Id", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("CR")
+                Await state.AssertSelectedCompletionItem("CreateRange")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("cr")
+                Await state.AssertSelectedCompletionItem("Create")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("Cr")
+                Await state.AssertSelectedCompletionItem("Create")
             End Using
         End Function
     End Class

@@ -85,6 +85,9 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
 
         if (IsAddMethod(methodSymbol))
             await FindDocumentsWithCollectionInitializersAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+
+        if (IsDisposeMethod(methodSymbol))
+            await FindDocumentsWithUsingStatementsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     private static Task FindDocumentsWithDeconstructionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
@@ -108,6 +111,9 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
 
     private static bool IsAddMethod(IMethodSymbol methodSymbol)
         => methodSymbol.Name == WellKnownMemberNames.CollectionInitializerAddMethodName;
+
+    private static bool IsDisposeMethod(IMethodSymbol methodSymbol)
+        => methodSymbol.Name == nameof(IDisposable.Dispose);
 
     protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
@@ -134,5 +140,44 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
 
         if (IsAddMethod(symbol))
             FindReferencesInCollectionInitializer(symbol, state, processResult, processResultData, cancellationToken);
+
+        if (IsDisposeMethod(symbol))
+            FindReferencesInUsingStatements(symbol, state, processResult, processResultData, cancellationToken);
+    }
+
+    private void FindReferencesInUsingStatements<TData>(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        FindReferencesInDocument(state, static index => index.ContainsUsingStatement, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        return;
+
+        void CollectMatchingReferences(
+            SyntaxNode node,
+            FindReferencesDocumentState state,
+            Action<FinderLocation, TData> processResult,
+            TData processResultData)
+        {
+            var disposeMethod = state.SemanticFacts.TryGetDisposeMethod(state.SemanticModel, node, cancellationToken);
+
+            if (Matches(disposeMethod, symbol))
+            {
+                var location = node.GetFirstToken().GetLocation();
+                var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
+
+                var result = new FinderLocation(node, new ReferenceLocation(
+                    state.Document,
+                    alias: null,
+                    location: location,
+                    isImplicit: true,
+                    symbolUsageInfo,
+                    GetAdditionalFindUsagesProperties(node, state),
+                    candidateReason: CandidateReason.None));
+                processResult(result, processResultData);
+            }
+        }
     }
 }

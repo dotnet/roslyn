@@ -17,11 +17,6 @@
         <target state="translated">Aplicando cambios</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">No se puede navegar al símbolo que hay debajo del símbolo de intercalación.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Calculando información de "Encapsular campo"</target>
@@ -40,6 +35,11 @@
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
         <target state="translated">Describir con Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">La opción "Describir con Copilot" no está disponible porque su organización excluye el documento al que se hace referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="_0_declarations_and_interceptors">
         <source>'{0}' declarations and interceptors</source>
-        <target state="new">'{0}' declarations and interceptors</target>
+        <target state="translated">Declaraciones "{0}" e interceptores</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">
@@ -790,11 +790,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">La operación de cambio de nombre no se completó correctamente. Puede que algún archivo no se haya actualizado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Cambiar el nombre de '{0}' a '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">

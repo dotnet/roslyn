@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var propertySymbol = namedArgumentNameSymbol as PropertySymbol;
                 if (propertySymbol is object)
                 {
-                    lvalue = new BoundPropertyAccess(nameSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, resultKind, namedArgumentType);
+                    lvalue = new BoundPropertyAccess(nameSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, namedArgumentType);
                 }
                 else
                 {

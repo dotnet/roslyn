@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass;
 
-internal class ExtractClassWithDialogCodeAction(
+internal sealed class ExtractClassWithDialogCodeAction(
     Document document,
     TextSpan span,
     IExtractClassOptionsService service,
@@ -86,7 +86,7 @@ internal class ExtractClassWithDialogCodeAction(
 
         var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
             _selectedType,
-            _document.Project.CompilationOptions);
+            _document.Project.CompilationOptions!);
 
         // Add the new type to the solution. It can go in a new file or
         // be added to an existing. The returned document is always the document

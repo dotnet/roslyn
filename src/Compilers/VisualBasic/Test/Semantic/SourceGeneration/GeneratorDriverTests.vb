@@ -749,11 +749,13 @@ End Class
 
         Public _receiver As Receiver = New Receiver()
 
+#Disable Warning BC40000
         Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
             context.RegisterForSyntaxNotifications(Function() _receiver)
         End Sub
 
         Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
+#Enable Warning BC40000
             context.AddSource("source.vb", "
 Public Class D
 End Class
@@ -801,6 +803,7 @@ End Class
             _initialized = True
         End Sub
 
+#Disable Warning BC40000
         Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
             _sourceInitialized = True
         End Sub
@@ -808,6 +811,7 @@ End Class
         Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
             _sourceExecuted = True
         End Sub
+#Enable Warning BC40000
 
     End Class
 

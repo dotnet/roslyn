@@ -83,11 +83,11 @@ internal partial class QuickInfoSourceProvider
                         var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
                         var classificationOptions = _editorOptionsService.GlobalOptions.GetClassificationOptions(document.Project.Language);
                         var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
+                        var navigationActionFactory = new NavigationActionFactory(document, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
 
-                        return await IntellisenseQuickInfoBuilder.BuildItemAsync(
-                            trackingSpan, item, document, classificationOptions, lineFormattingOptions,
-                            _threadingContext, _operationExecutor,
-                            _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
+                        return await IntellisenseQuickInfoBuilder
+                            .BuildItemAsync(trackingSpan, item, document, classificationOptions, lineFormattingOptions, navigationActionFactory, cancellationToken)
+                            .ConfigureAwait(false);
                     }
 
                     return null;

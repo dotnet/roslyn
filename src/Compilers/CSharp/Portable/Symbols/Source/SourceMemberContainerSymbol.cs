@@ -1772,6 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
+        internal bool AreMembersComplete => state.HasComplete(CompletionPart.Members);
+
         internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
@@ -2378,13 +2380,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in valuesByName)
                 {
-                    if (member.Kind != SymbolKind.Field)
+                    FieldSymbol? field;
+
+                    // Only instance fields (including field-like events) affect the outcome.
+                    switch (member.Kind)
                     {
-                        // NOTE: don't have to check field-like events, because they can't have struct types.
-                        continue;
+                        case SymbolKind.Field:
+                            field = (FieldSymbol)member;
+                            Debug.Assert(field.AssociatedSymbol is not EventSymbol, "Didn't expect to find a field-like event backing field in the member list.");
+                            break;
+                        case SymbolKind.Event:
+                            field = ((EventSymbol)member).AssociatedField;
+                            break;
+                        default:
+                            continue;
                     }
-                    var field = (FieldSymbol)member;
-                    if (field.IsStatic)
+
+                    if (field is null || field.IsStatic)
                     {
                         continue;
                     }
@@ -2482,19 +2494,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2, bool symmetricCheck = true)
         {
-            ImmutableArray<MethodSymbol> ops1 = this.GetOperators(operatorName1);
+            var ops1 = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.AddOperators(operatorName1, ops1);
 
             if (symmetricCheck)
             {
-                var ops2 = this.GetOperators(operatorName2);
+                var ops2 = ArrayBuilder<MethodSymbol>.GetInstance();
+                this.AddOperators(operatorName2, ops2);
                 CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportOperatorNeedsMatch);
                 CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1, reportOperatorNeedsMatch);
+                ops2.Free();
             }
             else if (!ops1.IsEmpty)
             {
-                var ops2 = this.GetOperators(operatorName2);
+                var ops2 = ArrayBuilder<MethodSymbol>.GetInstance();
+                this.AddOperators(operatorName2, ops2);
                 CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportCheckedOperatorNeedsMatch);
+                ops2.Free();
             }
+
+            ops1.Free();
+
+            return;
 
             static void reportOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
             {
@@ -2511,8 +2532,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void CheckForUnmatchedOperator(
             BindingDiagnosticBag diagnostics,
-            ImmutableArray<MethodSymbol> ops1,
-            ImmutableArray<MethodSymbol> ops2,
+            ArrayBuilder<MethodSymbol> ops1,
+            ArrayBuilder<MethodSymbol> ops2,
             string operatorName2,
             Action<BindingDiagnosticBag, string, MethodSymbol> reportMatchNotFoundError)
         {
@@ -2573,8 +2594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            bool hasOp = this.GetOperators(WellKnownMemberNames.EqualityOperatorName).Any() ||
-                this.GetOperators(WellKnownMemberNames.InequalityOperatorName).Any();
+            var ops = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.AddOperators(WellKnownMemberNames.EqualityOperatorName, ops);
+            this.AddOperators(WellKnownMemberNames.InequalityOperatorName, ops);
+
+            bool hasOp = ops.Any();
             bool overridesEquals = this.TypeOverridesObjectMethod("Equals");
 
             if (hasOp || overridesEquals)
@@ -2598,6 +2622,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.GetFirstLocation(), this);
                 }
             }
+
+            ops.Free();
         }
 
         private void CheckForRequiredMemberAttribute(BindingDiagnosticBag diagnostics)
@@ -2668,7 +2694,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             instanceMap.Add(this, this);
             foreach (var m in this.GetMembersUnordered())
             {
-                var f = m as FieldSymbol;
+                FieldSymbol? f;
+
+                // Only instance fields (including field-like events) affect the outcome.
+                switch (m.Kind)
+                {
+                    case SymbolKind.Field:
+                        f = (FieldSymbol)m;
+                        Debug.Assert(f.AssociatedSymbol is not EventSymbol, "Didn't expect to find a field-like event backing field in the member list.");
+                        break;
+                    case SymbolKind.Event:
+                        f = ((EventSymbol)m).AssociatedField;
+                        break;
+                    default:
+                        continue;
+                }
+
                 if (f is null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
                 var type = (NamedTypeSymbol)f.Type;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
@@ -3669,7 +3710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     DuplicateMembersByNameIfCached(ref membersByName);
-                    membersByName[name] = FixPartialMember(membersByName[name], prevMethod, currentMethod);
+                    membersByName[name] = FixPartialMethod(membersByName[name], prevMethod, currentMethod);
                 }
             }
 
@@ -3687,10 +3728,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    if (hasInitializer(prevProperty) && hasInitializer(currentProperty))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateInitializer, currentProperty.GetFirstLocation());
+                    }
+
                     DuplicateMembersByNameIfCached(ref membersByName);
                     mergeAccessors(ref membersByName, (SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
                     mergeAccessors(ref membersByName, (SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
-                    membersByName[name] = FixPartialMember(membersByName[name], prevProperty, currentProperty);
+                    FixPartialProperty(ref membersByName, name, prevProperty, currentProperty);
                 }
 
                 void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
@@ -3712,6 +3758,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
                     }
                 }
+
+                static bool hasInitializer(SourcePropertySymbol property)
+                {
+                    return property.DeclaredBackingField?.HasInitializer == true;
+                }
             }
         }
 
@@ -3725,7 +3776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>Links together the definition and implementation parts of a partial method. Returns a member list which has the implementation part removed.</summary>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
+        private static ImmutableArray<Symbol> FixPartialMethod(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
             SourceOrdinaryMethodSymbol definition;
             SourceOrdinaryMethodSymbol implementation;
@@ -3747,7 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>Links together the definition and implementation parts of a partial property. Returns a member list which has the implementation part removed.</summary>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourcePropertySymbol part1, SourcePropertySymbol part2)
+        private static void FixPartialProperty(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertySymbol part1, SourcePropertySymbol part2)
         {
             SourcePropertySymbol definition;
             SourcePropertySymbol implementation;
@@ -3762,10 +3813,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation = part1;
             }
 
+            if (implementation.DeclaredBackingField is { } implementationField &&
+                definition.DeclaredBackingField is { })
+            {
+                var fieldName = implementationField.Name.AsMemory();
+                membersByName[fieldName] = Remove(membersByName[fieldName], implementationField);
+            }
+
             SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
 
             // a partial property is represented in the member list by its definition part:
-            return Remove(symbols, implementation);
+            membersByName[name] = Remove(membersByName[name], implementation);
         }
 
         private static ImmutableArray<Symbol> Remove(ImmutableArray<Symbol> symbols, Symbol symbol)
@@ -4538,7 +4596,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
-                        members.Add(property.BackingField);
+                        var backingField = property.DeclaredBackingField;
+                        Debug.Assert(backingField is object);
+                        members.Add(backingField);
 
                         builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
@@ -4978,13 +5038,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
+                            FieldSymbol? backingField = property.DeclaredBackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)backingField != null)
+                            if (backingField is { })
                             {
                                 builder.NonTypeMembers.Add(backingField);
                                 builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);

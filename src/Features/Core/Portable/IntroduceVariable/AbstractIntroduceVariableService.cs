@@ -49,8 +49,8 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
     protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
 
-    protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
-    protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
+    protected abstract Document IntroduceQueryLocal(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
+    protected abstract Document IntroduceLocal(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
     protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
 
     protected abstract int DetermineFieldInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
@@ -70,19 +70,16 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             var state = await State.GenerateAsync((TService)this, semanticDocument, options, textSpan, cancellationToken).ConfigureAwait(false);
-            if (state != null)
+            var (title, actions) = CreateActions(state, cancellationToken);
+            if (!actions.IsDefaultOrEmpty)
             {
-                var (title, actions) = CreateActions(state, cancellationToken);
-                if (actions.Length > 0)
-                {
-                    // We may end up creating a lot of viable code actions for the selected
-                    // piece of code.  Create a top level code action so that we don't overwhelm
-                    // the light bulb if there are a lot of other options in the list.  Set 
-                    // the code action as 'inlinable' so that if the lightbulb is not cluttered
-                    // then the nested items can just be lifted into it, giving the user fast
-                    // access to them.
-                    return CodeAction.Create(title, actions, isInlinable: true);
-                }
+                // We may end up creating a lot of viable code actions for the selected
+                // piece of code.  Create a top level code action so that we don't overwhelm
+                // the light bulb if there are a lot of other options in the list.  Set 
+                // the code action as 'inlinable' so that if the lightbulb is not cluttered
+                // then the nested items can just be lifted into it, giving the user fast
+                // access to them.
+                return CodeAction.Create(title, actions, isInlinable: true);
             }
 
             return null;
@@ -91,6 +88,9 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
     private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)
     {
+        if (state is null)
+            return default;
+
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
         var title = AddActionsAndGetTitle(state, actions, cancellationToken);
 
@@ -163,6 +163,13 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         else if (state.InExpressionBodiedMemberContext)
         {
             CreateConstantFieldActions(state, actions, cancellationToken);
+            actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+            actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+
+            return GetConstantOrLocalResource(state.IsConstant);
+        }
+        else if (state.InGlobalStatementContext)
+        {
             actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
             actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
 
@@ -244,15 +251,8 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         return false;
     }
 
-    private CodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal)
-    {
-        if (allOccurrences)
-        {
-            return new IntroduceVariableAllOccurrenceCodeAction((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
-        }
-
-        return new IntroduceVariableCodeAction((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
-    }
+    private IntroduceVariableCodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal)
+        => new((TService)this, state.Document, state.Options, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
 
     protected static SyntaxToken GenerateUniqueFieldName(
         SemanticDocument semanticDocument,
@@ -294,7 +294,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         SemanticDocument originalDocument,
         TExpressionSyntax expressionInOriginal,
         SemanticDocument currentDocument,
-        SyntaxNode withinNodeInCurrent,
+        IEnumerable<SyntaxNode> startingNodes,
         bool allOccurrences,
         CancellationToken cancellationToken)
     {
@@ -302,13 +302,12 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         var originalSemanticModel = originalDocument.SemanticModel;
         var currentSemanticModel = currentDocument.SemanticModel;
 
-        var result = new HashSet<TExpressionSyntax>();
-        var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
-                      where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
-                      select nodeInCurrent;
-        result.AddRange(matches.OfType<TExpressionSyntax>());
-
-        return result;
+        var matches =
+            from startingNode in startingNodes
+            from descendantExpression in startingNode.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
+            where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, descendantExpression, allOccurrences, cancellationToken)
+            select descendantExpression;
+        return matches.ToSet();
     }
 
     private bool NodeMatchesExpression(
@@ -344,8 +343,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             //      }
             //  }
 
-            if (SemanticEquivalence.AreEquivalent(
-                originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
+            if (SemanticEquivalence.AreEquivalent(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
             {
                 var originalOperation = originalSemanticModel.GetOperation(expressionInOriginal, cancellationToken);
                 if (IsInstanceMemberReference(originalOperation))
@@ -367,9 +365,9 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         }
 
         return false;
+
         static bool IsInstanceMemberReference(IOperation operation)
-            => operation is IMemberReferenceOperation memberReferenceOperation &&
-                memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+            => operation is IMemberReferenceOperation { Instance.Kind: OperationKind.InstanceReference };
     }
 
     protected TNode Rewrite<TNode>(
@@ -383,13 +381,12 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         where TNode : SyntaxNode
     {
         var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
-        var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, cancellationToken);
+        var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, [withinNodeInCurrent], allOccurrences, cancellationToken);
 
-        // Parenthesize the variable, and go and replace anything we find with it.
-        // NOTE: we do not want elastic trivia as we want to just replace the existing code 
-        // as is, while preserving the trivia there.  We do not want to update it.
-        var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
-                                     .WithAdditionalAnnotations(Formatter.Annotation);
+        // Parenthesize the variable, and go and replace anything we find with it. NOTE: we do not want elastic trivia
+        // as we want to just replace the existing code as is, while preserving the trivia there.  We do not want to
+        // update it.
+        var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false);
 
         return RewriteCore(withinNodeInCurrent, replacement, matches);
     }

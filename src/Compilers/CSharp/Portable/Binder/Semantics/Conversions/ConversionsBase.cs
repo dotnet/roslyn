@@ -595,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitPointer:
                 case ConversionKind.ImplicitPointerToVoid:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitSpan:
                     return true;
                 default:
                     return false;
@@ -750,6 +751,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return tupleConversion;
                 }
 
+                if (HasImplicitSpanConversion(source, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitSpan;
+                }
+
                 return Conversion.NoConversion;
             }
         }
@@ -855,6 +861,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitDynamic;
             }
 
+            if (HasExplicitSpanConversion(source, destination, ref useSiteInfo))
+            {
+                return Conversion.ExplicitSpan;
+            }
+
             return Conversion.NoConversion;
         }
 
@@ -912,6 +923,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.MakeNullableConversion(ConversionKind.ExplicitNullable, underlyingConversion) :
                         Conversion.NoConversion;
 
+                    break;
+
+                case ConversionKind.ImplicitSpan:
+                    impliedExplicitConversion = Conversion.NoConversion;
                     break;
 
                 default:
@@ -1002,6 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.ConditionalExpression:
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 default:
@@ -1893,16 +1909,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
             Debug.Assert((object)thisType != null);
-            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, thisType, parameterType, ref useSiteInfo);
+            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, thisType, parameterType, ref useSiteInfo, isMethodGroupConversion);
             return IsValidExtensionMethodThisArgConversion(conversion) ? conversion : Conversion.NoConversion;
         }
 
         // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
-        // or boxing conversion exists from expr to the type of the first parameter"
-        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        // boxing, or span conversion exists from expr to the type of the first parameter.
+        // Span conversion is not considered when overload resolution is performed for a method group conversion."
+        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
             Debug.Assert(sourceExpressionOpt is null || Compilation is not null);
             Debug.Assert(sourceExpressionOpt == null || (object)sourceExpressionOpt.Type == sourceType);
@@ -1924,6 +1941,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return Conversion.ImplicitReference;
                 }
+
+                if (!isMethodGroupConversion && HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitSpan;
+                }
             }
 
             if (sourceExpressionOpt?.Kind == BoundKind.TupleLiteral)
@@ -1937,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref useSiteInfo,
                     ConversionKind.ImplicitTupleLiteral,
                     (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
-                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u),
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u, isMethodGroupConversion: false),
                     isChecked: false,
                     forCast: false);
                 if (tupleConversion.Exists)
@@ -1959,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return Conversion.NoConversion;
                         }
-                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, s.Type, d.Type, ref u);
+                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, s.Type, d.Type, ref u, isMethodGroupConversion: false);
                     },
                     isChecked: false,
                     forCast: false);
@@ -1985,6 +2007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Identity:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitReference:
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 case ConversionKind.ImplicitTuple:
@@ -3033,7 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The rules for variant interface and delegate conversions are the same:
         //
         // An interface/delegate type S is convertible to an interface/delegate type T 
-        // if and only if T is U<S1, ... Sn> and T is U<T1, ... Tn> such that for all
+        // if and only if S is U<S1, ... Sn> and T is U<T1, ... Tn> such that for all
         // parameters of U:
         //
         // * if the ith parameter of U is invariant then Si is exactly equal to Ti.
@@ -3915,6 +3938,110 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+#nullable enable
+        private bool IsFeatureFirstClassSpanEnabled
+        {
+            get
+            {
+                // Note: when Compilation is null, we assume latest LangVersion.
+                return Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false;
+            }
+        }
+
+        private bool HasImplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (source is null || !IsFeatureFirstClassSpanEnabled)
+            {
+                return false;
+            }
+
+            // SPEC: From any single-dimensional `array_type` with element type `Ei`...
+            if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType })
+            {
+                // SPEC: ...to `System.Span<Ei>`.
+                if (destination.IsSpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasIdentityConversion(elementType, spanElementType);
+                }
+
+                // SPEC: ...to `System.ReadOnlySpan<Ui>`, provided that `Ei` is covariance-convertible to `Ui`.
+                if (destination.IsReadOnlySpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasCovariantConversion(elementType, spanElementType, ref useSiteInfo);
+                }
+            }
+            // SPEC: From `System.Span<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
+            // SPEC: From `System.ReadOnlySpan<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
+            else if (source.IsSpan() || source.IsReadOnlySpan())
+            {
+                if (destination.IsReadOnlySpan())
+                {
+                    var sourceElementType = ((NamedTypeSymbol)source).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    var destinationElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasCovariantConversion(sourceElementType, destinationElementType, ref useSiteInfo);
+                }
+            }
+            // SPEC: From `string` to `System.ReadOnlySpan<char>`.
+            else if (source.IsStringType())
+            {
+                if (destination.IsReadOnlySpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return spanElementType.SpecialType is SpecialType.System_Char;
+                }
+            }
+
+            return false;
+
+            bool hasCovariantConversion(TypeWithAnnotations source, TypeWithAnnotations destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return hasIdentityConversion(source, destination) ||
+                    HasImplicitReferenceConversion(source, destination, ref useSiteInfo);
+            }
+
+            bool hasIdentityConversion(TypeWithAnnotations source, TypeWithAnnotations destination)
+            {
+                return HasIdentityConversionInternal(source.Type, destination.Type) &&
+                    HasTopLevelNullabilityIdentityConversion(source, destination);
+            }
+        }
+
+        /// <remarks>
+        /// This does not check implicit span conversions, that should be done by the caller.
+        /// </remarks>
+        private bool HasExplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (!IsFeatureFirstClassSpanEnabled)
+            {
+                return false;
+            }
+
+            // SPEC: From any single-dimensional `array_type` with element type `Ti`
+            // to `System.Span<Ui>` or `System.ReadOnlySpan<Ui>`
+            // provided an explicit reference conversion exists from `Ti` to `Ui`.
+            if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType } &&
+                (destination.IsSpan() || destination.IsReadOnlySpan()))
+            {
+                var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                return HasIdentityOrReferenceConversion(elementType.Type, spanElementType.Type, ref useSiteInfo) &&
+                    HasTopLevelNullabilityIdentityConversion(elementType, spanElementType);
+            }
+
+            return false;
+        }
+
+        private bool IgnoreUserDefinedSpanConversions(TypeSymbol? source, TypeSymbol? target)
+        {
+            // SPEC: User-defined conversions are not considered when converting between types
+            //       for which an implicit or an explicit span conversion exists.
+            var discarded = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return source is not null && target is not null &&
+                (HasImplicitSpanConversion(source, target, ref discarded) ||
+                HasExplicitSpanConversion(source, target, ref discarded));
         }
     }
 }

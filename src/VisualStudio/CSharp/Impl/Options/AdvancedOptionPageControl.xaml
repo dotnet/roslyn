@@ -53,7 +53,14 @@
                     </StackPanel>
 
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
+                              Checked="RunCodeAnalysisInSeparateProcess_Checked"
+                              Unchecked="RunCodeAnalysisInSeparateProcess_Unchecked" />
+
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Name="Automatically_reload_updated_analyzers_and_generators"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_reload_updated_analyzers_and_generators}" />
+                    </StackPanel>
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
@@ -98,8 +105,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Always_use_default_symbol_servers_for_navigation}" />
-                    <CheckBox x:Name="Navigate_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
                 </StackPanel>
             </GroupBox>
 
@@ -280,14 +285,6 @@
                            TextWrapping="WrapWithOverflow"
                            Margin="0, 0, 0, 8"
                            Text="{x:Static local:AdvancedOptionPageStrings.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page}"/>
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="ExtractMethodGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
-                <StackPanel>
-                    <CheckBox x:Name="DontPutOutOrRefOnStruct"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
                 </StackPanel>
             </GroupBox>
 

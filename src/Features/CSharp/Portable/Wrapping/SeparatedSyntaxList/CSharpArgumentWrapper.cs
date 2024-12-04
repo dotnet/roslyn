@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 
-internal partial class CSharpArgumentWrapper
+internal sealed partial class CSharpArgumentWrapper
     : AbstractCSharpSeparatedSyntaxListWrapper<BaseArgumentListSyntax, ArgumentSyntax>
 {
     protected override string Align_wrapped_items => FeaturesResources.Align_wrapped_arguments;

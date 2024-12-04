@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 [ExportWorkspaceServiceFactory(typeof(IUnitTestingStackTraceServiceAccessor))]
 [Shared]
 
-internal class UnitTestingStackTraceServiceAccessorFactory : IWorkspaceServiceFactory
+internal sealed class UnitTestingStackTraceServiceAccessorFactory : IWorkspaceServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

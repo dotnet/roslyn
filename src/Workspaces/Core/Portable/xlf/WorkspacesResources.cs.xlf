@@ -7,9 +7,19 @@
         <target state="translated">Projekt nemůže odkazovat sám na sebe.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="new">Absolute path expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">Přidávání dokumentů konfigurace analyzátoru se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="new">After</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -44,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
         <source>Changing project between ordinary and interactive submission is not supported</source>
-        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <target state="translated">Změna projektu mezi běžným a interaktivním odesláním se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_language_is_not_supported">
         <source>Changing project language is not supported</source>
-        <target state="new">Changing project language is not supported</target>
+        <target state="translated">Změna jazyka projektu se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
@@ -85,16 +95,6 @@
       <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
         <source>'FixAllScope.Custom' is not supported with this API</source>
         <target state="translated">FixAllScope.Custom se s tímto rozhraním API nepodporuje.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_and_spacing">
-        <source>Indentation and spacing</source>
-        <target state="translated">Odsazení a mezery</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_line_preferences">
-        <source>New line preferences</source>
-        <target state="translated">Předvolby nových řádků</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="Removing_compilation_options_is_not_supported">
         <source>Removing compilation options is not supported</source>
-        <target state="new">Removing compilation options is not supported</target>
+        <target state="translated">Odebírání možností kompilace se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_parse_options_is_not_supported">
         <source>Removing parse options is not supported</source>
-        <target state="new">Removing parse options is not supported</target>
+        <target state="translated">Odebrání možností parsování se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
-        <target state="new">Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</target>
+        <target state="translated">Ke splnění úkolu se vyžaduje služba typu {0}, není ale z pracovního prostoru {1} dostupná.</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -332,16 +332,6 @@
         <target state="translated">{0} není otevřený.</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
-        <source>A language name cannot be specified for this option.</source>
-        <target state="translated">Pro tuto možnost se nesmí zadat název jazyka.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_must_be_specified_for_this_option">
-        <source>A language name must be specified for this option.</source>
-        <target state="translated">Pro tuto možnost se musí zadat název jazyka.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">Došlo k externí úpravě souboru: {0}.</target>
@@ -387,11 +377,6 @@
         <target state="translated">{0} je pořád otevřený.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Hodnota je moc velká, než aby se dala vyjádřit jako 30bitové nepodepsané celé číslo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">Nejde otevřít projekt {0}, protože přípona souboru {1} není přidružená k jazyku.</target>
@@ -427,24 +412,9 @@
         <target state="translated">Nesloučené změny z projektu '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Added_colon">
-        <source>Added:</source>
-        <target state="translated">Přidáno:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">Po:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Before_colon">
         <source>Before:</source>
         <target state="translated">Před:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removed_colon">
-        <source>Removed:</source>
-        <target state="translated">Odebráno:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
@@ -600,11 +570,6 @@
       <trans-unit id="Show_Stack_Trace">
         <source>Show Stack Trace</source>
         <target state="translated">Zobrazit trasování zásobníku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Stream_is_too_long">
-        <source>Stream is too long.</source>
-        <target state="translated">Stream je moc dlouhý.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

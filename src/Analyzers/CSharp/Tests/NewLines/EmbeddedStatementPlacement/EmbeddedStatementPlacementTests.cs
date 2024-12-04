@@ -33,7 +33,6 @@ public class EmbeddedStatementPlacementTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -106,7 +105,6 @@ public class EmbeddedStatementPlacementTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -202,7 +200,6 @@ public class EmbeddedStatementPlacementTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }

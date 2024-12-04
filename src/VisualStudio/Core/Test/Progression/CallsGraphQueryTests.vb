@@ -42,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=A Member=(Name=Main OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Target="(@1 Type=A Member=Run)" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -86,7 +86,7 @@ class A
                             <Link Source="(@1 Type=A Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Target="(Namespace=System.Linq Type=Enumerable Member=(Name=Count GenericParameterCount=1 OverloadingParameters=[(@2 Namespace=System Type=(Name=Func GenericParameterCount=2 GenericArguments=[(@2 Namespace=System Type=Int32),(@2 Namespace=System Type=Boolean)]))]))" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -122,7 +122,7 @@ class A
                             <Link Source="(@1 Type=A Member=PropertyA)" Target="(@1 Type=A Member=Get)" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -175,7 +175,7 @@ class C
                             <Link Source="(@1 Type=C Member=(Name=Main OverloadingParameters=[(@2 Namespace=System Type=(Name=String ArrayRank=1 ParentType=String))]))" Target="(@1 Type=MyDelegate1 Member=(Name=Invoke OverloadingParameters=[(@2 Namespace=System Type=Int32),(@2 Namespace=System Type=Single)]))" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -226,7 +226,7 @@ class Test
                             <Link Source="(@1 Type=Test Member=Run)" Target="(@1 Type=Test Member=Handler)" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

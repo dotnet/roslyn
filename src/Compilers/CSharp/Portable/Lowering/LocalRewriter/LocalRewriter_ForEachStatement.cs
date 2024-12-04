@@ -404,7 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: forEachSyntax,
                         rewrittenCondition: _factory.IsNotNullReference(boundEnumeratorVar),
                         rewrittenConsequence: disposeCallStatement,
-                        rewrittenAlternativeOpt: null,
                         hasErrors: false);
                 }
 
@@ -459,7 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultKind: LookupResultKind.Viable,
                         type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                     rewrittenConsequence: disposeCallStatement,
-                    rewrittenAlternativeOpt: null,
                     hasErrors: false);
 
                 // IDisposable d = e as IDisposable;
