@@ -1336,7 +1336,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
-        <source>Reference to undefined group name {0}</source>
+        <source>Reference to undefined group name '{0}'</source>
         <target state="needs-review-translation">Odkaz na nedefinovaný název skupiny {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>

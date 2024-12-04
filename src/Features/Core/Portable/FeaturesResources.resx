@@ -1808,7 +1808,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</comment>
   </data>
   <data name="Reference_to_undefined_group_name_0" xml:space="preserve">
-    <value>Reference to undefined group name {0}</value>
+    <value>Reference to undefined group name '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</comment>
   </data>
   <data name="Reference_to_undefined_group_number_0" xml:space="preserve">

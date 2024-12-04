@@ -1336,7 +1336,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
-        <source>Reference to undefined group name {0}</source>
+        <source>Reference to undefined group name '{0}'</source>
         <target state="needs-review-translation">未定義のグループ名 {0} への参照</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
