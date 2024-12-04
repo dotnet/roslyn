@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
+            var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
+            if (!onAutoInsertEnabled)
+                return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+
             var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
             var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
             var position = ProtocolConversions.PositionToLinePosition(request.Position);
