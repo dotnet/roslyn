@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -92,15 +90,13 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             return new ExtractInterfaceTypeAnalysisResult(errorMessage);
         }
 
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var type = semanticModel.GetDeclaredSymbol(typeNode, cancellationToken);
-        if (type == null || type.Kind != SymbolKind.NamedType)
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (semanticModel.GetDeclaredSymbol(typeNode, cancellationToken) is not INamedTypeSymbol typeToExtractFrom)
         {
             var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
             return new ExtractInterfaceTypeAnalysisResult(errorMessage);
         }
 
-        var typeToExtractFrom = type as INamedTypeSymbol;
         var extractableMembers = typeToExtractFrom.GetMembers().Where(IsExtractableMember);
         if (!extractableMembers.Any())
         {
@@ -151,7 +147,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         switch (extractInterfaceOptions.Location)
         {
             case ExtractInterfaceOptionsResult.ExtractLocation.NewFile:
-                var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
+                var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions!);
                 return await ExtractInterfaceToNewFileAsync(
                     solution,
                     containingNamespaceDisplay,
@@ -268,7 +264,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
-        var service = document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
+        var service = document.Project.Solution.Services.GetRequiredService<IExtractInterfaceOptionsService>();
         return await service.GetExtractInterfaceOptionsAsync(
             syntaxFactsService,
             notificationService,
@@ -289,7 +285,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var formattedSolution = unformattedSolution;
         foreach (var documentId in documentIds)
         {
-            var document = formattedSolution.GetDocument(documentId);
+            var document = formattedSolution.GetRequiredDocument(documentId);
 
             var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -332,8 +328,8 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var unformattedSolution = solution;
         foreach (var documentId in documentIds)
         {
-            var document = solution.GetDocument(documentId);
-            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var document = solution.GetRequiredDocument(documentId);
+            var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(currentRoot, solution.Services);
 
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
@@ -374,24 +370,22 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
 
         foreach (var member in includedMembers)
         {
-            switch (member.Kind)
+            switch (member)
             {
-                case SymbolKind.Event:
-                    var @event = member as IEventSymbol;
+                case IEventSymbol @event:
                     interfaceMembers.Add(CodeGenerationSymbolFactory.CreateEventSymbol(
                         attributes: [],
                         accessibility: Accessibility.Public,
-                        modifiers: new DeclarationModifiers(isAbstract: true),
+                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic),
                         type: @event.Type,
                         explicitInterfaceImplementations: default,
                         name: @event.Name));
                     break;
-                case SymbolKind.Method:
-                    var method = member as IMethodSymbol;
+                case IMethodSymbol method:
                     interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
                         attributes: [],
                         accessibility: Accessibility.Public,
-                        modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.RequiresUnsafeModifier()),
+                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic, isUnsafe: method.RequiresUnsafeModifier()),
                         returnType: method.ReturnType,
                         refKind: method.RefKind,
                         explicitInterfaceImplementations: default,
@@ -400,28 +394,25 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
                         parameters: method.Parameters,
                         isInitOnly: method.IsInitOnly));
                     break;
-                case SymbolKind.Property:
-                    var property = member as IPropertySymbol;
-                    IMethodSymbol getMethod = null;
-                    var hasGetMethod = property.GetMethod != null && property.GetMethod.DeclaredAccessibility == Accessibility.Public;
-                    if (hasGetMethod)
-                    {
-                        // We recreate the get accessor because it is possible it has the readonly modifier due
-                        // to being an auto property on a struct which is invalid for an interface member
-                        getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(property.GetMethod, property.GetMethod.GetAttributes());
-                    }
+                case IPropertySymbol property:
+                    // We recreate the get accessor because it is possible it has the readonly modifier due
+                    // to being an auto property on a struct which is invalid for an interface member
+
+                    var getMethod = property.GetMethod != null && property.GetMethod.DeclaredAccessibility == Accessibility.Public
+                        ? CodeGenerationSymbolFactory.CreateAccessorSymbol(property.GetMethod, property.GetMethod.GetAttributes())
+                        : null;
 
                     interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: [],
                         accessibility: Accessibility.Public,
-                        modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.RequiresUnsafeModifier()),
+                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic, isUnsafe: property.RequiresUnsafeModifier()),
                         type: property.Type,
                         refKind: property.RefKind,
                         explicitInterfaceImplementations: default,
                         name: property.Name,
                         parameters: property.Parameters,
                         getMethod: getMethod,
-                        setMethod: property.SetMethod == null ? null : (property.SetMethod.DeclaredAccessibility == Accessibility.Public ? property.SetMethod : null),
+                        setMethod: property is { SetMethod.DeclaredAccessibility: Accessibility.Public } ? property.SetMethod : null,
                         isIndexer: property.IsIndexer));
                     break;
                 default:
@@ -435,24 +426,20 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
 
     internal virtual bool IsExtractableMember(ISymbol m)
     {
-        if (m.IsStatic ||
-            m.DeclaredAccessibility != Accessibility.Public ||
+        if (m.DeclaredAccessibility != Accessibility.Public ||
             m.Name == "<Clone>$") // TODO: Use WellKnownMemberNames.CloneMethodName when it's public.
         {
             return false;
         }
 
         if (m.Kind == SymbolKind.Event || m.IsOrdinaryMethod())
-        {
             return true;
-        }
 
-        if (m.Kind == SymbolKind.Property)
+        if (m is IPropertySymbol prop)
         {
-            var prop = m as IPropertySymbol;
             return !prop.IsWithEvents &&
-                ((prop.GetMethod != null && prop.GetMethod.DeclaredAccessibility == Accessibility.Public) ||
-                (prop.SetMethod != null && prop.SetMethod.DeclaredAccessibility == Accessibility.Public));
+                (prop is { GetMethod.DeclaredAccessibility: Accessibility.Public } ||
+                 prop is { SetMethod.DeclaredAccessibility: Accessibility.Public });
         }
 
         return false;

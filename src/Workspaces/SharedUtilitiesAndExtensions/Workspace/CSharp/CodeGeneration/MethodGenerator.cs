@@ -257,12 +257,7 @@ internal static class MethodGenerator
             if (!referencedTypeParameters.Contains(typeParameter))
                 continue;
 
-            var constraint = typeParameter switch
-            {
-                { HasReferenceTypeConstraint: true } => s_classConstraint,
-                { HasValueTypeConstraint: true } => s_structConstraint,
-                _ => s_defaultConstraint
-            };
+            var constraint = GetConstraint(typeParameter);
 
             listOfClauses.Add(TypeParameterConstraintClause(
                 typeParameter.Name.ToIdentifierName(),
@@ -270,6 +265,52 @@ internal static class MethodGenerator
         }
 
         return [.. listOfClauses];
+    }
+
+    private static TypeParameterConstraintSyntax GetConstraint(ITypeParameterSymbol typeParameter)
+    {
+        using var _ = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var visited);
+        var constraint = GetConstraintRecursive(typeParameter);
+
+        return constraint ?? s_defaultConstraint;
+
+        TypeParameterConstraintSyntax? GetConstraintRecursive(ITypeParameterSymbol typeParameter)
+        {
+            if (visited.Add(typeParameter))
+            {
+                // If it is explicitly marked as `T : struct` or `T : class` then we want to have the same constraint on the override.
+                if (typeParameter.HasValueTypeConstraint)
+                    return s_structConstraint;
+
+                if (typeParameter.HasReferenceTypeConstraint)
+                    return s_classConstraint;
+
+                foreach (var constraintType in typeParameter.ConstraintTypes)
+                {
+                    // If we ended up being constrained on a value type, then we have to have the `T : struct`
+                    // constraint to align with that.
+                    if (constraintType.IsValueType)
+                        return s_structConstraint;
+
+                    // For all reference types *except* interfaces, we want the `T : class` constraint.  An interface
+                    // can be implemented by a value type or a referernce type, so it adds no information to the
+                    // constraints.
+                    if (constraintType.IsReferenceType && constraintType.TypeKind != TypeKind.Interface)
+                        return s_classConstraint;
+
+                    // If we have `where T : U` then peek into the other contraint to see if it adds information.
+                    if (constraintType is ITypeParameterSymbol constraintTypeParameter)
+                    {
+                        var constraint = GetConstraintRecursive(constraintTypeParameter);
+                        if (constraint != null)
+                            return constraint;
+                    }
+                }
+            }
+
+            // We learned nothing from this constraint.
+            return null;
+        }
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(

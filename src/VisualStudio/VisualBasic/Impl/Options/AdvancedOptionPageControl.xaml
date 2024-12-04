@@ -269,14 +269,6 @@
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
                     </ComboBox>
-                    <TextBlock x:Name="Customized_Theme_Warning"
-                           TextWrapping="WrapWithOverflow"
-                           Margin="0, 0, 0, 8"
-                           Text="{x:Static local:AdvancedOptionPageStrings.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations}"/>
-                    <TextBlock x:Name="Custom_VS_Theme_Warning"
-                           TextWrapping="WrapWithOverflow"
-                           Margin="0, 0, 0, 8"
-                           Text="{x:Static local:AdvancedOptionPageStrings.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page}"/>
                 </StackPanel>
             </GroupBox>
 
