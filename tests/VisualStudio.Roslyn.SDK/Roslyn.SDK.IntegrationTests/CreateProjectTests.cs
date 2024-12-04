@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn-sdk/issues/1198")]
         public async Task CreateAnalyzerFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn-sdk/issues/1198")]
         public async Task CreateRefactoringFromCSharpTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn-sdk/issues/1198")]
         public async Task CreateAnalyzerFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn-sdk/issues/1198")]
         public async Task CreateRefactoringFromVisualBasicTemplateAsync()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CreateProjectTests), HangMitigatingCancellationToken);
