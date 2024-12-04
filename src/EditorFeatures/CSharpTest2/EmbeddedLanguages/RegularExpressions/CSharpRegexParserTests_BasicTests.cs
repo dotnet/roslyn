@@ -1906,7 +1906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..22)" Text="a{2147483648}" />
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..23)" Text="a{2147483648,}" />
@@ -2026,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[13..23)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[13..23)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..24)" Text="a{0,2147483648}" />

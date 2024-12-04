@@ -5324,7 +5324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}" Span="[21..31)" Text="2147483648" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}" Span="[21..31)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="-2147483648" Span="[18..36)" Text="(?&lt;2147483648&gt;dog)" />
@@ -5377,7 +5377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}" Span="[21..35)" Text="21474836481097" />
+                    <Diagnostic Message="{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}" Span="[21..35)" Text="21474836481097" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..40)" Text="(cat)\s+(?&lt;21474836481097&gt;dog)" />

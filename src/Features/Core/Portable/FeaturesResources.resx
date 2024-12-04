@@ -1747,8 +1747,8 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Cannot include class \{0} in character range</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</comment>
   </data>
-  <data name="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
-    <value>Capture group numbers must be less than or equal to Int32.MaxValue</value>
+  <data name="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
+    <value>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</comment>
   </data>
   <data name="Capture_number_cannot_be_zero" xml:space="preserve">
