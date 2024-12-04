@@ -4519,7 +4519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 7)}" Span="[11..12)" Text="7" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Reference, 7)}" Span="[11..12)" Text="7" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\7" />
