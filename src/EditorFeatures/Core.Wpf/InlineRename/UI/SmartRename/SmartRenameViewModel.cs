@@ -34,13 +34,17 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListener _asyncListener;
+
+    /// <summary>
+    /// Cancellation token source for <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
+    /// Each call uses a new instance. Mutliple calls are allowed only if previous call failed or was canceled.
+    /// </summary>
     private CancellationTokenSource _cancellationTokenSource = new();
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
-    private Task? _getSuggestionsTask;
 
     /// <summary>
     /// Backing field for <see cref="IsInProgress"/>.
@@ -179,7 +183,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
         _cancellationTokenSource.Dispose();
         _cancellationTokenSource = new CancellationTokenSource();
-        _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+        _ = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
 
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
