@@ -811,7 +811,7 @@ internal partial struct RegexParser
             {
                 innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    FeaturesResources.Malformed,
+                    string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0,  capture.VirtualChars.First()),
                     capture.GetSpan()));
                 MoveBackBeforePreviousScan();
             }

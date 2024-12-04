@@ -500,6 +500,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">주석이 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0">
+        <source>Conditional alternation is missing a closing parenthesis after the group number '{0}'</source>
+        <target state="new">Conditional alternation is missing a closing parenthesis after the group number '{0}'</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} 코드 스타일 구성</target>
@@ -1034,11 +1039,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">런타임에서 지원하지 않기 때문에 메서드를 비동기화하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Malformed">
-        <source>malformed</source>
-        <target state="new">malformed</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>

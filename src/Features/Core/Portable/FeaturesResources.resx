@@ -1775,8 +1775,8 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Invalid group name: Group names must begin with a word character</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</comment>
   </data>
-  <data name="Malformed" xml:space="preserve">
-    <value>malformed</value>
+  <data name="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0" xml:space="preserve">
+    <value>Conditional alternation is missing a closing parenthesis after the group number '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</comment>
   </data>
   <data name="Malformed_character_escape" xml:space="preserve">

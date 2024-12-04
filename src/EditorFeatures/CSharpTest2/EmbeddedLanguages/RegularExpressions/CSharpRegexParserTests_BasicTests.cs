@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[9..10)" Text="*" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '*')}" Span="[9..10)" Text="*" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="*" />
@@ -2625,7 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="*" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '*')}" Span="[10..11)" Text="*" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(*)" />
@@ -2682,7 +2682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[9..10)" Text="+" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '+')}" Span="[9..10)" Text="+" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="+" />
@@ -2713,7 +2713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="+" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '+')}" Span="[10..11)" Text="+" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(+)" />
@@ -2770,7 +2770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[9..10)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[9..10)" Text="?" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="?" />
@@ -2801,7 +2801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[10..11)" Text="?" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(?)" />

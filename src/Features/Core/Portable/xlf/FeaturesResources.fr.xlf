@@ -500,6 +500,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Commentaires non autorisés</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0">
+        <source>Conditional alternation is missing a closing parenthesis after the group number '{0}'</source>
+        <target state="new">Conditional alternation is missing a closing parenthesis after the group number '{0}'</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurer le style de code {0}</target>
@@ -1034,11 +1039,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">La création d’une méthode asynchrone nécessite le redémarrage de l’application, car elle n’est pas prise en charge par le runtime.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Malformed">
-        <source>malformed</source>
-        <target state="new">malformed</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>
