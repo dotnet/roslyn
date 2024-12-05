@@ -4960,19 +4960,19 @@ interface B { }
 object o = null;
 _ = o is not A or Derived;
 _ = o is not Derived or A; // 1
-_ = o is not (A or Derived);
+_ = o is not (A or Derived); // 2
 _ = o is (not A) or Derived;
 _ = o is (not A) or (not Derived);
-_ = o is A or Derived; // 2
+_ = o is A or Derived; // 3
 _ = o is Derived or A;
-_ = o is A or not Derived; // 3
+_ = o is A or not Derived; // 4
 _ = o is Derived or not A;
 
 _ = o switch
 {
     not Derived => 42,
     A => 43,
-    _ => 44 // 4
+    _ => 44 // 5
 };
 
 _ = o switch
@@ -4985,7 +4985,7 @@ _ = o switch
 _ = o switch
 {
     A => 42,
-    Derived => 43, // 5
+    Derived => 43, // 6
     _ => 44
 };
 
@@ -4993,7 +4993,7 @@ _ = o switch
 {
     A => 42,
     not Derived => 43,
-    _ => 44 // 6
+    _ => 44 // 7
 };
 
 class A { }
@@ -5004,20 +5004,23 @@ class Derived : A { }
                 // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is not Derived or A; // 1
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not Derived or A").WithArguments("object").WithLocation(3, 5),
+                // (4,20): warning CS9268: The pattern is redundant.
+                // _ = o is not (A or Derived); // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "Derived").WithLocation(4, 20),
                 // (7,15): warning CS9268: The pattern is redundant.
-                // _ = o is A or Derived; // 2
+                // _ = o is A or Derived; // 3
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "Derived").WithLocation(7, 15),
                 // (9,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                // _ = o is A or not Derived; // 3
+                // _ = o is A or not Derived; // 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is A or not Derived").WithArguments("object").WithLocation(9, 5),
                 // (16,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     _ => 44 // 4
+                //     _ => 44 // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(16, 5),
                 // (29,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     Derived => 43, // 5
+                //     Derived => 43, // 6
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Derived").WithLocation(29, 5),
                 // (37,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     _ => 44 // 6
+                //     _ => 44 // 7
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(37, 5));
         }
 
@@ -5179,11 +5182,12 @@ string? s = null;
 _ = s is not null or { Length: >0 }; // 1
 _ = s is (not null) or { Length: >0 }; // 2
 _ = s is not (null or { Length: >0 });
+_ = s is null and not { Length: >0 }; // 3
 
 _ = s switch
 {
     not null => 42,
-    "" => 43, // 3
+    "" => 43, // 4
     _ => 44
 };
 """;
@@ -5192,12 +5196,24 @@ _ = s switch
                 // (3,22): warning CS9268: The pattern is redundant.
                 // _ = s is not null or { Length: >0 }; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(3, 22),
+                // (3,24): warning CS9268: The pattern is redundant.
+                // _ = s is not null or { Length: >0 }; // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "Length: >0").WithLocation(3, 24),
                 // (4,24): warning CS9268: The pattern is redundant.
                 // _ = s is (not null) or { Length: >0 }; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(4, 24),
-                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     "" => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(10, 5));
+                // (4,26): warning CS9268: The pattern is redundant.
+                // _ = s is (not null) or { Length: >0 }; // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "Length: >0").WithLocation(4, 26),
+                // (6,23): warning CS9268: The pattern is redundant.
+                // _ = s is null and not { Length: >0 }; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(6, 23),
+                // (6,25): warning CS9268: The pattern is redundant.
+                // _ = s is null and not { Length: >0 }; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "Length: >0").WithLocation(6, 25),
+                // (11,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     "" => 43, // 4
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(11, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -6049,6 +6065,7 @@ _ = o switch
 };
 
 _ = o is not string or string { Length: 0 };
+_ = o is not (not string or string { Length: 0 });
 
 _ = o switch
 {
@@ -6097,6 +6114,24 @@ class C
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_TODO2_16()
+        {
+            var source = """
+object o = null;
+_ = o is not string or string { };
+_ = o is not (not string or string { });
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // _ = o is not string or string { };
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not string or string { }").WithArguments("object").WithLocation(2, 5),
+                // (3,5): error CS8518: An expression of type 'object' can never match the provided pattern.
+                // _ = o is not (not string or string { });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is not (not string or string { })").WithArguments("object").WithLocation(3, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -6224,18 +6259,19 @@ _ = o switch
 object o = null;
 _ = o is (not (null or 42)) or string; // 1
 _ = o is (not null and not 42) or string; // 2
-_ = o is (not (not null or 42)) or string;
+_ = o is (not (not null or 42)) or string; // 3
+_ = o is (null and not 42) or string; // 4
 
 _ = o switch
 {
     not (null or 42) => 41,
-    string => 42, // 3
+    string => 42, // 5
     _ => 43
 };
 _ = o switch
 {
     not null and not 42 => 41,
-    string => 42, // 4
+    string => 42, // 6
     _ => 43
 };
 _ = o switch
@@ -6253,12 +6289,18 @@ _ = o switch
                 // (3,35): warning CS9268: The pattern is redundant.
                 // _ = o is (not null and not 42) or string; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(3, 35),
-                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     string => 42, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(9, 5),
-                // (15,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     string => 42, // 4
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(15, 5));
+                // (4,28): warning CS9268: The pattern is redundant.
+                // _ = o is (not (not null or 42)) or string; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "42").WithLocation(4, 28),
+                // (5,24): warning CS9268: The pattern is redundant.
+                // _ = o is (null and not 42) or string; // 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "42").WithLocation(5, 24),
+                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     string => 42, // 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(10, 5),
+                // (16,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     string => 42, // 6
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(16, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7231,7 +7273,7 @@ S o = default;
 _ = o is not (42 and not 43 and var x); // 1, 2
 _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
 
-_ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6
+_ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6, TODO2
 _ = o is [not 42 or 43, var y, ..not 44 or 45]; // 7, 8
 
 public struct S
@@ -7257,7 +7299,7 @@ public struct S
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 40),
                 // (5,14): warning CS9268: The pattern is redundant.
                 // _ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "[42 and not 43, var x, ..44 and not 45]").WithLocation(5, 14), // TODO2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "[42 and not 43, var x, ..44 and not 45]").WithLocation(5, 14),
                 // (5,26): warning CS9268: The pattern is redundant.
                 // _ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 26),

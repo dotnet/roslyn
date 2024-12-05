@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -44,36 +45,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
+            checkOrReachability(compilation, syntax, inputExpression, pattern, diagnostics);
+            checkOrReachability(compilation, syntax, inputExpression, MoveNotPatternsDownRewriter.MakeNegatedPattern(pattern), diagnostics);
 
-            using SetOfOrCases setOfOrCases = rewrite(normalizedPattern);
-            if (setOfOrCases.IsDefault)
+            return;
+
+            static void checkOrReachability(CSharpCompilation compilation, SyntaxNode syntax, BoundExpression inputExpression, BoundPattern pattern, BindingDiagnosticBag diagnostics)
             {
-                return;
-            }
+                var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
 
-            // We construct a DAG and analyze reachability of branches once per `or` sequence
-            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering: false, BindingDiagnosticBag.Discarded);
-            var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-            Debug.Assert(!setOfOrCases.IsDefault);
-            foreach (OrCases orCases in setOfOrCases.Set)
-            {
-                using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
-                var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                populateStateForCases(builder, rootIdentifier, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
-                BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
-
-                foreach (StateForCase @case in casesBuilder)
+                SetOfOrCases setOfOrCases = rewrite(normalizedPattern);
+                if (setOfOrCases.IsDefault)
                 {
-                    if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
+                    return;
+                }
+
+                // We construct a DAG and analyze reachability of branches once per `or` sequence
+                LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
+                var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+                var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
+                Debug.Assert(!setOfOrCases.IsDefault);
+                foreach (OrCases orCases in setOfOrCases.Set)
+                {
+                    using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
+                    var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
+                    populateStateForCases(builder, rootIdentifier, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
+                    BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
+
+                    foreach (StateForCase @case in casesBuilder)
                     {
-                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
+                        if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
+                        {
+                            diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
+                        }
                     }
                 }
             }
-
-            return;
 
             // The rewrite produces multiple OrCases, one for each `or` sequence within the pattern.
             // We take each `or` sequence in turn and bring it to the top-level, as long as it is not negated.
@@ -431,6 +438,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Set.Free();
                 }
             }
+
+#if DEBUG
+            public override string ToString()
+            {
+                if (IsDefault)
+                    return "DEFAULT";
+
+                var builder = new StringBuilder();
+                foreach (var set in Set)
+                {
+                    builder.AppendLine("Set:");
+                    foreach (var @case in set.Cases)
+                    {
+                        builder.AppendLine(@case.pattern.DumpSource());
+                    }
+                    builder.AppendLine();
+                }
+
+                return builder.ToString();
+            }
+#endif
         }
 
         /// <summary>
@@ -498,6 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultDisjunction = _negated ? !node.Disjunction : node.Disjunction;
 
                 // TODO2 verify that each case is hit
+                // TODO2 maybe we only simplify for synthesized nodes
                 if (resultDisjunction)
                 {
                     if (IsNegatedDiscard(resultLeft))
@@ -511,6 +540,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // <left> or not _
                         return resultLeft;
                     }
+
+                    if (IsDiscard(resultLeft))
+                    {
+                        // _ or <right>
+                        return resultLeft;
+                    }
+
+                    if (IsDiscard(resultRight))
+                    {
+                        // <left> or _
+                        return resultRight;
+                    }
                 }
                 else
                 {
@@ -523,14 +564,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (IsNegatedDiscard(resultRight))
                     {
                         // <left> and not _
-                        throw new System.Exception("TODO2 JCOUV4");
                         return resultRight;
                     }
 
                     if (IsDiscard(resultLeft))
                     {
                         // _ and <right>
-                        throw new System.Exception("TODO2 JCOUV5");
                         return resultRight;
                     }
 
@@ -626,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // `not Type`
                     builder.Add(new BoundNegatedPattern(node.Syntax,
                         new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, node.InputType, node.NarrowedType, node.HasErrors),
-                        node.InputType, node.NarrowedType, node.HasErrors));
+                        node.InputType, node.NarrowedType, node.HasErrors).MakeCompilerGenerated());
                 }
                 else if (node.InputType.CanContainNull())
                 {
@@ -691,6 +730,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return MakeDiscardPattern(node);
                 }
+
+                //Debug.Assert(!builder.All(p => p.WasCompilerGenerated));
 
                 BoundPattern result = builder.Last();
                 for (int i = builder.Count - 2; i >= 0; i--)
@@ -826,6 +867,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var negatedPattern = (BoundPattern)Visit(node.Pattern);
                 return node.WithPattern(negatedPattern);
+            }
+
+            internal static BoundPattern MakeNegatedPattern(BoundPattern node)
+            {
+                return new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
             }
 
             private static BoundDiscardPattern MakeDiscardPattern(BoundPattern node)

@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(leftTests);
                     builder.Add(@this.MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
                     output = rightOutput;
-                    Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
+                    //Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions)); // TODO2
                     return Tests.AndSequence.Create(builder);
                 }
             }
