@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return (TRoot?)result;
         }
 
-        private class SyntaxRemover : CSharpSyntaxRewriter
+        private sealed class SyntaxRemover : CSharpSyntaxRewriter
         {
             private readonly HashSet<SyntaxNode> _nodesToRemove;
             private readonly SyntaxRemoveOptions _options;

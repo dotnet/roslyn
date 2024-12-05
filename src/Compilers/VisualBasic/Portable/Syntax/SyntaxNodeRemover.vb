@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return DirectCast(result, TRoot)
         End Function
 
-        Private Class SyntaxRemover
+        Private NotInheritable Class SyntaxRemover
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _nodesToRemove As HashSet(Of SyntaxNode)
@@ -298,9 +298,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         Me._directivesToKeep.Clear()
                     End If
 
-                    Dim directivesInSpan = node.DescendantTrivia(span, Function(n) n.ContainsDirectives, descendIntoTrivia:=True) _
-                                                .Where(Function(tr) tr.IsDirective) _
-                                                .Select(Function(tr) DirectCast(tr.GetStructure(), DirectiveTriviaSyntax))
+                    Dim directivesInSpan = node.
+                        DescendantTrivia(span, Function(n) n.ContainsDirectives, descendIntoTrivia:=True).
+                        Where(Function(tr) tr.IsDirective).
+                        Select(Function(tr) DirectCast(tr.GetStructure(), DirectiveTriviaSyntax))
 
                     For Each directive In directivesInSpan
                         If (Me._options And SyntaxRemoveOptions.KeepDirectives) <> 0 Then
@@ -319,7 +320,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         End If
 
                         If Me._directivesToKeep.Contains(directive) Then
-                            AddResidualTrivia(SyntaxFactory.TriviaList(directive.ParentTrivia), requiresNewLine:=True)
+                            Dim parentTrivia = directive.ParentTrivia
+                            Dim parentToken = parentTrivia.Token
+
+                            Dim triviaList = If(parentToken.LeadingTrivia.Contains(parentTrivia),
+                                parentToken.LeadingTrivia,
+                                parentToken.TrailingTrivia)
+                            Dim index = triviaList.IndexOf(parentTrivia)
+
+                            ' If we're keeping a directive, and it's not at the start of the line, keep the whitespace
+                            ' that precedes it as well.
+                            If index >= 1 AndAlso triviaList(index - 1).Kind() = SyntaxKind.WhitespaceTrivia Then
+                                AddResidualTrivia(SyntaxFactory.TriviaList(
+                                    triviaList(index - 1), parentTrivia), requiresNewLine:=True)
+                            Else
+                                AddResidualTrivia(SyntaxFactory.TriviaList(parentTrivia), requiresNewLine:=True)
+                            End If
                         End If
                     Next
                 End If
