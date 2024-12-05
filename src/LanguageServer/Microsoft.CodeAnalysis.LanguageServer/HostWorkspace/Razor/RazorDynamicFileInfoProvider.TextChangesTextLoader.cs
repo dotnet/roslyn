@@ -98,7 +98,7 @@ internal partial class RazorDynamicFileInfoProvider
             return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
         }
 
-        private static SourceText UpdateSourceTextWithEdits(SourceText sourceText, IEnumerable<RazorDynamicFileUpdate> updates) 
+        private static SourceText UpdateSourceTextWithEdits(SourceText sourceText, IEnumerable<RazorDynamicFileUpdate> updates)
         {
             foreach (var update in updates)
             {
