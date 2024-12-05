@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // locals whose address has been taken
         private ArrayBuilder<LocalDefinition>? _addressedLocals;
+        private int _addressedLocalScopes;
 
         // all locals in order
         private ArrayBuilder<Cci.ILocalDefinition>? _lazyAllLocals;
@@ -260,14 +261,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal int? StartScopeOfTrackingAddressedLocals()
+        internal int StartScopeOfTrackingAddressedLocals()
         {
-            if (_addressedLocals is null)
-            {
-                _addressedLocals = ArrayBuilder<LocalDefinition>.GetInstance();
-                return null;
-            }
-
+            Debug.Assert((_addressedLocals == null) == (_addressedLocalScopes == 0));
+            _addressedLocals ??= ArrayBuilder<LocalDefinition>.GetInstance();
+            _addressedLocalScopes++;
             return _addressedLocals.Count;
         }
 
@@ -279,25 +277,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal void EndScopeOfTrackingAddressedLocals(int? countBefore, bool markAsNotReusable)
+        internal void EndScopeOfTrackingAddressedLocals(int countBefore, bool markAsNotReusable)
         {
             Debug.Assert(_addressedLocals != null);
 
-            if (markAsNotReusable && (countBefore ?? 0) < _addressedLocals.Count)
+            if (markAsNotReusable && countBefore < _addressedLocals.Count)
             {
                 _nonReusableLocals ??= new HashSet<LocalDefinition>(ReferenceEqualityComparer.Instance);
-                for (var i = countBefore ?? 0; i < _addressedLocals.Count; i++)
+                for (var i = countBefore; i < _addressedLocals.Count; i++)
                 {
                     _nonReusableLocals.Add(_addressedLocals[i]);
                 }
             }
 
-            if (countBefore is { } c)
+            _addressedLocalScopes--;
+            if (_addressedLocalScopes > 0)
             {
-                _addressedLocals.Count = c;
+                _addressedLocals.Count = countBefore;
             }
             else
             {
+                Debug.Assert(_addressedLocalScopes == 0);
                 _addressedLocals.Free();
                 _addressedLocals = null;
             }
