@@ -39,6 +39,6 @@ internal sealed class LanguageServerTestComposition
             ExtensionLogDirectory: string.Empty);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
-        return ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, loggerFactory);
+        return ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory: null, loggerFactory);
     }
 }
