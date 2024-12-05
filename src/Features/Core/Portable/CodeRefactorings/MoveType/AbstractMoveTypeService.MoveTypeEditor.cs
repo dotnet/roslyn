@@ -121,7 +121,18 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // attributes from the containing partial types.  We don't want to create
             // duplicate attributes on things.
             AddPartialModifiersToTypeChain(
-                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true, removeLeadingBlankLines: true);
+                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
+
+            documentEditor.ReplaceNode(
+                State.TypeNode,
+                (currentNode, generator) =>
+                {
+                    var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
+
+                    // Trim leading blank lines from the type so we don't have an 
+                    // excessive number of them.
+                    return RemoveLeadingBlankLines(currentTypeNode);
+                });
 
             // remove things that are not being moved, from the forked document.
             var membersToRemove = GetMembersToRemove(root);
@@ -194,8 +205,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             AddPartialModifiersToTypeChain(documentEditor,
                 removeAttributesAndComments: false,
                 removeTypeInheritance: false,
-                removePrimaryConstructor: false,
-                removeLeadingBlankLines: !hasLeadingDirective);
+                removePrimaryConstructor: false);
             var removeOptions = hasLeadingDirective
                 ? SyntaxRemoveOptions.KeepLeadingTrivia
                 : SyntaxRemoveOptions.KeepNoTrivia;
@@ -266,8 +276,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             DocumentEditor documentEditor,
             bool removeAttributesAndComments,
             bool removeTypeInheritance,
-            bool removePrimaryConstructor,
-            bool removeLeadingBlankLines)
+            bool removePrimaryConstructor)
         {
             var semanticFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
             var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -297,20 +306,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 {
                     documentEditor.RemovePrimaryConstructor(node);
                 }
-            }
-
-            if (removeLeadingBlankLines)
-            {
-                documentEditor.ReplaceNode(
-                    State.TypeNode,
-                    (currentNode, generator) =>
-                    {
-                        var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
-
-                        // Trim leading blank lines from the type so we don't have an 
-                        // excessive number of them.
-                        return RemoveLeadingBlankLines(currentTypeNode);
-                    });
             }
         }
 

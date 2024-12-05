@@ -66,7 +66,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             [||]class Class1 { }
              class Class2 { }
             """;
-        var codeAfterMove = @"class Class2 { }";
+        var codeAfterMove = @" class Class2 { }";
 
         var expectedDocumentName = "Class1.cs";
         var destinationDocumentText = """
@@ -1290,7 +1290,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             """;
         var codeAfterMove =
             """
-            public class Goo
+            public partial class Goo
             {
                 #region Region
                 #endregion
@@ -1300,8 +1300,13 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
         var expectedDocumentName = "Bar.cs";
         var destinationDocumentText =
             """
-            public class Bar
+            public partial class Goo
             {
+                #region Region
+                public class Bar
+                {
+                }
+                #endregion
             }
             """;
 
@@ -1331,7 +1336,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             """;
         var codeAfterMove =
             """
-            public class Goo
+            public partial class Goo
             {
                 #region Region1
                 public class NotBar
@@ -1347,8 +1352,13 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
         var expectedDocumentName = "Bar.cs";
         var destinationDocumentText =
             """
-            public class Bar
+            public partial class Goo
             {
+                #region Region2
+                public class Bar
+                {
+                }
+                #endregion
             }
             """;
 
