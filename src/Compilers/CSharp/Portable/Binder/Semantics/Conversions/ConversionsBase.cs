@@ -666,31 +666,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            static bool isStandardImplicitConversionFromExpression(ConversionKind kind)
-            {
-                if (IsStandardImplicitConversionFromType(kind))
-                {
-                    return true;
-                }
+            // <Metalama> unused (see above)
+            // static bool isStandardImplicitConversionFromExpression(ConversionKind kind)
+            // {
+            //     if (IsStandardImplicitConversionFromType(kind))
+            //     {
+            //         return true;
+            //     }
 
-                switch (kind)
-                {
-                    case ConversionKind.NullLiteral:
-                    case ConversionKind.AnonymousFunction:
-                    case ConversionKind.MethodGroup:
-                    case ConversionKind.ImplicitEnumeration:
-                    case ConversionKind.ImplicitDynamic:
-                    case ConversionKind.ImplicitNullToPointer:
-                    case ConversionKind.ImplicitTupleLiteral:
-                    case ConversionKind.StackAllocToPointerType:
-                    case ConversionKind.StackAllocToSpanType:
-                    case ConversionKind.InlineArray:
-                    case ConversionKind.InterpolatedString:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
+            //     switch (kind)
+            //     {
+            //         case ConversionKind.NullLiteral:
+            //         case ConversionKind.AnonymousFunction:
+            //         case ConversionKind.MethodGroup:
+            //         case ConversionKind.ImplicitEnumeration:
+            //         case ConversionKind.ImplicitDynamic:
+            //         case ConversionKind.ImplicitNullToPointer:
+            //         case ConversionKind.ImplicitTupleLiteral:
+            //         case ConversionKind.StackAllocToPointerType:
+            //         case ConversionKind.StackAllocToSpanType:
+            //         case ConversionKind.InlineArray:
+            //         case ConversionKind.InterpolatedString:
+            //             return true;
+            //         default:
+            //             return false;
+            //     }
+            // }
+            // </Metalama>
         }
 
         private Conversion ClassifyStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

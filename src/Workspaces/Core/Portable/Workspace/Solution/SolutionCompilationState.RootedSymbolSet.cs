@@ -9,7 +9,8 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
-using SecondaryReferencedSymbol = (int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
+// <Metalama> Changed from C# 12 using for a tuple to direct usages of the tuple type in this file, so avoid breaking .Net 6 JSON source generator
+// using SecondaryReferencedSymbol = (int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
 
 internal partial class SolutionCompilationState
 {
@@ -58,11 +59,11 @@ internal partial class SolutionCompilationState
         /// cref="Compilation.References"/>.  Sorted by the hash code produced by <see
         /// cref="ReferenceEqualityComparer.GetHashCode(object?)"/> so that it can be binary searched efficiently.
         /// </summary>
-        public readonly ImmutableArray<SecondaryReferencedSymbol> SecondaryReferencedSymbols;
+        public readonly ImmutableArray<(int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo)> SecondaryReferencedSymbols;
 
         private RootedSymbolSet(
             Compilation compilation,
-            ImmutableArray<SecondaryReferencedSymbol> secondaryReferencedSymbols)
+            ImmutableArray<(int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo)> secondaryReferencedSymbols)
         {
             Compilation = compilation;
             SecondaryReferencedSymbols = secondaryReferencedSymbols;
@@ -71,7 +72,7 @@ internal partial class SolutionCompilationState
         public static RootedSymbolSet Create(Compilation compilation)
         {
             // PERF: Preallocate this array so we don't have to resize it as we're adding assembly symbols.
-            using var _ = ArrayBuilder<SecondaryReferencedSymbol>.GetInstance(
+            using var _ = ArrayBuilder<(int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo)>.GetInstance(
                 compilation.ExternalReferences.Length + compilation.DirectiveReferences.Length, out var secondarySymbols);
 
             foreach (var reference in compilation.References)
