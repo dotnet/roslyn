@@ -1199,6 +1199,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
         var expectedDocumentName = "Inner.cs";
         var destinationDocumentText =
             """
+
             #if true
             public class Inner
             {
@@ -1292,6 +1293,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             """
             public partial class Goo
             {
+
                 #region Region
                 #endregion
             }
@@ -1354,6 +1356,8 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             """
             public partial class Goo
             {
+                #endregion
+
                 #region Region2
                 public class Bar
                 {

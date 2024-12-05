@@ -116,24 +116,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var root = SemanticDocument.Root;
             var projectToBeUpdated = document.Project;
             var documentEditor = await DocumentEditor.CreateAsync(document, CancellationToken).ConfigureAwait(false);
-            documentEditor.TrackNode(State.TypeNode);
 
             // Make the type chain above this new type partial.  Also, remove any 
             // attributes from the containing partial types.  We don't want to create
             // duplicate attributes on things.
             AddPartialModifiersToTypeChain(
                 documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
-
-            documentEditor.ReplaceNode(
-                State.TypeNode,
-                (currentNode, generator) =>
-                {
-                    var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
-
-                    // Trim leading blank lines from the type so we don't have an 
-                    // excessive number of them.
-                    return RemoveLeadingBlankLines(currentTypeNode);
-                });
 
             // remove things that are not being moved, from the forked document.
             var membersToRemove = GetMembersToRemove(root);
@@ -199,43 +187,15 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private async Task<Solution> RemoveTypeFromSourceDocumentAsync(Document sourceDocument)
         {
             var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, CancellationToken).ConfigureAwait(false);
-            documentEditor.TrackNode(State.TypeNode);
 
-            // Make the type chain above the type we're moving 'partial'. However, keep all the attributes on these
-            // types as theses are the original attributes and we don't want to mess with them. 
-            var hasLeadingDirective = State.TypeNode.GetLeadingTrivia().Any(t => t.IsDirective);
+            // Make the type chain above the type we're moving 'partial'.  
+            // However, keep all the attributes on these types as theses are the 
+            // original attributes and we don't want to mess with them. 
             AddPartialModifiersToTypeChain(documentEditor,
-                removeAttributesAndComments: false,
-                removeTypeInheritance: false,
-                removePrimaryConstructor: false);
+                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
+            documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            var newRoot = documentEditor.GetChangedRoot();
-            var typeNode = newRoot.GetCurrentNode(State.TypeNode)!;
-
-            var leadingTrivia = typeNode.GetLeadingTrivia();
-            var lastDirective = leadingTrivia.LastOrDefault(t => t.IsDirective);
-            var lastDirectiveIndex = leadingTrivia.IndexOf(lastDirective);
-            if (lastDirectiveIndex >= 0)
-            {
-                newRoot = newRoot.ReplaceSyntax(
-                    [typeNode], (_, _) => null!,
-                    [typeNode.GetLastToken().GetNextToken()], (nextToken, _) => nextToken.WithPrependedLeadingTrivia(leadingTrivia.Take(lastDirectiveIndex + 1)),
-                    trivia: null, computeReplacementTrivia: null);
-            }
-            else
-            {
-                newRoot = newRoot.RemoveNode(typeNode, SyntaxRemoveOptions.KeepNoTrivia);
-            }
-
-                //var removeOptions = hasLeadingDirective
-                //    ? SyntaxRemoveOptions.KeepLeadingTrivia
-                //    : SyntaxRemoveOptions.KeepNoTrivia;
-
-            var updatedDocument = sourceDocument.WithSyntaxRoot(newRoot!);
-
-//            documentEditor.RemoveNode(State.TypeNode, removeOptions);
-
-  //          var updatedDocument = documentEditor.GetChangedDocument();
+            var updatedDocument = documentEditor.GetChangedDocument();
             updatedDocument = await AddFileBannerHelpers.CopyBannerAsync(updatedDocument, sourceDocument.FilePath, sourceDocument, this.CancellationToken).ConfigureAwait(false);
 
             return updatedDocument.Project.Solution;
@@ -330,6 +290,16 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                     documentEditor.RemovePrimaryConstructor(node);
                 }
             }
+
+            documentEditor.ReplaceNode(State.TypeNode,
+                (currentNode, generator) =>
+                {
+                    var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
+
+                    // Trim leading blank lines from the type so we don't have an 
+                    // excessive number of them.
+                    return RemoveLeadingBlankLines(currentTypeNode);
+                });
         }
 
         private TTypeDeclarationSyntax RemoveLeadingBlankLines(

@@ -431,9 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         _directivesToKeep.Clear();
                     }
 
-                    var directivesInSpan = node.DescendantTrivia(span, n => n.ContainsDirectives, descendIntoTrivia: true)
-                                         .Where(tr => tr.IsDirective)
-                                         .Select(tr => (DirectiveTriviaSyntax)tr.GetStructure()!);
+                    var directivesInSpan = node
+                        .DescendantTrivia(span, n => n.ContainsDirectives, descendIntoTrivia: true)
+                        .Where(tr => tr.IsDirective)
+                        .Select(tr => (DirectiveTriviaSyntax)tr.GetStructure()!);
 
                     foreach (var directive in directivesInSpan)
                     {
@@ -465,7 +466,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                         if (_directivesToKeep.Contains(directive))
                         {
-                            AddResidualTrivia(SyntaxFactory.TriviaList(directive.ParentTrivia), requiresNewLine: true);
+                            var parentTrivia = directive.ParentTrivia;
+                            var parentToken = parentTrivia.Token;
+
+                            var triviaList = parentToken.LeadingTrivia.Contains(parentTrivia)
+                                ? parentToken.LeadingTrivia
+                                : parentToken.TrailingTrivia;
+                            var index = triviaList.IndexOf(parentTrivia);
+
+                            // If we're keeping a directive, and it's not at the start of the line, keep the whitespace
+                            // that precedes it as well.
+                            if (index >= 1 && triviaList[index - 1].Kind() == SyntaxKind.WhitespaceTrivia)
+                            {
+                                this.AddResidualTrivia(SyntaxFactory.TriviaList(
+                                    triviaList[index - 1], parentTrivia), requiresNewLine: true);
+                            }
+                            else
+                            {
+                                AddResidualTrivia(SyntaxFactory.TriviaList(parentTrivia), requiresNewLine: true);
+                            }
                         }
                     }
                 }
