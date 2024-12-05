@@ -23,7 +23,6 @@ internal enum VSInternalDataTipTags
 /// <summary>
 /// Class which represents debugger data tip response.
 /// </summary>
-[DataContract]
 internal sealed class VSInternalDataTip
 {
     /// <summary>
