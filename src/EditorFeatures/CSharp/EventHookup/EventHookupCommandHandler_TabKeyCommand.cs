@@ -53,12 +53,9 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         _threadingContext.ThrowIfNotOnUIThread();
         if (!TryExecuteCommand(args, nextHandler))
         {
+            EventHookupSessionManager.DismissExistingSessions();
             nextHandler();
         }
-
-        // We always dismiss the tracking session once a tab has gone through.  Either we didn't handle it (and
-        // nextHandler was called above).  Or we did handle it, in which case the bg async work owns the experience now.
-        EventHookupSessionManager.DismissExistingSessions();
     }
 
     private bool TryExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
