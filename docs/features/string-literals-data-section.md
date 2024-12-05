@@ -141,7 +141,7 @@ Similar to `ITokenDeferral.GetFieldForData`, this calls into `PrivateImplementat
 which is responsible for synthesizing the classes and helpers in a thread-safe and deterministic manner.
 
 There are implementations of various `Cci` interfaces which represent the metadata,
-rooted in a `DataStringHolder` which is the `INamespaceTypeDefinition` for the `<S>` class.
+rooted in a `DataStringHolder` which is the `INestedTypeDefinition` for the `<S>` class.
 
 These are implemented in `Microsoft.CodeAnalysis`.
 The alternative (used by inline arrays, for example)
