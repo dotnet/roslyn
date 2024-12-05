@@ -18,5 +18,7 @@ internal interface ILanguageDebugInfoService : ILanguageService
     /// pass to the debugger instead if no good span can be found.  For example, if the user hovers on "var" then we
     /// actually want to pass the fully qualified name of the type that 'var' binds to, to the debugger.
     /// </summary>
+    /// <param name="includeKind">Whether or not the <see cref="DebugDataTipInfo.Kind"/> should be computed or not. Can
+    /// be avoided from performance sensitive callers who do not need that information.</param>
     Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, bool includeKind, CancellationToken cancellationToken);
 }
