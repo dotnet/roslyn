@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -156,6 +157,189 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0064:  ret
                 }
                 """);
+        }
+
+        // PROTOTYPE: Test order of evaluation and side-effects for k:v pairs.
+
+        [Fact]
+        public void InferredType_ExpressionElement()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IDictionary<string, int> d = [default, new()];
+                        d.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[1:one, 2:two, 3:three]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredType_KeyValueElement()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IDictionary<string, int> d = [default:default, null:new()];
+                        d.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[1:one, 2:two, 3:three]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConversionError_ExpressionElement()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new object();
+                        IDictionary<int, int> d = [x, null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,36): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<int, int>'
+                //         IDictionary<int, int> z = [x, null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "System.Collections.Generic.KeyValuePair<int, int>").WithLocation(7, 36),
+                // (7,39): error CS0037: Cannot convert null to 'KeyValuePair<int, int>' because it is a non-nullable value type
+                //         IDictionary<int, int> z = [x, null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Collections.Generic.KeyValuePair<int, int>").WithLocation(7, 39));
+        }
+
+        [Fact]
+        public void ConversionError_KeyValueElement_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new object();
+                        var y = new object();
+                        IDictionary<string, int> d = [x:1, "2":y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,39): error CS0029: Cannot implicitly convert type 'object' to 'string'
+                //         IDictionary<string, int> d = [x:1, "2":y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "string").WithLocation(8, 39),
+                // (8,48): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                //         IDictionary<string, int> d = [x:1, "2":y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("object", "int").WithLocation(8, 48));
+        }
+
+        [Fact]
+        public void ConversionError_KeyValueElement_02()
+        {
+            // PROTOTYPE: Why aren't we reporting an error for new() since string doesn't have an
+            // empty .ctor? Compare with ConversionError_PROTOTYPE_01 below.
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IDictionary<string, int> d = [new():null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,45): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         IDictionary<string, int> d = [new():null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(6, 45));
+        }
+
+        [Fact]
+        public void ConversionError_PROTOTYPE_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IList<string> z = [new()];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,28): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //         IList<string> z = [new()];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void ConversionError_SpreadElement()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IDictionary<string, int> d = [..new()];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,41): error CS8754: There is no target type for 'new()'
+                //         IDictionary<string, int> d = [..new()];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 41));
+        }
+
+        [Fact]
+        public void Lock()
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new Lock();
+                        var y = new Lock();
+                        object[] a = [x];
+                        IDictionary<object, object> d = [x:1, 2:y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (9,23): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+                //         object[] a = [x];
+                Diagnostic(ErrorCode.WRN_ConvertingLock, "x").WithLocation(9, 23),
+                // (10,42): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+                //         IDictionary<object, object> d = [x:1, 2:y];
+                Diagnostic(ErrorCode.WRN_ConvertingLock, "x").WithLocation(10, 42),
+                // (10,49): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+                //         IDictionary<object, object> d = [x:1, 2:y];
+                Diagnostic(ErrorCode.WRN_ConvertingLock, "y").WithLocation(10, 49));
         }
     }
 }

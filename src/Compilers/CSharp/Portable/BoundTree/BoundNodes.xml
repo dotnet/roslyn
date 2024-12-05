@@ -1952,6 +1952,7 @@
     <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
+  <!-- A key:value pair element within a collection expression. -->
   <Node Name="BoundKeyValuePairElement" Base="BoundNode">
     <Field Name="Key" Type="BoundExpression"/>
     <Field Name="Value" Type="BoundExpression"/>

@@ -277,6 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ensureAllUnderlyingConversionsChecked(syntax, source, conversion, wasCompilerGenerated, destination, diagnostics);
 
+                    // PROTOTYPE: We're not going through this code path with the individual Key and Value
+                    // conversions for a KeyValuePair conversion, so we won't report this warning, when
+                    // converting Key from Lock to object for instance.
                     if (conversion.Kind is ConversionKind.ImplicitReference or ConversionKind.ExplicitReference &&
                         source.Type is { } sourceType &&
                         sourceType.IsWellKnownTypeLock())
@@ -1779,11 +1782,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = node.Syntax;
             var builder = ArrayBuilder<BoundNode>.GetInstance(node.Elements.Length);
+            bool reportNoTargetType = !targetType.IsErrorType();
             foreach (var element in node.Elements)
             {
-                var result = element is BoundExpression expression ?
-                    BindToNaturalType(expression, diagnostics, reportNoTargetType: !targetType.IsErrorType()) :
-                    element;
+                var result = element switch
+                {
+                    BoundCollectionExpressionSpreadElement spreadElement => (BoundNode)spreadElement,
+                    BoundKeyValuePairElement keyValuePairElement =>
+                        keyValuePairElement.Update(
+                            BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
+                            BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
+                    _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
+                };
                 builder.Add(result);
             }
             return new BoundCollectionExpression(
@@ -1878,8 +1888,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKeyValuePairElement keyValuePairElement:
                             if (usesKeyValuePairs)
                             {
-                                // PROTOTYPE: Report conversion errors.
-                                Debug.Assert(false);
+                                generateImplicitConversionError(diagnostics, keyValuePairElement.Key, keyType.Type, ref useSiteInfo, ref reportedErrors);
+                                generateImplicitConversionError(diagnostics, keyValuePairElement.Value, valueType.Type, ref useSiteInfo, ref reportedErrors);
                             }
                             else
                             {
@@ -1888,14 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         default:
-                            {
-                                Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
-                                if (!elementConversion.Exists)
-                                {
-                                    GenerateImplicitConversionError(diagnostics, element.Syntax, elementConversion, (BoundExpression)element, elementType);
-                                    reportedErrors = true;
-                                }
-                            }
+                            generateImplicitConversionError(diagnostics, (BoundExpression)element, elementType, ref useSiteInfo, ref reportedErrors);
                             break;
                     }
                 }
@@ -1908,6 +1911,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return;
+
+            void generateImplicitConversionError(
+                BindingDiagnosticBag diagnostics,
+                BoundExpression expression,
+                TypeSymbol targetType,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                ref bool reportedErrors)
+            {
+                Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression(expression, targetType, ref useSiteInfo);
+                if (!elementConversion.Exists)
+                {
+                    GenerateImplicitConversionError(diagnostics, expression.Syntax, elementConversion, expression, targetType);
+                    reportedErrors = true;
+                }
+            }
         }
 
         private MethodSymbol? GetCollectionBuilderMethod(
