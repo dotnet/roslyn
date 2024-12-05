@@ -57,6 +57,8 @@ internal sealed partial class EventHookupSessionManager(
         EventHookupSession analyzedSession, string eventName, CancellationToken cancellationToken)
     {
         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return;
 
         var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
