@@ -5029,60 +5029,52 @@ class Derived : A { }
         {
             var source = """
 object o = null;
-_ = o is var x1 or not A or B; // 1, 2, 3, 4
-_ = o is var x2 or not (A or B); // 5, 6, 7
+_ = o is var x1 or not A or B; // 1, 2
+_ = o is var x2 or not (A or B); // 3, 4
 
 _ = o switch
 {
     var x3 => 42,
     not A or B => 43, // 8, TODO2 handle switches
-    _ => 44 // 9
+    _ => 44 // 5
 };
 
 _ = o switch
 {
     var x4 => 42,
-    not (A or B) => 43, // 10
-    _ => 44 // 11
+    not (A or B) => 43, // 6
+    _ => 44 // 7
 };
 
 class A { }
 class B { }
 """;
+            // TODO2 should we also report A and B as redundant (in addition to error)?
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                // _ = o is var x1 or not A or B; // 1, 2, 3, 4
+                // _ = o is var x1 or not A or B; // 1, 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is var x1 or not A or B").WithArguments("object").WithLocation(2, 5),
                 // (2,14): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                // _ = o is var x1 or not A or B; // 1, 2, 3, 4
+                // _ = o is var x1 or not A or B; // 1, 2
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 14),
-                // (2,24): warning CS9268: The pattern is redundant.
-                // _ = o is var x1 or not A or B; // 1, 2, 3, 4
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "A").WithLocation(2, 24),
-                // (2,29): warning CS9268: The pattern is redundant.
-                // _ = o is var x1 or not A or B; // 1, 2, 3, 4
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 29),
                 // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                // _ = o is var x2 or not (A or B); // 5, 6, 7
+                // _ = o is var x2 or not (A or B); // 3, 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is var x2 or not (A or B)").WithArguments("object").WithLocation(3, 5),
                 // (3,14): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                // _ = o is var x2 or not (A or B); // 5, 6, 7
+                // _ = o is var x2 or not (A or B); // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(3, 14),
-                // (3,25): warning CS9268: The pattern is redundant.
-                // _ = o is var x2 or not (A or B); // 5, 6, 7
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "A or B").WithLocation(3, 25),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     not A or B => 43, // 8, TODO2 handle switches
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not A or B").WithLocation(8, 5),
                 // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     _ => 44 // 9
+                //     _ => 44 // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(9, 5),
                 // (15,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     not (A or B) => 43, // 10
+                //     not (A or B) => 43, // 6
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not (A or B)").WithLocation(15, 5),
                 // (16,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     _ => 44 // 11
+                //     _ => 44 // 7
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(16, 5));
         }
 
