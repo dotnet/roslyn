@@ -41,13 +41,11 @@ internal sealed class DataTipRangeHandler()
         if (info.IsDefault)
             return null;
 
-        var result = new VSInternalDataTip();
-        if (info.Kind == DebugDataTipInfoKind.LinqExpression)
-            result.DataTipTags = VSInternalDataTipTags.LinqExpression;
-
-        result.HoverRange = ProtocolConversions.TextSpanToRange(info.Span, text);
-        result.ExpressionRange = ProtocolConversions.TextSpanToRange(info.ExpressionSpan, text);
-
-        return result;
+        return new VSInternalDataTip
+        {
+            DataTipTags = info.Kind == DebugDataTipInfoKind.LinqExpression ? VSInternalDataTipTags.LinqExpression : 0,
+            HoverRange = ProtocolConversions.TextSpanToRange(info.Span, text),
+            ExpressionRange = ProtocolConversions.TextSpanToRange(info.ExpressionSpan, text),
+        };
     }
 }

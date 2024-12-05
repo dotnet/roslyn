@@ -43,7 +43,7 @@ public class DataTipRangeHandlerTests(ITestOutputHelper testOutputHelper)
         var result = await RunAsync(testLspServer, caret);
         Assert.NotNull(result);
 
-        AssertJsonEquals(new LSP.VSInternalDataTip
+        Assert.Equal(new LSP.VSInternalDataTip
         {
             DataTipTags = LSP.VSInternalDataTipTags.LinqExpression,
             HoverRange = new LSP.Range
