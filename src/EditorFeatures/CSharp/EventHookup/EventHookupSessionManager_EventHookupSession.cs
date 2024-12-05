@@ -115,7 +115,7 @@ internal sealed partial class EventHookupSessionManager
 
             async Task ContinueOnMainThreadAsync(Task<string?> eventNameTask)
             {
-                var eventName = await eventNameTask.ConfigureAwait(true);
+                var eventName = await eventNameTask.ConfigureAwait(false);
                 if (eventName != null)
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
