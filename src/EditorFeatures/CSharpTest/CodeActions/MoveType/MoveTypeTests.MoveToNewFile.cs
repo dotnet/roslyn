@@ -1179,27 +1179,26 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             #endif
             """;
         var codeAfterMove =
-        """
-        using System;
+            """
+            using System;
 
-        namespace N
-        {
-            class Program
+            namespace N
             {
-                static void Main()
+                class Program
                 {
+                    static void Main()
+                    {
+                    }
                 }
             }
-        }
 
-        #if true
-        #endif
-        """;
+            #if true
+            #endif
+            """;
 
         var expectedDocumentName = "Inner.cs";
         var destinationDocumentText =
             """
-
             #if true
             public class Inner
             {
@@ -1237,22 +1236,22 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
             """;
         var codeAfterMove =
-        """
-        using System;
+            """
+            using System;
 
-        namespace N
-        {
-            partial class Program
+            namespace N
             {
-                static void Main()
+                partial class Program
                 {
-                }
+                    static void Main()
+                    {
+                    }
 
-        #if true
-        #endif
+            #if true
+            #endif
+                }
             }
-        }
-        """;
+            """;
 
         var expectedDocumentName = "Inner.cs";
         var destinationDocumentText =
@@ -1268,6 +1267,88 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                     }
             #endif
                 }
+            }
+            """;
+
+        await TestMoveTypeToNewFileAsync(
+            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+    public async Task MoveTypeWithDirectives3()
+    {
+        var code =
+            """
+            public class Goo
+            {
+                #region Region
+                public class [||]Bar
+                {
+                }
+                #endregion
+            }
+            """;
+        var codeAfterMove =
+            """
+            public class Goo
+            {
+                #region Region
+                #endregion
+            }
+            """;
+
+        var expectedDocumentName = "Bar.cs";
+        var destinationDocumentText =
+            """
+            public class Bar
+            {
+            }
+            """;
+
+        await TestMoveTypeToNewFileAsync(
+            code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+    public async Task MoveTypeWithDirectives4()
+    {
+        var code =
+            """
+            public class Goo
+            {
+                #region Region1
+                public class NotBar
+                {
+                }
+                #endregion
+
+                #region Region2
+                public class [||]Bar
+                {
+                }
+                #endregion
+            }
+            """;
+        var codeAfterMove =
+            """
+            public class Goo
+            {
+                #region Region1
+                public class NotBar
+                {
+                }
+                #endregion
+            
+                #region Region2
+                #endregion
+            }
+            """;
+
+        var expectedDocumentName = "Bar.cs";
+        var destinationDocumentText =
+            """
+            public class Bar
+            {
             }
             """;
 

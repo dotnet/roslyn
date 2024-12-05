@@ -121,7 +121,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // attributes from the containing partial types.  We don't want to create
             // duplicate attributes on things.
             AddPartialModifiersToTypeChain(
-                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
+                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true, removeLeadingBlankLines: true);
 
             // remove things that are not being moved, from the forked document.
             var membersToRemove = GetMembersToRemove(root);
@@ -188,12 +188,15 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         {
             var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, CancellationToken).ConfigureAwait(false);
 
-            // Make the type chain above the type we're moving 'partial'.  
-            // However, keep all the attributes on these types as theses are the 
-            // original attributes and we don't want to mess with them. 
+            // Make the type chain above the type we're moving 'partial'. However, keep all the attributes on these
+            // types as theses are the original attributes and we don't want to mess with them. 
+            var hasLeadingDirective = State.TypeNode.GetLeadingTrivia().Any(t => t.IsDirective);
             AddPartialModifiersToTypeChain(documentEditor,
-                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
-            var removeOptions = State.TypeNode.GetLeadingTrivia().Any(d => d.IsDirective)
+                removeAttributesAndComments: false,
+                removeTypeInheritance: false,
+                removePrimaryConstructor: false,
+                removeLeadingBlankLines: !hasLeadingDirective);
+            var removeOptions = hasLeadingDirective
                 ? SyntaxRemoveOptions.KeepLeadingTrivia
                 : SyntaxRemoveOptions.KeepNoTrivia;
 
@@ -263,7 +266,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             DocumentEditor documentEditor,
             bool removeAttributesAndComments,
             bool removeTypeInheritance,
-            bool removePrimaryConstructor)
+            bool removePrimaryConstructor,
+            bool removeLeadingBlankLines)
         {
             var semanticFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
             var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -295,7 +299,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 }
             }
 
-            if (!State.TypeNode.GetLeadingTrivia().Any(t => t.IsDirective))
+            if (removeLeadingBlankLines)
             {
                 documentEditor.ReplaceNode(
                     State.TypeNode,
