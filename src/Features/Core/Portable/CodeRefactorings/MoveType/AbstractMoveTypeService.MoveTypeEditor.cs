@@ -193,7 +193,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // original attributes and we don't want to mess with them. 
             AddPartialModifiersToTypeChain(documentEditor,
                 removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
-            documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+            var removeOptions = State.TypeNode.GetLeadingTrivia().Any(d => d.IsDirective)
+                ? SyntaxRemoveOptions.KeepLeadingTrivia
+                : SyntaxRemoveOptions.KeepNoTrivia;
+
+            documentEditor.RemoveNode(State.TypeNode, removeOptions);
 
             var updatedDocument = documentEditor.GetChangedDocument();
             updatedDocument = await AddFileBannerHelpers.CopyBannerAsync(updatedDocument, sourceDocument.FilePath, sourceDocument, this.CancellationToken).ConfigureAwait(false);
@@ -291,15 +295,19 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 }
             }
 
-            documentEditor.ReplaceNode(State.TypeNode,
-                (currentNode, generator) =>
-                {
-                    var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
+            if (!State.TypeNode.GetLeadingTrivia().Any(t => t.IsDirective))
+            {
+                documentEditor.ReplaceNode(
+                    State.TypeNode,
+                    (currentNode, generator) =>
+                    {
+                        var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
 
-                    // Trim leading blank lines from the type so we don't have an 
-                    // excessive number of them.
-                    return RemoveLeadingBlankLines(currentTypeNode);
-                });
+                        // Trim leading blank lines from the type so we don't have an 
+                        // excessive number of them.
+                        return RemoveLeadingBlankLines(currentTypeNode);
+                    });
+            }
         }
 
         private TTypeDeclarationSyntax RemoveLeadingBlankLines(
