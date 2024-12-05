@@ -30,9 +30,7 @@ internal sealed class DataTipRangeHandler()
     {
         var document = context.GetRequiredDocument();
 
-        var service = document.GetLanguageService<ILanguageDebugInfoService>();
-        if (service is null)
-            return null;
+        var service = document.GetRequiredLanguageService<ILanguageDebugInfoService>();
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
