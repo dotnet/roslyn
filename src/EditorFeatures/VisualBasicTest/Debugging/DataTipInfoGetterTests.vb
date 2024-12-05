@@ -2,50 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
+Imports Microsoft.CodeAnalysis.Test.Utilities.Debugging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
     Public NotInheritable Class DataTipInfoGetterTests
-        Private Shared Async Function TestNoDataTipAsync(input As XElement, Optional includeKind As Boolean = False) As Task
-            Dim parsedInput As String = Nothing
-            Dim expectedPosition As Integer
-            MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
+        Inherits AbstractDataTipInfoGetterTests
 
-            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
-                                      Async Function(document, position)
-                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, includeKind, CancellationToken.None)
-                                          Assert.True(result.IsDefault)
-                                      End Function)
-        End Function
-
-        Private Shared Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing, Optional includeKind As Boolean = False) As Task
-            Dim parsedInput As String = Nothing
-            Dim expectedPosition As Integer
-            Dim textSpan As TextSpan
-            MarkupTestFile.GetPositionAndSpan(input.NormalizedValue, parsedInput, expectedPosition, textSpan)
-
-            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
-                                      Async Function(document, position)
-                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, includeKind, CancellationToken.None)
-                                          Assert.False(result.IsDefault)
-                                          Assert.Equal(textSpan, result.Span)
-                                          If Not String.IsNullOrEmpty(expectedText) Then
-                                              Assert.Equal(expectedText, result.Text)
-                                          End If
-                                      End Function)
-        End Function
-
-        Private Shared Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
-                Dim debugInfo = New VisualBasicLanguageDebugInfoService()
-                Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
-            End Using
+        Protected Overrides Function CreateWorkspace(markup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(markup)
         End Function
 
         <Fact>

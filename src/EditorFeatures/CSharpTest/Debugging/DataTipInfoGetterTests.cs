@@ -2,58 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Debugging;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities.Debugging;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-public sealed class DataTipInfoGetterTests
+public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
 {
-    private static async Task TestAsync(string markup, string? expectedText = null, bool includeKind = false)
-    {
-        await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
-        {
-            var result = await DataTipInfoGetter.GetInfoAsync(document, position, includeKind, CancellationToken.None);
-
-            Assert.Equal(expectedSpan, result.Span);
-            Assert.Equal(expectedText, result.Text);
-        });
-    }
-
-    private static async Task TestNoDataTipAsync(string markup, bool includeKind = false)
-    {
-        await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
-        {
-            var result = await DataTipInfoGetter.GetInfoAsync(document, position, includeKind, CancellationToken.None);
-            Assert.True(result.IsDefault);
-        });
-    }
-
-    private static async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
-    {
-        using var workspace = EditorTestWorkspace.CreateCSharp(markup);
-        var testHostDocument = workspace.Documents.Single();
-        var position = testHostDocument.CursorPosition!.Value;
-        var expectedSpan = testHostDocument.SelectedSpans.Any()
-            ? testHostDocument.SelectedSpans.Single()
-            : (TextSpan?)null;
-
-        await continuation(
-            workspace.CurrentSolution.Projects.First().Documents.First(),
-            position,
-            expectedSpan);
-    }
+    protected override EditorTestWorkspace CreateWorkspace(string markup)
+        => EditorTestWorkspace.CreateCSharp(markup);
 
     [Fact]
     public async Task TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
