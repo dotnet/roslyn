@@ -15213,7 +15213,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "h3").WithArguments("h3").WithLocation(29, 16));
         }
 
-        [WorkItem(63306, "https://github.com/dotnet/roslyn/issues/63306")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -15251,7 +15250,6 @@ class Program
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/63306: Should report an error in each case.
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net50);
             comp.VerifyDiagnostics();
         }
@@ -15515,9 +15513,17 @@ class Program
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/63306: Should report an error that a reference to y will escape F1() and F2().
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (14,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "{1}").WithLocation(14, 18),
+                // (14,18): error CS8350: This combination of arguments to 'CustomHandler.AppendFormatted(int, in int)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return $"{1}";
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "{1}").WithArguments("CustomHandler.AppendFormatted(int, in int)", "y").WithLocation(14, 18),
+                // (19,16): error CS8352: Cannot use variable 'h2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h2").WithArguments("h2").WithLocation(19, 16));
         }
 
         [WorkItem(67070, "https://github.com/dotnet/roslyn/issues/67070")]
