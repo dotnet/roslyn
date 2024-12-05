@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal class KeyedStack<T, R>
+    internal sealed class KeyedStack<T, R>
         where T : notnull
     {
         private readonly Dictionary<T, Stack<R>> _dict = new Dictionary<T, Stack<R>>();
+
+        public bool ContainsKey(T key)
+        {
+            return _dict.ContainsKey(key);
+        }
 
         public void Push(T key, R value)
         {
@@ -27,6 +27,18 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             store.Push(value);
+        }
+
+        public bool TryPeek(T key, [MaybeNullWhen(returnValue: false)] out R value)
+        {
+            if (_dict.TryGetValue(key, out var stack) && stack.Count > 0)
+            {
+                value = stack.Peek();
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         public bool TryPop(T key, [MaybeNullWhen(returnValue: false)] out R value)

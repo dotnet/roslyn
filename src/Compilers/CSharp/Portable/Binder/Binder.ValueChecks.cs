@@ -4480,7 +4480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
-                    if (_placeholderScopes?.TryGetValue((BoundInterpolatedStringHandlerPlaceholder)expr, out var scope) == true)
+                    if (_placeholderScopes?.TryPeek((BoundInterpolatedStringHandlerPlaceholder)expr, out var scope) == true)
                     {
                         return scope;
                     }
@@ -5710,7 +5710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (part is BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod } call)
                 {
-                    using var _ = new PlaceholderRegion(this, [((BoundInterpolatedStringHandlerPlaceholder)call.ReceiverOpt, escapeTo)]);
+                    using var _ = new PlaceholderRegion(this, [((BoundInterpolatedStringHandlerPlaceholder)call.ReceiverOpt, escapeTo)], overwriteExistingTemporarily: true);
                     result &= CheckInvocationArgMixing(
                         call.Syntax,
                         MethodInfo.Create(call.Method),
