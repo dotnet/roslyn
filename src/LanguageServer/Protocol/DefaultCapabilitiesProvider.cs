@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
+                DataTipRangeProvider = true,
 
                 // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
                 SupportsDiagnosticRequests = false,
