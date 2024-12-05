@@ -128,55 +128,65 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var textView = args.TextView;
         var subjectBuffer = args.SubjectBuffer;
 
-        var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        using var waitContext = factory.Create(
-            textView,
-            applicableToSpan,
-            CSharpEditorResources.Generating_event);
-
-        var cancellationToken = waitContext.UserCancellationToken;
-
-        var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
-            document, eventNameTask, initialCaretPoint.Position, cancellationToken).ConfigureAwait(true);
-        if (solutionAndRenameSpan is null)
-            return;
-
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        // If anything changed in the view between computation and application, bail out.
-        if (applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
-            textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
+        if (!await TryExecuteCommandAsync().ConfigureAwait(true))
         {
-            return;
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
+            // then attempt to send the tab through to the editor.  If other changes went through, don't send the
+            // tab through as it's likely to make things worse.
+            if (applicableToSpan.Snapshot.Version == subjectBuffer.CurrentSnapshot.Version &&
+                textView.GetCaretPoint(subjectBuffer) == initialCaretPoint)
+            {
+                nextHandler();
+            }
         }
 
-        // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        waitContext.CancelOnEdit = false;
+        return;
 
-        var workspace = document.Project.Solution.Workspace;
-        if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))
-            return;
-
-        var renameSpan = solutionAndRenameSpan.Value.renameSpan;
-        if (_inlineRenameService.ActiveSession is null)
+        async Task<bool> TryExecuteCommandAsync()
         {
-            var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
-            _inlineRenameService.StartInlineSession(updatedDocument, renameSpan, cancellationToken);
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var waitContext = factory.Create(
+                textView,
+                applicableToSpan,
+                CSharpEditorResources.Generating_event);
+
+            var cancellationToken = waitContext.UserCancellationToken;
+
+            var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
+                document, eventNameTask, initialCaretPoint.Position, cancellationToken).ConfigureAwait(true);
+            if (solutionAndRenameSpan is null)
+                return false;
+
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            // If anything changed in the view between computation and application, bail out.
+            if (applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
+                textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
+            {
+                return false;
+            }
+
+            // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
+            waitContext.CancelOnEdit = false;
+
+            var workspace = document.Project.Solution.Workspace;
+            if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))
+                return false;
+
+            var renameSpan = solutionAndRenameSpan.Value.renameSpan;
+            if (_inlineRenameService.ActiveSession is null)
+            {
+                var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
+                _inlineRenameService.StartInlineSession(updatedDocument, renameSpan, cancellationToken);
+            }
+
+            textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
+            return true;
         }
-
-        textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
-        // then attempt to send the tab through to the editor.  If other changes went through, don't send the
-        // tab through as it's likely to make things worse.
-        if (applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
-            textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
-        {
-            return;
-        }
-
-        nextHandler();
     }
 
     private static async Task<(Solution solution, TextSpan renameSpan)?> TryGetNewSolutionWithAddedMethodAsync(
