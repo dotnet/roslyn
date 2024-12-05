@@ -29,7 +29,7 @@ internal abstract class AbstractDataTipInfoGetter<
 
             var isLinqExpression = false;
             while (expression.Parent is TMemberExpressionSyntax { Parent: TInvocationExpressionSyntax invocation } &&
-                   IsLinqExtensionMethod(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol))
+                   IsLinqExtensionMethod(semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol))
             {
                 expression = invocation;
                 isLinqExpression = true;

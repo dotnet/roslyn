@@ -508,4 +508,59 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestLinq1()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:$$[|args|].Select(a => a.ToString())|};
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq2()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:[|args.$$Select|](a => a.ToString())|};
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq3()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:$$[|args|].Select(a => a.ToString()).Where(a => a.Length >= 0)|};
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq4()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:[|args.$$Select|](a => a.ToString()).Where(a => a.Length >= 0)|};
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq5()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:[|args.Select(a => a.ToString()).$$Where|](a => a.Length >= 0)|};
+            """);
+    }
 }
