@@ -161,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void FreeLocal(ILocalSymbolInternal symbol)
         {
             var slot = GetLocal(symbol);
-            LocalMap.Remove(symbol);
+            var removed = LocalMap.Remove(symbol);
+            Debug.Assert(removed, $"Attempted to free '{symbol}' more than once.");
             FreeSlot(slot);
         }
 
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(slot.Name == null);
 
-            if (_nonReusableLocals?.Contains(slot) != true)
+            if (_nonReusableLocals?.Remove(slot) != true)
             {
                 FreeSlots.Push(new LocalSignature(slot.Type, slot.Constraints), slot);
             }
