@@ -13,8 +13,8 @@ internal class RazorProvideDynamicFileResponse
     [JsonPropertyName("csharpDocument")]
     public required TextDocumentIdentifier CSharpDocument { get; set; }
 
-    [JsonPropertyName("edits")]
-    public ServerTextChange[]? Edits { get; set; }
+    [JsonPropertyName("updates")]
+    public RazorDynamicFileUpdate[]? Updates { get; set; }
 
     [JsonPropertyName("checksum")]
     public required string Checksum { get; set; }
