@@ -19,19 +19,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
     Public Class DataTipInfoGetterTests
 
-        Private Shared Async Function TestNoDataTipAsync(input As XElement) As Task
+        Private Shared Async Function TestNoDataTipAsync(input As XElement, Optional includeKind As Boolean = False) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
 
             Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
                                       Async Function(document, position)
-                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
+                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, includeKind, CancellationToken.None)
                                           Assert.True(result.IsDefault)
                                       End Function)
         End Function
 
-        Private Shared Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
+        Private Shared Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing, Optional includeKind As Boolean = False) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             Dim textSpan As TextSpan
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
 
             Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
                                       Async Function(document, position)
-                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
+                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, includeKind, CancellationToken.None)
                                           Assert.False(result.IsDefault)
                                           Assert.Equal(textSpan, result.Span)
                                           If Not String.IsNullOrEmpty(expectedText) Then
