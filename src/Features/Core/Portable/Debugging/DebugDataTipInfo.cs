@@ -6,11 +6,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Debugging;
 
-internal readonly struct DebugDataTipInfo(TextSpan span, string text)
+internal enum DebugDataTipInfoKind
 {
-    public readonly TextSpan Span = span;
-    public readonly string Text = text;
+    None,
+    LinqExpression,
+}
 
+internal readonly record struct DebugDataTipInfo(
+    TextSpan Span, string? Text, DebugDataTipInfoKind Kind = DebugDataTipInfoKind.None)
+{
     public bool IsDefault
         => Span.Length == 0 && Span.Start == 0 && Text == null;
 }

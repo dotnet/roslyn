@@ -24,7 +24,7 @@ internal enum VSInternalDataTipTags
 /// Class which represents debugger data tip response.
 /// </summary>
 [DataContract]
-internal class VSInternalDataTip
+internal sealed class VSInternalDataTip
 {
     /// <summary>
     /// Gets or sets the value which indicates the applicable hover range within the document.
