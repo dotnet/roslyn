@@ -458,104 +458,92 @@ public sealed class DataTipInfoGetterTests
             """);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
-    public async Task TestConditionalAccessExpression()
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
+    // One level.
+    [InlineData("[|Me?.$$B|]")]
+    // Two levels.
+    [InlineData("[|Me?.$$B|].C")]
+    [InlineData("[|Me?.B.$$C|]")]
+    [InlineData("[|Me.$$B|]?.C")]
+    [InlineData("[|Me.B?.$$C|]")]
+    [InlineData("[|Me?.$$B|]?.C")]
+    [InlineData("[|Me?.B?.$$C|]")]
+    // Three levels.
+    [InlineData("[|Me?.$$B|].C.D")]
+    [InlineData("[|Me?.B.$$C|].D")]
+    [InlineData("[|Me?.B.C.$$D|]")]
+    [InlineData("[|Me.$$B|]?.C.D")]
+    [InlineData("[|Me.B?.$$C|].D")]
+    [InlineData("[|Me.B?.C.$$D|]")]
+    [InlineData("[|Me.$$B|].C?.D")]
+    [InlineData("[|Me.B.$$C|]?.D")]
+    [InlineData("[|Me.B.C?.$$D|]")]
+    [InlineData("[|Me?.$$B|]?.C.D")]
+    [InlineData("[|Me?.B?.$$C|].D")]
+    [InlineData("[|Me?.B?.C.$$D|]")]
+    [InlineData("[|Me?.$$B|].C?.D")]
+    [InlineData("[|Me?.B.$$C|]?.D")]
+    [InlineData("[|Me?.B.C?.$$D|]")]
+    [InlineData("[|Me.$$B|]?.C?.D")]
+    [InlineData("[|Me.B?.$$C|]?.D")]
+    [InlineData("[|Me.B?.C?.$$D|]")]
+    [InlineData("[|Me?.$$B|]?.C?.D")]
+    [InlineData("[|Me?.B?.$$C|]?.D")]
+    [InlineData("[|Me?.B?.C?.$$D|]")]
+    public async Task TestConditionalAccessExpression(string data)
     {
-        var sourceTemplate = """
+        await TestAsync($$"""
             class A
-            {{
+            {
                 B B;
 
                 object M()
-                {{
-                    return {0};
-                }}
-            }}
+                {
+                    return {{data}};
+                }
+            }
 
             class B
-            {{
+            {
                 C C;
-            }}
+            }
 
             class C
-            {{
+            {
                 D D;
-            }}
+            }
 
             class D
-            {{
-            }}
-            """;
-
-        // One level.
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]"));
-
-        // Two levels.
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|]"));
-
-        // Three levels.
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|].D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.C.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|].D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.C.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|].C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B.C?.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|].D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.C?.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.C?.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
+            {
+            }
+            """);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
-    public async Task TestConditionalAccessExpression_Trivia()
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
+    [InlineData("/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/")]
+    [InlineData("/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/")]
+    [InlineData("/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/")]
+    public async Task TestConditionalAccessExpression_Trivia(string data)
     {
-        var sourceTemplate = """
+        await TestAsync($$"""
             class A
-            {{
+            {
                 B B;
 
                 object M()
-                {{
-                    return {0};
-                }}
-            }}
+                {
+                    return {{data}};
+                }
+            }
 
             class B
-            {{
+            {
                 C C;
-            }}
+            }
 
             class C
-            {{
-            }}
-            """;
-
-        await TestAsync(string.Format(sourceTemplate, "/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/"));
-        await TestAsync(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/"));
-        await TestAsync(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/"));
+            {
+            }
+            """);
     }
 }

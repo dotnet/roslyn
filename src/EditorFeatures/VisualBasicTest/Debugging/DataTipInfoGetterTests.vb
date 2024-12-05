@@ -3,22 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
-
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-    Public Class DataTipInfoGetterTests
-
+    Public NotInheritable Class DataTipInfoGetterTests
         Private Shared Async Function TestNoDataTipAsync(input As XElement, Optional includeKind As Boolean = False) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
