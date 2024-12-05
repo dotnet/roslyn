@@ -46,8 +46,8 @@ internal sealed partial class EventHookupSessionManager
         // For testing purposes only! Should always be null except in tests.
         internal Mutex? TESTSessionHookupMutex = null;
 
-        private Task<string?>? _eventNameTask;
-        private CancellationTokenSource? _cancellationTokenSource;
+        private readonly Task<string?> _eventNameTask;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         public ITrackingSpan TrackingSpan
         {
@@ -79,7 +79,7 @@ internal sealed partial class EventHookupSessionManager
         public void CancelBackgroundTasks()
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource.Cancel();
         }
 
         public EventHookupSession(
@@ -97,6 +97,7 @@ internal sealed partial class EventHookupSessionManager
 
             _cancellationTokenSource = new();
             var cancellationToken = _cancellationTokenSource.Token;
+
             _textView = textView;
             _subjectBuffer = subjectBuffer;
             this.TESTSessionHookupMutex = testSessionHookupMutex;
@@ -113,32 +114,19 @@ internal sealed partial class EventHookupSessionManager
 
             return;
 
-            async Task ContinueOnMainThreadAsync(Task<string?> eventNameTask)
+            async Task ContinueOnMainThreadAsync(
+                Task<string?> eventNameTask)
             {
+                // Continue on the BG as the normal case is that we're not doing event hookup.  In that case, we don't
+                // want to come back to the UI thread unnecessarily.
                 var eventName = await eventNameTask.ConfigureAwait(false);
                 if (eventName != null)
-                {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                    commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this, eventName);
-                }
+                    await commandHandler.EventHookupSessionManager.EventHookupFoundInSessionAsync(this, eventName, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public (Task<string?> eventNameTask, CancellationTokenSource cancellationTokenSource) DetachEventNameTask()
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            Contract.ThrowIfNull(_eventNameTask);
-            Contract.ThrowIfNull(_cancellationTokenSource);
-
-            var eventNameTask = _eventNameTask;
-            var cancellationTokenSource = _cancellationTokenSource;
-
-            _eventNameTask = null;
-            _cancellationTokenSource = null;
-
-            return (eventNameTask, cancellationTokenSource);
-        }
+        public Task<string?> GetEventNameAsync()
+            => _eventNameTask;
 
         private async Task<string?> DetermineIfEventHookupAndGetHandlerNameAsync(Document document, int position, CancellationToken cancellationToken)
         {
