@@ -66,7 +66,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             [||]class Class1 { }
              class Class2 { }
             """;
-        var codeAfterMove = @" class Class2 { }";
+        var codeAfterMove = @"class Class2 { }";
 
         var expectedDocumentName = "Class1.cs";
         var destinationDocumentText = """
@@ -1344,8 +1344,8 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 public class NotBar
                 {
                 }
+
                 #endregion
-            
                 #region Region2
                 #endregion
             }
