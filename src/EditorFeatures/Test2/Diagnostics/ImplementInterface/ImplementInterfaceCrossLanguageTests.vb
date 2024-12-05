@@ -224,8 +224,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/72227")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/72227")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72227")>
         Public Async Function Test_IndexerWithNoRequiredParameters_02() As Task
             Dim input =
                 <Workspace>
@@ -257,8 +256,8 @@ Imports System.Collections.Generic
 
 Class C
     Implements I
- 
-    Public ReadOnly Property Item(y As IEnumerable(Of Integer)) As Integer Implements I.Item
+
+    Default Public ReadOnly Property Item(y As IEnumerable(Of Integer)) As Integer Implements I.Item
         Get
             Throw New NotImplementedException()
         End Get

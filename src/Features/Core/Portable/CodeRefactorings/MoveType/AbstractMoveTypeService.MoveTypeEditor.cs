@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddFileBanner;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -27,7 +28,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         string fileName,
         CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
     {
-
         /// <summary>
         /// Given a document and a type contained in it, moves the type
         /// out to its own document. The new document's name typically
@@ -111,8 +111,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAsync(DocumentId newDocumentId)
         {
             var document = SemanticDocument.Document;
-            Debug.Assert(document.Name != FileName,
-                         $"New document name is same as old document name:{FileName}");
+            Debug.Assert(document.Name != FileName, $"New document name is same as old document name:{FileName}");
 
             var root = SemanticDocument.Root;
             var projectToBeUpdated = document.Project;
@@ -146,7 +145,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // get the updated document, give it the minimal set of imports that the type
             // inside it needs.
             var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
-            return newDocument;
+            var newDocumentWithUpdatedBanner = await AddFileBannerHelpers.CopyBannerAsync(
+                newDocument, FileName, document, this.CancellationToken).ConfigureAwait(false);
+
+            return newDocumentWithUpdatedBanner;
         }
 
         /// <summary>
@@ -194,6 +196,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
             var updatedDocument = documentEditor.GetChangedDocument();
+            updatedDocument = await AddFileBannerHelpers.CopyBannerAsync(updatedDocument, sourceDocument.FilePath, sourceDocument, this.CancellationToken).ConfigureAwait(false);
 
             return updatedDocument.Project.Solution;
         }

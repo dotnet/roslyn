@@ -2740,6 +2740,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">소스 파일 '{0}' 또는 포함하는 프로젝트에 대해 빌드된 PDB를 읽을 수 없습니다. 디버그하는 동안 이 파일의 변경된 모든 내용은 해당 콘텐츠가 빌드된 소스와 일치할 때까지 적용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
         <target state="translated">형식 '{0}'을(를) 로드할 수 없음: '{1}'</target>

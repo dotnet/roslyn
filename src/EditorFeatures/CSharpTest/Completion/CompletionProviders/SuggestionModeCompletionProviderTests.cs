@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(CSharpSuggestionModeCompletionProvider);
@@ -817,16 +817,17 @@ public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionPro
         await VerifyBuilderAsync(markup);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72225")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/72225")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72225")]
     public async Task UnwrapParamsCollection()
     {
         var markup = """
             using System;
             using System.Collections.Generic;
 
-            class C {
-                C(params IEnumerable<Action<int>> a) {
+            class C
+            {
+                C(params IEnumerable<Action<int>> a)
+                {
                     new C($$
                 }
             }

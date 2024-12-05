@@ -20,7 +20,7 @@
     -->
     <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.10</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
-    <_xunitVersion>2.6.6</_xunitVersion>
+    <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
   </PropertyGroup>
 
@@ -262,7 +262,7 @@
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="xunit" Version="$(_xunitVersion)" />
-    <PackageVersion Include="xunit.analyzers" Version="1.15.0" />
+    <PackageVersion Include="xunit.analyzers" Version="1.17.0" />
     <PackageVersion Include="xunit.assert" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.core" Version="$(_xunitVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
@@ -37,6 +38,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private Task _getSuggestionsTask = Task.CompletedTask;
+    private TimeSpan _semanticContextDelay;
+    private bool _semanticContextError;
+    private bool _semanticContextUsed;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -176,6 +180,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         if (IsUsingSemanticContext)
         {
+            var stopwatch = SharedStopwatch.StartNew();
+            _semanticContextUsed = true;
             var document = this.BaseViewModel.Session.TriggerDocument;
             var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
             try
@@ -188,9 +194,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
                     context
                     .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
+                _semanticContextDelay = stopwatch.Elapsed;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
+                _semanticContextError = true;
                 // use empty smartRenameContext
             }
             _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)

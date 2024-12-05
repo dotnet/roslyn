@@ -105,7 +105,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
         await TestMoveTypeToNewFileAsync(
             code, codeAfterMove, expectedDocumentName,
-            destinationDocumentText, destinationDocumentContainers: ImmutableArray.Create("A", "B"));
+            destinationDocumentText, destinationDocumentContainers: ["A", "B"]);
     }
 
     [WpfFact]
@@ -2011,5 +2011,38 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
             """;
         await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/74703")]
+    public async Task TestUpdateFileName()
+    {
+        var code =
+            """
+
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document Folders="A\B" FilePath="Goo.cs">// This is a banner referencing Goo.cs
+            [||]class Class1 { }
+            class Class2 { }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+        var codeAfterMove = """
+            // This is a banner referencing Goo.cs
+            class Class2 { }
+                    
+            """;
+
+        var expectedDocumentName = "Class1.cs";
+        var destinationDocumentText = """
+            // This is a banner referencing Class1.cs
+            class Class1 { }
+                    
+            """;
+
+        await TestMoveTypeToNewFileAsync(
+            code, codeAfterMove, expectedDocumentName,
+            destinationDocumentText, destinationDocumentContainers: ["A", "B"]);
     }
 }

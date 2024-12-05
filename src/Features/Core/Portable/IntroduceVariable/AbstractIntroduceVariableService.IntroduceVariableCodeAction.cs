@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
 internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    private abstract class AbstractIntroduceVariableCodeAction : CodeAction
+    private sealed class IntroduceVariableCodeAction : CodeAction
     {
         private readonly bool _allOccurrences;
         private readonly bool _isConstant;
@@ -28,7 +26,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
         public readonly CodeCleanupOptions Options;
 
-        internal AbstractIntroduceVariableCodeAction(
+        public IntroduceVariableCodeAction(
             TService service,
             SemanticDocument document,
             CodeCleanupOptions options,
@@ -62,11 +60,11 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         {
             if (_isQueryLocal)
             {
-                return await _service.IntroduceQueryLocalAsync(_semanticDocument, _expression, _allOccurrences, cancellationToken).ConfigureAwait(false);
+                return _service.IntroduceQueryLocal(_semanticDocument, _expression, _allOccurrences, cancellationToken);
             }
             else if (_isLocal)
             {
-                return await _service.IntroduceLocalAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
+                return _service.IntroduceLocal(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken);
             }
             else
             {
@@ -76,7 +74,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
         private string CreateDisplayText(TExpressionSyntax expression)
         {
-            var singleLineExpression = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
+            var singleLineExpression = _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
             var nodeString = singleLineExpression.ToString();
 
             return CreateDisplayText(nodeString);
@@ -103,15 +101,6 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
                     : FeaturesResources.Introduce_query_variable_for_0
                 : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
             return string.Format(formatString, nodeString);
-        }
-
-        protected ITypeSymbol GetExpressionType(
-            CancellationToken cancellationToken)
-        {
-            var semanticModel = _semanticDocument.SemanticModel;
-            var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
-
-            return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
         }
     }
 }

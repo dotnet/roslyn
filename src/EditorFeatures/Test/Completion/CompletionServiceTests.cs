@@ -58,7 +58,7 @@ class Test {
 
         Assert.NotEmpty(completions.ItemsList);
 
-        var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
+        var item = Assert.Single(completions.ItemsList, item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName);
         Assert.Equal(nameof(DebugAssertTestCompletionProvider), item.DisplayText);
 
         var expectedDescriptionText = nameof(DebugAssertTestCompletionProvider);

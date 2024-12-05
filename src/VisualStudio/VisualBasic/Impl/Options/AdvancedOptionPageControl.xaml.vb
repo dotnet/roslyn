@@ -41,21 +41,14 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterfaceMembers
-Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.DocumentOutline
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Private ReadOnly _threadingContext As IThreadingContext
-        Private ReadOnly _colorSchemeApplier As ColorSchemeApplier
-
-        Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
+        Public Sub New(optionStore As OptionStore)
             MyBase.New(optionStore)
-
-            _threadingContext = componentModel.GetService(Of IThreadingContext)()
-            _colorSchemeApplier = componentModel.GetService(Of ColorSchemeApplier)()
 
             InitializeComponent()
 
@@ -210,19 +203,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
         ' we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         Friend Overrides Sub OnLoad()
-            Dim cancellationToken = _threadingContext.DisposalToken
-            Dim values = _threadingContext.JoinableTaskFactory.Run(
-                Async Function()
-                    Return (isSupportedTheme:=Await _colorSchemeApplier.IsSupportedThemeAsync(cancellationToken).ConfigureAwait(False),
-                            isCustomized:=Await _colorSchemeApplier.IsThemeCustomizedAsync(cancellationToken).ConfigureAwait(False))
-                End Function)
-
-            Dim isSupportedTheme = values.isSupportedTheme
-            Dim isCustomized = values.isCustomized
-            Editor_color_scheme.IsEnabled = isSupportedTheme
-            Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
-            Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
-
             UpdateInlineHintsOptions()
 
             MyBase.OnLoad()

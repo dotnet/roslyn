@@ -26,18 +26,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
    Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
-internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
     CodeRefactoringProvider,
     IEqualityComparer<(IPropertySymbol property, ReferenceLocation location)>
 {
     private const string GetPrefix = "Get";
     private const string SetPrefix = "Set";
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public ReplacePropertyWithMethodsCodeRefactoringProvider()
-    {
-    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -67,7 +63,7 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
         context.RegisterRefactoring(
             CodeAction.Create(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
+                cancellationToken => ReplacePropertyWithMethodsAsync(document, propertySymbol, cancellationToken),
                 propertyName),
             propertyDeclaration.Span);
     }
@@ -123,10 +119,7 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
         foreach (var reference in propertyReferences)
         {
             if (reference.Definition is IPropertySymbol property)
-            {
-                var backingField = GetBackingField(property);
-                definitionToBackingField[property] = backingField;
-            }
+                definitionToBackingField[property] = GetBackingField(property);
         }
 
         return definitionToBackingField.ToImmutable();
@@ -381,14 +374,13 @@ internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
             // we're generating into.
             if (property.ContainingType.TypeKind == TypeKind.Interface)
             {
-                members = members.Select(editor.Generator.AsInterfaceMember)
-                                 .WhereNotNull()
-                                 .ToImmutableArray();
+                members = members.SelectAsArray(m => editor.Generator.GetModifiers(m).IsAbstract
+                    ? editor.Generator.AsInterfaceMember(m)
+                    : m);
             }
 
             var nodeToReplace = service.GetPropertyNodeToReplace(declaration);
-            editor.InsertAfter(nodeToReplace, members);
-            editor.RemoveNode(nodeToReplace);
+            editor.ReplaceNode(nodeToReplace, (_, _) => members);
         }
 
         return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());

@@ -69,6 +69,9 @@ internal static class ICompilationExtensions
         return builder.ToImmutableAndFree();
     }
 
+    public static INamedTypeSymbol? ArrayType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
+
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
 
