@@ -46,7 +46,7 @@ internal sealed class DataTipRangeHandler()
             result.DataTipTags = VSInternalDataTipTags.LinqExpression;
 
         result.HoverRange = ProtocolConversions.TextSpanToRange(info.Span, text);
-        result.ExpressionRange = ProtocolConversions.TextSpanToRange(info.Span, text);
+        result.ExpressionRange = ProtocolConversions.TextSpanToRange(info.ExpressionSpan, text);
 
         return result;
     }

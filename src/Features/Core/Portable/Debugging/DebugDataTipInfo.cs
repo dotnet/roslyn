@@ -13,8 +13,13 @@ internal enum DebugDataTipInfoKind
 }
 
 internal readonly record struct DebugDataTipInfo(
-    TextSpan Span, string? Text, DebugDataTipInfoKind Kind = DebugDataTipInfoKind.None)
+    TextSpan Span, TextSpan ExpressionSpan, string? Text, DebugDataTipInfoKind Kind = DebugDataTipInfoKind.None)
 {
+    public DebugDataTipInfo(TextSpan span, string? text)
+        : this(span, span, text)
+    {
+    }
+
     public bool IsDefault
         => Span.Length == 0 && Span.Start == 0 && Text == null;
 }

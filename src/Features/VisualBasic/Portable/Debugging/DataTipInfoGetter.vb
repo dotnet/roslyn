@@ -11,7 +11,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
     ' TODO: Make this class static when we add that functionality to VB.
     Friend NotInheritable Class DataTipInfoGetter
-        Inherits AbstractDataTipInfoGetter(Of ExpressionSyntax)
+        Inherits AbstractDataTipInfoGetter(Of
+            ExpressionSyntax,
+            MemberAccessExpressionSyntax,
+            InvocationExpressionSyntax)
 
         Public Shared Async Function GetInfoAsync(
                 document As Document,
@@ -48,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 conditionalAccess = If(expression.GetRootConditionalAccessExpression(), expression)
             End If
 
-            Dim kindAndSemanticModel = Await ComputeKindAsync(document, expression, includeKind, cancellationToken).ConfigureAwait(False)
+            Dim kindAndExpressionSpan = Await ComputeKindAsync(document, expression, includeKind, cancellationToken).ConfigureAwait(False)
 
             If expression.Parent.IsKind(SyntaxKind.InvocationExpression) Then
                 expression = DirectCast(expression.Parent, ExpressionSyntax)
@@ -61,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 span = TextSpan.FromBounds(conditionalAccess.SpanStart, span.End)
             End If
 
-            Return New DebugDataTipInfo(span, Text:=Nothing, kindAndSemanticModel.kind)
+            Return New DebugDataTipInfo(span, If(kindAndExpressionSpan.expressionSpan, span), Text:=Nothing, kindAndExpressionSpan.kind)
         End Function
     End Class
 End Namespace
