@@ -34,7 +34,7 @@ internal sealed partial class EventHookupSessionManager
     /// += is being used to add an event handler to an event. If it is, then we also determine 
     /// a candidate name for the event handler.
     /// </summary>
-    internal class EventHookupSession
+    internal sealed class EventHookupSession
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ITrackingSpan _trackingSpan;

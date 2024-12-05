@@ -138,7 +138,6 @@ internal sealed partial class EventHookupSessionManager(
         _toolTipPresenter?.Dismiss();
         _toolTipPresenter = null;
 
-        CurrentSession?.CancelBackgroundTasks();
         CurrentSession = null;
 
         // For test purposes only!
