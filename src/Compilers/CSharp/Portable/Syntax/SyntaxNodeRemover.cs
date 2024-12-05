@@ -431,10 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         _directivesToKeep.Clear();
                     }
 
-                    var directivesInSpan = node
-                        .DescendantTrivia(span, n => n.ContainsDirectives, descendIntoTrivia: true)
-                        .Where(tr => tr.IsDirective)
-                        .Select(tr => (DirectiveTriviaSyntax)tr.GetStructure()!);
+                    var directivesInSpan = node.DescendantTrivia(span, n => n.ContainsDirectives, descendIntoTrivia: true)
+                                               .Where(tr => tr.IsDirective)
+                                               .Select(tr => (DirectiveTriviaSyntax)tr.GetStructure()!);
 
                     foreach (var directive in directivesInSpan)
                     {
