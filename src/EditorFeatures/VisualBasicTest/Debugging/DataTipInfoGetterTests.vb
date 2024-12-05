@@ -415,7 +415,7 @@ end class</text>)
 imports System.Linq
 class C
   sub Goo(args as integer())
-    dim x = {|LinqExpression:[|args.$$Select|](function(a) a.ToString())|}
+    dim x = {|LinqExpression:[|args.$$Select(function(a) a.ToString())|]|}
   end sub
 end class</text>)
         End Function
@@ -426,7 +426,7 @@ end class</text>)
 imports System.Linq
 class C
   sub Goo(args as integer())
-    dim x = {|LinqExpression:[|$$args|].Select(function(a) a.ToString()).Where(function(a) => a.Length >= 0)|}
+    dim x = {|LinqExpression:[|$$args|].Select(function(a) a.ToString()).Where(function(a) a.Length >= 0)|}
   end sub
 end class</text>)
         End Function
@@ -437,7 +437,7 @@ end class</text>)
 imports System.Linq
 class C
   sub Goo(args as integer())
-    dim x = {|LinqExpression:[|args.$$Select|](function(a) a.ToString()).Where(function(a) => a.Length >= 0)|}
+    dim x = {|LinqExpression:[|args.$$Select(function(a) a.ToString())|].Where(function(a) a.Length >= 0)|}
   end sub
 end class</text>)
         End Function
@@ -448,7 +448,7 @@ end class</text>)
 imports System.Linq
 class C
   sub Goo(args as integer())
-    dim x = {|LinqExpression:[|args.Select(function(a) a.ToString()).$$Where|](function(a) => a.Length >= 0)|}
+    dim x = {|LinqExpression:[|args.Select(function(a) a.ToString()).$$Where(function(a) a.Length >= 0)|]|}
   end sub
 end class</text>)
         End Function

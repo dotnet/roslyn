@@ -45,13 +45,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 Return Nothing
             End If
 
+            Dim kindAndExpressionSpan = Await ComputeKindAsync(document, expression, includeKind, cancellationToken).ConfigureAwait(False)
+
             Dim conditionalAccess As ExpressionSyntax = Nothing
             If expression.IsRightSideOfDotOrBang() Then
                 expression = DirectCast(expression.Parent, ExpressionSyntax)
                 conditionalAccess = If(expression.GetRootConditionalAccessExpression(), expression)
             End If
-
-            Dim kindAndExpressionSpan = Await ComputeKindAsync(document, expression, includeKind, cancellationToken).ConfigureAwait(False)
 
             If expression.Parent.IsKind(SyntaxKind.InvocationExpression) Then
                 expression = DirectCast(expression.Parent, ExpressionSyntax)
