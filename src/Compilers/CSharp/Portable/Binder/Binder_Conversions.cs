@@ -937,26 +937,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
-                    BoundNode convertedElement = element switch
-                    {
-                        BoundCollectionExpressionSpreadElement spreadElement => (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
+                    BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                        (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,
                             collectionInitializerAddMethodBinder,
                             implicitReceiver,
-                            diagnostics),
-                        BoundKeyValuePairElement keyValuePairElement => BindKeyValuePairAddMethod(
-                            keyValuePairElement,
-                            implicitReceiver,
-                            diagnostics),
-                        _ => BindCollectionInitializerElementAddMethod(
+                            diagnostics) :
+                        BindCollectionInitializerElementAddMethod(
                             element.Syntax,
                             ImmutableArray.Create((BoundExpression)element),
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
                             diagnostics,
-                            implicitReceiver)
-                    };
+                            implicitReceiver);
                     builder.Add(convertedElement);
                 }
             }
@@ -1007,7 +1001,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             destination: elementType,
                             diagnostics)
                     };
-
                     builder.Add(convertedElement!);
                 }
                 conversion.MarkUnderlyingConversionsChecked();
@@ -1202,9 +1195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
 
-                // PROTOTYPE: Test with constructor that takes a comparer as well.
-                // PROTOTYPE: Test the comparer case for non-dictionary collections as well.
-                // PROTOTYPE: Test the comparer case with/without an explicit comparer in the collection expression.
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                         namedType,
                         analyzedArguments,
@@ -1308,29 +1298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // PROTOTYPE: This is a simple implementation. What else is needed?
-        internal bool HasCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, out ImmutableArray<PropertySymbol> indexers, BindingDiagnosticBag diagnostics)
-        {
-            var lookupResult = LookupResult.GetInstance();
-            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            // PROTOTYPE: Test with missing indexer, multiple indexers, readonly/writeonly indexer, different member kind, etc.
-            // PROTOTYPE: Test with indexer that doesn't match elementType key and value types.
-            LookupMembersWithFallback(lookupResult, targetType, WellKnownMemberNames.Indexer, arity: 0, ref useSiteInfo);
-            diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Test use-site diagnostics.
-            indexers = lookupResult.SingleSymbolOrDefault is PropertySymbol property ?
-                ImmutableArray.Create(property) :
-                ImmutableArray<PropertySymbol>.Empty;
-            lookupResult.Free();
-            return indexers.Length > 0;
-        }
-
         internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsDynamic());
 
             NamedTypeSymbol? namedType = targetType as NamedTypeSymbol;
 
-            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _)) // PROTOTYPE: Test cycles with params for indexers with dictionary types and non-dictionary types.
+            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _))
             {
                 // We are in a cycle. Optimistically assume we have the right Add to break the cycle
                 addMethods = [];

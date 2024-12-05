@@ -193,9 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if ((!ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) ||
-                    !_binder.HasCollectionExpressionApplicableIndexer(syntax, targetType, elementType, out _, BindingDiagnosticBag.Discarded)) &&
-                    elements.Length > 0 &&
+                if (elements.Length > 0 &&
                     !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
@@ -209,8 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion elementConversion;
                 if (usesKeyValuePairs)
                 {
-                    // PROTOTYPE: This change in behavior should only be enabled in C#14. Test both
-                    // dictionaries and other collections of KeyValuePair<,> with earlier language version.
+                    // PROTOTYPE: Check language version.
                     Debug.Assert(keyType.Type is { });
                     Debug.Assert(valueType.Type is { });
                     elementConversion = element switch
@@ -225,7 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementConversion = element switch
                     {
                         BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                        BoundKeyValuePairElement keyValuePairElement => Conversion.NoConversion, // PROTOTYPE: Test this case.
                         _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
                     };
                 }

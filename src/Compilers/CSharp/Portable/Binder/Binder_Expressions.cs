@@ -6518,33 +6518,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        // PROTOTYPE: What is the shape of the Add() method for a k:v?
-        // Does it take two arguments? Or a KeyValuePair<,>? And if a KeyValuePair<,>,
-        // how do we bind to it so the K and V conversions can be calculated?
-        private BoundExpression BindKeyValuePairAddMethod(
-            BoundKeyValuePairElement element,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            BindingDiagnosticBag diagnostics)
-        {
-            // PROTOTYPE: Should use Add rather than indexer for collections that do not have indexers.
-            // PROTOTYPE: Test with get-only/set-only indexer, inaccessible accessor, etc.
-            // PROTOTYPE: Test with ref indexer.
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            analyzedArguments.Arguments.Add(element.Key);
-            var left = BindIndexerAccess(element.Syntax, implicitReceiver, analyzedArguments, diagnostics);
-            analyzedArguments.Free();
-            if (left is BoundIndexerAccess indexerAccess)
-            {
-                left = indexerAccess.Update(AccessorKind.Set);
-            }
-            return BindAssignment(
-                element.Syntax,
-                left,
-                element.Value,
-                isRef: false,
-                diagnostics);
-        }
-
         private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
@@ -6567,7 +6540,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            // PROTOTYPE: Test when binding to a dictionary type.
             var addMethodInvocation = BindCollectionInitializerElementAddMethod(
                 syntax.Expression,
                 ImmutableArray.Create((BoundExpression)addElementPlaceholder),
