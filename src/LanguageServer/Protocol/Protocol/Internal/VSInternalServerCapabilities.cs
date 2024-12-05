@@ -4,6 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System.Runtime.Serialization;
     using System.Text.Json.Serialization;
 
     /// <summary>
@@ -160,5 +161,13 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether <see cref="VSInternalMethods.TextDocumentDataTipRangeName"/> is
+        /// supported.
+        /// </summary>
+        [JsonPropertyName("_vs_DataTipRangeProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool DataTipRangeProvider { get; set; }
     }
 }
