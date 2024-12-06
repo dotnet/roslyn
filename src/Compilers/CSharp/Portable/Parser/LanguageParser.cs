@@ -12722,7 +12722,7 @@ done:
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
 
             // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
-            var expression = SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+            var expression = !this.IsPossibleExpression() && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
                 ? _syntaxFactory.IdentifierName(ConvertToIdentifier(this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken)))
                 : this.ParseExpressionCore();
 
