@@ -260,8 +260,8 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     private static async Task<Solution> PropagateChangeToLinkedDocumentsAsync(Document document, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
-        var formattedDocument = document;// await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
-        var formattedDocument1 = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+        // var formattedDocument1 = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
         var formattedText = await formattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var solution = formattedDocument.Project.Solution;
 

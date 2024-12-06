@@ -1407,7 +1407,6 @@ expectedSuccess: false);
                 {
                 }
             }
-
             """;
         using var workspace = EditorTestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 

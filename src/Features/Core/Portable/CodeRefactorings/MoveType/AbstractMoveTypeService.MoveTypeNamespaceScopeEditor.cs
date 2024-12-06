@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,15 +12,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
-internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+internal abstract partial class AbstractMoveTypeService<
+    TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
 {
     /// <summary>
     /// Editor that takes a type in a scope and creates a scope beside it. For example, if the type is contained within a namespace 
     /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
     /// </summary>
-    private sealed class MoveTypeNamespaceScopeEditor(TService service, State state, string fileName, CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
+    private sealed class MoveTypeNamespaceScopeEditor(
+        TService service, State state, string fileName, CancellationToken cancellationToken)
+        : Editor(service, state, fileName, cancellationToken)
     {
-        public override async Task<Solution> GetModifiedSolutionAsync()
+        public override async Task<Solution?> GetModifiedSolutionAsync()
         {
             var node = State.TypeNode;
             var documentToEdit = State.SemanticDocument.Document;
@@ -33,13 +34,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Solution> GetNamespaceScopeChangedSolutionAsync(
+        private async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
             TNamespaceDeclarationSyntax namespaceDeclaration,
             TTypeDeclarationSyntax typeToMove,
             Document documentToEdit,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = documentToEdit.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = documentToEdit.GetRequiredLanguageService<ISyntaxFactsService>();
             var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
             if (childNodes.Count <= 1)
@@ -48,23 +49,20 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
             editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
 
-            var syntaxGenerator = editor.Generator;
             var index = childNodes.IndexOf(typeToMove);
 
-            var itemsBefore = index > 0 ? childNodes.Take(index) : [];
-            var itemsAfter = index < childNodes.Count - 1 ? childNodes.Skip(index + 1) : [];
+            var itemsBefore = childNodes.Take(index);
+            var itemsAfter = childNodes.Skip(index + 1);
 
             var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
-            var newNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
+            var newNamespaceDeclaration = this.Service.NamespaceDeclaration(name, typeToMove).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
 
             if (itemsBefore.Any() && itemsAfter.Any())
             {
-                var itemsAfterNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(itemsAfter));
+                var itemsAfterNamespaceDeclaration = this.Service.NamespaceDeclaration(name, itemsAfter);
 
                 foreach (var nodeToRemove in itemsAfter)
-                {
                     editor.RemoveNode(nodeToRemove, SyntaxRemoveOptions.KeepNoTrivia);
-                }
 
                 editor.InsertAfter(namespaceDeclaration, [newNamespaceDeclaration, itemsAfterNamespaceDeclaration]);
             }
@@ -89,6 +87,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         private static SyntaxNode WithElasticTrivia(SyntaxNode syntaxNode, bool leading = true, bool trailing = true)
         {
+            return syntaxNode;
             if (leading && syntaxNode.HasLeadingTrivia)
             {
                 syntaxNode = syntaxNode.WithLeadingTrivia(syntaxNode.GetLeadingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
