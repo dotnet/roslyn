@@ -150,9 +150,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2 : {{declaredNamespace}}.Class1
+                class Class2: {{declaredNamespace}}.Class1
                 {
-                    {{declaredNamespace}}.D1 d;  
+                    {{declaredNamespace}}.D1 d;
 
                     void {{declaredNamespace}}.Class1.M1(){}
                 }
@@ -172,7 +172,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2 : Class1
+                class Class2: Class1
                 {
                     D1 d;
 
@@ -351,7 +351,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
             namespace Foo
             {
-                class Class2 {}
+                class Class2{}
 
                 namespace Bar
                 {
@@ -411,7 +411,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
             namespace Foo
             {
-                class Class2 {}
+                class Class2{}
 
                 namespace Bar
                 {
@@ -464,7 +464,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
 
-                class Class2 
+                class Class2
                 {
                 }
             }</Document>
@@ -667,7 +667,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
 
-                class Class2 
+                class Class2
                 {
                 }
             }</Document>
@@ -787,9 +787,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2 : {{declaredNamespace}}.Class1
+                class Class2: {{declaredNamespace}}.Class1
                 {
-                    global::{{declaredNamespace}}.D1 d;  
+                    global::{{declaredNamespace}}.D1 d;
 
                     void {{declaredNamespace}}.Class1.M1() { }
                 }
@@ -836,7 +836,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
 
-                class Class2 
+                class Class2
                 {
                 }
             }</Document>
@@ -1022,7 +1022,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
             {
-                class Class2 {}
+                class Class2{}
 
                 namespace Bar
                 {
@@ -1142,7 +1142,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
 
-                class Class2 
+                class Class2
                 {
                 }
             }</Document>
@@ -1249,7 +1249,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
             class Class2 : Class1
             {
-                D1 d;  
+                D1 d;
 
                 void Class1.M1() { }
             }</Document>
@@ -1268,7 +1268,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2 : Class1
+                class Class2: Class1
                 {
                     D1 d;
 
@@ -1417,7 +1417,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
             namespace A
             {
-                class Class2 {}
+                class Class2{}
 
                 namespace B
                 {
