@@ -468,17 +468,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                             var parentTrivia = directive.ParentTrivia;
                             var parentToken = parentTrivia.Token;
 
-                            var triviaList = parentToken.LeadingTrivia.Contains(parentTrivia)
-                                ? parentToken.LeadingTrivia
-                                : parentToken.TrailingTrivia;
-                            var index = triviaList.IndexOf(parentTrivia);
+                            var (triviaList, triviaListIndex) = getTriviaListAndIndex(directive);
 
-                            // If we're keeping a directive, and it's not at the start of the line, keep the whitespace
-                            // that precedes it as well.
-                            if (index >= 1 && triviaList[index - 1].Kind() == SyntaxKind.WhitespaceTrivia)
+                            // If we're keeping a directive, and it's not at the start of the line, keep the indentation
+                            // whitespace that precedes it as well so that the directive stays in the right location.
+                            if (triviaListIndex >= 1 && triviaList[triviaListIndex - 1] is { RawKind: (int)SyntaxKind.WhitespaceTrivia } indentationTrivia)
                             {
-                                this.AddResidualTrivia(SyntaxFactory.TriviaList(
-                                    triviaList[index - 1], parentTrivia), requiresNewLine: true);
+                                AddResidualTrivia(SyntaxFactory.TriviaList(indentationTrivia, parentTrivia), requiresNewLine: true);
                             }
                             else
                             {
@@ -486,6 +482,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                             }
                         }
                     }
+                }
+
+                static (SyntaxTriviaList triviaList, int index) getTriviaListAndIndex(DirectiveTriviaSyntax directive)
+                {
+                    var parentTrivia = directive.ParentTrivia;
+                    var parentToken = parentTrivia.Token;
+
+                    var index = parentToken.LeadingTrivia.IndexOf(parentTrivia);
+                    return index >= 0
+                        ? (parentToken.LeadingTrivia, index)
+                        : (parentToken.TrailingTrivia, parentToken.TrailingTrivia.IndexOf(parentTrivia));
                 }
             }
 
