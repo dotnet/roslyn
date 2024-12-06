@@ -466,11 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         if (_directivesToKeep.Contains(directive))
                         {
                             var parentTrivia = directive.ParentTrivia;
-                            var (triviaList, triviaListIndex) = getTriviaListAndIndex(parentTrivia);
+                            var (triviaList, directiveTriviaListIndex) = getTriviaListAndIndex(parentTrivia);
 
                             // If we're keeping a directive, and it's not at the start of the line, keep the indentation
                             // whitespace that precedes it as well so that the directive stays in the right location.
-                            if (triviaListIndex >= 1 && triviaList[triviaListIndex - 1] is { RawKind: (int)SyntaxKind.WhitespaceTrivia } indentationTrivia)
+                            if (directiveTriviaListIndex >= 1 && triviaList[directiveTriviaListIndex - 1] is { RawKind: (int)SyntaxKind.WhitespaceTrivia } indentationTrivia)
                             {
                                 AddResidualTrivia(SyntaxFactory.TriviaList(indentationTrivia, parentTrivia), requiresNewLine: true);
                             }

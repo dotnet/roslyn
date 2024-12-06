@@ -322,13 +322,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                             Dim parentTrivia = directive.ParentTrivia
                             Dim triviaListAndIndex = GetTriviaListAndIndex(parentTrivia)
                             Dim triviaList = triviaListAndIndex.triviaList
-                            Dim index = triviaListAndIndex.Index
+                            Dim directiveTriviaListIndex = triviaListAndIndex.Index
 
                             ' If we're keeping a directive, and it's not at the start of the line, keep the whitespace
                             ' that precedes it as well.
-                            If index >= 1 AndAlso triviaList(index - 1).Kind() = SyntaxKind.WhitespaceTrivia Then
+                            If directiveTriviaListIndex >= 1 AndAlso triviaList(directiveTriviaListIndex - 1).Kind() = SyntaxKind.WhitespaceTrivia Then
                                 AddResidualTrivia(SyntaxFactory.TriviaList(
-                                    triviaList(index - 1), parentTrivia), requiresNewLine:=True)
+                                    triviaList(directiveTriviaListIndex - 1), parentTrivia), requiresNewLine:=True)
                             Else
                                 AddResidualTrivia(SyntaxFactory.TriviaList(parentTrivia), requiresNewLine:=True)
                             End If
