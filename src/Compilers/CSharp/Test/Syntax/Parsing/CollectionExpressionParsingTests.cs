@@ -18420,7 +18420,7 @@ class C
             """).VerifyDiagnostics();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey1()
     {
         UsingExpression("[default:0]");
@@ -18445,7 +18445,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey2()
     {
         UsingExpression("[false:0]");
@@ -18470,7 +18470,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey3()
     {
         UsingExpression("[this:0]");
@@ -18495,7 +18495,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey4()
     {
         UsingExpression("[true:0]");
@@ -18520,7 +18520,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey5()
     {
         UsingExpression("[null:0]");
@@ -18545,7 +18545,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey6()
     {
         UsingExpression("[base:0]");
@@ -18570,7 +18570,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey_Illegal1()
     {
         UsingExpression("[throw:0]",
@@ -18602,7 +18602,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey_Illegal2()
     {
         UsingExpression("[new:0]",
@@ -18639,7 +18639,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey_Illegal3()
     {
         UsingExpression("[typeof:0]",
@@ -18679,7 +18679,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey_Illegal4()
     {
         UsingExpression("[sizeof:0]",
@@ -18719,7 +18719,7 @@ class C
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    [Fact]
     public void CollectionExpression_KeywordKey_Illegal5()
     {
         UsingExpression("[checked:0]",
