@@ -160,6 +160,8 @@ internal static partial class ISymbolExtensions
             }
         }
 
+        // There are explicit methods that FindImplementationForInterfaceMember.  For exampl `abstract explicit impls`
+        // like `abstract void I<T>.M()`.  So add these back in directly using symbol.ExplicitInterfaceImplementations.
         result.AddRange(symbol.ExplicitInterfaceImplementations());
         result.RemoveDuplicates();
 
