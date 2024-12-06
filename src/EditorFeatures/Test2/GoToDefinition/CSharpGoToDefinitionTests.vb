@@ -3863,6 +3863,54 @@ class C
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61268")>
+        Public Async Function TestAbstractExplicitInterfaceImplementation1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document><![CDATA[
+interface I1<T1> where T1 : I1<T1>
+{
+    static abstract void [|M1|]();
+    void M3();
+}
+
+interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static abstract void I1<T3>.$$M1();
+    abstract void I1<T3>.M3();
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61268")>
+        Public Async Function TestAbstractExplicitInterfaceImplementation2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document><![CDATA[
+interface I1<T1> where T1 : I1<T1>
+{
+    static abstract void M1();
+    void [|M3|]();
+}
+
+interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static abstract void I1<T3>.M1();
+    abstract void I1<T3>.$$M3();
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact>
         Public Async Function TestInterceptors_AttributeMissingVersion() As Task
             Dim workspace =
