@@ -106,7 +106,7 @@ internal sealed class ExportProviderBuilder
         ThrowOnUnexpectedErrors(config, catalog, logger);
 
         // Try to cache the composition.
-        _ = WriteCompositionCacheAsync(compositionCacheFile, config, logger);
+        _ = WriteCompositionCacheAsync(compositionCacheFile, config, logger).ReportNonFatalErrorAsync();
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
