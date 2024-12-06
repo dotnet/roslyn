@@ -451,8 +451,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AppendLine("Set:");
                     foreach (var @case in set.Cases)
                     {
-                        builder.AppendLine(@case.pattern.DumpSource());
+                        builder.Append(@case.pattern.DumpSource());
+                        if (@case.syntax is { } syntax)
+                        {
+                            builder.Append("  => ");
+                            builder.Append(syntax.ToString());
+                        }
+
+                        builder.AppendLine();
                     }
+
                     builder.AppendLine();
                 }
 
@@ -508,78 +516,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // A discard node represents an always true pattern
-            private bool IsDiscard(BoundPattern pattern)
+            private bool IsDiscard(BoundPattern pattern) // TODO2
             {
                 return pattern is BoundDiscardPattern;
             }
 
             // A negated discard node represents an always false pattern
-            private bool IsNegatedDiscard(BoundPattern pattern)
+            private bool IsNegatedDiscard(BoundPattern pattern, bool synthesized = false)
             {
-                return pattern is BoundNegatedPattern { Negated: BoundDiscardPattern };
+                if (synthesized)
+                {
+                    return pattern is BoundNegatedPattern { Negated: BoundDiscardPattern { WasCompilerGenerated: true } };
+                }
+                else
+                {
+                    return pattern is BoundNegatedPattern { Negated: BoundDiscardPattern };
+                }
             }
 
             public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
             {
                 var resultLeft = (BoundPattern)Visit(node.Left);
                 var resultRight = (BoundPattern)Visit(node.Right);
-                var resultDisjunction = _negated ? !node.Disjunction : node.Disjunction;
-
-                // TODO2 verify that each case is hit
-                // TODO2 maybe we only simplify for synthesized nodes
-                if (resultDisjunction)
-                {
-                    if (IsNegatedDiscard(resultLeft))
-                    {
-                        // not _ or <right>
-                        return resultRight;
-                    }
-
-                    if (IsNegatedDiscard(resultRight))
-                    {
-                        // <left> or not _
-                        return resultLeft;
-                    }
-
-                    if (IsDiscard(resultLeft))
-                    {
-                        // _ or <right>
-                        return resultLeft;
-                    }
-
-                    if (IsDiscard(resultRight))
-                    {
-                        // <left> or _
-                        return resultRight;
-                    }
-                }
-                else
-                {
-                    if (IsNegatedDiscard(resultLeft))
-                    {
-                        // not _ and <right>
-                        return resultLeft;
-                    }
-
-                    if (IsNegatedDiscard(resultRight))
-                    {
-                        // <left> and not _
-                        return resultRight;
-                    }
-
-                    if (IsDiscard(resultLeft))
-                    {
-                        // _ and <right>
-                        return resultRight;
-                    }
-
-                    if (IsDiscard(resultRight))
-                    {
-                        // <left> and _
-                        return resultLeft;
-                    }
-                }
-
                 var result = node.WithLeft(resultLeft).WithRight(resultRight);
                 return _negated ? result.WithDisjunction(!node.Disjunction) : result;
             }
@@ -598,7 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_negated)
                 {
-                    return new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
+                    var result = new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
+                    if (node.WasCompilerGenerated)
+                    {
+                        result.MakeCompilerGenerated();
+                    }
+                    return result;
                 }
 
                 return node;
@@ -624,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPattern result;
                 if (node.IsVar)
                 {
-                    result = MakeDiscardPattern(node);
+                    result = MakeDiscardPattern(node).MakeCompilerGenerated();
                 }
                 else
                 {
@@ -633,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (node.InputType.Equals(node.DeclaredType.Type))
                     {
-                        result = MakeDiscardPattern(node);
+                        result = MakeDiscardPattern(node).MakeCompilerGenerated();
                     }
                 }
 
@@ -649,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_negated)
                 {
-                    return base.VisitRecursivePattern(node); // TODO2 is this correct, or do we need to recognize always-true/always-false cases?
+                    return base.VisitRecursivePattern(node);
                 }
 
                 // `Type (D1, D2, ...) { Prop1: P1, Prop2: P2, ... } x`
@@ -728,10 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (builder.Count == 0)
                 {
-                    return MakeDiscardPattern(node);
+                    return MakeDiscardPattern(node); // TODO2 mark as blameless?
                 }
-
-                //Debug.Assert(!builder.All(p => p.WasCompilerGenerated));
 
                 BoundPattern result = builder.Last();
                 for (int i = builder.Count - 2; i >= 0; i--)
@@ -777,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // `(..., not LN, ...)`
-                    builder.Add(node.WithSubpatterns(discards.SetItem(i, subpatterns[i].WithPattern(negatedPattern))));
+                    builder.Add(node.WithSubpatterns(discards.SetItem(i, subpatterns[i].WithPattern(negatedPattern))).WithSyntax(subpatterns[i].Syntax));
                 }
 
                 BoundPattern result = MakeDisjunction(node, builder);
@@ -834,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // `[..., _, not LN, _, ...]`
-                    builder.Add(node.WithSubpatterns(discardSubpatterns.SetItem(i, negatedPattern)));
+                    builder.Add(node.WithSubpatterns(discardSubpatterns.SetItem(i, negatedPattern)).WithSyntax(node.Subpatterns[i].Syntax)); // TODO2 we'd like to associate this pattern with the LN syntax for clearer reporting
                 }
 
                 BoundPattern result = MakeDisjunction(node, builder);
