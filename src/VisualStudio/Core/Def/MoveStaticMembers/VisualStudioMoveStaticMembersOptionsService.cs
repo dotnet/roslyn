@@ -25,24 +25,18 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
 [ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersOptionsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioMoveStaticMembersOptionsService(
+    IGlyphService glyphService,
+    IUIThreadOperationExecutor uiThreadOperationExecutor) : IMoveStaticMembersOptionsService
 {
-    private readonly IGlyphService _glyphService;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+    private readonly IGlyphService _glyphService = glyphService;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
 
     private const int HistorySize = 3;
 
     public readonly LinkedList<INamedTypeSymbol> History = new();
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioMoveStaticMembersOptionsService(
-        IGlyphService glyphService,
-        IUIThreadOperationExecutor uiThreadOperationExecutor)
-    {
-        _glyphService = glyphService;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-    }
 
     public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
     {
@@ -171,7 +165,7 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
     {
         return currentNamespace.GetAllTypes(cancellationToken)
             // Remove non-static types only when the current type is static
-            .Where(t => IsValidTypeToMoveBetween(t, currentType) && (t.IsStaticType() || !currentType.IsStaticType()))
+            .Where(destinationType => IsValidTypeToMoveBetween(destinationType, currentType) && (destinationType.IsStaticType() || !currentType.IsStaticType()))
             .SelectMany(t =>
             {
                 // for partially declared classes, we may want multiple entries for a single type.
@@ -190,7 +184,7 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
     private static bool IsValidTypeToMoveBetween(INamedTypeSymbol destinationType, INamedTypeSymbol sourceType)
     {
         // Can only moved to named typed that can actually contain members.
-        if (destinationType.TypeKind is not (TypeKind.Class or TypeKind.Interface or TypeKind.Struct))
+        if (destinationType.TypeKind is not (TypeKind.Class or TypeKind.Interface or TypeKind.Module or TypeKind.Struct))
             return false;
 
         // Very unlikely to be moving from a non-interface to an interface.  Filter out for now.
