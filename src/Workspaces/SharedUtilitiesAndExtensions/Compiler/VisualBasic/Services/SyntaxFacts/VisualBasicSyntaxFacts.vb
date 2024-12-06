@@ -1468,6 +1468,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
         End Function
 
+        Public Function GetMatchingDirective(directive As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode Implements ISyntaxFacts.GetMatchingDirective
+            Return DirectCast(directive, DirectiveTriviaSyntax).GetMatchingStartOrEndDirective(cancellationToken)
+        End Function
+
+        Public Function GetMatchingConditionalDirectives(directive As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFacts.GetMatchingConditionalDirectives
+            Return DirectCast(directive, DirectiveTriviaSyntax).GetMatchingConditionalDirectives(cancellationToken).CastArray(Of SyntaxNode)
+        End Function
+
         Public Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsRegularComment
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
@@ -1371,6 +1372,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsPreprocessorDirective(SyntaxTrivia trivia)
         => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
+
+    public SyntaxNode? GetMatchingDirective(SyntaxNode directive, CancellationToken cancellationToken)
+        => ((DirectiveTriviaSyntax)directive).GetMatchingDirective(cancellationToken);
+
+    public ImmutableArray<SyntaxNode> GetMatchingConditionalDirectives(SyntaxNode directive, CancellationToken cancellationToken)
+        => ((DirectiveTriviaSyntax)directive).GetMatchingConditionalDirectives(cancellationToken).CastArray<SyntaxNode>();
 
     public bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
         => token.ContainsInterleavedDirective(span, cancellationToken);

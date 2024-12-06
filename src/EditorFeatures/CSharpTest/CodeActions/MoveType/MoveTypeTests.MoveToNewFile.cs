@@ -1356,8 +1356,6 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             """
             public partial class Goo
             {
-                #endregion
-
                 #region Region2
                 public class Bar
                 {

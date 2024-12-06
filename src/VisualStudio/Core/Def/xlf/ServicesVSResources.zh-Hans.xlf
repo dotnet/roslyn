@@ -1367,9 +1367,9 @@
         <target state="translated">语义搜索结果</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
-        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="translated">在解决方案资源管理器中显示“删除未使用的引用”命令(实验性)</target>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
+        <source>Show "Remove Unused References" command in Solution Explorer</source>
+        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
