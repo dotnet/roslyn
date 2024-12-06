@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                Debug.Assert(_addressedLocalScopes == 0);
+                Debug.Assert(_addressedLocalScopes == 0 && countBefore == 0);
                 _addressedLocals.Free();
                 _addressedLocals = null;
             }
