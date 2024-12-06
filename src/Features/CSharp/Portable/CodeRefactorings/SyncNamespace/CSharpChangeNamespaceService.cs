@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -315,12 +316,13 @@ internal sealed class CSharpChangeNamespaceService :
 
         var targetNamespaceDecl = NamespaceDeclaration(
             name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                    .WithAdditionalAnnotations(WarningAnnotation),
+                .WithAdditionalAnnotations(WarningAnnotation),
             externs: default,
             usings: default,
             members: compilationUnit.Members);
         return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
-            .WithoutAnnotations(ContainerAnnotation);   // Make sure to remove the annotation we added
+            .WithoutAnnotations(ContainerAnnotation) // Make sure to remove the annotation we added
+            .WithAdditionalAnnotations(Formatter.Annotation); // We need the contents to indent here.
     }
 
     /// <summary>

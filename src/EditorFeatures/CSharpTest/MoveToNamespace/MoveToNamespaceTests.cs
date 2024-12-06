@@ -21,11 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace;
 public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
 {
     private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features
-        .AddParts(
-            typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
+        .AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
-    private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
-        typeof(TestMoveToNamespaceOptionsService));
+    private static readonly TestComposition s_composition = s_compositionWithoutOptions
+        .AddParts(typeof(TestMoveToNamespaceOptionsService));
 
     protected override TestComposition GetComposition() => s_composition;
 
