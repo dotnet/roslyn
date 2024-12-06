@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                 var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
                 var actualSourceTextAfterRefactoring = (await modifiedSourceDocument.GetTextAsync()).ToString();
-                Assert.Equal(expectedSourceTextAfterRefactoring, actualSourceTextAfterRefactoring);
+                AssertEx.Equal(expectedSourceTextAfterRefactoring, actualSourceTextAfterRefactoring);
             }
             else
             {
