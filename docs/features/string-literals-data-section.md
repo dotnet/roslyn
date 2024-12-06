@@ -46,7 +46,6 @@ The utf8 string literal encoding emit strategy emits `ldsfld` of a field in a ge
 For every string literal, a unique internal static class is generated which:
 - has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string,
 - is nested in the `<PrivateImplementationDetails>` type to avoid polluting the global namespace
-  (although [some other compiler-generated types are synthesized there](https://github.com/dotnet/roslyn/blob/e3954f0cee4085436a590a14a01ec2f1b8a2571f/src/Compilers/Core/Portable/CodeGen/PrivateImplementationDetails.cs#L89))
   and to avoid having to enforce name uniqueness across modules,
 - has one internal static readonly `string` field which is initialized in a static constructor of the class,
 - is marked `beforefieldinit` so the static constructor can be called eagerly if deemed better by the runtime for some reason.
@@ -165,15 +164,6 @@ Ahead-of-time compilation tools would need to be updated to recognize this new p
 
 Need to confirm that no additional work is needed for ref assemblies.
 
-### Configuration/emit granularity
-
-Instead of one global feature flag, the emit strategy could be controlled using compiler-recognized attributes (applicable to assemblies or classes).
-Furthermore, we could emit more than one string per one class. That could be configurable as well.
-
-### Weak references
-
-To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s. This could be configurable as well.
-
 ### Automatic threshold
 
 The threshold could be determined automatically with some objective, for example,
@@ -204,6 +194,17 @@ add a single `.data` field to `<PrivateImplementationDetails>` that points to th
 At runtime, we would do an offset to where the required data reside in the blob and decode the required length from UTF-8 to UTF-16.
 
 ## Alternatives
+
+### Configuration/emit granularity
+
+Instead of one global feature flag, the emit strategy could be controlled using compiler-recognized attributes (applicable to assemblies or classes).
+Furthermore, we could emit more than one string per one class. That could be configurable as well.
+
+### GC
+
+To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s.
+Or we could avoid the caching altogether (each eligible `ldstr` would be replaced with a direct call to `Encoding.UTF8.GetString`).
+This could be configurable as well.
 
 ### Runtime support
 
