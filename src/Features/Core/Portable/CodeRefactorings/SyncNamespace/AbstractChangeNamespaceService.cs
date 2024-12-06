@@ -609,7 +609,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         // namespace
         var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
-
         var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAddedImports = await AddImportsInContainersAsync(
