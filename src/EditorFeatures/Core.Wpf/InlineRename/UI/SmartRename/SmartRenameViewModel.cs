@@ -38,7 +38,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// <summary>
     /// Cancellation token source for <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
     /// Each call uses a new instance. Mutliple calls are allowed only if previous call failed or was canceled.
-    /// The request is canceled through
+    /// The request is canceled on UI thread through one of the following user interactions:
     /// 1. <see cref="BaseViewModelPropertyChanged"/> when user types in the text box.
     /// 2. <see cref="ToggleOrTriggerSuggestions"/> when user toggles the automatic suggestions.
     /// 3. <see cref="Dispose"/> when the dialog is closed.
@@ -73,7 +73,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// </summary>
     public bool IsInProgress
     {
-        get => _isInProgress;
+        get
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            return _isInProgress;
+        }
         set
         {
             _threadingContext.ThrowIfNotOnUIThread();
@@ -185,9 +189,16 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
 
         var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-        _cancellationTokenSource.Dispose();
+        try
+        {
+            _cancellationTokenSource.Cancel();
+        }
+        finally
+        {
+            _cancellationTokenSource.Dispose();
+        }
         _cancellationTokenSource = new CancellationTokenSource();
-        _ = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
+        GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
 
     /// <summary>
@@ -249,6 +260,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
         finally
         {
+            // cancellationToken might be already canceled. Fallback to the disposal token.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
             this.IsInProgress = false;
         }
@@ -321,6 +333,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Dispose()
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         _isDisposed = true;
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         BaseViewModel.PropertyChanged -= BaseViewModelPropertyChanged;
@@ -336,6 +349,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// </summary>
     public void ToggleOrTriggerSuggestions()
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         if (this.SupportsAutomaticSuggestions)
         {
             this.IsAutomaticSuggestionsEnabled = !this.IsAutomaticSuggestionsEnabled;
@@ -363,10 +377,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private void BaseViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
             // User is typing the new identifier name, cancel the ongoing request to get suggestions.
-            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource.Cancel();
         }
     }
 }
