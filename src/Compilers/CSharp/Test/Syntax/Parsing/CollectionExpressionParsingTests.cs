@@ -18309,6 +18309,118 @@ class C
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_ConditionalExpressionAmbiguity7()
+    {
+        UsingStatement("var v = x is Y ? [Goo]() => B : [Goo]() => C;");
+
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "v");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IsExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Y");
+                                }
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_ConditionalExpressionAmbiguity_RealWorld()
+    {
+        // Ensure that even though `DayOfWeek.Friday` will be parsed as a type, that binding will understand that it
+        // should also be viewed as a constant pattern.
+        CreateCompilation("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    int[] nextDayOffSet = DateTime.Today.DayOfWeek is DayOfWeek.Friday ? [1, 2, 3] : [1];
+                }
+            }
+            """).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
     public void CollectionExpression_KeywordKey1()
     {
         UsingExpression("[default:0]");
@@ -18646,23 +18758,5 @@ class C
             N(SyntaxKind.CloseBracketToken);
         }
         EOF();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
-    public void CollectionExpression_ConditionalExpressionAmbiguity_RealWorld()
-    {
-        // Ensure that even though `DayOfWeek.Friday` will be parsed as a type, that binding will understand that it
-        // should also be viewed as a constant pattern.
-        CreateCompilation("""
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    int[] nextDayOffSet = DateTime.Today.DayOfWeek is DayOfWeek.Friday ? [1, 2, 3] : [1];
-                }
-            }
-            """).VerifyDiagnostics();
     }
 }
