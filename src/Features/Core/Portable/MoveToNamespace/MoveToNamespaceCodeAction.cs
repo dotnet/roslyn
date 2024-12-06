@@ -43,9 +43,7 @@ internal sealed partial class MoveToNamespaceCodeAction(
         object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
-        if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
-            !moveToNamespaceOptions.IsCancelled &&
-            !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
+        if (options is MoveToNamespaceOptionsResult { IsCancelled: false, Namespace: not null and not "" } moveToNamespaceOptions)
         {
             var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                 _moveToNamespaceAnalysisResult,
@@ -53,9 +51,7 @@ internal sealed partial class MoveToNamespaceCodeAction(
                 cancellationToken).ConfigureAwait(false);
 
             if (moveToNamespaceResult.Succeeded)
-            {
                 return CreateRenameOperations(moveToNamespaceResult);
-            }
         }
 
         return [];
