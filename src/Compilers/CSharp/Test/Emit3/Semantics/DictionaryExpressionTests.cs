@@ -166,19 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        IDictionary<string, int> d = [default, new()];
-                        d.Report();
-                    }
-                }
+                IDictionary<string, int> d = [default, new()];
                 """;
-            var verifier = CompileAndVerify(
-                [source, s_dictionaryExtensions],
-                expectedOutput: "[1:one, 2:two, 3:three]");
-            verifier.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -186,19 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        IDictionary<string, int> d = [default:default, null:new()];
-                        d.Report();
-                    }
-                }
+                IDictionary<string, int> d = [default:default, null:new()];
                 """;
-            var verifier = CompileAndVerify(
-                [source, s_dictionaryExtensions],
-                expectedOutput: "[1:one, 2:two, 3:three]");
-            verifier.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -206,23 +188,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x = new object();
-                        IDictionary<int, int> d = [x, null];
-                    }
-                }
+                var x = new object();
+                IDictionary<int, int> d = [x, null];
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,36): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<int, int>'
-                //         IDictionary<int, int> z = [x, null];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "System.Collections.Generic.KeyValuePair<int, int>").WithLocation(7, 36),
-                // (7,39): error CS0037: Cannot convert null to 'KeyValuePair<int, int>' because it is a non-nullable value type
-                //         IDictionary<int, int> z = [x, null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Collections.Generic.KeyValuePair<int, int>").WithLocation(7, 39));
+                // (3,28): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<int, int>'
+                // IDictionary<int, int> d = [x, null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "System.Collections.Generic.KeyValuePair<int, int>").WithLocation(3, 28),
+                // (3,31): error CS0037: Cannot convert null to 'KeyValuePair<int, int>' because it is a non-nullable value type
+                // IDictionary<int, int> d = [x, null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Collections.Generic.KeyValuePair<int, int>").WithLocation(3, 31));
         }
 
         [Fact]
@@ -230,24 +206,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        var x = new object();
-                        var y = new object();
-                        IDictionary<string, int> d = [x:1, "2":y];
-                    }
-                }
+                var x = new object();
+                var y = new object();
+                IDictionary<string, int> d = [x:1, "2":y];
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,39): error CS0029: Cannot implicitly convert type 'object' to 'string'
-                //         IDictionary<string, int> d = [x:1, "2":y];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "string").WithLocation(8, 39),
-                // (8,48): error CS0029: Cannot implicitly convert type 'object' to 'int'
-                //         IDictionary<string, int> d = [x:1, "2":y];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("object", "int").WithLocation(8, 48));
+                // (4,31): error CS0029: Cannot implicitly convert type 'object' to 'string'
+                // IDictionary<string, int> d = [x:1, "2":y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("object", "string").WithLocation(4, 31),
+                // (4,40): error CS0029: Cannot implicitly convert type 'object' to 'int'
+                // IDictionary<string, int> d = [x:1, "2":y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("object", "int").WithLocation(4, 40));
         }
 
         [Fact]
@@ -257,19 +227,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // empty .ctor? Compare with ConversionError_PROTOTYPE_01 below.
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        IDictionary<string, int> d = [new():null];
-                    }
-                }
+                IDictionary<string, int> d = [new():null];
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,45): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
-                //         IDictionary<string, int> d = [new():null];
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(6, 45));
+                // (2,37): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                // IDictionary<string, int> d = [new():null];
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(2, 37));
         }
 
         [Fact]
@@ -277,19 +241,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        IList<string> z = [new()];
-                    }
-                }
+                IList<string> z = [new()];
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,28): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         IList<string> z = [new()];
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(6, 28));
+                // (2,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // IList<string> z = [new()];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(2, 20));
         }
 
         [Fact]
@@ -297,19 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        IDictionary<string, int> d = [..new()];
-                    }
-                }
+                IDictionary<string, int> d = [..new()];
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,41): error CS8754: There is no target type for 'new()'
-                //         IDictionary<string, int> d = [..new()];
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(6, 41));
+                // (2,33): error CS8754: There is no target type for 'new()'
+                // IDictionary<string, int> d = [..new()];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(2, 33));
         }
 
         [Fact]
