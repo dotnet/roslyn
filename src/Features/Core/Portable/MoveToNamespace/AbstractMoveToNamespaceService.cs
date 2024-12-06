@@ -206,11 +206,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         var newNameOriginalSymbolMapping = memberSymbols
             .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => symbol);
 
-        var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
-        if (changeNamespaceService == null)
-        {
-            return MoveToNamespaceResult.Failed;
-        }
+        var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
 
         var originalSolution = document.Project.Solution;
 

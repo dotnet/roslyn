@@ -1393,6 +1393,7 @@ expectedSuccess: false);
 
         var expected =
             """
+
             namespace A
             {
                 public class Class1
@@ -1406,6 +1407,7 @@ expectedSuccess: false);
                 {
                 }
             }
+
             """;
         using var workspace = EditorTestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 
@@ -1426,7 +1428,7 @@ expectedSuccess: false);
             var changedDocument = result.Item2.GetDocument(id);
             var changedRoot = await changedDocument.GetSyntaxRootAsync();
             var actualText = changedRoot.ToFullString();
-            Assert.Equal(expected, actualText);
+            AssertEx.Equal(expected, actualText);
         }
     }
 
