@@ -236,11 +236,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         {
             var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, CancellationToken).ConfigureAwait(false);
 
-            // Make the type chain above the type we're moving 'partial'.  
-            // However, keep all the attributes on these types as theses are the 
-            // original attributes and we don't want to mess with them. 
+            // Make the type chain above the type we're moving 'partial'. However, keep all the attributes on these
+            // types as theses are the original attributes and we don't want to mess with them. 
             AddPartialModifiersToTypeChain(documentEditor,
                 removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
+
+            // Now cleanup and remove the type we're moving to the new file.
             RemoveLeadingBlankLinesFromMovedType(documentEditor);
             documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
