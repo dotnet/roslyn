@@ -6965,6 +6965,7 @@ public class S
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_RecursivePatterns_DeconstructOnDerived()
         {
+            // TODO2 resume here
             // TODO2 why aren't we reporting the `C` patterns as redundant?
             var source = """
 object o = null;

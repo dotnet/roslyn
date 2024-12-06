@@ -442,7 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             append(declarationPattern.Variable?.Name);
                             break;
                         }
-                    // TODO2
                     default:
                         appendLine(node.Kind.ToString());
                         break;
