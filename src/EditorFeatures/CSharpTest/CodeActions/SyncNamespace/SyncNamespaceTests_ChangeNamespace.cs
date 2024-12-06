@@ -341,8 +341,8 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
             namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                     private Class2 c2;
                     private Class3 c3;
                     private Class4 c4;
@@ -401,8 +401,8 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
             namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                     private Foo.Class2 c2;
                     private Foo.Bar.Class3 c3;
                     private Foo.Bar.Baz.Class4 c4;
@@ -460,12 +460,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                 }
 
                 class Class2 
-                { 
+                {
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Foo.Bar.Baz;
@@ -663,12 +663,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                 }
 
                 class Class2 
-                { 
+                {
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using System;
@@ -832,12 +832,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                 }
 
                 class Class2 
-                { 
+                {
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Foo.Bar.Baz;
@@ -1013,8 +1013,8 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                     private Class2 c2;
                     private Class3 c3;
                     private Class4 c4;
@@ -1138,12 +1138,12 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
-                class Class1 
-                { 
+                class Class1
+                {
                 }
 
                 class Class2 
-                { 
+                {
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using System;
@@ -1608,7 +1608,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
                 public class Class1
-                { 
+                {
                 }
             }</Document>
                 </Project>    
@@ -1657,7 +1657,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             namespace [||]{{declaredNamespace}}
             {
                 public class Class1
-                { 
+                {
                 }
             }</Document>
                 </Project>    
@@ -1804,7 +1804,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
                 public class Class1
-                { 
+                {
                 }
             }</Document>
                 </Project>    
@@ -1848,7 +1848,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
                 public class MyClass
-                { 
+                {
                 }
             }</Document>
                 </Project>    
@@ -1965,7 +1965,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{defaultNamespace}}
             {
                 public static class Extensions
-                { 
+                {
                     public static bool Foo(this Class1 c1) => true;
                 }
             }</Document>
@@ -2022,7 +2022,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]A
             {
                 public static class Extensions
-                { 
+                {
                     public static bool Foo(this Class1 c1) => true;
                 }
             }</Document>
@@ -2079,7 +2079,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]A
             {
                 public static class Extensions
-                { 
+                {
                     public static bool Foo(this Class1 c1) => true;
                 }
 
