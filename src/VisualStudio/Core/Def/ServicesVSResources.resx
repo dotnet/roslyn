@@ -1880,9 +1880,6 @@ Additional information: {1}</value>
   <data name="Show_completion_item_filters" xml:space="preserve">
     <value>Show completion item _filters</value>
   </data>
-  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
-    <value>_Only add new line on enter after end of fully typed word</value>
-  </data>
   <data name="Snippets_behavior" xml:space="preserve">
     <value>Snippets behavior</value>
   </data>
@@ -1915,6 +1912,12 @@ Additional information: {1}</value>
   </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
+  </data>
+  <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>Only add new line on enter after end of fully typed word</value>
   </data>
   <data name="Show_Remove_Unused_References_command_in_Solution_Explorer" xml:space="preserve">
     <value>Show "Remove Unused References" command in Solution Explorer</value>
