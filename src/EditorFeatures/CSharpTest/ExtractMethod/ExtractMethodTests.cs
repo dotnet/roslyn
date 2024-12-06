@@ -12154,7 +12154,7 @@ $@"namespace ClassLibrary9
     [InlineData("checked")]
     [InlineData("unchecked")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4950")]
-    public async Task ExtractMethodInvolvingUnsafeBlock_CSharp10(string keyword)
+    public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
     {
         var code = $$"""
             using System;
@@ -12191,63 +12191,6 @@ $@"namespace ClassLibrary9
                 }
 
                 private static IntPtr NewMethod(object value)
-                {
-                    IntPtr p;
-                    {{keyword}}
-                    {
-                        object t = value;
-                        p = IntPtr.Zero;
-                    }
-
-                    return p;
-                }
-            }
-            """;
-        await TestExtractMethodAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
-    }
-
-    [Theory]
-    [InlineData("unsafe")]
-    [InlineData("checked")]
-    [InlineData("unchecked")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/4950")]
-    public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
-    {
-        var code = $$"""
-            using System;
-
-            class Program {
-                static void Main(string[] args)
-                {
-                    object value = args;
-
-                    [|
-                    IntPtr p;
-                    {{keyword}}
-                    {
-                        object t = value;
-                        p = IntPtr.Zero;
-                    }
-                    |]
-
-                    Console.WriteLine(p);
-                }
-            }
-            """;
-        var expected = $$"""
-            using System;
-
-            class Program {
-                static void Main(string[] args)
-                {
-                    object value = args;
-
-                    nint p = NewMethod(value);
-
-                    Console.WriteLine(p);
-                }
-
-                private static nint NewMethod(object value)
                 {
                     IntPtr p;
                     {{keyword}}

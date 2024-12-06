@@ -805,33 +805,7 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                     if (default({{@namespace}}.{{type}}) is {{@namespace}}.{{type}}.{{member}}) { }
                 }
             }
-            """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10]);
-    }
-
-    [Theory]
-    [InlineData("System", "IntPtr", "nint.Zero")]
-    [InlineData("System", "UIntPtr", "nuint.Zero")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified3(string @namespace, string type, string replacement)
-    {
-        await TestWithLanguageVersionsAsync(
-            $$"""
-            class C
-            {
-                void M()
-                {
-                    if (default({{@namespace}}.{{type}}) is [||]default) { }
-                }
-            }
-            """,
-            $$"""
-            class C
-            {
-                void M()
-                {
-                    if (default({{@namespace}}.{{type}}) is {{replacement}}) { }
-                }
-            }
-            """, [LanguageVersion.CSharp11, LanguageVersion.Latest]);
+            """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10, LanguageVersion.CSharp11, LanguageVersion.Latest]);
     }
 
     [Theory]
@@ -886,35 +860,7 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
                     if (default({{type}}) is {{type}}.{{member}}) { }
                 }
             }
-            """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10]);
-    }
-
-    [Theory]
-    [InlineData("System", "IntPtr", "nint.Zero")]
-    [InlineData("System", "UIntPtr", "nuint.Zero")]
-    public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing3(string @namespace, string type, string replacement)
-    {
-        await TestWithLanguageVersionsAsync(
-            $$"""
-            using {{@namespace}};
-            class C
-            {
-                void M()
-                {
-                    if (default({{type}}) is [||]default) { }
-                }
-            }
-            """,
-            $$"""
-            using {{@namespace}};
-            class C
-            {
-                void M()
-                {
-                    if (default({{type}}) is {{replacement}}) { }
-                }
-            }
-            """, [LanguageVersion.CSharp11, LanguageVersion.Latest]);
+            """, [LanguageVersion.CSharp7_1, LanguageVersion.CSharp10, LanguageVersion.CSharp11, LanguageVersion.Latest]);
     }
 
     [Theory]

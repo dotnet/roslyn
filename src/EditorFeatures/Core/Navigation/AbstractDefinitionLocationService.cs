@@ -50,14 +50,17 @@ internal abstract partial class AbstractDefinitionLocationService(
 
         async ValueTask<DefinitionLocation?> GetDefinitionLocationWorkerAsync(Document document)
         {
-            return await GetControlFlowTargetLocationAsync(document).ConfigureAwait(false) ??
-                   await GetSymbolLocationAsync(document).ConfigureAwait(false);
+            // We don't need nullable information to compute the symbol.  So avoid expensive work computing this.
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await GetControlFlowTargetLocationAsync(document, semanticModel).ConfigureAwait(false) ??
+                   await GetSymbolLocationAsync(document, semanticModel).ConfigureAwait(false);
         }
 
-        async ValueTask<DefinitionLocation?> GetControlFlowTargetLocationAsync(Document document)
+        async ValueTask<DefinitionLocation?> GetControlFlowTargetLocationAsync(
+            Document document, SemanticModel semanticModel)
         {
             var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (controlFlowTarget == null)
                 return null;
 
@@ -66,11 +69,12 @@ internal abstract partial class AbstractDefinitionLocationService(
             return location is null ? null : new DefinitionLocation(location, new DocumentSpan(document, controlFlowSpan));
         }
 
-        async ValueTask<DefinitionLocation?> GetSymbolLocationAsync(Document document)
+        async ValueTask<DefinitionLocation?> GetSymbolLocationAsync(
+            Document document, SemanticModel semanticModel)
         {
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
                 return null;
 

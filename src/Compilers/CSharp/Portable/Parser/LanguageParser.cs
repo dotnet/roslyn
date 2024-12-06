@@ -2054,39 +2054,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private BaseListSyntax ParseBaseList()
         {
+            // We are only called from ParseClassOrStructOrInterfaceDeclaration which unilaterally sets this.
+            Debug.Assert((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0);
+
             var colon = this.TryEatToken(SyntaxKind.ColonToken);
             if (colon == null)
                 return null;
 
             var list = _pool.AllocateSeparated<BaseTypeSyntax>();
 
-            // first type
+            // Grammar requires at least one base type follow the colon.
             var firstType = this.ParseType();
-
-            var argumentList = this.CurrentToken.Kind == SyntaxKind.OpenParenToken
-                ? this.ParseParenthesizedArgumentList()
-                : null;
-
-            list.Add(argumentList != null
-                ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList)
+            list.Add(this.CurrentToken.Kind == SyntaxKind.OpenParenToken
+                ? _syntaxFactory.PrimaryConstructorBaseType(firstType, this.ParseParenthesizedArgumentList())
                 : _syntaxFactory.SimpleBaseType(firstType));
 
-            // any additional types
+            // Parse any optional base types that follow.
             while (true)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
-                    ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken) ||
+                if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken ||
                     this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                     continue;
                 }
-                else if (skipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+
+                // Error recovery.  Code had an element in the base list, but wasn't followed by a comma or the start of
+                // any production that normally follows in a type declaration.  See if this is just a case of a missing
+                // comma between types in the base list.
+                //
+                // Note: if we see something that looks more like a modifier than a type (like 'file') do not try to
+                // consume it as a type here, as we want to use that to better determine what member is actually following
+                // this incomplete type declaration.
+                if (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+                {
+                    break;
+                }
+
+                if (this.IsPossibleType())
+                {
+                    list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                    list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
+                    continue;
+                }
+
+                if (skipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
                     break;
                 }

@@ -23,9 +23,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface;
 
+[Trait(Traits.Feature, Traits.Features.ExtractInterface)]
 public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
 {
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_CaretInMethod()
     {
         var markup = """
@@ -42,7 +43,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_CaretAfterClassClosingBrace()
     {
         var markup = """
@@ -59,7 +60,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_CaretBeforeClassKeyword()
     {
         var markup = """
@@ -76,7 +77,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromInnerClass1()
     {
         var markup = """
@@ -100,7 +101,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Bar");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromInnerClass2()
     {
         var markup = """
@@ -124,7 +125,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Bar");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromOuterClass()
     {
         var markup = """
@@ -148,7 +149,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromInterface_01()
     {
         var markup = """
@@ -162,7 +163,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromInterface_02()
     {
         var markup = """
@@ -176,7 +177,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromStruct()
     {
         var markup = """
@@ -190,7 +191,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "ISomeStruct");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_Invocation_FromNamespace()
     {
         var markup = """
@@ -208,7 +209,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_DoesNotIncludeFields()
     {
         var markup = """
@@ -226,7 +227,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Goo");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
     {
         var markup = """
@@ -240,7 +241,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Prop");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterfaceAction_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
     {
         var markup = """
@@ -265,7 +266,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCodeActionCSharpAsync(markup, expectedMarkup);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndPrivateSet()
     {
         var markup = """
@@ -279,7 +280,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Prop");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGet()
     {
         var markup = """
@@ -293,7 +294,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "Prop");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_ExcludesPublicProperty_WithPrivateGetAndPrivateSet()
     {
         var markup = """
@@ -307,7 +308,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesPublicIndexer()
     {
         var markup = """
@@ -321,7 +322,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "this[]");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_ExcludesInternalIndexer()
     {
         var markup = """
@@ -335,7 +336,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesPublicMethod()
     {
         var markup = """
@@ -351,7 +352,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "M");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_ExcludesInternalMethod()
     {
         var markup = """
@@ -367,7 +368,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesAbstractMethod()
     {
         var markup = """
@@ -381,7 +382,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "M");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_IncludesPublicEvent()
     {
         var markup = """
@@ -395,7 +396,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedMemberName: "MyEvent");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_ExtractableMembers_ExcludesPrivateEvent()
     {
         var markup = """
@@ -409,7 +410,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_DefaultInterfaceName_DoesNotConflictWithOtherTypeNames()
     {
         var markup = """
@@ -427,7 +428,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceName: "IMyClass3");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_NamespaceName_NoNamespace()
     {
         var markup = """
@@ -441,7 +442,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedNamespaceName: "");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_NamespaceName_SingleNamespace()
     {
         var markup = """
@@ -458,7 +459,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedNamespaceName: "MyNamespace");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_NamespaceName_NestedNamespaces()
     {
         var markup = """
@@ -478,7 +479,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedNamespaceName: "OuterNamespace.InnerNamespace");
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace1()
     {
         var markup = """
@@ -518,7 +519,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """, interfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace2()
     {
         var markup = """
@@ -559,7 +560,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """, interfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace3()
     {
         var markup = """
@@ -600,7 +601,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """, interfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_ClassesImplementExtractedInterface()
     {
         var markup = """
@@ -624,7 +625,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_StructsImplementExtractedInterface()
     {
         var markup = """
@@ -648,7 +649,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_InterfacesDoNotImplementExtractedInterface()
     {
         var markup = """
@@ -672,7 +673,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_Methods()
     {
         var markup = """
@@ -707,7 +708,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_MethodsInRecord()
     {
         var markup = """
@@ -731,7 +732,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_Events()
     {
         var markup = """
@@ -757,7 +758,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_Properties()
     {
         var markup = """
@@ -796,7 +797,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_Indexers()
     {
         var markup = """
@@ -824,7 +825,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_Imports()
     {
         var markup = """
@@ -854,7 +855,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_ImportsInsideNamespace()
     {
         var markup = """
@@ -903,7 +904,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         Assert.Equal(expectedInterfaceCode, interfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_TypeParameters1()
     {
         var markup = """
@@ -942,7 +943,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_TypeParameters2()
     {
         var markup = """
@@ -968,7 +969,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_TypeParameters3()
     {
         var markup = """
@@ -994,7 +995,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/706894")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_TypeParameters4()
     {
         var markup = """
@@ -1033,7 +1034,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_AccessibilityModifiers()
     {
         var markup = """
@@ -1065,7 +1066,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """, interfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_NewBaseListNonGeneric()
     {
         var markup = """
@@ -1085,7 +1086,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_NewBaseListGeneric()
     {
         var markup = """
@@ -1105,7 +1106,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_NewBaseListWithWhereClause()
     {
         var markup = """
@@ -1125,7 +1126,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList1()
     {
         var markup = """
@@ -1149,7 +1150,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList2()
     {
         var markup = """
@@ -1173,7 +1174,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList3()
     {
         var markup = """
@@ -1199,7 +1200,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList4()
     {
         var markup = """
@@ -1225,7 +1226,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly1()
     {
         var markup = """
@@ -1239,7 +1240,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly2()
     {
         var markup = """
@@ -1253,7 +1254,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly3()
     {
         var markup = """
@@ -1267,7 +1268,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly4()
     {
         var markup = """
@@ -1281,7 +1282,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly5()
     {
         var markup = """
@@ -1295,7 +1296,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly6()
     {
         var markup = """
@@ -1309,7 +1310,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly7()
     {
         var markup = """
@@ -1323,7 +1324,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly8()
     {
         var markup = """
@@ -1337,7 +1338,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly9()
     {
         var markup = """
@@ -1351,7 +1352,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly10()
     {
         var markup = """
@@ -1365,7 +1366,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestTypeDiscoveryAsync(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_TypeDiscovery_NameOnly11()
     {
         var markup = """
@@ -1391,7 +1392,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         Assert.Equal(expectedExtractable, result.CanExtractInterface);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_GeneratedNameTypeParameterSuffix1()
     {
         var markup = """
@@ -1405,7 +1406,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_GeneratedNameTypeParameterSuffix2()
     {
         var markup = """
@@ -1419,7 +1420,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task ExtractInterface_GeneratedNameTypeParameterSuffix3()
     {
         var markup = """
@@ -1433,9 +1434,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
     }
 
-    [WpfFact]
-    [Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-    [Trait(Traits.Feature, Traits.Features.Interactive)]
+    [WpfFact, Trait(Traits.Feature, Traits.Features.Interactive)]
     public void ExtractInterfaceCommandDisabledInSubmission()
     {
         using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
@@ -1461,7 +1460,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         Assert.True(state.IsUnspecified);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestInWithMethod_Parameters()
     {
         var markup = """
@@ -1483,7 +1482,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestRefReadOnlyWithMethod_ReturnType()
     {
         var markup = """
@@ -1503,7 +1502,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestRefReadOnlyWithProperty()
     {
         var markup = """
@@ -1523,7 +1522,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestInWithIndexer_Parameters()
     {
         var markup = """
@@ -1543,7 +1542,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestRefReadOnlyWithIndexer_ReturnType()
     {
         var markup = """
@@ -1563,7 +1562,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestUnmanagedConstraint_Type()
     {
         var markup = """
@@ -1582,7 +1581,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestUnmanagedConstraint_Method()
     {
         var markup = """
@@ -1601,7 +1600,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestNotNullConstraint_Type()
     {
         var markup = """
@@ -1620,7 +1619,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestNotNullConstraint_Method()
     {
         var markup = """
@@ -1640,7 +1639,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/23855")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestExtractInterface_WithCopyright1()
     {
         var markup =
@@ -1685,7 +1684,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/23855")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestExtractInterface_WithCopyright2()
     {
         var markup =
@@ -1736,7 +1735,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestRecord1()
     {
         var markup =
@@ -1780,7 +1779,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestClass1()
     {
         var markup =
@@ -1796,7 +1795,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestStruct1()
     {
         var markup =
@@ -1813,7 +1812,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestRecord2()
     {
         var markup =
@@ -1857,7 +1856,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestClass2()
     {
         var markup =
@@ -1873,7 +1872,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestStruct2()
     {
         var markup =
@@ -1890,7 +1889,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestRecord3()
     {
         var markup =
@@ -1936,7 +1935,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedInterfaceCode: expectedInterfaceCode);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestClass3()
     {
         var markup =
@@ -1953,7 +1952,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestStruct3()
     {
         var markup =
@@ -1970,7 +1969,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             expectedSuccess: false);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+    [WpfFact]
     public async Task TestStruct4()
     {
         var markup =
@@ -2046,6 +2045,43 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                         yield return i;
                     }
                 }
+            }
+            """;
+
+        await TestExtractInterfaceCodeActionCSharpAsync(markup, expectedMarkup);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54019")]
+    public async Task TestStaticMember()
+    {
+        var markup = """
+            using System;
+
+            class MyClass$$
+            {
+                public static void M() { }
+                public static int Prop { get; set; }
+                public static event Action Event;
+            }
+            """;
+
+        var expectedMarkup = """
+            using System;
+
+            interface IMyClass
+            {
+                static abstract int Prop { get; set; }
+
+                static abstract event Action Event;
+
+                static abstract void M();
+            }
+
+            class MyClass : IMyClass
+            {
+                public static void M() { }
+                public static int Prop { get; set; }
+                public static event Action Event;
             }
             """;
 
