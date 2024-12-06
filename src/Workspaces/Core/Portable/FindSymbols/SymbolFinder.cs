@@ -58,11 +58,28 @@ public static partial class SymbolFinder
     /// <param name="semanticModel">The semantic model associated with the document.</param>
     /// <param name="position">The character position within the document.</param>
     /// <param name="cancellationToken">A CancellationToken.</param>
+    internal static Task<ISymbol> FindSymbolAtPositionAsync(
+        SemanticModel semanticModel,
+        int position,
+        SolutionServices services,
+        CancellationToken cancellationToken)
+    {
+        return FindSymbolAtPositionAsync(semanticModel, position, services, includeType: false, cancellationToken);
+    }
+
+    /// <summary>
+    /// Finds the symbol that is associated with a position in the text of a document.
+    /// </summary>
+    /// <param name="semanticModel">The semantic model associated with the document.</param>
+    /// <param name="position">The character position within the document.</param>
+    /// <param name="includeType">True to include the type of the symbol in the search.</param>
+    /// <param name="cancellationToken">A CancellationToken.</param>
     internal static async Task<ISymbol> FindSymbolAtPositionAsync(
         SemanticModel semanticModel,
         int position,
         SolutionServices services,
-        CancellationToken cancellationToken = default)
+        bool includeType,
+        CancellationToken cancellationToken)
     {
         if (semanticModel is null)
             throw new ArgumentNullException(nameof(semanticModel));
@@ -71,7 +88,7 @@ public static partial class SymbolFinder
 
         var semanticInfo = await GetSemanticInfoAtPositionAsync(
             semanticModel, position, services, cancellationToken).ConfigureAwait(false);
-        return semanticInfo.GetAnySymbol(includeType: false);
+        return semanticInfo.GetAnySymbol(includeType);
     }
 
     internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
