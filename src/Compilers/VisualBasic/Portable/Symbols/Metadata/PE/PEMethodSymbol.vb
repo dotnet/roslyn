@@ -113,25 +113,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Public ReadOnly Property IsObsoleteAttributePopulated As Boolean
                 Get
-                    Return (_bits And s_isObsoleteAttributePopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isObsoleteAttributePopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsCustomAttributesPopulated As Boolean
                 Get
-                    Return (_bits And s_isCustomAttributesPopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isCustomAttributesPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsUseSiteDiagnosticPopulated As Boolean
                 Get
-                    Return (_bits And s_isUseSiteDiagnosticPopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isUseSiteDiagnosticPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsConditionalPopulated As Boolean
                 Get
-                    Return (_bits And s_isConditionalAttributePopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isConditionalAttributePopulatedBit) <> 0
                 End Get
             End Property
 
