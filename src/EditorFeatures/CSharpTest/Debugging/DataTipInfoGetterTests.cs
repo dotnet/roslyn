@@ -516,7 +516,7 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             using System.Linq;
 
             int[] args;
-            var v = {|LinqExpression:$$[|args|].Select(a => a.ToString())|};
+            var v = $$[|args|].Select(a => a.ToString());
             """);
     }
 
@@ -538,7 +538,7 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             using System.Linq;
 
             int[] args;
-            var v = {|LinqExpression:$$[|args|].Select(a => a.ToString()).Where(a => a.Length >= 0)|};
+            var v = $$[|args|].Select(a => a.ToString()).Where(a => a.Length >= 0);
             """);
     }
 
@@ -549,7 +549,7 @@ public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
             using System.Linq;
 
             int[] args;
-            var v = {|LinqExpression:[|args.$$Select|](a => a.ToString()).Where(a => a.Length >= 0)|};
+            var v = {|LinqExpression:[|args.$$Select|](a => a.ToString())|}.Where(a => a.Length >= 0);
             """);
     }
 

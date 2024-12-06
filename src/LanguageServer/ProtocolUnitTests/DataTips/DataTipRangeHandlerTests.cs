@@ -54,7 +54,7 @@ public class DataTipRangeHandlerTests(ITestOutputHelper testOutputHelper)
             ExpressionRange = new LSP.Range
             {
                 Start = new LSP.Position { Line = 3, Character = 8 },
-                End = new LSP.Position { Line = 3, Character = 64 },
+                End = new LSP.Position { Line = 3, Character = 38 },
             },
         }, result);
     }

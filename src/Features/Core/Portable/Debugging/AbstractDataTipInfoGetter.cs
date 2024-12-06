@@ -6,6 +6,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Debugging;
@@ -23,14 +25,16 @@ internal abstract class AbstractDataTipInfoGetter<
     {
         if (includeKind)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Look to see if this is a linq method call. If so, return the invocation so the debugger can provide a
             // custom linq experience for it.
-            if (expression.Parent is TMemberExpressionSyntax { Parent: TInvocationExpressionSyntax invocation } &&
+            if (expression.Parent is TMemberExpressionSyntax { Parent: TInvocationExpressionSyntax invocation } memberAccess &&
+                syntaxFacts.GetRightSideOfDot(memberAccess) == expression &&
                 IsLinqExtensionMethod(semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol))
             {
-                return (DebugDataTipInfoKind.LinqExpression, expression.Span);
+                return (DebugDataTipInfoKind.LinqExpression, invocation.Span);
             }
         }
 
