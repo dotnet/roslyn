@@ -43,7 +43,7 @@ internal sealed partial class MoveToNamespaceCodeAction(
         object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
-        if (options is MoveToNamespaceOptionsResult { IsCancelled: false, Namespace: not null and not "" } moveToNamespaceOptions)
+        if (options is MoveToNamespaceOptionsResult { IsCancelled: false, Namespace: not (null or "") } moveToNamespaceOptions)
         {
             var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                 _moveToNamespaceAnalysisResult,
