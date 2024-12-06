@@ -39,7 +39,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     where TMemberDeclarationSyntax : SyntaxNode
     where TCompilationUnitSyntax : SyntaxNode
 {
-    protected abstract TNamespaceDeclarationSyntax NamespaceDeclaration(string name, params IEnumerable<SyntaxNode> members);
     protected abstract Task<TTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(

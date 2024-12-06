@@ -20,12 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         Public Sub New()
         End Sub
 
-        Protected Overrides Function NamespaceDeclaration(name As String, members As IEnumerable(Of SyntaxNode)) As NamespaceBlockSyntax
-            Return SyntaxFactory.NamespaceBlock(
-                SyntaxFactory.NamespaceStatement(SyntaxFactory.ParseName(name)),
-                SyntaxFactory.List(members.Cast(Of StatementSyntax)))
-        End Function
-
         Protected Overrides Async Function GetRelevantNodeAsync(document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of TypeBlockSyntax)
             Dim typeStatement As TypeStatementSyntax = Await document.TryGetRelevantNodeAsync(Of TypeStatementSyntax)(textSpan, cancellationToken).ConfigureAwait(False)
             Return TryCast(typeStatement?.Parent, TypeBlockSyntax)

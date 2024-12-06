@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -22,12 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveType;
 internal sealed class CSharpMoveTypeService() :
     AbstractMoveTypeService<CSharpMoveTypeService, BaseTypeDeclarationSyntax, BaseNamespaceDeclarationSyntax, MemberDeclarationSyntax, CompilationUnitSyntax>
 {
-    protected override BaseNamespaceDeclarationSyntax NamespaceDeclaration(string name, params IEnumerable<SyntaxNode> members)
-    {
-        return SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(name))
-            .WithMembers(SyntaxFactory.List(members.Cast<MemberDeclarationSyntax>()));
-    }
-
     protected override async Task<BaseTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         => await document.TryGetRelevantNodeAsync<BaseTypeDeclarationSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
 }

@@ -1393,7 +1393,6 @@ expectedSuccess: false);
 
         var expected =
             """
-
             namespace A
             {
                 public class Class1

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +34,7 @@ internal abstract partial class AbstractMoveTypeService<
             return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
+        private static async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
             TNamespaceDeclarationSyntax namespaceDeclaration,
             TTypeDeclarationSyntax typeToMove,
             Document documentToEdit,
@@ -48,18 +48,19 @@ internal abstract partial class AbstractMoveTypeService<
 
             var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
             editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
+            var generator = editor.Generator;
 
             var index = childNodes.IndexOf(typeToMove);
 
-            var itemsBefore = childNodes.Take(index);
-            var itemsAfter = childNodes.Skip(index + 1);
+            var itemsBefore = childNodes.Take(index).ToImmutableArray();
+            var itemsAfter = childNodes.Skip(index + 1).ToImmutableArray();
 
             var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
-            var newNamespaceDeclaration = this.Service.NamespaceDeclaration(name, typeToMove).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
+            var newNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
 
             if (itemsBefore.Any() && itemsAfter.Any())
             {
-                var itemsAfterNamespaceDeclaration = this.Service.NamespaceDeclaration(name, itemsAfter);
+                var itemsAfterNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(itemsAfter));
 
                 foreach (var nodeToRemove in itemsAfter)
                     editor.RemoveNode(nodeToRemove, SyntaxRemoveOptions.KeepNoTrivia);
@@ -87,48 +88,31 @@ internal abstract partial class AbstractMoveTypeService<
 
         private static SyntaxNode WithElasticTrivia(SyntaxNode syntaxNode, bool leading = true, bool trailing = true)
         {
-            return syntaxNode;
             if (leading && syntaxNode.HasLeadingTrivia)
-            {
                 syntaxNode = syntaxNode.WithLeadingTrivia(syntaxNode.GetLeadingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
 
             if (trailing && syntaxNode.HasTrailingTrivia)
-            {
                 syntaxNode = syntaxNode.WithTrailingTrivia(syntaxNode.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
 
             return syntaxNode;
         }
 
-        private static IEnumerable<SyntaxNode> WithElasticTrivia(IEnumerable<SyntaxNode> syntaxNodes)
+        private static ImmutableArray<SyntaxNode> WithElasticTrivia(ImmutableArray<SyntaxNode> syntaxNodes)
         {
-            if (syntaxNodes.Any())
+            var result = new FixedSizeArrayBuilder<SyntaxNode>(syntaxNodes.Length);
+            for (int i = 0, n = syntaxNodes.Length; i < n; i++)
             {
-                var firstNode = syntaxNodes.First();
-                var lastNode = syntaxNodes.Last();
+                var node = syntaxNodes[i];
+                if (i == 0)
+                    node = WithElasticTrivia(node, leading: true);
 
-                if (firstNode == lastNode)
-                {
-                    yield return WithElasticTrivia(firstNode);
-                }
-                else
-                {
-                    yield return WithElasticTrivia(firstNode, trailing: false);
+                if (i == n - 1)
+                    node = WithElasticTrivia(node, trailing: true);
 
-                    foreach (var node in syntaxNodes.Skip(1))
-                    {
-                        if (node == lastNode)
-                        {
-                            yield return WithElasticTrivia(node, leading: false);
-                        }
-                        else
-                        {
-                            yield return node;
-                        }
-                    }
-                }
+                result.Add(node);
             }
+
+            return result.MoveToImmutable();
         }
     }
 }
