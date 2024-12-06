@@ -120,9 +120,12 @@ internal sealed class ExportProviderBuilder
 
     private static string GetCompositionCacheFilePath(string cacheDirectory, ImmutableArray<string> assemblyPaths)
     {
-        // Include the .NET runtime version in the cache path so that running on a newer
-        // runtime causes the cache to be rebuilt.
+        // This should vary based on .NET runtime major version so that as some of our processes switch between our target
+        // .NET version and the user's selected SDK runtime version (which may be newer), the MEF cache is kept isolated.
+        // This can be important when the MEF catalog records full assembly names such as "System.Runtime, 8.0.0.0" yet
+        // we might be running on .NET 7 or .NET 8, depending on the particular session and user settings.
         var cacheSubdirectory = $".NET {Environment.Version.Major}";
+
         return Path.Combine(cacheDirectory, cacheSubdirectory, $"c#-languageserver.{ComputeAssemblyHash(assemblyPaths)}.mef-composition");
 
         static string ComputeAssemblyHash(ImmutableArray<string> assemblyPaths)
