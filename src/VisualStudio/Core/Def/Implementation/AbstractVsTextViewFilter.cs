@@ -119,7 +119,10 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                             var spanOpt = textSnapshot.TryGetSpan(textSpan);
                             if (spanOpt.HasValue)
                             {
-                                var dataTipInfo = languageDebugInfo.GetDataTipInfoAsync(document, spanOpt.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
+                                // 'kind' is an lsp-only concept, so we don't want/need to include it here (especially
+                                // as it can be expensive to compute, and we don't want to block the UI thread).
+                                var dataTipInfo = languageDebugInfo.GetDataTipInfoAsync(
+                                    document, spanOpt.Value.Start, includeKind: false, cancellationToken).WaitAndGetResult(cancellationToken);
                                 if (!dataTipInfo.IsDefault)
                                 {
                                     var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);

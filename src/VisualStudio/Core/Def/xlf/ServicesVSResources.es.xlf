@@ -1367,9 +1367,9 @@
         <target state="translated">Resultados de búsqueda semántica</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
-        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="translated">Mostrar el comando "Quitar referencias sin usar" en el Explorador de soluciones (experimental)</target>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
+        <source>Show "Remove Unused References" command in Solution Explorer</source>
+        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
