@@ -320,18 +320,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                         If Me._directivesToKeep.Contains(directive) Then
                             Dim parentTrivia = directive.ParentTrivia
-                            Dim parentToken = parentTrivia.Token
-
-                            Dim triviaList = If(parentToken.LeadingTrivia.Contains(parentTrivia),
-                                parentToken.LeadingTrivia,
-                                parentToken.TrailingTrivia)
-                            Dim index = triviaList.IndexOf(parentTrivia)
+                            Dim triviaListAndIndex = GetTriviaListAndIndex(parentTrivia)
+                            Dim triviaList = triviaListAndIndex.triviaList
+                            Dim directiveTriviaListIndex = triviaListAndIndex.Index
 
                             ' If we're keeping a directive, and it's not at the start of the line, keep the whitespace
                             ' that precedes it as well.
-                            If index >= 1 AndAlso triviaList(index - 1).Kind() = SyntaxKind.WhitespaceTrivia Then
+                            If directiveTriviaListIndex >= 1 AndAlso triviaList(directiveTriviaListIndex - 1).Kind() = SyntaxKind.WhitespaceTrivia Then
                                 AddResidualTrivia(SyntaxFactory.TriviaList(
-                                    triviaList(index - 1), parentTrivia), requiresNewLine:=True)
+                                    triviaList(directiveTriviaListIndex - 1), parentTrivia), requiresNewLine:=True)
                             Else
                                 AddResidualTrivia(SyntaxFactory.TriviaList(parentTrivia), requiresNewLine:=True)
                             End If
@@ -339,6 +336,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Next
                 End If
             End Sub
+
+            Private Shared Function GetTriviaListAndIndex(trivia As SyntaxTrivia) As (triviaList As SyntaxTriviaList, Index As Integer)
+                Dim parentToken = trivia.Token
+
+                Dim index = parentToken.LeadingTrivia.IndexOf(trivia)
+                Return If(index >= 0,
+                    (parentToken.LeadingTrivia, index),
+                    (parentToken.TrailingTrivia, parentToken.TrailingTrivia.IndexOf(trivia)))
+            End Function
 
             Private Shared Function HasRelatedDirectives(directive As DirectiveTriviaSyntax) As Boolean
                 Select Case directive.Kind

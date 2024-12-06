@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -179,6 +180,8 @@ internal interface ISyntaxFacts
     bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
     bool IsPreprocessorDirective(SyntaxTrivia trivia);
+    SyntaxNode? GetMatchingDirective(SyntaxNode directive, CancellationToken cancellationToken);
+    ImmutableArray<SyntaxNode> GetMatchingConditionalDirectives(SyntaxNode directive, CancellationToken cancellationToken);
 
     bool IsDocumentationComment(SyntaxNode node);
 

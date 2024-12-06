@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Method, ImmutableArray.Create(LSP.CompletionItemKind.Method) },
             { WellKnownTags.Module, ImmutableArray.Create(LSP.CompletionItemKind.Module) },
             { WellKnownTags.Operator, ImmutableArray.Create(LSP.CompletionItemKind.Operator) },
-            { WellKnownTags.Parameter, ImmutableArray.Create(LSP.CompletionItemKind.Value) },
+            { WellKnownTags.Parameter, ImmutableArray.Create(LSP.CompletionItemKind.Variable) },
             { WellKnownTags.Property, ImmutableArray.Create(LSP.CompletionItemKind.Property) },
             { WellKnownTags.RangeVariable, ImmutableArray.Create(LSP.CompletionItemKind.Variable) },
             { WellKnownTags.Reference, ImmutableArray.Create(LSP.CompletionItemKind.Reference) },
