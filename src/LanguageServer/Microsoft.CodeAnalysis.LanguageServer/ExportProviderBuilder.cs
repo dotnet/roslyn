@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
-using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -80,8 +79,6 @@ internal sealed class ExportProviderBuilder
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
                 var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, resolver);
 
-                RoslynLog.Logger.Log(RoslynLog.FunctionId.LSP_MEF_Cache_Load_Success);
-
                 return exportProviderFactory;
             }
         }
@@ -89,7 +86,6 @@ internal sealed class ExportProviderBuilder
         {
             // Log the error, and move on to recover by recreating the MEF composition.
             logger.LogError($"Loading cached MEF composition failed: {ex}");
-            RoslynLog.Logger.Log(RoslynLog.FunctionId.LSP_MEF_Cache_Load_Failure);
         }
 
         logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
@@ -108,8 +104,6 @@ internal sealed class ExportProviderBuilder
 
         // Verify we only have expected errors.
         ThrowOnUnexpectedErrors(config, catalog, logger);
-
-        RoslynLog.Logger.Log(RoslynLog.FunctionId.LSP_MEF_Cache_Built);
 
         // Try to cache the composition.
         _ = WriteCompositionCacheAsync(compositionCacheFile, config, logger);
@@ -154,6 +148,8 @@ internal sealed class ExportProviderBuilder
     {
         try
         {
+            await Task.Yield();
+
             if (Path.GetDirectoryName(compositionCacheFile) is string directory)
             {
                 Directory.CreateDirectory(directory);
