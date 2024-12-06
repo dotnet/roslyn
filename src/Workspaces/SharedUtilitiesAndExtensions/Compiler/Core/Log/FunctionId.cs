@@ -639,4 +639,8 @@ internal enum FunctionId
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
+
+    LSP_MEF_Cache_Load_Success = 865,
+    LSP_MEF_Cache_Load_Failure = 866,
+    LSP_MEF_Cache_Built = 867
 }

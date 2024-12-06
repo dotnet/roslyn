@@ -14,7 +14,8 @@ using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
+public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerHostTests(testOutputHelper)
 {
     private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new ClientCapabilities
     {
@@ -24,14 +25,10 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         }
     };
 
-    public LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     [Fact]
     public async Task LspFileWatcherNotSupportedWithoutClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path);
 
         Assert.False(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
     }
@@ -39,7 +36,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     [Fact]
     public async Task LspFileWatcherSupportedWithClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger, MefCacheDirectory.Path);
 
         Assert.True(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
     }
@@ -49,7 +46,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger, MefCacheDirectory.Path);
         var lspFileChangeWatcher = new LspFileChangeWatcher(
             testLspServer.LanguageServerHost,
             testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
@@ -57,8 +54,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
 
-        using var tempRoot = new TempRoot();
-        var tempDirectory = tempRoot.CreateDirectory();
+        var tempDirectory = TempRoot.CreateDirectory();
 
         // Try creating a context and ensure we created the registration
         var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
@@ -80,7 +76,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger, MefCacheDirectory.Path);
         var lspFileChangeWatcher = new LspFileChangeWatcher(
             testLspServer.LanguageServerHost,
             testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
@@ -88,8 +84,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
 
-        using var tempRoot = new TempRoot();
-        var tempDirectory = tempRoot.CreateDirectory();
+        var tempDirectory = TempRoot.CreateDirectory();
 
         // Try creating a single file watch and ensure we created the registration
         var context = lspFileChangeWatcher.CreateContext([]);

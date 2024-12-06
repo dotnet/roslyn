@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Security.Cryptography;
+using System.IO.Hashing;
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -60,32 +61,35 @@ internal sealed class ExportProviderBuilder
     private static async Task<IExportProviderFactory> GetCompositionConfigurationAsync(
         ImmutableArray<string> assemblyPaths,
         IAssemblyLoader assemblyLoader,
-        string? cacheDirectory,
+        string cacheDirectory,
         ILogger logger)
     {
         // Create a MEF resolver that can resolve assemblies in the extension contexts.
         var resolver = new Resolver(assemblyLoader);
 
-        string? compositionCacheFile = cacheDirectory is not null
-            ? GetCompositionCacheFilePath(cacheDirectory, assemblyPaths)
-            : null;
+        var compositionCacheFile = GetCompositionCacheFilePath(cacheDirectory, assemblyPaths);
 
         // Try to load a cached composition.
         try
         {
-            if (compositionCacheFile is not null && File.Exists(compositionCacheFile))
+            if (File.Exists(compositionCacheFile))
             {
                 logger.LogTrace($"Loading cached MEF catalog: {compositionCacheFile}");
 
                 CachedComposition cachedComposition = new();
-                using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
-                return await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, resolver);
+                using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, resolver);
+
+                RoslynLog.Logger.Log(RoslynLog.FunctionId.LSP_MEF_Cache_Load_Success);
+
+                return exportProviderFactory;
             }
         }
         catch (Exception ex)
         {
             // Log the error, and move on to recover by recreating the MEF composition.
             logger.LogError($"Loading cached MEF composition failed: {ex}");
+            RoslynLog.Logger.Log(RoslynLog.FunctionId.LSP_MEF_Cache_Load_Failure);
         }
 
         logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
@@ -105,23 +109,10 @@ internal sealed class ExportProviderBuilder
         // Verify we only have expected errors.
         ThrowOnUnexpectedErrors(config, catalog, logger);
 
+        RoslynLog.Logger.Log(RoslynLog.FunctionId.LSP_MEF_Cache_Built);
+
         // Try to cache the composition.
-        if (compositionCacheFile is not null)
-        {
-            if (Path.GetDirectoryName(compositionCacheFile) is string directory)
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            CachedComposition cachedComposition = new();
-            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-            using (FileStream cacheStream = new(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-            {
-                await cachedComposition.SaveAsync(config, cacheStream);
-            }
-
-            File.Move(tempFilePath, compositionCacheFile, overwrite: true);
-        }
+        _ = WriteCompositionCacheAsync(compositionCacheFile, config, logger);
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
@@ -136,6 +127,9 @@ internal sealed class ExportProviderBuilder
 
         static string ComputeAssemblyHash(ImmutableArray<string> assemblyPaths)
         {
+            // Ensure AssemblyPaths are always in the same order.
+            assemblyPaths = assemblyPaths.Sort();
+
             var assemblies = new StringBuilder();
             foreach (var assemblyPath in assemblyPaths)
             {
@@ -147,9 +141,33 @@ internal sealed class ExportProviderBuilder
                 assemblies.Append(File.GetLastWriteTimeUtc(assemblyPath).ToString("F"));
             }
 
-            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(assemblies.ToString()));
+            var hash = XxHash128.Hash(Encoding.UTF8.GetBytes(assemblies.ToString()));
             // Convert to filename safe base64 string.
             return Convert.ToBase64String(hash).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+        }
+    }
+
+    private static async Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, ILogger logger)
+    {
+        try
+        {
+            if (Path.GetDirectoryName(compositionCacheFile) is string directory)
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            CachedComposition cachedComposition = new();
+            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+            using (FileStream cacheStream = new(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+            {
+                await cachedComposition.SaveAsync(config, cacheStream);
+            }
+
+            File.Move(tempFilePath, compositionCacheFile, overwrite: true);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"Failed to save MEF cache: {ex}");
         }
     }
 
