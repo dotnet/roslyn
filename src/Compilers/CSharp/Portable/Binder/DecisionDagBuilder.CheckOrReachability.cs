@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   2. `(A or B) and C` and `(A or B) and D`
         /// We then check the reachability for each of those cases in different sets.
         ///
-        /// 
+        ///
         /// </summary>
         internal static void CheckRedundantPatternsForIsPattern(
             CSharpCompilation compilation,
@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
 
             var noPreviousCases = ArrayBuilder<StateForCase>.GetInstance(0);
-            CheckOrReachability(noPreviousCases, patternIndex: 0, pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
-            CheckOrReachability(noPreviousCases, patternIndex: 0, MoveNotPatternsDownRewriter.MakeNegatedPattern(pattern), builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+            CheckOrAndAndReachability(noPreviousCases, patternIndex: 0, pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
             noPreviousCases.Free();
         }
 
@@ -59,11 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             BindingDiagnosticBag diagnostics)
         {
-            //if (pattern.HasErrors) // TODO2
-            //{
-            //    return;
-            //}
-
             LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
             var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
@@ -72,13 +66,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = 0;
             foreach (var switchArm in switchArms)
             {
+                if (switchArm.Pattern.HasErrors)
+                {
+                    return;
+                }
+
                 existingCases.Add(builder.MakeTestsForPattern(++index, switchArm.Syntax, rootIdentifier, switchArm.Pattern, whenClause: switchArm.WhenClause, label: switchArm.Label));
             }
 
             for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
             {
-                CheckOrReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
-                CheckOrReachability(existingCases, patternIndex, MoveNotPatternsDownRewriter.MakeNegatedPattern(switchArms[patternIndex].Pattern), builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                CheckOrAndAndReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics, isSwitchExpression: true);
             }
 
             existingCases.Free();
@@ -91,12 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
-
-            //if (pattern.HasErrors) // TODO2
-            //{
-            //    return;
-            //}
-
             LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
             var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
@@ -109,6 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
+                        if (label.Pattern.HasErrors)
+                        {
+                            return;
+                        }
+
                         existingCases.Add(builder.MakeTestsForPattern(++index, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
                     }
                 }
@@ -121,15 +118,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
+                        CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
                         patternIndex++;
-                        var casePattern = label.Pattern;
-                        CheckOrReachability(existingCases, patternIndex, casePattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
-                        CheckOrReachability(existingCases, patternIndex, MoveNotPatternsDownRewriter.MakeNegatedPattern(casePattern), builder, rootIdentifier, defaultLabel, syntax, diagnostics);
                     }
                 }
             }
 
             existingCases.Free();
+        }
+
+        private static void CheckOrAndAndReachability(
+          ArrayBuilder<StateForCase> previousCases,
+          int patternIndex,
+          BoundPattern pattern,
+          DecisionDagBuilder builder,
+          BoundDagTemp rootIdentifier,
+          LabelSymbol defaultLabel,
+          SyntaxNode syntax,
+          BindingDiagnosticBag diagnostics,
+          bool isSwitchExpression = false)
+        {
+            CheckOrReachability(previousCases, patternIndex, pattern,
+                builder, rootIdentifier, defaultLabel, syntax, diagnostics, ignoreDefaultLabel: isSwitchExpression);
+
+            CheckOrReachability(previousCases, patternIndex, MoveNotPatternsDownRewriter.MakeNegatedPattern(pattern),
+                builder, rootIdentifier, defaultLabel, syntax, diagnostics, ignoreDefaultLabel: isSwitchExpression);
         }
 
         private static void CheckOrReachability(
@@ -138,9 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             DecisionDagBuilder builder,
             BoundDagTemp rootIdentifier,
-            LabelSymbol whenFalseLabel,
+            LabelSymbol defaultLabel,
             SyntaxNode syntax,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool ignoreDefaultLabel = false)
         {
             var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
 
@@ -167,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!dag.ReachableLabels.Contains(whenFalseLabel))
+                if (!ignoreDefaultLabel && !dag.ReachableLabels.Contains(defaultLabel))
                 {
                     diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
                 }
