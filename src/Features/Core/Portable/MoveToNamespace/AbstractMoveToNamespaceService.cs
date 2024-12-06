@@ -165,9 +165,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         CancellationToken cancellationToken)
     {
         if (!analysisResult.CanPerform)
-        {
             return Task.FromResult(MoveToNamespaceResult.Failed);
-        }
 
         return analysisResult.Container switch
         {
@@ -232,11 +230,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         string targetNamespace,
         CancellationToken cancellationToken)
     {
-        var moveTypeService = document.GetLanguageService<IMoveTypeService>();
-        if (moveTypeService == null)
-        {
-            return MoveToNamespaceResult.Failed;
-        }
+        var moveTypeService = document.GetRequiredLanguageService<IMoveTypeService>();
 
         // The move service expects a single position, not a full selection
         // See https://github.com/dotnet/roslyn/issues/34643
