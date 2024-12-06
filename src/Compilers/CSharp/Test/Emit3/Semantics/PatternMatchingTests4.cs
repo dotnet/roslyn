@@ -6417,20 +6417,25 @@ object o = null;
 _ = o switch
 {
     string { Length: 0 } => 41,
-    not int or string => 42,
+    not int or string => 42, // 1
     _ => 43
 };
 
 _ = o switch
 {
     string { Length: 0 } => 41,
-    not string or int => 42,
+    not string or int => 42, // 2
     _ => 43
 };
 """;
-            // TODO2 handle switches
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (5,16): warning CS9268: The pattern is redundant.
+                //     not int or string => 42, // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(5, 16),
+                // (12,19): warning CS9268: The pattern is redundant.
+                //     not string or int => 42, // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "int").WithLocation(12, 19));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]

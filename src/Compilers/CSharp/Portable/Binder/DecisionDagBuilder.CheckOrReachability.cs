@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
-        // TODO2 handle switches too
         /// <summary>
+        /// TODO2 update doc
         /// For patterns that contain a disjunction `... or ...` we're going to perform reachability analysis for each branch of the `or`.
         /// We effectively pick each analyzable `or` sequence in turn and expand it to top-level cases.
         ///
@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   2. `(A or B) and C` and `(A or B) and D`
         /// We then check the reachability for each of those cases in different sets.
         ///
-        /// Note: we do not analyze `or` sequences that are inside of a `not`, with the exception
-        ///   of the simple top-level `not` in an is-pattern. Ideally, we would push every `not` down,
-        ///   inverting patterns as necessary, but that is tricky for more complex patterns (recursive or list patterns)
-        ///   and our goal is to catch the most common user errors.
+        /// 
         /// </summary>
         internal static void CheckOrReachabilityForIsPattern(
             CSharpCompilation compilation,
@@ -69,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
                     var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                    populateStateForCases(builder, rootIdentifier, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
+                    PopulateStateForCases(builder, rootIdentifier, previousCases: [], orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
                     BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
 
                     foreach (StateForCase @case in casesBuilder)
@@ -86,25 +83,90 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
 
-            static void populateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore,
-                SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
+        internal static void CheckOrReachabilityForSwitchExpression(
+            CSharpCompilation compilation,
+            SyntaxNode syntax,
+            BoundExpression inputExpression,
+            ImmutableArray<BoundSwitchExpressionArm> switchArms,
+            BindingDiagnosticBag diagnostics)
+        {
+            //if (pattern.HasErrors) // TODO2
+            //{
+            //    return;
+            //}
+
+            var arms = switchArms.AsSpan();
+            for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
             {
-                int index = 0;
-                foreach ((BoundPattern pattern, SyntaxNode? syntax) in set.Cases)
+                checkOrReachability(compilation, syntax, inputExpression, arms.Slice(0, patternIndex), arms[patternIndex].Pattern, diagnostics);
+                checkOrReachability(compilation, syntax, inputExpression, arms.Slice(0, patternIndex), MoveNotPatternsDownRewriter.MakeNegatedPattern(arms[patternIndex].Pattern), diagnostics);
+            }
+
+            return;
+
+            static void checkOrReachability(CSharpCompilation compilation, SyntaxNode syntax, BoundExpression inputExpression,
+                ReadOnlySpan<BoundSwitchExpressionArm> previousCases, BoundPattern pattern, BindingDiagnosticBag diagnostics)
+            {
+                var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
+
+                SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern);
+                if (setOfOrCases.IsDefault)
                 {
-                    var label = new GeneratedLabelSymbol("orCase");
-                    SyntaxNode? diagSyntax = syntax;
-                    if (diagSyntax is null)
+                    return;
+                }
+
+                // We construct a DAG and analyze reachability of branches once per `or` sequence
+                LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
+                var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+                var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
+                Debug.Assert(!setOfOrCases.IsDefault);
+                foreach (OrCases orCases in setOfOrCases.Set)
+                {
+                    using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
+                    var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
+                    PopulateStateForCases(builder, rootIdentifier, previousCases, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
+                    BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
+
+                    foreach (StateForCase @case in casesBuilder)
                     {
-                        // TODO2 comment
-                        labelsToIgnore.Add(label);
-                        diagSyntax = nodeSyntax;
+                        if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
+                        {
+                            diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
+                        }
                     }
 
-                    Debug.Assert(diagSyntax is not null);
-                    casesBuilder.Add(builder.MakeTestsForPattern(++index, diagSyntax, rootIdentifier, pattern, whenClause: null, label: label));
+                    if (!dag.ReachableLabels.Contains(whenFalseLabel))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
+                    }
                 }
+            }
+        }
+
+        static void PopulateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, ReadOnlySpan<BoundSwitchExpressionArm> previousCases, OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore,
+            SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
+        {
+            int index = 0;
+            foreach (var previousCase in previousCases)
+            {
+                casesBuilder.Add(builder.MakeTestsForPattern(++index, previousCase.Syntax, rootIdentifier, previousCase.Pattern, whenClause: previousCase.WhenClause, label: previousCase.Label));
+            }
+
+            foreach ((BoundPattern pattern, SyntaxNode? syntax) in set.Cases)
+            {
+                var label = new GeneratedLabelSymbol("orCase");
+                SyntaxNode? diagSyntax = syntax;
+                if (diagSyntax is null)
+                {
+                    // TODO2 comment
+                    labelsToIgnore.Add(label);
+                    diagSyntax = nodeSyntax;
+                }
+
+                Debug.Assert(diagSyntax is not null);
+                casesBuilder.Add(builder.MakeTestsForPattern(++index, diagSyntax, rootIdentifier, pattern, whenClause: null, label: label));
             }
         }
 
