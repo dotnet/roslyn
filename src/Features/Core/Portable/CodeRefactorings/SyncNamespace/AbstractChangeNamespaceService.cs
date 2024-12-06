@@ -627,7 +627,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         // We need to change the indentation here. TODO: Replace with an "indentation annotation" when
         // https://github.com/dotnet/roslyn/issues/59228 happens.
         if (oldNamespace is "" || newNamespace is "")
-            root.WithAdditionalAnnotations(Formatter.Annotation);
+            root = root.WithAdditionalAnnotations(Formatter.Annotation);
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
         var services = documentWithAddedImports.Project.Solution.Services;
