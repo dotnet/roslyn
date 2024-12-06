@@ -10,14 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
-internal abstract partial class AbstractMoveToNamespaceCodeAction(
+internal sealed partial class MoveToNamespaceCodeAction(
     IMoveToNamespaceService moveToNamespaceService,
-    MoveToNamespaceAnalysisResult analysisResult) : CodeActionWithOptions
+    MoveToNamespaceAnalysisResult analysisResult,
+    string title) : CodeActionWithOptions
 {
     private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
     private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
@@ -28,6 +28,8 @@ internal abstract partial class AbstractMoveToNamespaceCodeAction(
     /// and can run in all our hosts.
     /// </summary>
     public sealed override ImmutableArray<string> Tags => [];
+
+    public override string Title => title;
 
     public sealed override object GetOptions(CancellationToken cancellationToken)
     {
@@ -86,11 +88,11 @@ internal abstract partial class AbstractMoveToNamespaceCodeAction(
         return operations.ToImmutableAndClear();
     }
 
-    public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
-        => analysisResult.Container switch
+    public static MoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        => new(changeNamespaceService, analysisResult, analysisResult.Container switch
         {
-            MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
-            MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
+            MoveToNamespaceAnalysisResult.ContainerType.NamedType => FeaturesResources.Move_to_namespace,
+            MoveToNamespaceAnalysisResult.ContainerType.Namespace => FeaturesResources.Move_contents_to_namespace,
             _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
-        };
+        });
 }

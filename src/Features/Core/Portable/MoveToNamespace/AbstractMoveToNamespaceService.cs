@@ -25,29 +25,26 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
 internal interface IMoveToNamespaceService : ILanguageService
 {
-    Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+    Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
     Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
     MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
     IMoveToNamespaceOptionsService OptionsService { get; }
 }
 
-internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
+internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>(
+    IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
     : IMoveToNamespaceService
     where TCompilationUnitSyntax : SyntaxNode
     where TNamespaceDeclarationSyntax : SyntaxNode
     where TNamedTypeDeclarationSyntax : SyntaxNode
-
 {
     protected abstract string GetNamespaceName(SyntaxNode namespaceSyntax);
     protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
-    public IMoveToNamespaceOptionsService OptionsService { get; }
+    public IMoveToNamespaceOptionsService OptionsService { get; } = moveToNamespaceOptionsService;
 
-    protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
-        => OptionsService = moveToNamespaceOptionsService;
-
-    public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
+    public async Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(
         Document document,
         TextSpan span,
         CancellationToken cancellationToken)
@@ -59,9 +56,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
 
             if (typeAnalysisResult.CanPerform)
-            {
-                return [AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult)];
-            }
+                return [MoveToNamespaceCodeAction.Generate(this, typeAnalysisResult)];
         }
 
         return [];
