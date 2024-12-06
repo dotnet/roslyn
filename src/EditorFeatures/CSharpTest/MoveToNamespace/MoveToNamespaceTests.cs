@@ -1490,7 +1490,7 @@ expectedNamespaceName: "A.Complex.Namespace");
                 {"System.A", "Test.A" }
             });
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54889")]
     public Task MoveToNamespace_MoveType_NoFormat()
         => TestMoveToNamespaceAsync(
             $$"""
