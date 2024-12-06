@@ -150,11 +150,11 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2: {{declaredNamespace}}.Class1
+                class Class2 : {{declaredNamespace}}.Class1
                 {
                     {{declaredNamespace}}.D1 d;
 
-                    void {{declaredNamespace}}.Class1.M1(){}
+                    void {{declaredNamespace}}.Class1.M1() { }
                 }
             }</Document>
                 </Project>
@@ -172,7 +172,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2: Class1
+                class Class2 : Class1
                 {
                     D1 d;
 
@@ -533,9 +533,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{folder}}" FilePath="{{filePath}}">namespace [||]{{declaredNamespace}}
             {
-                interface Interface1 
+                interface Interface1
                 {
-                    void M1(Interface1 c1);   
+                    void M1(Interface1 c1);
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
@@ -787,7 +787,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2: {{declaredNamespace}}.Class1
+                class Class2 : {{declaredNamespace}}.Class1
                 {
                     global::{{declaredNamespace}}.D1 d;
 
@@ -903,7 +903,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 interface Interface1 
                 {
-                    void M1(Interface1 c1);   
+                    void M1(Interface1 c1);
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
@@ -1268,7 +1268,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1();
                 }
 
-                class Class2: Class1
+                class Class2 : Class1
                 {
                     D1 d;
 
@@ -2200,7 +2200,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{documentPath1.folder}}" FilePath="{{documentPath1.filePath}}">namespace [||]{{declaredNamespace}}
             {
-                enum Enum1 
+                enum Enum1
                 {
                     A,
                     B,
@@ -2265,7 +2265,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
                     <Document Folders="{{documentPath1.folder}}" FilePath="{{documentPath1.filePath}}">namespace [||]{{declaredNamespace}}
             {
-                enum Enum1 
+                enum Enum1
                 {
                     A,
                     B,

@@ -321,8 +321,7 @@ internal sealed class CSharpChangeNamespaceService :
             usings: default,
             members: compilationUnit.Members);
         return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
-            .WithoutAnnotations(ContainerAnnotation) // Make sure to remove the annotation we added
-            .WithAdditionalAnnotations(Formatter.Annotation); // We need the contents to indent here.
+            .WithoutAnnotations(ContainerAnnotation); // Make sure to remove the annotation we added
     }
 
     /// <summary>
