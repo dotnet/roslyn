@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            DecisionDagBuilder.CheckOrReachabilityForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
+            DecisionDagBuilder.CheckRedundantPatternsForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
 
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
             // after removing any outer 'not's, so consumers will need to compensate for negated patterns.

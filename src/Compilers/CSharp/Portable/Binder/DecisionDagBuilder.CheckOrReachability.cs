@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// 
         /// </summary>
-        internal static void CheckOrReachabilityForIsPattern(
+        internal static void CheckRedundantPatternsForIsPattern(
             CSharpCompilation compilation,
             SyntaxNode syntax,
             BoundExpression inputExpression,
@@ -42,50 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            checkOrReachability(compilation, syntax, inputExpression, pattern, diagnostics);
-            checkOrReachability(compilation, syntax, inputExpression, MoveNotPatternsDownRewriter.MakeNegatedPattern(pattern), diagnostics);
+            LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+            var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
 
-            return;
-
-            static void checkOrReachability(CSharpCompilation compilation, SyntaxNode syntax, BoundExpression inputExpression, BoundPattern pattern, BindingDiagnosticBag diagnostics)
-            {
-                var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
-
-                SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern);
-                if (setOfOrCases.IsDefault)
-                {
-                    return;
-                }
-
-                // We construct a DAG and analyze reachability of branches once per `or` sequence
-                LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
-                var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering: false, BindingDiagnosticBag.Discarded);
-                var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-                Debug.Assert(!setOfOrCases.IsDefault);
-                foreach (OrCases orCases in setOfOrCases.Set)
-                {
-                    using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
-                    var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                    PopulateStateForCases(builder, rootIdentifier, previousCases: [], orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
-                    BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
-
-                    foreach (StateForCase @case in casesBuilder)
-                    {
-                        if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
-                        {
-                            diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
-                        }
-                    }
-
-                    if (!dag.ReachableLabels.Contains(whenFalseLabel))
-                    {
-                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
-                    }
-                }
-            }
+            var noPreviousCases = ArrayBuilder<StateForCase>.GetInstance(0);
+            CheckOrReachability(noPreviousCases, patternIndex: 0, pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+            CheckOrReachability(noPreviousCases, patternIndex: 0, MoveNotPatternsDownRewriter.MakeNegatedPattern(pattern), builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+            noPreviousCases.Free();
         }
 
-        internal static void CheckOrReachabilityForSwitchExpression(
+        internal static void CheckRedundantPatternsForSwitchExpression(
             CSharpCompilation compilation,
             SyntaxNode syntax,
             BoundExpression inputExpression,
@@ -97,63 +64,125 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    return;
             //}
 
-            var arms = switchArms.AsSpan();
-            for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
+            LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+            var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
+
+            var existingCases = ArrayBuilder<StateForCase>.GetInstance(switchArms.Length);
+            int index = 0;
+            foreach (var switchArm in switchArms)
             {
-                checkOrReachability(compilation, syntax, inputExpression, arms.Slice(0, patternIndex), arms[patternIndex].Pattern, diagnostics);
-                checkOrReachability(compilation, syntax, inputExpression, arms.Slice(0, patternIndex), MoveNotPatternsDownRewriter.MakeNegatedPattern(arms[patternIndex].Pattern), diagnostics);
+                existingCases.Add(builder.MakeTestsForPattern(++index, switchArm.Syntax, rootIdentifier, switchArm.Pattern, whenClause: switchArm.WhenClause, label: switchArm.Label));
             }
 
-            return;
-
-            static void checkOrReachability(CSharpCompilation compilation, SyntaxNode syntax, BoundExpression inputExpression,
-                ReadOnlySpan<BoundSwitchExpressionArm> previousCases, BoundPattern pattern, BindingDiagnosticBag diagnostics)
+            for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
             {
-                var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
+                CheckOrReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                CheckOrReachability(existingCases, patternIndex, MoveNotPatternsDownRewriter.MakeNegatedPattern(switchArms[patternIndex].Pattern), builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+            }
 
-                SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern);
-                if (setOfOrCases.IsDefault)
+            existingCases.Free();
+        }
+
+        internal static void CheckRedundantPatternsForSwitchStatement(
+            CSharpCompilation compilation,
+            SyntaxNode syntax,
+            BoundExpression inputExpression,
+            ImmutableArray<BoundSwitchSection> switchSections,
+            BindingDiagnosticBag diagnostics)
+        {
+
+            //if (pattern.HasErrors) // TODO2
+            //{
+            //    return;
+            //}
+
+            LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+            var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
+
+            var existingCases = ArrayBuilder<StateForCase>.GetInstance();
+            int index = 0;
+            foreach (BoundSwitchSection section in switchSections)
+            {
+                foreach (BoundSwitchLabel label in section.SwitchLabels)
                 {
-                    return;
+                    if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    {
+                        existingCases.Add(builder.MakeTestsForPattern(++index, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
+                    }
+                }
+            }
+
+            int patternIndex = 0;
+            foreach (BoundSwitchSection section in switchSections)
+            {
+                foreach (BoundSwitchLabel label in section.SwitchLabels)
+                {
+                    if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    {
+                        patternIndex++;
+                        var casePattern = label.Pattern;
+                        CheckOrReachability(existingCases, patternIndex, casePattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                        CheckOrReachability(existingCases, patternIndex, MoveNotPatternsDownRewriter.MakeNegatedPattern(casePattern), builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                    }
+                }
+            }
+
+            existingCases.Free();
+        }
+
+        private static void CheckOrReachability(
+            ArrayBuilder<StateForCase> previousCases,
+            int patternIndex,
+            BoundPattern pattern,
+            DecisionDagBuilder builder,
+            BoundDagTemp rootIdentifier,
+            LabelSymbol whenFalseLabel,
+            SyntaxNode syntax,
+            BindingDiagnosticBag diagnostics)
+        {
+            var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
+
+            SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern);
+            if (setOfOrCases.IsDefault)
+            {
+                return;
+            }
+
+            // We construct a DAG and analyze reachability of branches once per `or` sequence
+            Debug.Assert(!setOfOrCases.IsDefault);
+            foreach (OrCases orCases in setOfOrCases.Set)
+            {
+                using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
+                var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
+                PopulateStateForCases(builder, rootIdentifier, previousCases, patternIndex, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
+                BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
+
+                foreach (StateForCase @case in casesBuilder)
+                {
+                    if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
+                    }
                 }
 
-                // We construct a DAG and analyze reachability of branches once per `or` sequence
-                LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
-                var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering: false, BindingDiagnosticBag.Discarded);
-                var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-                Debug.Assert(!setOfOrCases.IsDefault);
-                foreach (OrCases orCases in setOfOrCases.Set)
+                if (!dag.ReachableLabels.Contains(whenFalseLabel))
                 {
-                    using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
-                    var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                    PopulateStateForCases(builder, rootIdentifier, previousCases, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
-                    BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
-
-                    foreach (StateForCase @case in casesBuilder)
-                    {
-                        if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
-                        {
-                            diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
-                        }
-                    }
-
-                    if (!dag.ReachableLabels.Contains(whenFalseLabel))
-                    {
-                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
-                    }
+                    diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
                 }
             }
         }
 
-        static void PopulateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, ReadOnlySpan<BoundSwitchExpressionArm> previousCases, OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore,
+        static void PopulateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, ArrayBuilder<StateForCase> previousCases, int patternIndex, OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore,
             SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
         {
-            int index = 0;
-            foreach (var previousCase in previousCases)
+            for (int i = 0; i < patternIndex; i++)
             {
-                casesBuilder.Add(builder.MakeTestsForPattern(++index, previousCase.Syntax, rootIdentifier, previousCase.Pattern, whenClause: previousCase.WhenClause, label: previousCase.Label));
+                casesBuilder.Add(previousCases[i]);
             }
 
+            int index = patternIndex;
             foreach ((BoundPattern pattern, SyntaxNode? syntax) in set.Cases)
             {
                 var label = new GeneratedLabelSymbol("orCase");
