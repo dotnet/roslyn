@@ -200,47 +200,8 @@ internal static partial class TaskExtensions
     }
 
     public static Task SafeContinueWithFromAsync(
-       this Task task,
-       Func<Task, Task> continuationFunction,
-       CancellationToken cancellationToken,
-       TaskScheduler scheduler)
-    {
-        return task.SafeContinueWithFromAsync(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
-    }
-
-    public static Task SafeContinueWithFromAsync(
         this Task task,
         Func<Task, Task> continuationFunction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        // So here's the deal.  Say you do the following:
-#if false
-        // CancellationToken ct1 = ..., ct2 = ...;
-
-        // Task A = Task.Factory.StartNew(..., ct1);
-        // Task B = A.ContinueWith(..., ct1);
-        // Task C = B.ContinueWith(..., ct2);
-#endif
-        // If ct1 is cancelled then the following may occur: 
-        // 1) Task A can still be running (as it hasn't responded to the cancellation request
-        //    yet).
-        // 2) Task C can start running.  How?  Well if B hasn't started running, it may
-        //    immediately transition to the 'Cancelled/Completed' state.  Moving to that state will
-        //    immediately trigger C to run.
-        //
-        // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
-        // the behavior we want.
-        // This is the only place in the code where we're allowed to call ContinueWith.
-        var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-        ReportNonFatalError(nextTask, continuationFunction);
-        return nextTask;
-    }
-
-    public static Task SafeContinueWithFromAsync<TInput>(
-        this Task<TInput> task,
-        Func<Task<TInput>, Task> continuationFunction,
         CancellationToken cancellationToken,
         TaskContinuationOptions continuationOptions,
         TaskScheduler scheduler)

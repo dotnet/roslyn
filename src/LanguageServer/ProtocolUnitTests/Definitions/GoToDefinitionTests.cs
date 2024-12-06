@@ -256,6 +256,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.Scheme);
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionMetadataIncludesTypeAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                class A
+                {
+                    void M()
+                    {
+                        System.Console.Write("Hel{|caret:|}lo");
+                    }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            Assert.True(results.Single().Uri.OriginalString.EndsWith("String.cs"));
+        }
+
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,

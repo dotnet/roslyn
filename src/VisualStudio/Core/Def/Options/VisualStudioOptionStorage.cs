@@ -296,7 +296,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_navigate_to_decompiled_sources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"dotnet_navigate_to_source_link_and_embedded_sources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
         {"dotnet_offer_remove_unused_references", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
-        {"dotnet_offer_remove_unused_references_feature_flag", new FeatureFlagStorage(@"Roslyn.RemoveUnusedReferences")},
         {"dotnet_enter_outlining_mode_on_file_open", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Outlining")},
         {"visual_basic_pretty_listing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
 #pragma warning disable CS0612 // Type or member is obsolete

@@ -65,6 +65,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="FileSystem\FileUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Compiler\LanguageNames.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs" Link="Compiler\CaseInsensitiveComparison.cs" />
+    <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="SharedUtilities\NamedPipeUtil.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ImmutableArrayExtensions.cs" Link="SharedUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\IPooled.cs" Link="SharedUtilities\IPooled.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\Extensions.cs" Link="SharedUtilities\Extensions.cs" />

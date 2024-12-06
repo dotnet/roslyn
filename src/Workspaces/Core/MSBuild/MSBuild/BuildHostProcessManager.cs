@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -83,12 +84,13 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var processStartInfo = CreateBuildHostStartInfo(buildHostKind);
+                var pipeName = Guid.NewGuid().ToString();
+                var processStartInfo = CreateBuildHostStartInfo(buildHostKind, pipeName);
 
                 var process = Process.Start(processStartInfo);
                 Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
 
-                buildHostProcess = new BuildHostProcess(process, _loggerFactory);
+                buildHostProcess = new BuildHostProcess(process, pipeName, _loggerFactory);
                 buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
 
                 // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
@@ -105,13 +107,13 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         }
     }
 
-    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind)
+    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind, string pipeName)
     {
         return buildHostKind switch
         {
-            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
-            BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
-            BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
+            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(pipeName),
+            BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(pipeName),
+            BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(pipeName),
             _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
         };
     }
@@ -160,7 +162,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             await process.DisposeAsync().ConfigureAwait(false);
     }
 
-    private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo()
+    private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo(string pipeName)
     {
         var processStartInfo = new ProcessStartInfo()
         {
@@ -177,7 +179,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, netCoreBuildHostPath);
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
+        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -190,7 +192,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return buildHostPath;
     }
 
-    private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo()
+    private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo(string pipeName)
     {
         var netFrameworkBuildHost = GetDotNetFrameworkBuildHostPath();
         var processStartInfo = new ProcessStartInfo()
@@ -198,12 +200,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = netFrameworkBuildHost,
         };
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
+        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
 
-    private ProcessStartInfo CreateMonoBuildHostStartInfo()
+    private ProcessStartInfo CreateMonoBuildHostStartInfo(string pipeName)
     {
         var processStartInfo = new ProcessStartInfo
         {
@@ -212,7 +214,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, GetDotNetFrameworkBuildHostPath());
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
+        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -231,8 +233,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, buildHostPath));
     }
 
-    private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo)
+    private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
     {
+        AddArgument(processStartInfo, "--pipe");
+        AddArgument(processStartInfo, pipeName);
+
         foreach (var globalMSBuildProperty in _globalMSBuildProperties)
         {
             AddArgument(processStartInfo, "--property");
@@ -350,6 +355,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private sealed class BuildHostProcess : IAsyncDisposable
     {
+        /// <summary>
+        /// The time to wait for a named pipe connection to complete for a newly started server
+        /// </summary>
+        internal const int TimeOutMsNewProcess = 60_000;
+
         private readonly ILogger? _logger;
         private readonly Process _process;
         private readonly RpcClient _rpcClient;
@@ -362,7 +372,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         private int _disposed = 0;
 
-        public BuildHostProcess(Process process, ILoggerFactory? loggerFactory)
+        public BuildHostProcess(Process process, string pipeName, ILoggerFactory? loggerFactory)
         {
             _logger = loggerFactory?.CreateLogger($"BuildHost PID {process.Id}");
             _process = process;
@@ -372,7 +382,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             _process.ErrorDataReceived += Process_ErrorDataReceived;
 
-            _rpcClient = new RpcClient(sendingStream: _process.StandardInput.BaseStream, receivingStream: _process.StandardOutput.BaseStream);
+            var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            pipeClient.Connect(TimeOutMsNewProcess);
+            if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeClient))
+            {
+                throw new Exception("Ownership of BuildHost pipe is incorrect.");
+            }
+
+            _rpcClient = new RpcClient(sendingStream: pipeClient, receivingStream: pipeClient);
             _rpcClient.Start();
             _rpcClient.Disconnected += Process_Exited;
             BuildHost = new RemoteBuildHost(_rpcClient);

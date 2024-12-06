@@ -11,16 +11,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
 
-internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode> : CodeFixProvider
+internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode>(string diagnosticId) : CodeFixProvider
     where TClassNode : SyntaxNode
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [diagnosticId];
 
     public sealed override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
-
-    protected AbstractImplementAbstractClassCodeFixProvider(string diagnosticId)
-        => FixableDiagnosticIds = [diagnosticId];
 
     protected abstract SyntaxToken GetClassIdentifier(TClassNode classNode);
 

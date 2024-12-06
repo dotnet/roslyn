@@ -1429,9 +1429,6 @@ Additional information: {1}</value>
   <data name="No_unused_references_were_found" xml:space="preserve">
     <value>No unused references were found.</value>
   </data>
-  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
-    <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
-  </data>
   <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
     <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
   </data>
@@ -1918,5 +1915,8 @@ Additional information: {1}</value>
   </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
+  </data>
+  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer" xml:space="preserve">
+    <value>Show "Remove Unused References" command in Solution Explorer</value>
   </data>
 </root>
