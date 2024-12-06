@@ -4861,7 +4861,7 @@ _ = o is not A or B; // 1
 _ = o is not (A and not B); // 2
 _ = o is not (A or B);
 _ = o is (not A) or B; // 3
-_ = o is (not A) or (not B); // 4
+_ = o is (not A) or (not B); // 4 TODO2
 _ = o is A or B;
 _ = o is A or not B;
 
@@ -4907,8 +4907,11 @@ class B { }
                 // _ = o is (not A) or B; // 3
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(5, 21),
                 // (6,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                // _ = o is (not A) or (not B); // 4
+                // _ = o is (not A) or (not B); // 4 TODO2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is (not A) or (not B)").WithArguments("object").WithLocation(6, 5),
+                // (6,10): warning CS9268: The pattern is redundant.
+                // _ = o is (not A) or (not B); // 4 TODO2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "(not A) or (not B)").WithLocation(6, 10),
                 // (13,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     B => 43, // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(13, 5),
@@ -5515,26 +5518,32 @@ _ = i switch
             var source = """
 #nullable enable
 int? i = null;
-_ = i is not null or not 0;
-_ = i is (not null) or (not 0);
+_ = i is not null or not 0; // 1, 2
+_ = i is null and 0; // 3, 4
 
 _ = i switch
 {
     not null => 42,
     not 0 => 43,
-    _ => 44
+    _ => 44 // 5
 };
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,5): warning CS8794: An expression of type 'int?' always matches the provided pattern.
-                // _ = i is not null or not 0;
+                // _ = i is not null or not 0; // 1, 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is not null or not 0").WithArguments("int?").WithLocation(3, 5),
-                // (4,5): warning CS8794: An expression of type 'int?' always matches the provided pattern.
-                // _ = i is (not null) or (not 0);
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is (not null) or (not 0)").WithArguments("int?").WithLocation(4, 5),
+                // (3,10): warning CS9268: The pattern is redundant.
+                // _ = i is not null or not 0; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "not null or not 0").WithLocation(3, 10),
+                // (4,5): error CS8518: An expression of type 'int?' can never match the provided pattern.
+                // _ = i is null and 0; // 3, 4
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is null and 0").WithArguments("int?").WithLocation(4, 5),
+                // (4,10): warning CS9268: The pattern is redundant.
+                // _ = i is null and 0; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "null and 0").WithLocation(4, 10),
                 // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     _ => 44
+                //     _ => 44 // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 5));
         }
 
@@ -7487,6 +7496,91 @@ public struct S
                 // (6,44): warning CS9268: The pattern is redundant.
                 // _ = o is [not 42 or 43, var y, ..not 44 or 45]; // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 44));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_TODO2_17()
+        {
+            var source = """
+object o = null;
+_ = o is 1 or 2 or 1; // 1
+_ = o is 1 or 2 or not 1; // 2
+
+_ = o is not (1 or 2 or 1); // 3
+_ = o is not (1 or 2 or not 1); // 4
+
+_ = o switch
+{
+    1 => 0,
+    2 => 0,
+    1 => 0, // 5
+    _ => 0,
+};
+
+_ = o switch
+{
+    1 => 0,
+    2 => 0,
+    not 1 => 0,
+    _ => 0, // 6
+};
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): warning CS9268: The pattern is redundant.
+                // _ = o is 1 or 2 or 1; // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(2, 20),
+                // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // _ = o is 1 or 2 or not 1; // 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is 1 or 2 or not 1").WithArguments("object").WithLocation(3, 5),
+                // (3,10): warning CS9268: The pattern is redundant.
+                // _ = o is 1 or 2 or not 1; // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1 or 2 or not 1").WithLocation(3, 10),
+                // (5,25): warning CS9268: The pattern is redundant.
+                // _ = o is not (1 or 2 or 1); // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(5, 25),
+                // (6,5): error CS8518: An expression of type 'object' can never match the provided pattern.
+                // _ = o is not (1 or 2 or not 1); // 4
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is not (1 or 2 or not 1)").WithArguments("object").WithLocation(6, 5),
+                // (6,10): warning CS9268: The pattern is redundant.
+                // _ = o is not (1 or 2 or not 1); // 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "not (1 or 2 or not 1)").WithLocation(6, 10),
+                // (12,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     1 => 0, // 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1").WithLocation(12, 5),
+                // (21,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     _ => 0, // 6
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(21, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_TODO2_18()
+        {
+            var source = """
+object o = null;
+_ = o is { } or null; // 1
+
+_ = o switch
+{
+    { } => 0,
+    null => 0, // 
+    _ => 0,
+};
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): warning CS9268: The pattern is redundant.
+                // _ = o is 1 or 2 or 1; // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(2, 20),
+                // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // _ = o is 1 or 2 or not 1; // 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is 1 or 2 or not 1").WithArguments("object").WithLocation(3, 5),
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     1 => 0, // 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1").WithLocation(9, 5),
+                // (18,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     _ => 0, // 4
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(18, 5));
         }
 
         // TODO2 the null portion?

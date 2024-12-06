@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
                         }
                     }
+
+                    if (!dag.ReachableLabels.Contains(whenFalseLabel))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
+                    }
                 }
             }
 
