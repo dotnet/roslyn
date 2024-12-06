@@ -55,6 +55,8 @@ internal readonly struct RequestContext
     /// </remarks>
     private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
+    public ILspLogger Logger => _logger;
+
     /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
     /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
