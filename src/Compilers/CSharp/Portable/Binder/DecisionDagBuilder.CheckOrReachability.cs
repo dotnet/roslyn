@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
 
-                SetOfOrCases setOfOrCases = rewrite(normalizedPattern);
+                SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern);
                 if (setOfOrCases.IsDefault)
                 {
                     return;
@@ -87,32 +87,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // The rewrite produces multiple OrCases, one for each `or` sequence within the pattern.
-            // We take each `or` sequence in turn and bring it to the top-level, as long as it is not negated.
-            // The caller is responsible for disposing the expansion sets
-            static SetOfOrCases rewrite(BoundPattern? pattern)
+            static void populateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore,
+                SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
             {
-                return pattern switch
+                int index = 0;
+                foreach ((BoundPattern pattern, SyntaxNode? syntax) in set.Cases)
                 {
-                    BoundBinaryPattern binary => rewriteBinary(binary),
-                    BoundRecursivePattern recursive => rewriteRecursive(recursive),
-                    BoundListPattern list => rewriteList(list),
-                    BoundSlicePattern slice => rewriteSlice(slice),
-                    BoundITuplePattern ituple => rewriteITuple(ituple),
-                    BoundNegatedPattern => default,
-                    BoundTypePattern => default,
-                    BoundDeclarationPattern => default,
-                    BoundConstantPattern => default,
-                    BoundDiscardPattern => default,
-                    BoundRelationalPattern => default,
-                    null => default,
-                    _ => throw ExceptionUtilities.UnexpectedValue(pattern)
-                };
-            }
+                    var label = new GeneratedLabelSymbol("orCase");
+                    SyntaxNode? diagSyntax = syntax;
+                    if (diagSyntax is null)
+                    {
+                        // TODO2 comment
+                        labelsToIgnore.Add(label);
+                        diagSyntax = nodeSyntax;
+                    }
 
-            static SetOfOrCases rewriteBinary(BoundBinaryPattern binaryPattern)
+                    Debug.Assert(diagSyntax is not null);
+                    casesBuilder.Add(builder.MakeTestsForPattern(++index, diagSyntax, rootIdentifier, pattern, whenClause: null, label: label));
+                }
+            }
+        }
+
+        /// <summary>
+        /// The purpose of this method is to bring `or` sequences to the top-level (so they can be used as separate cases).
+        /// Each set handles one `or`.
+        /// </summary>
+        private static SetsOfOrCases RewriteToSetsOfOrCases(BoundPattern? pattern)
+        {
+            return pattern switch
             {
-                SetOfOrCases result = default;
+                BoundBinaryPattern binary => rewriteBinary(binary),
+                BoundRecursivePattern recursive => rewriteRecursive(recursive),
+                BoundListPattern list => rewriteList(list),
+                BoundSlicePattern slice => rewriteSlice(slice),
+                BoundITuplePattern ituple => rewriteITuple(ituple),
+                BoundNegatedPattern => default,
+                BoundTypePattern => default,
+                BoundDeclarationPattern => default,
+                BoundConstantPattern => default,
+                BoundDiscardPattern => default,
+                BoundRelationalPattern => default,
+                null => default,
+                _ => throw ExceptionUtilities.UnexpectedValue(pattern)
+            };
+
+            static SetsOfOrCases rewriteBinary(BoundBinaryPattern binaryPattern)
+            {
+                SetsOfOrCases result = default;
 
                 if (binaryPattern.Disjunction)
                 {
@@ -132,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < patterns.Count; i++)
                     {
                         BoundPattern pattern = patterns[i];
-                        using SetOfOrCases setOfOrCases = rewrite(pattern);
+                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
                         if (!setOfOrCases.IsDefault)
                         {
                             foreach (OrCases orSet in setOfOrCases.Set)
@@ -150,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    using SetOfOrCases leftSetOfOrCases = rewrite(binaryPattern.Left);
+                    using SetsOfOrCases leftSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Left);
                     if (!leftSetOfOrCases.IsDefault)
                     {
                         // In `A and B`, when found multiple `or` patterns in `A` to be expanded
@@ -165,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    using SetOfOrCases rightSetOfOrCases = rewrite(binaryPattern.Right);
+                    using SetsOfOrCases rightSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Right);
                     if (!rightSetOfOrCases.IsDefault)
                     {
                         // In `A and B`, when found multiple `or` patterns in `B` to be expanded
@@ -184,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetOfOrCases rewriteRecursive(BoundRecursivePattern recursivePattern)
+            static SetsOfOrCases rewriteRecursive(BoundRecursivePattern recursivePattern)
             {
-                SetOfOrCases result = default;
+                SetsOfOrCases result = default;
 
                 // If any of the nested property sub-patterns can be expanded, we carry those on.
                 // For example, in `{ Prop: A, ... }`, when we found multiple `or` patterns in `A` to be expanded
@@ -197,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < propertySubpatterns.Length; i++)
                     {
                         BoundPattern pattern = propertySubpatterns[i].Pattern;
-                        using SetOfOrCases setOfOrCases = rewrite(pattern);
+                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
                         if (!setOfOrCases.IsDefault)
                         {
                             foreach (OrCases orSet in setOfOrCases.Set)
@@ -225,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < positionalSubpatterns.Length; i++)
                     {
                         BoundPattern pattern = positionalSubpatterns[i].Pattern;
-                        using SetOfOrCases setOfOrCases = rewrite(pattern);
+                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
                         if (!setOfOrCases.IsDefault)
                         {
                             foreach (OrCases orSet in setOfOrCases.Set)
@@ -247,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetOfOrCases rewriteList(BoundListPattern listPattern)
+            static SetsOfOrCases rewriteList(BoundListPattern listPattern)
             {
-                SetOfOrCases result = default;
+                SetsOfOrCases result = default;
 
                 // If any of the nested list sub-patterns can be expanded, we carry those on.
                 // For example, in `[ A, ... ]`, when we found multiple `or` patterns in `A` to be expanded,
@@ -258,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < subpatterns.Length; i++)
                 {
                     BoundPattern pattern = subpatterns[i];
-                    using SetOfOrCases setOfOrCases = rewrite(pattern);
+                    using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
                     if (!setOfOrCases.IsDefault)
                     {
                         foreach (OrCases orSet in setOfOrCases.Set)
@@ -276,11 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetOfOrCases rewriteSlice(BoundSlicePattern slicePattern)
+            static SetsOfOrCases rewriteSlice(BoundSlicePattern slicePattern)
             {
-                SetOfOrCases result = default;
+                SetsOfOrCases result = default;
                 BoundPattern? pattern = slicePattern.Pattern;
-                using SetOfOrCases setOfOrCases = rewrite(pattern);
+                using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
                 if (!setOfOrCases.IsDefault)
                 {
                     foreach (OrCases orSet in setOfOrCases.Set)
@@ -297,15 +318,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetOfOrCases rewriteITuple(BoundITuplePattern ituplePattern)
+            static SetsOfOrCases rewriteITuple(BoundITuplePattern ituplePattern)
             {
-                SetOfOrCases result = default;
+                SetsOfOrCases result = default;
 
                 ImmutableArray<BoundPositionalSubpattern> positionalSubpatterns = ituplePattern.Subpatterns;
                 for (int i = 0; i < positionalSubpatterns.Length; i++)
                 {
                     BoundPattern pattern = positionalSubpatterns[i].Pattern;
-                    using SetOfOrCases setOfOrCases = rewrite(pattern);
+                    using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
                     if (!setOfOrCases.IsDefault)
                     {
                         foreach (OrCases orSet in setOfOrCases.Set)
@@ -324,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
+
 
             // Update `pattern1 or pattern2 or ... or patternN` tree, but with the i-th pattern/leaf substituted.
             // We return either an updated node or a count of leaves found in that node.
@@ -382,26 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(pattern);
                 }
             }
-
-            static void populateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore,
-                SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
-            {
-                int index = 0;
-                foreach ((BoundPattern pattern, SyntaxNode? syntax) in set.Cases)
-                {
-                    var label = new GeneratedLabelSymbol("orCase");
-                    SyntaxNode? diagSyntax = syntax;
-                    if (diagSyntax is null)
-                    {
-                        // TODO2 comment
-                        labelsToIgnore.Add(label);
-                        diagSyntax = nodeSyntax;
-                    }
-
-                    Debug.Assert(diagSyntax is not null);
-                    casesBuilder.Add(builder.MakeTestsForPattern(++index, diagSyntax, rootIdentifier, pattern, whenClause: null, label: label));
-                }
-            }
         }
 
         /// <summary>
@@ -410,9 +412,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 1. `A` and `B`
         /// 2. `(A or B) and C` and `(A or B) and D`
         /// Each set will be analyzed for reachability.
-        /// A `default` <see cref="SetOfOrCases"/> indicates that no `or` patterns were found (so there are no expansions).
+        /// A `default` <see cref="SetsOfOrCases"/> indicates that no `or` patterns were found (so there are no expansions).
         /// </summary>
-        private struct SetOfOrCases : IDisposable
+        private struct SetsOfOrCases : IDisposable
         {
             public ArrayBuilder<OrCases>? Set;
 
