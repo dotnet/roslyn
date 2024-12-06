@@ -27,12 +27,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var node = State.TypeNode;
             var documentToEdit = State.SemanticDocument.Document;
 
-            if (node.Parent is TNamespaceDeclarationSyntax namespaceDeclaration)
-            {
-                return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
-            }
+            if (node.Parent is not TNamespaceDeclarationSyntax namespaceDeclaration)
+                return null;
 
-            return null;
+            return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> GetNamespaceScopeChangedSolutionAsync(
@@ -45,9 +43,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
             if (childNodes.Count <= 1)
-            {
                 return null;
-            }
 
             var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
             editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
