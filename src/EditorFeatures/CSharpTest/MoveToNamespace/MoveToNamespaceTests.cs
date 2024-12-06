@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
+public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
 {
     private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features
         .AddParts(
@@ -33,12 +33,12 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
 
     protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-    public static IEnumerable<object[]> SupportedKeywords => new[]
-    {
-        new[] { "class" },
-        ["enum"],
-        ["interface"]
-    };
+    public static IEnumerable<object[]> SupportedKeywords
+        => [
+            ["class"],
+            ["enum"],
+            ["interface"]
+        ];
 
     [Fact]
     public Task MoveToNamespace_MoveItems_CaretAboveNamespace()
@@ -53,7 +53,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                 }
             }
             """,
-        expectedSuccess: false);
+            expectedSuccess: false);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59716")]
     public Task MoveToNamespace_MoveItems_CaretAboveNamespace_FileScopedNamespace()
@@ -106,14 +106,14 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "A",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.B.C.MyClass", "A.MyClass" }
+                {"A.B.C.MyClass", "A.MyClass" }
             });
 
     [Fact]
     public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
         => TestMoveToNamespaceAsync(
             """
-            namespace A[||] 
+            namespace A[||]
             {
                 class MyClass
                 {
@@ -133,7 +133,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.MyClass", "B.MyClass" }
+                {"A.MyClass", "B.MyClass" }
             });
 
     [Fact]
@@ -220,50 +220,50 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
 
     [Fact]
     public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace()
-    => TestMoveToNamespaceAsync(
-        """
-        namespace A
-        [||]{
-            class MyClass
-            {
-                void Method() { }
+        => TestMoveToNamespaceAsync(
+            """
+            namespace A
+            [||]{
+                class MyClass
+                {
+                    void Method() { }
+                }
             }
-        }
-        """,
+            """,
             expectedSuccess: false);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59716")]
     public Task MoveToNamespace_MoveItems_CaretAfterFileScopedNamespaceSemicolon()
-    => TestMoveToNamespaceAsync(
-        """
-        namespace A;  [||]
+        => TestMoveToNamespaceAsync(
+            """
+            namespace A;  [||]
 
-        class MyClass
-        {
-            void Method() { }
-        }
-        """,
-            expectedSuccess: false);
-
-    [Fact]
-    public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace2()
-    => TestMoveToNamespaceAsync(
-        """
-        namespace A
-        {[||]
             class MyClass
             {
                 void Method() { }
             }
-        }
-        """,
+            """,
+            expectedSuccess: false);
+
+    [Fact]
+    public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace2()
+        => TestMoveToNamespaceAsync(
+            """
+            namespace A
+            {[||]
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
             expectedSuccess: false);
 
     [Fact]
     public Task MoveToNamespace_MoveItems_MultipleDeclarations()
         => TestMoveToNamespaceAsync(
             """
-            namespace A[||] 
+            namespace A[||]
             {
                 class MyClass
                 {
@@ -293,15 +293,15 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.MyClass", "B.MyClass" },
-            {"A.MyOtherClass", "B.MyOtherClass" }
+                {"A.MyClass", "B.MyClass" },
+                {"A.MyOtherClass", "B.MyOtherClass" }
             });
 
     [Fact]
     public Task MoveToNamespace_MoveItems_WithVariousSymbols()
         => TestMoveToNamespaceAsync(
             """
-            namespace A[||] 
+            namespace A[||]
             {
                 public delegate void MyDelegate();
 
@@ -361,12 +361,12 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.MyDelegate", "B.MyDelegate" },
-            {"A.MyEnum", "B.MyEnum" },
-            {"A.MyStruct", "B.MyStruct" },
-            {"A.MyInterface", "B.MyInterface" },
-            {"A.MyClass", "B.MyClass" },
-            {"A.MyOtherClass", "B.MyOtherClass" }
+                {"A.MyDelegate", "B.MyDelegate" },
+                {"A.MyEnum", "B.MyEnum" },
+                {"A.MyStruct", "B.MyStruct" },
+                {"A.MyInterface", "B.MyInterface" },
+                {"A.MyClass", "B.MyClass" },
+                {"A.MyOtherClass", "B.MyOtherClass" }
             });
 
     [Fact]
@@ -403,8 +403,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             """,
             expectedSuccess: false);
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Nested(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -420,8 +419,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             """,
             expectedSuccess: false);
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Single(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -443,7 +441,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.MyType", "B.MyType" }
+                {"A.MyType", "B.MyType" }
             });
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59716")]
@@ -469,11 +467,10 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.MyType", "B.MyType" }
+                {"A.MyType", "B.MyType" }
             });
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_SingleTop(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -506,7 +503,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "B",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"A.MyType", "B.MyType" }
+                {"A.MyType", "B.MyType" }
             });
 
     [Fact]
@@ -547,8 +544,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             {"A.MyClass", "B.MyClass" }
             });
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Bottom(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -622,8 +618,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             {"A.IMyClass", "B.IMyClass" }
             });
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Middle(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -670,8 +665,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             {"A.MyType2", "B.MyType2" }
             });
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Middle_CaretBeforeKeyword(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -718,8 +712,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             {"A.MyType2", "B.MyType2" }
             });
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Middle_CaretAfterTypeKeyword(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -766,8 +759,7 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             {"A.MyType2", "B.MyType2" }
             });
 
-    [Theory]
-    [MemberData(nameof(SupportedKeywords))]
+    [Theory, MemberData(nameof(SupportedKeywords))]
     public Task MoveToNamespace_MoveType_Middle_CaretBeforeTypeName(string typeKeyword)
         => TestMoveToNamespaceAsync(
             $$"""
@@ -1267,7 +1259,7 @@ expectedNamespaceName: "A.Complex.Namespace");
             targetNamespace: "Three",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"Two.C2", "Three.C2" }
+                {"Two.C2", "Three.C2" }
             });
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35577")]
@@ -1452,8 +1444,8 @@ expectedNamespaceName: "A.Complex.Namespace");
 
         // Set the target namespace to "B"
         var testDocument = workspace.Projects.Single(p => p.Name == "Proj1").Documents.Single();
-        var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-        var movenamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+        var movenamespaceService = document.GetRequiredLanguageService<IMoveToNamespaceService>();
         var moveToNamespaceOptions = new MoveToNamespaceOptionsResult("B");
         ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService).SetOptions(moveToNamespaceOptions);
 
@@ -1464,8 +1456,8 @@ expectedNamespaceName: "A.Complex.Namespace");
         // Make sure both linked documents are changed.
         foreach (var id in workspace.Documents.Select(d => d.Id))
         {
-            var changedDocument = result.Item2.GetDocument(id);
-            var changedRoot = await changedDocument.GetSyntaxRootAsync();
+            var changedDocument = result.Item2.GetRequiredDocument(id);
+            var changedRoot = await changedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var actualText = changedRoot.ToFullString();
             AssertEx.Equal(expected, actualText);
         }
@@ -1495,6 +1487,50 @@ expectedNamespaceName: "A.Complex.Namespace");
             targetNamespace: "Test",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-            {"System.A", "Test.A" }
+                {"System.A", "Test.A" }
+            });
+
+    [Fact]
+    public Task MoveToNamespace_MoveType_NoFormat()
+        => TestMoveToNamespaceAsync(
+            $$"""
+            namespace A
+            {
+                class MyType[||]
+                {
+                    public const string ShortName       = "";
+                    public const string VeryLongName    = "";
+                }
+
+                struct MyType2
+                {
+                    public const string ShortName       = "";
+                    public const string VeryLongName    = "";
+                }
+            }
+            """,
+            expectedMarkup: $$"""
+            namespace {|Warning:B|}
+            {
+                class MyType
+                {
+                    public const string ShortName       = "";
+                    public const string VeryLongName    = "";
+                }
+            }
+
+            namespace A
+            {
+                struct MyType2
+                {
+                    public const string ShortName       = "";
+                    public const string VeryLongName    = "";
+                }
+            }
+            """,
+            targetNamespace: "B",
+            expectedSymbolChanges: new Dictionary<string, string>()
+            {
+                {"A.MyType", "B.MyType" }
             });
 }

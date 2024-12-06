@@ -621,8 +621,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts)
-            .WithAdditionalAnnotations(Formatter.Annotation);
+        root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts);
+            //.WithAdditionalAnnotations(Formatter.Annotation);
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
         var services = documentWithAddedImports.Project.Solution.Services;
