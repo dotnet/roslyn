@@ -18309,95 +18309,341 @@ class C
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
-    public void CollectionExpression_ConditionalExpressionAmbiguity7()
+    public void CollectionExpression_KeywordKey1()
     {
-        UsingStatement("var v = x is Y ? [Goo]() => B : [Goo]() => C;");
+        UsingExpression("[default:0]");
 
-        N(SyntaxKind.LocalDeclarationStatement);
+        N(SyntaxKind.CollectionExpression);
         {
-            N(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.DefaultLiteralExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "var");
+                    N(SyntaxKind.DefaultKeyword);
                 }
-                N(SyntaxKind.VariableDeclarator);
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "v");
-                    N(SyntaxKind.EqualsValueClause);
-                    {
-                        N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.ConditionalExpression);
-                        {
-                            N(SyntaxKind.IsExpression);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                                N(SyntaxKind.IsKeyword);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "Y");
-                                }
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                            {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Goo");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                                N(SyntaxKind.ParameterList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "B");
-                                }
-                            }
-                            N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                            {
-                                N(SyntaxKind.AttributeList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Attribute);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Goo");
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                                N(SyntaxKind.ParameterList);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
-                                }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "C");
-                                }
-                            }
-                        }
-                    }
+                    N(SyntaxKind.NumericLiteralToken, "0");
                 }
             }
-            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey2()
+    {
+        UsingExpression("[false:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.FalseLiteralExpression);
+                {
+                    N(SyntaxKind.FalseKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey3()
+    {
+        UsingExpression("[this:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.ThisExpression);
+                {
+                    N(SyntaxKind.ThisKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey4()
+    {
+        UsingExpression("[true:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.TrueLiteralExpression);
+                {
+                    N(SyntaxKind.TrueKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey5()
+    {
+        UsingExpression("[null:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey6()
+    {
+        UsingExpression("[base:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.BaseExpression);
+                {
+                    N(SyntaxKind.BaseKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey_Illegal1()
+    {
+        UsingExpression("[throw:0]",
+            // (1,7): error CS1525: Invalid expression term ':'
+            // [throw:0]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 7));
+
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.ThrowExpression);
+                {
+                    N(SyntaxKind.ThrowKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey_Illegal2()
+    {
+        UsingExpression("[new:0]",
+            // (1,5): error CS1526: A new expression requires an argument list or (), [], or {} after type
+            // [new:0]
+            Diagnostic(ErrorCode.ERR_BadNewExpr, ":").WithLocation(1, 5));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.ObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.ArgumentList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey_Illegal3()
+    {
+        UsingExpression("[typeof:0]",
+            // (1,8): error CS1003: Syntax error, '(' expected
+            // [typeof:0]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("(").WithLocation(1, 8),
+            // (1,8): error CS1031: Type expected
+            // [typeof:0]
+            Diagnostic(ErrorCode.ERR_TypeExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1026: ) expected
+            // [typeof:0]
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 8));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.TypeOfExpression);
+                {
+                    N(SyntaxKind.TypeOfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey_Illegal4()
+    {
+        UsingExpression("[sizeof:0]",
+            // (1,8): error CS1003: Syntax error, '(' expected
+            // [sizeof:0]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("(").WithLocation(1, 8),
+            // (1,8): error CS1031: Type expected
+            // [sizeof:0]
+            Diagnostic(ErrorCode.ERR_TypeExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1026: ) expected
+            // [sizeof:0]
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 8));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.SizeOfExpression);
+                {
+                    N(SyntaxKind.SizeOfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_KeywordKey_Illegal5()
+    {
+        UsingExpression("[checked:0]",
+            // (1,9): error CS1003: Syntax error, '(' expected
+            // [checked:0]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("(").WithLocation(1, 9),
+            // (1,9): error CS1525: Invalid expression term ':'
+            // [checked:0]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 9),
+            // (1,9): error CS1026: ) expected
+            // [checked:0]
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 9));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.CheckedExpression);
+                {
+                    N(SyntaxKind.CheckedKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
         }
         EOF();
     }
