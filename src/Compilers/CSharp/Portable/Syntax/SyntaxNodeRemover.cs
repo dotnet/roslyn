@@ -466,9 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         if (_directivesToKeep.Contains(directive))
                         {
                             var parentTrivia = directive.ParentTrivia;
-                            var parentToken = parentTrivia.Token;
-
-                            var (triviaList, triviaListIndex) = getTriviaListAndIndex(directive);
+                            var (triviaList, triviaListIndex) = getTriviaListAndIndex(parentTrivia);
 
                             // If we're keeping a directive, and it's not at the start of the line, keep the indentation
                             // whitespace that precedes it as well so that the directive stays in the right location.
@@ -484,15 +482,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                static (SyntaxTriviaList triviaList, int index) getTriviaListAndIndex(DirectiveTriviaSyntax directive)
+                static (SyntaxTriviaList triviaList, int index) getTriviaListAndIndex(SyntaxTrivia trivia)
                 {
-                    var parentTrivia = directive.ParentTrivia;
-                    var parentToken = parentTrivia.Token;
+                    var parentToken = trivia.Token;
 
-                    var index = parentToken.LeadingTrivia.IndexOf(parentTrivia);
+                    var index = parentToken.LeadingTrivia.IndexOf(trivia);
                     return index >= 0
                         ? (parentToken.LeadingTrivia, index)
-                        : (parentToken.TrailingTrivia, parentToken.TrailingTrivia.IndexOf(parentTrivia));
+                        : (parentToken.TrailingTrivia, parentToken.TrailingTrivia.IndexOf(trivia));
                 }
             }
 
