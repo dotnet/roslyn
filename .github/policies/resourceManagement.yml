@@ -33,7 +33,7 @@ configuration:
       - isOpen
       - isPullRequest
       - not:
-          isDraft
+          - isDraft
       - noActivitySince:
           days: 45
       actions:
