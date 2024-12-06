@@ -38,6 +38,10 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     /// <summary>
     /// Cancellation token source for <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
     /// Each call uses a new instance. Mutliple calls are allowed only if previous call failed or was canceled.
+    /// The request is canceled through
+    /// 1. <see cref="BaseViewModelPropertyChanged"/> when user types in the text box.
+    /// 2. <see cref="ToggleOrTriggerSuggestions"/> when user toggles the automatic suggestions.
+    /// 3. <see cref="Dispose"/> when the dialog is closed.
     /// </summary>
     private CancellationTokenSource _cancellationTokenSource = new();
     private bool _isDisposed;
@@ -186,6 +190,12 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _ = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
 
+    /// <summary>
+    /// The request for rename suggestions. It's made of three parts:
+    /// 1. Short delay of duration <see cref="AutomaticFetchDelay"/>.
+    /// 2. Get definition and references if <see cref="IsUsingSemanticContext"/> is set.
+    /// 3. Call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
+    /// </summary>
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
         RoslynDebug.Assert(!this.IsInProgress);
@@ -355,6 +365,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     {
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
+            // User is typing the new identifier name, cancel the ongoing request to get suggestions.
             _cancellationTokenSource?.Cancel();
         }
     }
