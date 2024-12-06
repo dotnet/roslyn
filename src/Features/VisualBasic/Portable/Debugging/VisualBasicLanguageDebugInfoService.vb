@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
             Return LocationInfoGetter.GetInfoAsync(document, position, cancellationToken)
         End Function
 
-        Public Function GetDataTipInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo) Implements ILanguageDebugInfoService.GetDataTipInfoAsync
-            Return DataTipInfoGetter.GetInfoAsync(document, position, cancellationToken)
+        Public Function GetDataTipInfoAsync(document As Document, position As Integer, includeKind As Boolean, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo) Implements ILanguageDebugInfoService.GetDataTipInfoAsync
+            Return DataTipInfoGetter.GetInfoAsync(document, position, includeKind, cancellationToken)
         End Function
     End Class
 End Namespace
