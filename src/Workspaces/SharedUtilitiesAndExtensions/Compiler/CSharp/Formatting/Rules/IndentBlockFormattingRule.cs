@@ -252,6 +252,13 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
+        // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
+        // operations are skipped for switch patterns, as they are not formatted like blocks.
+        if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
+        {
+            return;
+        }
+
         var bracketPair = node.GetBracketPair();
 
         if (!bracketPair.IsValidBracketOrBracePair())
@@ -259,7 +266,6 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
         {
-            // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
             AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
 
             // If we have:

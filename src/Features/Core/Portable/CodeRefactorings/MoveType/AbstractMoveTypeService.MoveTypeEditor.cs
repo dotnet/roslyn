@@ -10,9 +10,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddFileBanner;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,7 +29,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         string fileName,
         CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
     {
-
         /// <summary>
         /// Given a document and a type contained in it, moves the type
         /// out to its own document. The new document's name typically
@@ -111,8 +112,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAsync(DocumentId newDocumentId)
         {
             var document = SemanticDocument.Document;
-            Debug.Assert(document.Name != FileName,
-                         $"New document name is same as old document name:{FileName}");
+            Debug.Assert(document.Name != FileName, $"New document name is same as old document name:{FileName}");
 
             var root = SemanticDocument.Root;
             var projectToBeUpdated = document.Project;
@@ -124,14 +124,32 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             AddPartialModifiersToTypeChain(
                 documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
 
+            // Keep track of any associated directives on any of the nodes we're removing. If those directives are then
+            // contained in the leading trivia of the type we're moving, we'll remove them from there as well.
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var correspondingDirectives);
+
             // remove things that are not being moved, from the forked document.
             var membersToRemove = GetMembersToRemove(root);
             foreach (var member in membersToRemove)
+            {
+                AddCorrespondingDirectives(member, correspondingDirectives);
                 documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
+            }
 
             // Remove attributes from the root node as well, since those will apply as AttributeTarget.Assembly and
             // don't need to be specified multiple times
             documentEditor.RemoveAllAttributes(root);
+
+            // Now remove any leading directives on the type-node that actually correspond to prior nodes we removed.
+            var leadingTrivia = State.TypeNode.GetLeadingTrivia().ToSet();
+            foreach (var directive in correspondingDirectives)
+            {
+                if (leadingTrivia.Contains(directive.ParentTrivia))
+                    documentEditor.RemoveNode(directive);
+            }
+
+            RemoveLeadingBlankLinesFromMovedType(documentEditor);
 
             var modifiedRoot = documentEditor.GetChangedRoot();
             modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
@@ -146,7 +164,36 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // get the updated document, give it the minimal set of imports that the type
             // inside it needs.
             var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
-            return newDocument;
+            var newDocumentWithUpdatedBanner = await AddFileBannerHelpers.CopyBannerAsync(
+                newDocument, FileName, document, this.CancellationToken).ConfigureAwait(false);
+
+            return newDocumentWithUpdatedBanner;
+
+            void AddCorrespondingDirectives(SyntaxNode member, HashSet<SyntaxNode> directives)
+            {
+                foreach (var trivia in member.GetLeadingTrivia())
+                {
+                    if (trivia.IsDirective)
+                    {
+                        directives.AddIfNotNull(syntaxFacts.GetMatchingDirective(trivia.GetStructure()!, this.CancellationToken));
+                        foreach (var directive in syntaxFacts.GetMatchingConditionalDirectives(trivia.GetStructure()!, this.CancellationToken))
+                            directives.Add(directive);
+                    }
+                }
+            }
+        }
+
+        private void RemoveLeadingBlankLinesFromMovedType(DocumentEditor documentEditor)
+        {
+            documentEditor.ReplaceNode(State.TypeNode,
+                (currentNode, generator) =>
+                {
+                    var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
+
+                    // Trim leading blank lines from the type so we don't have an 
+                    // excessive number of them.
+                    return RemoveLeadingBlankLines(currentTypeNode);
+                });
         }
 
         /// <summary>
@@ -186,14 +233,17 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         {
             var documentEditor = await DocumentEditor.CreateAsync(sourceDocument, CancellationToken).ConfigureAwait(false);
 
-            // Make the type chain above the type we're moving 'partial'.  
-            // However, keep all the attributes on these types as theses are the 
-            // original attributes and we don't want to mess with them. 
+            // Make the type chain above the type we're moving 'partial'. However, keep all the attributes on these
+            // types as theses are the original attributes and we don't want to mess with them. 
             AddPartialModifiersToTypeChain(documentEditor,
                 removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
+
+            // Now cleanup and remove the type we're moving to the new file.
+            RemoveLeadingBlankLinesFromMovedType(documentEditor);
             documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
             var updatedDocument = documentEditor.GetChangedDocument();
+            updatedDocument = await AddFileBannerHelpers.CopyBannerAsync(updatedDocument, sourceDocument.FilePath, sourceDocument, this.CancellationToken).ConfigureAwait(false);
 
             return updatedDocument.Project.Solution;
         }
@@ -287,16 +337,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                     documentEditor.RemovePrimaryConstructor(node);
                 }
             }
-
-            documentEditor.ReplaceNode(State.TypeNode,
-                (currentNode, generator) =>
-                {
-                    var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
-
-                    // Trim leading blank lines from the type so we don't have an 
-                    // excessive number of them.
-                    return RemoveLeadingBlankLines(currentTypeNode);
-                });
         }
 
         private TTypeDeclarationSyntax RemoveLeadingBlankLines(

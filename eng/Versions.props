@@ -17,6 +17,32 @@
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
   </PropertyGroup>
   <!--
+    The maintenance-packages dependency versions need to be conditionally selected:
+    https://github.com/dotnet/sdk/issues/45155
+  -->
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
+    <MicrosoftIORedistVersion>6.1.0</MicrosoftIORedistVersion>
+    <SystemBuffersVersion>4.6.0</SystemBuffersVersion>
+    <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
+    <SystemMemoryVersion>4.6.0</SystemMemoryVersion>
+    <SystemNumericsVectorsVersion>4.6.0</SystemNumericsVectorsVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemThreadingTasksExtensionsVersion>4.6.0</SystemThreadingTasksExtensionsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
+    <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
+    <!--
+    Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
+    When it updates its referenced System.Data.SqlClient version this should be removed
+    -->
+    <SystemDataSqlClientVersion>4.8.6</SystemDataSqlClientVersion>
+    <SystemMemoryVersion>4.5.5</SystemMemoryVersion>
+    <SystemNumericsVectorsVersion>4.5.0</SystemNumericsVectorsVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
+  </PropertyGroup>
+  <!--
     Versions managed by Arcade (see Versions.Details.xml)
   -->
   <PropertyGroup>

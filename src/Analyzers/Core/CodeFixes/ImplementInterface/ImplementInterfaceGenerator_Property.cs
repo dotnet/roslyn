@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -25,7 +26,7 @@ internal abstract partial class AbstractImplementInterfaceService
 {
     private sealed partial class ImplementInterfaceGenerator
     {
-        private IEnumerable<ISymbol?> GeneratePropertyMembers(
+        private ImmutableArray<ISymbol> GeneratePropertyMembers(
             Compilation compilation,
             IPropertySymbol property,
             IPropertySymbol? conflictingProperty,
@@ -53,9 +54,10 @@ internal abstract partial class AbstractImplementInterfaceService
             if (property is { IsIndexer: false, Parameters.Length: > 0 } &&
                 !semanticFacts.SupportsParameterizedProperties)
             {
-                yield return getAccessor;
-                yield return setAccessor;
-                yield break;
+                using var result = TemporaryArray<ISymbol>.Empty;
+                result.AsRef().AddIfNotNull(getAccessor);
+                result.AsRef().AddIfNotNull(setAccessor);
+                return result.ToImmutableAndClear();
             }
 
             var parameterNames = NameGenerator.EnsureUniqueness(
@@ -66,14 +68,14 @@ internal abstract partial class AbstractImplementInterfaceService
 
             updatedProperty = updatedProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(compilation.Assembly, attributesToRemove);
 
-            yield return CodeGenerationSymbolFactory.CreatePropertySymbol(
+            return [CodeGenerationSymbolFactory.CreatePropertySymbol(
                 updatedProperty,
                 accessibility: accessibility,
                 modifiers: modifiers,
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property] : default,
                 name: memberName,
                 getMethod: getAccessor,
-                setMethod: setAccessor);
+                setMethod: setAccessor)];
         }
 
         /// <summary>

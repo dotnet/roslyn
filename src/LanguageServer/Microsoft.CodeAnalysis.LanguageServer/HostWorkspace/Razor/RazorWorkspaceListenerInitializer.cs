@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
 [Export(typeof(RazorWorkspaceListenerInitializer)), Shared]
 internal sealed class RazorWorkspaceListenerInitializer

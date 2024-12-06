@@ -13935,6 +13935,27 @@ public sealed class RemoveUnnecessaryCastTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75424")]
+    public async Task KeepNecessaryObjectOverrideCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public void M()
+                    {
+                        var x = ((byte)3).GetType();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
     public async Task TestObjectToDynamic1()
     {
@@ -14068,6 +14089,29 @@ public sealed class RemoveUnnecessaryCastTests
                     public int M()
                     {
                         return (dynamic)0L;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68307")]
+    [InlineData(nameof(Delegate))]
+    [InlineData(nameof(MulticastDelegate))]
+    public async Task KeepNecessaryCastToDelegateAssignedToObject(string typeName)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    public void M()
+                    {
+                        object o = ({{typeName}})Console.Clear;
                     }
                 }
                 """,

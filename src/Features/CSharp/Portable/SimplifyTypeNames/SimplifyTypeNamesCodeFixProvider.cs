@@ -35,10 +35,10 @@ internal sealed partial class SimplifyTypeNamesCodeFixProvider : AbstractSimplif
         {
             case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
             case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
-                return string.Format(CSharpFeaturesResources.Simplify_name_0, nodeText);
+                return string.Format(FeaturesResources.Simplify_name_0, nodeText);
 
             case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
-                return string.Format(CSharpFeaturesResources.Simplify_member_access_0, nodeText);
+                return string.Format(FeaturesResources.Simplify_member_access_0, nodeText);
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(diagnosticId);

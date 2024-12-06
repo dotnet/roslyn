@@ -461,11 +461,22 @@ internal readonly struct NameDeclarationInfo(
         return result.Type != null;
     }
 
-    private static bool IsPatternMatching(SyntaxToken token, SemanticModel semanticModel,
-        CancellationToken cancellationToken, out NameDeclarationInfo result)
+    private static bool IsPatternMatching(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        out NameDeclarationInfo result)
     {
         result = default;
-        if (token.Parent.IsParentKind(SyntaxKind.IsExpression))
+
+        var parent = token.Parent;
+        if (token.Kind() is SyntaxKind.GreaterThanToken &&
+            parent is TypeArgumentListSyntax { Parent: GenericNameSyntax genericName })
+        {
+            parent = genericName;
+        }
+
+        if (parent.IsParentKind(SyntaxKind.IsExpression))
         {
             result = IsLastTokenOfType<BinaryExpressionSyntax>(
                 token, semanticModel,
@@ -474,7 +485,7 @@ internal readonly struct NameDeclarationInfo(
                 _ => s_parameterSyntaxKind,
                 cancellationToken);
         }
-        else if (token.Parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
+        else if (parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
         {
             result = IsLastTokenOfType<CaseSwitchLabelSyntax>(
                 token, semanticModel,
@@ -483,7 +494,7 @@ internal readonly struct NameDeclarationInfo(
                 _ => s_parameterSyntaxKind,
                 cancellationToken);
         }
-        else if (token.Parent.IsParentKind(SyntaxKind.DeclarationPattern))
+        else if (parent.IsParentKind(SyntaxKind.DeclarationPattern))
         {
             result = IsLastTokenOfType<DeclarationPatternSyntax>(
                 token, semanticModel,
