@@ -67,7 +67,7 @@ internal class AlwaysActivateInProcLanguageClient(
 
         serverCapabilities.ProjectContextProvider = true;
         serverCapabilities.BreakableRangeProvider = true;
-        serverCapabilities.DataTipRangeProvider = true,
+        serverCapabilities.DataTipRangeProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
 

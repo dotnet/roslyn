@@ -25,20 +25,13 @@ internal abstract class AbstractDataTipInfoGetter<
         {
             var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // as long as we keep seeing `.LinqMethod(...)` keep walking upwards.
-
-            var isLinqExpression = false;
-            while (expression.Parent is TMemberExpressionSyntax { Parent: TInvocationExpressionSyntax invocation } &&
-                   IsLinqExtensionMethod(semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol))
+            // Look to see if this is a linq method call. If so, return the invocation so the debugger can provide a
+            // custom linq experience for it.
+            if (expression.Parent is TMemberExpressionSyntax { Parent: TInvocationExpressionSyntax invocation } &&
+                IsLinqExtensionMethod(semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol))
             {
-                expression = invocation;
-                isLinqExpression = true;
-            }
-
-            // As long as we saw at least one linq method, then return the span of hte outermost expression back to the
-            // debugger to evaluate.
-            if (isLinqExpression)
                 return (DebugDataTipInfoKind.LinqExpression, expression.Span);
+            }
         }
 
         return default;
