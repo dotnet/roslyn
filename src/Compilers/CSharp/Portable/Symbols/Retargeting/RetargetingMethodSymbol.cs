@@ -96,10 +96,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters,
-                        !IsGenericMethod
-                            ? ImmutableArray<TypeParameterSymbol>.Empty
-                            : this.RetargetingTranslator.Retarget(_underlyingMethod.TypeParameters));
+                    if (!IsGenericMethod)
+                    {
+                        _lazyTypeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                    }
+                    else
+                    {
+                        ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameters,
+                            this.RetargetingTranslator.Retarget(_underlyingMethod.TypeParameters), default(ImmutableArray<TypeParameterSymbol>));
+                    }
                 }
 
                 return _lazyTypeParameters;
