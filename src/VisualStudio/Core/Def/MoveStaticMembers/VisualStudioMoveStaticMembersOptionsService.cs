@@ -170,22 +170,33 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
         CancellationToken cancellationToken)
     {
         return currentNamespace.GetAllTypes(cancellationToken)
-            // only take symbols that are the same kind of type (class, module)
-            // and remove non-static types only when the current type is static
-            .Where(t => t.TypeKind == currentType.TypeKind && (t.IsStaticType() || !currentType.IsStaticType()))
+            // Remove non-static types only when the current type is static
+            .Where(t => IsValidTypeToMoveBetween(t, currentType) && (t.IsStaticType() || !currentType.IsStaticType()))
             .SelectMany(t =>
             {
                 // for partially declared classes, we may want multiple entries for a single type.
                 // filter to those actually in a real file, and that is not our current location.
                 return t.Locations
-                    .Where(l => l.IsInSource &&
-                        (currentType.Name != t.Name || GetFile(l) != currentDocument.FilePath))
+                    .Where(l => l.IsInSource && (currentType.Name != t.Name || GetFile(l) != currentDocument.FilePath))
                     .Select(l => new TypeNameItem(
                         history.Contains(t),
                         GetFile(l),
                         t));
             })
-        .ToImmutableArrayOrEmpty()
-        .Sort(comparison: TypeNameItem.CompareTo);
+            .ToImmutableArrayOrEmpty()
+            .Sort(comparison: TypeNameItem.CompareTo);
+    }
+
+    private static bool IsValidTypeToMoveBetween(INamedTypeSymbol destinationType, INamedTypeSymbol sourceType)
+    {
+        // Can only moved to named typed that can actually contain members.
+        if (destinationType.TypeKind is not (TypeKind.Class or TypeKind.Interface or TypeKind.Struct))
+            return false;
+
+        // Very unlikely to be moving from a non-interface to an interface.  Filter out for now.
+        if (sourceType.TypeKind != TypeKind.Interface && destinationType.TypeKind == TypeKind.Interface)
+            return false;
+
+        return true;
     }
 }
