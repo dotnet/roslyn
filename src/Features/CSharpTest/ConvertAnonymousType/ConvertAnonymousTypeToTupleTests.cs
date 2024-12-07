@@ -526,7 +526,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
         await TestInRegularAndScriptAsync(text, expected);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
     public async Task TestMultiLine1()
     {
         var text = """
@@ -563,7 +563,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
         await TestInRegularAndScriptAsync(text, expected);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
     public async Task TestMultiLine2()
     {
         var text = """
