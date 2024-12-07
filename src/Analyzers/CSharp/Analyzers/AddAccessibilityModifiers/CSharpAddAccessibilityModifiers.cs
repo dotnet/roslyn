@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 
@@ -33,6 +34,10 @@ internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifie
         if (name.Kind() == SyntaxKind.None)
             return false;
 
+        // User has no preference set.  Do not add or remove any accessibility modifiers.
+        if (option == AccessibilityModifiersRequired.Never)
+            return false;
+
         // Certain members never have accessibility. Don't bother reporting on them.
         if (!accessibilityFacts.CanHaveAccessibility(member))
             return false;
@@ -41,76 +46,62 @@ internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifie
         // member itself.  Not any sort of computed accessibility based on the containing type.
         var accessibility = accessibilityFacts.GetAccessibility(member);
 
-        if (option == AccessibilityModifiersRequired.ForNonInterfaceMembers &&
-            member.Parent is InterfaceDeclarationSyntax)
+        if (option == AccessibilityModifiersRequired.Always)
         {
-            // A member in an interface explicitly declared as 'public'.  Remove this modifier as it's the default for
-            // interfaces, and the user only wants explicit default accessibility modifiers for things *outside* of interfaces.
-            if (accessibility == Accessibility.Public)
-            {
-                modifierAdded = false;
-                return true;
-            }
-
-            return false;
-        }
-
-        if (option != AccessibilityModifiersRequired.OmitIfDefault)
-        {
-            // We want to have explicit accessibility modifiers.  So add if the member doesn't have any accessibility
-            // modifiers currently.
+            // User *always* wants to have explicit accessibility modifiers.  So add if the member doesn't have any
+            // explicit modifiers currently.
             modifierAdded = true;
             return accessibility == Accessibility.NotApplicable;
         }
 
+        if (option == AccessibilityModifiersRequired.ForNonInterfaceMembers)
+        {
+            if (member.Parent is InterfaceDeclarationSyntax)
+            {
+                // We want to have require accessibility modifiers on non-interface-members, *excluding* only public
+                // interface members due to the long history of this being the only way to declare interface members.
+                // So remove an explciti `public` from an interface member if present.
+                modifierAdded = false;
+                return accessibility == Accessibility.Public;
+            }
+            else
+            {
+                // We want to have require accessibility modifiers on non-interface-members, and this is a non-interface
+                // member. So add if the member doesn't have any accessibility modifiers currently.
+                modifierAdded = true;
+                return accessibility == Accessibility.NotApplicable;
+            }
+        }
+
+        // Only option left is to remove the accessibility modifier if it matches the default for the containing symbol
+        Contract.ThrowIfFalse(option == AccessibilityModifiersRequired.OmitIfDefault);
+
         // We want to omit redundant accessibility modifiers. If the member already doesn't have any accessibility
-        // modifiers, then there's nothing to remove.
+        // modifiers, then there's nothing we could even remove.
         if (accessibility == Accessibility.NotApplicable)
             return false;
 
-        var parentKind = member.GetRequiredParent().Kind();
-        switch (parentKind)
+        modifierAdded = false;
+        switch (member.GetRequiredParent().Kind())
         {
-            // Check for default modifiers in namespace and outside of namespace
             case SyntaxKind.CompilationUnit:
             case SyntaxKind.FileScopedNamespaceDeclaration:
             case SyntaxKind.NamespaceDeclaration:
-                {
-                    // Default is internal
-                    if (accessibility != Accessibility.Internal)
-                        return false;
-                }
-
-                break;
+                // Inside a namespace, default is internal, and can be removed if explicitly stated.
+                return accessibility == Accessibility.Internal;
 
             case SyntaxKind.ClassDeclaration:
             case SyntaxKind.RecordDeclaration:
             case SyntaxKind.StructDeclaration:
             case SyntaxKind.RecordStructDeclaration:
-                {
-                    // Inside a type, default is private
-                    if (accessibility != Accessibility.Private)
-                        return false;
-                }
-
-                break;
+                // Inside a type, default is private, and can be removed if explicitly stated.
+                return accessibility == Accessibility.Private;
 
             case SyntaxKind.InterfaceDeclaration:
-                {
-                    // Inside an interface, default is public
-                    if (accessibility != Accessibility.Public)
-                        return false;
-                }
-
-                break;
-
-            default:
-                return false; // Unknown parent kind, don't do anything
+                // Inside an interface, default is public, and can be removed if explicitly stated.
+                return accessibility == Accessibility.Public;
         }
 
-        // Looks like a member whose declared accessibility matches the default accessibility for its parent.
-        // We can remove this modifier.
-        modifierAdded = false;
-        return true;
+        return false;
     }
 }
