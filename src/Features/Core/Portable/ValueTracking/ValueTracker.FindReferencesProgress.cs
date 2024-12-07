@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +10,16 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
 internal static partial class ValueTracker
 {
-    private sealed class FindReferencesProgress(OperationCollector valueTrackingProgressCollector) : IStreamingFindReferencesProgress, IStreamingProgressTracker
+    private sealed class FindReferencesProgress(OperationCollector valueTrackingProgressCollector, IParameterSymbol? parameterSymbol = null) : IStreamingFindReferencesProgress, IStreamingProgressTracker
     {
         private readonly OperationCollector _operationCollector = valueTrackingProgressCollector;
+        private readonly IParameterSymbol? _parameterSymbol = parameterSymbol;
 
         public IStreamingProgressTracker ProgressTracker => this;
 
@@ -172,22 +173,43 @@ internal static partial class ValueTracker
             var originalNode = syntaxRoot.FindNode(span);
 
             if (originalNode is null)
-            {
                 return;
-            }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var invocationSyntax = originalNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsInvocationExpression);
             if (invocationSyntax is null)
-            {
                 return;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var operation = semanticModel.GetOperation(invocationSyntax, cancellationToken);
             if (operation is not IInvocationOperation)
-            {
                 return;
+
+            if (_parameterSymbol is not null)
+            {
+                // Filter out invocations not containing am argument matching _parameterSymbol
+                var containsMatchingArg = false;
+                var invocationDescendants = invocationSyntax.DescendantNodes();
+                foreach (var descendantNode in invocationDescendants)
+                {
+                    if (syntaxFacts.IsArgument(descendantNode))
+                    {
+                        // Ensure this is an argument to the requested invocation
+                        if (invocationSyntax != descendantNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsInvocationExpression))
+                            continue;
+
+                        var argumentOperation = semanticModel.GetOperation(descendantNode, cancellationToken);
+                        if (argumentOperation is IArgumentOperation { Parameter: { } argumentParameter } &&
+                            _parameterSymbol.Locations.SequenceEqual(argumentParameter.Locations, arg: default(VoidResult), (loc1, loc2, _) => loc1 == loc2))
+                        {
+                            containsMatchingArg = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!containsMatchingArg)
+                    return;
             }
 
             await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);

@@ -160,6 +160,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int InterfaceDeclaration => (int)SyntaxKind.InterfaceDeclaration;
     public int? StructDeclaration => (int)SyntaxKind.StructDeclaration;
     public int Parameter => (int)SyntaxKind.Parameter;
+    public int Argument => (int)SyntaxKind.Argument;
     public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
     public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;
     public int FieldDeclaration => (int)SyntaxKind.FieldDeclaration;

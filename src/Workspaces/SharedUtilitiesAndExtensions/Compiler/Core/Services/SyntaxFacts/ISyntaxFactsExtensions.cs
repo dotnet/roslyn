@@ -976,6 +976,9 @@ internal static class ISyntaxFactsExtensions
     public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.Parameter;
 
+    public static bool IsArgument(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.Argument;
+
     public static bool IsTypeConstraint(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.TypeConstraint;
 
