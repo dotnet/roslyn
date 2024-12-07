@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUsePrimaryConstructorCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUsePrimaryConstructor)]
-public partial class UsePrimaryConstructorTests
+public sealed class UsePrimaryConstructorTests
 {
     [Fact]
     public async Task TestInCSharp12()
@@ -4125,6 +4125,382 @@ public partial class UsePrimaryConstructorTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay
+
+                    private int i;
+                    private int j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    // This should stay
+
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should be removed
+                    private int i;
+                    private int j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay
+                
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+
+                    private int i;
+                    private int j;
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    // This should stay
+
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should be removed
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+
+                    private int i;
+                    private int j;
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay
+
+                    private int i, j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    // This should stay
+
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should be removed
+                    private int i, j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay
+
+                    private int i, j;
+                    int k;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    // This should stay
+
+                    int k;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should be removed
+                    private int i, j;
+                    int k;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    int k;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay
+
+                    /// <summary/>
+                    private int i;
+                    int k;
+
+                    public [|C|](int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary/>
+                class C(int i)
+                {
+                    // This should stay
+
+                    int k;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should be removed
+                    /// <summary/>
+                    private int i;
+                    int k;
+
+                    public [|C|](int i)
+                    {
+                        this.i = i;
+                    }
+                }
+                """,
+            FixedCode = """
+                /// <summary/>
+                class C(int i)
+                {
+                    int k;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment11()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay
+
+                    // This should be removed
+                    private int i, j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    // This should stay
+
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69012")]
+    public async Task TestLeadingComment12()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    // This should stay 1
+
+                    // This should stay 2
+
+                    private int i, j;
+
+                    public [|C|](int i, int j)
+                    {
+                        this.i = i;
+                        this.j = j;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int i, int j)
+                {
+                    // This should stay 1
+
+                    // This should stay 2
+
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }
