@@ -186,7 +186,7 @@ internal static partial class ValueTracker
 
             if (_parameterSymbol is not null)
             {
-                // Filter out invocations not containing am argument matching _parameterSymbol
+                // Filter out invocations not containing an argument matching _parameterSymbol
                 var containsMatchingArg = false;
                 var invocationDescendants = invocationSyntax.DescendantNodes();
                 foreach (var descendantNode in invocationDescendants)
