@@ -200,7 +200,7 @@ internal static partial class ValueTracker
 
                         var argumentOperation = semanticModel.GetOperation(descendantNode, cancellationToken);
                         if (argumentOperation is IArgumentOperation { Parameter: { } argumentParameter } &&
-                            _parameterSymbol.Locations.SequenceEqual(argumentParameter.Locations, arg: default(VoidResult), (loc1, loc2, _) => loc1 == loc2))
+                            argumentParameter.Equals(_parameterSymbol))
                         {
                             containsMatchingArg = true;
                             break;
