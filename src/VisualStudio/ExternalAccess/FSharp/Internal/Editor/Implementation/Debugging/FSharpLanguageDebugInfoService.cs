@@ -14,20 +14,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging
 {
-    [Shared]
-    [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.FSharp)]
-    internal class FSharpLanguageDebugInfoService : ILanguageDebugInfoService
+    [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.FSharp), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class FSharpLanguageDebugInfoService(IFSharpLanguageDebugInfoService service) : ILanguageDebugInfoService
     {
-        private readonly IFSharpLanguageDebugInfoService _service;
+        private readonly IFSharpLanguageDebugInfoService _service = service;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpLanguageDebugInfoService(IFSharpLanguageDebugInfoService service)
-        {
-            _service = service;
-        }
-
-        public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, bool includeKind, CancellationToken cancellationToken)
             => (await _service.GetDataTipInfoAsync(document, position, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
         public async Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)

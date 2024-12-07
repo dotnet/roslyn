@@ -77,6 +77,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
 
         var priority = CodeActionPriority.Low;
         var canBeSingleLine = true;
+        var containsEscapedEndOfLineCharacter = false;
         foreach (var content in stringExpression.Contents)
         {
             if (content is InterpolationSyntax interpolation)
@@ -86,8 +87,10 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                     var characters = TryConvertToVirtualChars(interpolation.FormatClause.FormatStringToken);
 
                     // Ensure that all characters in the string are those we can convert.
-                    if (!ConvertToRawStringHelpers.CanConvert(characters))
+                    if (!ConvertToRawStringHelpers.CanConvert(characters, out var chunkContainsEscapedEndOfLineCharacter))
                         return false;
+
+                    containsEscapedEndOfLineCharacter |= chunkContainsEscapedEndOfLineCharacter;
                 }
 
                 if (canBeSingleLine && !document.Text.AreOnSameLine(interpolation.OpenBraceToken, interpolation.CloseBraceToken))
@@ -98,8 +101,10 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                 var characters = TryConvertToVirtualChars(interpolatedStringText);
 
                 // Ensure that all characters in the string are those we can convert.
-                if (!ConvertToRawStringHelpers.CanConvert(characters))
+                if (!ConvertToRawStringHelpers.CanConvert(characters, out var chunkContainsEscapedEndOfLineCharacter))
                     return false;
+
+                containsEscapedEndOfLineCharacter |= chunkContainsEscapedEndOfLineCharacter;
 
                 if (canBeSingleLine)
                 {
@@ -167,7 +172,8 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
             canBeMultiLineWithoutLeadingWhiteSpaces = !cleaned.IsEquivalentTo(converted);
         }
 
-        convertParams = new CanConvertParams(priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces);
+        convertParams = new CanConvertParams(
+            priority, canBeSingleLine, canBeMultiLineWithoutLeadingWhiteSpaces, containsEscapedEndOfLineCharacter);
         return true;
     }
 
@@ -178,7 +184,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
         SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
-        if (kind == ConvertToRawKind.SingleLine)
+        if ((kind & ConvertToRawKind.SingleLine) == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
 
         var indentationOptions = new IndentationOptions(formattingOptions);
@@ -231,7 +237,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
             var rawStringExpression = GetInitialMultiLineRawInterpolatedString(stringExpression, formattingOptions);
 
             // If requested, cleanup the whitespace in the expression.
-            var cleanedExpression = kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace
+            var cleanedExpression = (kind & ConvertToRawKind.MultiLineWithoutLeadingWhitespace) == ConvertToRawKind.MultiLineWithoutLeadingWhitespace
                 ? CleanInterpolatedString(rawStringExpression, cancellationToken)
                 : rawStringExpression;
 

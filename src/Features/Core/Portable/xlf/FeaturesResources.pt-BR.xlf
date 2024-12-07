@@ -2740,6 +2740,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Não é possível ler o arquivo de origem '{0}' ou o PDB criado para o projeto que o contém. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda ao código-fonte compilado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
         <target state="translated">Não foi possível carregar o tipo '{0}': '{1}'</target>

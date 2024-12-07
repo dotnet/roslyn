@@ -307,12 +307,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Editor_Color_Scheme As String =
             ServicesVSResources.Editor_Color_Scheme
 
-        Public ReadOnly Property Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page As String =
-            ServicesVSResources.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page
-
-        Public ReadOnly Property Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations As String =
-            ServicesVSResources.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations
-
         Public ReadOnly Property Option_Color_Scheme_VisualStudio2019 As String =
             ServicesVSResources.Visual_Studio_2019
 
@@ -325,8 +319,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As ColorSchemeName =
             ColorSchemeName.VisualStudio2017
 
-        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
-            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer As String =
+            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer
 
         Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
             ServicesVSResources.Enable_file_logging_for_diagnostics
@@ -348,9 +342,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Go_To_Definition As String =
             ServicesVSResources.Go_To_Definition
-
-        Public ReadOnly Property Option_Navigate_asynchronously_exerimental As String =
-            ServicesVSResources.Navigate_asynchronously_exerimental
 
         Public ReadOnly Property Option_Rename As String =
             EditorFeaturesResources.Rename

@@ -397,11 +397,6 @@
         <target state="new">Editor Help</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
-        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="translated">편집기 색 구성표 옵션은 Visual Studio와 함께 제공되는 색 테마를 사용하는 경우에만 사용할 수 있습니다. 색 테마는 [환경] &gt; [일반] 옵션 페이지에서 구성할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
@@ -887,11 +882,6 @@
         <target state="translated">명명 규칙</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_asynchronously_exerimental">
-        <source>Navigate asynchronously (experimental)</source>
-        <target state="translated">비동기식 탐색(실험적)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">'{0}'(으)로 이동</target>
@@ -973,8 +963,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="new">Only add new line on enter after end of fully typed word</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -1377,9 +1367,9 @@
         <target state="translated">의미 체계 검색 결과</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
-        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="translated">솔루션 탐색기에서 "사용하지 않는 참조 제거" 명령 표시(실험적)</target>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
+        <source>Show "Remove Unused References" command in Solution Explorer</source>
+        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
@@ -1495,11 +1485,6 @@
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="new">Snippets behavior</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
-        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="translated">색 구성표의 일부 색이 [환경] &gt; [글꼴 및 색] 옵션 페이지에서 변경한 내용에 따라 재정의됩니다. 모든 사용자 지정을 되돌리려면 [글꼴 및 색] 페이지에서 '기본값 사용'을 선택하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">
@@ -1865,6 +1850,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}'이(가) 공용으로 변경됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="new">_Only add new line on enter after end of fully typed word</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">

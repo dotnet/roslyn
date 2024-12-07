@@ -42,7 +42,8 @@ internal static partial class DependentProjectsFinder
     {
         // Namespaces are visible in all projects.
         // Preprocessing symbols are arbitrary identifiers that are not bound to specific projects.
-        if (symbols.Any(static s => s.Kind is SymbolKind.Namespace or SymbolKind.Preprocessing))
+        // 'dynamic' can appear in any project.
+        if (symbols.Any(static s => s is INamespaceSymbol or IPreprocessingSymbol or IDynamicTypeSymbol))
             return [.. projects];
 
         var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);

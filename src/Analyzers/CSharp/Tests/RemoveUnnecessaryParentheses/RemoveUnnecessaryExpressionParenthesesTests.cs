@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -3478,6 +3477,55 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
                 void M(bool b)
                 {
                     int[] a = b ? [1] : []; 
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75203")]
+    public async Task TestConditionalExpressionInWhenClauseAmbiguity1()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public void M(object o, object?[] c)
+                {
+                    switch(o)
+                    {
+                        case { } when $$(c?[0] is { }):
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75203")]
+    public async Task TestConditionalExpressionInWhenClauseAmbiguity2()
+    {
+        await TestInRegularAndScript1Async("""
+            class C
+            {
+                public void M(object o, object?[] c)
+                {
+                    switch(o)
+                    {
+                        case { } when $$(c ? [0] : [1]):
+                            break;
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                public void M(object o, object?[] c)
+                {
+                    switch(o)
+                    {
+                        case { } when c ? [0] : [1]:
+                            break;
+                    }
                 }
             }
             """);

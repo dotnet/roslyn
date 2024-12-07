@@ -1246,12 +1246,6 @@ Additional information: {1}</value>
   <data name="Visual_Studio_2017" xml:space="preserve">
     <value>Visual Studio 2017</value>
   </data>
-  <data name="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page" xml:space="preserve">
-    <value>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</value>
-  </data>
-  <data name="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations" xml:space="preserve">
-    <value>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</value>
-  </data>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
   </data>
@@ -1434,9 +1428,6 @@ Additional information: {1}</value>
   </data>
   <data name="No_unused_references_were_found" xml:space="preserve">
     <value>No unused references were found.</value>
-  </data>
-  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
-    <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
   </data>
   <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
     <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
@@ -1702,9 +1693,6 @@ Additional information: {1}</value>
   <data name="Go_To_Definition" xml:space="preserve">
     <value>Go To Definition</value>
   </data>
-  <data name="Navigate_asynchronously_exerimental" xml:space="preserve">
-    <value>Navigate asynchronously (experimental)</value>
-  </data>
   <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
     <value>Always use default symbol servers for navigation</value>
   </data>
@@ -1892,9 +1880,6 @@ Additional information: {1}</value>
   <data name="Show_completion_item_filters" xml:space="preserve">
     <value>Show completion item _filters</value>
   </data>
-  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
-    <value>_Only add new line on enter after end of fully typed word</value>
-  </data>
   <data name="Snippets_behavior" xml:space="preserve">
     <value>Snippets behavior</value>
   </data>
@@ -1927,5 +1912,14 @@ Additional information: {1}</value>
   </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
+  </data>
+  <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer" xml:space="preserve">
+    <value>Show "Remove Unused References" command in Solution Explorer</value>
   </data>
 </root>

@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Utilities
@@ -18,7 +17,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-    Public Class GoToDefinitionCommandHandlerTests
+    Public NotInheritable Class GoToDefinitionCommandHandlerTests
         <WpfFact>
         Public Async Function TestInLinkedFiles() As Task
             Dim definition =
