@@ -37,7 +37,7 @@ using static SyntaxFactory;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixProvider
 {
-    private static Matcher<SyntaxTrivia> s_commentFollowedByBlankLine = Matcher.Sequence(
+    private static readonly Matcher<SyntaxTrivia> s_commentFollowedByBlankLine = Matcher.Sequence(
         Matcher.Single<SyntaxTrivia>(t => t.IsSingleOrMultiLineComment(), "comment"),
         Matcher.Single<SyntaxTrivia>(t => t.Kind() == SyntaxKind.EndOfLineTrivia, "first end of line"),
         Matcher.Repeat(Matcher.Single<SyntaxTrivia>(t => t.Kind() == SyntaxKind.WhitespaceTrivia, "whitespace")),
