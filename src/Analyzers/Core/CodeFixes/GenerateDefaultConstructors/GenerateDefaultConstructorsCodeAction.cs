@@ -65,16 +65,9 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
                 accessibility: accessibility,
                 modifiers: new DeclarationModifiers(),
                 typeName: classType.Name,
-                parameters: baseConstructor.Parameters.SelectAsArray(p => WithoutInaccessibleAttributes(p, classType)),
+                parameters: baseConstructor.Parameters,
                 statements: default,
                 baseConstructorArguments: baseConstructorArguments);
-        }
-
-        private static IParameterSymbol WithoutInaccessibleAttributes(
-            IParameterSymbol parameter, INamedTypeSymbol classType)
-        {
-            return CodeGenerationSymbolFactory.CreateParameterSymbol(
-                parameter, parameter.GetAttributes().WhereAsArray(a => a.AttributeClass is null || a.AttributeClass.IsAccessibleWithin(classType)));
         }
 
         private static Accessibility DetermineAccessibility(IMethodSymbol baseConstructor, INamedTypeSymbol classType)
