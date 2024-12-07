@@ -4383,7 +4383,7 @@ public sealed class UsePrimaryConstructorTests
                     // This should stay
 
                     /// <summary/>
-                    private int i, j;
+                    private int i;
                     int k;
 
                     public [|C|](int i, int j)
@@ -4394,7 +4394,6 @@ public sealed class UsePrimaryConstructorTests
                 }
                 """,
             FixedCode = """
-                /// <summary/>
                 /// <summary/>
                 class C(int i, int j)
                 {
@@ -4418,7 +4417,7 @@ public sealed class UsePrimaryConstructorTests
                 {
                     // This should be removed
                     /// <summary/>
-                    private int i, j;
+                    private int i;
                     int k;
 
                     public [|C|](int i, int j)
@@ -4429,7 +4428,6 @@ public sealed class UsePrimaryConstructorTests
                 }
                 """,
             FixedCode = """
-                /// <summary/>
                 /// <summary/>
                 class C(int i, int j)
                 {
