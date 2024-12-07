@@ -90,13 +90,18 @@ internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifie
         // member itself.  Not any sort of computed accessibility based on the containing type.
         var accessibility = accessibilityFacts.GetAccessibility(member);
 
-        // If we have a member in an interface, we want to remove the accessibility if it's explicitly declared public.
         if (option == AccessibilityModifiersRequired.ForNonInterfaceMembers &&
-            accessibility == Accessibility.Public &&
             member.Parent is InterfaceDeclarationSyntax)
         {
-            modifierAdded = false;
-            return true;
+            // A member in an interface explicitly declared as 'public'.  Remove this modifier as it's the default for
+            // interfaces, and the user only wants explicit default accessibility modifiers for things *outside* of interfaces.
+            if (accessibility == Accessibility.Public)
+            {
+                modifierAdded = false;
+                return true;
+            }
+
+            return false;
         }
 
         if (option != AccessibilityModifiersRequired.OmitIfDefault)
