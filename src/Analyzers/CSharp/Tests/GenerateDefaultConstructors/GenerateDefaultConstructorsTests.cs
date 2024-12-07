@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
@@ -28,13 +29,19 @@ using VerifyRefactoring = CSharpCodeRefactoringVerifier<
 public class GenerateDefaultConstructorsTests
 {
 #if !CODE_STYLE
-    private static async Task TestRefactoringAsync(string source, string fixedSource, int index = 0)
+    private static async Task TestRefactoringAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
+        int index = 0)
     {
         await TestRefactoringOnlyAsync(source, fixedSource, index);
         await TestCodeFixMissingAsync(source);
     }
 
-    private static async Task TestRefactoringOnlyAsync(string source, string fixedSource, int index = 0)
+    private static async Task TestRefactoringOnlyAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
+        int index = 0)
     {
         await new VerifyRefactoring.Test
         {
@@ -46,7 +53,10 @@ public class GenerateDefaultConstructorsTests
     }
 #endif
 
-    private static async Task TestCodeFixAsync(string source, string fixedSource, int index = 0)
+    private static async Task TestCodeFixAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
+        int index = 0)
     {
         await new VerifyCodeFix.Test
         {
@@ -62,7 +72,8 @@ public class GenerateDefaultConstructorsTests
     }
 
 #if !CODE_STYLE
-    private static async Task TestRefactoringMissingAsync(string source)
+    private static async Task TestRefactoringMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
     {
         await new VerifyRefactoring.Test
         {
@@ -72,7 +83,8 @@ public class GenerateDefaultConstructorsTests
     }
 #endif
 
-    private static async Task TestCodeFixMissingAsync(string source)
+    private static async Task TestCodeFixMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
     {
         source = source.Replace("[||]", "");
         await new VerifyCodeFix.Test
@@ -968,6 +980,124 @@ index: 3);
 #endif
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/19611")]
+    [InlineData("public")]
+    [InlineData("protected")]
+    public async Task TestAttributeReferenceInBaseType1(string accessibility)
+    {
+        await TestCodeFixAsync(
+            $$"""
+            using System;
+
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+
+                    }
+
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    {{accessibility}} class BarAttribute : Attribute
+                    {
+
+                    }
+                }
+
+                public class {|CS7036:Derived|} : [||]Base
+                {
+
+                }
+            }
+            """,
+            $$"""
+            using System;
+            
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+            
+                    }
+            
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    {{accessibility}} class BarAttribute : Attribute
+                    {
+            
+                    }
+                }
+            
+                public class Derived : Base
+                {
+                    public Derived([Bar] string goo) : base(goo)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19611")]
+    public async Task TestAttributeReferenceInBaseType2()
+    {
+        await TestCodeFixAsync(
+            """
+            using System;
+
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+
+                    }
+
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    private class BarAttribute : Attribute
+                    {
+
+                    }
+                }
+
+                public class {|CS7036:Derived|} : [||]Base
+                {
+
+                }
+            }
+            """,
+            """
+            using System;
+            
+            namespace TestApp.Data
+            {
+                public class Base
+                {
+                    public Base([Bar] string goo)
+                    {
+            
+                    }
+            
+                    [AttributeUsage(AttributeTargets.Parameter)]
+                    private class BarAttribute : Attribute
+                    {
+            
+                    }
+                }
+            
+                public class Derived : Base
+                {
+                    public Derived(string goo) : base(goo)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
 #if !CODE_STYLE
 
     [Fact]
@@ -1592,120 +1722,6 @@ index: 2);
             {
                 public Program()
                 {
-                }
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/19611")]
-    [InlineData("public")]
-    [InlineData("protected")]
-    public async Task TestAttributeReferenceInBaseType1(string accessibility)
-    {
-        await TestRefactoringAsync(
-            $$"""
-            using System;
-
-            namespace TestApp.Data
-            {
-                public class Base
-                {
-                    public Base([Bar] string foo)
-                    {
-
-                    }
-
-                    [AttributeUsage(AttributeTargets.Parameter)]
-                    {{accessibility}} class BarAttribute : Attribute
-                    {
-
-                    }
-                }
-
-                public class Derived : [||]Base
-                {
-
-                }
-            }
-            """,
-            $$"""
-            using System;
-            
-            namespace TestApp.Data
-            {
-                public class Base
-                {
-                    public Base([Bar] string foo)
-                    {
-            
-                    }
-            
-                    [AttributeUsage(AttributeTargets.Parameter)]
-                    {{accessibility}} class BarAttribute : Attribute
-                    {
-            
-                    }
-                }
-            
-                public class Derived : Base
-                {
-            
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19611")]
-    public async Task TestAttributeReferenceInBaseType2()
-    {
-        await TestRefactoringAsync(
-            """
-            using System;
-
-            namespace TestApp.Data
-            {
-                public class Base
-                {
-                    public Base([Bar] string foo)
-                    {
-
-                    }
-
-                    [AttributeUsage(AttributeTargets.Parameter)]
-                    private class BarAttribute : Attribute
-                    {
-
-                    }
-                }
-
-                public class Derived : [||]Base
-                {
-
-                }
-            }
-            """,
-            """
-            using System;
-            
-            namespace TestApp.Data
-            {
-                public class Base
-                {
-                    public Base([Bar] string foo)
-                    {
-            
-                    }
-            
-                    [AttributeUsage(AttributeTargets.Parameter)]
-                    private class BarAttribute : Attribute
-                    {
-            
-                    }
-                }
-            
-                public class Derived : Base
-                {
-            
                 }
             }
             """);
