@@ -19,18 +19,38 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers;
 
 internal static class GenerateFromMembersHelpers
 {
-    public static readonly SymbolDisplayFormat SimpleFormat =
-        new(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    public static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
+        Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-    public static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-        => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
+        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+            tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
+
+        if (selectedDeclarations.Length > 0)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var selectedMembers = selectedDeclarations.Select(
+                d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
+            if (selectedMembers.Length > 0)
+            {
+                var containingType = selectedMembers.First().ContainingType;
+                if (containingType != null)
+                {
+                    return new SelectedMemberInfo(containingType, selectedDeclarations, selectedMembers);
+                }
+            }
+        }
+
+        return null;
+    }
 
     public static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
         => !symbol.IsStatic && IsReadableFieldOrProperty(symbol);
+
+    public static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
+        => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
 
     private static bool IsReadableFieldOrProperty(ISymbol symbol)
         => symbol switch
@@ -40,12 +60,6 @@ internal static class GenerateFromMembersHelpers
             _ => false,
         };
 
-    private static bool IsViableField(IFieldSymbol field)
-        => field.AssociatedSymbol == null;
-
-    private static bool IsViableProperty(IPropertySymbol property)
-        => property.Parameters.IsEmpty;
-
     private static bool IsWritableFieldOrProperty(ISymbol symbol)
         => symbol switch
         {
@@ -54,6 +68,12 @@ internal static class GenerateFromMembersHelpers
             IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(),
             _ => false,
         };
+
+    private static bool IsViableField(IFieldSymbol field)
+        => field.AssociatedSymbol == null;
+
+    private static bool IsViableProperty(IPropertySymbol property)
+        => property.Parameters.IsEmpty;
 
     /// <summary>
     /// Returns an array of parameter symbols that correspond to selected member symbols.
@@ -93,30 +113,10 @@ internal static class GenerateFromMembersHelpers
         return parameters.ToImmutableAndClear();
     }
 
-    public static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
-        Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
-    {
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
-            tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
-
-        if (selectedDeclarations.Length > 0)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMembers = selectedDeclarations.Select(
-                d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
-            if (selectedMembers.Length > 0)
-            {
-                var containingType = selectedMembers.First().ContainingType;
-                if (containingType != null)
-                {
-                    return new SelectedMemberInfo(containingType, selectedDeclarations, selectedMembers);
-                }
-            }
-        }
-
-        return null;
-    }
+    public static readonly SymbolDisplayFormat SimpleFormat =
+        new(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 }
