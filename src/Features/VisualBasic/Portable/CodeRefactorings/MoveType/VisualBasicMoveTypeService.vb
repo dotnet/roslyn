@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
     <ExportLanguageService(GetType(IMoveTypeService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicMoveTypeService
+    Friend NotInheritable Class VisualBasicMoveTypeService
         Inherits AbstractMoveTypeService(Of VisualBasicMoveTypeService, TypeBlockSyntax, NamespaceBlockSyntax, MethodBaseSyntax, CompilationUnitSyntax)
 
         <ImportingConstructor>
