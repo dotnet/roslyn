@@ -39,7 +39,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
         internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
 
-        public override string Title => FeaturesResources.Generate_constructor;
+        public override string Title => FeaturesResources.Generate_constructor_from_members;
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
