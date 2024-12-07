@@ -255,7 +255,7 @@ public static class Formatter
     {
         var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(node.Language);
         return formatter.GetFormattingResult(node, spans, options, rules, cancellationToken);
-   }
+    }
 
     /// <summary>
     /// Determines the changes necessary to format the whitespace of a syntax tree.
