@@ -181,34 +181,18 @@ internal static partial class ValueTracker
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var operation = semanticModel.GetOperation(invocationSyntax, cancellationToken);
-            if (operation is not IInvocationOperation)
+            if (operation is not IInvocationOperation invocationOperation)
                 return;
 
             if (_parameterSymbol is not null)
             {
                 // Filter out invocations not containing an argument matching _parameterSymbol
-                var containsMatchingArg = false;
-                var invocationDescendants = invocationSyntax.DescendantNodes();
-                foreach (var descendantNode in invocationDescendants)
+                if (invocationOperation.Arguments.Any(
+                    static (argOp, parameterSymbol) => argOp.Parameter == parameterSymbol && argOp.IsImplicit,
+                    _parameterSymbol))
                 {
-                    if (syntaxFacts.IsArgument(descendantNode))
-                    {
-                        // Ensure this is an argument to the requested invocation
-                        if (invocationSyntax != descendantNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsInvocationExpression))
-                            continue;
-
-                        var argumentOperation = semanticModel.GetOperation(descendantNode, cancellationToken);
-                        if (argumentOperation is IArgumentOperation { Parameter: { } argumentParameter } &&
-                            argumentParameter.Equals(_parameterSymbol))
-                        {
-                            containsMatchingArg = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!containsMatchingArg)
                     return;
+                }
             }
 
             await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);

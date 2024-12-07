@@ -208,7 +208,6 @@ internal interface ISyntaxKinds
     int InterfaceDeclaration { get; }
     int? StructDeclaration { get; }
     int Parameter { get; }
-    int Argument { get; }
     int TypeConstraint { get; }
     int VariableDeclarator { get; }
     int FieldDeclaration { get; }
