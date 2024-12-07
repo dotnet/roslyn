@@ -31,15 +31,16 @@ internal abstract class AbstractMoveTypeService : IMoveTypeService
     public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }
 
-internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax> :
+internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
     AbstractMoveTypeService
-    where TService : AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+    where TService : AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
     where TTypeDeclarationSyntax : SyntaxNode
     where TNamespaceDeclarationSyntax : SyntaxNode
-    where TMemberDeclarationSyntax : SyntaxNode
     where TCompilationUnitSyntax : SyntaxNode
 {
     protected abstract Task<TTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+
+    protected abstract bool IsMemberDeclaration(SyntaxNode syntaxNode);
 
     public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
         Document document, TextSpan textSpan, CancellationToken cancellationToken)

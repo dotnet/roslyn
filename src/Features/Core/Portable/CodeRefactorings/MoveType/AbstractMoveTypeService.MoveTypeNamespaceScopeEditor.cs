@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
 internal abstract partial class AbstractMoveTypeService<
-    TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+    TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
 {
     /// <summary>
     /// Editor that takes a type in a scope and creates a scope beside it. For example, if the type is contained within a namespace 
