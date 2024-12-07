@@ -67,6 +67,9 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
                 if (storage is VisualStudioOptionStorage.FeatureFlagStorage)
                 {
                     Assert.True(currentValue is bool);
+#if !DEBUG
+                    Assert.True(option.DefaultValue is false);
+#endif
                     continue;
                 }
 

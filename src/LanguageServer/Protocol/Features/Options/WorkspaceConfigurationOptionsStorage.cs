@@ -29,7 +29,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             SourceGeneratorExecutionPreferenceUtilities.GetEditorConfigString));
 
     public static readonly Option2<bool> SourceGeneratorExecutionBalancedFeatureFlag = new(
-        "dotnet_source_generator_execution_balanced_feature_flag", true);
+        "dotnet_source_generator_execution_balanced_feature_flag", false);
 
     public static readonly Option2<bool?> ReloadChangedAnalyzerReferences = new(
         "dotnet_reload_changed_analyzer_references",
@@ -37,5 +37,5 @@ internal static class WorkspaceConfigurationOptionsStorage
         isEditorConfigOption: true);
 
     public static readonly Option2<bool> ReloadChangedAnalyzerReferencesFeatureFlag = new(
-        "dotnet_reload_changed_analyzer_references_feature_flag", true);
+        "dotnet_reload_changed_analyzer_references_feature_flag", false);
 }
