@@ -133,7 +133,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var membersToRemove = GetMembersToRemove(root);
             foreach (var member in membersToRemove)
             {
-                AddCorrespondingDirectives(syntaxFacts, member, correspondingDirectives);
+                AddCorrespondingDirectives(member, correspondingDirectives);
                 documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
             }
 
@@ -168,6 +168,19 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 newDocument, FileName, document, this.CancellationToken).ConfigureAwait(false);
 
             return newDocumentWithUpdatedBanner;
+
+            void AddCorrespondingDirectives(SyntaxNode member, HashSet<SyntaxNode> directives)
+            {
+                foreach (var trivia in member.GetLeadingTrivia())
+                {
+                    if (trivia.IsDirective)
+                    {
+                        directives.AddIfNotNull(syntaxFacts.GetMatchingDirective(trivia.GetStructure()!, this.CancellationToken));
+                        foreach (var directive in syntaxFacts.GetMatchingConditionalDirectives(trivia.GetStructure()!, this.CancellationToken))
+                            directives.Add(directive);
+                    }
+                }
+            }
         }
 
         private void RemoveLeadingBlankLinesFromMovedType(DocumentEditor documentEditor)
@@ -181,22 +194,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                     // excessive number of them.
                     return RemoveLeadingBlankLines(currentTypeNode);
                 });
-        }
-
-        private void AddCorrespondingDirectives(
-            ISyntaxFactsService syntaxFacts,
-            SyntaxNode member,
-            HashSet<SyntaxNode> directives)
-        {
-            foreach (var trivia in member.GetLeadingTrivia())
-            {
-                if (trivia.IsDirective)
-                {
-                    directives.AddIfNotNull(syntaxFacts.GetMatchingDirective(trivia.GetStructure()!, this.CancellationToken));
-                    foreach (var directive in syntaxFacts.GetMatchingConditionalDirectives(trivia.GetStructure()!, this.CancellationToken))
-                        directives.Add(directive);
-                }
-            }
         }
 
         /// <summary>
