@@ -841,8 +841,8 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
-        <source>Generate constructor from members</source>
-        <target state="new">Generate constructor from members</target>
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">

@@ -841,8 +841,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
-        <source>Generate constructor from members</source>
-        <target state="new">Generate constructor from members</target>
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">

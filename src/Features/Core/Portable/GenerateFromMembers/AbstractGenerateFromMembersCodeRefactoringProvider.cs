@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,44 +17,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers;
 
-internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
+internal static class GenerateFromMembersHelpers
 {
-    protected AbstractGenerateFromMembersCodeRefactoringProvider()
-    {
-    }
+    public static readonly SymbolDisplayFormat SimpleFormat =
+        new(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-    protected static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
-        Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
-    {
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
-            tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
-
-        if (selectedDeclarations.Length > 0)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMembers = selectedDeclarations.Select(
-                d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
-            if (selectedMembers.Length > 0)
-            {
-                var containingType = selectedMembers.First().ContainingType;
-                if (containingType != null)
-                {
-                    return new SelectedMemberInfo(containingType, selectedDeclarations, selectedMembers);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    protected static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
-        => !symbol.IsStatic && IsReadableFieldOrProperty(symbol);
-
-    protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
+    public static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
         => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
+
+    public static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
+        => !symbol.IsStatic && IsReadableFieldOrProperty(symbol);
 
     private static bool IsReadableFieldOrProperty(ISymbol symbol)
         => symbol switch
@@ -64,6 +39,12 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
             IPropertySymbol property => IsViableProperty(property) && !property.IsWriteOnly,
             _ => false,
         };
+
+    private static bool IsViableField(IFieldSymbol field)
+        => field.AssociatedSymbol == null;
+
+    private static bool IsViableProperty(IPropertySymbol property)
+        => property.Parameters.IsEmpty;
 
     private static bool IsWritableFieldOrProperty(ISymbol symbol)
         => symbol switch
@@ -74,12 +55,6 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
             _ => false,
         };
 
-    private static bool IsViableField(IFieldSymbol field)
-        => field.AssociatedSymbol == null;
-
-    private static bool IsViableProperty(IPropertySymbol property)
-        => property.Parameters.IsEmpty;
-
     /// <summary>
     /// Returns an array of parameter symbols that correspond to selected member symbols.
     /// If a selected member symbol has an empty base identifier name, the parameter symbol will not be added.
@@ -87,7 +62,7 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
     /// <param name="selectedMembers"></param>
     /// <param name="rules"></param>
     /// <returns></returns>
-    protected static ImmutableArray<IParameterSymbol> DetermineParameters(
+    public static ImmutableArray<IParameterSymbol> DetermineParameters(
         ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
     {
         using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
@@ -118,10 +93,30 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
         return parameters.ToImmutableAndClear();
     }
 
-    protected static readonly SymbolDisplayFormat SimpleFormat =
-        new(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    public static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
+        Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+            tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
+
+        if (selectedDeclarations.Length > 0)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var selectedMembers = selectedDeclarations.Select(
+                d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
+            if (selectedMembers.Length > 0)
+            {
+                var containingType = selectedMembers.First().ContainingType;
+                if (containingType != null)
+                {
+                    return new SelectedMemberInfo(containingType, selectedDeclarations, selectedMembers);
+                }
+            }
+        }
+
+        return null;
+    }
 }
