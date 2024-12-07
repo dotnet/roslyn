@@ -10,25 +10,25 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Features.Intents;
-using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
+using Microsoft.CodeAnalysis.GenerateConstructors;
 
-namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers;
+namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructors;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
 [IntentProvider(WellKnownIntents.GenerateConstructor, LanguageNames.CSharp)]
-internal sealed class CSharpGenerateConstructorFromMembersCodeRefactoringProvider
-    : AbstractGenerateConstructorFromMembersCodeRefactoringProvider
+internal sealed class CSharpGenerateConstructorsCodeRefactoringProvider
+    : AbstractGenerateConstructorsCodeRefactoringProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateConstructorFromMembersCodeRefactoringProvider()
+    public CSharpGenerateConstructorsCodeRefactoringProvider()
     {
     }
 
@@ -36,7 +36,7 @@ internal sealed class CSharpGenerateConstructorFromMembersCodeRefactoringProvide
     /// For testing purposes only.
     /// </summary>
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-    internal CSharpGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
+    internal CSharpGenerateConstructorsCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
         : base(pickMembersService_forTesting)
     {
     }
