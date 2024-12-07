@@ -525,4 +525,41 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
             """;
         await TestInRegularAndScriptAsync(text, expected);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
+    public async Task TestMultiLine()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        [||]new
+                        {
+                            x = 1,
+                            y = 2,
+                        },
+                    };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        (
+                            x: 1,
+                            y: 2
+                        ),
+                    };
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 }
