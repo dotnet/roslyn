@@ -6269,7 +6269,6 @@ class C
 }
 """);
         }
-    }
 
         [Fact]
         public void Async2_TaskT()
