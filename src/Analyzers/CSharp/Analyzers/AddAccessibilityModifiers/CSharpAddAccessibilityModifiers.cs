@@ -60,7 +60,7 @@ internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifie
             {
                 // We want to have require accessibility modifiers on non-interface-members, *excluding* only public
                 // interface members due to the long history of this being the only way to declare interface members.
-                // So remove an explciti `public` from an interface member if present.
+                // So remove an explicit `public` from an interface member if present.
                 modifierAdded = false;
                 return accessibility == Accessibility.Public;
             }
