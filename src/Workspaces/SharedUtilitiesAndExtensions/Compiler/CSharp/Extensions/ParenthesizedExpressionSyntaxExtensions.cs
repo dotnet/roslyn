@@ -259,7 +259,17 @@ internal static class ParenthesizedExpressionSyntaxExtensions
 
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
+        {
+            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can the conditional access
+            // become a conditional expression.
+            for (var current = expression; current != null; current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax)
+            {
+                if (current is ConditionalAccessExpressionSyntax)
+                    return false;
+            }
+
             return true;
+        }
 
         // #if (x)   ->   #if x
         if (nodeParent is DirectiveTriviaSyntax)
