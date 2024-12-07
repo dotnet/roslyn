@@ -115,7 +115,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
                     return false;
 
                 // If we're in the initial state, it's fine for there to be many operations that follow.  We're just
-                // trying to check if the first one completes our analysis (and we'd just not touch the ones that
+                // trying to check if the first one completes our analysis (and we'll not touch the ones that
                 // follow). However, if we're actually in one of the recursive calls, it's *not* ok to ignore the 
                 // following ops as those may impact if the higher call into us is ok.  So in that case, we do not
                 // allow the parsing to succeed if we have more than one operation left.
