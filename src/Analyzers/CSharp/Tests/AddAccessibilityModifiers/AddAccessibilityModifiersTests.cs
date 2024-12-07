@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpAddAccessibilityModifiersCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-public class AddAccessibilityModifiersTests
+public sealed class AddAccessibilityModifiersTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
