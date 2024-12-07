@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,9 +76,16 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
                 accessibility: accessibility,
                 modifiers: new DeclarationModifiers(),
                 typeName: classType.Name,
-                parameters: baseConstructor.Parameters,
+                parameters: baseConstructor.Parameters.SelectAsArray(p => WithoutInaccessibleAttributes(p, classType)),
                 statements: default,
                 baseConstructorArguments: baseConstructorArguments);
+        }
+
+        private static IParameterSymbol WithoutInaccessibleAttributes(
+            IParameterSymbol parameter, INamedTypeSymbol classType)
+        {
+            return CodeGenerationSymbolFactory.CreateParameterSymbol(
+                parameter, parameter.GetAttributes().WhereAsArray(a => a.AttributeClass is null || a.AttributeClass.IsAccessibleWithin(classType)));
         }
 
         private static Accessibility DetermineAccessibility(IMethodSymbol baseConstructor, INamedTypeSymbol classType)
