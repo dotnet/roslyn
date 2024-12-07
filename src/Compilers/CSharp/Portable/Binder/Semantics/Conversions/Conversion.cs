@@ -715,11 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsCollectionExpression => Kind == ConversionKind.CollectionExpression;
 
         /// <summary>
-        /// Returns true if the conversion is an implicit conversion of a key:value pair in a collection expression.
-        /// </summary>
-        public bool IsKeyValuePair => Kind == ConversionKind.KeyValuePair; // PROTOTYPE: Add key-value pair conversion to spec.
-
-        /// <summary>
         /// Returns true if the conversion is an implicit switch expression conversion.
         /// </summary>
         public bool IsSwitchExpression

@@ -277,9 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ensureAllUnderlyingConversionsChecked(syntax, source, conversion, wasCompilerGenerated, destination, diagnostics);
 
-                    // PROTOTYPE: We're not going through this code path with the individual Key and Value
-                    // conversions for a KeyValuePair conversion, so we won't report this warning, when
-                    // converting Key from Lock to object for instance.
                     if (conversion.Kind is ConversionKind.ImplicitReference or ConversionKind.ExplicitReference &&
                         source.Type is { } sourceType &&
                         sourceType.IsWellKnownTypeLock())
@@ -401,34 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (conversion.IsDynamic)
                 {
                     Debug.Assert(conversion.UnderlyingConversions.IsDefault);
-                    conversion.MarkUnderlyingConversionsChecked();
-                }
-                else if (conversion.IsKeyValuePair)
-                {
-                    if (!ConversionsBase.IsKeyValuePairType(Compilation, source.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var sourceKeyType, out var sourceValueType) ||
-                        !ConversionsBase.IsKeyValuePairType(Compilation, destination, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var destinationKeyType, out var destinationValueType))
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(source.Type);
-                    }
-                    // PROTOTYPE: Test that we're reporting errors from this code path.
-                    _ = CreateConversion(
-                        syntax,
-                        new BoundValuePlaceholder(source.Syntax, sourceKeyType.Type),
-                        conversion.UnderlyingConversions[0],
-                        isCast: false,
-                        conversionGroupOpt: null,
-                        wasCompilerGenerated: true,
-                        destinationKeyType.Type,
-                        diagnostics);
-                    _ = CreateConversion(
-                        syntax,
-                        new BoundValuePlaceholder(source.Syntax, sourceValueType.Type),
-                        conversion.UnderlyingConversions[1],
-                        isCast: false,
-                        conversionGroupOpt: null,
-                        wasCompilerGenerated: true,
-                        destinationValueType.Type,
-                        diagnostics);
                     conversion.MarkUnderlyingConversionsChecked();
                 }
 
@@ -974,38 +943,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementConversions = conversion.UnderlyingConversions;
 
                 Debug.Assert(elementType is { });
-                Debug.Assert(elements.Length == elementConversions.Length);
+                Debug.Assert(elements.Length <= elementConversions.Length);
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
-                for (int i = 0; i < elements.Length; i++)
+                int conversionIndex = 0;
+                foreach (var element in elements)
                 {
-                    var element = elements[i];
-                    var elementConversion = elementConversions[i];
-                    var convertedElement = element switch
+                    BoundNode convertedElement;
+                    switch (element)
                     {
-                        BoundCollectionExpressionSpreadElement spreadElement =>
-                            bindSpreadElement(
+                        case BoundCollectionExpressionSpreadElement spreadElement:
+                            convertedElement = bindSpreadElement(
                                 spreadElement,
                                 elementType,
-                                elementConversion,
-                                diagnostics),
-                        BoundKeyValuePairElement keyValuePairElement =>
-                            bindKeyValuePairElement(
+                                elementConversions[conversionIndex++],
+                                diagnostics);
+                            break;
+                        case BoundKeyValuePairElement keyValuePairElement:
+                            convertedElement = bindKeyValuePairElement(
                                 keyValuePairElement,
                                 elementType,
-                                elementConversion,
-                                diagnostics),
-                        _ => CreateConversion(
-                            element.Syntax,
-                            (BoundExpression)element,
-                            elementConversion,
-                            isCast: false,
-                            conversionGroupOpt: null,
-                            destination: elementType,
-                            diagnostics)
-                    };
+                                elementConversions[conversionIndex],
+                                elementConversions[conversionIndex + 1],
+                                diagnostics);
+                            conversionIndex += 2;
+                            break;
+                        default:
+                            convertedElement = CreateConversion(
+                                element.Syntax,
+                                (BoundExpression)element,
+                                elementConversions[conversionIndex++],
+                                isCast: false,
+                                conversionGroupOpt: null,
+                                destination: elementType,
+                                diagnostics);
+                            break;
+                    }
                     builder.Add(convertedElement!);
                 }
+                Debug.Assert(conversionIndex == elementConversions.Length);
                 conversion.MarkUnderlyingConversionsChecked();
             }
 
@@ -1050,30 +1026,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: element.LengthOrCount);
             }
 
-            BoundNode bindKeyValuePairElement(BoundKeyValuePairElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
+            BoundNode bindKeyValuePairElement(BoundKeyValuePairElement element, TypeSymbol elementType, Conversion keyConversion, Conversion valueConversion, BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)));
-                Debug.Assert(elementConversion is { Kind: ConversionKind.KeyValuePair, UnderlyingConversions.Length: 2 });
 
                 var typeArguments = ((NamedTypeSymbol)elementType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                var underlyingConversions = elementConversion.UnderlyingConversions;
-                var keyConversion = CreateConversion(
+                var convertedKey = CreateConversion(
                     element.Key.Syntax,
                     element.Key,
-                    underlyingConversions[0],
+                    keyConversion,
                     isCast: false,
                     conversionGroupOpt: null,
                     destination: typeArguments[0].Type,
                     diagnostics);
-                var valueConversion = CreateConversion(
+                var convertedValue = CreateConversion(
                     element.Value.Syntax,
                     element.Value,
-                    underlyingConversions[1],
+                    valueConversion,
                     isCast: false,
                     conversionGroupOpt: null,
                     destination: typeArguments[1].Type,
                     diagnostics);
-                return element.Update(keyConversion, valueConversion);
+                return element.Update(convertedKey, convertedValue);
             }
         }
 

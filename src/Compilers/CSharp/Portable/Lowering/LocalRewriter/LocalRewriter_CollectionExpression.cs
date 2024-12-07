@@ -1216,12 +1216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             sideEffects.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
                         }
                         break;
-                    case BoundConversion { ConversionKind: ConversionKind.KeyValuePair, Operand: var expression }:
-                        {
-                            var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair(expression, addMethod, sideEffects, localsBuilder);
-                            sideEffects.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
-                        }
-                        break;
                     case BoundCollectionExpressionSpreadElement spreadElement:
                         var rewrittenExpression = VisitExpression(spreadElement.Expression);
                         var rewrittenElement = MakeCollectionExpressionSpreadElement(
@@ -1229,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenExpression,
                             iteratorBody =>
                             {
-                                var expression = ((BoundConversion)((BoundExpressionStatement)iteratorBody).Expression).Operand;
+                                var expression = ((BoundExpressionStatement)iteratorBody).Expression;
                                 var builder = ArrayBuilder<BoundExpression>.GetInstance();
                                 var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair(expression, addMethod, builder, localsBuilder);
                                 builder.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
@@ -1243,7 +1237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sideEffects.Add(rewrittenElement);
                         break;
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(element);
+                        {
+                            var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair((BoundExpression)element, addMethod, sideEffects, localsBuilder);
+                            sideEffects.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
+                        }
+                        break;
                 }
             }
 

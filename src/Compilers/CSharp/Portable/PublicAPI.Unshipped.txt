@@ -1,4 +1,3 @@
-Microsoft.CodeAnalysis.CSharp.Conversion.IsKeyValuePair.get -> bool
 Microsoft.CodeAnalysis.CSharp.Conversion.IsSpan.get -> bool
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp13 = 1300 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax

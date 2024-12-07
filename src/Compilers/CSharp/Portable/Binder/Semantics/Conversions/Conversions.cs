@@ -204,35 +204,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                Conversion elementConversion;
-                if (usesKeyValuePairs)
+                switch (element)
                 {
-                    // PROTOTYPE: Check language version.
-                    Debug.Assert(keyType.Type is { });
-                    Debug.Assert(valueType.Type is { });
-                    elementConversion = element switch
-                    {
-                        BoundCollectionExpressionSpreadElement spreadElement => GetSpreadElementAsKeyValuePairConversion(spreadElement, keyType.Type, valueType.Type, ref useSiteInfo),
-                        BoundKeyValuePairElement keyValuePairElement => GetKeyValuePairElementConversion(keyValuePairElement, keyType.Type, valueType.Type, ref useSiteInfo),
-                        _ => GetExpressionElementAsKeyValuePairConversion((BoundExpression)element, keyType.Type, valueType.Type, ref useSiteInfo),
-                    };
+                    case BoundCollectionExpressionSpreadElement spreadElement:
+                        {
+                            var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
+                            if (elementConversion.Exists)
+                            {
+                                builder.Add(elementConversion);
+                                continue;
+                            }
+                        }
+                        break;
+                    case BoundKeyValuePairElement keyValuePairElement:
+                        {
+                            // PROTOTYPE: Check language version.
+                            if (usesKeyValuePairs)
+                            {
+                                var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType.Type, ref useSiteInfo);
+                                var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType.Type, ref useSiteInfo);
+                                if (keyConversion.Exists && valueConversion.Exists)
+                                {
+                                    builder.Add(keyConversion);
+                                    builder.Add(valueConversion);
+                                    continue;
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        {
+                            var elementConversion = ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
+                            if (elementConversion.Exists)
+                            {
+                                builder.Add(elementConversion);
+                                continue;
+                            }
+                        }
+                        break;
                 }
-                else
-                {
-                    elementConversion = element switch
-                    {
-                        BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                        _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
-                    };
-                }
-
-                if (!elementConversion.Exists)
-                {
-                    builder.Free();
-                    return Conversion.NoConversion;
-                }
-
-                builder.Add(elementConversion);
+                builder.Free();
+                return Conversion.NoConversion;
             }
 
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
@@ -254,58 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
-        }
-
-        private Conversion GetExpressionElementAsKeyValuePairConversion(
-            BoundExpression element,
-            TypeSymbol keyType,
-            TypeSymbol valueType,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            // PROTOTYPE: Test expression element with no type.
-            if (IsKeyValuePairType(Compilation, element.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var elementKeyType, out var elementValueType))
-            {
-                var key = ClassifyImplicitConversionFromType(elementKeyType.Type, keyType, ref useSiteInfo);
-                var value = ClassifyImplicitConversionFromType(elementValueType.Type, valueType, ref useSiteInfo);
-                if (key.Exists && value.Exists)
-                {
-                    return new Conversion(ConversionKind.KeyValuePair, [key, value]);
-                }
-            }
-            return Conversion.NoConversion;
-        }
-
-        private Conversion GetSpreadElementAsKeyValuePairConversion(
-            BoundCollectionExpressionSpreadElement element,
-            TypeSymbol keyType,
-            TypeSymbol valueType,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var enumeratorInfo = element.EnumeratorInfoOpt;
-            if (enumeratorInfo is null)
-            {
-                return Conversion.NoConversion;
-            }
-            return GetExpressionElementAsKeyValuePairConversion(
-                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
-                keyType,
-                valueType,
-                ref useSiteInfo);
-        }
-
-        private Conversion GetKeyValuePairElementConversion(
-            BoundKeyValuePairElement element,
-            TypeSymbol keyType,
-            TypeSymbol valueType,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var key = ClassifyImplicitConversionFromExpression(element.Key, keyType, ref useSiteInfo);
-            var value = ClassifyImplicitConversionFromExpression(element.Value, valueType, ref useSiteInfo);
-            if (key.Exists && value.Exists)
-            {
-                return new Conversion(ConversionKind.KeyValuePair, [key, value]);
-            }
-            return Conversion.NoConversion;
         }
 #nullable disable
 

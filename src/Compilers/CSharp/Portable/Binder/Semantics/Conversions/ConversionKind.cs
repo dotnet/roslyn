@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         DefaultLiteral, // a conversion from a `default` literal to any type
         ObjectCreation, // a conversion from a `new()` expression to any type
         CollectionExpression, // a conversion from a collection expression to any type
-        KeyValuePair, // a conversion from a k:v to a KeyValuePair<,>
 
         InterpolatedStringHandler, // A conversion from an interpolated string literal to a type attributed with InterpolatedStringBuilderAttribute
 

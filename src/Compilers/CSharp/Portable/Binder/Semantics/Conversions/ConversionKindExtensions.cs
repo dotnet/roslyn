@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case InlineArray:
                 case CollectionExpression:
                 case ImplicitSpan:
-                case KeyValuePair:
                     return true;
 
                 case ExplicitNumeric:
