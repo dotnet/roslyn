@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NamedTypeSymbol underlyingReturnType = (NamedTypeSymbol)UnderlyingMethod.ReturnType;
                 if (!underlyingReturnType.IsGenericType)
                 {
-                    var voidType = UnderlyingMethod.DeclaringCompilation.GetSpecialType(SpecialType.System_Void);
+                    var voidType = UnderlyingMethod.ContainingAssembly.GetSpecialType(SpecialType.System_Void);
                     return TypeWithAnnotations.Create(voidType).WithModifiers(ImmutableArray.Create(CSharpCustomModifier.CreateRequired(underlyingReturnType)));
                 }
 

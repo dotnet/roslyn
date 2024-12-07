@@ -8867,5 +8867,70 @@ namespace System.Runtime.CompilerServices
 ");
         }
 
+        [Fact]
+        public void Async2_Regression1()
+        {
+            var source = @"
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        {
+        }
+    }
+}
+
+public class Async2Pgo
+{
+    public static void Main()
+    {
+        AsyncEntryPoint().Wait();
+    }
+    
+    internal static async2 Task<int> AsyncEntryPoint()
+    {
+        int[] arr = Enumerable.Range(0, 100_000).ToArray();
+
+        int sum = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 100; j++)
+                sum += await AggregateDelegateAsync(arr, new AggregateSum(), 0);
+                
+            await Task.Delay(100);
+        }
+        
+        return sum;
+    }
+    
+    private class AggregateSum : I<int>
+    {
+#pragma warning disable CS1998
+        public async2 Task<int> Aggregate(int a, int b) => a + b;
+    }
+    
+    public interface I<T>
+    {
+        public Task<T> Aggregate(T seed, T val);
+    }
+    
+    public static async2 Task<T> AggregateDelegateAsync<T>(T[] arr, I<T> aggregate, T seed)
+    {
+        foreach (T val in arr)
+            seed = await aggregate.Aggregate(seed, val);
+            
+        return seed;
+    }
+}";
+
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails, parseOptions: TestOptions.Regular.WithRefsFeature());
+        }
+
     }
 }
