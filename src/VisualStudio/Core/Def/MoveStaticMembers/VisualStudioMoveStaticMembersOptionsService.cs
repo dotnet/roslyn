@@ -61,7 +61,7 @@ internal sealed class VisualStudioMoveStaticMembersOptionsService(
         if (dialogResult)
         {
             // if the destination name contains extra namespaces, we want the last one as that is the real type name
-            var typeName = viewModel.DestinationName.TypeName.Split('.').Last();
+            var typeName = viewModel.DestinationName.FullyQualifiedTypeName.Split('.').Last();
             var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
             var selectedMembers = viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol);
 
@@ -69,7 +69,7 @@ internal sealed class VisualStudioMoveStaticMembersOptionsService(
             {
                 return new MoveStaticMembersOptions(
                     newFileName,
-                    viewModel.DestinationName.TypeName,
+                    viewModel.DestinationName.FullyQualifiedTypeName,
                     selectedMembers);
             }
 
