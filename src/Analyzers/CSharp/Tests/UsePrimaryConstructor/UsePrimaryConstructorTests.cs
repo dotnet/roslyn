@@ -4386,16 +4386,15 @@ public sealed class UsePrimaryConstructorTests
                     private int i;
                     int k;
 
-                    public [|C|](int i, int j)
+                    public [|C|](int i)
                     {
                         this.i = i;
-                        this.j = j;
                     }
                 }
                 """,
             FixedCode = """
                 /// <summary/>
-                class C(int i, int j)
+                class C(int i)
                 {
                     // This should stay
 
@@ -4420,16 +4419,15 @@ public sealed class UsePrimaryConstructorTests
                     private int i;
                     int k;
 
-                    public [|C|](int i, int j)
+                    public [|C|](int i)
                     {
                         this.i = i;
-                        this.j = j;
                     }
                 }
                 """,
             FixedCode = """
                 /// <summary/>
-                class C(int i, int j)
+                class C(int i)
                 {
                     int k;
                 }
