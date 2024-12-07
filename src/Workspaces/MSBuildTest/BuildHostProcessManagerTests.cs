@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,7 +17,7 @@ public class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForNetCore_RollsForwardToLatestPreview()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore);
+            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "");
 
 #if NET
         var rollForwardIndex = processStartInfo.ArgumentList.IndexOf("--roll-forward");
@@ -34,7 +34,7 @@ public class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForNetCore_LaunchesDotNetCLI()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore);
+            .CreateBuildHostStartInfo(BuildHostProcessKind.NetCore, pipeName: "");
 
         Assert.StartsWith("dotnet", processStartInfo.FileName);
     }
@@ -43,7 +43,7 @@ public class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForMono_LaunchesMono()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.Mono);
+            .CreateBuildHostStartInfo(BuildHostProcessKind.Mono, pipeName: "");
 
         Assert.Equal("mono", processStartInfo.FileName);
     }
@@ -52,7 +52,7 @@ public class BuildHostProcessManagerTests
     public void ProcessStartInfo_ForNetFramework_LaunchesBuildHost()
     {
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(BuildHostProcessKind.NetFramework);
+            .CreateBuildHostStartInfo(BuildHostProcessKind.NetFramework, pipeName: "");
 
         Assert.EndsWith("Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe", processStartInfo.FileName);
     }
@@ -66,7 +66,7 @@ public class BuildHostProcessManagerTests
         const string BinaryLogPath = "test.binlog";
 
         var processStartInfo = new BuildHostProcessManager(binaryLogPath: BinaryLogPath)
-            .CreateBuildHostStartInfo(buildHostKind);
+            .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
 
 #if NET
         var binlogIndex = processStartInfo.ArgumentList.IndexOf("--binlog");
@@ -81,13 +81,33 @@ public class BuildHostProcessManagerTests
     [InlineData(BuildHostProcessKind.NetFramework)]
     [InlineData(BuildHostProcessKind.NetCore)]
     [InlineData(BuildHostProcessKind.Mono)]
+    internal void ProcessStartInfo_PassesPipeName(BuildHostProcessKind buildHostKind)
+    {
+        const string PipeName = "TestPipe";
+
+        var processStartInfo = new BuildHostProcessManager()
+            .CreateBuildHostStartInfo(buildHostKind, PipeName);
+
+#if NET
+        var binlogIndex = processStartInfo.ArgumentList.IndexOf("--pipe");
+        Assert.True(binlogIndex >= 0);
+        Assert.Equal(PipeName, processStartInfo.ArgumentList[binlogIndex + 1]);
+#else
+        Assert.Contains($"--pipe {PipeName}", processStartInfo.Arguments);
+#endif
+    }
+
+    [Theory]
+    [InlineData(BuildHostProcessKind.NetFramework)]
+    [InlineData(BuildHostProcessKind.NetCore)]
+    [InlineData(BuildHostProcessKind.Mono)]
     [UseCulture("de-DE", "de-DE")]
     internal void ProcessStartInfo_PassesLocale(BuildHostProcessKind buildHostKind)
     {
         const string Locale = "de-DE";
 
         var processStartInfo = new BuildHostProcessManager()
-            .CreateBuildHostStartInfo(buildHostKind);
+            .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
 
 #if NET
         var localeIndex = processStartInfo.ArgumentList.IndexOf("--locale");
@@ -112,7 +132,7 @@ public class BuildHostProcessManagerTests
 
         var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties);
 
-        var processStartInfo = buildHostProcessManager.CreateBuildHostStartInfo(buildHostKind);
+        var processStartInfo = buildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "");
 
 #if NET
         foreach (var kvp in globalMSBuildProperties)

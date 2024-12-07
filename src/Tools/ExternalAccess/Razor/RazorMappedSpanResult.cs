@@ -29,4 +29,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public bool IsDefault => FilePath == null;
     }
+
+    internal readonly record struct RazorMappedEditoResult(string FilePath, TextChange[] TextChanges)
+    {
+        public bool IsDefault => FilePath == null || TextChanges == null;
+    }
 }

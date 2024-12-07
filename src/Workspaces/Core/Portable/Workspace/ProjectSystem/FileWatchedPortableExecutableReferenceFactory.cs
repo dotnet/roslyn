@@ -109,7 +109,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
             }
 
-            return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, ".dll"));
+            return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, [".dll"]));
         }
     }
 

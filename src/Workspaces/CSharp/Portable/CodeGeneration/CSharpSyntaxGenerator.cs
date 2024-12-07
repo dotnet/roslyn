@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -190,15 +191,10 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     private protected override SyntaxNode ParameterDeclaration(
         string name, SyntaxNode? type, SyntaxNode? initializer, RefKind refKind, bool isExtension, bool isParams, bool isScoped)
     {
-        var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind);
-        if (isScoped)
-            modifiers = modifiers.Insert(0, ScopedKeyword);
+        var modifiers = CSharpSyntaxGeneratorInternal.GetParameterModifiers(isScoped, refKind, isParams);
 
         if (isExtension)
             modifiers = modifiers.Insert(0, ThisKeyword);
-
-        if (isParams)
-            modifiers = modifiers.Add(ParamsKeyword);
 
         return SyntaxFactory.Parameter(
             default,
@@ -244,7 +240,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
         return SyntaxFactory.MethodDeclaration(
             attributeLists: default,
-            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
+            // Pass `withLeadingElasticMarker: true` to ensure method will space itself properly within the members it
+            // is added to.
+            modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration, withLeadingElasticMarker: true),
             returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(VoidKeyword),
             explicitInterfaceSpecifier: null,
             identifier: name.ToIdentifierToken(),
@@ -1660,89 +1658,68 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             _ => declaration,
         };
 
-    private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers, SyntaxKind kind)
-        => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers);
+    private static SyntaxTokenList AsModifierList(
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        SyntaxKind kind,
+        bool withLeadingElasticMarker = false)
+        => AsModifierList(accessibility, GetAllowedModifiers(kind) & modifiers, withLeadingElasticMarker);
 
-    private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers)
+    private static SyntaxTokenList AsModifierList(
+        Accessibility accessibility,
+        DeclarationModifiers modifiers,
+        bool withLeadingElasticMarker = false)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var list);
 
-        switch (accessibility)
+        list.AddRange((IEnumerable<SyntaxToken>)(accessibility switch
         {
-            case Accessibility.Internal:
-                list.Add(InternalKeyword);
-                break;
-            case Accessibility.Public:
-                list.Add(PublicKeyword);
-                break;
-            case Accessibility.Private:
-                list.Add(PrivateKeyword);
-                break;
-            case Accessibility.Protected:
-                list.Add(ProtectedKeyword);
-                break;
-            case Accessibility.ProtectedOrInternal:
-                list.Add(ProtectedKeyword);
-                list.Add(InternalKeyword);
-                break;
-            case Accessibility.ProtectedAndInternal:
-                list.Add(PrivateKeyword);
-                list.Add(ProtectedKeyword);
-                break;
-            case Accessibility.NotApplicable:
-                break;
-        }
+            Accessibility.Internal => [InternalKeyword],
+            Accessibility.Public => [PublicKeyword],
+            Accessibility.Private => [PrivateKeyword],
+            Accessibility.Protected => [ProtectedKeyword],
+            Accessibility.ProtectedOrInternal => [ProtectedKeyword, InternalKeyword],
+            Accessibility.ProtectedAndInternal => [PrivateKeyword, ProtectedKeyword],
+            _ => [],
+        }));
 
-        if (modifiers.IsFile)
-            list.Add(FileKeyword);
-
-        if (modifiers.IsAbstract)
-            list.Add(AbstractKeyword);
-
-        if (modifiers.IsNew)
-            list.Add(NewKeyword);
-
-        if (modifiers.IsSealed)
-            list.Add(SealedKeyword);
-
-        if (modifiers.IsOverride)
-            list.Add(OverrideKeyword);
-
-        if (modifiers.IsVirtual)
-            list.Add(VirtualKeyword);
-
-        if (modifiers.IsStatic)
-            list.Add(StaticKeyword);
-
-        if (modifiers.IsAsync)
-            list.Add(AsyncKeyword);
-
-        if (modifiers.IsConst)
-            list.Add(ConstKeyword);
-
-        if (modifiers.IsReadOnly)
-            list.Add(ReadOnlyKeyword);
-
-        if (modifiers.IsUnsafe)
-            list.Add(UnsafeKeyword);
-
-        if (modifiers.IsVolatile)
-            list.Add(VolatileKeyword);
-
-        if (modifiers.IsExtern)
-            list.Add(ExternKeyword);
-
-        if (modifiers.IsRequired)
-            list.Add(RequiredKeyword);
+        AddIf(modifiers.IsFile, FileKeyword);
+        AddIf(modifiers.IsAbstract, AbstractKeyword);
+        AddIf(modifiers.IsNew, NewKeyword);
+        AddIf(modifiers.IsSealed, SealedKeyword);
+        AddIf(modifiers.IsOverride, OverrideKeyword);
+        AddIf(modifiers.IsVirtual, VirtualKeyword);
+        AddIf(modifiers.IsStatic, StaticKeyword);
+        AddIf(modifiers.IsAsync, AsyncKeyword);
+        AddIf(modifiers.IsConst, ConstKeyword);
+        AddIf(modifiers.IsReadOnly, ReadOnlyKeyword);
+        AddIf(modifiers.IsUnsafe, UnsafeKeyword);
+        AddIf(modifiers.IsVolatile, VolatileKeyword);
+        AddIf(modifiers.IsExtern, ExternKeyword);
+        AddIf(modifiers.IsRequired, RequiredKeyword);
 
         // partial and ref must be last
-        if (modifiers.IsRef)
-            list.Add(RefKeyword);
+        AddIf(modifiers.IsRef, RefKeyword);
+        AddIf(modifiers.IsPartial, PartialKeyword);
 
-        if (modifiers.IsPartial)
-            list.Add(PartialKeyword);
+        for (int i = 0, n = list.Count; i < n; i++)
+        {
+            // By default, do not place leading elastic trivia on modifiers we make.  Just because something is
+            // adding/removing/modifying modifiers does not mean we want the parent construct to change its formatting
+            // respective to what's around it.
+            if (!withLeadingElasticMarker)
+                list[i] = list[i].WithoutLeadingTrivia();
+
+            list[i] = list[i].WithTrailingTrivia(SyntaxFactory.ElasticSpace);
+        }
 
         return [.. list];
+
+        void AddIf(bool test, SyntaxToken token)
+        {
+            if (test)
+                list.Add(token);
+        }
     }
 
     private protected override SyntaxNode TypeParameter(string name)
@@ -2499,38 +2476,27 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
     {
-        var body = CreateBlock(statements);
+        var existingBlock = declaration switch
+        {
+            BaseMethodDeclarationSyntax baseMethod => baseMethod.Body,
+            AccessorDeclarationSyntax accessor => accessor.Body,
+            LocalFunctionStatementSyntax localFunction => localFunction.Body,
+            AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Block,
+            _ => null,
+        };
+
+        var body = CreateBlock(statements, existingBlock, addSimplifierAnnotation: false);
         var somebody = statements != null ? body : null;
         var semicolon = statements == null ? SemicolonToken : default;
 
-        switch (declaration.Kind())
+        return declaration switch
         {
-            case SyntaxKind.MethodDeclaration:
-                return ((MethodDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.OperatorDeclaration:
-                return ((OperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.ConversionOperatorDeclaration:
-                return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.ConstructorDeclaration:
-                return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.DestructorDeclaration:
-                return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.LocalFunctionStatement:
-                return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            case SyntaxKind.AnonymousMethodExpression:
-                return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.ParenthesizedLambdaExpression:
-                return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.SimpleLambdaExpression:
-                return ((SimpleLambdaExpressionSyntax)declaration).WithBody(body);
-            case SyntaxKind.GetAccessorDeclaration:
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.AddAccessorDeclaration:
-            case SyntaxKind.RemoveAccessorDeclaration:
-                return ((AccessorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
-            default:
-                return declaration;
-        }
+            BaseMethodDeclarationSyntax baseMethod => baseMethod.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            AccessorDeclarationSyntax accessor => accessor.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            LocalFunctionStatementSyntax localFunction => localFunction.WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null),
+            AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.WithBody(body),
+            _ => declaration,
+        };
     }
 
     public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
@@ -3134,8 +3100,23 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
     }
 
-    private static BlockSyntax CreateBlock(IEnumerable<SyntaxNode>? statements = null)
-        => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
+    private static BlockSyntax CreateBlock(
+        IEnumerable<SyntaxNode>? statements = null,
+        BlockSyntax? existingBlock = null,
+        bool addSimplifierAnnotation = true)
+    {
+        var block = existingBlock ?? SyntaxFactory.Block();
+
+        var statementList = AsStatementList(statements);
+
+        // If we're adding any statements, make sure the open brace can move around.  This allows `{ }` on an existing
+        // one-line construct to have the braces move to their own lines in accordance to the user's formatting rules.
+        if (statementList.Count > 0)
+            block = block.WithOpenBraceToken(block.OpenBraceToken.WithAdditionalAnnotations(Formatter.Annotation));
+
+        block = block.WithStatements(statementList);
+        return addSimplifierAnnotation ? block.WithAdditionalAnnotations(Simplifier.Annotation) : block;
+    }
 
     private static SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode>? nodes)
         => nodes == null ? default : [.. nodes.Select(AsStatement)];

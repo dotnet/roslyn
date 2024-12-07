@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -37,6 +38,15 @@ internal sealed partial class CSharpSymbolDisplayService
 
         private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstantsAndModifiers = s_minimallyQualifiedFormatWithConstants
             .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
+
+        protected override SymbolDisplayFormat MinimallyQualifiedFormat
+            => s_minimallyQualifiedFormat;
+
+        protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants
+            => s_minimallyQualifiedFormatWithConstants;
+
+        protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers
+            => s_minimallyQualifiedFormatWithConstantsAndModifiers;
 
         protected override void AddDeprecatedPrefix()
         {
@@ -103,7 +113,55 @@ internal sealed partial class CSharpSymbolDisplayService
         }
 
         protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
-            => CodeAnalysis.CSharp.SymbolDisplay.ToMinimalDisplayParts(symbol, semanticModel, position, format);
+        {
+            var displayParts = CodeAnalysis.CSharp.SymbolDisplay.ToMinimalDisplayParts(symbol, semanticModel, position, format);
+            return WrapConstraints(symbol, displayParts);
+        }
+
+        protected override ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
+        {
+            var typeParameter = symbol.GetTypeParameters();
+            if (typeParameter.Length == 0)
+                return displayParts;
+
+            // For readability, we add every 'where' on its own line if we have two or more constraints to wrap.
+            var wrappedConstraints = 0;
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(displayParts.Length, out var builder);
+
+            var displayPartsSpans = displayParts.AsSpan();
+            while (displayPartsSpans is [var firstSpan, ..])
+            {
+                // Look for ` where T :` and add a line break before it.
+                if (displayPartsSpans is [
+                    { Kind: SymbolDisplayPartKind.Space },
+                    { Kind: SymbolDisplayPartKind.Keyword } keyword,
+                    { Kind: SymbolDisplayPartKind.Space },
+                    { Kind: SymbolDisplayPartKind.TypeParameterName },
+                    { Kind: SymbolDisplayPartKind.Space },
+                    { Kind: SymbolDisplayPartKind.Punctuation } punctuation,
+                    ..] &&
+                    keyword.ToString() == "where" &&
+                    punctuation.ToString() == ":")
+                {
+                    // Intentionally do not this initial space.  We want to replace it with a newline and 4 spaces instead.
+
+                    builder.AddRange(LineBreak());
+                    builder.AddRange(Space(4));
+                    wrappedConstraints++;
+                }
+                else
+                {
+                    builder.Add(firstSpan);
+                }
+
+                displayPartsSpans = displayPartsSpans[1..];
+            }
+
+            if (wrappedConstraints < 2)
+                return displayParts;
+
+            return builder.ToImmutableAndClear();
+        }
 
         protected override string? GetNavigationHint(ISymbol? symbol)
             => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
@@ -177,7 +235,7 @@ internal sealed partial class CSharpSymbolDisplayService
         private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             EqualsValueClauseSyntax? equalsValue)
         {
-            if (equalsValue != null && equalsValue.Value != null)
+            if (equalsValue?.Value != null)
             {
                 var semanticModel = GetSemanticModel(equalsValue.SyntaxTree);
                 if (semanticModel != null)
@@ -202,11 +260,5 @@ internal sealed partial class CSharpSymbolDisplayService
                 }
             }
         }
-
-        protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
-
-        protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
-
-        protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers => s_minimallyQualifiedFormatWithConstantsAndModifiers;
     }
 }

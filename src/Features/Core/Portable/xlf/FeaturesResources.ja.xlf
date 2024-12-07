@@ -525,6 +525,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">すべてのアナライザーの重要度を構成します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="new">Conflict(s) detected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Constructors_not_allowed">
         <source>Constructors not allowed</source>
         <target state="translated">コンストラクターは使用できません</target>
@@ -1245,6 +1250,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">抽出を行うための有効な選択がありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="new">Not all code paths return</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">) が足りません</target>
@@ -1290,14 +1300,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">プロパティ参照を更新できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up">
-        <source>Pull '{0}' up</source>
-        <target state="translated">最大 '{0}' 個をプル</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_0_up_to_1">
-        <source>Pull '{0}' up to '{1}'</source>
-        <target state="translated">'{1}' まで '{0}' をプルします</target>
+      <trans-unit id="Pull_0_up_to">
+        <source>Pull '{0}' up to ...</source>
+        <target state="new">Pull '{0}' up to ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -2585,6 +2590,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">サイレント</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="new">Simplify member access '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="new">Simplify name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
         <target state="translated">Import または using の並べ替え</target>
@@ -2613,11 +2628,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">入れ子になった '{0}' ステートメントに分割</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
@@ -2728,6 +2738,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">ソース ファイル '{0}'、またはそれを含むプロジェクト用にビルドされた PDB を読み取れません。デバッグ中にこのファイルに加えられた変更は、そのコンテンツがビルドされたソースと一致するまで適用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -3436,6 +3451,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">および直接呼び出しサイトを更新する</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="new">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
         <target state="translated">明示的なレイアウトまたはシーケンシャル レイアウトを持つクラス</target>
@@ -3617,6 +3637,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">ソース内 (属性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="new">&lt;interface name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
         <target state="translated">呼び出しサイトで呼び出すための抽出されたメソッド</target>
@@ -3733,6 +3758,11 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="month_full_description">
         <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
         <target state="translated">"MMMM" カスタム書式指定子は、月の完全名を表します。月のローカライズされた名前は、現在のカルチャまたは指定されたカルチャの DateTimeFormatInfo.MonthNames プロパティから取得されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="new">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -3992,11 +4022,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Returns_colon">
         <source>Returns:</source>
         <target state="translated">戻り値:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">例外:</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">

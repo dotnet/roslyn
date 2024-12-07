@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -27,7 +29,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     private sealed class CombinatorialLangVersions()
-        : CombinatorialValuesAttribute(LangVersions().Select(d => d.Single()).ToArray());
+        : CombinatorialValuesAttribute(((IEnumerable<object[]>)LangVersions()).Select(d => d.Single()).ToArray());
 
     [Fact, WorkItem("https://github.com/dotnet/runtime/issues/101261")]
     public void Example_StringValuesAmbiguity()
@@ -458,6 +460,37 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_02_BothSpanAndReadOnlySpan()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            C.R(o);
+
+            static class C
+            {
+                public static void R<T>(IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(ReadOnlySpan<T> s) => Console.Write(2);
+                public static void R<T>(Span<T> s) => Console.Write(3);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void BreakingChange_Conversion_SpanVsIEnumerable()
     {
         var source = """
@@ -503,6 +536,37 @@ public class FirstClassSpanTests : CSharpTestBase
             {
                 public static void R<T>(this IEnumerable<T> e) => Console.Write(1);
                 public static void R<T>(this ReadOnlySpan<T> s) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_Conversion_SpanVsIEnumerable_BothSpanAndReadOnlySpan()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            o.R<object>();
+
+            static class E
+            {
+                public static void R<T>(this IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(this ReadOnlySpan<T> s) => Console.Write(2);
+                public static void R<T>(this Span<T> s) => Console.Write(3);
             }
             """;
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
@@ -630,6 +694,36 @@ public class FirstClassSpanTests : CSharpTestBase
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
+    [Fact]
+    public void BreakingChange_OverloadResolution_Betterness_01()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var x = new int[0];
+            C.M(x, x);
+
+            static class C
+            {
+                public static void M(IEnumerable<int> a, ReadOnlySpan<int> b) => Console.Write(1);
+                public static void M(Span<int> a, Span<int> b) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(IEnumerable<int>, ReadOnlySpan<int>)' and 'C.M(Span<int>, Span<int>)'
+            // C.M(x, x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Collections.Generic.IEnumerable<int>, System.ReadOnlySpan<int>)", "C.M(System.Span<int>, System.Span<int>)").WithLocation(5, 3)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
     [Theory, CombinatorialData]
     public void Conversion_Array_Span_Implicit(
         [CombinatorialLangVersions] LanguageVersion langVersion,
@@ -656,6 +750,67 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
               IL_0005:  call       "System.{{destination}}<int> System.{{destination}}<int>.op_Implicit(int[])"
               IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.{{destination}}<int>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Explicit(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
+    {
+        var source = $$"""
+            using System;
+            {{destination}}<string> s = ({{destination}}<string>)arr();
+            report(s);
+            static object[] arr() => new string[] { "a", "b" };
+            static void report({{destination}}<string> s) { foreach (var x in s) { Console.Write(x); } }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: "ab");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+            {
+              // Code size       21 (0x15)
+              .maxstack  1
+              IL_0000:  call       "object[] Program.<<Main>$>g__arr|0_0()"
+              IL_0005:  castclass  "string[]"
+              IL_000a:  call       "System.{{destination}}<string> System.{{destination}}<string>.op_Implicit(string[])"
+              IL_000f:  call       "void Program.<<Main>$>g__report|0_1(System.{{destination}}<string>)"
+              IL_0014:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Explicit_Invalid(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
+    {
+        var source = $$"""
+            using System;
+            try
+            {
+                run();
+            }
+            catch (InvalidCastException)
+            {
+                Console.WriteLine("InvalidCastException");
+            }
+            static {{destination}}<string> run() => ({{destination}}<string>)arr();
+            static object[] arr() => new object[] { "a", "b" };
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: "InvalidCastException", verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>g__run|0_0", $$"""
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "object[] Program.<<Main>$>g__arr|0_1()"
+              IL_0005:  castclass  "string[]"
+              IL_000a:  call       "System.{{destination}}<string> System.{{destination}}<string>.op_Implicit(string[])"
               IL_000f:  ret
             }
             """);
@@ -2605,6 +2760,46 @@ public class FirstClassSpanTests : CSharpTestBase
             // (2,38): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
             // span2::System.ReadOnlySpan<char> s = source();
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 38));
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Retargeting()
+    {
+        var source1 = """
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            public readonly ref struct Span<T>
+            {
+                public static implicit operator ReadOnlySpan<T>(Span<T> span) => default;
+            }
+            """;
+        var comp1Ref = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40)
+            .VerifyDiagnostics()
+            .ToMetadataReference();
+
+        var source2 = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<int> M(Span<int> s) => s;
+            }
+            """;
+        var comp2 = CreateCompilation(source2, [comp1Ref], targetFramework: TargetFramework.NetStandard20);
+
+        Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GlobalNamespace.GetMember("System.Span"));
+        Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GlobalNamespace.GetMember("System.ReadOnlySpan"));
+
+        CompileAndVerify(comp2, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                  IL_0006:  ret
+                }
+                """);
     }
 
     [Theory]
@@ -7755,8 +7950,8 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_SpanVsReadOnlySpan_01(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_01()
     {
         var source = """
             using System;
@@ -7771,8 +7966,16 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(ReadOnlySpan<int> arg) => Console.Write(2);
             }
             """;
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "112").VerifyDiagnostics();
+
+        var expectedOutput = "212";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Fact]
@@ -7796,7 +7999,7 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1123" : "1121").VerifyDiagnostics();
 
-        var expectedOutput = "1122";
+        var expectedOutput = "2122";
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -7838,6 +8041,31 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_04()
+    {
+        var source = """
+            using System;
+
+            C.M1(new object[0]);
+            C.M1(new string[0]);
+
+            C.M2(new object[0]);
+            C.M2(new string[0]);
+
+            static class C
+            {
+                public static void M1(Span<string> arg) => Console.Write(1);
+                public static void M1(ReadOnlySpan<object> arg) => Console.Write(2);
+
+                public static void M2(Span<object> arg) => Console.Write(1);
+                public static void M2(ReadOnlySpan<string> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: "2212").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_01()
     {
         var source = """
@@ -7856,7 +8084,7 @@ public class FirstClassSpanTests : CSharpTestBase
             // (new int[0]).E();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new int[0]").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(3, 2));
 
-        var expectedOutput = "1";
+        var expectedOutput = "2";
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -7907,7 +8135,7 @@ public class FirstClassSpanTests : CSharpTestBase
             // (new string[0]).E();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object[0]").WithArguments("object[]", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(4, 2));
 
-        var expectedOutput = "21";
+        var expectedOutput = "22";
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -7942,6 +8170,233 @@ public class FirstClassSpanTests : CSharpTestBase
         var expectedOutput = "22";
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_05()
+    {
+        var source = """
+            using System;
+
+            (new object[0]).M1();
+            (new string[0]).M1();
+
+            (new object[0]).M2();
+            (new string[0]).M2();
+
+            static class E
+            {
+                public static void M1(this Span<string> arg) => Console.Write(1);
+                public static void M1(this ReadOnlySpan<object> arg) => Console.Write(2);
+
+                public static void M2(this Span<object> arg) => Console.Write(1);
+                public static void M2(this ReadOnlySpan<string> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: "2212").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsReadOnlySpan()
+    {
+        var source1 = """
+            using System;
+            static class C
+            {
+                public static void M(ReadOnlySpan<string> arg) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+
+        var source2 = """
+            C.M(new string[0]);
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(ReadOnlySpan<string>)' and 'C.M(ReadOnlySpan<object>)'
+            // C.M(new string[0]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.ReadOnlySpan<string>)", "C.M(System.ReadOnlySpan<object>)").WithLocation(1, 3));
+
+        var expectedOutput = "1";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var source3 = """
+            using System;
+            C.M(new object[0]);
+            C.M(default(Span<string>));
+            C.M(default(Span<object>));
+            C.M(default(ReadOnlySpan<string>));
+            C.M(default(ReadOnlySpan<object>));
+            """;
+
+        expectedOutput = "21212";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsReadOnlySpan_ExtensionMethodReceiver()
+    {
+        var source = """
+            using System;
+
+            (new string[0]).M();
+            (new object[0]).M();
+            (default(Span<string>)).M();
+            (default(Span<object>)).M();
+            (default(ReadOnlySpan<string>)).M();
+            (default(ReadOnlySpan<object>)).M();
+
+            static class C
+            {
+                public static void M(this ReadOnlySpan<string> arg) => Console.Write(1);
+                public static void M(this ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (3,2): error CS1929: 'string[]' does not contain a definition for 'M' and the best extension method overload 'C.M(ReadOnlySpan<string>)' requires a receiver of type 'System.ReadOnlySpan<string>'
+            // (new string[0]).M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new string[0]").WithArguments("string[]", "M", "C.M(System.ReadOnlySpan<string>)", "System.ReadOnlySpan<string>").WithLocation(3, 2),
+            // (4,2): error CS1929: 'object[]' does not contain a definition for 'M' and the best extension method overload 'C.M(ReadOnlySpan<string>)' requires a receiver of type 'System.ReadOnlySpan<string>'
+            // (new object[0]).M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object[0]").WithArguments("object[]", "M", "C.M(System.ReadOnlySpan<string>)", "System.ReadOnlySpan<string>").WithLocation(4, 2),
+            // (5,2): error CS1929: 'Span<string>' does not contain a definition for 'M' and the best extension method overload 'C.M(ReadOnlySpan<string>)' requires a receiver of type 'System.ReadOnlySpan<string>'
+            // (default(Span<string>)).M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "default(Span<string>)").WithArguments("System.Span<string>", "M", "C.M(System.ReadOnlySpan<string>)", "System.ReadOnlySpan<string>").WithLocation(5, 2),
+            // (6,2): error CS1929: 'Span<object>' does not contain a definition for 'M' and the best extension method overload 'C.M(ReadOnlySpan<string>)' requires a receiver of type 'System.ReadOnlySpan<string>'
+            // (default(Span<object>)).M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "default(Span<object>)").WithArguments("System.Span<object>", "M", "C.M(System.ReadOnlySpan<string>)", "System.ReadOnlySpan<string>").WithLocation(6, 2));
+
+        var expectedOutput = "121212";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void OverloadResolution_ReadOnlySpanVsReadOnlySpan_Params()
+    {
+        var source1 = """
+            using System;
+            static class C
+            {
+                public static void M(params ReadOnlySpan<string> arg) => Console.Write(1);
+                public static void M(params ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+
+        var source2 = """
+            C.M(new string[0]);
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params ReadOnlySpan<string>)' and 'C.M(params ReadOnlySpan<object>)'
+            // C.M(new string[0]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params System.ReadOnlySpan<string>)", "C.M(params System.ReadOnlySpan<object>)").WithLocation(1, 3));
+
+        var expectedOutput = "1";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source2]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var source3 = """
+            using System;
+            C.M("a");
+            C.M(new object());
+            C.M(new object[0]);
+            C.M(default(Span<string>));
+            C.M(default(Span<object>));
+            C.M(default(ReadOnlySpan<string>));
+            C.M(default(ReadOnlySpan<object>));
+            """;
+
+        expectedOutput = "1221212";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source1, source3]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsUserDefined_01()
+    {
+        var source = """
+            using System;
+
+            C.M(new string[0]);
+
+            class C
+            {
+                public static implicit operator C(string[] s) => new C();
+                public static implicit operator C(Span<string> s) => new C();
+                public static void M(C arg) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(C)' and 'C.M(ReadOnlySpan<object>)'
+            // C.M(new string[0]);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(C)", "C.M(System.ReadOnlySpan<object>)").WithLocation(3, 3));
+
+        var expectedOutput = "2";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsUserDefined_02()
+    {
+        var source = """
+            using System;
+
+            C.M(default(Span<string>));
+
+            class C
+            {
+                public static implicit operator C(string[] s) => new C();
+                public static implicit operator C(Span<string> s) => new C();
+                public static void M(C arg) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);

@@ -1712,11 +1712,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return builderArgument is not null;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
             if (!_packedFlags.IsOverloadResolutionPriorityPopulated)
             {
-                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority) &&
+                    priority != 0)
                 {
                     Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
                 }
@@ -1731,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _packedFlags.SetIsOverloadResolutionPriorityPopulated();
             }
 
-            return _uncommonFields?._lazyOverloadResolutionPriority;
+            return _uncommonFields?._lazyOverloadResolutionPriority ?? 0;
         }
     }
 }

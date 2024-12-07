@@ -48,7 +48,7 @@ internal sealed class CopilotTaggerProvider(TaggerHost taggerHost)
             TaggerEventSources.OnTextChanged(subjectBuffer));
     }
 
-    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+    protected override bool TryAddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(textView);
@@ -56,6 +56,10 @@ internal sealed class CopilotTaggerProvider(TaggerHost taggerHost)
         // We only care about the cases where we have caret.
         if (textView.GetCaretPoint(subjectBuffer) is { } caret)
             result.Add(new SnapshotSpan(caret, 0));
+
+        // Note: we report 'true' unconditionally here.  This is because we want to ensure that we still compute 'no tags'
+        // in the case that we don't have a caret point, as opposed to bailing out and keeping the current set of tags.
+        return true;
     }
 
     protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)

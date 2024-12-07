@@ -276,7 +276,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ModifyMethod_ParameterModifiers_RefOut()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -1353,7 +1353,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
+        <ConditionalFact(GetType(NotOnMonoCore)), WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
         Public Sub EventFields()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -1418,7 +1418,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
         Public Sub Event_Delete()
             Using New EditAndContinueTest().
@@ -1570,7 +1570,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Event_TypeChange()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -2248,7 +2248,7 @@ End Module</file>
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
         Public Sub Property_TypeChange()
             Using New EditAndContinueTest().
@@ -2465,7 +2465,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Property_Delete()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -2591,7 +2591,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Property_DeleteGetter()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -4635,7 +4635,7 @@ End Class
         ''' <summary>
         ''' Local slots must be preserved based on signature.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub PreserveLocalSlotsImplicitNamedArgXml()
             Dim source = "
 Option Explicit Off
@@ -5912,7 +5912,7 @@ End Module
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Lambda_Delete()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -6030,7 +6030,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Method_Delete_WithLambda()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -6255,7 +6255,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Method_Delete_WithLambda_AddedMethod()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -6369,7 +6369,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Method_Delete_WithLambda_MultipleGenerations()
             Dim common = "
 Imports System
@@ -7434,7 +7434,7 @@ End Class",
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
         Public Sub PrivateImplDetails_DataFields_Arrays()
             Using New EditAndContinueTest().
@@ -7534,7 +7534,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
         Public Sub PrivateImplDetails_ComputeStringHash()
             Using New EditAndContinueTest().

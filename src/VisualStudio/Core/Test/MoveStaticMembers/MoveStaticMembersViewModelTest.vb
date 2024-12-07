@@ -15,6 +15,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
     <UseExportProvider>
@@ -425,6 +426,95 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.NotNull(options.Destination)
             Assert.Equal("TestNs.ConflictingClassName", options.Destination.ToDisplayString())
             Assert.Equal("TestFile.cs", options.FileName)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70896")>
+        Public Async Function CSTestTypeSelection2() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+        <Document>
+            namespace TestNs
+            {
+                public class FromClass
+                {
+                    public static int Bar$$bar()
+                    {
+                        return 12345;
+                    }
+                }
+
+                public struct TestStruct
+                {
+                }
+
+                public interface ITestInterface
+                {
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp)
+
+            ' Should Not have the interface in the list as we started from a class.  Should still have the struct through.
+            Assert.Equal(1, viewModel.AvailableTypes.Length)
+            Assert.Equal(1, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
+
+            viewModel.SearchText = viewModel.AvailableTypes.ElementAt(0).TypeName
+            Assert.Equal("TestNs.TestStruct", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70896")>
+        Public Async Function CSTestTypeSelection3() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+        <Document>
+            namespace TestNs
+            {
+                public interface FromInterface
+                {
+                    public static int Bar$$bar()
+                    {
+                        return 12345;
+                    }
+                }
+
+                public struct TestStruct
+                {
+                }
+
+                public interface ITestInterface
+                {
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp)
+
+            Assert.Equal(2, viewModel.AvailableTypes.Length)
+            Assert.Equal(1, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
+
+            ' Should have the interface and the struct in the list as we started from an interface.
+            viewModel.SearchText = "TestNs.TestStruct"
+            Assert.Equal("TestNs.TestStruct", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
+
+            viewModel.SearchText = "TestNs.ITestInterface"
+            Assert.Equal("TestNs.ITestInterface", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
         End Function
 #End Region
 

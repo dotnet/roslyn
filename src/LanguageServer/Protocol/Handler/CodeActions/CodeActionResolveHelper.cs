@@ -20,11 +20,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
     internal class CodeActionResolveHelper
     {
-        public static async Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(RequestContext context, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
+        public static Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(RequestContext context, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
             var solution = context.Solution;
             Contract.ThrowIfNull(solution);
 
+            return GetCodeActionResolveEditsAsync(
+                solution,
+                data,
+                operations,
+                context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.ResourceOperations ?? [],
+                context.TraceInformation,
+                cancellationToken);
+        }
+
+        public static async Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(Solution solution, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, ResourceOperationKind[] resourceOperations, Action<string> logFunction, CancellationToken cancellationToken)
+        {
             // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
             // to execute on the client.
@@ -45,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 // only apply the portions of their work that updates documents, and nothing else.
                 if (option is not ApplyChangesOperation applyChangesOperation)
                 {
-                    context.TraceInformation($"Skipping code action operation for '{data.UniqueIdentifier}'.  It was a '{option.GetType().FullName}'");
+                    logFunction($"Skipping code action operation for '{data.UniqueIdentifier}'.  It was a '{option.GetType().FullName}'");
                     continue;
                 }
 
@@ -79,8 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         || projectChange.GetRemovedAdditionalDocuments().Any()
                         || projectChange.GetRemovedAnalyzerConfigDocuments().Any())
                     {
-                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
-                            || !resourceOperations.Contains(ResourceOperationKind.Delete))
+                        if (!resourceOperations.Contains(ResourceOperationKind.Delete))
                         {
                             // Removing documents is not supported by this workspace
                             return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
@@ -91,8 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         || projectChange.GetAddedAdditionalDocuments().Any()
                         || projectChange.GetAddedAnalyzerConfigDocuments().Any())
                     {
-                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
-                            || !resourceOperations.Contains(ResourceOperationKind.Create))
+                        if (!resourceOperations.Contains(ResourceOperationKind.Create))
                         {
                             // Adding documents is not supported by this workspace
                             return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
@@ -103,8 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         || projectChange.GetChangedAdditionalDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution)
                         || projectChange.GetChangedAnalyzerConfigDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))))
                     {
-                        if (context.GetRequiredClientCapabilities() is not { Workspace.WorkspaceEdit.ResourceOperations: { } resourceOperations }
-                            || !resourceOperations.Contains(ResourceOperationKind.Rename))
+                        if (!resourceOperations.Contains(ResourceOperationKind.Rename))
                         {
                             // Rename documents is not supported by this workspace
                             return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };

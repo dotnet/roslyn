@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -66,7 +67,13 @@ internal sealed class DiagnosticArguments
     /// Array of analyzer IDs for analyzers that need to be executed for computing diagnostics.
     /// </summary>
     [DataMember(Order = 7)]
-    public string[] AnalyzerIds;
+    public ImmutableArray<string> ProjectAnalyzerIds;
+
+    /// <summary>
+    /// Array of analyzer IDs for analyzers that need to be executed for computing diagnostics.
+    /// </summary>
+    [DataMember(Order = 8)]
+    public ImmutableArray<string> HostAnalyzerIds;
 
     /// <summary>
     /// Indicates diagnostic computation for an explicit user-invoked request,
@@ -83,14 +90,15 @@ internal sealed class DiagnosticArguments
         TextSpan? documentSpan,
         AnalysisKind? documentAnalysisKind,
         ProjectId projectId,
-        string[] analyzerIds,
+        ImmutableArray<string> projectAnalyzerIds,
+        ImmutableArray<string> hostAnalyzerIds,
         bool isExplicit)
     {
         Debug.Assert(documentId != null || documentSpan == null);
         Debug.Assert(documentId != null || documentAnalysisKind == null);
         Debug.Assert(documentAnalysisKind is null or
             (AnalysisKind?)AnalysisKind.Syntax or (AnalysisKind?)AnalysisKind.Semantic);
-        Debug.Assert(analyzerIds.Length > 0);
+        Debug.Assert(projectAnalyzerIds.Length > 0 || hostAnalyzerIds.Length > 0);
 
         ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
         LogPerformanceInfo = logPerformanceInfo;
@@ -99,7 +107,8 @@ internal sealed class DiagnosticArguments
         DocumentSpan = documentSpan;
         DocumentAnalysisKind = documentAnalysisKind;
         ProjectId = projectId;
-        AnalyzerIds = analyzerIds;
+        ProjectAnalyzerIds = projectAnalyzerIds;
+        HostAnalyzerIds = hostAnalyzerIds;
         IsExplicit = isExplicit;
     }
 }

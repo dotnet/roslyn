@@ -3546,7 +3546,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Error opening response file '{0}'</value>
   </data>
   <data name="ERR_CantOpenFileWrite" xml:space="preserve">
-    <value>Cannot open '{0}' for writing -- '{1}'</value>
+    <value>Cannot open '{0}' for writing -- {1}</value>
   </data>
   <data name="ERR_BadBaseNumber" xml:space="preserve">
     <value>Invalid image base number '{0}'</value>
@@ -4932,6 +4932,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>
+  <data name="IDS_FeatureUnboundGenericTypesInNameof" xml:space="preserve">
+    <value>unbound generic types in nameof operator</value>
+  </data>
   <data name="IDS_FeatureDictionaryInitializer" xml:space="preserve">
     <value>dictionary initializer</value>
   </data>
@@ -5533,6 +5536,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
   </data>
+  <data name="WRN_ExperimentalWithMessage" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</value>
+  </data>
+  <data name="WRN_ExperimentalWithMessage_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
+  </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
   </data>
@@ -5975,10 +5984,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This ref-assigns a value that has a narrower escape scope than the target.</value>
   </data>
   <data name="ERR_RefAssignValEscapeWider" xml:space="preserve">
-    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</value>
   </data>
   <data name="WRN_RefAssignValEscapeWider" xml:space="preserve">
-    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</value>
   </data>
   <data name="WRN_RefAssignValEscapeWider_Title" xml:space="preserve">
     <value>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</value>
@@ -8007,5 +8016,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureFirstClassSpan" xml:space="preserve">
     <value>first-class Span types</value>
+  </data>
+  <data name="WRN_AccessorDoesNotUseBackingField" xml:space="preserve">
+    <value>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</value>
+  </data>
+  <data name="WRN_AccessorDoesNotUseBackingField_Title" xml:space="preserve">
+    <value>Property accessor should use 'field' because the other accessor is using it.</value>
+  </data>
+  <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
+    <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
   </data>
 </root>

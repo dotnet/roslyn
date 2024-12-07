@@ -13,7 +13,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed class RemoteMissingImportDiscoveryService : BrokeredServiceBase, IRemoteMissingImportDiscoveryService
+internal sealed class RemoteMissingImportDiscoveryService(
+    in BrokeredServiceBase.ServiceConstructionArguments arguments,
+    RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback)
+    : BrokeredServiceBase(arguments), IRemoteMissingImportDiscoveryService
 {
     internal sealed class Factory : FactoryBase<IRemoteMissingImportDiscoveryService, IRemoteMissingImportDiscoveryService.ICallback>
     {
@@ -21,13 +24,7 @@ internal sealed class RemoteMissingImportDiscoveryService : BrokeredServiceBase,
             => new RemoteMissingImportDiscoveryService(arguments, callback);
     }
 
-    private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback;
-
-    public RemoteMissingImportDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback)
-        : base(arguments)
-    {
-        _callback = callback;
-    }
+    private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback = callback;
 
     public ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
         Checksum solutionChecksum,
@@ -42,7 +39,9 @@ internal sealed class RemoteMissingImportDiscoveryService : BrokeredServiceBase,
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var document = solution.GetRequiredDocument(documentId);
+            var document = solution.GetDocument(documentId);
+            if (document is null)
+                return [];
 
             var service = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
@@ -69,7 +68,9 @@ internal sealed class RemoteMissingImportDiscoveryService : BrokeredServiceBase,
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var document = solution.GetRequiredDocument(documentId);
+            var document = solution.GetDocument(documentId);
+            if (document is null)
+                return [];
 
             var service = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
@@ -94,16 +95,13 @@ internal sealed class RemoteMissingImportDiscoveryService : BrokeredServiceBase,
     /// 
     /// Ideally we would not need to bounce back to the host for this.
     /// </summary>
-    private sealed class SymbolSearchService : ISymbolSearchService
+    private sealed class SymbolSearchService(
+        RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback,
+        RemoteServiceCallbackId callbackId)
+        : ISymbolSearchService
     {
-        private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback;
-        private readonly RemoteServiceCallbackId _callbackId;
-
-        public SymbolSearchService(RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
-        {
-            _callback = callback;
-            _callbackId = callbackId;
-        }
+        private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback = callback;
+        private readonly RemoteServiceCallbackId _callbackId = callbackId;
 
         public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesWithTypeAsync(_callbackId, source, name, arity, cancellationToken), cancellationToken);
