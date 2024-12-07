@@ -20,7 +20,7 @@ internal sealed class ExportProviderBuilder
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader,
         string? devKitDependencyPath,
-        string? cacheDirectory,
+        string cacheDirectory,
         ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
