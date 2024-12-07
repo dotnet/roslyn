@@ -21,53 +21,6 @@ internal class CSharpAddAccessibilityModifiers : AbstractAddAccessibilityModifie
     {
     }
 
-    ///// <summary>
-    ///// Returns if this is a classic bodyless interface member, that would be considered public by default if it had no
-    ///// accessibility modifiers on it.
-    ///// </summary>
-    //private bool IsClassicPublicInterfaceMethod(MemberDeclarationSyntax member)
-    //{
-    //    // Type are newly allowed in interfaces and are not public by default.
-    //    if (member is BaseTypeDeclarationSyntax)
-    //        return false;
-
-    //    // Member has to actually be in an interface.
-    //    if (member.Parent is not InterfaceDeclarationSyntax)
-    //        return false;
-
-    //    // Static members are new and are are not public by default.
-    //    if (member.Modifiers.Any(SyntaxKind.StaticKeyword))
-    //        return false;
-
-    //    // If it's explicitly marked as something other than public (or no accessibility) it's not a classic method.
-    //    if (member.Modifiers.Any(SyntaxKind.InternalKeyword) ||
-    //        member.Modifiers.Any(SyntaxKind.PrivateKeyword) ||
-    //        member.Modifiers.Any(SyntaxKind.ProtectedKeyword))
-    //    {
-    //        return false;
-    //    }
-
-    //    if (member.Modifiers.Any(SyntaxKind.PartialKeyword))
-    //        return false;
-
-    //    // void M();   is a classic public interface method.
-    //    if (member is MethodDeclarationSyntax { SemicolonToken.IsMissing: false })
-    //        return true;
-
-    //    // int P { get; }   is a classic public interface property.
-    //    if (member is PropertyDeclarationSyntax { AccessorList: not null } property &&
-    //        property.AccessorList.Accessors.All(a => !a.SemicolonToken.IsMissing))
-    //    {
-    //        return true;
-    //    }
-
-    //    // event E E;   is a classic public interface event.
-    //    if (member is EventFieldDeclarationSyntax)
-    //        return true;
-
-    //    return false;
-    //}
-
     public override bool ShouldUpdateAccessibilityModifier(
         IAccessibilityFacts accessibilityFacts,
         MemberDeclarationSyntax member,
