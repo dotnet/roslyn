@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Organizing)]
-public class OrganizeUsingsTests
+public sealed class OrganizeUsingsTests
 {
     protected static async Task CheckAsync(
         string initial, string final,
@@ -74,6 +74,32 @@ public class OrganizeUsingsTests
             """;
 
         await CheckAsync(initial, final);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44136")]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task PreserveExistingEndOfLine(string fallbackEndOfLine)
+    {
+        var initial = "using A = B;\nusing C;\nusing D = E;\nusing F;\n";
+
+        var final = "using C;\nusing F;\nusing A = B;\nusing D = E;\n";
+
+        using var workspace = new AdhocWorkspace();
+        var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+        var document = project.AddDocument("Document", initial);
+
+        var options = new OrganizeImportsOptions()
+        {
+            PlaceSystemNamespaceFirst = false,
+            SeparateImportDirectiveGroups = false,
+            NewLine = fallbackEndOfLine,
+        };
+
+        var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+        var newDocument = await organizeImportsService.OrganizeImportsAsync(document, options, CancellationToken.None);
+        var newRoot = await newDocument.GetRequiredSyntaxRootAsync(default);
+        Assert.Equal(final, newRoot.ToFullString());
     }
 
     [Fact]
