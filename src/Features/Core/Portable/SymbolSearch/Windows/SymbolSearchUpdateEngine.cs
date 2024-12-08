@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -71,7 +72,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     }
 
     public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
-        string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+        string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
     {
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
         {
@@ -80,36 +81,35 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
 
         var database = databaseWrapper.Database;
-        if (name == "var")
+        var searchName = namespaceNames.Length > 0 ? namespaceNames.Last() : typeName;
+        if (searchName == "var")
         {
             // never find anything named 'var'.
             return ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
         }
 
-        var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
+        var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
         var symbols = new PartialArray<Symbol>(100);
 
-        using var _1 = ArrayBuilder<PackageResult>.GetInstance(out var result);
+        using var _ = ArrayBuilder<PackageResult>.GetInstance(out var result);
         if (query.TryFindMembers(database, ref symbols))
         {
-            foreach (var symbol in FilterToViableSymbols(symbols, isNamespace))
+            foreach (var symbol in FilterToViableSymbols(symbols, namespaceNames))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Ignore any reference assembly results.
                 if (symbol.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                 {
-                    using var _2 = ArrayBuilder<string>.GetInstance(out var nameParts);
-                    GetFullName(nameParts, isNamespace ? symbol.FullName : symbol.FullName.Parent);
-
                     var version = database.GetPackageVersion(symbol.Index).ToString();
 
                     result.Add(new PackageResult(
                         packageName: symbol.PackageName.ToString(),
                         rank: GetRank(symbol),
-                        typeName: isNamespace ? "" : symbol.Name.ToString(),
+                        typeName: namespaceNames.Length > 0 ? "" : symbol.Name.ToString(),
                         version: string.IsNullOrWhiteSpace(version) ? null : version,
-                        containingNamespaceNames: nameParts.ToImmutableAndClear()));
+                        containingNamespaceNames: GetFullName(
+                            namespaceNames.Length > 0 ? symbol.FullName : symbol.FullName.Parent)));
                 }
             }
         }
@@ -159,7 +159,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     }
 
     public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+        string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
     {
         // Our reference assembly data is stored in the nuget.org DB.
         if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))
@@ -169,31 +169,31 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
 
         var database = databaseWrapper.Database;
-        if (name == "var")
+        var searchName = namespaceNames.Length > 0 ? namespaceNames.Last() : typeName;
+        if (searchName == "var")
         {
             // never find anything named 'var'.
             return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
         }
 
-        var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
+        var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
         var symbols = new PartialArray<Symbol>(100);
 
         var results = ArrayBuilder<ReferenceAssemblyResult>.GetInstance();
         if (query.TryFindMembers(database, ref symbols))
         {
-            foreach (var symbol in FilterToViableSymbols(symbols, isNamespace))
+            foreach (var symbol in FilterToViableSymbols(symbols, namespaceNames))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Only look at reference assembly results.
                 if (symbol.PackageName.ToString() == MicrosoftAssemblyReferencesName)
                 {
-                    using var _ = ArrayBuilder<string>.GetInstance(out var nameParts);
-                    GetFullName(nameParts, isNamespace ? symbol.FullName : symbol.FullName.Parent);
                     results.Add(new ReferenceAssemblyResult(
                         symbol.AssemblyName.ToString(),
-                        typeName: isNamespace ? "" : symbol.Name.ToString(),
-                        containingNamespaceNames: nameParts.ToImmutableAndClear()));
+                        typeName: namespaceNames.Length > 0 ? "" : symbol.Name.ToString(),
+                        containingNamespaceNames: GetFullName(
+                            namespaceNames.Length > 0 ? symbol.FullName : symbol.FullName.Parent)));
                 }
             }
         }
@@ -202,14 +202,18 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     }
 
     private static IEnumerable<Symbol> FilterToViableSymbols(
-        PartialArray<Symbol> symbols, bool isNamespace)
+        PartialArray<Symbol> symbols, ImmutableArray<string> namespaceNames)
     {
         foreach (var symbol in symbols)
         {
-            if (isNamespace)
+            if (namespaceNames.Length > 0)
             {
-                if (symbol.Type == SymbolType.Namespace)
+                // Searching for a namespace.  Only return a result if the full namespace name matches.
+                if (symbol.Type == SymbolType.Namespace &&
+                    GetFullName(symbol.FullName).SequenceEqual(namespaceNames))
+                {
                     yield return symbol;
+                }
             }
             else
             {
@@ -219,6 +223,11 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
                     yield return symbol;
             }
         }
+    }
+
+    private static bool NameMatches(Path8 fullName, ImmutableArray<string> namespaceNames)
+    {
+        throw new NotImplementedException();
     }
 
     private static int GetRank(Symbol symbol)
@@ -264,12 +273,13 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     private static bool IsType(Symbol symbol)
         => symbol.Type.IsType();
 
-    private static void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
+    private static ImmutableArray<string> GetFullName(Path8 path)
     {
-        if (!path.IsEmpty)
-        {
-            GetFullName(nameParts, path.Parent);
-            nameParts.Add(path.Name.ToString());
-        }
+        using var result = TemporaryArray<string>.Empty;
+        for (var current = path; !current.IsEmpty; current = current.Parent)
+            result.Add(current.Name.ToString());
+
+        result.ReverseContents();
+        return result.ToImmutableAndClear();
     }
 }
