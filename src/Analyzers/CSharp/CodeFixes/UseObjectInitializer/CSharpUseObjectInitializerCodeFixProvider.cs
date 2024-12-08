@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
@@ -41,6 +42,11 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
 
     protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
 
+    protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+
+    protected override SyntaxTrivia Whitespace(string text)
+        => SyntaxFactory.Whitespace(text);
+
     protected override StatementSyntax GetNewStatement(
         StatementSyntax statement,
         BaseObjectCreationExpressionSyntax objectCreation,
@@ -52,7 +58,7 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
             GetNewObjectCreation(objectCreation, indentationOptions, matches));
     }
 
-    private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+    private BaseObjectCreationExpressionSyntax GetNewObjectCreation(
         BaseObjectCreationExpressionSyntax objectCreation,
         IndentationOptions indentationOptions,
         ImmutableArray<ObjectInitializerMatch> matches)
@@ -62,7 +68,7 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
             CreateExpressions(objectCreation, indentationOptions, matches));
     }
 
-    private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+    private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
         BaseObjectCreationExpressionSyntax objectCreation,
         IndentationOptions indentationOptions,
         ImmutableArray<ObjectInitializerMatch> matches)
@@ -99,29 +105,5 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
         }
 
         return SeparatedList<ExpressionSyntax>(nodesAndTokens);
-    }
-
-    private static ExpressionSyntax Indent(ExpressionSyntax expression, IndentationOptions indentationOptions)
-    {
-        var insertionText = indentationOptions.FormattingOptions.UseTabs
-            ? "\t"
-            : new string(' ', indentationOptions.FormattingOptions.TabSize);
-
-        return expression.ReplaceTokens(
-            expression.DescendantTokens(),
-            (currentToken, _) =>
-            {
-                if (currentToken.LeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace])
-                {
-                    // This is a token on its own line. (That's the only way whitespace can be in the leading trivia of a token).
-                    var leadingTrivia = currentToken.LeadingTrivia.Replace(
-                        whitespace,
-                        Whitespace(insertionText + whitespace.ToString()));
-
-                    return currentToken.WithLeadingTrivia(leadingTrivia);
-                }
-
-                return currentToken;
-            });
     }
 }

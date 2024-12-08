@@ -49,7 +49,11 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
 
     protected abstract TAnalyzer GetAnalyzer();
+
+    protected abstract ISyntaxKinds SyntaxKinds { get; }
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
+
+    protected abstract SyntaxTrivia Whitespace(string text);
 
     protected abstract TStatementSyntax GetNewStatement(
         TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, IndentationOptions indentationOptions,
@@ -83,15 +87,49 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
             this.SyntaxFormatting, cancellationToken).ConfigureAwait(false);
         var indentationOptions = new IndentationOptions(formattingOptions);
 
-        //var preferredIndentation = firstToken.GetPreferredIndentation(
-        //    await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false),
-        //    new IndentationOptions(formattingOptions),
-        //    cancellationToken);
-
         var newStatement = GetNewStatement(statement, objectCreation, indentationOptions, matches).WithAdditionalAnnotations(Formatter.Annotation);
 
         editor.ReplaceNode(statement, newStatement);
         foreach (var match in matches)
             editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+    }
+
+    protected TExpressionSyntax Indent(TExpressionSyntax expression, IndentationOptions indentationOptions)
+    {
+        var insertionText = indentationOptions.FormattingOptions.UseTabs
+            ? "\t"
+            : new string(' ', indentationOptions.FormattingOptions.TabSize);
+
+        var endOfLineKind = this.SyntaxKinds.EndOfLineTrivia;
+        var whitespaceTriviaKind = this.SyntaxKinds.WhitespaceTrivia;
+        return expression.ReplaceTokens(
+            expression.DescendantTokens(),
+            (currentToken, _) =>
+            {
+                if (currentToken.LeadingTrivia is [.., var whitespace1] &&
+                    whitespace1.RawKind == whitespaceTriviaKind)
+                {
+                    // This is a token on its own line.  With whitespace at the start of the line.
+                    var leadingTrivia = currentToken.LeadingTrivia.Replace(
+                        whitespace1,
+                        Whitespace(insertionText + whitespace1.ToString()));
+
+                    currentToken = currentToken.WithLeadingTrivia(leadingTrivia);
+                }
+
+                if (currentToken.TrailingTrivia is [.., var endOfLine, var whitespace2] &&
+                    endOfLine.RawKind == endOfLineKind &&
+                    whitespace2.RawKind == whitespaceTriviaKind)
+                {
+                    // This is a VB line continuation case (`_`), with indentation before the next token
+                    var trailingTrivia = currentToken.TrailingTrivia.Replace(
+                        whitespace2,
+                        Whitespace(insertionText + whitespace2.ToString()));
+
+                    currentToken = currentToken.WithTrailingTrivia(trailingTrivia);
+                }
+
+                return currentToken;
+            });
     }
 }
