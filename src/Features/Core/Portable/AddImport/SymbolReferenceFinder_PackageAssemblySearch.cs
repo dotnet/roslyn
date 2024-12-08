@@ -49,38 +49,31 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 out _, out _);
 
             if (arity == 0 && inAttributeContext)
-            {
-                await FindNugetOrReferenceAssemblyReferencesWorkerAsync(
-                    allReferences, nameNode, name + AttributeSuffix, arity,
-                    isAttributeSearch: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+                await FindWorkerAsync(name + AttributeSuffix, arity, isAttributeSearch: true).ConfigureAwait(false);
 
-            await FindNugetOrReferenceAssemblyReferencesWorkerAsync(
-                allReferences, nameNode, name, arity,
-                isAttributeSearch: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
+            await FindWorkerAsync(name, arity, isAttributeSearch: false).ConfigureAwait(false);
 
-        private async Task FindNugetOrReferenceAssemblyReferencesWorkerAsync(
-            ConcurrentQueue<Reference> allReferences,
-            TSimpleNameSyntax nameNode,
-            string name,
-            int arity,
-            bool isAttributeSearch,
-            CancellationToken cancellationToken)
-        {
-            if (_options.SearchOptions.SearchReferenceAssemblies)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await FindReferenceAssemblyReferencesAsync(
-                    allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
-            }
+            return;
 
-            var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
-            foreach (var (sourceName, sourceUrl) in packageSources)
+            async Task FindWorkerAsync(
+                string name,
+                int arity,
+                bool isAttributeSearch)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                await FindNugetReferencesAsync(
-                    sourceName, sourceUrl, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                if (_options.SearchOptions.SearchReferenceAssemblies)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await FindReferenceAssemblyReferencesAsync(
+                        allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                }
+
+                var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
+                foreach (var (sourceName, sourceUrl) in packageSources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await FindNugetReferencesAsync(
+                        sourceName, sourceUrl, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
