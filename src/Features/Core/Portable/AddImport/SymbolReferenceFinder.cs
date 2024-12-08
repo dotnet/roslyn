@@ -41,6 +41,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private readonly AddImportOptions _options;
         private readonly ImmutableArray<PackageSource> _packageSources;
 
+        /// <summary>
+        /// If the search is being conducted inside of a `using/import` directive.
+        /// </summary>
         private readonly bool _isWithinImport;
 
         public SymbolReferenceFinder(
