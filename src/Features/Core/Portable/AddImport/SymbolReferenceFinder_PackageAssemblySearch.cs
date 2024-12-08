@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Utilities;
@@ -40,6 +41,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (nameNode is null)
                 return;
 
+            var namespaceNames = GetNamespaceNames(nameNode);
+            if (_isWithinImport && namespaceNames.Length == 0)
+                return;
+
             if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
                 return;
 
@@ -64,7 +69,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyReferencesAsync(
-                        allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        allReferences, nameNode, namespaceNames, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
                 var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
@@ -72,45 +77,17 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindNugetReferencesAsync(
-                        sourceName, sourceUrl, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        sourceName, sourceUrl, allReferences, nameNode, namespaceNames, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        private async Task FindReferenceAssemblyReferencesAsync(
-            ConcurrentQueue<Reference> allReferences,
-            TSimpleNameSyntax nameNode,
-            string name,
-            int arity,
-            bool isAttributeSearch,
-            CancellationToken cancellationToken)
+        private ImmutableArray<string> GetNamespaceNames(TSimpleNameSyntax nameNode)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var results = await _symbolSearchService.FindReferenceAssembliesAsync(
-                name, arity, _isWithinImport, cancellationToken).ConfigureAwait(false);
-
-            var project = _document.Project;
-
-            foreach (var result in results)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!IncludeResult(nameNode, result.ContainingNamespaceNames))
-                    continue;
-
-                await HandleReferenceAssemblyReferenceAsync(
-                    allReferences, nameNode, project,
-                    isAttributeSearch, result, weight: allReferences.Count,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private bool IncludeResult(TSimpleNameSyntax nameNode, ImmutableArray<string> namespaceNames)
-        {
-            // Outside of a using/import we did a search based on a simple leftmost name.  The index only provides
-            // results for namespaces that contain that name.  So we don't need to do anything special here and we can
-            // include that result.
             if (!_isWithinImport)
-                return true;
+                return [];
+
+            using var _1 = ArrayBuilder<string>.GetInstance(out var result);
 
             // Inside of a using/import we do a search on the part of the using that doesn't bind (like 'Json' in `using
             // Newtonsoft.Json;`).  But this may find results in other potential namespaces (like `Goobar.Json`).  So we
@@ -120,18 +97,18 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 ? nameNode.GetRequiredParent()
                 : nameNode;
 
-            return NamespaceMatches(rootNode, namespaceNames.AsSpan());
+            if (!TryAddNames(rootNode))
+                return [];
 
-            bool NamespaceMatches(SyntaxNode rootNode, ReadOnlySpan<string> namespaceNames)
+            return result.ToImmutableAndClear();
+
+            bool TryAddNames(SyntaxNode rootNode)
             {
-                // We have a part of the name tree, but no more namespace names to match.  This is definitely not a match.
-                if (namespaceNames.Length == 0)
-                    return false;
-
                 if (syntaxFacts.IsIdentifierName(rootNode))
                 {
                     // If we're on a single identifier, then we have to have a single namespace name that matches it.
-                    return namespaceNames is [var name] && name == syntaxFacts.GetIdentifierOfIdentifierName(rootNode).ValueText;
+                    result.Add(syntaxFacts.GetIdentifierOfIdentifierName(rootNode).ValueText);
+                    return true;
                 }
                 else if (syntaxFacts.IsQualifiedName(rootNode))
                 {
@@ -139,8 +116,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     // passing in the corresponding parts of the namespace-name to match against.
 
                     syntaxFacts.GetPartsOfQualifiedName(rootNode, out var left, out _, out var right);
-                    return NamespaceMatches(left, namespaceNames[0..^1]) &&
-                           NamespaceMatches(right, namespaceNames[^1..]);
+                    return TryAddNames(left) && TryAddNames(right);
                 }
                 else
                 {
@@ -150,11 +126,37 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
+        private async Task FindReferenceAssemblyReferencesAsync(
+            ConcurrentQueue<Reference> allReferences,
+            TSimpleNameSyntax nameNode,
+            ImmutableArray<string> namespaceNames,
+            string name,
+            int arity,
+            bool isAttributeSearch,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var results = await _symbolSearchService.FindReferenceAssembliesAsync(
+                name, arity, namespaceNames, cancellationToken).ConfigureAwait(false);
+
+            var project = _document.Project;
+
+            foreach (var result in results)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await HandleReferenceAssemblyReferenceAsync(
+                    allReferences, nameNode, project,
+                    isAttributeSearch, result, weight: allReferences.Count,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         private async Task FindNugetReferencesAsync(
             string sourceName,
             string sourceUrl,
             ConcurrentQueue<Reference> allReferences,
             TSimpleNameSyntax nameNode,
+            ImmutableArray<string> namespaceNames,
             string name,
             int arity,
             bool isAttributeSearch,
@@ -162,14 +164,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         {
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindPackagesAsync(
-                sourceName, name, arity, _isWithinImport, cancellationToken).ConfigureAwait(false);
+                sourceName, name, arity, namespaceNames, cancellationToken).ConfigureAwait(false);
 
             foreach (var result in results)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!IncludeResult(nameNode, result.ContainingNamespaceNames))
-                    continue;
-
                 allReferences.Enqueue(new PackageReference(
                     _owner,
                     new SearchResult(

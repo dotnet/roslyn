@@ -24,7 +24,7 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// Implementations should return results in order from best to worst (from their perspective).
     /// </summary>
     ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
-        string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken);
+        string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken);
 
     /// <summary>
     /// Searches for packages that contain an assembly with the provided name. Note: Implementations are free to return
@@ -45,7 +45,7 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// perspective).
     /// </summary>
     ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        string name, int arity, bool isNamespace, CancellationToken cancellationToken);
+        string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken);
 }
 
 [DataContract]
@@ -127,12 +127,12 @@ internal sealed class ReferenceAssemblyResult(
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultSymbolSearchService() : ISymbolSearchService
 {
-    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
 }
