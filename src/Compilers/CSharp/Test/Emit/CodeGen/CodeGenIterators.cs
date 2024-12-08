@@ -4297,6 +4297,91 @@ class C
   IL_0008:  ret
 }
 """);
+
+            // Verify GetEnumerator
+            var src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+System.Console.Write(object.ReferenceEquals(enumerable, enumerator));
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+enumerator.Dispose();
+System.Console.Write("disposed ");
+
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<string> Produce()
+    {
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "TrueTrue one disposed -2 False").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_DisposeBeforeIteration()
+        {
+            // TODO2 add this test to VB
+            string src = """
+var enumerator = C.GetEnumerator();
+
+enumerator.Dispose();
+System.Console.Write("disposed ");
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator()
+    {
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "disposed FalseTrue").VerifyDiagnostics();
+
+            // Verify GetEnumerator
+            var src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+System.Console.Write(((int)enumerable.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerable)));
+System.Console.Write(" ");
+
+var enumerator = enumerable.GetEnumerator();
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+
+enumerator.Dispose();
+System.Console.Write(" disposed ");
+
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<string> Produce()
+    {
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "-2 0 disposed -2 False").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4327,8 +4412,11 @@ class C
 """;
             CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
 
+            // TODO2 is this duplicate?
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4340,12 +4428,18 @@ System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerato
 
 enumerator.Dispose();
 
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 enumerator.Dispose();
 enumerator.Dispose();
 
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -4356,7 +4450,8 @@ class C
     }
 }
 """;
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrueTrueTrue").VerifyDiagnostics();
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrue -2 False -2 False").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4403,6 +4498,39 @@ class C
   IL_000f:  ret
 }
 """);
+
+            // Verify GetEnumerator
+            var src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetEnumerator();
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+enumerator.Dispose();
+System.Console.Write("disposed ");
+
+enumerator.Dispose();
+System.Console.Write("disposed2 ");
+
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<string> Produce()
+    {
+        string local = "";
+        yield return " one ";
+        local.ToString();
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True one disposed disposed2 -2 False").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4435,6 +4563,8 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce(true);
 var enumerator = enumerable.GetEnumerator();
 
@@ -4442,7 +4572,10 @@ System.Console.Write(enumerator.MoveNext());
 System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 System.Console.Write(!enumerator.MoveNext());
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -4456,7 +4589,7 @@ class C
 """;
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrue -1 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4488,14 +4621,22 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce(true);
 var enumerator = enumerable.GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
 System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 System.Console.Write(!enumerator.MoveNext());
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -4507,7 +4648,7 @@ class C
 """;
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True 1 TrueTrue -1 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4547,6 +4688,8 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4559,11 +4702,18 @@ try
 }
 catch (System.Exception)
 {
-    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 }
 
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+
 enumerator.Dispose();
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write("disposed ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -4574,9 +4724,10 @@ class C
     }
 }
 """;
+            // TODO2 bug
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueFalseTrue").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrue -1 disposed -2 False").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4671,6 +4822,8 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4683,7 +4836,10 @@ try
 }
 catch (System.Exception)
 {
-    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+    System.Console.Write(" ");
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 }
 
 class C
@@ -4703,7 +4859,7 @@ class C
 """;
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrue -1 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4745,14 +4901,22 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce(true);
 var enumerator = enumerable.GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
 System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 System.Console.Write(!enumerator.MoveNext());
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -4773,7 +4937,7 @@ class C
 """;
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrue finally TrueFalse").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True 1 True finally True -1 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4825,6 +4989,8 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4836,11 +5002,16 @@ try
 }
 catch (System.Exception)
 {
-    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 }
 
 enumerator.Dispose();
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -4858,9 +5029,10 @@ class C
     }
 }
 """;
+            // TODO2 bug
             // We're not setting the state to "after"/"finished"
             // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "True finally FalseTrue").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True finally -1 True -2 False").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4999,6 +5171,8 @@ class C
 
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -5010,7 +5184,9 @@ try
 }
 catch (System.Exception)
 {
-    System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 }
 
 class C
@@ -5029,7 +5205,8 @@ class C
     }
 }
 """;
-            CompileAndVerify(src2, expectedOutput: "True finally True").VerifyDiagnostics();
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True finally -2 False").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -5069,16 +5246,25 @@ class C
 """;
             CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
 
+            // TODO2 resume here
             // Verify GetEnumerator
             string src2 = """
+using System.Reflection;
+
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
 System.Console.Write(enumerator.MoveNext());
 
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+
 enumerator.Dispose();
-System.Console.Write(object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
+System.Console.Write(" disposed ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetEnumerator()));
 
 class C
 {
@@ -5098,7 +5284,8 @@ class C
     }
 }
 """;
-            CompileAndVerify(src2, expectedOutput: "True finally TrueTrue").VerifyDiagnostics();
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True finally True 2 disposed -2 False").VerifyDiagnostics();
         }
     }
 }

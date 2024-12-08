@@ -10556,6 +10556,872 @@ class C
 }
 """;
             CompileAndVerify(src, expectedOutput: ExpectedOutput("True one False null"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            var src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+System.Console.Write(((int)enumerable.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerable)));
+System.Console.Write(" ");
+var enumerator = enumerable.GetAsyncEnumerator();
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(object.ReferenceEquals(enumerable, enumerator));
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+await enumerator.DisposeAsync();
+System.Console.Write(" disposed ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<string> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "-2 -3 TrueTrue -4 True disposed -2 FalseTrue -4 True", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_DisposeBeforeIteration()
+        {
+            string src = """
+var enumerator = C.Produce();
+
+await enumerator.DisposeAsync();
+System.Console.Write(" disposed ");
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "disposed FalseTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            var src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+await enumerator.DisposeAsync();
+System.Console.Write(" disposed ");
+
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<string> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "disposed -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        // TODO2 test with state machine stopped on an await
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn_IEnumerable()
+        {
+            string src = """
+var enumerator = C.Produce().GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<string> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one disposed TrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator // TODO2 rename all
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_DisposeTwice()
+        {
+            string src = """
+var enumerator = C.GetEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed2 ");
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        string local = "";
+        yield return " one ";
+        local.ToString();
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one disposed disposed2 TrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            var src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed2 ");
+
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<string> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        string local = "";
+        yield return " one ";
+        local.ToString();
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True one disposed disposed2 -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldBreak()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        if (b) yield break;
+        yield return " two ";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one TrueTrueTrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce(true);
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+        if (b) yield break;
+        yield return 43;
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrue -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_EndOfBody()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        System.Console.Write("done ");
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one done TrueTrueTrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce(true);
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True -4 TrueTrue -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_ThrowException()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+try
+{
+    _ = await enumerator.MoveNextAsync();
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(enumerator.Current is null);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        throw new System.Exception("exception");
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one exceptionTrueTrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+try
+{
+    _ = await enumerator.MoveNextAsync();
+}
+catch (System.Exception)
+{
+    System.Console.Write(" ");
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+}
+
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+
+await enumerator.DisposeAsync();
+System.Console.Write("disposed ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+        throw new System.Exception("exception");
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "TrueTrue -2 False -3 disposed -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn_InTryFinally()
+        {
+            string src = """
+var enumerator = C.GetEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write("disposing ");
+try
+{
+    await enumerator.DisposeAsync();
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+System.Console.Write(" disposed ");
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator()
+    {
+        try
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return " one ";
+        }
+        finally
+        {
+            throw new System.Exception("exception");
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one disposing exception disposed TrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            // TODO2 ILVerify
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+try
+{
+    await enumerator.DisposeAsync();
+}
+catch (System.Exception)
+{
+    System.Console.Write(" ");
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
+    {
+        try
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 42;
+        }
+        finally
+        {
+            throw new System.Exception("exception");
+        }
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "TrueTrue -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldBreak_InTryFinally()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(enumerator.MoveNext());
+System.Console.Write(enumerator.Current);
+
+class C
+{
+    public static System.Collections.Generic.IEnumerator<string> GetEnumerator(bool b)
+    {
+        yield return " one ";
+        try
+        {
+            if (b) yield break;
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+        yield return " two ";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one finally False one False one", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce(true);
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+        try
+        {
+            if (b) yield break;
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+        yield return 43;
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True -4 True finally True -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_ThrowException_InTryFinally()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+try
+{
+    _ = await enumerator.MoveNextAsync();
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(enumerator.Current is null);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+await enumerator.DisposeAsync();
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(bool b)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        try
+        {
+            throw new System.Exception("exception ");
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one finally exception TrueTrueTrueTrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+
+try
+{
+    _ = await enumerator.MoveNextAsync();
+}
+catch (System.Exception)
+{
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+}
+
+await enumerator.DisposeAsync();
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+        try
+        {
+            throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True finally -2 False -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_ThrowException_InTryFinally_WithYieldInTry()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+try
+{
+    _ = await enumerator.MoveNextAsync();
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(enumerator.Current is null);
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(bool b)
+    {
+        try
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return " one ";
+            if (b) throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True one finally exceptionTrueTrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+
+try
+{
+    _ = await enumerator.MoveNextAsync();
+}
+catch (System.Exception)
+{
+    System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+    System.Console.Write(" ");
+    System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
+    {
+        try
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 42;
+            throw new System.Exception("exception");
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True finally -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn_AfterTryFinally()
+        {
+            string src = """
+var enumerator = C.GetEnumerator(true);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+await enumerator.DisposeAsync();
+
+System.Console.Write(!await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(bool b)
+    {
+        try
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return " one ";
+        }
+        finally
+        {
+            System.Console.Write("finally ");
+        }
+
+        yield return " two ";
+        System.Console.Write("not executed after disposal");
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: " True one finally True two TrueTrue", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+
+var enumerable = C.Produce();
+var enumerator = enumerable.GetAsyncEnumerator();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(await enumerator.MoveNextAsync());
+
+System.Console.Write(" ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+
+await enumerator.DisposeAsync();
+System.Console.Write(" disposed ");
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
+    {
+        try
+        {
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 42;
+        }
+        finally
+        {
+            System.Console.Write(" finally ");
+        }
+
+        yield return 43;
+        System.Console.Write("not executed after disposal");
+    }
+}
+""";
+            // TODO2 bug
+            CompileAndVerify(src2, expectedOutput: "True finally True -5 disposed -2 False", targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_Await()
+        {
+            string src = """
+using System.Threading.Tasks;
+
+var tcs = new TaskCompletionSource();
+var enumerator = C.GetEnumerator(tcs.Task);
+
+enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current is null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> GetEnumerator(Task task)
+    {
+        await task;
+        System.Console.Write("not executed");
+        yield return "";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "True", targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (6,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // enumerator.MoveNextAsync();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "enumerator.MoveNextAsync()").WithLocation(6, 1));
+
+            // Verify GetAsyncEnumerator
+            string src2 = """
+using System.Reflection;
+using System.Threading.Tasks;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.Produce(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+
+enumerator.MoveNextAsync();
+
+System.Console.Write(((int)enumerator.GetType().GetField("<>1__state", BindingFlags.Public | BindingFlags.Instance).GetValue(enumerator)));
+System.Console.Write(" ");
+System.Console.Write(!object.ReferenceEquals(enumerable, enumerable.GetAsyncEnumerator()));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<string> Produce(Task task)
+    {
+        await task;
+        System.Console.Write("not executed");
+        yield return "";
+    }
+
+}
+""";
+            CompileAndVerify(src2, expectedOutput: "0 True", targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (8,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                // enumerator.MoveNextAsync();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "enumerator.MoveNextAsync()").WithLocation(8, 1));
         }
 
         [Fact]

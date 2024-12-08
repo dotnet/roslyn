@@ -1880,6 +1880,112 @@ End Class
   IL_0008:  ret
 }
 ")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Reflection
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+        Console.Write(Object.ReferenceEquals(enumerable, enumerator))
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(enumerator.Current)
+
+        enumerator.Dispose()
+        Console.Write("disposed ")
+
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As System.Collections.Generic.IEnumerable(Of String)
+        Yield " one "
+        Yield " two "
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' TODO2 bug
+            CompileAndVerify(source2, expectedOutput:="TrueTrue one disposed -2 False")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
+        Public Sub StateAfterMoveNext_DisposeBeforeIteration()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim enumerator = C.GetEnumerator()
+
+        enumerator.Dispose()
+        Console.Write("disposed ")
+
+        Console.Write(enumerator.MoveNext())
+        Console.Write(enumerator.Current Is Nothing)
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function GetEnumerator() As IEnumerator(Of String)
+        Yield " one "
+        Yield " two "
+    End Function
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="disposed FalseTrue")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Reflection
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Console.Write(CType(enumerable.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerable), Integer))
+        Console.Write(" ")
+
+        Dim enumerator = enumerable.GetEnumerator()
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+
+        enumerator.Dispose()
+        Console.Write(" disposed ")
+
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As System.Collections.Generic.IEnumerable(Of String)
+        Yield " one "
+        Yield " two "
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' TODO2 bug
+            CompileAndVerify(source2, expectedOutput:="-2 0 disposed -2 False")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -1915,11 +2021,14 @@ End Class
 
             CompileAndVerify(source, expectedOutput:="True one disposed False one")
 
+            ' TODO2 Is this duplicate?
             ' Verify GetEnumerator
             Dim source2 =
 <compilation>
     <file name="a2.vb">
 Imports System
+Imports System.Reflection
+
 
 Module Program
     Sub Main()
@@ -1934,12 +2043,18 @@ Module Program
 
         enumerator.Dispose()
 
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
 
         enumerator.Dispose()
         enumerator.Dispose()
 
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
     End Sub
 End Module
 
@@ -1952,7 +2067,8 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueTrueTrueTrue")
+            ' TODO2 bug
+            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueTrue -2 False -2 False")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -1991,6 +2107,47 @@ End Class
 </compilation>
 
             CompileAndVerify(source, expectedOutput:="True one disposed disposed2 False one")
+
+            ' Verify GetEnumerator
+            Dim source2 =
+<compilation>
+    <file name="a2.vb">
+Imports System
+Imports System.Reflection
+
+Module Program
+    Sub Main()
+        Dim enumerable = C.Produce()
+        Dim enumerator = enumerable.GetEnumerator()
+
+        Console.Write(enumerator.MoveNext())
+
+        enumerator.Dispose()
+        Console.Write(" disposed ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+
+        enumerator.Dispose()
+        Console.Write(" disposed2 ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+    End Sub
+End Module
+
+Class C
+    Public Shared Iterator Function Produce() As System.Collections.Generic.IEnumerable(Of Integer)
+        Dim local As String = ""
+        Yield 1
+        local.ToString()
+    End Function
+End Class
+    </file>
+</compilation>
+
+            ' TODO2 bug
+            CompileAndVerify(source2, expectedOutput:="True disposed -2 False disposed2 -2 False")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2034,6 +2191,7 @@ End Class
 <compilation>
     <file name="a2.vb">
 Imports System
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2041,10 +2199,16 @@ Module Program
         Dim enumerator = enumerable.GetEnumerator()
 
         Console.Write(enumerator.MoveNext())
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
         Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
 
         Console.Write(Not enumerator.MoveNext())
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
     End Sub
 End Module
 
@@ -2062,7 +2226,7 @@ End Class
 
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueFalse")
+            CompileAndVerify(source2, expectedOutput:="True 1 TrueTrue -1 True")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2103,6 +2267,7 @@ End Class
 <compilation>
     <file name="a2.vb">
 Imports System
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2110,10 +2275,16 @@ Module Program
         Dim enumerator = enumerable.GetEnumerator()
 
         Console.Write(enumerator.MoveNext())
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
         Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
 
         Console.Write(Not enumerator.MoveNext())
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
     End Sub
 End Module
 
@@ -2127,7 +2298,7 @@ End Class
 
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="TrueTrueTrueFalse")
+            CompileAndVerify(source2, expectedOutput:="True 1 TrueTrue -1 True")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2173,6 +2344,7 @@ End Class
 <compilation>
     <file name="a2.vb">
 Imports System
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2185,7 +2357,10 @@ Module Program
         Try
             enumerator.MoveNext()
         Catch
-            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+            Console.Write(" ")
+            Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+            Console.Write(" ")
+            Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
         End Try
     End Sub
 End Module
@@ -2201,7 +2376,7 @@ End Class
 
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="TrueTrueFalse")
+            CompileAndVerify(source2, expectedOutput:="TrueTrue -1 True")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2277,6 +2452,7 @@ End Class
 <compilation>
     <file name="a2.vb">
 Imports System
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2289,7 +2465,10 @@ Module Program
         Try
             enumerator.Dispose()
         Catch
-            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+            Console.Write(" ")
+            Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+            Console.Write(" ")
+            Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
         End Try
     End Sub
 End Module
@@ -2308,7 +2487,7 @@ End Class
 
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="TrueTrueFalse")
+            CompileAndVerify(source2, expectedOutput:="TrueTrue -1 True")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2357,6 +2536,7 @@ End Class
     <file name="a2.vb">
 Imports System
 Imports System.Collections.Generic
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2367,7 +2547,10 @@ Module Program
         Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
 
         Console.Write(Not enumerator.MoveNext())
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
     End Sub
 End Module
 
@@ -2389,7 +2572,7 @@ End Class
 
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="TrueTrue finally TrueFalse")
+            CompileAndVerify(source2, expectedOutput:="TrueTrue finally True -1 True")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2445,6 +2628,7 @@ End Class
     <file name="a2.vb">
 Imports System
 Imports System.Collections.Generic
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2456,11 +2640,16 @@ Module Program
         Try
             enumerator.MoveNext()
         Catch ex As Exception
-            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+            Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+            Console.Write(" ")
+            Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
         End Try
 
         enumerator.Dispose()
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
     End Sub
 End Module
 
@@ -2477,9 +2666,10 @@ End Class
     </file>
 </compilation>
 
+            ' TODO2 bug
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="True finally FalseTrue")
+            CompileAndVerify(source2, expectedOutput:="True finally -1 True -2 False")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2559,6 +2749,7 @@ End Class
     <file name="a2.vb">
 Imports System
 Imports System.Collections.Generic
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2570,7 +2761,9 @@ Module Program
         Try
             enumerator.MoveNext()
         Catch ex As Exception
-            Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+            Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+            Console.Write(" ")
+            Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
         End Try
     End Sub
 End Module
@@ -2590,7 +2783,7 @@ End Class
 
             ' We're not setting the state to "after"/"finished"
             ' Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(source2, expectedOutput:="True finally False")
+            CompileAndVerify(source2, expectedOutput:="True finally -1 True")
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")>
@@ -2761,6 +2954,7 @@ End Class
     <file name="a2.vb">
 Imports System
 Imports System.Collections.Generic
+Imports System.Reflection
 
 Module Program
     Sub Main()
@@ -2769,9 +2963,16 @@ Module Program
 
         Console.Write(enumerator.MoveNext())
         Console.Write(enumerator.MoveNext())
-
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+ 
         enumerator.Dispose()
-        Console.Write(Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
+        Console.Write(" ")
+        Console.Write(CType(enumerator.GetType().GetField("$State", BindingFlags.Public Or BindingFlags.Instance).GetValue(enumerator), Integer))
+        Console.Write(" ")
+        Console.Write(Not Object.ReferenceEquals(enumerable, enumerable.GetEnumerator()))
     End Sub
 End Module
 
@@ -2790,7 +2991,8 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source2, expectedOutput:="True finally TrueTrue")
+            ' TODO2 bug
+            CompileAndVerify(source2, expectedOutput:="True finally True 2 True -2 False")
         End Sub
     End Class
 End Namespace
