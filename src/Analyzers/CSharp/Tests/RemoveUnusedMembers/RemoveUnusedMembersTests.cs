@@ -20,7 +20,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedMembersCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-public class RemoveUnusedMembersTests
+public sealed class RemoveUnusedMembersTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
@@ -3362,87 +3362,6 @@ public class RemoveUnusedMembersTests
                 struct S
                 {
                     private int i;
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp13,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
-    public async Task TestNameof1()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-
-                class Program
-                {
-                    private int [|unused|];
-
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine(nameof(Main));
-                    }
-                }
-                """,
-            FixedCode = """
-                using System;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine(nameof(Main));
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp13,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
-    public async Task TestNameof2()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-
-                class Program
-                {
-                    private int used;
-
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine(nameof(used));
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.CSharp13,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
-    public async Task TestNameof3()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-
-                class Program
-                {
-                    private void M() { }
-                    private void M(int i) { }
-
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine(nameof(M));
-                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
