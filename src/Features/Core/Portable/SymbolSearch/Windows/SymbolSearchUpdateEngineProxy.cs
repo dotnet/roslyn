@@ -16,10 +16,10 @@ internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : I
     public void Dispose()
         => _connection.Dispose();
 
-    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
-        var result = await _connection.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
-            (service, cancellationToken) => service.FindPackagesWithTypeAsync(source, name, arity, cancellationToken),
+        var result = await _connection.TryInvokeAsync(
+            (service, cancellationToken) => service.FindPackagesAsync(source, name, arity, isNamespace, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         return result.HasValue ? result.Value : [];
@@ -28,18 +28,18 @@ internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : I
     public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
         string source, string assemblyName, CancellationToken cancellationToken)
     {
-        var result = await _connection.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+        var result = await _connection.TryInvokeAsync(
             (service, cancellationToken) => service.FindPackagesWithAssemblyAsync(source, assemblyName, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         return result.HasValue ? result.Value : [];
     }
 
-    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-        string name, int arity, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+        string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
-        var result = await _connection.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
-            (service, cancellationToken) => service.FindReferenceAssembliesWithTypeAsync(name, arity, cancellationToken),
+        var result = await _connection.TryInvokeAsync(
+            (service, cancellationToken) => service.FindReferenceAssembliesAsync(name, arity, isNamespace, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         return result.HasValue ? result.Value : [];

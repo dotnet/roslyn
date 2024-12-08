@@ -70,8 +70,8 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         // Nothing to do for the core symbol search engine.
     }
 
-    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-        string source, string name, int arity, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(
+        string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
         {
@@ -150,8 +150,8 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
     }
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-        string name, int arity, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+        string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         // Our reference assembly data is stored in the nuget.org DB.
         if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))

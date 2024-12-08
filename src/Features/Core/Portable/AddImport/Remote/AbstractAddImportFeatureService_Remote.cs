@@ -32,12 +32,12 @@ internal sealed class RemoteMissingImportDiscoveryServiceCallbackDispatcher()
     private ISymbolSearchService GetService(RemoteServiceCallbackId callbackId)
         => (ISymbolSearchService)GetCallback(callbackId);
 
-    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(RemoteServiceCallbackId callbackId, string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(RemoteServiceCallbackId callbackId, string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
         => GetService(callbackId).FindPackagesAsync(source, name, arity, isNamespace, cancellationToken);
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(RemoteServiceCallbackId callbackId, string source, string name, CancellationToken cancellationToken)
         => GetService(callbackId).FindPackagesWithAssemblyAsync(source, name, cancellationToken);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(RemoteServiceCallbackId callbackId, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(RemoteServiceCallbackId callbackId, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
         => GetService(callbackId).FindReferenceAssembliesAsync(name, arity, isNamespace, cancellationToken);
 }
