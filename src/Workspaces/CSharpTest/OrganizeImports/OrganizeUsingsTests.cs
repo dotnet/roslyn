@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.OrganizeImports;
@@ -18,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports;
 [Trait(Traits.Feature, Traits.Features.Organizing)]
 public sealed class OrganizeUsingsTests
 {
-    protected static async Task CheckAsync(
-        string initial, string final,
+    private static async Task CheckAsync(
+        string initial,
+        string final,
         bool placeSystemNamespaceFirst = false,
         bool separateImportGroups = false,
         string? endOfLine = null)
