@@ -175,6 +175,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             case CS1581:
             case CS1955:
             case CS0281:
+            case CS0234:
                 break;
 
             case CS1574:

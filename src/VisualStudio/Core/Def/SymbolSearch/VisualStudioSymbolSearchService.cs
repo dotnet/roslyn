@@ -131,7 +131,7 @@ internal partial class VisualStudioSymbolSearchService(
         await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
     }
 
-    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(
+    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
         string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
@@ -152,7 +152,7 @@ internal partial class VisualStudioSymbolSearchService(
     }
 
     private ImmutableArray<TPackageResult> FilterAndOrderPackages<TPackageResult>(
-        ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageResult
+        ImmutableArray<TPackageResult> allPackages) where TPackageResult : AbstractPackageResult
     {
         // The ranking threshold under while we start aggressively filtering out packages if they don't have a high
         // enough rank.  Above this and we will always include the item as it's shown more than enough usage to
@@ -202,7 +202,7 @@ internal partial class VisualStudioSymbolSearchService(
         return result.ToImmutableAndFree();
     }
 
-    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+    public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
         string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);

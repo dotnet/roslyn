@@ -16,7 +16,7 @@ internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : I
     public void Dispose()
         => _connection.Dispose();
 
-    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         var result = await _connection.TryInvokeAsync(
             (service, cancellationToken) => service.FindPackagesAsync(source, name, arity, isNamespace, cancellationToken),
@@ -35,7 +35,7 @@ internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : I
         return result.HasValue ? result.Value : [];
     }
 
-    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+    public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
         string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         var result = await _connection.TryInvokeAsync(

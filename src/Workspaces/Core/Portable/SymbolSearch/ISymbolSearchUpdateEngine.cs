@@ -19,10 +19,10 @@ internal interface ISymbolSearchUpdateEngine : IDisposable
 {
     ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken);
 
-    ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(
+    ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
         string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
         string source, string assemblyName, CancellationToken cancellationToken);
-    ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+    ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
         string name, int arity, bool isNamespace, CancellationToken cancellationToken);
 }

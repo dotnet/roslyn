@@ -23,7 +23,7 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// 
     /// Implementations should return results in order from best to worst (from their perspective).
     /// </summary>
-    ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(
+    ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
         string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken);
 
     /// <summary>
@@ -44,33 +44,27 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// Implementations should return results in order from best to worst (from their
     /// perspective).
     /// </summary>
-    ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+    ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
         string name, int arity, bool isNamespace, CancellationToken cancellationToken);
 }
 
 [DataContract]
-internal abstract class PackageResult
+internal abstract class AbstractPackageResult(string packageName, int rank)
 {
     [DataMember(Order = 0)]
-    public readonly string PackageName;
+    public readonly string PackageName = packageName;
 
     [DataMember(Order = 1)]
-    public readonly int Rank;
-
-    protected PackageResult(string packageName, int rank)
-    {
-        PackageName = packageName;
-        Rank = rank;
-    }
+    public readonly int Rank = rank;
 }
 
 [DataContract]
-internal sealed class PackageWithTypeResult(
+internal sealed class PackageResult(
     string packageName,
     int rank,
     string typeName,
     string? version,
-    ImmutableArray<string> containingNamespaceNames) : PackageResult(packageName, rank)
+    ImmutableArray<string> containingNamespaceNames) : AbstractPackageResult(packageName, rank)
 {
     [DataMember(Order = 2)]
     public readonly string TypeName = typeName;
@@ -86,7 +80,7 @@ internal sealed class PackageWithTypeResult(
 internal sealed class PackageWithAssemblyResult(
     string packageName,
     int rank,
-    string version) : PackageResult(packageName, rank), IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
+    string version) : AbstractPackageResult(packageName, rank), IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
 {
     [DataMember(Order = 2)]
     public readonly string? Version = version;
@@ -113,7 +107,7 @@ internal sealed class PackageWithAssemblyResult(
 }
 
 [DataContract]
-internal sealed class ReferenceAssemblyWithTypeResult(
+internal sealed class ReferenceAssemblyResult(
     string assemblyName,
     string typeName,
     ImmutableArray<string> containingNamespaceNames)
@@ -133,12 +127,12 @@ internal sealed class ReferenceAssemblyWithTypeResult(
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultSymbolSearchService() : ISymbolSearchService
 {
-    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(string name, int arity, bool isNamespace, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
 }

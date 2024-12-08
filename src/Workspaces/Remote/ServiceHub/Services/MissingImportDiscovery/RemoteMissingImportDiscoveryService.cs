@@ -103,13 +103,13 @@ internal sealed class RemoteMissingImportDiscoveryService(
         private readonly RemoteCallback<IRemoteMissingImportDiscoveryService.ICallback> _callback = callback;
         private readonly RemoteServiceCallbackId _callbackId = callbackId;
 
-        public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesAsync(_callbackId, source, name, arity, isNamespace, cancellationToken), cancellationToken);
 
         public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.FindPackagesWithAssemblyAsync(_callbackId, source, assemblyName, cancellationToken), cancellationToken);
 
-        public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string name, int arity, bool isNamespace, CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.FindReferenceAssembliesAsync(_callbackId, name, arity, isNamespace, cancellationToken), cancellationToken);
     }
 }
