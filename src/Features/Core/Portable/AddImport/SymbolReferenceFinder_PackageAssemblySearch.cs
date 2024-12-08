@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Utilities;
@@ -22,52 +23,53 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // Only do this if none of the project or metadata searches produced 
             // any results. We always consider source and local metadata to be 
             // better than any NuGet/assembly-reference results.
-            if (allReferences.Count > 0)
+            if (!allReferences.IsEmpty)
                 return;
 
             if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
-            {
                 return;
-            }
+
+            if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
+                return;
 
             CalculateContext(
                 nameNode, _syntaxFacts,
-                out var name, out var arity, out var inAttributeContext, out _, out _);
+                out var name, out var arity, out var inAttributeContext,
+                out _, out _);
 
-            if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
-            {
-                return;
-            }
-
-            await FindNugetOrReferenceAssemblyTypeReferencesAsync(
+            await FindNugetOrReferenceAssemblyReferencesAsync(
                 allReferences, nameNode, name, arity, inAttributeContext, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task FindNugetOrReferenceAssemblyTypeReferencesAsync(
+        private async Task FindNugetOrReferenceAssemblyReferencesAsync(
             ConcurrentQueue<Reference> allReferences, TSimpleNameSyntax nameNode,
             string name, int arity, bool inAttributeContext,
             CancellationToken cancellationToken)
         {
             if (arity == 0 && inAttributeContext)
             {
-                await FindNugetOrReferenceAssemblyTypeReferencesWorkerAsync(
+                await FindNugetOrReferenceAssemblyReferencesWorkerAsync(
                     allReferences, nameNode, name + AttributeSuffix, arity,
                     isAttributeSearch: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            await FindNugetOrReferenceAssemblyTypeReferencesWorkerAsync(
+            await FindNugetOrReferenceAssemblyReferencesWorkerAsync(
                 allReferences, nameNode, name, arity,
                 isAttributeSearch: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task FindNugetOrReferenceAssemblyTypeReferencesWorkerAsync(
-            ConcurrentQueue<Reference> allReferences, TSimpleNameSyntax nameNode,
-            string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
+        private async Task FindNugetOrReferenceAssemblyReferencesWorkerAsync(
+            ConcurrentQueue<Reference> allReferences,
+            TSimpleNameSyntax nameNode,
+            string name,
+            int arity,
+            bool isAttributeSearch,
+            CancellationToken cancellationToken)
         {
             if (_options.SearchOptions.SearchReferenceAssemblies)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await FindReferenceAssemblyTypeReferencesAsync(
+                await FindReferenceAssemblyReferencesAsync(
                     allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
             }
 
@@ -75,13 +77,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             foreach (var (sourceName, sourceUrl) in packageSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await FindNugetTypeReferencesAsync(
-                    sourceName, sourceUrl, allReferences,
-                    nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                await FindNugetReferencesAsync(
+                    sourceName, sourceUrl, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task FindReferenceAssemblyTypeReferencesAsync(
+        private async Task FindReferenceAssemblyReferencesAsync(
             ConcurrentQueue<Reference> allReferences,
             TSimpleNameSyntax nameNode,
             string name,
@@ -90,8 +91,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var results = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
-                name, arity, cancellationToken).ConfigureAwait(false);
+            var results = await _symbolSearchService.FindReferenceAssembliesAsync(
+                name, arity, _isWithinImport, cancellationToken).ConfigureAwait(false);
 
             var project = _document.Project;
 
@@ -105,7 +106,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        private async Task FindNugetTypeReferencesAsync(
+        private async Task FindNugetReferencesAsync(
             string sourceName,
             string sourceUrl,
             ConcurrentQueue<Reference> allReferences,
@@ -116,16 +117,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var results = await _symbolSearchService.FindPackagesWithTypeAsync(
-                sourceName, name, arity, cancellationToken).ConfigureAwait(false);
+            var results = await _symbolSearchService.FindPackagesAsync(
+                sourceName, name, arity, _isWithinImport, cancellationToken).ConfigureAwait(false);
 
             foreach (var result in results)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 HandleNugetReference(
-                    sourceUrl, allReferences, nameNode,
-                    isAttributeSearch, result,
-                    weight: allReferences.Count);
+                    sourceUrl, allReferences, nameNode, isAttributeSearch, result, weight: allReferences.Count);
             }
         }
 
@@ -151,9 +150,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 }
             }
 
-            var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
+            var desiredName = GetDesiredName(_isWithinImport, isAttributeSearch, result.TypeName);
             allReferences.Enqueue(new AssemblyReference(
-                _owner, new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight), result));
+                _owner,
+                new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight),
+                result,
+                _isWithinImport));
         }
 
         private void HandleNugetReference(
@@ -164,13 +166,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             PackageWithTypeResult result,
             int weight)
         {
-            var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
-            allReferences.Enqueue(new PackageReference(_owner,
+            var desiredName = GetDesiredName(_isWithinImport, isAttributeSearch, result.TypeName);
+            allReferences.Enqueue(new PackageReference(
+                _owner,
                 new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames.ToReadOnlyList(), weight),
-                source, result.PackageName, result.Version));
+                source, result.PackageName, result.Version, _isWithinImport));
         }
 
-        private static string? GetDesiredName(bool isAttributeSearch, string typeName)
-            => isAttributeSearch ? typeName.GetWithoutAttributeSuffix(isCaseSensitive: false) : typeName;
+        private static string? GetDesiredName(bool isWithinImport, bool isAttributeSearch, string typeName)
+            => isWithinImport ? null : isAttributeSearch ? typeName.GetWithoutAttributeSuffix(isCaseSensitive: false) : typeName;
     }
 }

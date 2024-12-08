@@ -37,7 +37,20 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 /// date by downloading patches on a daily basis.
 /// </summary>
 [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
-internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService, IDisposable
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class VisualStudioSymbolSearchService(
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    VisualStudioWorkspaceImpl workspace,
+    IGlobalOptionService globalOptions,
+    VSShell.SVsServiceProvider serviceProvider)
+    : AbstractDelayStartedService(threadingContext,
+        globalOptions,
+        workspace,
+        listenerProvider,
+        SymbolSearchGlobalOptionsStorage.Enabled,
+        [SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages]), ISymbolSearchService, IDisposable
 {
     // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -48,29 +61,10 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
     // but we want to keep it alive until the VS is closed, so we don't dispose it.
     private ISymbolSearchUpdateEngine? _lazyUpdateEngine;
 
-    private readonly SVsServiceProvider _serviceProvider;
-    private readonly IPackageInstallerService _installerService;
+    private readonly SVsServiceProvider _serviceProvider = serviceProvider;
+    private readonly IPackageInstallerService _installerService = workspace.Services.GetRequiredService<IPackageInstallerService>();
 
     private string? _localSettingsDirectory;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioSymbolSearchService(
-        IThreadingContext threadingContext,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        VisualStudioWorkspaceImpl workspace,
-        IGlobalOptionService globalOptions,
-        VSShell.SVsServiceProvider serviceProvider)
-        : base(threadingContext,
-               globalOptions,
-               workspace,
-               listenerProvider,
-               SymbolSearchGlobalOptionsStorage.Enabled,
-               [SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages])
-    {
-        _serviceProvider = serviceProvider;
-        _installerService = workspace.Services.GetRequiredService<IPackageInstallerService>();
-    }
 
     public void Dispose()
     {

@@ -32,19 +32,15 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
-internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeatureService<SimpleNameSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddImportFeatureService()
-    {
-    }
+    protected override bool IsWithinImport(SyntaxNode node)
+        => node.GetAncestor<UsingDirectiveSyntax>()?.Parent is CompilationUnitSyntax;
 
     protected override bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return node.CanAddUsingDirectives(allowInHiddenRegions, cancellationToken);
-    }
+        => node.CanAddUsingDirectives(allowInHiddenRegions, cancellationToken);
 
     protected override bool CanAddImportForMethod(
         string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)

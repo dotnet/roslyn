@@ -6,7 +6,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CaseCorrection
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
@@ -17,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     <ExportLanguageService(GetType(IAddImportFeatureService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddImportFeatureService
+    Friend NotInheritable Class VisualBasicAddImportFeatureService
         Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
         <ImportingConstructor>
@@ -25,8 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsWithinImport(node As SyntaxNode) As Boolean
+            Return node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing
+        End Function
+
         Protected Overrides Function CanAddImport(node As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
-            cancellationToken.ThrowIfCancellationRequested()
             Return node.CanAddImportsStatements(allowInHiddenRegions, cancellationToken)
         End Function
 

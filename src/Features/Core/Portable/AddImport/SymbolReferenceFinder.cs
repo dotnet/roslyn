@@ -41,6 +41,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private readonly AddImportOptions _options;
         private readonly ImmutableArray<PackageSource> _packageSources;
 
+        private readonly bool _isWithinImport;
+
         public SymbolReferenceFinder(
             AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
             Document document,
@@ -64,6 +66,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             _namespacesInScope = GetNamespacesInScope(cancellationToken);
+            _isWithinImport = owner.IsWithinImport(node);
         }
 
         private ISet<INamespaceSymbol> GetNamespacesInScope(CancellationToken cancellationToken)
@@ -98,6 +101,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private async Task<ImmutableArray<SymbolReference>> DoAsync(SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Within a using/import directive, we don't want to offer to add other imports.  We only want to offer to
+            // add nuget packages.
+            if (_isWithinImport)
+                return [];
 
             // Spin off tasks to do all our searching in parallel
             using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);

@@ -17,7 +17,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private sealed partial class AssemblyReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SearchResult searchResult,
-        ReferenceAssemblyWithTypeResult referenceAssemblyWithType) : Reference(provider, searchResult)
+        ReferenceAssemblyWithTypeResult referenceAssemblyWithType,
+        bool isWithinImport) : Reference(provider, searchResult, isWithinImport)
     {
         private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType = referenceAssemblyWithType;
 
