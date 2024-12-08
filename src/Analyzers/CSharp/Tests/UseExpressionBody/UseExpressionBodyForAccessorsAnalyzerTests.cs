@@ -656,7 +656,9 @@ public sealed class UseExpressionBodyForAccessorsTests
         await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll1()
     {
         var code = """
@@ -700,7 +702,9 @@ public sealed class UseExpressionBodyForAccessorsTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll2()
     {
         var code = """
@@ -769,7 +773,9 @@ public sealed class UseExpressionBodyForAccessorsTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll3()
     {
         var code = """
@@ -838,7 +844,9 @@ public sealed class UseExpressionBodyForAccessorsTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll4()
     {
         var code =
