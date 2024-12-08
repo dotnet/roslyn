@@ -1710,9 +1710,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isDictionaryInterface(CSharpCompilation compilation, TypeSymbol targetType, out TypeWithAnnotations elementType)
             {
-                // PROTOTYPE: Support IReadOnlyDictionary<K, V> as well.
                 if (targetType is NamedTypeSymbol { Arity: 2 } namedType &&
-                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)))
+                    (ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)) ||
+                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))))
                 {
                     // PROTOTYPE: Test with missing KeyValuePair<,>.
                     elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV).

@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var collectionType = (NamedTypeSymbol)node.Type;
             var typeArguments = collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var elements = node.Elements;
-            // PROTOTYPE: Should we create a custom IDictionary<K, V> implementation,
+            // PROTOTYPE: Should we create a custom interface implementation,
             // at least to enforce immutability for IReadOnlyDictionary<K, V>?
             var collection = CreateAndPopulateDictionary(node, typeArguments, elements);
             return _factory.Convert(collectionType, collection);
