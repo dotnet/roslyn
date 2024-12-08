@@ -131,12 +131,12 @@ internal partial class VisualStudioSymbolSearchService(
         await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
     }
 
-    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-        string source, string name, int arity, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesAsync(
+        string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-        var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
-            source, name, arity, cancellationToken).ConfigureAwait(false);
+        var allPackagesWithType = await engine.FindPackagesAsync(
+            source, name, arity, isNamespace, cancellationToken).ConfigureAwait(false);
 
         return FilterAndOrderPackages(allPackagesWithType);
     }
@@ -202,11 +202,11 @@ internal partial class VisualStudioSymbolSearchService(
         return result.ToImmutableAndFree();
     }
 
-    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-        string name, int arity, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesAsync(
+        string name, int arity, bool isNamespace, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-        return await engine.FindReferenceAssembliesWithTypeAsync(
-            name, arity, cancellationToken).ConfigureAwait(false);
+        return await engine.FindReferenceAssembliesAsync(
+            name, arity, isNamespace, cancellationToken).ConfigureAwait(false);
     }
 }
