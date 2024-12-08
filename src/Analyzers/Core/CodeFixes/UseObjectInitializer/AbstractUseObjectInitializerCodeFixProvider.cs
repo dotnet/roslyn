@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -50,7 +51,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract TStatementSyntax GetNewStatement(
-        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
+        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, string preferredIndentation,
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -76,8 +77,14 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
         Contract.ThrowIfNull(statement);
 
-        var newStatement = GetNewStatement(statement, objectCreation, matches)
-            .WithAdditionalAnnotations(Formatter.Annotation);
+        var firstToken = objectCreation.GetFirstToken();
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var preferredIndentation = firstToken.GetPreferredIndentation(
+            await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false),
+            new IndentationOptions(formattingOptions),
+            cancellationToken);
+
+        var newStatement = GetNewStatement(statement, objectCreation, preferredIndentation, matches).WithAdditionalAnnotations(Formatter.Annotation);
 
         editor.ReplaceNode(statement, newStatement);
         foreach (var match in matches)
