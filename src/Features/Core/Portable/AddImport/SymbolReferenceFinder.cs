@@ -103,7 +103,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             cancellationToken.ThrowIfCancellationRequested();
 
             // Within a using/import directive, we don't want to offer to add other imports.  We only want to offer to
-            // add nuget packages.
+            // add nuget packages.  So bail out immediately on all symbolic searches.  The only searches we aactually
+            // perform are done in FindNugetOrReferenceAssemblyReferencesAsync.
             if (_isWithinImport)
                 return [];
 
