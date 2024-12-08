@@ -3368,8 +3368,6 @@ public class RemoveUnusedMembersTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
-<<<<<<< Updated upstream
-=======
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
     public async Task TestNameof1()
@@ -3528,5 +3526,4 @@ public class RemoveUnusedMembersTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
->>>>>>> Stashed changes
 }
