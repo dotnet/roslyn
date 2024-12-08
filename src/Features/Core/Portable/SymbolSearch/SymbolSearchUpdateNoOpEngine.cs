@@ -21,10 +21,10 @@ internal sealed class SymbolSearchUpdateNoOpEngine : ISymbolSearchUpdateEngine
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string name, int arity, bool isNamespace, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
 
     public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
