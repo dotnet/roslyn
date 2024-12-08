@@ -103,7 +103,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
             Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            // Within an import, we're only adding a package/nuget reference.  So no need for text changes.
+            // Within an import, we're only adding a package/nuget reference (and we're not going to add another
+            // using/import as we're already in one).  So no need for text changes.
             if (_isWithinImport)
                 return [];
 
