@@ -243,8 +243,8 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                 [|NuGetType|] n;
             }
             """,
-string.Format(FeaturesResources.Use_local_version_0, "1.0"),
-parameters: new TestParameters(fixProviderData: data));
+            string.Format(FeaturesResources.Use_local_version_0, "1.0"),
+            parameters: new TestParameters(fixProviderData: data));
 
         await TestSmartTagTextAsync(
             """
@@ -253,8 +253,8 @@ parameters: new TestParameters(fixProviderData: data));
                 [|NuGetType|] n;
             }
             """,
-string.Format(FeaturesResources.Use_local_version_0, "2.0"),
-parameters: new TestParameters(index: 1, fixProviderData: data));
+            string.Format(FeaturesResources.Use_local_version_0, "2.0"),
+            parameters: new TestParameters(index: 1, fixProviderData: data));
 
         await TestSmartTagTextAsync(
             """
@@ -263,8 +263,8 @@ parameters: new TestParameters(index: 1, fixProviderData: data));
                 [|NuGetType|] n;
             }
             """,
-FeaturesResources.Find_and_install_latest_version,
-parameters: new TestParameters(index: 2, fixProviderData: data));
+            FeaturesResources.Find_and_install_latest_version,
+            parameters: new TestParameters(index: 2, fixProviderData: data));
     }
 
     [Fact]
