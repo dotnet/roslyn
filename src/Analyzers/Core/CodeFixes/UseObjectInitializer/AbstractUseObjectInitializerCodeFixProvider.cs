@@ -49,9 +49,10 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
 
     protected abstract TAnalyzer GetAnalyzer();
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
     protected abstract TStatementSyntax GetNewStatement(
-        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, string preferredIndentation,
+        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, IndentationOptions indentationOptions,
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -78,13 +79,16 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         Contract.ThrowIfNull(statement);
 
         var firstToken = objectCreation.GetFirstToken();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var preferredIndentation = firstToken.GetPreferredIndentation(
-            await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false),
-            new IndentationOptions(formattingOptions),
-            cancellationToken);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
+            this.SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var indentationOptions = new IndentationOptions(formattingOptions);
 
-        var newStatement = GetNewStatement(statement, objectCreation, preferredIndentation, matches).WithAdditionalAnnotations(Formatter.Annotation);
+        //var preferredIndentation = firstToken.GetPreferredIndentation(
+        //    await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false),
+        //    new IndentationOptions(formattingOptions),
+        //    cancellationToken);
+
+        var newStatement = GetNewStatement(statement, objectCreation, indentationOptions, matches).WithAdditionalAnnotations(Formatter.Annotation);
 
         editor.ReplaceNode(statement, newStatement);
         foreach (var match in matches)

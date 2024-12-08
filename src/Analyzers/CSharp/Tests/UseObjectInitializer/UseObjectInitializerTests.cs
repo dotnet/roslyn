@@ -1442,13 +1442,13 @@ public partial class UseObjectInitializerTests
                 
                     void M(int i)
                     {
-                        var c = [|new|] C()
+                        var c = [|new|] C
                         {
                             S = i
-                                .ToString();
+                                .ToString(),
                             T = i.
-                                ToString();
-                        }
+                                ToString()
+                        };
                     }
                 }
                 """,
@@ -1487,15 +1487,105 @@ public partial class UseObjectInitializerTests
                 
                     void M(int i)
                     {
-                        var c = [|new|] C()
+                        var c = [|new|] C
                         {
                             S = i
                                 .ToString()
-                                .ToString();
+                                .ToString(),
                             T = i.
                                 ToString().
-                                ToString();
-                        }
+                                ToString()
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
+    public async Task TestIndentationOfMultiLineExpressions3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string S;
+                    string T;
+
+                    void M(int i)
+                    {
+                        var c = [|new|] C();
+                        c.S =
+                            i.ToString();
+                        c.T =
+                            i.ToString();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string S;
+                    string T;
+                
+                    void M(int i)
+                    {
+                        var c = [|new|] C
+                        {
+                            S =
+                                i.ToString(),
+                            T =
+                                i.ToString()
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
+    public async Task TestIndentationOfMultiLineExpressions4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string S;
+                    string T;
+
+                    void M(int i)
+                    {
+                        var c = [|new|] C();
+                        c.S =
+                            i.ToString()
+                             .ToString();
+                        c.T =
+                            i.ToString()
+                             .ToString();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string S;
+                    string T;
+                
+                    void M(int i)
+                    {
+                        var c = [|new|] C
+                        {
+                            S =
+                                i.ToString()
+                                 .ToString(),
+                            T =
+                                i.ToString()
+                                 .ToString()
+                        };
                     }
                 }
                 """,

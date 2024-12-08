@@ -6,8 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
@@ -33,8 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             Return VisualBasicUseNamedMemberInitializerAnalyzer.Allocate()
         End Function
 
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
+
         Protected Overrides Function GetNewStatement(
-                statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
+                statement As StatementSyntax,
+                objectCreation As ObjectCreationExpressionSyntax,
+                options As IndentationOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As StatementSyntax
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
