@@ -220,8 +220,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
                 var hasUnsupportedOperation = false;
                 symbolStartContext.RegisterOperationAction(
-                    _ => hasUnsupportedOperation = true,
-                    OperationKind.Invalid, OperationKind.None, OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
+                    context =>
+                    {
+                        var operation = context.Operation;
+
+                        // 'nameof(argument)' currently returns a 'None' operation for its argument.  We don't want this
+                        // to cause us to bail out of processing. Instead, we'll handle this case explicitly in AnalyzeNameOfOperation.
+                        if (operation is { Kind: OperationKind.None, Parent: INameOfOperation { Argument: var nameofArgument } } &&
+                            nameofArgument == operation)
+                        {
+                            return;
+                        }
+
+                        hasUnsupportedOperation = true;
+                    },
+                    OperationKind.Invalid,
+                    OperationKind.None,
+                    OperationKind.DynamicIndexerAccess,
+                    OperationKind.DynamicInvocation,
+                    OperationKind.DynamicMemberReference,
+                    OperationKind.DynamicObjectCreation);
 
                 symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
@@ -429,17 +447,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // a bound method group/property group.
             var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
             foreach (var symbol in symbolInfo.GetAllSymbols())
-            {
-                switch (symbol.Kind)
-                {
-                    // Handle potential references to methods/properties from missing IOperation
-                    // for method group/property group.
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                        OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
-                        break;
-                }
-            }
+                OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
         }
 
         private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
