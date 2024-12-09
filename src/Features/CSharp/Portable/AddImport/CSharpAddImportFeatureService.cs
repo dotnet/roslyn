@@ -191,7 +191,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
                 // The type or namespace name 'X' does not exist in the namespace 'Y'.
                 //
                 // We support this within a using, on any part of the using name that doesn't bind.
-                if (!this.IsWithinImport(nameNode))
+                if (!this.IsWithinImport(node))
                     return false;
 
                 nameNode = node as SimpleNameSyntax;

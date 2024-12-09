@@ -71,20 +71,16 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         {
             if (_isWithinImport)
             {
+                // Inside of a using/import we do a search on the part of the using that doesn't bind (like 'Json' in `using
+                // Newtonsoft.Json;`).  But this may find results in other potential namespaces (like `Goobar.Json`).  So we
+                // need to make sure the namespace the index found matches the full name in the using/import.
                 var current = (SyntaxNode)nameNode;
                 while (_syntaxFacts.IsQualifiedName(current.Parent))
                     current = current.Parent;
 
                 using var _1 = ArrayBuilder<string>.GetInstance(out var result);
 
-                // Inside of a using/import we do a search on the part of the using that doesn't bind (like 'Json' in `using
-                // Newtonsoft.Json;`).  But this may find results in other potential namespaces (like `Goobar.Json`).  So we
-                // need to make sure the namespace the index found matches the full name in the using/import.
-                var rootNode = _syntaxFacts.IsRightOfQualifiedName(nameNode)
-                    ? nameNode.GetRequiredParent()
-                    : nameNode;
-
-                if (!TryAddNames(result, rootNode))
+                if (!TryAddNames(result, current))
                     return default;
 
                 return (TypeQuery.Default, result.ToImmutableAndClear(), inAttributeContext: false);

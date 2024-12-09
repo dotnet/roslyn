@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 
@@ -44,7 +43,7 @@ internal partial class VisualStudioSymbolSearchService(
     IAsynchronousOperationListenerProvider listenerProvider,
     VisualStudioWorkspaceImpl workspace,
     IGlobalOptionService globalOptions,
-    VSShell.SVsServiceProvider serviceProvider)
+    SVsServiceProvider serviceProvider)
     : AbstractDelayStartedService(threadingContext,
         globalOptions,
         workspace,
