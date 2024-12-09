@@ -37,7 +37,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// convert text span to node range for the flow analysis API
         /// </summary>
-        private (TStatementSyntax, TStatementSyntax) GetFlowAnalysisNodeRange()
+        private (TStatementSyntax firstStatement, TStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
         {
             var first = this.SelectionResult.GetFirstStatement();
             var last = this.SelectionResult.GetLastStatement();
@@ -420,8 +420,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             if (SelectionResult.SelectionInExpression)
                 return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
-            var pair = GetFlowAnalysisNodeRange();
-            return model.AnalyzeDataFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            return model.AnalyzeDataFlow(firstStatement, lastStatement);
         }
 
         private bool IsEndOfSelectionReachable(SemanticModel model)
@@ -431,8 +431,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return true;
             }
 
-            var pair = GetFlowAnalysisNodeRange();
-            var analysis = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var analysis = model.AnalyzeControlFlow(firstStatement, lastStatement);
             return analysis.EndPointIsReachable;
         }
 
@@ -723,8 +723,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             Contract.ThrowIfTrue(SelectionResult.SelectionInExpression);
 
-            var pair = GetFlowAnalysisNodeRange();
-            var controlFlowAnalysisData = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var controlFlowAnalysisData = model.AnalyzeControlFlow(firstStatement, lastStatement);
 
             return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
         }

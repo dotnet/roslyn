@@ -12394,4 +12394,52 @@ $@"namespace ClassLibrary9
 
         await TestExtractMethodAsync(code, expected);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration1()
+    {
+        var code = """"
+            using System;
+
+            public class Goo : IDisposable
+            {
+                void M2() { }
+
+                void M()
+                {
+                    [|using var g = new Goo();
+                    g.M2();|]
+                }
+
+                public void Dispose()
+                {
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            
+            public class Goo : IDisposable
+            {
+                void M2() { }
+            
+                void M()
+                {
+                    NewMethod();
+                }
+
+                private void NewMethod()
+                {
+                    using var g = new Goo();
+                    g.M2();
+                }
+            
+                public void Dispose()
+                {
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
 }
