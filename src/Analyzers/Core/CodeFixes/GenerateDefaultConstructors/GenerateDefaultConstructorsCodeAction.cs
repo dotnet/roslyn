@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,26 +22,17 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 
 internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
 {
-    private abstract class AbstractCodeAction : CodeAction
+    private sealed class GenerateDefaultConstructorsCodeAction(
+        Document document,
+        State state,
+        string title,
+        ImmutableArray<IMethodSymbol> constructors) : CodeAction
     {
-        private readonly IList<IMethodSymbol> _constructors;
-        private readonly Document _document;
-        private readonly State _state;
-        private readonly string _title;
+        private readonly ImmutableArray<IMethodSymbol> _constructors = constructors;
+        private readonly Document _document = document;
+        private readonly State _state = state;
 
-        protected AbstractCodeAction(
-            Document document,
-            State state,
-            IList<IMethodSymbol> constructors,
-            string title)
-        {
-            _document = document;
-            _state = state;
-            _constructors = constructors;
-            _title = title;
-        }
-
-        public override string Title => _title;
+        public override string Title => title;
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {

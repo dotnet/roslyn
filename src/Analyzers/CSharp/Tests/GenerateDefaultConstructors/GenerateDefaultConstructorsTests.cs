@@ -4,9 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.GenerateConstructors;
 using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -20,11 +20,11 @@ using VerifyCodeFix = CSharpCodeFixVerifier<
 
 #if !CODE_STYLE
 using VerifyRefactoring = CSharpCodeRefactoringVerifier<
-    GenerateDefaultConstructorsCodeRefactoringProvider>;
+    CSharpGenerateConstructorsCodeRefactoringProvider>;
 #endif
 
 [UseExportProvider]
-public class GenerateDefaultConstructorsTests
+public sealed class GenerateDefaultConstructorsTests
 {
 #if !CODE_STYLE
     private static async Task TestRefactoringAsync(string source, string fixedSource, int index = 0)
@@ -1514,7 +1514,8 @@ index: 2);
                 {
                 }
             }
-            """);
+            """,
+            index: 1);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -1617,6 +1618,93 @@ index: 2);
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51049")]
+    public async Task TestGenerateDefaultConstructorPreserveBinaryCompat1()
+    {
+        await TestRefactoringAsync(
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : [||]Base
+            {
+            }
+            """,
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+            
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : Base
+            {
+                public Program()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51049")]
+    public async Task TestGenerateDefaultConstructorPreserveBinaryCompat2()
+    {
+        await TestRefactoringAsync(
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : [||]Base
+            {
+            }
+            """,
+            """
+            class Base
+            {
+                protected Base()
+                {
+                }
+            
+                protected Base(int i)
+                {
+                }
+            }
+
+            sealed class Program : Base
+            {
+                public Program()
+                {
+                }
+
+                public Program(int i) : base(i)
+                {
+                }
+            }
+            """,
+            index: 1);
     }
 
 #endif

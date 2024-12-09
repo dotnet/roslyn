@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
 [method: ImportingConstructor]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class OrganizeDocumentCommandHandler(
+internal sealed class OrganizeDocumentCommandHandler(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<OrganizeDocumentCommandArgs>,

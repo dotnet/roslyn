@@ -9,21 +9,24 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
+namespace Microsoft.CodeAnalysis.GenerateConstructors;
 
-internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
+using static GenerateFromMembersHelpers;
+
+internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvider
 {
     private sealed class ConstructorDelegatingCodeAction(
-        AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+        AbstractGenerateConstructorsCodeRefactoringProvider service,
         Document document,
         State state,
         bool addNullChecks) : CodeAction
     {
-        private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+        private readonly AbstractGenerateConstructorsCodeRefactoringProvider _service = service;
         private readonly Document _document = document;
         private readonly State _state = state;
         private readonly bool _addNullChecks = addNullChecks;
