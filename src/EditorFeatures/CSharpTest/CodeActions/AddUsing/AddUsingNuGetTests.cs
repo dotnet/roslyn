@@ -61,10 +61,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(Task.FromResult(true));
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
         await TestInRegularAndScriptAsync(
@@ -98,10 +98,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(Task.FromResult(true));
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            "nuget.org", "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            "nuget.org", new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
         await TestInRegularAndScriptAsync(
@@ -133,10 +133,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(SpecializedTasks.True);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
         await TestInRegularAndScriptAsync(
@@ -168,10 +168,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(SpecializedTasks.True);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
         await TestInRegularAndScriptAsync(
@@ -201,10 +201,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
             .Returns(true);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
         await TestMissingInRegularAndScriptAsync(
@@ -229,10 +229,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
             .Returns(ImmutableArray.Create("1.0", "2.0"));
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
         var data = new FixProviderData(installerServiceMock.Object, packageServiceMock.Object);
@@ -279,10 +279,10 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(SpecializedTasks.True);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
         packageServiceMock.Setup(s => s.FindPackagesAsync(
-            PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
         await TestInRegularAndScriptAsync(
@@ -317,9 +317,9 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(SpecializedTasks.True);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
-        packageServiceMock.Setup(s => s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
         await TestInRegularAndScriptAsync(
@@ -354,9 +354,9 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
                             .Returns(SpecializedTasks.False);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
-        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync("NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty));
-        packageServiceMock.Setup(s => s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, "NuGetType", 0, It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+        packageServiceMock.Setup(s => s.FindPackagesAsync(PackageSourceHelper.NugetOrgSourceName, new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
         await TestInRegularAndScriptAsync(
