@@ -195,17 +195,6 @@ internal sealed partial class CSharpSelectionValidator(
             return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
         }
 
-        if (!adjustedSpan.Contains(firstTokenInSelection.Span) && !adjustedSpan.Contains(lastTokenInSelection.Span))
-        {
-            return new SelectionInfo
-            {
-                Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_does_not_contain_a_valid_token),
-                OriginalSpan = adjustedSpan,
-                FirstTokenInOriginalSpan = firstTokenInSelection,
-                LastTokenInOriginalSpan = lastTokenInSelection
-            };
-        }
-
         if (!UnderValidContext(firstTokenInSelection) || !UnderValidContext(lastTokenInSelection))
         {
             return new SelectionInfo
