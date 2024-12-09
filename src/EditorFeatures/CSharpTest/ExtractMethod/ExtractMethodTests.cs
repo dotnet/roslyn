@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -22,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod;
 
 [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-public partial class ExtractMethodTests : ExtractMethodBase
+public sealed partial class ExtractMethodTests : ExtractMethodBase
 {
     [Fact]
     public async Task ExtractMethod1()
@@ -11203,7 +11202,7 @@ $@"namespace ClassLibrary9
         var service = new CSharpExtractMethodService();
         Assert.NotNull(await Record.ExceptionAsync(async () =>
         {
-            var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: default, CancellationToken.None);
+            var tree = await service.ExtractMethodAsync(document: null!, textSpan: default, localFunction: false, options: default, CancellationToken.None);
         }));
     }
 
@@ -11212,7 +11211,9 @@ $@"namespace ClassLibrary9
     {
         var solution = new AdhocWorkspace().CurrentSolution;
         var projectId = ProjectId.CreateNewId();
-        var project = solution.AddProject(projectId, "Project", "Project.dll", LanguageNames.CSharp).GetProject(projectId);
+        var project = solution
+            .AddProject(projectId, "Project", "Project.dll", LanguageNames.CSharp)
+            .GetRequiredProject(projectId);
 
         var document = project.AddMetadataReference(NetFramework.mscorlib)
                               .AddDocument("Document", SourceText.From(""));
@@ -11236,7 +11237,7 @@ $@"namespace ClassLibrary9
             workspaceKind: WorkspaceKind.Interactive,
             composition: EditorTestCompositions.EditorFeaturesWpf);
         // Force initialization.
-        workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+        workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id)!.GetTextView()).ToList();
 
         var textView = workspace.Documents.Single().GetTextView();
 
