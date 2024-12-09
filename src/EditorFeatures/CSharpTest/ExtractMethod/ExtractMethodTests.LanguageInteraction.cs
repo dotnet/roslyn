@@ -1277,9 +1277,9 @@ public partial class ExtractMethodTests
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545263")]
-        public async Task TokenSelection()
+        public async Task SyntacticErrorInSelection()
         {
-            await TestExtractMethodAsync("""
+            var code = """
                 class Program
                 {
                     static void Main(string[] args)
@@ -1294,22 +1294,8 @@ public partial class ExtractMethodTests
                         return "true";
                     }
                 }
-                """, """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        if ((true)NewMethod()[|)|]
-                        {
-                        }
-                    }
-
-                    private static string NewMethod()
-                    {
-                        return "true";
-                    }
-                }
-                """);
+                """;
+            await ExpectExtractMethodToFailAsync(code);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544497")]
