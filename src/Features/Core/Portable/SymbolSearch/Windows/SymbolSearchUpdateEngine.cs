@@ -81,7 +81,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
 
         var database = databaseWrapper.Database;
-        var searchName = namespaceNames.Length > 0 ? namespaceNames.Last() : typeName;
+        var searchName = GetSearchName(typeQuery, namespaceQuery);
         if (searchName == "var")
         {
             // never find anything named 'var'.
@@ -94,7 +94,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         using var _ = ArrayBuilder<PackageResult>.GetInstance(out var result);
         if (query.TryFindMembers(database, ref symbols))
         {
-            foreach (var symbol in FilterToViableSymbols(symbols, namespaceNames))
+            foreach (var symbol in FilterToViableSymbols(symbols, namespaceQuery))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -106,16 +106,19 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
                     result.Add(new PackageResult(
                         packageName: symbol.PackageName.ToString(),
                         rank: GetRank(symbol),
-                        typeName: namespaceNames.Length > 0 ? "" : symbol.Name.ToString(),
+                        typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
                         version: string.IsNullOrWhiteSpace(version) ? null : version,
                         containingNamespaceNames: GetFullName(
-                            namespaceNames.Length > 0 ? symbol.FullName : symbol.FullName.Parent)));
+                            namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName)));
                 }
             }
         }
 
         return ValueTaskFactory.FromResult(result.ToImmutableAndClear());
     }
+
+    private string GetSearchName(TypeQuery typeQuery, NamespaceQuery namespaceQuery)
+        => namespaceQuery.Names is [.., var lastNamespaceName] ? lastNamespaceName : typeQuery.Name;
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
         string source, string assemblyName, CancellationToken cancellationToken)
@@ -169,7 +172,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
 
         var database = databaseWrapper.Database;
-        var searchName = namespaceNames.Length > 0 ? namespaceNames.Last() : typeName;
+        var searchName = GetSearchName(typeQuery, namespaceQuery);
         if (searchName == "var")
         {
             // never find anything named 'var'.
@@ -182,7 +185,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         var results = ArrayBuilder<ReferenceAssemblyResult>.GetInstance();
         if (query.TryFindMembers(database, ref symbols))
         {
-            foreach (var symbol in FilterToViableSymbols(symbols, namespaceNames))
+            foreach (var symbol in FilterToViableSymbols(symbols, namespaceQuery))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -191,9 +194,9 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
                 {
                     results.Add(new ReferenceAssemblyResult(
                         symbol.AssemblyName.ToString(),
-                        typeName: namespaceNames.Length > 0 ? "" : symbol.Name.ToString(),
+                        typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
                         containingNamespaceNames: GetFullName(
-                            namespaceNames.Length > 0 ? symbol.FullName : symbol.FullName.Parent)));
+                            namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName)));
                 }
             }
         }
@@ -202,15 +205,15 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     }
 
     private static IEnumerable<Symbol> FilterToViableSymbols(
-        PartialArray<Symbol> symbols, ImmutableArray<string> namespaceNames)
+        PartialArray<Symbol> symbols, NamespaceQuery namespaceQuery)
     {
         foreach (var symbol in symbols)
         {
-            if (namespaceNames.Length > 0)
+            if (!namespaceQuery.IsDefault)
             {
                 // Searching for a namespace.  Only return a result if the full namespace name matches.
                 if (symbol.Type == SymbolType.Namespace &&
-                    GetFullName(symbol.FullName).SequenceEqual(namespaceNames))
+                    GetFullName(symbol.FullName).SequenceEqual(namespaceQuery.Names))
                 {
                     yield return symbol;
                 }

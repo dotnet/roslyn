@@ -26,6 +26,8 @@ internal readonly record struct NamespaceQuery(ImmutableArray<string> Names)
 {
     public static implicit operator NamespaceQuery(ImmutableArray<string> names)
         => new(names);
+
+    public bool IsDefault => Names.IsDefaultOrEmpty;
 }
 
 internal interface ISymbolSearchService : IWorkspaceService
