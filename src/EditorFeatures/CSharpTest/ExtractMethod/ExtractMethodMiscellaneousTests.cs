@@ -24,7 +24,7 @@ using static CSharpSyntaxTokens;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-public sealed class ExtractMethodMiscelleneousTests
+public sealed class ExtractMethodMiscellaneousTests
 {
     [Fact]
     public void ServiceTest1()
