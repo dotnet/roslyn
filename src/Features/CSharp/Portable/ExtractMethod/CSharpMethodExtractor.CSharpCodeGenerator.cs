@@ -342,7 +342,9 @@ internal sealed partial class CSharpMethodExtractor
                 // When we modify the declaration to an initialization we have to preserve the leading trivia
                 var firstVariableToAttachTrivia = true;
 
-                var isUsingDeclarationAsReturnValue = this.AnalyzerResult.HasVariableToUseAsReturnValue &&
+                var isUsingDeclarationAsReturnValue =
+                    this.AnalyzerResult.HasVariableToUseAsReturnValue &&
+                    this.AnalyzerResult.VariableToUseAsReturnValue.GetOriginalIdentifierToken(cancellationToken) != default &&
                     this.AnalyzerResult.VariableToUseAsReturnValue.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
 
                 // go through each var decls in decl statement, and create new assignment if
@@ -398,9 +400,14 @@ internal sealed partial class CSharpMethodExtractor
                 // return survived var decls
                 if (variables.Count > 0)
                 {
-                    result.Add(declarationStatement
-                        .WithDeclaration(declarationStatement.Declaration.WithVariables([.. variables]))
-                        .WithSemicolonToken(declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
+                    result.Add(LocalDeclarationStatement(
+                        isUsingDeclarationAsReturnValue ? default : declarationStatement.AwaitKeyword,
+                        isUsingDeclarationAsReturnValue ? default : declarationStatement.UsingKeyword,
+                        declarationStatement.Modifiers,
+                        VariableDeclaration(
+                            declarationStatement.Declaration.Type,
+                            [.. variables]),
+                        declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
                     triviaList.Clear();
                 }
 
