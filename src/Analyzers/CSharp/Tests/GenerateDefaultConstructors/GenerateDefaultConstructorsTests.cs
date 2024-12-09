@@ -25,12 +25,8 @@ using VerifyRefactoring = CSharpCodeRefactoringVerifier<
 #endif
 
 [UseExportProvider]
-<<<<<<< HEAD
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-public class GenerateDefaultConstructorsTests
-=======
 public sealed class GenerateDefaultConstructorsTests
->>>>>>> upstream/main
 {
 #if !CODE_STYLE
     private static async Task TestRefactoringAsync(
