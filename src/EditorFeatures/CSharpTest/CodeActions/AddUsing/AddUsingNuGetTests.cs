@@ -29,7 +29,7 @@ using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 public class AddUsingNuGetTests : AbstractAddUsingTests
 {
     private static readonly ImmutableArray<PackageSource> NugetPackageSources =
-        ImmutableArray.Create(new PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org/"));
+        [new PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org/")];
 
     protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
     {

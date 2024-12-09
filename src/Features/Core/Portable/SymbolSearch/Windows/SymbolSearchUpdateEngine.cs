@@ -74,51 +74,102 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
         string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
+        return FindPackageOrReferenceAssembliesAsync(
+            source, typeQuery, namespaceQuery,
+            packageNameMatches: packageName => packageName != MicrosoftAssemblyReferencesName,
+            createResult: (database, symbol) =>
+            {
+                var version = database.GetPackageVersion(symbol.Index).ToString();
+
+                return new PackageResult(
+                    packageName: symbol.PackageName.ToString(),
+                    rank: GetRank(symbol),
+                    typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
+                    version: string.IsNullOrWhiteSpace(version) ? null : version,
+                    containingNamespaceNames: GetFullName(
+                        namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName));
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+    {
+        // Our reference assembly data is stored in the nuget.org DB.
+        return FindPackageOrReferenceAssembliesAsync(
+            PackageSourceHelper.NugetOrgSourceName,
+            typeQuery, namespaceQuery,
+            // Only look at reference assembly results.
+            packageNameMatches: packageName => packageName == MicrosoftAssemblyReferencesName,
+            createResult: (_, symbol) => new ReferenceAssemblyResult(
+                symbol.AssemblyName.ToString(),
+                typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
+                containingNamespaceNames: GetFullName(
+                    namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName)),
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<TResult>> FindPackageOrReferenceAssembliesAsync<TResult>(
+        string source,
+        TypeQuery typeQuery,
+        NamespaceQuery namespaceQuery,
+        Func<string, bool> packageNameMatches,
+        Func<AddReferenceDatabase, Symbol, TResult> createResult,
+        CancellationToken cancellationToken)
+    {
+        // Check if we don't have a database to search.  
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
-        {
-            // Don't have a database to search.  
-            return ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
-        }
+            return ValueTaskFactory.FromResult(ImmutableArray<TResult>.Empty);
 
         var database = databaseWrapper.Database;
-        var searchName = GetSearchName(typeQuery, namespaceQuery);
+
+        var searchName = namespaceQuery.IsDefault ? typeQuery.Name : namespaceQuery.Names.Last();
+
+        // never find anything named 'var'.
         if (searchName == "var")
-        {
-            // never find anything named 'var'.
-            return ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
-        }
+            return ValueTaskFactory.FromResult(ImmutableArray<TResult>.Empty);
 
         var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
         var symbols = new PartialArray<Symbol>(100);
 
-        using var _ = ArrayBuilder<PackageResult>.GetInstance(out var result);
+        using var results = TemporaryArray<TResult>.Empty;
         if (query.TryFindMembers(database, ref symbols))
         {
             foreach (var symbol in FilterToViableSymbols(symbols, namespaceQuery))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Ignore any reference assembly results.
-                if (symbol.PackageName.ToString() != MicrosoftAssemblyReferencesName)
-                {
-                    var version = database.GetPackageVersion(symbol.Index).ToString();
-
-                    result.Add(new PackageResult(
-                        packageName: symbol.PackageName.ToString(),
-                        rank: GetRank(symbol),
-                        typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
-                        version: string.IsNullOrWhiteSpace(version) ? null : version,
-                        containingNamespaceNames: GetFullName(
-                            namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName)));
-                }
+                if (packageNameMatches(symbol.PackageName.ToString()))
+                    results.Add(createResult(database, symbol));
             }
         }
 
-        return ValueTaskFactory.FromResult(result.ToImmutableAndClear());
-    }
+        return ValueTaskFactory.FromResult(results.ToImmutableAndClear());
 
-    private string GetSearchName(TypeQuery typeQuery, NamespaceQuery namespaceQuery)
-        => namespaceQuery.Names is [.., var lastNamespaceName] ? lastNamespaceName : typeQuery.Name;
+        static IEnumerable<Symbol> FilterToViableSymbols(
+            PartialArray<Symbol> symbols, NamespaceQuery namespaceQuery)
+        {
+            foreach (var symbol in symbols)
+            {
+                if (!namespaceQuery.IsDefault)
+                {
+                    // Searching for a namespace.  Only return a result if the full namespace name matches.
+                    if (symbol.Type == SymbolType.Namespace &&
+                        GetFullName(symbol.FullName).SequenceEqual(namespaceQuery.Names))
+                    {
+                        yield return symbol;
+                    }
+                }
+                else
+                {
+                    // Don't return nested types.  Currently their value does not seem worth it given all the extra stuff
+                    // we'd have to plumb through.  Namely going down the "using static" code path and whatnot.
+                    if (IsType(symbol) && !IsType(symbol.Parent()))
+                        yield return symbol;
+                }
+            }
+        }
+    }
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
         string source, string assemblyName, CancellationToken cancellationToken)
@@ -159,73 +210,6 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
 
         return ValueTaskFactory.FromResult(result.ToImmutableAndClear());
-    }
-
-    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
-    {
-        // Our reference assembly data is stored in the nuget.org DB.
-        if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))
-        {
-            // Don't have a database to search.  
-            return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
-        }
-
-        var database = databaseWrapper.Database;
-        var searchName = GetSearchName(typeQuery, namespaceQuery);
-        if (searchName == "var")
-        {
-            // never find anything named 'var'.
-            return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
-        }
-
-        var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
-        var symbols = new PartialArray<Symbol>(100);
-
-        var results = ArrayBuilder<ReferenceAssemblyResult>.GetInstance();
-        if (query.TryFindMembers(database, ref symbols))
-        {
-            foreach (var symbol in FilterToViableSymbols(symbols, namespaceQuery))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Only look at reference assembly results.
-                if (symbol.PackageName.ToString() == MicrosoftAssemblyReferencesName)
-                {
-                    results.Add(new ReferenceAssemblyResult(
-                        symbol.AssemblyName.ToString(),
-                        typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
-                        containingNamespaceNames: GetFullName(
-                            namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName)));
-                }
-            }
-        }
-
-        return ValueTaskFactory.FromResult(results.ToImmutableAndFree());
-    }
-
-    private static IEnumerable<Symbol> FilterToViableSymbols(
-        PartialArray<Symbol> symbols, NamespaceQuery namespaceQuery)
-    {
-        foreach (var symbol in symbols)
-        {
-            if (!namespaceQuery.IsDefault)
-            {
-                // Searching for a namespace.  Only return a result if the full namespace name matches.
-                if (symbol.Type == SymbolType.Namespace &&
-                    GetFullName(symbol.FullName).SequenceEqual(namespaceQuery.Names))
-                {
-                    yield return symbol;
-                }
-            }
-            else
-            {
-                // Don't return nested types.  Currently their value does not seem worth it given all the extra stuff
-                // we'd have to plumb through.  Namely going down the "using static" code path and whatnot.
-                if (IsType(symbol) && !IsType(symbol.Parent()))
-                    yield return symbol;
-            }
-        }
     }
 
     private static int GetRank(Symbol symbol)
