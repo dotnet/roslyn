@@ -12428,10 +12428,61 @@ $@"namespace ClassLibrary9
                     NewMethod();
                 }
 
-                private void NewMethod()
+                private static void NewMethod()
                 {
                     using var g = new Goo();
                     g.M2();
+                }
+            
+                public void Dispose()
+                {
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration2()
+    {
+        var code = """"
+            using System;
+
+            public class Goo : IDisposable
+            {
+                void M2() { }
+
+                void M()
+                {
+                    [|using var g = new Goo();
+                    g.M2();|]
+                    g.M2();
+                }
+
+                public void Dispose()
+                {
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            
+            public class Goo : IDisposable
+            {
+                void M2() { }
+            
+                void M()
+                {
+                    using Goo g = NewMethod();
+                    g.M2();
+                }
+
+                private static Goo NewMethod()
+                {
+                    var g = new Goo();
+                    g.M2();
+                    return g;
                 }
             
                 public void Dispose()

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -65,6 +66,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// </summary>
         protected abstract VariableInfo CreateFromSymbol(Compilation compilation, ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
 
+        protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
+            => readOutsideMap.Contains(symbol);
+
         /// <summary>
         /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
         /// </summary>
@@ -121,7 +125,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// get type of the range variable symbol
         /// </summary>
-        protected abstract ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
+        protected abstract ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
 
         /// <summary>
         /// check whether the selection is at the placed where read-only field is allowed to be extracted out
@@ -507,7 +511,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 var variableDeclared = variableDeclaredMap.Contains(symbol);
                 var readInside = readInsideMap.Contains(symbol);
                 var writtenInside = writtenInsideMap.Contains(symbol);
-                var readOutside = readOutsideMap.Contains(symbol);
+                var readOutside = IsReadOutside(symbol, readOutsideMap);
                 var writtenOutside = writtenOutsideMap.Contains(symbol);
                 var unsafeAddressTaken = unsafeAddressTakenMap.Contains(symbol);
 
@@ -661,7 +665,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return type.Equals(SelectionResult.GetContainingScopeType());
         }
 
-        protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+        protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
                 ILocalSymbol local => local.Type,
