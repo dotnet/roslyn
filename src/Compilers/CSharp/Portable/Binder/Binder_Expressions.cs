@@ -5278,8 +5278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindKeyValuePair(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
-            // PROTOTYPE: Test when key/value are not r-values.
-            // PROTOTYPE: Test when key/value do not have types.
             var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
             var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
             return new BoundKeyValuePairElement(syntax, key, value);

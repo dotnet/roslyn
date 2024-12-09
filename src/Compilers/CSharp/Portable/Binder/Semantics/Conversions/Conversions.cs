@@ -218,7 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKeyValuePairElement keyValuePairElement:
                         {
-                            // PROTOTYPE: Check language version.
                             if (usesKeyValuePairs)
                             {
                                 var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType.Type, ref useSiteInfo);
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Conversion.NoConversion;
             }
-            // PROTOTYPE: This should be conversion from type rather than conversion
+            // This should be conversion from type rather than conversion
             // from expression. The difference is in handling of dynamic.
             return ClassifyImplicitConversionFromExpression(
                 new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),

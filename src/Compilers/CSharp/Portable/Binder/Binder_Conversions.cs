@@ -873,6 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                     }
                     break;
+
+                case CollectionExpressionTypeKind.DictionaryInterface:
+                    MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax);
+                    break;
             }
 
             var elements = node.Elements;
@@ -928,12 +932,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
+                // Verify the existence of the well-known members that may be used in lowering, even
+                // though not all will be used for any particular collection expression. Checking all
+                // gives a consistent behavior, regardless of collection expression elements.
+                if (collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface)
+                {
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__Add, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
+                }
+                else if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                     node.HasSpreadElements(out _, out _))
                 {
-                    // Verify the existence of the List<T> members that may be used in lowering, even
-                    // though not all will be used for any particular collection expression. Checking all
-                    // gives a consistent behavior, regardless of collection expression elements.
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);

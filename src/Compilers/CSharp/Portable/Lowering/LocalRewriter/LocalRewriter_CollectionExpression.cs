@@ -464,8 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var collectionType = (NamedTypeSymbol)node.Type;
             var typeArguments = collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var elements = node.Elements;
-            // PROTOTYPE: Should we create a custom interface implementation,
-            // at least to enforce immutability for IReadOnlyDictionary<K, V>?
+            // PROTOTYPE: Create a custom interface implementation for IReadOnlyDictionary<K, V> to enforce immutability?
             var collection = CreateAndPopulateDictionary(node, typeArguments, elements);
             return _factory.Convert(collectionType, collection);
         }
@@ -1189,8 +1188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
-            // PROTOTYPE: Use RewriteCollectionExpressionElementsIntoTemporaries().
-
             // Dictionary<K, V> dictionary = new();
             var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
             BoundObjectCreationExpression rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
@@ -1202,11 +1199,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             sideEffects.Add(assignmentToTemp);
 
             var addMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_Dictionary_KV__Add).AsMember(collectionType);
-            // PROTOTYPE: Use AddCollectionExpressionElements()?
             for (int i = 0; i < elements.Length; i++)
             {
                 var element = elements[i];
-                // PROTOTYPE: Use RewriteCollectionExpressionElementExpression()?
                 switch (element)
                 {
                     case BoundKeyValuePairElement keyValuePairElement:
@@ -1274,7 +1269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal expressionTemp = _factory.StoreToTemp(VisitExpression(expression), out assignmentToTemp);
             localsBuilder.Add(expressionTemp);
             sideEffects.Add(assignmentToTemp);
-            // PROTOTYPE: Test with missing members. Presumably, these members should be checked in initial binding.
             var getKeyMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key)).AsMember(sourceType);
             var getValueMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value)).AsMember(sourceType);
             return (_factory.Convert(addMethod.Parameters[0].Type, _factory.Call(expressionTemp, getKeyMethod)),

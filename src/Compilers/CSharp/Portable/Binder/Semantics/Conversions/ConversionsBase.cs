@@ -1714,7 +1714,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)) ||
                     ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))))
                 {
-                    // PROTOTYPE: Test with missing KeyValuePair<,>.
                     elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV).
                         Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
                     return true;
