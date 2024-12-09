@@ -908,8 +908,8 @@ This version used in: {2}</value>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
   </data>
-  <data name="Generate_constructor" xml:space="preserve">
-    <value>Generate constructor...</value>
+  <data name="Generate_constructor_from_members" xml:space="preserve">
+    <value>Generate constructor from members...</value>
   </data>
   <data name="Pick_members_to_be_used_as_constructor_parameters" xml:space="preserve">
     <value>Pick members to be used as constructor parameters</value>

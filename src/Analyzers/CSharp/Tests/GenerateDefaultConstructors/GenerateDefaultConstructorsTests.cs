@@ -5,9 +5,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.GenerateConstructors;
 using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -21,12 +21,16 @@ using VerifyCodeFix = CSharpCodeFixVerifier<
 
 #if !CODE_STYLE
 using VerifyRefactoring = CSharpCodeRefactoringVerifier<
-    GenerateDefaultConstructorsCodeRefactoringProvider>;
+    CSharpGenerateConstructorsCodeRefactoringProvider>;
 #endif
 
 [UseExportProvider]
+<<<<<<< HEAD
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
 public class GenerateDefaultConstructorsTests
+=======
+public sealed class GenerateDefaultConstructorsTests
+>>>>>>> upstream/main
 {
 #if !CODE_STYLE
     private static async Task TestRefactoringAsync(
@@ -1625,7 +1629,8 @@ index: 2);
                 {
                 }
             }
-            """);
+            """,
+            index: 1);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40586")]

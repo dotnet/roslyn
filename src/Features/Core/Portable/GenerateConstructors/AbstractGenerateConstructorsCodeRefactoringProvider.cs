@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Features.Intents;
+using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -19,41 +20,42 @@ using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
+namespace Microsoft.CodeAnalysis.GenerateConstructors;
+
+using static GenerateFromMembersHelpers;
 
 /// <summary>
-/// This <see cref="CodeRefactoringProvider"/> is responsible for allowing a user to pick a 
-/// set of members from a class or struct, and then generate a constructor for that takes in
-/// matching parameters and assigns them to those members.  The members can be picked using 
-/// a actual selection in the editor, or they can be picked using a picker control that will
-/// then display all the viable members and allow the user to pick which ones they want to
-/// use.
-/// 
-/// Importantly, this type is not responsible for generating constructors when the user types
-/// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
-/// in a derived type that delegate to a base type. Both of those are handled by other services.
+/// This <see cref="CodeRefactoringProvider"/> is responsible for allowing a user to pick a set of members from a class
+/// or struct, and then generate a constructor for that takes in matching parameters and assigns them to those members.
+/// The members can be picked using a actual selection in the editor, or they can be picked using a picker control that
+/// will then display all the viable members and allow the user to pick which ones they want to use.
+/// <para/>
+/// This <see cref="CodeRefactoringProvider"/> also gives users a way to generate constructors for a derived type that
+/// delegate to a base type.  For all accessible constructors in the base type, the user will be offered to create a
+/// constructor in the derived type with the same signature if they don't already have one.  This way, a user can
+/// override a type and easily create all the forwarding constructors.
+/// <para/>
+/// Importantly, this type is not responsible for generating constructors when the user types something like "new
+/// MyType(x, y, z)".
 /// </summary>
-internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
+/// <remarks>
+/// For testing purposes only.
+/// </remarks>
+internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
+    : CodeRefactoringProvider, IIntentProvider
 {
     public record GenerateConstructorIntentData(Accessibility? Accessibility);
 
     private const string AddNullChecksId = nameof(AddNullChecksId);
 
-    private readonly IPickMembersService? _pickMembersService_forTesting;
+    private readonly IPickMembersService? _pickMembersService_forTesting = pickMembersService_forTesting;
 
-    protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
+    protected AbstractGenerateConstructorsCodeRefactoringProvider() : this(null)
     {
     }
-
-    /// <summary>
-    /// For testing purposes only.
-    /// </summary>
-    protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
-        => _pickMembersService_forTesting = pickMembersService_forTesting;
 
     protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
     protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
@@ -153,26 +155,35 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         Accessibility? desiredAccessibility,
         CancellationToken cancellationToken)
     {
-        if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-        {
+        // TODO: https://github.com/dotnet/roslyn/issues/5778. Not supported in REPL for now.
+        if (document.Project.IsSubmission)
             return;
-        }
 
+        if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
+            return;
+
+        // First, see if we can offer a specific constructor based on what the user has selected, or has their caret on.
         var actions = await GenerateConstructorFromMembersAsync(
             document, textSpan, addNullChecks: false, desiredAccessibility, cancellationToken).ConfigureAwait(false);
-        if (!actions.IsDefault)
+        if (!actions.IsDefaultOrEmpty)
         {
             registerMultipleActions(actions);
         }
-
-        if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
+        else if (textSpan.IsEmpty)
         {
+            // If that produced nothing, and the user hasn't selected anything explicitly, then also offer the option to
+            // generate a constructor with a dialog.
             var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, desiredAccessibility, cancellationToken).ConfigureAwait(false);
-            if (nonSelectionAction != null)
-            {
-                registerSingleAction(nonSelectionAction.Value.CodeAction, nonSelectionAction.Value.ApplicableToSpan);
-            }
+            if (nonSelectionAction is var (codeAction, applicableToSpan))
+                registerSingleAction(codeAction, applicableToSpan);
         }
+
+        // Finally, offer to generate default constructors that delegate to the base type if any are missing.
+        var defaultConstructorService = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
+        var defaultConstructorActions = await defaultConstructorService.GenerateDefaultConstructorsAsync(
+            document, textSpan, forRefactoring: true, cancellationToken).ConfigureAwait(false);
+
+        registerMultipleActions(defaultConstructorActions);
     }
 
     private async Task<(CodeAction CodeAction, TextSpan ApplicableToSpan)?> HandleNonSelectionAsync(
