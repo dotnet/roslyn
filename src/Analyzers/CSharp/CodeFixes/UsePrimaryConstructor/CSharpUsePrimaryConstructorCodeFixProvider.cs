@@ -207,7 +207,7 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
             {
                 var currentIndex = i;
                 if (s_commentFollowedByBlankLine.TryMatch(leadingTrivia, ref currentIndex))
-                    return leadingTrivia.Take(currentIndex).ToImmutableArray();
+                    return leadingTrivia[..currentIndex];
             }
 
             return [];
