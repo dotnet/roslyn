@@ -12522,9 +12522,45 @@ $@"namespace ClassLibrary9
 
                 private static void NewMethod()
                 {
-                using var x1 = new System.IO.MemoryStream();
+                    using var x1 = new System.IO.MemoryStream();
                     using var x2 = new System.IO.MemoryStream();
-                    using var x3 = new System.IO.MemoryStream()
+                    using var x3 = new System.IO.MemoryStream();
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration4()
+    {
+        var code = """"
+            using System.Collections.Generic;
+
+            class C
+            {
+                bool M(IEnumerable<int> p)
+                {
+                    [|using var x = p.GetEnumerator();
+                    return x.MoveNext();|]
+                }
+            }
+            """";
+        var expected = """"
+            using System.Collections.Generic;
+
+            class C
+            {
+                bool M(IEnumerable<int> p)
+                {
+                    return NewMethod(p);
+                }
+
+                private static bool NewMethod(IEnumerable<int> p)
+                {
+                    using var x = p.GetEnumerator();
+                    return x.MoveNext();
                 }
             }
             """";
