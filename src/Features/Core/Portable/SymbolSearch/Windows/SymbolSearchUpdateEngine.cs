@@ -76,6 +76,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     {
         return FindPackageOrReferenceAssembliesAsync(
             source, typeQuery, namespaceQuery,
+            // Ignore any reference assembly results.
             packageNameMatches: packageName => packageName != MicrosoftAssemblyReferencesName,
             createResult: (database, symbol) =>
             {
