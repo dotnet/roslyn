@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -56,7 +55,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     protected abstract SyntaxTrivia Whitespace(string text);
 
     protected abstract TStatementSyntax GetNewStatement(
-        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, IndentationOptions indentationOptions,
+        TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, SyntaxFormattingOptions options,
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
@@ -85,21 +84,16 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         var firstToken = objectCreation.GetFirstToken();
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
             this.SyntaxFormatting, cancellationToken).ConfigureAwait(false);
-        var indentationOptions = new IndentationOptions(formattingOptions);
 
-        var newStatement = GetNewStatement(statement, objectCreation, indentationOptions, matches).WithAdditionalAnnotations(Formatter.Annotation);
+        var newStatement = GetNewStatement(statement, objectCreation, formattingOptions, matches).WithAdditionalAnnotations(Formatter.Annotation);
 
         editor.ReplaceNode(statement, newStatement);
         foreach (var match in matches)
             editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 
-    protected TExpressionSyntax Indent(TExpressionSyntax expression, IndentationOptions indentationOptions)
+    protected TExpressionSyntax Indent(TExpressionSyntax expression, SyntaxFormattingOptions options)
     {
-        var insertionText = indentationOptions.FormattingOptions.UseTabs
-            ? "\t"
-            : new string(' ', indentationOptions.FormattingOptions.TabSize);
-
         var endOfLineKind = this.SyntaxKinds.EndOfLineTrivia;
         var whitespaceTriviaKind = this.SyntaxKinds.WhitespaceTrivia;
         return expression.ReplaceTokens(
@@ -112,7 +106,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
                     // This is a token on its own line.  With whitespace at the start of the line.
                     var leadingTrivia = currentToken.LeadingTrivia.Replace(
                         whitespace1,
-                        Whitespace(insertionText + whitespace1.ToString()));
+                        IncreaseIndent(whitespace1, options));
 
                     currentToken = currentToken.WithLeadingTrivia(leadingTrivia);
                 }
@@ -124,12 +118,29 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
                     // This is a VB line continuation case (`_`), with indentation before the next token
                     var trailingTrivia = currentToken.TrailingTrivia.Replace(
                         whitespace2,
-                        Whitespace(insertionText + whitespace2.ToString()));
+                        IncreaseIndent(whitespace2, options));
 
                     currentToken = currentToken.WithTrailingTrivia(trailingTrivia);
                 }
 
                 return currentToken;
             });
+    }
+
+    private SyntaxTrivia IncreaseIndent(SyntaxTrivia whitespaceTrivia, SyntaxFormattingOptions options)
+    {
+        // Convert the existing whitespace to determine which column it corresponds to in spaces.  
+        var existingWhitespace = whitespaceTrivia.ToString();
+        var spaceCount = existingWhitespace.ConvertTabToSpace(
+            options.TabSize,
+            initialColumn: 0,
+            endPosition: existingWhitespace.Length);
+
+        // Then add the desired indentation spaces to it.
+        var desiredSpaceCount = spaceCount + options.IndentationSize;
+
+        // Now convert back to a string with the appropriate tab/space configuration.
+        var desiredWhitespace = desiredSpaceCount.CreateIndentationString(options.UseTabs, options.TabSize);
+        return Whitespace(desiredWhitespace);
     }
 }

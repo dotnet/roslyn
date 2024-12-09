@@ -49,11 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function GetNewStatement(
                 statement As StatementSyntax,
                 objectCreation As ObjectCreationExpressionSyntax,
-                indentationOptions As IndentationOptions,
+                options As SyntaxFormattingOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As StatementSyntax
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, indentationOptions, matches))
+                GetNewObjectCreation(objectCreation, options, matches))
 
             Dim totalTrivia = ArrayBuilder(Of SyntaxTrivia).GetInstance()
             totalTrivia.AddRange(statement.GetLeadingTrivia())
@@ -73,18 +73,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
         Private Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                indentationOptions As IndentationOptions,
+                options As SyntaxFormattingOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
                 SyntaxFactory.ObjectMemberInitializer(
-                    CreateFieldInitializers(objectCreation, indentationOptions, matches)))
+                    CreateFieldInitializers(objectCreation, options, matches)))
         End Function
 
         Private Function CreateFieldInitializers(
                 objectCreation As ObjectCreationExpressionSyntax,
-                indentationOptions As IndentationOptions,
+                options As SyntaxFormattingOptions,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
 
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             For i = 0 To matches.Length - 1
                 Dim match = matches(i)
 
-                Dim rightValue = Indent(match.Initializer, indentationOptions)
+                Dim rightValue = Indent(match.Initializer, options)
                 If i < matches.Length - 1 Then
                     rightValue = rightValue.WithoutTrailingTrivia()
                 End If

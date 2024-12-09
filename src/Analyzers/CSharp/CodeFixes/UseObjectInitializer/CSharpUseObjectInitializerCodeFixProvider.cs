@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
@@ -50,27 +49,27 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
     protected override StatementSyntax GetNewStatement(
         StatementSyntax statement,
         BaseObjectCreationExpressionSyntax objectCreation,
-        IndentationOptions indentationOptions,
+        SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         return statement.ReplaceNode(
             objectCreation,
-            GetNewObjectCreation(objectCreation, indentationOptions, matches));
+            GetNewObjectCreation(objectCreation, options, matches));
     }
 
     private BaseObjectCreationExpressionSyntax GetNewObjectCreation(
         BaseObjectCreationExpressionSyntax objectCreation,
-        IndentationOptions indentationOptions,
+        SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         return UseInitializerHelpers.GetNewObjectCreation(
             objectCreation,
-            CreateExpressions(objectCreation, indentationOptions, matches));
+            CreateExpressions(objectCreation, options, matches));
     }
 
     private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
         BaseObjectCreationExpressionSyntax objectCreation,
-        IndentationOptions indentationOptions,
+        SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
@@ -89,7 +88,7 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
 
             var newAssignment = assignment
                 .WithLeft(match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia))
-                .WithRight(Indent(assignment.Right, indentationOptions));
+                .WithRight(Indent(assignment.Right, options));
 
             if (i < matches.Length - 1)
             {
