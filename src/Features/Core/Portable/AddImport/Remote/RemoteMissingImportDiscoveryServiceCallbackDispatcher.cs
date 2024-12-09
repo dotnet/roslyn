@@ -14,14 +14,13 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 namespace Microsoft.CodeAnalysis.AddImport;
 
 /// <summary>
-/// Used to supply the OOP server a callback that it can use to search for ReferenceAssemblies or
-/// nuget packages.  We can't necessarily do that search directly in the OOP server as our 
-/// 'SymbolSearchEngine' may actually be running in a *different* process (there is no guarantee
-/// that all remote work happens in the same process).  
+/// Used to supply the OOP server a callback that it can use to search for ReferenceAssemblies or nuget packages.  We
+/// can't necessarily do that search directly in the OOP server as our 'SymbolSearchEngine' may actually be running in a
+/// *different* process (there is no guarantee that all remote work happens in the same process).  
 /// 
-/// This does mean, currently, that when we call over to OOP to do a search, it will bounce
-/// back to VS, which will then bounce back out to OOP to perform the Nuget/ReferenceAssembly
-/// portion of the search.  Ideally we could keep this all OOP.
+/// This does mean, currently, that when we call over to OOP to do a search, it will bounce back to VS, which will then
+/// bounce back out to OOP to perform the Nuget/ReferenceAssembly portion of the search.  Ideally we could keep this all
+/// OOP.
 /// </summary>
 [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteMissingImportDiscoveryService)), Shared]
 [method: ImportingConstructor]
