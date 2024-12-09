@@ -344,7 +344,7 @@ class Program
     IL_0051:  ldc.i4.m1
     IL_0052:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0057:  ldarg.0
-    IL_0058:  ldc.i4.s   -3
+    IL_0058:  ldc.i4.s   -4
     IL_005a:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_005f:  ldarg.0
     IL_0060:  ldc.i4.1
@@ -356,10 +356,10 @@ class Program
     IL_006e:  stloc.0
     IL_006f:  leave      IL_012d
     IL_0074:  ldarg.0
-    IL_0075:  ldc.i4.s   -3
+    IL_0075:  ldc.i4.s   -4
     IL_0077:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_007c:  ldarg.0
-    IL_007d:  ldc.i4.s   -4
+    IL_007d:  ldc.i4.s   -5
     IL_007f:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0084:  ldarg.0
     IL_0085:  ldc.i4.2
@@ -371,7 +371,7 @@ class Program
     IL_0093:  stloc.0
     IL_0094:  leave      IL_012d
     IL_0099:  ldarg.0
-    IL_009a:  ldc.i4.s   -4
+    IL_009a:  ldc.i4.s   -5
     IL_009c:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00a1:  ldarg.0
     IL_00a2:  call       ""void Program.<Int0>d__0.<>m__Finally2()""
@@ -385,10 +385,10 @@ class Program
     IL_00b6:  stloc.0
     IL_00b7:  leave.s    IL_012d
     IL_00b9:  ldarg.0
-    IL_00ba:  ldc.i4.s   -3
+    IL_00ba:  ldc.i4.s   -4
     IL_00bc:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00c1:  ldarg.0
-    IL_00c2:  ldc.i4.s   -5
+    IL_00c2:  ldc.i4.s   -6
     IL_00c4:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00c9:  ldarg.0
     IL_00ca:  ldc.i4.4
@@ -400,7 +400,7 @@ class Program
     IL_00d8:  stloc.0
     IL_00d9:  leave.s    IL_012d
     IL_00db:  ldarg.0
-    IL_00dc:  ldc.i4.s   -5
+    IL_00dc:  ldc.i4.s   -6
     IL_00de:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00e3:  ldarg.0
     IL_00e4:  call       ""void Program.<Int0>d__0.<>m__Finally3()""
@@ -414,7 +414,7 @@ class Program
     IL_00f8:  stloc.0
     IL_00f9:  leave.s    IL_012d
     IL_00fb:  ldarg.0
-    IL_00fc:  ldc.i4.s   -3
+    IL_00fc:  ldc.i4.s   -4
     IL_00fe:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0103:  ldarg.0
     IL_0104:  call       ""void Program.<Int0>d__0.<>m__Finally1()""
@@ -453,7 +453,7 @@ class Program
   IL_0001:  ldfld      ""int Program.<Int0>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -5
+  IL_0008:  ldc.i4.s   -6
   IL_000a:  sub
   IL_000b:  ldc.i4.2
   IL_000c:  ble.un.s   IL_0014
@@ -466,13 +466,13 @@ class Program
   .try
   {
     IL_0015:  ldloc.0
-    IL_0016:  ldc.i4.s   -4
+    IL_0016:  ldc.i4.s   -5
     IL_0018:  bgt.s      IL_0026
     IL_001a:  ldloc.0
-    IL_001b:  ldc.i4.s   -5
+    IL_001b:  ldc.i4.s   -6
     IL_001d:  beq.s      IL_003a
     IL_001f:  ldloc.0
-    IL_0020:  ldc.i4.s   -4
+    IL_0020:  ldc.i4.s   -5
     IL_0022:  beq.s      IL_0030
     IL_0024:  leave.s    IL_004b
     IL_0026:  ldloc.0
@@ -512,7 +512,7 @@ class Program
     IL_004a:  endfinally
   }
   IL_004b:  ldarg.0
-  IL_004c:  ldc.i4.s   -2
+  IL_004c:  ldc.i4.s   -3
   IL_004e:  stfld      ""int Program.<Int0>d__0.<>1__state""
   IL_0053:  ret
 }
@@ -1363,7 +1363,7 @@ class Test
     IL_0020:  callvirt   ""System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()""
     IL_0025:  stfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__0<T>.<>7__wrap1""
     IL_002a:  ldarg.0
-    IL_002b:  ldc.i4.s   -3
+    IL_002b:  ldc.i4.s   -4
     IL_002d:  stfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_0032:  br.s       IL_005a
     IL_0034:  ldarg.0
@@ -1380,7 +1380,7 @@ class Test
     IL_004f:  stloc.0
     IL_0050:  leave.s    IL_007f
     IL_0052:  ldarg.0
-    IL_0053:  ldc.i4.s   -3
+    IL_0053:  ldc.i4.s   -4
     IL_0055:  stfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_005a:  ldarg.0
     IL_005b:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__0<T>.<>7__wrap1""
@@ -2265,7 +2265,7 @@ class Program
     IL_001e:  ldfld      ""System.IDisposable C<T>.<F>d__0.x""
     IL_0023:  stfld      ""System.IDisposable C<T>.<F>d__0.<>7__wrap1""
     IL_0028:  ldarg.0
-    IL_0029:  ldc.i4.s   -3
+    IL_0029:  ldc.i4.s   -4
     IL_002b:  stfld      ""int C<T>.<F>d__0.<>1__state""
     IL_0030:  ldarg.0
     IL_0031:  ldarg.0
@@ -2291,7 +2291,7 @@ class Program
     IL_0066:  stloc.0
     IL_0067:  leave.s    IL_00ae
     IL_0069:  ldarg.0
-    IL_006a:  ldc.i4.s   -3
+    IL_006a:  ldc.i4.s   -4
     IL_006c:  stfld      ""int C<T>.<F>d__0.<>1__state""
     IL_0071:  ldarg.0
     IL_0072:  ldarg.0
@@ -3032,7 +3032,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -3071,7 +3071,7 @@ class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -3111,7 +3111,7 @@ class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -3152,7 +3152,7 @@ class C
   IL_0001:  ldnull
   IL_0002:  stfld      "int[] C.<Produce>d__0.<values2>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -3208,7 +3208,7 @@ public class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<M>d__0.<s>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<M>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -3264,7 +3264,7 @@ public class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<M>d__0.<s>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<M>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -3339,7 +3339,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -3372,7 +3372,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -3412,7 +3412,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -3453,7 +3453,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<Produce>d__2.<>1__state"
   IL_0008:  ret
 }
@@ -3500,7 +3500,7 @@ class C
   IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  beq.s      IL_0010
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
@@ -3520,7 +3520,7 @@ class C
   IL_001b:  ldnull
   IL_001c:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0021:  ldarg.0
-  IL_0022:  ldc.i4.s   -2
+  IL_0022:  ldc.i4.s   -3
   IL_0024:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0029:  ret
 }
@@ -3576,7 +3576,7 @@ class C
   IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  beq.s      IL_0010
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
@@ -3596,7 +3596,7 @@ class C
   IL_001b:  ldnull
   IL_001c:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0021:  ldarg.0
-  IL_0022:  ldc.i4.s   -2
+  IL_0022:  ldc.i4.s   -3
   IL_0024:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0029:  ret
 }
@@ -3723,7 +3723,7 @@ public class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<M>d__0<T>.<>1__state"
   IL_0008:  ret
 }
@@ -3785,7 +3785,7 @@ public class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<M>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -3908,7 +3908,7 @@ class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -3939,7 +3939,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -3993,7 +3993,7 @@ class C
   IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -4
+  IL_0008:  ldc.i4.s   -5
   IL_000a:  sub
   IL_000b:  ldc.i4.1
   IL_000c:  ble.un.s   IL_0012
@@ -4004,7 +4004,7 @@ class C
   .try
   {
     IL_0013:  ldloc.0
-    IL_0014:  ldc.i4.s   -4
+    IL_0014:  ldc.i4.s   -5
     IL_0016:  beq.s      IL_001e
     IL_0018:  ldloc.0
     IL_0019:  ldc.i4.1
@@ -4032,7 +4032,7 @@ class C
   IL_0030:  ldnull
   IL_0031:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0036:  ldarg.0
-  IL_0037:  ldc.i4.s   -2
+  IL_0037:  ldc.i4.s   -3
   IL_0039:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_003e:  ret
 }
@@ -4092,7 +4092,7 @@ public struct Buffer4<T>
   IL_0001:  ldnull
   IL_0002:  stfld      "C Program.<Test>d__1.<>7__wrap2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int Program.<Test>d__1.<>1__state"
   IL_000f:  ret
 }
@@ -4134,7 +4134,7 @@ class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -4253,7 +4253,7 @@ class C<T>
   IL_0001:  ldnull
   IL_0002:  stfld      "C<T>.Node C<T>.<GetEnumerator>d__4.<current>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C<T>.<GetEnumerator>d__4.<>1__state"
   IL_000f:  ret
 }
@@ -4292,7 +4292,7 @@ class C
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
   IL_0008:  ret
 }
@@ -4325,14 +4325,12 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            CompileAndVerify(src2, expectedOutput: "TrueTrue one disposed -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrue one disposed -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
         public void StateAfterMoveNext_DisposeBeforeIteration()
         {
-            // TODO2 add this test to VB
             string src = """
 var enumerator = C.GetEnumerator();
 
@@ -4380,8 +4378,7 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            CompileAndVerify(src2, expectedOutput: "-2 0 disposed -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "-2 0 disposed -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4412,7 +4409,6 @@ class C
 """;
             CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
 
-            // TODO2 is this duplicate?
             // Verify GetEnumerator
             string src2 = """
 using System.Reflection;
@@ -4450,8 +4446,7 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrue -2 False -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrue -3 True -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4493,7 +4488,7 @@ class C
   IL_0001:  ldnull
   IL_0002:  stfld      "string C.<GetEnumerator>d__0.<local>5__2"
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.s   -2
+  IL_0008:  ldc.i4.s   -3
   IL_000a:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
   IL_000f:  ret
 }
@@ -4529,8 +4524,7 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            CompileAndVerify(src2, expectedOutput: "True one disposed disposed2 -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True one disposed disposed2 -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4724,10 +4718,7 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrue -1 disposed -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "TrueTrueTrue -1 disposed -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -4785,7 +4776,7 @@ class C
   IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  beq.s      IL_0010
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
@@ -4802,7 +4793,7 @@ class C
     IL_0019:  endfinally
   }
   IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.s   -2
+  IL_001b:  ldc.i4.s   -3
   IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
   IL_0022:  ret
 }
@@ -5029,10 +5020,7 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "True finally -1 True -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True finally -1 True -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -5100,7 +5088,7 @@ class C
     IL_0013:  ldc.i4.m1
     IL_0014:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
     IL_0019:  ldarg.0
-    IL_001a:  ldc.i4.s   -3
+    IL_001a:  ldc.i4.s   -4
     IL_001c:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
     IL_0021:  ldarg.0
     IL_0022:  ldstr      " one "
@@ -5112,7 +5100,7 @@ class C
     IL_0034:  stloc.0
     IL_0035:  leave.s    IL_0063
     IL_0037:  ldarg.0
-    IL_0038:  ldc.i4.s   -3
+    IL_0038:  ldc.i4.s   -4
     IL_003a:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
     IL_003f:  ldarg.0
     IL_0040:  ldfld      "bool C.<GetEnumerator>d__0.b"
@@ -5146,7 +5134,7 @@ class C
   IL_0001:  ldfld      "int C.<GetEnumerator>d__0.<>1__state"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  beq.s      IL_0010
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
@@ -5163,7 +5151,7 @@ class C
     IL_0019:  endfinally
   }
   IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.s   -2
+  IL_001b:  ldc.i4.s   -3
   IL_001d:  stfld      "int C.<GetEnumerator>d__0.<>1__state"
   IL_0022:  ret
 }
@@ -5205,8 +5193,7 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            CompileAndVerify(src2, expectedOutput: "True finally -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True finally -3 True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
@@ -5246,7 +5233,6 @@ class C
 """;
             CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
 
-            // TODO2 resume here
             // Verify GetEnumerator
             string src2 = """
 using System.Reflection;
@@ -5284,8 +5270,8 @@ class C
     }
 }
 """;
-            // TODO2 bug
-            CompileAndVerify(src2, expectedOutput: "True finally True 2 disposed -2 False").VerifyDiagnostics();
+            CompileAndVerify(src2, expectedOutput: "True finally True 2 disposed -3 True").VerifyDiagnostics();
         }
+        // TODO2 add a test that observes state numbers including those for finalize frames
     }
 }

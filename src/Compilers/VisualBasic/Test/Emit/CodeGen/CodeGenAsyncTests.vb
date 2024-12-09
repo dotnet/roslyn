@@ -14,6 +14,7 @@ Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
+    <CompilerTrait(CompilerFeature.Async)>
     Public Class AsyncTests
         Inherits BasicTestBase
 
