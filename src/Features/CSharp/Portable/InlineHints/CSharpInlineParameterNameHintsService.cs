@@ -31,23 +31,22 @@ internal class CSharpInlineParameterNameHintsService : AbstractInlineParameterNa
          SemanticModel semanticModel,
          ISyntaxFactsService syntaxFacts,
          SyntaxNode node,
-         ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
+         ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
          CancellationToken cancellationToken)
     {
         if (node is BaseArgumentListSyntax argumentList)
         {
-            AddArguments(semanticModel, syntaxFacts, buffer, argumentList, cancellationToken);
+            AddArguments(semanticModel, buffer, argumentList, cancellationToken);
         }
         else if (node is AttributeArgumentListSyntax attributeArgumentList)
         {
-            AddArguments(semanticModel, syntaxFacts, buffer, attributeArgumentList, cancellationToken);
+            AddArguments(semanticModel, buffer, attributeArgumentList, cancellationToken);
         }
     }
 
     private static void AddArguments(
         SemanticModel semanticModel,
-        ISyntaxFactsService syntaxFacts,
-        ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
+        ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
         AttributeArgumentListSyntax argumentList,
         CancellationToken cancellationToken)
     {
@@ -57,15 +56,13 @@ internal class CSharpInlineParameterNameHintsService : AbstractInlineParameterNa
                 continue;
 
             var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-            var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
-            buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
+            buffer.Add((argument.Span.Start, argument, parameter, GetKind(argument.Expression)));
         }
     }
 
     private static void AddArguments(
         SemanticModel semanticModel,
-        ISyntaxFactsService syntaxFacts,
-        ArrayBuilder<(int position, string? identifierArgument, IParameterSymbol? parameter, HintKind kind)> buffer,
+        ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> buffer,
         BaseArgumentListSyntax argumentList,
         CancellationToken cancellationToken)
     {
@@ -75,8 +72,7 @@ internal class CSharpInlineParameterNameHintsService : AbstractInlineParameterNa
                 continue;
 
             var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-            var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
-            buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
+            buffer.Add((argument.Span.Start, argument, parameter, GetKind(argument.Expression)));
         }
     }
 

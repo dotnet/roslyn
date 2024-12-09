@@ -1626,7 +1626,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBag.GetInstance()
 
-                    localBase.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
+                    localBase.CheckAllConstraints(
+                        DeclaringCompilation.LanguageVersion,
+                        location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
 
                     If IsGenericType Then
                         ' Check that generic type does not derive from System.Attribute. 
@@ -1678,7 +1680,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBag.GetInstance()
                     For Each [interface] In localInterfaces
-                        [interface].CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
+                        [interface].CheckAllConstraints(
+                            DeclaringCompilation.LanguageVersion,
+                            location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
                     Next
                 End If
             End If

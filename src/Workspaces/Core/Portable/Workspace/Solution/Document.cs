@@ -487,18 +487,35 @@ public class Document : TextDocument
         return filteredDocumentIds.Remove(this.Id);
     }
 
+    /// <inheritdoc cref="WithFrozenPartialSemantics(bool, CancellationToken)"/>
+    internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        => WithFrozenPartialSemantics(forceFreeze: false, cancellationToken);
+
     /// <summary>
-    /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available at the time,
-    /// assuming a background process is constructing the semantics asynchronously. Repeated calls to this method may return
-    /// documents with increasingly more complete semantics.
+    /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available
+    /// at the time, assuming a background process is constructing the semantics asynchronously. Repeated calls to this
+    /// method may return documents with increasingly more complete semantics.
     /// <para/>
     /// Use this method to gain access to potentially incomplete semantics quickly.
-    /// <para/> Note: this will give back a solution where this <see cref="Document"/>'s project will not run
-    /// generators when getting its compilation.  However, all other projects will still run generators when their
-    /// compilations are requested.
+    /// <para/> Note: this will give back a solution where this <see cref="Document"/>'s project will not run generators
+    /// when getting its compilation.  However, all other projects will still run generators when their compilations are
+    /// requested.
     /// </summary>
-    internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+    /// <param name="forceFreeze">If <see langword="true"/> then a forked document will be returned no matter what. This
+    /// should be used when the caller wants to ensure that further forks of that document will remain frozen and will
+    /// not run generators/skeletons. For example, if it is about to transform the document many times, and is fine with
+    /// the original semantic information they started with.  If <see langword="false"/> then this same document may be
+    /// returned if the compilation for its <see cref="Project"/> was already produced.  In this case, generators and
+    /// skeletons will already have been run, so returning the same instance will be fast when getting semantics.
+    /// However, this does mean that future forks of this instance will continue running generators/skeletons.  This
+    /// should be used for most clients that intend to just query for semantic information and do not intend to make any
+    /// further changes.
+    /// </param>
+    internal virtual Document WithFrozenPartialSemantics(bool forceFreeze, CancellationToken cancellationToken)
     {
+        if (!forceFreeze && this.Project.TryGetCompilation(out _))
+            return this;
+
         var solution = this.Project.Solution;
 
         // only produce doc with frozen semantics if this workspace has support for that, as without

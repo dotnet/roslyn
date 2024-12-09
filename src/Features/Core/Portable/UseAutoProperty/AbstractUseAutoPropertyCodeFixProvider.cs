@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
 using static UseAutoPropertiesHelpers;
 
-internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider, TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression>
+    : CodeFixProvider
+    where TProvider : AbstractUseAutoPropertyCodeFixProvider<TProvider, TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression>
     where TTypeDeclarationSyntax : SyntaxNode
     where TPropertyDeclaration : SyntaxNode
     where TVariableDeclarator : SyntaxNode
@@ -36,7 +38,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseAutoPropertyDiagnosticId];
 
-    public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+    public sealed override FixAllProvider GetFixAllProvider()
+        => new UseAutoPropertyFixAllProvider((TProvider)this);
 
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
@@ -60,6 +63,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var solution = context.Document.Project.Solution;
+
         foreach (var diagnostic in context.Diagnostics)
         {
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
@@ -68,7 +73,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
             context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                     AnalyzersResources.Use_auto_property,
-                    cancellationToken => ProcessResultAsync(context, diagnostic, cancellationToken),
+                    cancellationToken => ProcessResultAsync(solution, solution, diagnostic, cancellationToken),
                     equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                     priority),
                 diagnostic);
@@ -77,23 +82,19 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         return Task.CompletedTask;
     }
 
-    private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
+    private async Task<Solution> ProcessResultAsync(
+        Solution originalSolution, Solution currentSolution, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
+        var (field, property) = await MapDiagnosticToCurrentSolutionAsync(
+            diagnostic, originalSolution, currentSolution, cancellationToken).ConfigureAwait(false);
+
+        if (field == null || property == null)
+            return currentSolution;
+
         var locations = diagnostic.AdditionalLocations;
 
-        var propertyLocation = locations[0];
-        var declaratorLocation = locations[1];
-
-        var solution = context.Document.Project.Solution;
-        var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
-        var fieldDocument = solution.GetRequiredDocument(declarator.SyntaxTree);
-        var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
-
-        var property = GetPropertyDeclaration(propertyLocation.FindNode(cancellationToken));
-        var propertyDocument = solution.GetRequiredDocument(property.SyntaxTree);
-        var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
+        var fieldDocument = currentSolution.GetRequiredDocument(field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
+        var propertyDocument = currentSolution.GetRequiredDocument(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
 
         var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
         var isTrivialSetAccessor = diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
@@ -105,24 +106,27 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var renameOptions = new SymbolRenameOptions();
 
         var fieldLocations = await Renamer.FindRenameLocationsAsync(
-            solution, fieldSymbol, renameOptions, cancellationToken).ConfigureAwait(false);
+            currentSolution, field, renameOptions, cancellationToken).ConfigureAwait(false);
+
+        var declarator = (TVariableDeclarator)field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
         // First, create the updated property we want to replace the old property with
         var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(
-            fieldSymbol, fieldLocations, property, cancellationToken);
+            field, fieldLocations, propertyDeclaration, cancellationToken);
 
         if (!isTrivialGetAccessor ||
-            (propertySymbol.SetMethod != null && !isTrivialSetAccessor))
+            (property.SetMethod != null && !isTrivialSetAccessor))
         {
             // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
             // need to update the property to reference `field` or itself instead of the actual field.
-            property = RewriteFieldReferencesInProperty(property, fieldLocations, cancellationToken);
+            propertyDeclaration = RewriteFieldReferencesInProperty(propertyDeclaration, fieldLocations, cancellationToken);
         }
 
         var updatedProperty = await UpdatePropertyAsync(
             propertyDocument, compilation,
-            fieldSymbol, propertySymbol,
-            declarator, property,
+            field, property,
+            declarator, propertyDeclaration,
             isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
             cancellationToken).ConfigureAwait(false);
 
@@ -161,31 +165,31 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
         var filteredLocations = fieldLocations.Filter(
             (documentId, span) =>
-                fieldDocument.Id == documentId ? !span.IntersectsWith(declaratorLocation.SourceSpan) : true && // The span check only makes sense if we are in the same file
-                CanEditDocument(solution, documentId, linkedFiles, canEdit));
+                fieldDocument.Id == documentId ? !span.IntersectsWith(declarator.Span) : true && // The span check only makes sense if we are in the same file
+                CanEditDocument(currentSolution, documentId, linkedFiles, canEdit));
 
         var resolution = await filteredLocations.ResolveConflictsAsync(
-            fieldSymbol, propertySymbol.Name,
-            nonConflictSymbolKeys: [propertySymbol.GetSymbolKey(cancellationToken)],
+            field, property.Name,
+            nonConflictSymbolKeys: [property.GetSymbolKey(cancellationToken)],
             cancellationToken).ConfigureAwait(false);
 
         Contract.ThrowIfFalse(resolution.IsSuccessful);
 
-        solution = resolution.NewSolution;
+        currentSolution = resolution.NewSolution;
 
         // Now find the field and property again post rename.
-        fieldDocument = solution.GetRequiredDocument(fieldDocument.Id);
-        propertyDocument = solution.GetRequiredDocument(propertyDocument.Id);
+        fieldDocument = currentSolution.GetRequiredDocument(fieldDocument.Id);
+        propertyDocument = currentSolution.GetRequiredDocument(propertyDocument.Id);
         Debug.Assert(fieldDocument.Project == propertyDocument.Project);
 
         compilation = await fieldDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        fieldSymbol = (IFieldSymbol?)fieldSymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-        propertySymbol = (IPropertySymbol?)propertySymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-        Contract.ThrowIfTrue(fieldSymbol == null || propertySymbol == null);
+        field = (IFieldSymbol?)field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+        property = (IPropertySymbol?)property.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+        Contract.ThrowIfTrue(field == null || property == null);
 
-        declarator = (TVariableDeclarator)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-        property = GetPropertyDeclaration(await propertySymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
+        declarator = (TVariableDeclarator)field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
         var nodeToRemove = GetNodeToRemove(declarator);
 
@@ -222,7 +226,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         {
             var syntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var bannerService = fieldDocument.GetRequiredLanguageService<IFileBannerFactsService>();
-            if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
+            if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, propertyDeclaration, nodeToRemove) &&
                 bannerService.GetLeadingBlankLines(nodeToRemove).Length == 0)
             {
                 updatedProperty = bannerService.GetNodeWithoutLeadingBlankLines(updatedProperty);
@@ -236,13 +240,13 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             var declaratorTreeRoot = await fieldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Services);
-            editor.ReplaceNode(property, updatedProperty);
+            editor.ReplaceNode(propertyDeclaration, updatedProperty);
             editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
             var newRoot = editor.GetChangedRoot();
             newRoot = await FormatAsync(newRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
-            return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
+            return currentSolution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
         }
         else
         {
@@ -252,16 +256,54 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
             var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
             Contract.ThrowIfNull(newFieldTreeRoot);
-            var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
+            var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(propertyDeclaration, updatedProperty);
 
             newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
             newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
-            var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
+            var updatedSolution = currentSolution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
 
             return updatedSolution;
         }
+    }
+
+    private async Task<(IFieldSymbol? fieldSymbol, IPropertySymbol? propertySymbol)> MapDiagnosticToCurrentSolutionAsync(
+        Diagnostic diagnostic,
+        Solution originalSolution,
+        Solution currentSolution,
+        CancellationToken cancellationToken)
+    {
+        var locations = diagnostic.AdditionalLocations;
+
+        var propertyLocation = locations[0];
+        var declaratorLocation = locations[1];
+
+        // Look up everything in the original solution.
+
+        var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
+        var fieldDocument = originalSolution.GetRequiredDocument(declarator.SyntaxTree);
+        var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
+
+        var property = GetPropertyDeclaration(propertyLocation.FindNode(cancellationToken));
+        var propertyDocument = originalSolution.GetRequiredDocument(property.SyntaxTree);
+        var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
+
+        Contract.ThrowIfFalse(fieldDocument.Project == propertyDocument.Project);
+
+        // If we're just starting, no need to map anything.
+        if (originalSolution != currentSolution)
+        {
+            var currentProject = currentSolution.GetRequiredProject(fieldDocument.Project.Id);
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            fieldSymbol = fieldSymbol.GetSymbolKey(cancellationToken).Resolve(currentCompilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
+            propertySymbol = propertySymbol.GetSymbolKey(cancellationToken).Resolve(currentCompilation, cancellationToken: cancellationToken).GetAnySymbol() as IPropertySymbol;
+        }
+
+        return (fieldSymbol, propertySymbol);
     }
 
     private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)

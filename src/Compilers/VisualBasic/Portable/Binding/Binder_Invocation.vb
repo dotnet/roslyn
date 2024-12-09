@@ -2274,7 +2274,7 @@ ProduceBoundNode:
                     Dim method = DirectCast(candidate.UnderlyingSymbol, MethodSymbol)
                     ' TODO: Dev10 uses the location of the type parameter or argument that
                     ' violated the constraint, rather than  the entire invocation expression.
-                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
+                    Dim succeeded = method.CheckConstraints(Compilation.LanguageVersion, diagnosticLocation, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
                     Debug.Assert(Not succeeded)
                     Return
                 End If

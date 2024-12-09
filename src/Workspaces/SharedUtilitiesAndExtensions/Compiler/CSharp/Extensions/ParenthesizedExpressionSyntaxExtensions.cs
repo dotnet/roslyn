@@ -111,6 +111,10 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (expression.IsKind(SyntaxKind.TupleExpression))
             return true;
 
+        // ([...]) -> [...]
+        if (expression.IsKind(SyntaxKind.CollectionExpression))
+            return true;
+
         // int Prop => (x); -> int Prop => x;
         if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
         {
@@ -255,7 +259,17 @@ internal static class ParenthesizedExpressionSyntaxExtensions
 
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
+        {
+            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can the conditional access
+            // become a conditional expression.
+            for (var current = expression; current != null; current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax)
+            {
+                if (current is ConditionalAccessExpressionSyntax)
+                    return false;
+            }
+
             return true;
+        }
 
         // #if (x)   ->   #if x
         if (nodeParent is DirectiveTriviaSyntax)

@@ -85,7 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceService.State.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator.cs" />
@@ -129,7 +129,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedValuesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyConditionalCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\AbstractSimplifyLinqExpressionCodeFixProvider`3.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\SimplifyLinqExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider.cs" />

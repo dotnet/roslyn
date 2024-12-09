@@ -2428,7 +2428,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -2498,7 +2497,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -2616,7 +2614,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -2886,7 +2883,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -2911,7 +2907,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -2934,7 +2929,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -2957,7 +2951,6 @@ public class ConvertIfToSwitchTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }

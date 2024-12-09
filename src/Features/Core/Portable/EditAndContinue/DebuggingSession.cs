@@ -12,12 +12,13 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -34,14 +35,6 @@ internal sealed class DebuggingSession : IDisposable
     private readonly CancellationTokenSource _cancellationSource = new();
 
     /// <summary>
-    /// MVIDs read from the assembly built for given project id.
-    /// Only contains ids for projects that support EnC.
-    /// </summary>
-    private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = [];
-    private readonly Dictionary<Guid, ProjectId> _moduleIds = [];
-    private readonly object _projectModuleIdsGuard = new();
-
-    /// <summary>
     /// The current baseline for given project id.
     /// The baseline is updated when changes are committed at the end of edit session.
     /// The backing module readers of initial baselines need to be kept alive -- store them in
@@ -52,8 +45,8 @@ internal sealed class DebuggingSession : IDisposable
     /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
     /// even when it's replaced in <see cref="_projectBaselines"/> by a newer baseline.
     /// </remarks>
-    private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = [];
-    private readonly List<IDisposable> _initialBaselineModuleReaders = [];
+    private readonly Dictionary<ProjectId, ImmutableList<ProjectBaseline>> _projectBaselines = [];
+    private readonly Dictionary<Guid, (IDisposable metadata, IDisposable pdb)> _initialBaselineModuleReaders = [];
     private readonly object _projectEmitBaselinesGuard = new();
 
     /// <summary>
@@ -143,9 +136,13 @@ internal sealed class DebuggingSession : IDisposable
         // Wait for all operations on baseline to finish before we dispose the readers.
         _baselineAccessLock.EnterWriteLock();
 
-        foreach (var reader in GetBaselineModuleReaders())
+        lock (_projectEmitBaselinesGuard)
         {
-            reader.Dispose();
+            foreach (var (_, readers) in _initialBaselineModuleReaders)
+            {
+                readers.metadata.Dispose();
+                readers.pdb.Dispose();
+            }
         }
 
         _baselineAccessLock.ExitWriteLock();
@@ -223,14 +220,6 @@ internal sealed class DebuggingSession : IDisposable
             inBreakState ?? EditSession.InBreakState);
     }
 
-    private ImmutableArray<IDisposable> GetBaselineModuleReaders()
-    {
-        lock (_projectEmitBaselinesGuard)
-        {
-            return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
-        }
-    }
-
     internal CompilationOutputs GetCompilationOutputs(Project project)
         => _compilationOutputsProvider(project);
 
@@ -243,23 +232,17 @@ internal sealed class DebuggingSession : IDisposable
     }
 
     /// <summary>
-    /// Reads the MVID of a compiled project.
+    /// Reads the latest MVID of the assembly compiled from given project.
     /// </summary>
     /// <returns>
     /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
     /// The MVID is <see cref="Guid.Empty"/> if either the project is not built, or the MVID can't be read from the module binary.
     /// </returns>
-    internal async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
+    internal Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
     {
         Debug.Assert(project.SupportsEditAndContinue());
-
-        lock (_projectModuleIdsGuard)
-        {
-            if (_projectModuleIds.TryGetValue(project.Id, out var id))
-            {
-                return id;
-            }
-        }
+        // Note: Does not cache the result as the project may be rebuilt at any point in time.
+        return Task.Run(ReadMvid, cancellationToken);
 
         (Guid Mvid, Diagnostic? Error) ReadMvid()
         {
@@ -279,92 +262,70 @@ internal sealed class DebuggingSession : IDisposable
                 return (Mvid: Guid.Empty, Error: Diagnostic.Create(descriptor, Location.None, [outputs.AssemblyDisplayPath, e.Message]));
             }
         }
-
-        var newId = await Task.Run(ReadMvid, cancellationToken).ConfigureAwait(false);
-
-        lock (_projectModuleIdsGuard)
-        {
-            if (_projectModuleIds.TryGetValue(project.Id, out var id))
-            {
-                return id;
-            }
-
-            // Do not cache failures. The error might be intermittent and might be corrected next time we attempt to read the MVID.
-            if (newId.Mvid != Guid.Empty)
-            {
-                _moduleIds[newId.Mvid] = project.Id;
-                _projectModuleIds[project.Id] = newId;
-            }
-
-            return newId;
-        }
-    }
-
-    internal bool TryGetProjectId(Guid moduleId, [NotNullWhen(true)] out ProjectId? projectId)
-    {
-        lock (_projectModuleIdsGuard)
-        {
-            return _moduleIds.TryGetValue(moduleId, out projectId);
-        }
     }
 
     /// <summary>
     /// Get <see cref="EmitBaseline"/> for given project.
     /// </summary>
+    /// <param name="moduleId">The current MVID of the project compilation output.</param>
     /// <param name="baselineProject">Project used to create the initial baseline, if the baseline does not exist yet.</param>
     /// <param name="baselineCompilation">Compilation used to create the initial baseline, if the baseline does not exist yet.</param>
     /// <returns>True unless the project outputs can't be read.</returns>
-    internal bool TryGetOrCreateEmitBaseline(
+    internal ImmutableList<ProjectBaseline> GetOrCreateEmitBaselines(
+        Guid moduleId,
         Project baselineProject,
         Compilation baselineCompilation,
-        out ImmutableArray<Diagnostic> diagnostics,
-        [NotNullWhen(true)] out ProjectBaseline? baseline,
-        [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
+        out ImmutableArray<Diagnostic> errors,
+        out ReaderWriterLockSlim baselineAccessLock)
     {
         baselineAccessLock = _baselineAccessLock;
 
+        ImmutableList<ProjectBaseline>? existingBaselines;
         lock (_projectEmitBaselinesGuard)
         {
-            if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
+            if (TryGetBaselinesContainingModuleVersion(moduleId, out existingBaselines))
             {
-                diagnostics = [];
-                return true;
+                errors = [];
+                return existingBaselines;
             }
         }
 
         var outputs = GetCompilationOutputs(baselineProject);
-        if (!TryCreateInitialBaseline(baselineCompilation, outputs, baselineProject.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+        if (!TryCreateInitialBaseline(baselineCompilation, outputs, baselineProject.Id, out errors, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
         {
             // Unable to read the DLL/PDB at this point (it might be open by another process).
             // Don't cache the failure so that the user can attempt to apply changes again.
-            baseline = null;
-            return false;
+            return existingBaselines ?? [];
         }
 
         lock (_projectEmitBaselinesGuard)
         {
-            if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
+            if (TryGetBaselinesContainingModuleVersion(moduleId, out existingBaselines))
             {
                 metadataReaderProvider.Dispose();
                 debugInfoReaderProvider.Dispose();
-                return true;
+                return existingBaselines;
             }
 
-            baseline = new ProjectBaseline(baselineProject.Id, initialBaseline, generation: 0);
+            var newBaseline = new ProjectBaseline(moduleId, baselineProject.Id, initialBaseline, generation: 0);
+            var baselines = (existingBaselines ?? []).Add(newBaseline);
 
-            _projectBaselines.Add(baselineProject.Id, baseline);
-            _initialBaselineModuleReaders.Add(metadataReaderProvider);
-            _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
+            _projectBaselines[baselineProject.Id] = baselines;
+            _initialBaselineModuleReaders.Add(moduleId, (metadataReaderProvider, debugInfoReaderProvider));
+
+            return baselines;
         }
 
-        return true;
+        bool TryGetBaselinesContainingModuleVersion(Guid moduleId, [NotNullWhen(true)] out ImmutableList<ProjectBaseline>? baselines)
+            => _projectBaselines.TryGetValue(baselineProject.Id, out baselines) &&
+               baselines.Any(static (b, moduleId) => b.ModuleId == moduleId, moduleId);
     }
 
     private static unsafe bool TryCreateInitialBaseline(
         Compilation compilation,
         CompilationOutputs compilationOutputs,
         ProjectId projectId,
-        out ImmutableArray<Diagnostic> diagnostics,
+        out ImmutableArray<Diagnostic> errors,
         [NotNullWhen(true)] out EmitBaseline? baseline,
         [NotNullWhen(true)] out DebugInformationReaderProvider? debugInfoReaderProvider,
         [NotNullWhen(true)] out MetadataReaderProvider? metadataReaderProvider)
@@ -375,7 +336,7 @@ internal sealed class DebuggingSession : IDisposable
         // Alternatively, we could drop the data once we are done with emitting the delta and re-emit the baseline again 
         // when we need it next time and the module is loaded.
 
-        diagnostics = default;
+        errors = [];
         baseline = null;
         debugInfoReaderProvider = null;
         metadataReaderProvider = null;
@@ -418,7 +379,7 @@ internal sealed class DebuggingSession : IDisposable
             EditAndContinueService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-            diagnostics = [Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message])];
+            errors = [Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message])];
         }
         finally
         {
@@ -517,6 +478,7 @@ internal sealed class DebuggingSession : IDisposable
 
     public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         Solution solution,
+        IImmutableSet<ProjectId> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -552,6 +514,14 @@ internal sealed class DebuggingSession : IDisposable
             }
         }
 
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            solutionUpdate.ModuleUpdates,
+            rudeEditDiagnostics,
+            runningProjects,
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
         // Note that we may return empty deltas if all updates have been deferred.
         // The debugger will still call commit or discard on the update batch.
         return new EmitSolutionUpdateResults()
@@ -561,6 +531,8 @@ internal sealed class DebuggingSession : IDisposable
             Diagnostics = solutionUpdate.Diagnostics,
             RudeEdits = rudeEditDiagnostics.ToImmutable(),
             SyntaxError = solutionUpdate.SyntaxError,
+            ProjectsToRestart = projectsToRestart,
+            ProjectsToRebuild = projectsToRebuild
         };
     }
 
@@ -590,9 +562,11 @@ internal sealed class DebuggingSession : IDisposable
         // update baselines:
         lock (_projectEmitBaselinesGuard)
         {
-            foreach (var baseline in pendingUpdate.ProjectBaselines)
+            foreach (var updatedBaseline in pendingUpdate.ProjectBaselines)
             {
-                _projectBaselines[baseline.ProjectId] = baseline;
+                _projectBaselines[updatedBaseline.ProjectId] = _projectBaselines[updatedBaseline.ProjectId]
+                    .Select(existingBaseline => existingBaseline.ModuleId == updatedBaseline.ModuleId ? updatedBaseline : existingBaseline)
+                    .ToImmutableList();
             }
         }
 
@@ -606,6 +580,50 @@ internal sealed class DebuggingSession : IDisposable
     {
         ThrowIfDisposed();
         _ = RetrievePendingUpdate();
+    }
+
+    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
+    {
+        ThrowIfDisposed();
+
+        // Make sure the solution snapshot has all source-generated documents up-to-date.
+        solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
+
+        LastCommittedSolution.CommitSolution(solution);
+
+        // Wait for all operations on baseline to finish before we dispose the readers.
+        _baselineAccessLock.EnterWriteLock();
+
+        lock (_projectEmitBaselinesGuard)
+        {
+            foreach (var projectId in rebuiltProjects)
+            {
+                if (_projectBaselines.TryGetValue(projectId, out var projectBaselines))
+                {
+                    // remove all versions of modules associated with the project:
+                    _projectBaselines.Remove(projectId);
+
+                    foreach (var projectBaseline in projectBaselines)
+                    {
+                        var (metadata, pdb) = _initialBaselineModuleReaders[projectBaseline.ModuleId];
+                        metadata.Dispose();
+                        pdb.Dispose();
+
+                        _initialBaselineModuleReaders.Remove(projectBaseline.ModuleId);
+                    }
+                }
+            }
+        }
+
+        _baselineAccessLock.ExitWriteLock();
+
+        foreach (var projectId in rebuiltProjects)
+        {
+            _editSessionTelemetry.LogUpdatedBaseline(solution.GetRequiredProject(projectId).State.ProjectInfo.Attributes.TelemetryId);
+        }
+
+        // Restart edit session reusing previous non-remappable regions and break state:
+        RestartEditSession(nonRemappableRegions: null, inBreakState: null);
     }
 
     /// <summary>
@@ -851,31 +869,42 @@ internal sealed class DebuggingSession : IDisposable
 
     internal readonly struct TestAccessor(DebuggingSession instance)
     {
-        private readonly DebuggingSession _instance = instance;
-
         public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
         {
-            lock (_instance._modulesPreparedForUpdateGuard)
+            lock (instance._modulesPreparedForUpdateGuard)
             {
-                return [.. _instance._modulesPreparedForUpdate];
+                return [.. instance._modulesPreparedForUpdate];
             }
         }
 
-        public EmitBaseline GetProjectEmitBaseline(ProjectId id)
+        public ImmutableList<ProjectBaseline> GetProjectBaselines(ProjectId projectId)
         {
-            lock (_instance._projectEmitBaselinesGuard)
+            lock (instance._projectEmitBaselinesGuard)
             {
-                return _instance._projectBaselines[id].EmitBaseline;
+                return instance._projectBaselines[projectId];
+            }
+        }
+
+        public bool HasProjectEmitBaseline(ProjectId projectId)
+        {
+            lock (instance._projectEmitBaselinesGuard)
+            {
+                return instance._projectBaselines.ContainsKey(projectId);
             }
         }
 
         public ImmutableArray<IDisposable> GetBaselineModuleReaders()
-            => _instance.GetBaselineModuleReaders();
+        {
+            lock (instance._projectEmitBaselinesGuard)
+            {
+                return instance._initialBaselineModuleReaders.Values.SelectMany(entry => new IDisposable[] { entry.metadata, entry.pdb }).ToImmutableArray();
+            }
+        }
 
         public PendingUpdate? GetPendingSolutionUpdate()
-            => _instance._pendingUpdate;
+            => instance._pendingUpdate;
 
         public void SetTelemetryLogger(Action<FunctionId, LogMessage> logger, Func<int> getNextId)
-            => _instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
+            => instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
     }
 }

@@ -86,7 +86,7 @@ internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer
                 // allows types to implicitly seem like they support this through:
                 //
                 // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#implicit-index-support
-                return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
+                return new MemberInfo(lengthLikeProperty, overloadedMethod: null);
             }
             else
             {

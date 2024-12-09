@@ -1,4 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 9 all the way to .NET 10.
+# Breaking changes in Roslyn after .NET 9.0.100 through .NET 10.0.100
+
+This document lists known breaking changes in Roslyn after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
 ## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
 
@@ -87,6 +89,35 @@ class C
     }
 }
 ```
+
+## Set state of enumerator object to "after" during disposal
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The state machine for enumerators incorrectly allowed resuming execution after the enumerator was disposed.  
+Now, `MoveNext()` on a disposed enumerator properly returns `false` without executing any more user code.
+
+```csharp
+var enumerator = C.GetEnumerator();
+
+Console.Write(enumerator.MoveNext()); // prints True
+Console.Write(enumerator.Current); // prints 1
+
+enumerator.Dispose();
+
+Console.Write(enumerator.MoveNext()); // now prints False
+
+class C
+{
+    public static IEnumerator<int> GetEnumerator()
+    {
+        yield return 1;
+        Console.Write("not executed after disposal")
+        yield return 2;
+    }
+}
+```
+
 
 ## Warn for redundant pattern in simple `or` patterns
 

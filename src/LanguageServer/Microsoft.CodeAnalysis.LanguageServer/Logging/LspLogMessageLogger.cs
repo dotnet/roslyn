@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
@@ -13,16 +14,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 /// Implements an ILogger that seamlessly switches from a fallback logger
 /// to LSP log messages as soon as the server initializes.
 /// </summary>
-internal sealed class LspLogMessageLogger : ILogger
+internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration) : ILogger
 {
-    private readonly string _categoryName;
-    private readonly ILogger _fallbackLogger;
-
-    public LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory)
-    {
-        _categoryName = categoryName;
-        _fallbackLogger = fallbackLoggerFactory.CreateLogger(categoryName);
-    }
+    private readonly Lazy<ILogger> _fallbackLogger = new(() => fallbackLoggerFactory.CreateLogger(categoryName));
 
     public IDisposable BeginScope<TState>(TState state) where TState : notnull
     {
@@ -31,16 +25,21 @@ internal sealed class LspLogMessageLogger : ILogger
 
     public bool IsEnabled(LogLevel logLevel)
     {
-        return true;
+        return serverConfiguration.LogConfiguration.GetLogLevel() <= logLevel;
     }
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
+        if (!IsEnabled(logLevel))
+        {
+            return;
+        }
+
         var server = LanguageServerHost.Instance;
         if (server == null)
         {
             // If the language server has not been initialized yet, log using the fallback logger.
-            _fallbackLogger.Log(logLevel, eventId, state, exception, formatter);
+            _fallbackLogger.Value.Log(logLevel, eventId, state, exception, formatter);
             return;
         }
 
@@ -59,22 +58,13 @@ internal sealed class LspLogMessageLogger : ILogger
 
         if (message != null && logLevel != LogLevel.None)
         {
-            message = $"[{_categoryName}] {message}";
+            message = $"[{categoryName}] {message}";
             try
             {
                 var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
                 {
                     Message = message,
-                    MessageType = logLevel switch
-                    {
-                        LogLevel.Trace => MessageType.Log,
-                        LogLevel.Debug => MessageType.Log,
-                        LogLevel.Information => MessageType.Info,
-                        LogLevel.Warning => MessageType.Warning,
-                        LogLevel.Error => MessageType.Error,
-                        LogLevel.Critical => MessageType.Error,
-                        _ => throw new InvalidOperationException($"Unexpected logLevel argument {logLevel}"),
-                    }
+                    MessageType = LogLevelToMessageType(logLevel),
                 }, CancellationToken.None);
             }
             catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
@@ -83,5 +73,19 @@ internal sealed class LspLogMessageLogger : ILogger
                 // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
             }
         }
+    }
+
+    private static MessageType LogLevelToMessageType(LogLevel logLevel)
+    {
+        return logLevel switch
+        {
+            LogLevel.Trace => MessageType.Log,
+            LogLevel.Debug => MessageType.Debug,
+            LogLevel.Information => MessageType.Info,
+            LogLevel.Warning => MessageType.Warning,
+            LogLevel.Error => MessageType.Error,
+            LogLevel.Critical => MessageType.Error,
+            _ => throw ExceptionUtilities.UnexpectedValue(logLevel),
+        };
     }
 }

@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
+            var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
+            if (!onAutoInsertEnabled)
+                return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+
             var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
             var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
             var position = ProtocolConversions.PositionToLinePosition(request.Position);
@@ -114,19 +118,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             DocumentationCommentOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var sourceText = parsedDocument.Text;
 
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken, addIndentation: false);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(parsedDocument, position, options, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken, addIndentation: false);
 
             if (result == null)
-            {
                 return null;
-            }
 
             return new LSP.VSInternalDocumentOnAutoInsertResponseItem
             {
