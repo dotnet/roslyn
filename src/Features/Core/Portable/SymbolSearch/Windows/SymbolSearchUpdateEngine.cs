@@ -225,11 +225,6 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
     }
 
-    private static bool NameMatches(Path8 fullName, ImmutableArray<string> namespaceNames)
-    {
-        throw new NotImplementedException();
-    }
-
     private static int GetRank(Symbol symbol)
     {
         if (!TryGetRankingSymbol(symbol, out var rankingSymbol) ||
