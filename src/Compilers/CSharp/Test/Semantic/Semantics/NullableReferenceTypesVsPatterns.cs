@@ -2231,7 +2231,7 @@ class C
                 // (30,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
                 //         if (x is _ or not null)
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is _ or not null").WithArguments("C").WithLocation(30, 13),
-                // (30,23): warning CS9268: The pattern is redundant.
+                // (30,23): warning CS9269: The pattern is redundant.
                 //         if (x is _ or not null)
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "not null").WithLocation(30, 23),
                 // (31,13): warning CS8602: Dereference of a possibly null reference.
@@ -2240,7 +2240,7 @@ class C
                 // (36,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
                 //         if (x is _ or null)
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is _ or null").WithArguments("C").WithLocation(36, 13),
-                // (36,23): warning CS9268: The pattern is redundant.
+                // (36,23): warning CS9269: The pattern is redundant.
                 //         if (x is _ or null)
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(36, 23),
                 // (37,13): warning CS8602: Dereference of a possibly null reference.
