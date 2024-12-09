@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
+            bool wasReported = false;
             if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
             {
                 if (!constantResult)
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expression.Type is object);
                     diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                     hasErrors = true;
+                    wasReported = true;
                 }
                 else
                 {
@@ -81,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundListPattern:
                             Debug.Assert(expression.Type is object);
                             diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                            wasReported = true;
                             break;
                         case BoundDiscardPattern _:
                             // we do not give a warning on this because it is an existing scenario, and it should
@@ -101,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!simplifiedResult)
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
+                        wasReported = true;
                     }
                     else
                     {
@@ -108,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundConstantPattern _:
                                 diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                                wasReported = true;
                                 break;
                             case BoundRelationalPattern _:
                             case BoundTypePattern _:
@@ -115,13 +120,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundBinaryPattern _:
                             case BoundDiscardPattern _:
                                 diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, node.Location);
+                                wasReported = true;
                                 break;
                         }
                     }
                 }
             }
 
-            DecisionDagBuilder.CheckRedundantPatternsForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
+            if (!wasReported)
+            {
+                DecisionDagBuilder.CheckRedundantPatternsForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
+            }
 
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
             // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
@@ -1798,57 +1807,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, BindingDiagnosticBag diagnostics)
                     {
-                        Debug.Assert(candidates.Count >= 2);
                         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                        TypeSymbol? bestSoFar = candidates[0];
-                        // first pass: select a candidate for which no other has been shown to be an improvement.
-                        for (int i = 1, n = candidates.Count; i < n; i++)
-                        {
-                            TypeSymbol candidate = candidates[i];
-                            bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo) ?? bestSoFar;
-                        }
-                        // second pass: check that it is no more specific than any candidate.
-                        for (int i = 0, n = candidates.Count; i < n; i++)
-                        {
-                            TypeSymbol candidate = candidates[i];
-                            TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo);
-                            if (spoiler is null)
-                            {
-                                bestSoFar = null;
-                                break;
-                            }
-
-                            // Our specificity criteria are transitive
-                            Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
-                        }
-
+                        TypeSymbol? bestSoFar = LeastSpecificType(binder.Conversions, candidates, ref useSiteInfo);
                         diagnostics.Add(node, useSiteInfo);
                         return bestSoFar;
-                    }
-
-                    // Given a candidate least specific type so far, attempt to refine it with a possibly less specific candidate.
-                    TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-                    {
-                        if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
-                        {
-                            // When the types are equivalent, merge them.
-                            return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
-                        }
-                        else if (binder.Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
-                        {
-                            // When there is an implicit reference conversion from T to U, U is less specific
-                            return possiblyLessSpecificCandidate;
-                        }
-                        else if (binder.Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
-                        {
-                            // when there is a boxing conversion from T to U, U is less specific.
-                            return possiblyLessSpecificCandidate;
-                        }
-                        else
-                        {
-                            // We have no improved candidate to offer.
-                            return null;
-                        }
                     }
                 }
                 else
@@ -1872,6 +1834,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     candidates.Add(pat.NarrowedType);
+                }
+            }
+        }
+
+        internal static TypeSymbol? LeastSpecificType(Conversions conversions, ArrayBuilder<TypeSymbol> candidates, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(candidates.Count >= 2);
+            TypeSymbol? bestSoFar = candidates[0];
+            // first pass: select a candidate for which no other has been shown to be an improvement.
+            for (int i = 1, n = candidates.Count; i < n; i++)
+            {
+                TypeSymbol candidate = candidates[i];
+                bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo, conversions) ?? bestSoFar;
+            }
+            // second pass: check that it is no more specific than any candidate.
+            for (int i = 0, n = candidates.Count; i < n; i++)
+            {
+                TypeSymbol candidate = candidates[i];
+                TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo, conversions);
+                if (spoiler is null)
+                {
+                    bestSoFar = null;
+                    break;
+                }
+
+                // Our specificity criteria are transitive
+                Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
+            }
+
+            return bestSoFar;
+
+            static TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, Conversions conversions)
+            {
+                if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
+                {
+                    // When the types are equivalent, merge them.
+                    return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
+                }
+                else if (conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
+                {
+                    // When there is an implicit reference conversion from T to U, U is less specific
+                    return possiblyLessSpecificCandidate;
+                }
+                else if (conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
+                {
+                    // when there is a boxing conversion from T to U, U is less specific.
+                    return possiblyLessSpecificCandidate;
+                }
+                else
+                {
+                    // We have no improved candidate to offer.
+                    return null;
                 }
             }
         }

@@ -2,33 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using System.Diagnostics.CodeAnalysis;
-using System;
-using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
         /// <summary>
-        /// TODO2 update doc
         /// For patterns that contain a disjunction `... or ...` we're going to perform reachability analysis for each branch of the `or`.
         /// We effectively pick each analyzable `or` sequence in turn and expand it to top-level cases.
         ///
         /// For example, `A and (B or C)` is expanded to two cases: `A and B` and `A and C`.
         ///
         /// Similarly, `(A or B) and (C or D)` is expanded to two sets of two cases:
-        ///   1. `A and (C or D)` and `B and (C or D)`
+        ///   1. `A` and `B` (we can truncate later test since we only care about the reachability of `A` and `B` here)
         ///   2. `(A or B) and C` and `(A or B) and D`
         /// We then check the reachability for each of those cases in different sets.
-        ///
-        ///
         /// </summary>
         internal static void CheckRedundantPatternsForIsPattern(
             CSharpCompilation compilation,
@@ -51,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             noPreviousCases.Free();
         }
 
+        /// <summary>
+        /// <see cref="CheckRedundantPatternsForIsPattern"/>
+        /// </summary>
         internal static void CheckRedundantPatternsForSwitchExpression(
             CSharpCompilation compilation,
             SyntaxNode syntax,
@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             existingCases.Free();
         }
 
+        /// <summary>
+        /// <see cref="CheckRedundantPatternsForIsPattern"/>
+        /// </summary>
         internal static void CheckRedundantPatternsForSwitchStatement(
             CSharpCompilation compilation,
             SyntaxNode syntax,
@@ -141,7 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckOrReachability(previousCases, patternIndex, pattern,
                 builder, rootIdentifier, defaultLabel, syntax, diagnostics, ignoreDefaultLabel: isSwitchExpression);
 
-            CheckOrReachability(previousCases, patternIndex, MoveNotPatternsDownRewriter.MakeNegatedPattern(pattern),
+            var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, pattern.InputType, narrowedType: pattern.InputType);
+            CheckOrReachability(previousCases, patternIndex, negated,
                 builder, rootIdentifier, defaultLabel, syntax, diagnostics, ignoreDefaultLabel: isSwitchExpression);
         }
 
@@ -156,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool ignoreDefaultLabel = false)
         {
-            var normalizedPattern = MoveNotPatternsDownRewriter.Rewrite(pattern);
+            var normalizedPattern = PatternNormalizer.Rewrite(pattern, rootIdentifier.Type, builder._conversions);
 
-            SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern);
+            SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern, builder._conversions);
             if (setOfOrCases.IsDefault)
             {
                 return;
@@ -185,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.WRN_RedundantPattern, syntax);
                 }
+
+                labelsToIgnore.Free();
             }
         }
 
@@ -203,7 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode? diagSyntax = syntax;
                 if (diagSyntax is null)
                 {
-                    // TODO2 comment
                     labelsToIgnore.Add(label);
                     diagSyntax = nodeSyntax;
                 }
@@ -217,15 +222,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The purpose of this method is to bring `or` sequences to the top-level (so they can be used as separate cases).
         /// Each set handles one `or`.
         /// </summary>
-        private static SetsOfOrCases RewriteToSetsOfOrCases(BoundPattern? pattern)
+        private static SetsOfOrCases RewriteToSetsOfOrCases(BoundPattern? pattern, Conversions conversions)
         {
             return pattern switch
             {
-                BoundBinaryPattern binary => rewriteBinary(binary),
-                BoundRecursivePattern recursive => rewriteRecursive(recursive),
-                BoundListPattern list => rewriteList(list),
-                BoundSlicePattern slice => rewriteSlice(slice),
-                BoundITuplePattern ituple => rewriteITuple(ituple),
+                BoundBinaryPattern binary => rewriteBinary(binary, conversions),
+                BoundRecursivePattern recursive => rewriteRecursive(recursive, conversions),
+                BoundListPattern list => rewriteList(list, conversions),
+                BoundSlicePattern slice => rewriteSlice(slice, conversions),
+                BoundITuplePattern ituple => rewriteITuple(ituple, conversions),
                 BoundNegatedPattern => default,
                 BoundTypePattern => default,
                 BoundDeclarationPattern => default,
@@ -236,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(pattern)
             };
 
-            static SetsOfOrCases rewriteBinary(BoundBinaryPattern binaryPattern)
+            static SetsOfOrCases rewriteBinary(BoundBinaryPattern binaryPattern, Conversions conversions)
             {
                 SetsOfOrCases result = default;
 
@@ -247,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // In `A1 or ... or An`, we produce an expansion set: `A1`, ..., `An`
                     OrCases resultOrSet1 = result.StartNewOrCases();
+                    var inputType = binaryPattern.InputType;
                     foreach (var pattern in patterns)
                     {
                         resultOrSet1.Add(pattern, pattern.Syntax);
@@ -258,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < patterns.Count; i++)
                     {
                         BoundPattern pattern = patterns[i];
-                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
+                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
                         if (!setOfOrCases.IsDefault)
                         {
                             foreach (OrCases orSet in setOfOrCases.Set)
@@ -266,17 +272,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 OrCases resultOrSet = result.StartNewOrCases();
                                 foreach ((BoundPattern resultPattern, SyntaxNode? syntax) in orSet.Cases)
                                 {
-                                    BoundBinaryPattern? resultBinaryPattern = updateBinaryOrTree(binaryPattern, i, resultPattern).updated;
+                                    BoundPattern resultBinaryPattern = makeDisjunctionWithReplacement(patterns, resultPattern, i, conversions);
                                     Debug.Assert(resultBinaryPattern is not null);
                                     resultOrSet.Add(resultBinaryPattern, syntax);
                                 }
                             }
                         }
                     }
+
+                    patterns.Free();
                 }
                 else
                 {
-                    using SetsOfOrCases leftSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Left);
+                    using SetsOfOrCases leftSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Left, conversions);
                     if (!leftSetOfOrCases.IsDefault)
                     {
                         // In `A and B`, when found multiple `or` patterns in `A` to be expanded
@@ -291,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    using SetsOfOrCases rightSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Right);
+                    using SetsOfOrCases rightSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Right, conversions);
                     if (!rightSetOfOrCases.IsDefault)
                     {
                         // In `A and B`, when found multiple `or` patterns in `B` to be expanded
@@ -301,7 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             OrCases resultOrSet = result.StartNewOrCases();
                             foreach ((BoundPattern rewrittenPattern, SyntaxNode? syntax) in expandedRightSet.Cases)
                             {
-                                resultOrSet.Add(binaryPattern.WithRight(rewrittenPattern), syntax);
+                                var rewrittenBinary = new BoundBinaryPattern(binaryPattern.Syntax, disjunction: false, binaryPattern.Left, rewrittenPattern, binaryPattern.InputType, rewrittenPattern.NarrowedType);
+                                resultOrSet.Add(rewrittenBinary, syntax);
                             }
                         }
                     }
@@ -310,7 +319,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetsOfOrCases rewriteRecursive(BoundRecursivePattern recursivePattern)
+            static BoundPattern makeDisjunctionWithReplacement(ArrayBuilder<BoundPattern> builder, BoundPattern replacementNode, int index, Conversions conversions)
+            {
+                Debug.Assert(builder.Count != 0);
+
+                BoundPattern result = (index == builder.Count - 1) ? replacementNode : builder.Last();
+                var candidateTypes = ArrayBuilder<TypeSymbol>.GetInstance(builder.Count);
+                for (int i = builder.Count - 2; i >= 0; i--)
+                {
+                    candidateTypes.Clear();
+
+                    BoundPattern current = (i == index) ? replacementNode : builder[i];
+                    candidateTypes.Add(current.NarrowedType);
+                    candidateTypes.Add(result.NarrowedType);
+
+                    var narrowedType = leastSpecificType(candidateTypes, conversions) ?? replacementNode.InputType;
+                    result = new BoundBinaryPattern(replacementNode.Syntax, disjunction: true, current, result, replacementNode.InputType, narrowedType, replacementNode.HasErrors);
+                }
+
+                candidateTypes.Free();
+                return result;
+            }
+
+            static TypeSymbol? leastSpecificType(ArrayBuilder<TypeSymbol> candidates, Conversions conversions)
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return Binder.LeastSpecificType(conversions, candidates, ref useSiteInfo);
+            }
+
+            static SetsOfOrCases rewriteRecursive(BoundRecursivePattern recursivePattern, Conversions conversions)
             {
                 SetsOfOrCases result = default;
 
@@ -323,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < propertySubpatterns.Length; i++)
                     {
                         BoundPattern pattern = propertySubpatterns[i].Pattern;
-                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
+                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
                         if (!setOfOrCases.IsDefault)
                         {
                             foreach (OrCases orSet in setOfOrCases.Set)
@@ -351,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < positionalSubpatterns.Length; i++)
                     {
                         BoundPattern pattern = positionalSubpatterns[i].Pattern;
-                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
+                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
                         if (!setOfOrCases.IsDefault)
                         {
                             foreach (OrCases orSet in setOfOrCases.Set)
@@ -373,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetsOfOrCases rewriteList(BoundListPattern listPattern)
+            static SetsOfOrCases rewriteList(BoundListPattern listPattern, Conversions conversions)
             {
                 SetsOfOrCases result = default;
 
@@ -384,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < subpatterns.Length; i++)
                 {
                     BoundPattern pattern = subpatterns[i];
-                    using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
+                    using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
                     if (!setOfOrCases.IsDefault)
                     {
                         foreach (OrCases orSet in setOfOrCases.Set)
@@ -402,11 +439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetsOfOrCases rewriteSlice(BoundSlicePattern slicePattern)
+            static SetsOfOrCases rewriteSlice(BoundSlicePattern slicePattern, Conversions conversions)
             {
                 SetsOfOrCases result = default;
                 BoundPattern? pattern = slicePattern.Pattern;
-                using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
+                using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
                 if (!setOfOrCases.IsDefault)
                 {
                     foreach (OrCases orSet in setOfOrCases.Set)
@@ -423,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            static SetsOfOrCases rewriteITuple(BoundITuplePattern ituplePattern)
+            static SetsOfOrCases rewriteITuple(BoundITuplePattern ituplePattern, Conversions conversions)
             {
                 SetsOfOrCases result = default;
 
@@ -431,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < positionalSubpatterns.Length; i++)
                 {
                     BoundPattern pattern = positionalSubpatterns[i].Pattern;
-                    using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern);
+                    using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
                     if (!setOfOrCases.IsDefault)
                     {
                         foreach (OrCases orSet in setOfOrCases.Set)
@@ -449,52 +486,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return result;
-            }
-
-
-            // Update `pattern1 or pattern2 or ... or patternN` tree, but with the i-th pattern/leaf substituted.
-            // We return either an updated node or a count of leaves found in that node.
-            static (BoundBinaryPattern? updated, int leafCount) updateBinaryOrTree(BoundBinaryPattern binaryPattern, int leafIndex, BoundPattern pattern)
-            {
-                int leftLeafCount;
-                if (binaryPattern.Left is BoundBinaryPattern { Disjunction: true } left)
-                {
-                    (var updatedLeft, leftLeafCount) = updateBinaryOrTree(left, leafIndex, pattern);
-                    if (updatedLeft is not null)
-                    {
-                        // The index we are looking for is on the left
-                        return (binaryPattern.WithLeft(updatedLeft), -1);
-                    }
-                }
-                else
-                {
-                    // Reached a leaf on the left
-                    leftLeafCount = 1;
-                    if (leafIndex == 0)
-                    {
-                        // The index we are looking for is on the left
-                        return (binaryPattern.WithLeft(pattern), -1);
-                    }
-                }
-
-                if (binaryPattern.Right is BoundBinaryPattern { Disjunction: true } right)
-                {
-                    var (updatedRight, rightLeafCount) = updateBinaryOrTree(right, leafIndex - leftLeafCount, pattern);
-                    if (updatedRight is not null)
-                    {
-                        return (binaryPattern.WithRight(updatedRight), -1);
-                    }
-
-                    return (null, leftLeafCount + rightLeafCount);
-                }
-
-                if (leafIndex == leftLeafCount)
-                {
-                    // The index we are looking for is on the right
-                    return (binaryPattern.WithRight(pattern), -1);
-                }
-
-                return (null, leftLeafCount + 1);
             }
 
             static void addPatternsFromOrTree(BoundPattern pattern, ArrayBuilder<BoundPattern> builder)
@@ -568,6 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             builder.Append("  => ");
                             builder.Append(syntax.ToString());
+                            builder.Append(", ");
                         }
 
                         builder.AppendLine();
@@ -609,22 +601,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // The purpose of this rewriter is to push `not` patterns down the pattern tree.
         // It needs to expand composite patterns in the process.
-        // TODO2 some patterns get erased (variable declarations?)
-        private class MoveNotPatternsDownRewriter : BoundTreeRewriterWithStackGuard
+        // It also erases/simplifies some patterns (variable declarations).
+        // Throughout the process it maintains input and narrowed types discipline, to produce a valid and consistent output.
+        private class PatternNormalizer : BoundTreeRewriterWithStackGuard
         {
-            private static readonly MoveNotPatternsDownRewriter Instance = new MoveNotPatternsDownRewriter(negated: false);
-            private static readonly MoveNotPatternsDownRewriter NegatedInstance = new MoveNotPatternsDownRewriter(negated: true);
+            private bool _negated;
+            private TypeSymbol _inputType;
+            private readonly Conversions _conversions;
 
-            private readonly bool _negated;
-
-            public MoveNotPatternsDownRewriter(bool negated)
+            public PatternNormalizer(Conversions conversions, TypeSymbol inputType)
             {
-                _negated = negated;
+                _negated = false;
+                _inputType = inputType;
+                _conversions = conversions;
             }
 
-            internal static BoundPattern Rewrite(BoundPattern pattern)
+            internal static BoundPattern Rewrite(BoundPattern pattern, TypeSymbol inputType, Conversions conversions)
             {
-                return (BoundPattern)Instance.Visit(pattern);
+                return (BoundPattern)new PatternNormalizer(conversions, inputType).Visit(pattern);
             }
 
             // A negated discard node represents an always false pattern
@@ -642,50 +636,115 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
             {
-                var resultLeft = (BoundPattern)Visit(node.Left);
-                var resultRight = (BoundPattern)Visit(node.Right);
-                var result = node.WithLeft(resultLeft).WithRight(resultRight);
-                return _negated ? result.WithDisjunction(!node.Disjunction) : result;
+                var resultLeft = VisitWithInputType(node.Left, _inputType);
+                var resultDisjunction = _negated ? !node.Disjunction : node.Disjunction;
+
+                var rightInputType = resultDisjunction ? _inputType : resultLeft.NarrowedType;
+                var resultRight = VisitWithInputType(node.Right, rightInputType);
+
+                TypeSymbol narrowedTypeForBinary2 = narrowedTypeForBinary(resultLeft, resultRight, resultDisjunction);
+                var result = new BoundBinaryPattern(node.Syntax, resultDisjunction, resultLeft, resultRight, _inputType, narrowedTypeForBinary2);
+                return result;
+
+                TypeSymbol narrowedTypeForBinary(BoundPattern resultLeft, BoundPattern resultRight, bool resultDisjunction)
+                {
+                    TypeSymbol narrowedType;
+                    if (resultDisjunction)
+                    {
+                        var candidateTypes = ArrayBuilder<TypeSymbol>.GetInstance(2);
+                        candidateTypes.Clear();
+                        candidateTypes.Add(resultLeft.NarrowedType);
+                        candidateTypes.Add(resultRight.NarrowedType);
+
+                        narrowedType = this.LeastSpecificType(candidateTypes) ?? _inputType; // TODO2 the input type fallback is wrong here?
+                        candidateTypes.Free();
+                    }
+                    else
+                    {
+                        narrowedType = resultRight.NarrowedType;
+                    }
+
+                    return narrowedType;
+                }
+            }
+
+            TypeSymbol? LeastSpecificType(ArrayBuilder<TypeSymbol> candidates)
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return Binder.LeastSpecificType(_conversions, candidates, ref useSiteInfo);
             }
 
             public override BoundNode? VisitNegatedPattern(BoundNegatedPattern node)
             {
-                if (_negated)
-                {
-                    return Instance.Visit(node.Negated);
-                }
-
-                return NegatedInstance.Visit(node.Negated);
+                var savedNegated = _negated;
+                _negated = !_negated;
+                var result = this.Visit(node.Negated);
+                _negated = savedNegated;
+                return result;
             }
 
             public BoundPattern NegateIfNeeded(BoundPattern node)
             {
-                if (_negated)
+                if (!_negated)
                 {
-                    var result = new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
-                    if (node.WasCompilerGenerated)
-                    {
-                        result.MakeCompilerGenerated();
-                    }
-                    return result;
+                    return node;
                 }
 
-                return node;
+                if (node is BoundNegatedPattern { Negated: var negated })
+                {
+                    return negated;
+                }
+
+                var result = new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
+                if (node.WasCompilerGenerated)
+                {
+                    result.MakeCompilerGenerated();
+                }
+
+                return result;
             }
 
             public override BoundNode? VisitTypePattern(BoundTypePattern node)
             {
-                return NegateIfNeeded(node);
+                return NegateIfNeeded(WithInputTypeCheckIfNeeded(node));
             }
 
             public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
             {
-                return NegateIfNeeded(node);
+                return NegateIfNeeded(WithInputTypeCheckIfNeeded(node));
             }
 
             public override BoundNode? VisitDiscardPattern(BoundDiscardPattern node)
             {
-                return NegateIfNeeded(node);
+                return NegateIfNeeded(WithInputTypeCheckIfNeeded(node));
+            }
+
+            public override BoundNode? VisitRelationalPattern(BoundRelationalPattern node)
+            {
+                return NegateIfNeeded(WithInputTypeCheckIfNeeded(node));
+            }
+
+            private BoundPattern WithInputTypeCheckIfNeeded(BoundPattern pattern)
+            {
+                // Produce `PatternInputType and pattern` given a new input type
+
+                if (pattern.InputType.Equals(_inputType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return pattern;
+                }
+
+                BoundPattern typePattern = new BoundTypePattern(pattern.Syntax,
+                    new BoundTypeExpression(pattern.Syntax, aliasOpt: null, pattern.InputType),
+                    isExplicitNotNullTest: false, _inputType, narrowedType: pattern.InputType);
+
+                var result = new BoundBinaryPattern(pattern.Syntax, disjunction: false, left: typePattern, right: pattern, _inputType, pattern.NarrowedType);
+
+                if (pattern.WasCompilerGenerated)
+                {
+                    result = result.MakeCompilerGenerated();
+                }
+
+                return result;
             }
 
             public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
@@ -697,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (node.InputType.Equals(node.DeclaredType.Type)) // TODO2 what kind of type comparison?
+                    if (node.InputType.Equals(node.DeclaredType.Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         result = MakeDiscardPattern(node).MakeCompilerGenerated();
                     }
@@ -707,19 +766,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return NegateIfNeeded(result);
-            }
-
-            public override BoundNode? VisitRelationalPattern(BoundRelationalPattern node)
-            {
-                return NegateIfNeeded(node);
+                return NegateIfNeeded(WithInputTypeCheckIfNeeded(result));
             }
 
             public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
             {
                 if (!_negated)
                 {
-                    return base.VisitRecursivePattern(node);
+                    ImmutableArray<BoundPositionalSubpattern> deconstructions = VisitListWithInputTypeFromPattern(node.Deconstruction);
+                    ImmutableArray<BoundPropertySubpattern> properties = VisitListWithInputTypeFromPattern(node.Properties);
+                    var result2 = node.WithDeconstruction(deconstructions).WithProperties(properties);
+                    return WithInputTypeCheckIfNeeded(result2);
                 }
 
                 // `Type (D1, D2, ...) { Prop1: P1, Prop2: P2, ... } x`
@@ -734,15 +791,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // `not Type`
                     builder.Add(new BoundNegatedPattern(node.Syntax,
-                        new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, node.InputType, node.NarrowedType, node.HasErrors),
-                        node.InputType, node.NarrowedType, node.HasErrors).MakeCompilerGenerated());
+                        new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, _inputType, node.NarrowedType, node.HasErrors),
+                        _inputType, narrowedType: _inputType, node.HasErrors).MakeCompilerGenerated());
                 }
                 else if (node.InputType.CanContainNull())
                 {
                     // `null`
                     builder.Add(new BoundConstantPattern(node.Syntax,
                         new BoundLiteral(node.Syntax, constantValueOpt: null, type: null, hasErrors: false), // dummy expression
-                        ConstantValue.Null, node.InputType, node.NarrowedType, hasErrors: false).MakeCompilerGenerated());
+                        ConstantValue.Null, _inputType, _inputType, hasErrors: false).MakeCompilerGenerated());
                 }
 
                 ImmutableArray<BoundPositionalSubpattern> deconstruction = node.Deconstruction;
@@ -751,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var discards = deconstruction.SelectAsArray(d => d.WithPattern(MakeDiscardPattern(d)));
                     for (int i = 0; i < deconstruction.Length; i++)
                     {
-                        var negatedPattern = (BoundPattern)Visit(deconstruction[i].Pattern);
+                        var negatedPattern = VisitWithInputTypeFromPattern(deconstruction[i].Pattern);
 
                         if (IsNegatedDiscard(negatedPattern))
                         {
@@ -761,11 +818,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // `Type ( ..., _, not DN, _, ... )`
                         var rewrittenDeconstruction = discards.SetItem(i, deconstruction[i].WithPattern(negatedPattern));
 
-                        builder.Add(new BoundRecursivePattern(
+                        var inputType = node.DeclaredType is null ? node.InputType : _inputType;
+
+                        BoundPattern rewrittenRecursive = new BoundRecursivePattern(
                             deconstruction[i].Syntax, declaredType: node.DeclaredType, deconstructMethod: node.DeconstructMethod,
                             deconstruction: rewrittenDeconstruction,
                             properties: default, isExplicitNotNullTest: false, variable: null, variableAccess: null,
-                            node.InputType, node.NarrowedType, node.HasErrors));
+                            inputType, node.NarrowedType, node.HasErrors);
+
+                        if (node.DeclaredType is null)
+                        {
+                            rewrittenRecursive = WithInputTypeCheckIfNeeded(rewrittenRecursive);
+                        }
+
+                        builder.Add(rewrittenRecursive);
                     }
                 }
 
@@ -773,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (BoundPropertySubpattern property in node.Properties)
                     {
-                        var negatedPattern = (BoundPattern)Visit(property.Pattern);
+                        var negatedPattern = VisitWithInputTypeFromPattern(property.Pattern);
 
                         if (IsNegatedDiscard(negatedPattern))
                         {
@@ -781,11 +847,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // `Type { PropN: not PN }`
-                        builder.Add(new BoundRecursivePattern(
+                        var inputType = node.DeclaredType is null ? node.InputType : _inputType;
+
+                        BoundPattern rewrittenRecursive = new BoundRecursivePattern(
                             property.Syntax, declaredType: node.DeclaredType, deconstructMethod: null, deconstruction: default,
                             properties: [property.WithPattern(negatedPattern)],
                             isExplicitNotNullTest: false, variable: null, variableAccess: null,
-                            node.InputType, node.NarrowedType, node.HasErrors));
+                            inputType, node.NarrowedType, node.HasErrors);
+
+                        if (node.DeclaredType is null)
+                        {
+                            rewrittenRecursive = WithInputTypeCheckIfNeeded(rewrittenRecursive);
+                        }
+
+                        builder.Add(rewrittenRecursive);
                     }
                 }
 
@@ -794,19 +869,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private static BoundPattern MakeDisjunction(BoundPattern node, ArrayBuilder<BoundPattern> builder)
+            public override BoundNode? VisitPropertySubpattern(BoundPropertySubpattern node)
+            {
+                Debug.Assert(!_negated);
+                BoundPattern pattern = VisitWithInputTypeFromPattern(node.Pattern);
+                return node.Update(node.Member, node.IsLengthOrCount, pattern);
+            }
+
+            public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
+            {
+                Debug.Assert(!_negated);
+                BoundPattern pattern = VisitWithInputTypeFromPattern(node.Pattern);
+                return node.Update(node.Symbol, pattern);
+            }
+
+            [return: NotNullIfNotNull(nameof(pattern))]
+            BoundPattern? VisitWithInputTypeFromPattern(BoundPattern? pattern)
+            {
+                if (pattern is null)
+                {
+                    return null;
+                }
+
+                return VisitWithInputType(pattern, pattern.InputType);
+            }
+
+            BoundPattern VisitWithInputType(BoundPattern pattern, TypeSymbol inputType)
+            {
+                var savedInputType = _inputType;
+                _inputType = inputType;
+                var result = (BoundPattern)Visit(pattern);
+                _inputType = savedInputType;
+                return result;
+            }
+
+            private BoundPattern MakeDisjunction(BoundPattern node, ArrayBuilder<BoundPattern> builder)
             {
                 if (builder.Count == 0)
                 {
-                    return MakeDiscardPattern(node); // TODO2 mark as blameless?
+                    return MakeDiscardPattern(node);
                 }
 
                 BoundPattern result = builder.Last();
+                var candidateTypes = ArrayBuilder<TypeSymbol>.GetInstance(2);
                 for (int i = builder.Count - 2; i >= 0; i--)
                 {
-                    result = new BoundBinaryPattern(node.Syntax, disjunction: true, builder[i], result, node.InputType, node.NarrowedType, node.HasErrors);
+                    candidateTypes.Clear();
+                    candidateTypes.Add(builder[i].NarrowedType);
+                    candidateTypes.Add(result.NarrowedType);
+
+                    var narrowedType = this.LeastSpecificType(candidateTypes) ?? _inputType; // TODO2 the input type fallback is wrong here
+                    result = new BoundBinaryPattern(node.Syntax, disjunction: true, builder[i], result, _inputType, narrowedType, node.HasErrors);
                 }
 
+                candidateTypes.Free();
                 return result;
             }
 
@@ -814,7 +930,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_negated)
                 {
-                    return base.VisitITuplePattern(node);
+                    ImmutableArray<BoundPositionalSubpattern> subpatterns2 = VisitListWithInputTypeFromPattern(node.Subpatterns);
+                    var result2 = node.WithSubpatterns(subpatterns2);
+                    return WithInputTypeCheckIfNeeded(result2);
                 }
 
                 // `(L1, L2, ...)`
@@ -829,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // `null`
                     builder.Add(new BoundConstantPattern(node.Syntax,
                         new BoundLiteral(node.Syntax, constantValueOpt: null, type: null, hasErrors: false), // dummy expression
-                        ConstantValue.Null, node.InputType, node.NarrowedType, hasErrors: false).MakeCompilerGenerated());
+                        ConstantValue.Null, node.InputType, node.InputType, hasErrors: false).MakeCompilerGenerated());
                 }
 
                 var subpatterns = node.Subpatterns;
@@ -837,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < subpatterns.Length; i++)
                 {
-                    var negatedPattern = (BoundPattern)Visit(subpatterns[i].Pattern);
+                    var negatedPattern = VisitWithInputTypeFromPattern(subpatterns[i].Pattern);
 
                     if (IsNegatedDiscard(negatedPattern))
                     {
@@ -845,7 +963,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // `(..., not LN, ...)`
-                    builder.Add(node.WithSubpatterns(discards.SetItem(i, subpatterns[i].WithPattern(negatedPattern))).WithSyntax(subpatterns[i].Syntax));
+                    var newSubpatterns = discards.SetItem(i, subpatterns[i].WithPattern(negatedPattern));
+
+                    var newPattern = new BoundITuplePattern(subpatterns[i].Syntax, node.GetLengthMethod, node.GetItemMethod, newSubpatterns,
+                        _inputType, node.NarrowedType);// TODO2 input type seems wrong
+
+                    builder.Add(newPattern);
                 }
 
                 BoundPattern result = MakeDisjunction(node, builder);
@@ -853,11 +976,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            private ImmutableArray<BoundPattern> VisitListWithInputTypeFromPattern(ImmutableArray<BoundPattern> patterns)
+            {
+                if (patterns.IsDefault)
+                {
+                    return patterns;
+                }
+
+                return patterns.SelectAsArray(p => VisitWithInputTypeFromPattern(p));
+            }
+
+            private ImmutableArray<BoundPositionalSubpattern> VisitListWithInputTypeFromPattern(ImmutableArray<BoundPositionalSubpattern> subpatterns)
+            {
+                if (subpatterns.IsDefault)
+                {
+                    return subpatterns;
+                }
+
+                return subpatterns.SelectAsArray(p => p.WithPattern(VisitWithInputTypeFromPattern(p.Pattern)));
+            }
+
+            private ImmutableArray<BoundPropertySubpattern> VisitListWithInputTypeFromPattern(ImmutableArray<BoundPropertySubpattern> subpatterns)
+            {
+                if (subpatterns.IsDefault)
+                {
+                    return subpatterns;
+                }
+
+                return subpatterns.SelectAsArray(p => p.WithPattern(VisitWithInputTypeFromPattern(p.Pattern)));
+            }
+
             public override BoundNode? VisitListPattern(BoundListPattern node)
             {
                 if (!_negated)
                 {
-                    return base.VisitListPattern(node);
+                    ImmutableArray<BoundPattern> subpatterns = VisitListWithInputTypeFromPattern(node.Subpatterns);
+                    var result2 = node.WithSubpatterns(subpatterns);
+                    return WithInputTypeCheckIfNeeded(result2);
                 }
 
                 // `[L1, L2, ...]`
@@ -867,13 +1022,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var builder = ArrayBuilder<BoundPattern>.GetInstance();
 
-                // TODO2 not for structs
                 if (node.InputType.CanContainNull())
                 {
                     // `null`
                     builder.Add(new BoundConstantPattern(node.Syntax,
                         new BoundLiteral(node.Syntax, constantValueOpt: null, type: null, hasErrors: false), // dummy expression
-                        ConstantValue.Null, node.InputType, node.NarrowedType, hasErrors: false).MakeCompilerGenerated());
+                        ConstantValue.Null, node.InputType, node.InputType, hasErrors: false).MakeCompilerGenerated());
                 }
 
                 ImmutableArray<BoundPattern> discardSubpatterns = node.Subpatterns.SelectAsArray(replaceWithDiscards);
@@ -884,12 +1038,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Add(new BoundNegatedPattern(node.Syntax,
                         listOfDiscards,
-                        node.InputType, node.NarrowedType, node.HasErrors).MakeCompilerGenerated());
+                        node.InputType, node.InputType, node.HasErrors).MakeCompilerGenerated());
                 }
 
                 for (int i = 0; i < discardSubpatterns.Length; i++)
                 {
-                    var negatedPattern = (BoundPattern)Visit(node.Subpatterns[i]);
+                    var negatedPattern = VisitWithInputTypeFromPattern(node.Subpatterns[i]);
 
                     if (IsNegatedDiscard(negatedPattern))
                     {
@@ -909,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Free();
                 return result;
 
-                static BoundPattern replaceWithDiscards(BoundPattern pattern)
+                BoundPattern replaceWithDiscards(BoundPattern pattern)
                 {
                     if (pattern is BoundSlicePattern slice)
                     {
@@ -924,7 +1078,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_negated)
                 {
-                    return base.VisitSlicePattern(node);
+                    var pattern = VisitWithInputTypeFromPattern(node.Pattern);
+                    var result2 = node.WithPattern(pattern);
+                    return WithInputTypeCheckIfNeeded(result2);
                 }
 
                 if (node.Pattern is null)
@@ -933,23 +1089,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new BoundNegatedPattern(node.Syntax, MakeDiscardPattern(node), node.InputType, narrowedType: node.InputType));
                 }
 
-                var negatedPattern = (BoundPattern)Visit(node.Pattern);
+                var negatedPattern = VisitWithInputTypeFromPattern(node.Pattern);
                 return node.WithPattern(negatedPattern);
             }
 
-            internal static BoundPattern MakeNegatedPattern(BoundPattern node)
+            private BoundDiscardPattern MakeDiscardPattern(BoundPattern node)
             {
-                return new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
-            }
-
-            private static BoundDiscardPattern MakeDiscardPattern(BoundPattern node)
-            {
-                return new BoundDiscardPattern(node.Syntax, node.InputType, node.NarrowedType);
+                return new BoundDiscardPattern(node.Syntax, _inputType, _inputType);
             }
 
             private static BoundDiscardPattern MakeDiscardPattern(BoundPositionalSubpattern node)
             {
-                return new BoundDiscardPattern(node.Syntax, node.Pattern.InputType, node.Pattern.NarrowedType);
+                return new BoundDiscardPattern(node.Syntax, node.Pattern.InputType, node.Pattern.InputType);
             }
         }
     }

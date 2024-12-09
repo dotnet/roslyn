@@ -442,6 +442,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             append(declarationPattern.Variable?.Name);
                             break;
                         }
+                    case BoundITuplePattern ituplePattern:
+                        {
+                            append("(");
+                            for (int i = 0; i < ituplePattern.Subpatterns.Length; i++)
+                            {
+                                if (i != 0) append(", ");
+                                appendSource(ituplePattern.Subpatterns[i].Pattern);
+                            }
+                            append(")");
+                            break;
+                        }
                     default:
                         appendLine(node.Kind.ToString());
                         break;
