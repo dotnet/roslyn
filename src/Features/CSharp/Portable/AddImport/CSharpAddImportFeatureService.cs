@@ -158,7 +158,8 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             diagnosticId == CS1929) && // An extension method is in scope, but for another type
             node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
 
-    protected override bool CanAddImportForType(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
+    protected override bool CanAddImportForTypeOrNamespace(
+        string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
     {
         nameNode = null;
         switch (diagnosticId)
@@ -175,7 +176,6 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             case CS1581:
             case CS1955:
             case CS0281:
-            case CS0234:
                 break;
 
             case CS1574:
@@ -186,6 +186,16 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
                 }
 
                 break;
+
+            case CS0234:
+                // The type or namespace name 'X' does not exist in the namespace 'Y'.
+                //
+                // We support this within a using, on any part of the using name that doesn't bind.
+                if (!this.IsWithinImport(nameNode))
+                    return false;
+
+                nameNode = node as SimpleNameSyntax;
+                return true;
 
             default:
                 return false;

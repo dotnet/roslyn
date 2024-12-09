@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
-        Protected Overrides Function CanAddImportForType(
+        Protected Overrides Function CanAddImportForTypeOrNamespace(
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
                 Case AddImportDiagnosticIds.BC30002,

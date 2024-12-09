@@ -21,7 +21,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 [DataContract]
 internal readonly record struct TypeQuery(
     [property: DataMember(Order = 0)] string Name,
-    [property: DataMember(Order = 1)] int Arity);
+    [property: DataMember(Order = 1)] int Arity)
+{
+    public static readonly TypeQuery Default = default;
+
+    public bool IsDefault => string.IsNullOrEmpty(Name);
+}
 
 /// <param name="Names">The names comprising the namespace being searched for.  For example <c>["System", "Collections",
 /// "Immutable"]</c>.</param>
@@ -29,6 +34,8 @@ internal readonly record struct TypeQuery(
 internal readonly record struct NamespaceQuery(
     [property: DataMember(Order = 0)] ImmutableArray<string> Names)
 {
+    public static readonly NamespaceQuery Default = default;
+
     public static implicit operator NamespaceQuery(ImmutableArray<string> names)
         => new(names);
 

@@ -28,35 +28,20 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (!allReferences.IsEmpty)
                 return;
 
-            TSimpleNameSyntax? nameNode;
-            if (_isWithinImport)
-            {
-                nameNode = _node as TSimpleNameSyntax;
-            }
-            else if (!_owner.CanAddImportForType(_diagnosticId, _node, out nameNode))
-            {
-                return;
-            }
-
-            if (nameNode is null)
-                return;
-
-            var namespaceNames = GetNamespaceNames(nameNode);
-            if (_isWithinImport && namespaceNames.Length == 0)
+            if (!_owner.CanAddImportForTypeOrNamespace(_diagnosticId, _node, out var nameNode))
                 return;
 
             if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
                 return;
 
-            CalculateContext(
-                nameNode, _syntaxFacts,
-                out var name, out var arity, out var inAttributeContext,
-                out _, out _);
+            var (typeQuery, namespaceQuery, inAttributeContext) = GetSearchQueries(nameNode);
+            if (typeQuery.IsDefault && namespaceQuery.IsDefault)
+                return;
 
-            if (arity == 0 && inAttributeContext)
-                await FindWorkerAsync(new(name + AttributeSuffix, arity), namespaceNames, isAttributeSearch: true).ConfigureAwait(false);
+            if (inAttributeContext && typeQuery.Arity == 0)
+                await FindWorkerAsync(new(typeQuery.Name + AttributeSuffix, typeQuery.Arity), namespaceQuery, isAttributeSearch: true).ConfigureAwait(false);
 
-            await FindWorkerAsync(new(name, arity), namespaceNames, isAttributeSearch: false).ConfigureAwait(false);
+            await FindWorkerAsync(typeQuery, namespaceQuery, isAttributeSearch: false).ConfigureAwait(false);
 
             return;
 
@@ -82,41 +67,53 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        private ImmutableArray<string> GetNamespaceNames(TSimpleNameSyntax nameNode)
+        private (TypeQuery typeQuery, NamespaceQuery namespaceQuery, bool inAttributeContext) GetSearchQueries(TSimpleNameSyntax nameNode)
         {
-            if (!_isWithinImport)
-                return [];
-
-            using var _1 = ArrayBuilder<string>.GetInstance(out var result);
-
-            // Inside of a using/import we do a search on the part of the using that doesn't bind (like 'Json' in `using
-            // Newtonsoft.Json;`).  But this may find results in other potential namespaces (like `Goobar.Json`).  So we
-            // need to make sure the namespace the index found matches the full name in the using/import.
-            var syntaxFacts = this._document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var rootNode = syntaxFacts.IsRightOfQualifiedName(nameNode)
-                ? nameNode.GetRequiredParent()
-                : nameNode;
-
-            if (!TryAddNames(rootNode))
-                return [];
-
-            return result.ToImmutableAndClear();
-
-            bool TryAddNames(SyntaxNode rootNode)
+            if (_isWithinImport)
             {
-                if (syntaxFacts.IsIdentifierName(rootNode))
+                var current = (SyntaxNode)nameNode;
+                while (_syntaxFacts.IsQualifiedName(current.Parent))
+                    current = current.Parent;
+
+                using var _1 = ArrayBuilder<string>.GetInstance(out var result);
+
+                // Inside of a using/import we do a search on the part of the using that doesn't bind (like 'Json' in `using
+                // Newtonsoft.Json;`).  But this may find results in other potential namespaces (like `Goobar.Json`).  So we
+                // need to make sure the namespace the index found matches the full name in the using/import.
+                var rootNode = _syntaxFacts.IsRightOfQualifiedName(nameNode)
+                    ? nameNode.GetRequiredParent()
+                    : nameNode;
+
+                if (!TryAddNames(result, rootNode))
+                    return default;
+
+                return (TypeQuery.Default, result.ToImmutableAndClear(), inAttributeContext: false);
+            }
+            else
+            {
+                CalculateContext(
+                    nameNode, _syntaxFacts,
+                    out var name, out var arity, out var inAttributeContext,
+                    out _, out _);
+
+                return (new(name, arity), NamespaceQuery.Default, inAttributeContext);
+            }
+
+            bool TryAddNames(ArrayBuilder<string> result, SyntaxNode rootNode)
+            {
+                if (_syntaxFacts.IsIdentifierName(rootNode))
                 {
                     // If we're on a single identifier, then we have to have a single namespace name that matches it.
-                    result.Add(syntaxFacts.GetIdentifierOfIdentifierName(rootNode).ValueText);
+                    result.Add(_syntaxFacts.GetIdentifierOfIdentifierName(rootNode).ValueText);
                     return true;
                 }
-                else if (syntaxFacts.IsQualifiedName(rootNode))
+                else if (_syntaxFacts.IsQualifiedName(rootNode))
                 {
                     // If we have a qualified name (like A.B.C) then we recurse down the left side (A.B) and the right (C),
                     // passing in the corresponding parts of the namespace-name to match against.
 
-                    syntaxFacts.GetPartsOfQualifiedName(rootNode, out var left, out _, out var right);
-                    return TryAddNames(left) && TryAddNames(right);
+                    _syntaxFacts.GetPartsOfQualifiedName(rootNode, out var left, out _, out var right);
+                    return TryAddNames(result, left) && TryAddNames(result, right);
                 }
                 else
                 {

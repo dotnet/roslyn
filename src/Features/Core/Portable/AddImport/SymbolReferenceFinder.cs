@@ -177,10 +177,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
-            {
+            if (!_owner.CanAddImportForTypeOrNamespace(_diagnosticId, _node, out var nameNode))
                 return [];
-            }
 
             CalculateContext(
                 nameNode, _syntaxFacts,

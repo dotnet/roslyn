@@ -46,7 +46,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     protected abstract bool CanAddImportForGetEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForGetAsyncEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
-    protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
+    protected abstract bool CanAddImportForTypeOrNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
     protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);

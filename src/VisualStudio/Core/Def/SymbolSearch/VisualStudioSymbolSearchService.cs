@@ -99,21 +99,19 @@ internal partial class VisualStudioSymbolSearchService(
         // When our service is enabled hook up to package source changes.
         // We need to know when the list of sources have changed so we can
         // kick off the work to process them.
-        _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+        _installerService.PackageSourcesChanged += (_, _) => StartWorking(_localSettingsDirectory);
 
         // Kick off the initial work to pull down the nuget index.
-        this.StartWorking();
+        this.StartWorking(_localSettingsDirectory);
     }
 
-    private void OnPackageSourcesChanged(object sender, EventArgs e)
-        => StartWorking();
-
-    private void StartWorking()
+    private void StartWorking(string localSettingsDirectory)
     {
         // Always pull down the nuget.org index.  It contains the MS reference assembly index
         // inside of it.
         var cancellationToken = ThreadingContext.DisposalToken;
-        Task.Run(() => UpdateSourceInBackgroundAsync(PackageSourceHelper.NugetOrgSourceName, cancellationToken), cancellationToken);
+        Task.Run(() => UpdateSourceInBackgroundAsync(
+            PackageSourceHelper.NugetOrgSourceName, localSettingsDirectory, cancellationToken), cancellationToken);
     }
 
     private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
@@ -125,10 +123,11 @@ internal partial class VisualStudioSymbolSearchService(
         }
     }
 
-    private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
+    private async Task UpdateSourceInBackgroundAsync(
+        string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-        await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        await engine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
