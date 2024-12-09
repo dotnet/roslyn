@@ -16,10 +16,10 @@ internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : I
     public void Dispose()
         => _connection.Dispose();
 
-    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         var result = await _connection.TryInvokeAsync(
-            (service, cancellationToken) => service.FindPackagesAsync(source, typeName, arity, namespaceNames, cancellationToken),
+            (service, cancellationToken) => service.FindPackagesAsync(source, typeQuery, namespaceQuery, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         return result.HasValue ? result.Value : [];
@@ -36,10 +36,10 @@ internal sealed class SymbolSearchUpdateEngineProxy(RemoteHostClient client) : I
     }
 
     public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         var result = await _connection.TryInvokeAsync(
-            (service, cancellationToken) => service.FindReferenceAssembliesAsync(typeName, arity, namespaceNames, cancellationToken),
+            (service, cancellationToken) => service.FindReferenceAssembliesAsync(typeQuery, namespaceQuery, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         return result.HasValue ? result.Value : [];

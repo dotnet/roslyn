@@ -72,7 +72,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     }
 
     public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
-        string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+        string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
         {
@@ -159,7 +159,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     }
 
     public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         // Our reference assembly data is stored in the nuget.org DB.
         if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))

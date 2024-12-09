@@ -18,9 +18,9 @@ internal interface IRemoteMissingImportDiscoveryService
 {
     internal interface ICallback
     {
-        ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(RemoteServiceCallbackId callbackId, string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(RemoteServiceCallbackId callbackId, string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(RemoteServiceCallbackId callbackId, string source, string name, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(RemoteServiceCallbackId callbackId, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(RemoteServiceCallbackId callbackId, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken);
     }
 
     ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(

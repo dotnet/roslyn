@@ -14,6 +14,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
+/// <param name="Name">The roslyn simple name of the type to search for. For example <see cref="ImmutableArray{T}"/>
+/// would have the name <c>ImmutableArray</c></param>
+/// <param name="Arity">The arity of the type.  For example <see cref="ImmutableArray{T}"/> would have arity
+/// <c>1</c></param>.
+internal readonly record struct TypeQuery(string Name, int Arity);
+
+/// <param name="Names">The names comprising the namespace being searched for.  For example <c>["System", "Collections",
+/// "Immutable"]</c>.</param>
+internal readonly record struct NamespaceQuery(ImmutableArray<string> Names)
+{
+    public static implicit operator NamespaceQuery(ImmutableArray<string> names)
+        => new(names);
+}
+
 internal interface ISymbolSearchService : IWorkspaceService
 {
     /// <summary>
@@ -24,7 +38,7 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// Implementations should return results in order from best to worst (from their perspective).
     /// </summary>
     ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
-        string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken);
+        string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken);
 
     /// <summary>
     /// Searches for packages that contain an assembly with the provided name. Note: Implementations are free to return
@@ -45,7 +59,7 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// perspective).
     /// </summary>
     ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken);
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken);
 }
 
 [DataContract]
@@ -127,12 +141,12 @@ internal sealed class ReferenceAssemblyResult(
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultSymbolSearchService() : ISymbolSearchService
 {
-    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
 }

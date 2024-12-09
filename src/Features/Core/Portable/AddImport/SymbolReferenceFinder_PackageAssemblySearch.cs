@@ -54,22 +54,22 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 out _, out _);
 
             if (arity == 0 && inAttributeContext)
-                await FindWorkerAsync(name + AttributeSuffix, arity, isAttributeSearch: true).ConfigureAwait(false);
+                await FindWorkerAsync(new(name + AttributeSuffix, arity), namespaceNames, isAttributeSearch: true).ConfigureAwait(false);
 
-            await FindWorkerAsync(name, arity, isAttributeSearch: false).ConfigureAwait(false);
+            await FindWorkerAsync(new(name, arity), namespaceNames, isAttributeSearch: false).ConfigureAwait(false);
 
             return;
 
             async Task FindWorkerAsync(
-                string name,
-                int arity,
+                TypeQuery typeQuery,
+                NamespaceQuery namespaceQuery,
                 bool isAttributeSearch)
             {
                 if (_options.SearchOptions.SearchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyReferencesAsync(
-                        allReferences, nameNode, namespaceNames, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        allReferences, nameNode, typeQuery, namespaceQuery, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
                 var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
@@ -77,7 +77,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindNugetReferencesAsync(
-                        sourceName, sourceUrl, allReferences, nameNode, namespaceNames, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        sourceName, sourceUrl, allReferences, nameNode, typeQuery, namespaceQuery, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -129,15 +129,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private async Task FindReferenceAssemblyReferencesAsync(
             ConcurrentQueue<Reference> allReferences,
             TSimpleNameSyntax nameNode,
-            ImmutableArray<string> namespaceNames,
-            string name,
-            int arity,
+            TypeQuery typeQuery,
+            NamespaceQuery namespaceQuery,
             bool isAttributeSearch,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindReferenceAssembliesAsync(
-                name, arity, namespaceNames, cancellationToken).ConfigureAwait(false);
+                typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
 
             var project = _document.Project;
 
@@ -156,15 +155,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             string sourceUrl,
             ConcurrentQueue<Reference> allReferences,
             TSimpleNameSyntax nameNode,
-            ImmutableArray<string> namespaceNames,
-            string name,
-            int arity,
+            TypeQuery typeQuery,
+            NamespaceQuery namespaceQuery,
             bool isAttributeSearch,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindPackagesAsync(
-                sourceName, name, arity, namespaceNames, cancellationToken).ConfigureAwait(false);
+                sourceName, typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
 
             foreach (var result in results)
             {

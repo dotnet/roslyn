@@ -132,11 +132,11 @@ internal partial class VisualStudioSymbolSearchService(
     }
 
     public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
-        string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+        string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
         var allPackagesWithType = await engine.FindPackagesAsync(
-            source, typeName, arity, namespaceNames, cancellationToken).ConfigureAwait(false);
+            source, typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
 
         return FilterAndOrderPackages(allPackagesWithType);
     }
@@ -203,10 +203,10 @@ internal partial class VisualStudioSymbolSearchService(
     }
 
     public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
-        string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
         return await engine.FindReferenceAssembliesAsync(
-            typeName, arity, namespaceNames, cancellationToken).ConfigureAwait(false);
+            typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
     }
 }

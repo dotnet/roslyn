@@ -32,12 +32,12 @@ internal sealed class RemoteMissingImportDiscoveryServiceCallbackDispatcher()
     private ISymbolSearchService GetService(RemoteServiceCallbackId callbackId)
         => (ISymbolSearchService)GetCallback(callbackId);
 
-    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(RemoteServiceCallbackId callbackId, string source, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
-        => GetService(callbackId).FindPackagesAsync(source, typeName, arity, namespaceNames, cancellationToken);
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(RemoteServiceCallbackId callbackId, string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => GetService(callbackId).FindPackagesAsync(source, typeQuery, namespaceQuery, cancellationToken);
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(RemoteServiceCallbackId callbackId, string source, string name, CancellationToken cancellationToken)
         => GetService(callbackId).FindPackagesWithAssemblyAsync(source, name, cancellationToken);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(RemoteServiceCallbackId callbackId, string typeName, int arity, ImmutableArray<string> namespaceNames, CancellationToken cancellationToken)
-        => GetService(callbackId).FindReferenceAssembliesAsync(typeName, arity, namespaceNames, cancellationToken);
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(RemoteServiceCallbackId callbackId, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => GetService(callbackId).FindReferenceAssembliesAsync(typeQuery, namespaceQuery, cancellationToken);
 }
