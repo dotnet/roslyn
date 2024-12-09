@@ -18,11 +18,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 /// would have the name <c>ImmutableArray</c></param>
 /// <param name="Arity">The arity of the type.  For example <see cref="ImmutableArray{T}"/> would have arity
 /// <c>1</c></param>.
-internal readonly record struct TypeQuery(string Name, int Arity);
+[DataContract]
+internal readonly record struct TypeQuery(
+    [property: DataMember(Order = 0)] string Name,
+    [property: DataMember(Order = 1)] int Arity);
 
 /// <param name="Names">The names comprising the namespace being searched for.  For example <c>["System", "Collections",
 /// "Immutable"]</c>.</param>
-internal readonly record struct NamespaceQuery(ImmutableArray<string> Names)
+[DataContract]
+internal readonly record struct NamespaceQuery(
+    [property: DataMember(Order = 0)] ImmutableArray<string> Names)
 {
     public static implicit operator NamespaceQuery(ImmutableArray<string> names)
         => new(names);
