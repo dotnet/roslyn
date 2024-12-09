@@ -5302,7 +5302,7 @@ public static class S1Ext
         verifier.VerifyDiagnostics(
             // C:\My\Machine\Specific\Path\Program.cs(11,6): warning CS9269: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
             //     [InterceptsLocation(@"C:\My\Machine\Specific\Path\Program.cs", 5, 3)]
-            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(@""C:\My\Machine\Specific\Path\Program.cs"", 5, 3)").WithLocation(11, 6));
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, $@"InterceptsLocation(@""{path}"", 5, 3)").WithLocation(11, 6));
     }
 
     [Fact]
