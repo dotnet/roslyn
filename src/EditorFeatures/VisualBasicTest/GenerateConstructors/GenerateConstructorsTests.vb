@@ -4,20 +4,18 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructors
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructors
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
-    Public Class GenerateConstructorFromMembersTests
+    Public NotInheritable Class GenerateConstructorsTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicGenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(parameters.fixProviderData, IPickMembersService))
+            Return New VisualBasicGenerateConstructorsCodeRefactoringProvider(DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
         <Fact>

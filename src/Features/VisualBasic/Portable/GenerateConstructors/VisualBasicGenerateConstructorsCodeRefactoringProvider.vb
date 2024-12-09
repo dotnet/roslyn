@@ -6,17 +6,15 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.GenerateConstructors
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.Simplification
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
+Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructors
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), [Shared]>
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)>
-    Friend NotInheritable Class VisualBasicGenerateConstructorFromMembersCodeRefactoringProvider
-        Inherits AbstractGenerateConstructorFromMembersCodeRefactoringProvider
+    Friend NotInheritable Class VisualBasicGenerateConstructorsCodeRefactoringProvider
+        Inherits AbstractGenerateConstructorsCodeRefactoringProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

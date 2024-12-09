@@ -17,12 +17,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
+namespace Microsoft.CodeAnalysis.GenerateConstructors;
 
-internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvider
 {
     private sealed class GenerateConstructorWithDialogCodeAction(
-        AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+        AbstractGenerateConstructorsCodeRefactoringProvider service,
         Document document,
         TextSpan textSpan,
         INamedTypeSymbol containingType,
@@ -33,13 +33,13 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         private readonly Document _document = document;
         private readonly INamedTypeSymbol _containingType = containingType;
         private readonly Accessibility? _desiredAccessibility = desiredAccessibility;
-        private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+        private readonly AbstractGenerateConstructorsCodeRefactoringProvider _service = service;
         private readonly TextSpan _textSpan = textSpan;
 
         internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
         internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
 
-        public override string Title => FeaturesResources.Generate_constructor;
+        public override string Title => FeaturesResources.Generate_constructor_from_members;
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
@@ -93,8 +93,8 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
                 var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                 var constructorTree = constructorSyntax.SyntaxTree;
                 var constructorDocument = solution.GetRequiredDocument(constructorTree);
-                return ImmutableArray.Create<CodeActionOperation>(new DocumentNavigationOperation(
-                    constructorDocument.Id, constructorSyntax.SpanStart));
+                return [new DocumentNavigationOperation(
+                    constructorDocument.Id, constructorSyntax.SpanStart)];
             }
             else
             {

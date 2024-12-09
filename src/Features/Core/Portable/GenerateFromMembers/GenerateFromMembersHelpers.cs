@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,13 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateFromMembers;
 
-internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
+internal static class GenerateFromMembersHelpers
 {
-    protected AbstractGenerateFromMembersCodeRefactoringProvider()
-    {
-    }
-
-    protected static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
+    public static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
         Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -51,10 +46,10 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
         return null;
     }
 
-    protected static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
+    public static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
         => !symbol.IsStatic && IsReadableFieldOrProperty(symbol);
 
-    protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
+    public static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
         => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
 
     private static bool IsReadableFieldOrProperty(ISymbol symbol)
@@ -87,7 +82,7 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
     /// <param name="selectedMembers"></param>
     /// <param name="rules"></param>
     /// <returns></returns>
-    protected static ImmutableArray<IParameterSymbol> DetermineParameters(
+    public static ImmutableArray<IParameterSymbol> DetermineParameters(
         ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
     {
         using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
@@ -118,7 +113,7 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
         return parameters.ToImmutableAndClear();
     }
 
-    protected static readonly SymbolDisplayFormat SimpleFormat =
+    public static readonly SymbolDisplayFormat SimpleFormat =
         new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
