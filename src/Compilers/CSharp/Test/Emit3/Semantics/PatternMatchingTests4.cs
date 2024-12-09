@@ -1875,18 +1875,9 @@ class _
     }
 }
 ";
+            // TODO2 feels like cascading diagnostics
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // 0.cs(7,16): warning CS9269: The pattern is redundant.
-                //         return cond switch {
-                Diagnostic(ErrorCode.WRN_RedundantPattern, @"cond switch {
-            (false, false) => 1,
-            (false, true) => 2,
-            (true, false) => 3,
-            (true, true) => 4,
-            _ => 5,
-            (null, true) => 6,
-            }").WithLocation(7, 16),
                 // 0.cs(13,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13),
@@ -5153,13 +5144,13 @@ class A { }
         {
             var source = """
 object o = null;
-_ = o is not A or (B or C); // 1
+_ = o is not A or (B or C); // 1, 2
 _ = o is not (A or (B or C));
 
 _ = o switch
 {
     not A => 42,
-    B or C => 43, // 2
+    B or C => 43, // 3, 4, 5
     _ => 44
 };
 
@@ -5167,17 +5158,24 @@ class A { }
 class B { }
 class C { }
 """;
+            // TODO2 feels like a cascading diagnostic
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,20): warning CS9269: The pattern is redundant.
-                // _ = o is not A or (B or C); // 1
+                // _ = o is not A or (B or C); // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 20),
                 // (2,25): warning CS9269: The pattern is redundant.
-                // _ = o is not A or (B or C); // 1
+                // _ = o is not A or (B or C); // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "C").WithLocation(2, 25),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     B or C => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B or C").WithLocation(8, 5));
+                //     B or C => 43, // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B or C").WithLocation(8, 5),
+                // (8,5): warning CS9269: The pattern is redundant.
+                //     B or C => 43, // 3, 4, 5
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(8, 5),
+                // (8,10): warning CS9269: The pattern is redundant.
+                //     B or C => 43, // 3, 4, 5
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "C").WithLocation(8, 10));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5266,7 +5264,7 @@ _ = s is { Length: not 42 or 43 }; // 1
 
 _ = s switch
 {
-    { Length: not 42 or 43 } => 42, // TODO2 handle switches
+    { Length: not 42 or 43 } => 42, // 2
     _ => 44
 };
 """;
@@ -5274,7 +5272,10 @@ _ = s switch
             comp.VerifyEmitDiagnostics(
                 // (2,30): warning CS9269: The pattern is redundant.
                 // _ = s is { Length: not 42 or 43 }; // 1
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 30));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 30),
+                // (6,25): warning CS9269: The pattern is redundant.
+                //     { Length: not 42 or 43 } => 42, // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 25));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5286,13 +5287,13 @@ _ = s is { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 1, 2
 
 _ = s switch
 {
-    { Prop1: not 42 or 43, Prop2: not 44 or 45 } => 42, // TODO2 handle switches
+    { Prop1: not 42 or 43, Prop2: not 44 or 45 } => 42, // 3, 4
     _ => 44
 };
 
 switch (s)
 {
-    case { Prop1: not 42 or 43, Prop2: not 44 or 45 }: break; // TODO2 handle switches
+    case { Prop1: not 42 or 43, Prop2: not 44 or 45 }: break; // 5, 6
     default: break;
 };
 
@@ -5309,7 +5310,19 @@ struct S
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 29),
                 // (2,50): warning CS9269: The pattern is redundant.
                 // _ = s is { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 1, 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 50));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 50),
+                // (6,24): warning CS9269: The pattern is redundant.
+                //     { Prop1: not 42 or 43, Prop2: not 44 or 45 } => 42, // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 24),
+                // (6,45): warning CS9269: The pattern is redundant.
+                //     { Prop1: not 42 or 43, Prop2: not 44 or 45 } => 42, // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 45),
+                // (12,29): warning CS9269: The pattern is redundant.
+                //     case { Prop1: not 42 or 43, Prop2: not 44 or 45 }: break; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 29),
+                // (12,50): warning CS9269: The pattern is redundant.
+                //     case { Prop1: not 42 or 43, Prop2: not 44 or 45 }: break; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(12, 50));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5321,13 +5334,13 @@ _ = s is (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }; // 1, 2, 3
 
 _ = s switch
 {
-    (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 } => 42, // TODO2 switch
+    (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 } => 42, // 4, 5, 6
     _ => 44
 };
 
 switch (s)
 {
-    case (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }: break; // TODO2 switch
+    case (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }: break; // 7, 8, 9
     default: break;
 };
 
@@ -5347,7 +5360,25 @@ struct S
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 35),
                 // (2,57): warning CS9269: The pattern is redundant.
                 // _ = s is (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }; // 1, 2, 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(2, 57));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(2, 57),
+                // (6,16): warning CS9269: The pattern is redundant.
+                //     (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 } => 42, // 4, 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 16),
+                // (6,30): warning CS9269: The pattern is redundant.
+                //     (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 } => 42, // 4, 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 30),
+                // (6,52): warning CS9269: The pattern is redundant.
+                //     (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 } => 42, // 4, 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(6, 52),
+                // (12,21): warning CS9269: The pattern is redundant.
+                //     case (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }: break; // 7, 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 21),
+                // (12,35): warning CS9269: The pattern is redundant.
+                //     case (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }: break; // 7, 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(12, 35),
+                // (12,57): warning CS9269: The pattern is redundant.
+                //     case (not 42 or 43, not 44 or 45) { Prop: not 46 or 47 }: break; // 7, 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(12, 57));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5365,7 +5396,7 @@ _ = s switch
 
 switch (s)
 {
-    case [not 42 or 43, _]: break; // TODO2 switch statement
+    case [not 42 or 43, _]: break; // 3
     default: break;
 };
 """;
@@ -5376,7 +5407,10 @@ switch (s)
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 21),
                 // (6,16): warning CS9269: The pattern is redundant.
                 //     [not 42 or 43, _] => 42, // 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 16));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 16),
+                // (12,21): warning CS9269: The pattern is redundant.
+                //     case [not 42 or 43, _]: break; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5394,7 +5428,7 @@ _ = s switch
 
 switch (s)
 {
-    case [..(not 42 or 43), not 44 or 45]: break; // TODO2 switch statement
+    case [..(not 42 or 43), not 44 or 45]: break; // 5, 6
     default: break;
 };
 
@@ -5418,7 +5452,13 @@ public struct S
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 19),
                 // (6,34): warning CS9269: The pattern is redundant.
                 //     [..(not 42 or 43), not 44 or 45] => 42, // 3, 4
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 34));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 34),
+                // (12,24): warning CS9269: The pattern is redundant.
+                //     case [..(not 42 or 43), not 44 or 45]: break; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 24),
+                // (12,39): warning CS9269: The pattern is redundant.
+                //     case [..(not 42 or 43), not 44 or 45]: break; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(12, 39));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]

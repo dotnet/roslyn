@@ -627,12 +627,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (BoundPattern)Instance.Visit(pattern);
             }
 
-            // A discard node represents an always true pattern
-            private bool IsDiscard(BoundPattern pattern) // TODO2
-            {
-                return pattern is BoundDiscardPattern;
-            }
-
             // A negated discard node represents an always false pattern
             private bool IsNegatedDiscard(BoundPattern pattern, bool synthesized = false)
             {
@@ -703,12 +697,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    result = node;
-                    //result = new BoundTypePattern(node.Syntax, node.DeclaredType, isExplicitNotNullTest: false, node.InputType, node.NarrowedType); // TODO2
-
-                    if (node.InputType.Equals(node.DeclaredType.Type))
+                    if (node.InputType.Equals(node.DeclaredType.Type)) // TODO2 what kind of type comparison?
                     {
                         result = MakeDiscardPattern(node).MakeCompilerGenerated();
+                    }
+                    else
+                    {
+                        result = node;
                     }
                 }
 
@@ -901,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (negatedPattern is BoundSlicePattern { Pattern: var p } && IsNegatedDiscard(p))
+                    if (negatedPattern is BoundSlicePattern { Pattern: { } p } && IsNegatedDiscard(p))
                     {
                         continue;
                     }
