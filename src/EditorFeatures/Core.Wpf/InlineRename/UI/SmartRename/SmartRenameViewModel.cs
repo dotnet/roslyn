@@ -189,11 +189,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
 
         var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-        try
-        {
-            _cancellationTokenSource.Cancel();
-        }
-        catch { }
+        _cancellationTokenSource.Cancel();
         _cancellationTokenSource = new CancellationTokenSource();
         GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
@@ -315,11 +311,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Cancel()
     {
-        try
-        {
-            _cancellationTokenSource.Cancel();
-        }
-        catch { }
+        _cancellationTokenSource.Cancel();
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
         PostTelemetry(isCommit: false);
@@ -339,11 +331,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         BaseViewModel.PropertyChanged -= BaseViewModelPropertyChanged;
         _smartRenameSession.Dispose();
-        try
-        {
-            _cancellationTokenSource.Cancel();
-        }
-        catch { }
+        _cancellationTokenSource.Cancel();
     }
 
     /// <summary>
@@ -385,11 +373,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
             // User is typing the new identifier name, cancel the ongoing request to get suggestions.
-            try
-            {
-                _cancellationTokenSource.Cancel();
-            }
-            catch { }
+            _cancellationTokenSource.Cancel();
         }
     }
 }
