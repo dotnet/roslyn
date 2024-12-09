@@ -8180,6 +8180,76 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_08()
+    {
+        var source = """
+            using System;
+
+            (int, int)[] t = [(1, 2)];
+
+            C.M1(t);
+            C.M1(t);
+
+            C.M2(t);
+            C.M2(t);
+
+            static class C
+            {
+                public static void M1(Span<(int X, int Y)> arg) => Console.Write(1);
+                public static void M1(ReadOnlySpan<(int, int)> arg) => Console.Write(2);
+
+                public static void M2(Span<(int X, int Y)> arg) => Console.Write(1);
+                public static void M2(ReadOnlySpan<(int A, int B)> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1111").VerifyDiagnostics();
+
+        var expectedOutput = "2222";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_09()
+    {
+        var source = """
+            using System;
+
+            object[] a = [];
+
+            C.M1(a);
+            C.M1(a);
+
+            C.M2(a);
+            C.M2(a);
+
+            static class C
+            {
+                public static void M1(Span<object> arg) => Console.Write(1);
+                public static void M1(ReadOnlySpan<dynamic> arg) => Console.Write(2);
+
+                public static void M2(Span<dynamic> arg) => Console.Write(1);
+                public static void M2(ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1111").VerifyDiagnostics();
+
+        var expectedOutput = "2222";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_01()
     {
         var source = """
