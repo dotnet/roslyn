@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
 
@@ -13,17 +17,116 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
     : IInitializeParameterService
     where TStatementSyntax : SyntaxNode
 {
-    public abstract SyntaxNode GetBody(SyntaxNode methodNode);
+    protected abstract bool IsFunctionDeclaration(SyntaxNode node);
+
+    protected abstract SyntaxNode GetBody(SyntaxNode methodNode);
     protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
     protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
+    protected abstract Task<Solution> TryAddAssignmentForPrimaryConstructorAsync(
+        Document document, IParameterSymbol parameter, ISymbol fieldOrProperty, CancellationToken cancellationToken);
 
     protected abstract void InsertStatement(
         SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
+    public bool TryGetBlockForSingleParameterInitialization(
+        SyntaxNode functionDeclaration,
+        SemanticModel semanticModel,
+        ISyntaxFactsService syntaxFacts,
+        CancellationToken cancellationToken,
+        out IBlockOperation? blockStatement)
+    {
+        blockStatement = null;
+
+        var functionBody = GetBody(functionDeclaration);
+        if (functionBody == null)
+        {
+            // We support initializing parameters, even when the containing member doesn't have a
+            // body. This is useful for when the user is typing a new constructor and hasn't written
+            // the body yet.
+            return true;
+        }
+
+        // In order to get the block operation for the body of an anonymous function, we need to
+        // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
+
+        var operation = semanticModel.GetOperation(
+            syntaxFacts.IsAnonymousFunctionExpression(functionDeclaration) ? functionDeclaration : functionBody,
+            cancellationToken);
+
+        if (operation == null)
+            return false;
+
+        switch (operation.Kind)
+        {
+            case OperationKind.AnonymousFunction:
+                blockStatement = ((IAnonymousFunctionOperation)operation).Body;
+                break;
+            case OperationKind.Block:
+                blockStatement = (IBlockOperation)operation;
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
     public void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, SyntaxNode statement)
         => InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, (TStatementSyntax)statement);
 
-    public void AddAssignment(
+    public async Task<Solution> AddAssignmentAsync(
+        Document document,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        CancellationToken cancellationToken)
+    {
+        if (parameter is { DeclaringSyntaxReferences: [var parameterReference] })
+        {
+            var parameterDeclaration = parameterReference.GetSyntax(cancellationToken);
+
+            var functionDeclaration = parameterDeclaration.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            if (functionDeclaration is not null)
+            {
+                // try to handle the case where the parameter is within something function-like (like a constructor)
+
+                return await TryAddAssignmentForFunctionLikeDeclarationAsync(
+                    document, parameter, fieldOrProperty, functionDeclaration, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // try to handle primary constructor case.
+                return await TryAddAssignmentForPrimaryConstructorAsync(
+                    document, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return document.Project.Solution;
+    }
+
+    private async Task<Solution> TryAddAssignmentForFunctionLikeDeclarationAsync(
+        Document document,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        SyntaxNode functionDeclaration,
+        CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        if (TryGetBlockForSingleParameterInitialization(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+            AddAssignment(functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, editor);
+
+            var newDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
+            return newDocument.Project.Solution;
+        }
+
+        return document.Project.Solution;
+    }
+
+    private void AddAssignment(
         SyntaxNode constructorDeclaration,
         IBlockOperation? blockStatement,
         IParameterSymbol parameter,

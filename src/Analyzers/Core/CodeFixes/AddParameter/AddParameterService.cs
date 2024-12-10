@@ -200,17 +200,8 @@ internal static class AddParameterService
             if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, DeclaringSyntaxReferences: [var reference] })
                 return null;
 
-            var methodNode = reference.GetSyntax(cancellationToken);
-            var body = initializeParameterService.GetBody(methodNode);
-            if (semanticModel.GetOperation(body, cancellationToken) is not IBlockOperation blockOperation)
-                return rewrittenSolution;
-
-            var editor = new SyntaxEditor(rewrittenSyntaxRoot, rewrittenSolution.Services);
-            initializeParameterService.AddAssignment(
-                methodNode, blockOperation, parameter, memberToAssignTo, editor);
-
-            var finalDocument = rewrittenDocument.WithSyntaxRoot(editor.GetChangedRoot());
-            return finalDocument.Project.Solution;
+            return await initializeParameterService.AddAssignmentAsync(
+                rewrittenDocument, parameter, memberToAssignTo, cancellationToken).ConfigureAwait(false);
         }
 
         async Task<ISymbol?> GetMemberToAssignToAsync(DocumentId documentId)
