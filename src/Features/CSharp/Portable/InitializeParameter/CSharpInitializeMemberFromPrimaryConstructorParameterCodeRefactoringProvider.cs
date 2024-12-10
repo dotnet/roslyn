@@ -136,7 +136,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             // Found a field/property that this parameter should be assigned to. Just offer the simple assignment to it.
             yield return CreateCodeAction(
                 string.Format(fieldOrProperty.Kind == SymbolKind.Field ? FeaturesResources.Initialize_field_0 : FeaturesResources.Initialize_property_0, fieldOrProperty.Name),
-                cancellationToken => UpdateExistingMemberAsync(document, parameter, fieldOrProperty, cancellationToken));
+                cancellationToken => AddAssignmentForPrimaryConstructorAsync(document, parameter, fieldOrProperty, cancellationToken));
         }
 
         IEnumerable<CodeAction> HandleNoExistingFieldOrProperty()

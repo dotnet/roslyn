@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -180,10 +179,6 @@ internal static class AddParameterService
 
             var documentId = documentsUpdated.Single().Id;
 
-            var memberToAssignTo = await GetMemberToAssignToAsync(documentId).ConfigureAwait(false);
-            if (memberToAssignTo is null)
-                return null;
-
             // Now go find the constructor after the parameter was added to it.
             var rewrittenDocument = rewrittenSolution.GetRequiredDocument(documentId);
             var rewrittenSyntaxRoot = await rewrittenDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -192,32 +187,28 @@ internal static class AddParameterService
             if (parameterDeclaration is null)
                 return null;
 
-            var initializeParameterService = rewrittenDocument.GetRequiredLanguageService<IInitializeParameterService>();
-            var semanticModel = await rewrittenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel.GetDeclaredSymbol(parameterDeclaration, cancellationToken) is not IParameterSymbol parameter)
+            var semanticDocument = await SemanticDocument.CreateAsync(rewrittenDocument, cancellationToken).ConfigureAwait(false);
+            if (semanticDocument.SemanticModel.GetDeclaredSymbol(parameterDeclaration, cancellationToken) is not IParameterSymbol parameter)
                 return null;
 
-            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, DeclaringSyntaxReferences: [var reference] })
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, DeclaringSyntaxReferences: [var reference] } constructor)
                 return null;
-
-            return await initializeParameterService.AddAssignmentAsync(
-                rewrittenDocument, parameter, memberToAssignTo, cancellationToken).ConfigureAwait(false);
-        }
-
-        async Task<ISymbol?> GetMemberToAssignToAsync(DocumentId documentId)
-        {
-            var constructorDocument = invocationDocument.Project.Solution.GetRequiredDocument(documentId);
-            var constructorSemanticDocument = await SemanticDocument.CreateAsync(constructorDocument, cancellationToken).ConfigureAwait(false);
 
             var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
-                constructorSemanticDocument,
-                method.ContainingType,
+                semanticDocument,
+                constructor.ContainingType,
                 [argument.Value],
-                [newParameterType],
-                [parameterName],
+                [parameter.Type],
+                [new ParameterName(parameter.Name, isFixed: true)],
                 cancellationToken).ConfigureAwait(false);
 
-            return parameterToExistingMember.FirstOrDefault().Value;
+            var memberToAssignTo = parameterToExistingMember.FirstOrDefault().Value;
+            if (memberToAssignTo is null)
+                return null;
+
+            var initializeParameterService = rewrittenDocument.GetRequiredLanguageService<IInitializeParameterService>();
+            return await initializeParameterService.AddAssignmentAsync(
+                rewrittenDocument, parameter, memberToAssignTo, cancellationToken).ConfigureAwait(false);
         }
     }
 

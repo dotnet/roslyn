@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,7 +22,10 @@ using static InitializeParameterHelpersCore;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpInitializeParameterService() : AbstractInitializerParameterService<StatementSyntax>
 {
-    public override SyntaxNode GetBody(SyntaxNode methodNode)
+    protected override bool IsFunctionDeclaration(SyntaxNode node)
+        => InitializeParameterHelpers.IsFunctionDeclaration(node);
+
+    protected override SyntaxNode GetBody(SyntaxNode methodNode)
         => InitializeParameterHelpers.GetBody(methodNode);
 
     protected override SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement)
@@ -97,4 +102,7 @@ internal sealed class CSharpInitializeParameterService() : AbstractInitializerPa
                 yield return (targetTuple, valueTuple);
         }
     }
+
+    protected override Task<Solution> TryAddAssignmentForPrimaryConstructorAsync(Document document, IParameterSymbol parameter, ISymbol fieldOrProperty, CancellationToken cancellationToken)
+        => InitializeParameterHelpers.AddAssignmentForPrimaryConstructorAsync(document, parameter, fieldOrProperty, cancellationToken);
 }

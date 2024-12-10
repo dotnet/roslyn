@@ -42,8 +42,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    private static readonly SyntaxAnnotation s_annotation = new();
-
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
     protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
