@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -141,6 +142,8 @@ internal static class GenerateConstructorHelpers
         var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
         var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
 
+        var rules = await document.Document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+
         var parameterToExistingMemberMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
         var parameterToNewFieldMap = ImmutableDictionary.CreateBuilder<string, string>();
         var parameterToNewPropertyMap = ImmutableDictionary.CreateBuilder<string, string>();
@@ -177,25 +180,10 @@ internal static class GenerateConstructorHelpers
             Argument<TExpressionSyntax> argument)
         {
             var expectedFieldName = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
-            var expectedPropertyName = propertyNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
+            // var expectedPropertyName = propertyNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
             var isFixed = argument.IsNamed;
 
-            // For non-out parameters, see if there's already a field there with the same name.
-            // If so, and it has a compatible type, then we can just assign to that field.
-            // Otherwise, we'll need to choose a different name for this member so that it
-            // doesn't conflict with something already in the type. First check the current type
-            // for a matching field.  If so, defer to it.
-
-            var members = from t in typeToGenerateIn.GetBaseTypesAndThis()
-                          let ignoreAccessibility = t.Equals(typeToGenerateIn)
-                          from m in t.GetMembers()
-                          where m.Name.Equals(expectedFieldName, StringComparison.OrdinalIgnoreCase)
-                          where ignoreAccessibility || IsSymbolAccessible(m, document)
-                          select m;
-
-            var membersArray = members.ToImmutableArray();
-
-            var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+            var symbol = TryFindMatchingMember(parameterName);
             if (symbol != null)
             {
                 if (IsViableFieldOrProperty(document, parameterType, symbol))
@@ -246,6 +234,37 @@ internal static class GenerateConstructorHelpers
             }
 
             return parameterName;
+        }
+
+        ISymbol? TryFindMatchingMember(ParameterName parameterName)
+        {
+            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameterName.BestNameForParameter);
+
+            foreach (var rule in rules)
+            {
+                var memberName = rule.NamingStyle.CreateName(parameterNameParts.BaseNameParts);
+
+                // For non-out parameters, see if there's already a field there with the same name.
+                // If so, and it has a compatible type, then we can just assign to that field.
+                // Otherwise, we'll need to choose a different name for this member so that it
+                // doesn't conflict with something already in the type. First check the current type
+                // for a matching field.  If so, defer to it.
+
+                var members = from t in typeToGenerateIn.GetBaseTypesAndThis()
+                              let ignoreAccessibility = t.Equals(typeToGenerateIn)
+                              from m in t.GetMembers()
+                              where m.Name.Equals(memberName, StringComparison.OrdinalIgnoreCase)
+                              where ignoreAccessibility || IsSymbolAccessible(m, document)
+                              select m;
+
+                var membersArray = members.ToImmutableArray();
+
+                var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(memberName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+                if (symbol != null)
+                    return symbol;
+            }
+
+            return null;
         }
     }
 

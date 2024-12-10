@@ -3297,4 +3297,47 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingField_UnderscoreName()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private readonly string _s;
+
+                public C()
+                {
+                }
+            }
+
+            class D
+            {
+                void M(string s)
+                {
+                    new [|C|](s);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
+
+                public C(string s)
+                {
+                    _s = s;
+                }
+            }
+            
+            class D
+            {
+                void M(string s)
+                {
+                    new C(s);
+                }
+            }
+            """);
+    }
 }

@@ -77,9 +77,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         if (assignmentStatement != null)
             return [];
 
-        // Haven't initialized any fields/properties with this parameter.  Offer to assign
-        // to an existing matching field/prop if we can find one, or add a new field/prop
-        // if we can't.
+        // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
+        // field/prop if we can find one, or add a new field/prop if we can't.
 
         var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
@@ -593,11 +592,9 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         var containingType = parameter.ContainingType;
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        // Walk through the naming rules against this parameter's name to see what
-        // name the user would like for it as a member in this type.  Note that we
-        // have some fallback rules that use the standard conventions around 
-        // properties /fields so that can still find things even if the user has no
-        // naming preferences set.
+        // Walk through the naming rules against this parameter's name to see what name the user would like for it as a
+        // member in this type.  Note that we have some fallback rules that use the standard conventions around
+        // properties /fields so that can still find things even if the user has no naming preferences set.
 
         foreach (var rule in rules)
         {
