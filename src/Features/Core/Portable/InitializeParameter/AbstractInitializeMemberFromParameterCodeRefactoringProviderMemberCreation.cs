@@ -469,6 +469,9 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         ISymbol fieldOrProperty,
         CancellationToken cancellationToken)
     {
+        if (fieldOrProperty.ContainingType is not null)
+            return (document, parameter, fieldOrProperty);
+
         var services = document.Project.Solution.Services;
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, services);
@@ -476,52 +479,54 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         var options = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
-        if (fieldOrProperty.ContainingType == null)
-        {
-            // We're generating a new field/property.  Place into the containing type,
-            // ideally before/after a relevant existing member.
-            // First, look for the right containing type (As a type may be partial). 
-            // We want the type-block that this constructor is contained within.
-            var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>()!;
+        // We're generating a new field/property.  Place into the containing type,
+        // ideally before/after a relevant existing member.
+        // First, look for the right containing type (As a type may be partial). 
+        // We want the type-block that this constructor is contained within.
+        var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>()!;
 
-            // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
-            // so that nodes will be appropriate tracked and so we can then update the constructor
-            // below even after we've replaced the whole type with a new type.
-            //
-            // Note: We'll pass the appropriate options so that the new field/property 
-            // is appropriate placed before/after an existing field/property.  We'll try
-            // to preserve the same order for fields/properties that we have for the constructor
-            // parameters.
-            editor.ReplaceNode(
-                typeDeclaration,
-                (currentTypeDecl, _) =>
+        // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
+        // so that nodes will be appropriate tracked and so we can then update the constructor
+        // below even after we've replaced the whole type with a new type.
+        //
+        // Note: We'll pass the appropriate options so that the new field/property 
+        // is appropriate placed before/after an existing field/property.  We'll try
+        // to preserve the same order for fields/properties that we have for the constructor
+        // parameters.
+        editor.ReplaceNode(
+            typeDeclaration,
+            (currentTypeDecl, _) =>
+            {
+                if (fieldOrProperty is IPropertySymbol property)
                 {
-                    if (fieldOrProperty is IPropertySymbol property)
-                    {
-                        return codeGenerator.AddProperty(
-                            currentTypeDecl, property,
-                            codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
-                            cancellationToken);
-                    }
-                    else if (fieldOrProperty is IFieldSymbol field)
-                    {
-                        return codeGenerator.AddField(
-                            currentTypeDecl, field,
-                            codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
-                            cancellationToken);
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
-                });
-        }
+                    return codeGenerator.AddProperty(
+                        currentTypeDecl, property,
+                        codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                        cancellationToken);
+                }
+                else if (fieldOrProperty is IFieldSymbol field)
+                {
+                    return codeGenerator.AddField(
+                        currentTypeDecl, field,
+                        codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                        cancellationToken);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            });
 
         var documentWithMemberAdded = document.WithSyntaxRoot(editor.GetChangedRoot());
         var compilation = await documentWithMemberAdded.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         var currentParameter = SymbolFinder.FindSimilarSymbols(parameter, compilation, cancellationToken).FirstOrDefault();
-        var currentFieldOrProperty = SymbolFinder.FindSimilarSymbols(fieldOrProperty, compilation, cancellationToken).FirstOrDefault();
+
+        // Symbol finder won't find the current
+        var currentFieldOrProperty = currentParameter?.ContainingType
+            .GetMembers(fieldOrProperty.Name)
+            .Where(m => m.Kind == fieldOrProperty.Kind)
+            .FirstOrDefault();
 
         return (documentWithMemberAdded, currentParameter, currentFieldOrProperty);
     }
