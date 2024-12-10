@@ -9,14 +9,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
+namespace Microsoft.CodeAnalysis.GenerateConstructors;
 
-internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
+using static GenerateFromMembersHelpers;
+
+internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvider
 {
     private sealed class State
     {
@@ -32,7 +34,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         public Accessibility Accessibility { get; private set; }
 
         public static async Task<State?> TryGenerateAsync(
-            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            AbstractGenerateConstructorsCodeRefactoringProvider service,
             Document document,
             TextSpan textSpan,
             INamedTypeSymbol containingType,
@@ -48,7 +50,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         }
 
         private async Task<bool> TryInitializeAsync(
-            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            AbstractGenerateConstructorsCodeRefactoringProvider service,
             Document document,
             TextSpan textSpan,
             INamedTypeSymbol containingType,
@@ -81,7 +83,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         }
 
         private static ISymbol? TryMapToWritableInstanceFieldOrProperty(
-            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            AbstractGenerateConstructorsCodeRefactoringProvider service,
             ISymbol symbol,
             CancellationToken cancellationToken)
         {

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers;
+using Microsoft.CodeAnalysis.CSharp.GenerateConstructors;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -15,13 +15,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFromMembers;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructors;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-public sealed class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
+public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
-        => new CSharpGenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+        => new CSharpGenerateConstructorsCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
     private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
 
@@ -74,7 +74,7 @@ public sealed class GenerateConstructorFromMembersTests : AbstractCSharpCodeActi
                 public Z(int a{|Navigation:)|} => this.a = a;
             }
             """,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
     }
 
     [Fact]
@@ -99,7 +99,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CShar
                 public Z(int a{|Navigation:)|} => this.a = a;
             }
             """,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
     }
 
     [Fact]
@@ -130,7 +130,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CShar
                 }
             }
             """,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
     }
 
     [Fact]
@@ -974,7 +974,7 @@ $@"class Program
                 }
             }
             """,
-options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
+            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13944")]
@@ -1001,7 +1001,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithS
                 public int Number { get; }
             }
             """,
-options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
+            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13944")]
@@ -1015,7 +1015,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithS
                 public int Number { get; }|]
             }
             """,
-new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
     }
 
     [Fact]
@@ -1044,7 +1044,7 @@ new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeSty
                 }
             }
             """,
-chosenSymbols: ["a"]);
+            chosenSymbols: ["a"]);
     }
 
     [Fact]
@@ -1072,7 +1072,7 @@ chosenSymbols: ["a"]);
                 }
             }
             """,
-chosenSymbols: ["a"]);
+            chosenSymbols: ["a"]);
     }
 
     [Fact]
@@ -1115,7 +1115,7 @@ chosenSymbols: ["a"]);
                 }
             }
             """,
-chosenSymbols: []);
+            chosenSymbols: []);
     }
 
     [Fact]
@@ -1147,7 +1147,7 @@ chosenSymbols: []);
                 }
             }
             """,
-chosenSymbols: ["b", "a"]);
+            chosenSymbols: ["b", "a"]);
     }
 
     [Fact]
@@ -1181,8 +1181,8 @@ chosenSymbols: ["b", "a"]);
                 }
             }
             """,
-chosenSymbols: ["a", "b"],
-optionsCallback: options => options[0].Value = true);
+            chosenSymbols: ["a", "b"],
+            optionsCallback: options => options[0].Value = true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41428")]
@@ -1221,8 +1221,8 @@ optionsCallback: options => options[0].Value = true);
                 }
             }
             """,
-chosenSymbols: ["a", "b", "c"],
-optionsCallback: options => options[0].Value = true);
+            chosenSymbols: ["a", "b", "c"],
+            optionsCallback: options => options[0].Value = true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41428")]
@@ -1261,8 +1261,8 @@ optionsCallback: options => options[0].Value = true);
                 }
             }
             """,
-chosenSymbols: ["a", "b", "c"],
-optionsCallback: options => options[0].Value = true);
+            chosenSymbols: ["a", "b", "c"],
+            optionsCallback: options => options[0].Value = true);
     }
 
     [Fact]
@@ -1301,9 +1301,9 @@ optionsCallback: options => options[0].Value = true);
                 }
             }
             """,
-chosenSymbols: ["a", "b"],
-optionsCallback: options => options[0].Value = true,
-parameters: new TestParameters(options:
+            chosenSymbols: ["a", "b"],
+            optionsCallback: options => options[0].Value = true,
+            parameters: new TestParameters(options:
 Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
     }
 
@@ -1338,10 +1338,10 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """,
-chosenSymbols: ["a", "b"],
-optionsCallback: options => options[0].Value = true,
-parameters: new TestParameters(options:
-Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
+            chosenSymbols: ["a", "b"],
+            optionsCallback: options => options[0].Value = true,
+            parameters: new TestParameters(options:
+                Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
     }
 
     [Fact]
@@ -1380,11 +1380,11 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """,
-chosenSymbols: ["a", "b"],
-optionsCallback: options => options[0].Value = true,
-parameters: new TestParameters(
-parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
+            chosenSymbols: ["a", "b"],
+            optionsCallback: options => options[0].Value = true,
+            parameters: new TestParameters(
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
+                options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
     }
 
     [Fact]
@@ -1492,7 +1492,7 @@ options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.F
                 public int Prop { get; set; }
             }
             """,
-options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
+            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17643")]
@@ -1517,7 +1517,7 @@ options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithS
                 }
             }
             """,
-chosenSymbols: null);
+            chosenSymbols: null);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25690")]
@@ -1544,7 +1544,7 @@ chosenSymbols: null);
                 }
             }
             """,
-chosenSymbols: null);
+            chosenSymbols: null);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1572,7 +1572,7 @@ chosenSymbols: null);
                 }
             }
             """,
-chosenSymbols: null);
+            chosenSymbols: null);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
