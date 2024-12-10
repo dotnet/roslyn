@@ -44,7 +44,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 {
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
-    protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
     protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
 
     protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
@@ -611,6 +610,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         var containingType = parameter.ContainingType;
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
 
         // Walk through the naming rules against this parameter's name to see what name the user would like for it as a
         // member in this type.  Note that we have some fallback rules that use the standard conventions around
@@ -643,7 +643,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                     // We also allow assigning into a property of the form `=> throw new NotImplementedException()`.
                     // That way users can easily spit out those methods, but then convert them to be normal
                     // properties with ease.
-                    if (IsThrowNotImplementedProperty(property))
+                    if (initializeParameterService.IsThrowNotImplementedProperty(compilation, property, cancellationToken))
                         return (property, isThrowNotImplementedProperty: true);
 
                     if (property.IsWritableInConstructor())
@@ -672,36 +672,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             }
 
             return false;
-        }
-
-        bool IsThrowNotImplementedProperty(IPropertySymbol property)
-        {
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
-
-            if (property.GetMethod != null)
-                accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
-
-            if (property.SetMethod != null)
-                accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
-
-            if (accessors.Count == 0)
-                return false;
-
-            foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
-            {
-                var semanticModel = compilation.GetSemanticModel(group.Key);
-                foreach (var accessorBody in accessors)
-                {
-                    var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
-                    if (operation is null)
-                        return false;
-
-                    if (!operation.IsSingleThrowNotImplementedOperation())
-                        return false;
-                }
-            }
-
-            return true;
         }
     }
 }

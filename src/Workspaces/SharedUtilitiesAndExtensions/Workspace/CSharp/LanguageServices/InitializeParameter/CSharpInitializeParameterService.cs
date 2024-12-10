@@ -22,6 +22,9 @@ using static InitializeParameterHelpersCore;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpInitializeParameterService() : AbstractInitializerParameterService<StatementSyntax>
 {
+    protected override SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
+        => InitializeParameterHelpers.GetAccessorBody(accessor, cancellationToken);
+
     protected override bool IsFunctionDeclaration(SyntaxNode node)
         => InitializeParameterHelpers.IsFunctionDeclaration(node);
 

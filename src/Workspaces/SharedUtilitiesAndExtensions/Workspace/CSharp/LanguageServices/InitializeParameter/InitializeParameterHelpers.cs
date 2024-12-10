@@ -202,36 +202,6 @@ internal static class InitializeParameterHelpers
         return result.WithTrailingTrivia(accessorDeclaration.Body?.GetTrailingTrivia() ?? accessorDeclaration.SemicolonToken.TrailingTrivia);
     }
 
-    public static bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
-
-        if (property.GetMethod != null)
-            accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
-
-        if (property.SetMethod != null)
-            accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
-
-        if (accessors.Count == 0)
-            return false;
-
-        foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
-        {
-            var semanticModel = compilation.GetSemanticModel(group.Key);
-            foreach (var accessorBody in accessors)
-            {
-                var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
-                if (operation is null)
-                    return false;
-
-                if (!operation.IsSingleThrowNotImplementedOperation())
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
     public static Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
         => new(argument.GetRefKind(), argument.NameColon?.Name.Identifier.ValueText, argument.Expression);
 
@@ -256,7 +226,9 @@ internal static class InitializeParameterHelpers
         if (fieldOrProperty is IPropertySymbol property)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var isThrowNotImplementedProperty = IsThrowNotImplementedProperty(compilation, property, cancellationToken);
+            var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+            var isThrowNotImplementedProperty = initializeParameterService.IsThrowNotImplementedProperty(
+                compilation, property, cancellationToken);
 
             foreach (var syntaxRef in property.DeclaringSyntaxReferences)
             {

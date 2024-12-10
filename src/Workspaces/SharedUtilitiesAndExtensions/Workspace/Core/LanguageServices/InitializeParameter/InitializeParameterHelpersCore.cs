@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,8 +15,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter;
 
 internal static class InitializeParameterHelpersCore
 {
-
-
     public static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
     {
         using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);

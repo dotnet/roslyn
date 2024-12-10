@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
@@ -19,8 +21,11 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
 {
     protected abstract bool IsFunctionDeclaration(SyntaxNode node);
 
+    protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
+
     protected abstract SyntaxNode GetBody(SyntaxNode methodNode);
     protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
+
     protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
     protected abstract Task<Solution> TryAddAssignmentForPrimaryConstructorAsync(
         Document document, IParameterSymbol parameter, ISymbol fieldOrProperty, CancellationToken cancellationToken);
@@ -183,5 +188,35 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
         // We couldn't find a reasonable location for the new initialization statement.
         // Just place ourselves after the last statement in the constructor.
         return TryGetLastStatement(blockStatement);
+    }
+
+    public bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
+
+        if (property.GetMethod != null)
+            accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
+
+        if (property.SetMethod != null)
+            accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
+
+        if (accessors.Count == 0)
+            return false;
+
+        foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
+        {
+            var semanticModel = compilation.GetSemanticModel(group.Key);
+            foreach (var accessorBody in accessors)
+            {
+                var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
+                if (operation is null)
+                    return false;
+
+                if (!operation.IsSingleThrowNotImplementedOperation())
+                    return false;
+            }
+        }
+
+        return true;
     }
 }
