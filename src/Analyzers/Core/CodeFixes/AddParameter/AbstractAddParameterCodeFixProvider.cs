@@ -38,7 +38,6 @@ internal abstract class AbstractAddParameterCodeFixProvider<
     protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
     protected abstract ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken);
-    protected abstract Argument<TExpressionSyntax> GetArgument(TArgumentSyntax argument);
 
     public override FixAllProvider? GetFixAllProvider()
     {

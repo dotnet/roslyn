@@ -49,9 +49,6 @@ internal sealed class CSharpAddParameterCodeFixProvider() : AbstractAddParameter
     protected override ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken)
         => ((ArgumentSyntax)argumentNode).DetermineParameterType(semanticModel, cancellationToken);
 
-    protected override Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
-        => InitializeParameterHelpers.GetArgument(argument);
-
     protected override RegisterFixData<ArgumentSyntax>? TryGetLanguageSpecificFixInfo(
         SemanticModel semanticModel,
         SyntaxNode node,
