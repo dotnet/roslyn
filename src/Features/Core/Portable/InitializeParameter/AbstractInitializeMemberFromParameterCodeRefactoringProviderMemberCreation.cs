@@ -256,8 +256,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         return [CodeAction.Create(
             title,
-            c => AddSingleSymbolInitializationAsync(
-                document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(
+                document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, cancellationToken),
             title)];
     }
 

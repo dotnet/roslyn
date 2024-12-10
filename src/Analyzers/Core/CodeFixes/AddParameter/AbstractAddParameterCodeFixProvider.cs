@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -24,18 +24,21 @@ internal abstract class AbstractAddParameterCodeFixProvider<
     TAttributeArgumentSyntax,
     TArgumentListSyntax,
     TAttributeArgumentListSyntax,
+    TExpressionSyntax,
     TInvocationExpressionSyntax,
     TObjectCreationExpressionSyntax> : CodeFixProvider
     where TArgumentSyntax : SyntaxNode
     where TArgumentListSyntax : SyntaxNode
     where TAttributeArgumentListSyntax : SyntaxNode
-    where TInvocationExpressionSyntax : SyntaxNode
-    where TObjectCreationExpressionSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
+    where TInvocationExpressionSyntax : TExpressionSyntax
+    where TObjectCreationExpressionSyntax : TExpressionSyntax
 {
     protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
     protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
     protected abstract ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken);
+    protected abstract Argument<TExpressionSyntax> GetArgument(TArgumentSyntax argument);
 
     public override FixAllProvider? GetFixAllProvider()
     {
@@ -382,7 +385,8 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             method,
             argumentType,
             refKind,
-            argumentNameSuggestion,
+            new ParameterName(argumentNameSuggestion, isNamedArgument),
+            GetArgument(argument),
             newParameterIndex,
             fixAllReferences,
             cancellationToken).ConfigureAwait(false);

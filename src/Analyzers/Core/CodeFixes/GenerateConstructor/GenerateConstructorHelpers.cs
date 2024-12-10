@@ -145,6 +145,8 @@ internal static class GenerateConstructorHelpers
         var parameterToNewFieldMap = ImmutableDictionary.CreateBuilder<string, string>();
         var parameterToNewPropertyMap = ImmutableDictionary.CreateBuilder<string, string>();
 
+        var unavailableMemberNames = GetUnavailableMemberNames(typeToGenerateIn).ToImmutableArray();
+
         using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
         for (var i = 0; i < parameterNames.Length; i++)
@@ -184,8 +186,6 @@ internal static class GenerateConstructorHelpers
             // doesn't conflict with something already in the type. First check the current type
             // for a matching field.  If so, defer to it.
 
-            var unavailableMemberNames = GetUnavailableMemberNames(typeToGenerateIn).ToImmutableArray();
-
             var members = from t in typeToGenerateIn.GetBaseTypesAndThis()
                           let ignoreAccessibility = t.Equals(typeToGenerateIn)
                           from m in t.GetMembers()
@@ -194,6 +194,7 @@ internal static class GenerateConstructorHelpers
                           select m;
 
             var membersArray = members.ToImmutableArray();
+
             var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
             if (symbol != null)
             {

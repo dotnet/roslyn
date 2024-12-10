@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -70,17 +71,20 @@ internal static class AddParameterService
     /// </summary>
     /// <param name="newParameterIndex"><see langword="null"/> to add as the final parameter</param>
     /// <returns></returns>
-    public static async Task<Solution> AddParameterAsync(
+    public static async Task<Solution> AddParameterAsync<TExpressionSyntax>(
         Document invocationDocument,
         IMethodSymbol method,
         ITypeSymbol newParameterType,
         RefKind refKind,
-        string parameterName,
+        ParameterName parameterName,
+        Argument<TExpressionSyntax> argument,
         int? newParameterIndex,
         bool fixAllReferences,
         CancellationToken cancellationToken)
+        where TExpressionSyntax : SyntaxNode
     {
         var solution = invocationDocument.Project.Solution;
+        var semanticInvocationDocument = await SemanticDocument.CreateAsync(invocationDocument, cancellationToken).ConfigureAwait(false);
 
         var referencedSymbols = fixAllReferences
             ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
@@ -118,7 +122,7 @@ internal static class AddParameterService
                     syntaxFacts.GetDefaultOfParameter(existingParameters[insertionIndex - 1]) != null;
 
                 var parameterSymbol = CreateParameterSymbol(
-                    methodDeclaration, newParameterType, refKind, parameterMustBeOptional, parameterName);
+                    methodDeclaration, newParameterType, refKind, parameterMustBeOptional, parameterName.BestNameForParameter);
 
                 var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(newParameterType) : null;
                 var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol, argumentInitializer)
@@ -130,11 +134,11 @@ internal static class AddParameterService
                 }
 
                 if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
-                {
                     insertionIndex++;
-                }
 
-                AddParameterEditor.AddParameter(syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
+                var memberToAssignTo = await GetMemberToAssignToAsync().ConfigureAwait(false);
+                AddParameterEditor.AddParameter(
+                    syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
             }
 
             var newRoot = editor.GetChangedRoot();
@@ -142,6 +146,22 @@ internal static class AddParameterService
         }
 
         return solution;
+
+        async Task<ISymbol?> GetMemberToAssignToAsync()
+        {
+            if (method.MethodKind != MethodKind.Constructor)
+                return null;
+
+            var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
+                semanticInvocationDocument,
+                method.ContainingType,
+                [argument],
+                [newParameterType],
+                [parameterName],
+                cancellationToken).ConfigureAwait(false);
+
+            return parameterToExistingMember.FirstOrDefault().Value;
+        }
     }
 
     private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
