@@ -86,6 +86,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             var parameterWords = parameterNameParts.BaseNameParts;
             var containingType = parameter.ContainingType;
+            var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
 
             // Walk through the naming rules against this parameter's name to see what name the user would like for
             // it as a member in this type.  Note that we have some fallback rules that use the standard conventions
@@ -115,7 +116,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                         // We also allow assigning into a property of the form `=> throw new
                         // NotImplementedException()`. That way users can easily spit out those methods, but then
                         // convert them to be normal properties with ease.
-                        if (IsThrowNotImplementedProperty(compilation, property, cancellationToken))
+                        if (initializeParameterService.IsThrowNotImplementedProperty(compilation, property, cancellationToken))
                             return property;
 
                         if (property.IsWritableInConstructor())

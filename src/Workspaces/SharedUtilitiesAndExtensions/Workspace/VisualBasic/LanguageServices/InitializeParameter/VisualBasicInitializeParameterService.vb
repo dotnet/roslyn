@@ -20,6 +20,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Public Sub New()
         End Sub
 
+        Protected Overrides Function GetAccessorBody(accessor As IMethodSymbol, cancellationToken As CancellationToken) As SyntaxNode
+            If accessor.DeclaringSyntaxReferences.Length = 0 Then
+                Return Nothing
+            End If
+
+            Dim reference = accessor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken)
+            Return TryCast(TryCast(reference, AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
+        End Function
+
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
