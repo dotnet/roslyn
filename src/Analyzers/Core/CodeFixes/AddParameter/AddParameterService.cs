@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -137,6 +138,11 @@ internal static class AddParameterService
                     insertionIndex++;
 
                 var memberToAssignTo = await GetMemberToAssignToAsync().ConfigureAwait(false);
+                if (memberToAssignTo != null)
+                {
+                    var initializeParameterService = documentLookup.Key.GetLanguageService<IInitializeParameterService>();
+                }
+
                 AddParameterEditor.AddParameter(
                     syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
             }

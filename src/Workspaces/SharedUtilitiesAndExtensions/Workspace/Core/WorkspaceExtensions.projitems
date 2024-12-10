@@ -24,6 +24,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\AbstractInitializerParameterService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\IInitializeParameterService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\InitializeParameter\InitializeParameterHelpersCore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylePreferencesProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MemberDisplayOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\CodeAnalysisProgressExtensions.cs" />
