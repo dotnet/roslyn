@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -41,6 +42,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
     protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
@@ -426,6 +429,49 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         bool isThrowNotImplementedProperty,
         CancellationToken cancellationToken)
     {
+        // First, add the field/property to the solution if they're a newly generated member and not a pre-existing one.
+        var (documentWithMemberAdded, currentParameter, currentFieldOrProperty) = await AddMissingFieldOrPropertyAsync(
+            document, constructorDeclaration, blockStatement, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
+
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+
+        var solutionWithAssignmentAdded = documentWithMemberAdded.Project.Solution;
+        if (currentParameter != null && currentFieldOrProperty != null)
+        {
+            // Now, attempt to assign the parameter to that field/property.
+            solutionWithAssignmentAdded = await initializeParameterService.AddAssignmentAsync(
+               documentWithMemberAdded, currentParameter, currentFieldOrProperty, cancellationToken).ConfigureAwait(false);
+        }
+
+        // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws as the
+        // constructor is now initializing the property properly with a value.
+        var finalSolution = solutionWithAssignmentAdded;
+        if (isThrowNotImplementedProperty && currentFieldOrProperty != null)
+        {
+            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+            var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
+
+            var otherDocument = finalSolution.GetDocument(propertySyntax.SyntaxTree);
+            if (otherDocument != null)
+            {
+                var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                finalSolution = finalSolution.WithDocumentSyntaxRoot(
+                    otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
+            }
+        }
+
+        return finalSolution;
+    }
+
+    private static async Task<(Document documentWithMemberAdded, IParameterSymbol? currentParameter, ISymbol? currentFieldOrProperty)> AddMissingFieldOrPropertyAsync(
+        Document document,
+        SyntaxNode constructorDeclaration,
+        IBlockOperation? blockStatement,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        CancellationToken cancellationToken)
+    {
         var services = document.Project.Solution.Services;
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, services);
@@ -474,37 +520,13 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                 });
         }
 
-        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
-        initializeParameterService.AddAssignment(
-            constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
+        var documentWithMemberAdded = document.WithSyntaxRoot(editor.GetChangedRoot());
+        var compilation = await documentWithMemberAdded.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
-        var currentSolution = document.Project.Solution;
-        if (isThrowNotImplementedProperty)
-        {
-            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
-            var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
+        var currentParameter = SymbolFinder.FindSimilarSymbols(parameter, compilation, cancellationToken).FirstOrDefault();
+        var currentFieldOrProperty = SymbolFinder.FindSimilarSymbols(fieldOrProperty, compilation, cancellationToken).FirstOrDefault();
 
-            if (propertySyntax.SyntaxTree == root.SyntaxTree)
-            {
-                // Edit to the same file, just update this editor.
-                editor.ReplaceNode(propertySyntax, withoutThrowNotImplemented);
-            }
-            else
-            {
-                // edit to a different file.  Just replace things directly in there.
-                var otherDocument = currentSolution.GetDocument(propertySyntax.SyntaxTree);
-                if (otherDocument != null)
-                {
-                    var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                        otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
-                }
-            }
-        }
-
-        return currentSolution.WithDocumentSyntaxRoot(document.Id, editor.GetChangedRoot());
+        return (documentWithMemberAdded, currentParameter, currentFieldOrProperty);
     }
 
     private static CodeGenerationContext GetAddContext<TSymbol>(
