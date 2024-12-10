@@ -1185,6 +1185,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Inhalt in Namespace verschieben...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">Datei in "{0}" verschieben</target>

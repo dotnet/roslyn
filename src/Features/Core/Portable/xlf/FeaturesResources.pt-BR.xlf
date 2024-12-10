@@ -1185,6 +1185,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Mover conteúdo para o namespace...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">Mover o arquivo para '{0}'</target>
