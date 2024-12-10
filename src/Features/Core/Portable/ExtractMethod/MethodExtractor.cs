@@ -41,7 +41,7 @@ internal abstract partial class MethodExtractor<
 
     protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
     protected abstract Task<GeneratedCode> GenerateCodeAsync(
-        InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+        InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, bool qualifyInstance, CancellationToken cancellationToken);
 
     protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
     protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
@@ -83,11 +83,15 @@ internal abstract partial class MethodExtractor<
 
                 var expandedDocument = await ExpandAsync((TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
 
+                var qualifyInstance = await QualifyInstanceMethodAsync(
+                    analyzeResult, analyzedDocument.Document, cancellationToken).ConfigureAwait(false);
+
                 var generatedCode = await GenerateCodeAsync(
                     insertionPoint.With(expandedDocument),
                     (TSelectionResult)OriginalSelectionResult.With(expandedDocument),
                     analyzeResult,
                     Options.CodeGenerationOptions,
+                    qualifyInstance,
                     cancellationToken).ConfigureAwait(false);
 
                 var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
@@ -301,5 +305,18 @@ internal abstract partial class MethodExtractor<
         return char.IsUpper(name[0])
             ? prefix + name
             : prefix + char.ToUpper(name[0]).ToString() + name[1..];
+    }
+
+    protected static async Task<bool> QualifyInstanceMethodAsync(
+        AnalyzerResult analyzerResult, Document document, CancellationToken cancellationToken)
+    {
+        if (!analyzerResult.UseInstanceMember)
+            return false;
+
+        var options = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        var qualifyMethodAccess = options.GetSimplifierOptions(document.Project.Services).QualifyMethodAccess;
+
+        return qualifyMethodAccess.Value;
     }
 }

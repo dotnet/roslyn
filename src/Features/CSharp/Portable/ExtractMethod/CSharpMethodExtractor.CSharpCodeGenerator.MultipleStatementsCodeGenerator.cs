@@ -82,10 +82,11 @@ internal sealed partial class CSharpMethodExtractor
             protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                 => this.SelectionResult.GetLastStatementUnderContainer();
 
-            protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
+            protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
             {
-                var statement = GetStatementContainingInvocationToExtractedMethodWorker();
-                return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
+                var options = await this.SemanticDocument.Document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var statement = GetStatementContainingInvocationToExtractedMethodWorker(options);
+                return statement.WithAdditionalAnnotations(CallSiteAnnotation);
             }
         }
     }
