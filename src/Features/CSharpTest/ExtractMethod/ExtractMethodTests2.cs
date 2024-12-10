@@ -9,17 +9,23 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod;
 
+using VerifyCS = CSharpCodeRefactoringVerifier<
+    ExtractMethodCodeRefactoringProvider>;
+
 [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-public class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private const string SystemThreadingTasks = "System.Threading.Tasks";
+    private const string SystemThreadingTasksTask = $"{SystemThreadingTasks}.Task";
+    private const string SystemThreadingTasksUsing = $"using {SystemThreadingTasks};";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ExtractMethodCodeRefactoringProvider();
 
@@ -4121,11 +4127,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4135,8 +4143,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4145,7 +4153,7 @@ class Program
                     await {|Rename:NewMethod|}(duration);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Run(F());
                     async Task F() => await Task.Delay(duration).ConfigureAwait(false);
@@ -4154,11 +4162,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4168,8 +4178,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4178,7 +4188,7 @@ class Program
                     await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(false);
                     await Task.Delay(duration).ConfigureAwait(true);
@@ -4187,11 +4197,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4201,8 +4213,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4211,7 +4223,7 @@ class Program
                     await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(true);
                     await Task.Delay(duration).ConfigureAwait(false);
@@ -4220,11 +4232,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4234,8 +4248,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4244,7 +4258,7 @@ class Program
                     await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(M());
                     await Task.Delay(duration).ConfigureAwait(false);
@@ -4253,11 +4267,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4267,8 +4283,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""            
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4278,7 +4294,7 @@ class Program
                     await {|Rename:NewMethod|}(duration);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(true);
                 }

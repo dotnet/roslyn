@@ -12642,4 +12642,50 @@ $@"namespace ClassLibrary9
 
         await TestExtractMethodAsync(code, expected);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70024")]
+    public async Task TestAliasedType()
+    {
+        var code = """"
+            using System;
+            using Spec = System.Collections.Specialized;
+
+            namespace ClassLibrary3
+            {
+                public class T
+                {
+                    public void Method()
+                    {
+                        var value = new Spec.ListDictionary();
+
+                        [|Console.WriteLine(value);|]
+                    }
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            using Spec = System.Collections.Specialized;
+            
+            namespace ClassLibrary3
+            {
+                public class T
+                {
+                    public void Method()
+                    {
+                        var value = new Spec.ListDictionary();
+            
+                        NewMethod(value);
+                    }
+
+                    private static void NewMethod(Spec.ListDictionary value)
+                    {
+                        Console.WriteLine(value);
+                    }
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
 }
