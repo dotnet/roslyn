@@ -134,7 +134,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
             var parameterNames = GetParameterNames(_arguments, typeParametersNames, cancellationToken);
 
-            (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewFieldMap) =
+            (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewPropertyMap) =
                 await GetParametersAsync(
                     _document, this.TypeToGenerateIn, _arguments, ParameterTypes, parameterNames, cancellationToken).ConfigureAwait(false);
         }
@@ -178,7 +178,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var remainingParameterTypes = ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
             _delegatedConstructor = delegatedConstructor;
-            (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewFieldMap) =
+            (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewPropertyMap) =
                 await GetParametersAsync(
                     _document, this.TypeToGenerateIn, remainingArguments, remainingParameterTypes, remainingParameterNames, cancellationToken).ConfigureAwait(false);
 
