@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
@@ -19,15 +20,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 
 [ExportLanguageService(typeof(IGenerateConstructorService), LanguageNames.CSharp), Shared]
-internal class CSharpGenerateConstructorService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpGenerateConstructorService()
     : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateConstructorService()
-    {
-    }
-
     protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
        => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
@@ -45,7 +42,7 @@ internal class CSharpGenerateConstructorService
         SyntaxNode node,
         CancellationToken cancellationToken,
         out SyntaxToken token,
-        out ImmutableArray<Argument> arguments,
+        out ImmutableArray<Argument<ExpressionSyntax>> arguments,
         out INamedTypeSymbol typeToGenerateIn)
     {
         var constructorInitializer = (ConstructorInitializerSyntax)node;
@@ -69,11 +66,11 @@ internal class CSharpGenerateConstructorService
         return false;
     }
 
-    private static ImmutableArray<Argument> GetArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
-        => arguments.SelectAsArray(a => new Argument(a.GetRefKind(), a.NameColon?.Name.Identifier.ValueText, a.Expression));
+    private static ImmutableArray<Argument<ExpressionSyntax>> GetArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
+        => arguments.SelectAsArray(a => new Argument<ExpressionSyntax>(a.GetRefKind(), a.NameColon?.Name.Identifier.ValueText, a.Expression));
 
-    private static ImmutableArray<Argument> GetArguments(SeparatedSyntaxList<AttributeArgumentSyntax> arguments)
-        => arguments.SelectAsArray(a => new Argument(
+    private static ImmutableArray<Argument<ExpressionSyntax>> GetArguments(SeparatedSyntaxList<AttributeArgumentSyntax> arguments)
+        => arguments.SelectAsArray(a => new Argument<ExpressionSyntax>(
             refKind: RefKind.None,
             a.NameEquals?.Name.Identifier.ValueText ?? a.NameColon?.Name.Identifier.ValueText,
             a.Expression));
@@ -83,7 +80,7 @@ internal class CSharpGenerateConstructorService
         SyntaxNode node,
         CancellationToken cancellationToken,
         out SyntaxToken token,
-        out ImmutableArray<Argument> arguments,
+        out ImmutableArray<Argument<ExpressionSyntax>> arguments,
         out INamedTypeSymbol typeToGenerateIn)
     {
         var simpleName = (SimpleNameSyntax)node;
@@ -115,7 +112,7 @@ internal class CSharpGenerateConstructorService
         SyntaxNode node,
         CancellationToken cancellationToken,
         out SyntaxToken token,
-        out ImmutableArray<Argument> arguments,
+        out ImmutableArray<Argument<ExpressionSyntax>> arguments,
         out INamedTypeSymbol typeToGenerateIn)
     {
         var simpleName = (SimpleNameSyntax)node;
@@ -150,7 +147,7 @@ internal class CSharpGenerateConstructorService
         SyntaxNode node,
         CancellationToken cancellationToken,
         out SyntaxToken token,
-        out ImmutableArray<Argument> arguments,
+        out ImmutableArray<Argument<ExpressionSyntax>> arguments,
         out INamedTypeSymbol typeToGenerateIn)
     {
         var implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)node;
@@ -176,7 +173,7 @@ internal class CSharpGenerateConstructorService
     protected override string GenerateNameForExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         => semanticModel.GenerateNameForExpression(expression, capitalize: false, cancellationToken: cancellationToken);
 
-    protected override ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument argument, CancellationToken cancellationToken)
+    protected override ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument<ExpressionSyntax> argument, CancellationToken cancellationToken)
         => InternalExtensions.DetermineParameterType(argument.Expression, semanticModel, cancellationToken);
 
     protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
