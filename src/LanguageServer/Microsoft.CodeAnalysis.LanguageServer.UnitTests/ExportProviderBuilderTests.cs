@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             await using var testServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
 
-            var mefCompositions = Directory.EnumerateFiles(MefCacheDirectory.Path, "*.mef-composition", SearchOption.AllDirectories);
+            await AssertCacheWriteWasAttemptedAsync();
 
-            Assert.Single(mefCompositions);
+            AssertCachedCompositionCountEquals(expectedCount: 1);
         }
 
         [Fact]
@@ -24,12 +24,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             await using var testServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
 
+            await AssertCacheWriteWasAttemptedAsync();
+
             // Second test server with the same set of assemblies.
             await using var testServer2 = await CreateLanguageServerAsync(includeDevKitComponents: false);
 
-            var mefCompositions = Directory.EnumerateFiles(MefCacheDirectory.Path, "*.mef-composition", SearchOption.AllDirectories);
+            AssertNoCacheWriteWasAttempted();
 
-            Assert.Single(mefCompositions);
+            AssertCachedCompositionCountEquals(expectedCount: 1);
         }
 
         [Fact]
@@ -37,12 +39,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             await using var testServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
 
+            await AssertCacheWriteWasAttemptedAsync();
+
             // Second test server with a different set of assemblies.
             await using var testServer2 = await CreateLanguageServerAsync(includeDevKitComponents: true);
 
+            await AssertCacheWriteWasAttemptedAsync();
+
+            AssertCachedCompositionCountEquals(expectedCount: 2);
+        }
+
+        private async Task AssertCacheWriteWasAttemptedAsync()
+        {
+            var cacheWriteTask = ExportProviderBuilder.TestAccessor.GetCacheWriteTask();
+            Assert.NotNull(cacheWriteTask);
+
+            await cacheWriteTask;
+        }
+
+        private void AssertNoCacheWriteWasAttempted()
+        {
+            var cacheWriteTask2 = ExportProviderBuilder.TestAccessor.GetCacheWriteTask();
+            Assert.Null(cacheWriteTask2);
+        }
+
+        private void AssertCachedCompositionCountEquals(int expectedCount)
+        {
             var mefCompositions = Directory.EnumerateFiles(MefCacheDirectory.Path, "*.mef-composition", SearchOption.AllDirectories);
 
-            Assert.Equal(2, mefCompositions.Count());
+            Assert.Equal(expectedCount, mefCompositions.Count());
         }
     }
 }

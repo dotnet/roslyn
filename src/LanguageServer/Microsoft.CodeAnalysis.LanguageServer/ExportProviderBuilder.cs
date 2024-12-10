@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
+    // For testing purposes, track the last cache write task.
+    private static Task? _cacheWriteTask;
+
     public static async Task<ExportProvider> CreateExportProviderAsync(
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader,
@@ -23,6 +26,10 @@ internal sealed class ExportProviderBuilder
         string cacheDirectory,
         ILoggerFactory loggerFactory)
     {
+        // Clear any previous cache write task, so that it is easy to discern whether
+        // a cache write was attempted.
+        _cacheWriteTask = null;
+
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
         var baseDirectory = AppContext.BaseDirectory;
 
@@ -106,7 +113,7 @@ internal sealed class ExportProviderBuilder
         ThrowOnUnexpectedErrors(config, catalog, logger);
 
         // Try to cache the composition.
-        _ = WriteCompositionCacheAsync(compositionCacheFile, config, logger).ReportNonFatalErrorAsync();
+        _cacheWriteTask = WriteCompositionCacheAsync(compositionCacheFile, config, logger).ReportNonFatalErrorAsync();
 
         // Prepare an ExportProvider factory based on this graph.
         return config.CreateExportProviderFactory();
@@ -198,5 +205,12 @@ internal sealed class ExportProviderBuilder
                 throw;
             }
         }
+    }
+
+    internal static class TestAccessor
+    {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public static Task? GetCacheWriteTask() => _cacheWriteTask;
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 }
