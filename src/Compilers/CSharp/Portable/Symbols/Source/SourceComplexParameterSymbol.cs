@@ -866,13 +866,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
-                bool validTarget = this.IsValidUnscopedRefAttributeTarget();
-                if (!validTarget || !this.UseUpdatedEscapeRules)
+                if (!this.UseUpdatedEscapeRules)
                 {
-                    var code = validTarget
-                        ? ErrorCode.WRN_UnscopedRefAttributeOldRules
-                        : ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget;
-                    diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
+                if (!this.IsValidUnscopedRefAttributeTarget())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
                 }
                 else if (DeclaredScope != ScopedKind.None)
                 {

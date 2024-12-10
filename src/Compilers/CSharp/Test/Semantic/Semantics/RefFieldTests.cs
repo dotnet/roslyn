@@ -22462,6 +22462,9 @@ using @scoped = System.Int32;
                 // (6,32): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(6, 32),
+                // (6,32): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(6, 32),
                 // (6,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 45),
@@ -22734,6 +22737,21 @@ using @scoped = System.Int32;
                 ref struct R<T> { }
                 """;
 
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,18): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                //     ref T F1<T>([UnscopedRef] R<T> r) => throw null;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 18),
+                // (4,18): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     ref T F1<T>([UnscopedRef] R<T> r) => throw null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 18),
+                // (5,18): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                //     ref T F2<T>([UnscopedRef] T r) => throw null;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(5, 18),
+                // (5,18): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     ref T F2<T>([UnscopedRef] T r) => throw null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 18));
+
             var expectedDiagnostics = new[]
             {
                 // (4,18): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
@@ -22744,8 +22762,6 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 18)
             };
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
@@ -22765,6 +22781,15 @@ using @scoped = System.Int32;
                 }
                 """;
 
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                //     [UnscopedRef] object F() => null;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 6),
+                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] object F() => null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6));
+
             var expectedDiagnostics = new[]
             {
                 // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
@@ -22772,8 +22797,6 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6)
             };
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
@@ -22793,6 +22816,15 @@ using @scoped = System.Int32;
                 }
                 """;
 
+            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                //     [UnscopedRef] object P { get; init; }
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(4, 6),
+                // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef] object P { get; init; }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6));
+
             var expectedDiagnostics = new[]
             {
                 // (4,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
@@ -22800,8 +22832,6 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(4, 6)
             };
 
-            CreateCompilation([source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
@@ -25367,6 +25397,9 @@ class Program
                     // (10,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
                     //     static void F1([UnscopedRef] out int i1) { i1 = 0; }
                     Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(10, 21),
+                    // (11,21): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    //     static void F2([UnscopedRef] R r2) { }
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(11, 21),
                     // (11,21): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
                     //     static void F2([UnscopedRef] R r2) { }
                     Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(11, 21),
@@ -25382,8 +25415,8 @@ class Program
             }
 
             var scopedRefInCSharp10 = languageVersion == LanguageVersion.CSharp11 ? ScopedKind.None : ScopedKind.ScopedRef;
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, scopedRefInCSharp10, expectedHasUnscopedRefAttribute: languageVersion == LanguageVersion.CSharp11);
-            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("S.P").GetMethod.ThisParameter, "ref S this", RefKind.Ref, scopedRefInCSharp10, expectedHasUnscopedRefAttribute: languageVersion == LanguageVersion.CSharp11);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, scopedRefInCSharp10, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("S.P").GetMethod.ThisParameter, "ref S this", RefKind.Ref, scopedRefInCSharp10, expectedHasUnscopedRefAttribute: true);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "out System.Int32 i1", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "R r2", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref R r3", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
