@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -236,33 +237,46 @@ internal static class GenerateConstructorHelpers
 
         ISymbol? TryFindMatchingMember(ParameterName parameterName)
         {
-            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameterName.BestNameForParameter);
+            var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameterName.NameBasedOnArgument);
 
+            // Try with the explicit field naming rule first, so that we def match with a field that matches the user's
+            // chosen naming settings.
+            var symbol = TryFindMemberWithRule(fieldNamingRule, parameterNameParts);
+            if (symbol != null)
+                return symbol;
+
+            // But if that fails, fall back to other common ways of naming fields (for example, with or without an
+            // underscore prefix), to see if we can find a match that way.
             foreach (var rule in rules)
             {
-                var memberName = rule.NamingStyle.CreateName(parameterNameParts.BaseNameParts);
-
-                // For non-out parameters, see if there's already a field there with the same name.
-                // If so, and it has a compatible type, then we can just assign to that field.
-                // Otherwise, we'll need to choose a different name for this member so that it
-                // doesn't conflict with something already in the type. First check the current type
-                // for a matching field.  If so, defer to it.
-
-                var members = from t in typeToGenerateIn.GetBaseTypesAndThis()
-                              let ignoreAccessibility = t.Equals(typeToGenerateIn)
-                              from m in t.GetMembers()
-                              where m.Name.Equals(memberName, StringComparison.OrdinalIgnoreCase)
-                              where ignoreAccessibility || IsSymbolAccessible(m, document)
-                              select m;
-
-                var membersArray = members.ToImmutableArray();
-
-                var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(memberName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+                symbol = TryFindMemberWithRule(rule, parameterNameParts);
                 if (symbol != null)
                     return symbol;
             }
 
             return null;
+        }
+
+        ISymbol? TryFindMemberWithRule(NamingRule rule, IdentifierNameParts parameterNameParts)
+        {
+            var memberName = rule.NamingStyle.CreateName(parameterNameParts.BaseNameParts);
+
+            // For non-out parameters, see if there's already a field there with the same name.
+            // If so, and it has a compatible type, then we can just assign to that field.
+            // Otherwise, we'll need to choose a different name for this member so that it
+            // doesn't conflict with something already in the type. First check the current type
+            // for a matching field.  If so, defer to it.
+
+            var members = from t in typeToGenerateIn.GetBaseTypesAndThis()
+                          let ignoreAccessibility = t.Equals(typeToGenerateIn)
+                          from m in t.GetMembers()
+                          where m.Name.Equals(memberName, StringComparison.OrdinalIgnoreCase)
+                          where ignoreAccessibility || IsSymbolAccessible(m, document)
+                          select m;
+
+            var membersArray = members.ToImmutableArray();
+
+            return membersArray.FirstOrDefault(m => m.Name.Equals(memberName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
         }
     }
 
