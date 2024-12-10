@@ -14,27 +14,51 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
+/// <param name="Name">The roslyn simple name of the type to search for. For example <see cref="ImmutableArray{T}"/>
+/// would have the name <c>ImmutableArray</c></param>
+/// <param name="Arity">The arity of the type.  For example <see cref="ImmutableArray{T}"/> would have arity
+/// <c>1</c></param>.
+[DataContract]
+internal readonly record struct TypeQuery(
+    [property: DataMember(Order = 0)] string Name,
+    [property: DataMember(Order = 1)] int Arity)
+{
+    public static readonly TypeQuery Default = default;
+
+    public bool IsDefault => string.IsNullOrEmpty(Name);
+}
+
+/// <param name="Names">The names comprising the namespace being searched for.  For example <c>["System", "Collections",
+/// "Immutable"]</c>.</param>
+[DataContract]
+internal readonly record struct NamespaceQuery(
+    [property: DataMember(Order = 0)] ImmutableArray<string> Names)
+{
+    public static readonly NamespaceQuery Default = default;
+
+    public static implicit operator NamespaceQuery(ImmutableArray<string> names)
+        => new(names);
+
+    public bool IsDefault => Names.IsDefaultOrEmpty;
+}
+
 internal interface ISymbolSearchService : IWorkspaceService
 {
     /// <summary>
-    /// Searches for packages that contain a type with the provided name and arity.
-    /// Note: Implementations are free to return the results they feel best for the
-    /// given data.  Specifically, they can do exact or fuzzy matching on the name.
-    /// They can use or ignore the arity depending on their capabilities. 
+    /// Searches for packages that contain a type with the provided name and arity. Note: Implementations are free to
+    /// return the results they feel best for the given data.  Specifically, they can do exact or fuzzy matching on the
+    /// name. They can use or ignore the arity depending on their capabilities. 
     /// 
-    /// Implementations should return results in order from best to worst (from their
-    /// perspective).
+    /// Implementations should return results in order from best to worst (from their perspective).
     /// </summary>
-    ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-        string source, string name, int arity, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
+        string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Searches for packages that contain an assembly with the provided name.
-    /// Note: Implementations are free to return the results they feel best for the
-    /// given data.  Specifically, they can do exact or fuzzy matching on the name.
+    /// Searches for packages that contain an assembly with the provided name. Note: Implementations are free to return
+    /// the results they feel best for the given data.  Specifically, they can do exact or fuzzy matching on the name.
     /// 
-    /// Implementations should return results in order from best to worst (from their
-    /// perspective).
+    /// Implementations should return results in order from best to worst (from their perspective).
     /// </summary>
     ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
         string source, string assemblyName, CancellationToken cancellationToken);
@@ -48,33 +72,27 @@ internal interface ISymbolSearchService : IWorkspaceService
     /// Implementations should return results in order from best to worst (from their
     /// perspective).
     /// </summary>
-    ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-        string name, int arity, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken);
 }
 
 [DataContract]
-internal abstract class PackageResult
+internal abstract class AbstractPackageResult(string packageName, int rank)
 {
     [DataMember(Order = 0)]
-    public readonly string PackageName;
+    public readonly string PackageName = packageName;
 
     [DataMember(Order = 1)]
-    public readonly int Rank;
-
-    protected PackageResult(string packageName, int rank)
-    {
-        PackageName = packageName;
-        Rank = rank;
-    }
+    public readonly int Rank = rank;
 }
 
 [DataContract]
-internal sealed class PackageWithTypeResult(
+internal sealed class PackageResult(
     string packageName,
     int rank,
     string typeName,
     string? version,
-    ImmutableArray<string> containingNamespaceNames) : PackageResult(packageName, rank)
+    ImmutableArray<string> containingNamespaceNames) : AbstractPackageResult(packageName, rank)
 {
     [DataMember(Order = 2)]
     public readonly string TypeName = typeName;
@@ -90,7 +108,7 @@ internal sealed class PackageWithTypeResult(
 internal sealed class PackageWithAssemblyResult(
     string packageName,
     int rank,
-    string version) : PackageResult(packageName, rank), IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
+    string version) : AbstractPackageResult(packageName, rank), IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
 {
     [DataMember(Order = 2)]
     public readonly string? Version = version;
@@ -117,7 +135,7 @@ internal sealed class PackageWithAssemblyResult(
 }
 
 [DataContract]
-internal sealed class ReferenceAssemblyWithTypeResult(
+internal sealed class ReferenceAssemblyResult(
     string assemblyName,
     string typeName,
     ImmutableArray<string> containingNamespaceNames)
@@ -133,20 +151,16 @@ internal sealed class ReferenceAssemblyWithTypeResult(
 }
 
 [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
-internal sealed class DefaultSymbolSearchService : ISymbolSearchService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DefaultSymbolSearchService() : ISymbolSearchService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DefaultSymbolSearchService()
-    {
-    }
-
-    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<PackageResult>.Empty);
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
 }

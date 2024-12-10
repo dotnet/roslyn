@@ -3450,4 +3450,84 @@ public class RemoveUnusedMembersTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71847")]
+    public async Task TestRefFieldOnlyWrittenTo()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public ref struct TestStruct
+                {
+                    private ref readonly byte m_toPin;
+                    private ref IntPtr m_toAssignPin;
+                    private IntPtr value;
+                    public void FromManaged(Span<byte> toPin)
+                    {
+                        m_toPin = ref toPin.GetPinnableReference();
+                        m_toAssignPin = ref Unsafe.AsRef(ref value);
+                    }
+
+                    public unsafe void ToUnmanaged()
+                    {
+                        m_toAssignPin = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(in m_toPin));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71847")]
+    public async Task TestRefFieldNotReadOrWritten()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public ref struct TestStruct
+                {
+                    private ref readonly byte m_toPin;
+                    private ref IntPtr [|m_toAssignPin|];
+
+                    public void FromManaged(Span<byte> toPin)
+                    {
+                        m_toPin = ref toPin.GetPinnableReference();
+                    }
+                
+                    public unsafe void ToUnmanaged()
+                    {
+                        _ = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(in m_toPin));
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public ref struct TestStruct
+                {
+                    private ref readonly byte m_toPin;
+
+                    public void FromManaged(Span<byte> toPin)
+                    {
+                        m_toPin = ref toPin.GetPinnableReference();
+                    }
+                
+                    public unsafe void ToUnmanaged()
+                    {
+                        _ = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(in m_toPin));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
 }

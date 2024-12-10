@@ -2301,16 +2301,15 @@ public partial class ExtractMethodTests
             
                 void M()
                 {
-                    using Goo g = NewMethod();
+                    NewMethod();
                 }
 
-                private static Goo NewMethod()
+                private static void NewMethod()
                 {
-                    Goo g = new Goo();
+                    using Goo g = new Goo();
                     var s = g.S;
                     g.M2();
                     g.M3();
-                    return g;
                 }
             
                 public void Dispose()

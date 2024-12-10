@@ -12394,4 +12394,252 @@ $@"namespace ClassLibrary9
 
         await TestExtractMethodAsync(code, expected);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration1()
+    {
+        var code = """"
+            using System;
+
+            public class Goo : IDisposable
+            {
+                void M2() { }
+
+                void M()
+                {
+                    [|using var g = new Goo();
+                    g.M2();|]
+                }
+
+                public void Dispose()
+                {
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            
+            public class Goo : IDisposable
+            {
+                void M2() { }
+            
+                void M()
+                {
+                    NewMethod();
+                }
+
+                private static void NewMethod()
+                {
+                    using var g = new Goo();
+                    g.M2();
+                }
+            
+                public void Dispose()
+                {
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration2()
+    {
+        var code = """"
+            using System;
+
+            public class Goo : IDisposable
+            {
+                void M2() { }
+
+                void M()
+                {
+                    [|using var g = new Goo();
+                    g.M2();|]
+                    g.M2();
+                }
+
+                public void Dispose()
+                {
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            
+            public class Goo : IDisposable
+            {
+                void M2() { }
+            
+                void M()
+                {
+                    using Goo g = NewMethod();
+                    g.M2();
+                }
+
+                private static Goo NewMethod()
+                {
+                    var g = new Goo();
+                    g.M2();
+                    return g;
+                }
+            
+                public void Dispose()
+                {
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration3()
+    {
+        var code = """"
+            using System;
+
+            public class Goo
+            {
+                void M()
+                {
+                    [|using var x1 = new System.IO.MemoryStream();
+                    using var x2 = new System.IO.MemoryStream();
+                    using var x3 = new System.IO.MemoryStream();|]
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            
+            public class Goo
+            {
+                void M()
+                {
+                    NewMethod();
+                }
+
+                private static void NewMethod()
+                {
+                    using var x1 = new System.IO.MemoryStream();
+                    using var x2 = new System.IO.MemoryStream();
+                    using var x3 = new System.IO.MemoryStream();
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
+    public async Task ExtractUsingLocalDeclaration4()
+    {
+        var code = """"
+            using System.Collections.Generic;
+
+            class C
+            {
+                bool M(IEnumerable<int> p)
+                {
+                    [|using var x = p.GetEnumerator();
+                    return x.MoveNext();|]
+                }
+            }
+            """";
+        var expected = """"
+            using System.Collections.Generic;
+
+            class C
+            {
+                bool M(IEnumerable<int> p)
+                {
+                    return NewMethod(p);
+                }
+
+                private static bool NewMethod(IEnumerable<int> p)
+                {
+                    using var x = p.GetEnumerator();
+                    return x.MoveNext();
+                }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18656")]
+    public async Task TestSelectionMidwayThroughTwoStatements()
+    {
+        var code = """"
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var isAdditive = true;
+                    var isSoftSelection = true;
+                    var indexOfLastSelected = 0;
+                    var index = 0;
+                    var item = new Item();
+
+                    if (isAddi[|tive)
+                    {
+                        if (!isSoftSelection)
+                        {
+                            item.IsSelected = !item.IsSelected;
+                        }
+                    }
+                    else
+                    {
+                        item.IsSelected = true;
+                    }
+                    indexOfLast|]Selected = index;
+                }
+            }
+
+            class Item
+            {
+                public bool IsSelected { get; set; }
+            }
+            """";
+        var expected = """"
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    var isAdditive = true;
+                    var isSoftSelection = true;
+                    var indexOfLastSelected = 0;
+                    var index = 0;
+                    var item = new Item();
+                    indexOfLastSelected = NewMethod(isAdditive, isSoftSelection, index, item);
+                }
+
+                private static int NewMethod(bool isAdditive, bool isSoftSelection, int index, Item item)
+                {
+                    int indexOfLastSelected;
+                    if (isAdditive)
+                    {
+                        if (!isSoftSelection)
+                        {
+                            item.IsSelected = !item.IsSelected;
+                        }
+                    }
+                    else
+                    {
+                        item.IsSelected = true;
+                    }
+                    indexOfLastSelected = index;
+                    return indexOfLastSelected;
+                }
+            }
+
+            class Item
+            {
+                public bool IsSelected { get; set; }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
 }
