@@ -48,7 +48,6 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 _state.LocalType,
                 RefKind.None,
                 new ParameterName(_state.IdentifierToken.ValueText, isFixed: false),
-                argument: null,
                 _parameterIndex,
                 _includeOverridesAndImplementations,
                 cancellationToken).AsNullable();
