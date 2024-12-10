@@ -17,11 +17,14 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter;
 
 internal static class AddParameterService
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     /// <summary>
     /// Checks if there are indications that there might be more than one declarations that need to be fixed.
     /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
@@ -96,8 +99,8 @@ internal static class AddParameterService
 
         // Indexing Locations[0] is valid because IMethodSymbols have one location at most
         // and IsFromSource() tests if there is at least one location.
-        var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-            => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
+        var locationsByDocument = locationsInSource.ToLookup(
+            declarationLocation => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
 
         foreach (var documentLookup in locationsByDocument)
         {
@@ -112,9 +115,9 @@ internal static class AddParameterService
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(syntaxRoot, solution.Services);
             var generator = editor.Generator;
-            foreach (var methodDeclaration in documentLookup)
+            foreach (var currentMethodToUpdate in documentLookup)
             {
-                var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan, getInnermostNodeForTie: true);
+                var methodNode = syntaxRoot.FindNode(currentMethodToUpdate.Locations[0].SourceSpan, getInnermostNodeForTie: true);
                 var existingParameters = generator.GetParameters(methodNode);
                 var insertionIndex = newParameterIndex ?? existingParameters.Count;
 
@@ -124,12 +127,14 @@ internal static class AddParameterService
                     syntaxFacts.GetDefaultOfParameter(existingParameters[insertionIndex - 1]) != null;
 
                 var parameterSymbol = CreateParameterSymbol(
-                    methodDeclaration, newParameterType, refKind, parameterMustBeOptional, parameterName.BestNameForParameter);
+                    currentMethodToUpdate, newParameterType, refKind, parameterMustBeOptional, parameterName.BestNameForParameter);
 
                 var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(newParameterType) : null;
-                var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol, argumentInitializer)
-                                                    .WithAdditionalAnnotations(Formatter.Annotation);
-                if (anySymbolReferencesNotInSource && methodDeclaration == method)
+                var parameterDeclaration = generator
+                    .ParameterDeclaration(parameterSymbol, argumentInitializer)
+                    .WithAdditionalAnnotations(Formatter.Annotation, s_annotation);
+
+                if (anySymbolReferencesNotInSource && currentMethodToUpdate == method)
                 {
                     parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(CodeFixesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
@@ -137,18 +142,6 @@ internal static class AddParameterService
 
                 if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     insertionIndex++;
-
-                var memberToAssignTo = await GetMemberToAssignToAsync(semanticDocument).ConfigureAwait(false);
-                if (memberToAssignTo != null)
-                {
-                    var initializeParameterService = documentLookup.Key.GetRequiredLanguageService<IInitializeParameterService>();
-                    var body = initializeParameterService.GetBody(methodNode);
-                    if (semanticDocument.SemanticModel.GetOperation(body, cancellationToken) is IBlockOperation blockOperation)
-                    {
-                        initializeParameterService.AddAssignment(
-                            methodNode, blockOperation, parameterSymbol, memberToAssignTo, editor);
-                    }
-                }
 
                 AddParameterEditor.AddParameter(
                     syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
@@ -158,18 +151,75 @@ internal static class AddParameterService
             solution = solution.WithDocumentSyntaxRoot(document.Id, newRoot);
         }
 
+        // Now that we've added the parameter to the method, see if we added to a constructor that we then want to
+        // assign that parameter to a field/property to as well.
+        solution = await AddConstructorAssignmentsAsync(solution).ConfigureAwait(false);
+
         return solution;
 
-        async Task<ISymbol?> GetMemberToAssignToAsync(SemanticDocument document)
+        async Task<Solution> AddConstructorAssignmentsAsync(Solution rewrittenSolution)
         {
+            var finalSolution = await TryAddConstructorAssignmentsAsync(rewrittenSolution).ConfigureAwait(false);
+            return finalSolution ?? rewrittenSolution;
+        }
+
+        async Task<Solution?> TryAddConstructorAssignmentsAsync(Solution rewrittenSolution)
+        {
+            // If we weren't adding a parameter to a constructor, we have nothing to do here.
             if (method.MethodKind != MethodKind.Constructor)
                 return null;
 
+            // If we didn't have an argument indicating what was passed to the constructor, then we have nothing to do.
             if (argument is null)
                 return null;
 
+            // Only want to do this if we updated a single constructor in a single document.
+            var documentsUpdated = locationsByDocument.Select(g => g.Key).ToSet();
+            if (documentsUpdated.Count != 1)
+                return null;
+
+            var documentId = documentsUpdated.Single().Id;
+
+            var memberToAssignTo = await GetMemberToAssignToAsync(documentId).ConfigureAwait(false);
+            if (memberToAssignTo is null)
+                return null;
+
+            // Now go find the constructor after the parameter was added to it.
+            var rewrittenDocument = rewrittenSolution.GetRequiredDocument(documentId);
+            var rewrittenSyntaxRoot = await rewrittenDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var parameterDeclaration = rewrittenSyntaxRoot.GetAnnotatedNodes(s_annotation).SingleOrDefault();
+            if (parameterDeclaration is null)
+                return null;
+
+            var initializeParameterService = rewrittenDocument.GetRequiredLanguageService<IInitializeParameterService>();
+            var semanticModel = await rewrittenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel.GetDeclaredSymbol(parameterDeclaration, cancellationToken) is not IParameterSymbol parameter)
+                return null;
+
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, DeclaringSyntaxReferences: [var reference] })
+                return null;
+
+            var methodNode = reference.GetSyntax(cancellationToken);
+            var body = initializeParameterService.GetBody(methodNode);
+            if (semanticModel.GetOperation(body, cancellationToken) is not IBlockOperation blockOperation)
+                return rewrittenSolution;
+
+            var editor = new SyntaxEditor(rewrittenSyntaxRoot, rewrittenSolution.Services);
+            initializeParameterService.AddAssignment(
+                methodNode, blockOperation, parameter, memberToAssignTo, editor);
+
+            var finalDocument = rewrittenDocument.WithSyntaxRoot(editor.GetChangedRoot());
+            return finalDocument.Project.Solution;
+        }
+
+        async Task<ISymbol?> GetMemberToAssignToAsync(DocumentId documentId)
+        {
+            var constructorDocument = invocationDocument.Project.Solution.GetRequiredDocument(documentId);
+            var constructorSemanticDocument = await SemanticDocument.CreateAsync(constructorDocument, cancellationToken).ConfigureAwait(false);
+
             var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
-                document,
+                constructorSemanticDocument,
                 method.ContainingType,
                 [argument.Value],
                 [newParameterType],
