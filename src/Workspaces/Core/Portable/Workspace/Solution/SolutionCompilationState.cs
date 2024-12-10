@@ -1457,6 +1457,10 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
+        // Used to track any new compilation trackers created in the loop. This is done to avoid allocations
+        // from individually adding to the _projectIdToTrackerMap ImmutableSegmentedDictionary .
+        var updatedIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
+
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -1466,7 +1470,13 @@ internal sealed partial class SolutionCompilationState
             if (!oldProjectState.SupportsCompilation)
                 continue;
 
-            var oldTracker = GetCompilationTracker(projectId);
+            if (!_projectIdToTrackerMap.TryGetValue(projectId, out var oldTracker))
+            {
+                oldTracker = CreateCompilationTracker(projectId, this.SolutionState);
+
+                // Collect all compilation trackers that needed to be created
+                updatedIdToTrackerMapBuilder[projectId] = oldTracker;
+            }
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
@@ -1481,6 +1491,9 @@ internal sealed partial class SolutionCompilationState
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
             newIdToTrackerMapBuilder[projectId] = newTracker;
         }
+
+        // Update _projectIdToTrackerMap to include all the newly created compilation trackers.
+        RoslynImmutableInterlocked.InterlockedExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMapBuilder.ToImmutable());
 
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
