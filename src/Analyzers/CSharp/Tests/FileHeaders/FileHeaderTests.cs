@@ -44,7 +44,6 @@ public class FileHeaderTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             EditorConfig = $@"
 [*]
 {fileHeaderTemplate}
@@ -242,7 +241,6 @@ public class FileHeaderTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -267,7 +265,6 @@ public class FileHeaderTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -291,7 +288,6 @@ public class FileHeaderTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -442,7 +438,6 @@ namespace Bar
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             EditorConfig = TestSettings,
         }.RunAsync();
     }

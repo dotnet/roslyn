@@ -64,7 +64,7 @@ internal sealed partial class PartialMethodCompletionProvider : AbstractPartialM
     protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
     {
         var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-        return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
+        return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration).GetLocation().SourceSpan.End;
     }
 
     protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)

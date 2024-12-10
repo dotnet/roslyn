@@ -225,6 +225,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_switch_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSwitchExpression")},
         {"csharp_style_prefer_top_level_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTopLevelStatements")},
         {"csharp_style_prefer_tuple_swap", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTupleSwap")},
+        {"csharp_style_prefer_unbound_generic_type_in_nameof", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferUnboundGenericTypeInNameOf")},
         {"csharp_style_prefer_utf8_string_literals", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferUtf8StringLiterals")},
         {"csharp_style_throw_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferThrowExpression")},
         {"csharp_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.CSharp.Specific.UnusedValueAssignmentPreference")},
@@ -295,7 +296,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_navigate_to_decompiled_sources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"dotnet_navigate_to_source_link_and_embedded_sources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
         {"dotnet_offer_remove_unused_references", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
-        {"dotnet_offer_remove_unused_references_feature_flag", new FeatureFlagStorage(@"Roslyn.RemoveUnusedReferences")},
         {"dotnet_enter_outlining_mode_on_file_open", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Outlining")},
         {"visual_basic_pretty_listing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
 #pragma warning disable CS0612 // Type or member is obsolete

@@ -17,11 +17,6 @@
         <target state="translated">Přidat výchozí malá a velká písmena</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Přidat explicitní přetypování</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Přidat hlavičku souboru</target>

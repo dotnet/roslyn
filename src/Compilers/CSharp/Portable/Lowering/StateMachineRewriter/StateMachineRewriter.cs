@@ -9,7 +9,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol? stateField;
         protected FieldSymbol? instanceIdField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement>? nonReusableLocalProxies;
+        protected ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup;
         protected int nextFreeHoistedLocalSlot;
         protected IOrderedReadOnlySet<Symbol>? hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement>? initialParameters;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBadStatement(F.Syntax, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
 
-            CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nextFreeHoistedLocalSlot);
+            CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nonReusableFieldsForCleanup, out this.nextFreeHoistedLocalSlot);
 
             this.hoistedVariables = variablesToHoist;
 
@@ -136,9 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CreateNonReusableLocalProxies(
             IEnumerable<Symbol> variablesToHoist,
             out IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies,
+            out ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             out int nextFreeHoistedLocalSlot)
         {
             var proxiesBuilder = new Dictionary<Symbol, CapturedSymbolReplacement>();
+            var nonReusableFieldsForCleanupBuilder = ArrayBuilder<FieldSymbol>.GetInstance();
 
             var typeMap = stateMachineType.TypeMap;
             bool isDebugBuild = F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug;
@@ -221,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         string fieldName = GeneratedNames.MakeHoistedLocalFieldName(synthesizedKind, slotIndex, local.Name);
                         field = F.StateMachineField(fieldType, fieldName, new LocalSlotDebugInfo(synthesizedKind, id), slotIndex);
+                        nonReusableFieldsForCleanupBuilder.Add(field);
                     }
 
                     if (field != null)
@@ -262,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             proxies = proxiesBuilder;
+            nonReusableFieldsForCleanup = nonReusableFieldsForCleanupBuilder.ToImmutableAndFree();
         }
 
         private bool ShouldPreallocateNonReusableProxy(LocalSymbol local)

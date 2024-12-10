@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,8 +26,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TDocumentationCommentTriviaSyntax,
     TIdentifierNameSyntax,
     TTypeDeclarationSyntax,
-    TMemberDeclarationSyntax>
-    : AbstractCodeQualityDiagnosticAnalyzer
+    TMemberDeclarationSyntax>()
+    : AbstractCodeQualityDiagnosticAnalyzer(
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
+        // We want to analyze references in generated code, but not report unused members in generated code.
+        GeneratedCodeAnalysisFlags.Analyze)
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -56,11 +60,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         hasAnyCodeStyleOption: false, isUnnecessary: true);
 
-    protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-        : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-               GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
-    {
-    }
+    protected abstract ISemanticFacts SemanticFacts { get; }
 
     protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
@@ -86,7 +86,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
     private sealed class CompilationAnalyzer
     {
-        private readonly object _gate;
+        private readonly object _gate = new();
+
         /// <summary>
         /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
         /// </summary>
@@ -103,7 +104,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
         /// </summary>
         private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = [];
-        private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+        private readonly INamedTypeSymbol? _taskType;
+        private readonly INamedTypeSymbol? _genericTaskType;
+        private readonly INamedTypeSymbol? _debuggerDisplayAttributeType;
+        private readonly INamedTypeSymbol? _structLayoutAttributeType;
+        private readonly INamedTypeSymbol? _inlineArrayAttributeType;
         private readonly INamedTypeSymbol? _eventArgsType;
         private readonly INamedTypeSymbol? _iNotifyCompletionType;
         private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
@@ -114,13 +119,13 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             Compilation compilation,
             AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> analyzer)
         {
-            _gate = new object();
             _analyzer = analyzer;
 
             _taskType = compilation.TaskType();
             _genericTaskType = compilation.TaskOfTType();
             _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
             _structLayoutAttributeType = compilation.StructLayoutAttributeType();
+            _inlineArrayAttributeType = compilation.InlineArrayAttributeType();
             _eventArgsType = compilation.EventArgsType();
             _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
             _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
@@ -198,21 +203,43 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 if (!ShouldAnalyze(symbolStartContext, (INamedTypeSymbol)symbolStartContext.Symbol))
                     return;
 
-                var hasUnsupportedOperation = false;
-                symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeDeconstructionAssignment, OperationKind.DeconstructionAssignment);
                 symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
+                symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
+                symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
 
                 // We bail out reporting diagnostics for named types if it contains following kind of operations:
-                //  1. Invalid operations, i.e. erroneous code:
-                //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
-                //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
+                //  1. Invalid operations, i.e. erroneous code: We do so to ensure that we don't report false positives
+                //     during editing scenarios in the IDE, where the user is still editing code and fixing unresolved
+                //     references to symbols, such as overload resolution errors.
                 //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
                 //  3. Operations with OperationKind.None.
-                symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid, OperationKind.None,
-                    OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
+
+                var hasUnsupportedOperation = false;
+                symbolStartContext.RegisterOperationAction(
+                    context =>
+                    {
+                        var operation = context.Operation;
+
+                        // 'nameof(argument)' currently returns a 'None' operation for its argument.  We don't want this
+                        // to cause us to bail out of processing. Instead, we'll handle this case explicitly in AnalyzeNameOfOperation.
+                        if (operation is { Kind: OperationKind.None, Parent: INameOfOperation { Argument: var nameofArgument } } &&
+                            nameofArgument == operation)
+                        {
+                            return;
+                        }
+
+                        hasUnsupportedOperation = true;
+                    },
+                    OperationKind.Invalid,
+                    OperationKind.None,
+                    OperationKind.DynamicIndexerAccess,
+                    OperationKind.DynamicInvocation,
+                    OperationKind.DynamicMemberReference,
+                    OperationKind.DynamicObjectCreation);
 
                 symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
@@ -253,12 +280,17 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     // Note that we might receive a symbol reference (AnalyzeMemberOperation) callback before
                     // this symbol declaration callback, so even though we cannot receive duplicate callbacks for a symbol,
                     // an entry might already be present of the declared symbol here.
-                    if (!_symbolValueUsageStateMap.ContainsKey(symbol))
-                    {
-                        _symbolValueUsageStateMap.Add(symbol, ValueUsageInfo.None);
-                    }
+                    _symbolValueUsageStateMap.TryAdd(symbol, ValueUsageInfo.None);
                 }
             }
+        }
+
+        private void AnalyzeDeconstructionAssignment(OperationAnalysisContext operationContext)
+        {
+            var operation = operationContext.Operation;
+            var methods = _analyzer.SemanticFacts.GetDeconstructionAssignmentMethods(operation.SemanticModel!, operation.Syntax);
+            foreach (var method in methods)
+                OnSymbolUsage(method, ValueUsageInfo.Read);
         }
 
         private void AnalyzeFieldInitializer(OperationAnalysisContext operationContext)
@@ -369,6 +401,18 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
+        private void AnalyzeLoopOperation(OperationAnalysisContext operationContext)
+        {
+            var operation = operationContext.Operation;
+            if (operation is not IForEachLoopOperation loopOperation)
+                return;
+
+            var symbols = _analyzer.SemanticFacts.GetForEachSymbols(operation.SemanticModel!, loopOperation.Syntax);
+            OnSymbolUsage(symbols.CurrentProperty, ValueUsageInfo.Read);
+            OnSymbolUsage(symbols.GetEnumeratorMethod, ValueUsageInfo.Read);
+            OnSymbolUsage(symbols.MoveNextMethod, ValueUsageInfo.Read);
+        }
+
         private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
         {
             var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
@@ -380,9 +424,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // If the invoked method is a reduced extension method, also mark the original
             // method from which it was reduced as "used".
             if (targetMethod.ReducedFrom != null)
-            {
                 OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
-            }
         }
 
         private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
@@ -405,17 +447,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // a bound method group/property group.
             var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
             foreach (var symbol in symbolInfo.GetAllSymbols())
-            {
-                switch (symbol.Kind)
-                {
-                    // Handle potential references to methods/properties from missing IOperation
-                    // for method group/property group.
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                        OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
-                        break;
-                }
-            }
+                OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
         }
 
         private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
@@ -431,36 +463,37 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         {
             var cancellationToken = symbolEndContext.CancellationToken;
             if (hasUnsupportedOperation)
-            {
                 return;
-            }
 
-            if (symbolEndContext.Symbol.GetAttributes().Any(static (a, self) => a.AttributeClass == self._structLayoutAttributeType, this))
-            {
-                // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
-                // and removal of unused members might break semantics.
+            var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
+
+            // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
+            // and removal of unused members might break semantics.
+            if (namedType.HasAttribute(_structLayoutAttributeType))
                 return;
-            }
 
             // Report diagnostics for unused candidate members.
             var first = true;
+
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var symbolsReferencedInDocComments);
             using var _2 = ArrayBuilder<string>.GetInstance(out var debuggerDisplayAttributeArguments);
 
             var entryPoint = symbolEndContext.Compilation.GetEntryPoint(cancellationToken);
 
-            var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
+            var isInlineArray = namedType.HasAttribute(_inlineArrayAttributeType);
+
             foreach (var member in namedType.GetMembers())
             {
                 if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
-                {
                     continue;
-                }
+
+                // The instance field in an InlineArray is required and cannot be removed.
+                if (isInlineArray && member is IFieldSymbol { IsStatic: false })
+                    continue;
 
                 // Check if the underlying member is neither read nor a readable reference to the member is taken.
                 // If so, we flag the member as either unused (never written) or unread (written but not read).
-                if (TryRemove(member, out var valueUsageInfo) &&
-                    !valueUsageInfo.IsReadFrom())
+                if (TryRemove(member, out var valueUsageInfo) && !valueUsageInfo.IsReadFrom())
                 {
                     Debug.Assert(IsCandidateSymbol(member));
                     Debug.Assert(!member.IsImplicitlyDeclared);

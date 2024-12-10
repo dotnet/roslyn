@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,8 +13,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -266,7 +271,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             var regularDocumentSyntaxTree = await project.GetRequiredDocument(documentId).GetRequiredSyntaxTreeAsync(CancellationToken.None);
             Assert.Contains(regularDocumentSyntaxTree, compilation.SyntaxTrees);
 
-            var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees.Where(t => t != regularDocumentSyntaxTree));
+            var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees, t => t != regularDocumentSyntaxTree);
             Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
 
             Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());
@@ -985,15 +990,39 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
     }
 
-    [Fact]
-    public async Task UpdatingAnalyzerReferenceReloadsGenerators()
+    [PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), System.Composition.Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestWorkspaceConfigurationService(IGlobalOptionService globalOptionService) : IWorkspaceConfigurationService
+    {
+        public WorkspaceConfigurationOptions Options => globalOptionService.GetWorkspaceConfigurationOptions();
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
+        SourceGeneratorExecutionPreference executionPreference)
     {
         // We have two versions of the same source generator attached to this project as a resource.  Each creates a
         // 'HelloWorld' class, just with a different string it emits inside.
         const string AnalyzerResourceV1 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1";
         const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
 
-        using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
+
+        // Ensure the local and remote sides agree on how we're executing source generators.
+        var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
+        var globalOptionService = mefServices.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
         var solution = workspace.CurrentSolution;
 
         var project1 = solution.AddProject("P1", "P1", LanguageNames.CSharp);
@@ -1035,6 +1064,19 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             // host side, this will simply instantiate a new reference.  But this will cause all the machinery to run
             // syncing this new reference to the oop side, which will load the analyzer reference in a dedicated ALC.
             project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
+
+            // In balanced mode, emulate the project system notifying about the updated reference on disk, which will
+            // cause us to update source generators versions.
+            if (executionPreference is SourceGeneratorExecutionPreference.Balanced)
+            {
+                Assert.True(workspace.TryApplyChanges(project1.Solution));
+                workspace.EnqueueUpdateSourceGeneratorVersion(project1.Id, forceRegeneration: true);
+
+                var waiter = (IAsynchronousOperationWaiter)mefServices.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.SourceGenerators);
+                await waiter.ExpeditedWaitAsync();
+
+                project1 = workspace.CurrentSolution.GetRequiredProject(project1.Id);
+            }
 
             var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
             var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");

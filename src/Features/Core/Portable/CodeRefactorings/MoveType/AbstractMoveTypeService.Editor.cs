@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
-internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
 {
     /// <summary>
     /// An abstract class for different edits performed by the Move Type Code Action.

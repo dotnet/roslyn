@@ -44,7 +44,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false } },
@@ -67,7 +66,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp8,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
@@ -246,7 +244,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
         }.RunAsync();
@@ -291,7 +288,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -319,7 +315,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -347,7 +342,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -372,7 +366,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -394,7 +387,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -417,7 +409,6 @@ class Program : System.Exception
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -440,7 +431,6 @@ class Program : {|CS0535:System.IComparable|}
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -467,7 +457,6 @@ partial class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -490,7 +479,6 @@ public class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -514,7 +502,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -538,7 +525,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -589,7 +575,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -615,7 +600,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -641,7 +625,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -667,7 +650,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -692,7 +674,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -717,7 +698,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -744,7 +724,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -771,7 +750,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -796,7 +774,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -821,7 +798,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -846,7 +822,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -869,7 +844,6 @@ class Program
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },

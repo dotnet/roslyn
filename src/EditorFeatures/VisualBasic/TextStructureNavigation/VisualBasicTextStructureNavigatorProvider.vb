@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.Text
@@ -11,10 +10,9 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
-
     <Export(GetType(ITextStructureNavigatorProvider))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
-    Friend Class VisualBasicTextStructureNavigatorProvider
+    Friend NotInheritable Class VisualBasicTextStructureNavigatorProvider
         Inherits AbstractTextStructureNavigatorProvider
 
         <ImportingConstructor()>
@@ -30,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
             Return trivia.Kind() = SyntaxKind.CommentTrivia
         End Function
 
-        Protected Overrides Function IsWithinNaturalLanguage(token As SyntaxToken, position As Integer) As Boolean
+        Private Shared Function IsWithinNaturalLanguage(token As SyntaxToken, position As Integer) As Boolean
             Select Case token.Kind
                 Case SyntaxKind.StringLiteralToken
                     ' This, in combination with the override of GetExtentOfWordFromToken() below, treats the closing
@@ -57,15 +55,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
             Return False
         End Function
 
-        Protected Overrides Function GetExtentOfWordFromToken(token As SyntaxToken, position As SnapshotPoint) As TextExtent
+        Protected Overrides Function GetExtentOfWordFromToken(navigator As ITextStructureNavigator, token As SyntaxToken, position As SnapshotPoint) As TextExtent
+            If IsWithinNaturalLanguage(token, position) Then
+                ' Defer to the editor to determine this.
+                Return navigator.GetExtentOfWord(position)
+            End If
+
             If token.Kind() = SyntaxKind.StringLiteralToken AndAlso position.Position = token.Span.End - 1 AndAlso token.Text.EndsWith("""", StringComparison.Ordinal) Then
                 ' Special case to treat the closing quote of a string literal as a separate token.  This allows the
                 ' cursor to stop during word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the
                 ' closing quote, just like it did in VS2013 and like it currently does for interpolated strings.
-                Dim Span = New Span(position.Position, 1)
+                Dim span = New Span(position.Position, 1)
                 Return New TextExtent(New SnapshotSpan(position.Snapshot, Span), isSignificant:=True)
             Else
-                Return MyBase.GetExtentOfWordFromToken(token, position)
+                Return GetTokenExtent(token, position.Snapshot)
             End If
         End Function
     End Class

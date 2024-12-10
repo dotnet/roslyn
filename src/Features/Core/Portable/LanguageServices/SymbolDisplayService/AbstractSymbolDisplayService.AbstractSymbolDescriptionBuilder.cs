@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -145,6 +146,9 @@ internal abstract partial class AbstractSymbolDisplayService
 
         protected Compilation Compilation
             => _semanticModel.Compilation;
+
+        protected virtual ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
+            => displayParts;
 
         private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
         {
@@ -458,13 +462,32 @@ internal abstract partial class AbstractSymbolDisplayService
                 AddAwaitablePrefix();
             }
 
-            AddSymbolDescription(symbol);
+            if (symbol.TypeKind == TypeKind.Delegate)
+            {
+                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+                // Under the covers anonymous delegates are represented with generic types.  However, we don't want
+                // to see the unbound form of that generic.  We want to see the fully instantiated signature.
+                var displayParts = symbol.IsAnonymousDelegateType()
+                    ? symbol.ToDisplayParts(style)
+                    : symbol.OriginalDefinition.ToDisplayParts(style);
+
+                AddToGroup(SymbolDescriptionGroups.MainDescription, WrapConstraints(symbol, displayParts));
+            }
+            else
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    WrapConstraints(symbol.OriginalDefinition, symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle)));
+            }
+
+            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
 
             if (!symbol.IsUnboundGenericType &&
                 !TypeArgumentsAndParametersAreSame(symbol) &&
                 !symbol.IsAnonymousDelegateType())
             {
-                var allTypeParameters = symbol.GetAllTypeParameters().ToList();
+                var allTypeParameters = symbol.GetAllTypeParameters();
                 var allTypeArguments = symbol.GetAllTypeArguments().ToList();
 
                 AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
@@ -476,28 +499,6 @@ internal abstract partial class AbstractSymbolDisplayService
                 var underlyingTypeDisplayParts = symbol.EnumUnderlyingType.ToDisplayParts(s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
                 AddToGroup(SymbolDescriptionGroups.MainDescription, underlyingTypeDisplayParts);
             }
-        }
-
-        private void AddSymbolDescription(INamedTypeSymbol symbol)
-        {
-            if (symbol.TypeKind == TypeKind.Delegate)
-            {
-                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-                // Under the covers anonymous delegates are represented with generic types.  However, we don't want
-                // to see the unbound form of that generic.  We want to see the fully instantiated signature.
-                AddToGroup(SymbolDescriptionGroups.MainDescription, symbol.IsAnonymousDelegateType()
-                    ? symbol.ToDisplayParts(style)
-                    : symbol.OriginalDefinition.ToDisplayParts(style));
-            }
-            else
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle));
-            }
-
-            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
-                AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
         }
 
         private static bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
@@ -725,12 +726,12 @@ internal abstract partial class AbstractSymbolDisplayService
         }
 
         protected void AddTypeParameterMapPart(
-            List<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             List<ITypeSymbol> typeArguments)
         {
-            var parts = new List<SymbolDisplayPart>();
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
-            var count = typeParameters.Count;
+            var count = typeParameters.Length;
             for (var i = 0; i < count; i++)
             {
                 parts.AddRange(TypeParameterName(typeParameters[i].Name));
@@ -746,8 +747,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 }
             }
 
-            AddToGroup(SymbolDescriptionGroups.TypeParameterMap,
-                parts);
+            AddToGroup(SymbolDescriptionGroups.TypeParameterMap, parts);
         }
 
         protected void AddToGroup(SymbolDescriptionGroups group, params SymbolDisplayPart[] partsArray)

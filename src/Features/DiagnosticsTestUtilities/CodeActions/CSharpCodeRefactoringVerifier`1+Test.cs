@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public Test()
             {
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
+                this.FixedState.InheritanceMode = StateInheritanceMode.AutoInherit;
             }
 
             /// <summary>

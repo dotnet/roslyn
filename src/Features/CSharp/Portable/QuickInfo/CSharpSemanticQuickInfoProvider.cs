@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -151,10 +152,15 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         {
             return null;
         }
+        if (document.IsRazorDocument())
+        {
+            return null;
+        }
 
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-            document, position, cancellationToken).ConfigureAwait(false);
+            document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
         // Don't show on-the-fly-docs for namespace symbols.
         if (symbol is null || symbol.IsNamespace())
