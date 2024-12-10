@@ -77,7 +77,7 @@ internal static class AddParameterService
         ITypeSymbol newParameterType,
         RefKind refKind,
         ParameterName parameterName,
-        Argument<TExpressionSyntax> argument,
+        Argument<TExpressionSyntax>? argument,
         int? newParameterIndex,
         bool fixAllReferences,
         CancellationToken cancellationToken)
@@ -152,10 +152,13 @@ internal static class AddParameterService
             if (method.MethodKind != MethodKind.Constructor)
                 return null;
 
+            if (argument is null)
+                return null;
+
             var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
                 semanticInvocationDocument,
                 method.ContainingType,
-                [argument],
+                [argument.Value],
                 [newParameterType],
                 [parameterName],
                 cancellationToken).ConfigureAwait(false);

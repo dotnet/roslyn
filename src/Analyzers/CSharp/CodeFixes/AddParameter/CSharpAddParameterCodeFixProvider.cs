@@ -8,6 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,6 +25,7 @@ internal sealed class CSharpAddParameterCodeFixProvider() : AbstractAddParameter
     AttributeArgumentSyntax,
     ArgumentListSyntax,
     AttributeArgumentListSyntax,
+    ExpressionSyntax,
     InvocationExpressionSyntax,
     BaseObjectCreationExpressionSyntax>
 {
@@ -45,6 +48,9 @@ internal sealed class CSharpAddParameterCodeFixProvider() : AbstractAddParameter
 
     protected override ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken)
         => ((ArgumentSyntax)argumentNode).DetermineParameterType(semanticModel, cancellationToken);
+
+    protected override Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
+        => new(argument.GetRefKind(), argument.NameColon?.Name.Identifier.ValueText, argument.Expression);
 
     protected override RegisterFixData<ArgumentSyntax>? TryGetLanguageSpecificFixInfo(
         SemanticModel semanticModel,

@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter;
 
 internal interface IInitializeParameterService : ILanguageService
 {
+    void InsertStatement(
+        SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, SyntaxNode statement);
+
     void AddAssignment(
         SyntaxNode constructorDeclaration,
         IBlockOperation? blockStatement,

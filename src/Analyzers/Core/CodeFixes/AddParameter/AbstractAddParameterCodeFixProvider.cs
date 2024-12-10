@@ -380,7 +380,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             invocationDocument, argument, method.ContainingType, cancellationToken).ConfigureAwait(false);
 
         var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
-        return await AddParameterService.AddParameterAsync(
+        return await AddParameterService.AddParameterAsync<TExpressionSyntax>(
             invocationDocument,
             method,
             argumentType,

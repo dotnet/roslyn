@@ -374,7 +374,9 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // signature.
         var statementToAddAfter = GetStatementToAddNullCheckAfter(
             semanticModel, parameter, blockStatement, cancellationToken);
-        InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
+
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+        initializeParameterService.InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
 
         var newRoot = editor.GetChangedRoot();
         return document.WithSyntaxRoot(newRoot);

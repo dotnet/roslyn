@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
 using static InitializeParameterHelpersCore;
 
-[ExportLanguageService(typeof(IInitializeParameterService, LanguageNames.CSharp)), Shared]
+[ExportLanguageService(typeof(IInitializeParameterService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpInitializeParameterService() : AbstractInitializerParameterService<StatementSyntax>

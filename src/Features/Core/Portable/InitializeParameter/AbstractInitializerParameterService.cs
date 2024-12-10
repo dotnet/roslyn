@@ -17,8 +17,10 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
     protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
     protected abstract void InsertStatement(
-        SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-        SyntaxNode? statementToAddAfter, TStatementSyntax statement);
+        SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, TStatementSyntax statement);
+
+    public void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, SyntaxNode statement)
+        => InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, (TStatementSyntax)statement);
 
     public void AddAssignment(
         SyntaxNode constructorDeclaration,

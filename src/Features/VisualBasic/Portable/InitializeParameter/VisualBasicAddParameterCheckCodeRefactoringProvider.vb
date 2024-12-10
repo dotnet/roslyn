@@ -37,10 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, returnsVoid As Boolean, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
-            InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
-        End Sub
-
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
