@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,12 +41,10 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
     protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
     protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
-    protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
     protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
         Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
@@ -76,13 +73,12 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
         // more for us to do.
-        var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
+        var assignmentStatement = InitializeParameterHelpersCore.TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
         if (assignmentStatement != null)
             return [];
 
-        // Haven't initialized any fields/properties with this parameter.  Offer to assign
-        // to an existing matching field/prop if we can find one, or add a new field/prop
-        // if we can't.
+        // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
+        // field/prop if we can find one, or add a new field/prop if we can't.
 
         var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
@@ -204,11 +200,11 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         var fieldAction = CodeAction.Create(
             string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-            c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, cancellationToken),
             nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
         var propertyAction = CodeAction.Create(
             string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-            c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, cancellationToken),
             nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
         return (fieldAction, propertyAction);
@@ -227,7 +223,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             if (parameterNameParts.BaseName == "")
                 continue;
 
-            var assignmentOp = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
+            var assignmentOp = InitializeParameterHelpersCore.TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
             if (assignmentOp != null)
                 continue;
 
@@ -256,8 +252,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         return [CodeAction.Create(
             title,
-            c => AddSingleSymbolInitializationAsync(
-                document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(
+                document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, cancellationToken),
             title)];
     }
 
@@ -478,7 +474,9 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                 });
         }
 
-        AddAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+        initializeParameterService.AddAssignment(
+            constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
 
         // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
         var currentSolution = document.Project.Solution;
@@ -507,36 +505,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         }
 
         return currentSolution.WithDocumentSyntaxRoot(document.Id, editor.GetChangedRoot());
-    }
-
-    private void AddAssignment(
-        SyntaxNode constructorDeclaration,
-        IBlockOperation? blockStatement,
-        IParameterSymbol parameter,
-        ISymbol fieldOrProperty,
-        SyntaxEditor editor)
-    {
-        // First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
-        if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
-            return;
-
-        var generator = editor.Generator;
-
-        // Now that we've added any potential members, create an assignment between it
-        // and the parameter.
-        var initializationStatement = (TStatementSyntax)generator.ExpressionStatement(
-            generator.AssignmentStatement(
-                generator.MemberAccessExpression(
-                    generator.ThisExpression(),
-                    generator.IdentifierName(fieldOrProperty.Name)),
-                generator.IdentifierName(parameter.Name)));
-
-        // Attempt to place the initialization in a good location in the constructor
-        // We'll want to keep initialization statements in the same order as we see
-        // parameters for the constructor.
-        var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
-
-        InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
     }
 
     private static CodeGenerationContext GetAddContext<TSymbol>(
@@ -572,63 +540,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         }
 
         return CodeGenerationContext.Default;
-    }
-
-    private SyntaxNode? TryGetStatementToAddInitializationAfter(
-        IParameterSymbol parameter, IBlockOperation? blockStatement)
-    {
-        // look for an existing assignment for a parameter that comes before/after us.
-        // If we find one, we'll add ourselves before/after that parameter check.
-        foreach (var (sibling, before) in GetSiblingParameters(parameter))
-        {
-            var statement = TryFindFieldOrPropertyAssignmentStatement(sibling, blockStatement);
-            if (statement != null)
-            {
-                if (before)
-                {
-                    return statement.Syntax;
-                }
-                else
-                {
-                    var statementIndex = blockStatement!.Operations.IndexOf(statement);
-                    return statementIndex > 0 && blockStatement.Operations[statementIndex - 1] is { IsImplicit: false, Syntax: var priorSyntax }
-                        ? priorSyntax
-                        : null;
-                }
-            }
-        }
-
-        // We couldn't find a reasonable location for the new initialization statement.
-        // Just place ourselves after the last statement in the constructor.
-        return TryGetLastStatement(blockStatement);
-    }
-
-    private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatement)
-        => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out _);
-
-    protected static bool TryGetPartsOfTupleAssignmentOperation(
-        IOperation operation,
-        [NotNullWhen(true)] out ITupleOperation? targetTuple,
-        [NotNullWhen(true)] out ITupleOperation? valueTuple)
-    {
-        if (operation is IExpressionStatementOperation
-            {
-                Operation: IDeconstructionAssignmentOperation
-                {
-                    Target: ITupleOperation targetTupleTemp,
-                    Value: IConversionOperation { Operand: ITupleOperation valueTupleTemp },
-                }
-            } &&
-            targetTupleTemp.Elements.Length == valueTupleTemp.Elements.Length)
-        {
-            targetTuple = targetTupleTemp;
-            valueTuple = valueTupleTemp;
-            return true;
-        }
-
-        targetTuple = null;
-        valueTuple = null;
-        return false;
     }
 
     private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
@@ -681,11 +592,9 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         var containingType = parameter.ContainingType;
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        // Walk through the naming rules against this parameter's name to see what
-        // name the user would like for it as a member in this type.  Note that we
-        // have some fallback rules that use the standard conventions around 
-        // properties /fields so that can still find things even if the user has no
-        // naming preferences set.
+        // Walk through the naming rules against this parameter's name to see what name the user would like for it as a
+        // member in this type.  Note that we have some fallback rules that use the standard conventions around
+        // properties /fields so that can still find things even if the user has no naming preferences set.
 
         foreach (var rule in rules)
         {

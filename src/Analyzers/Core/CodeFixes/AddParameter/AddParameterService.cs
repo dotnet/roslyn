@@ -11,9 +11,13 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter;
 
@@ -70,15 +74,16 @@ internal static class AddParameterService
     /// </summary>
     /// <param name="newParameterIndex"><see langword="null"/> to add as the final parameter</param>
     /// <returns></returns>
-    public static async Task<Solution> AddParameterAsync(
+    public static async Task<Solution> AddParameterAsync<TExpressionSyntax>(
         Document invocationDocument,
         IMethodSymbol method,
         ITypeSymbol newParameterType,
         RefKind refKind,
-        string parameterName,
+        ParameterName parameterName,
         int? newParameterIndex,
         bool fixAllReferences,
         CancellationToken cancellationToken)
+        where TExpressionSyntax : SyntaxNode
     {
         var solution = invocationDocument.Project.Solution;
 
@@ -91,8 +96,8 @@ internal static class AddParameterService
 
         // Indexing Locations[0] is valid because IMethodSymbols have one location at most
         // and IsFromSource() tests if there is at least one location.
-        var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-            => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
+        var locationsByDocument = locationsInSource.ToLookup(
+            declarationLocation => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
 
         foreach (var documentLookup in locationsByDocument)
         {
@@ -106,9 +111,9 @@ internal static class AddParameterService
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(syntaxRoot, solution.Services);
             var generator = editor.Generator;
-            foreach (var methodDeclaration in documentLookup)
+            foreach (var currentMethodToUpdate in documentLookup)
             {
-                var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan, getInnermostNodeForTie: true);
+                var methodNode = syntaxRoot.FindNode(currentMethodToUpdate.Locations[0].SourceSpan, getInnermostNodeForTie: true);
                 var existingParameters = generator.GetParameters(methodNode);
                 var insertionIndex = newParameterIndex ?? existingParameters.Count;
 
@@ -118,23 +123,23 @@ internal static class AddParameterService
                     syntaxFacts.GetDefaultOfParameter(existingParameters[insertionIndex - 1]) != null;
 
                 var parameterSymbol = CreateParameterSymbol(
-                    methodDeclaration, newParameterType, refKind, parameterMustBeOptional, parameterName);
+                    currentMethodToUpdate, newParameterType, refKind, parameterMustBeOptional, parameterName.BestNameForParameter);
 
                 var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(newParameterType) : null;
-                var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol, argumentInitializer)
-                                                    .WithAdditionalAnnotations(Formatter.Annotation);
-                if (anySymbolReferencesNotInSource && methodDeclaration == method)
+                var parameterDeclaration = generator
+                    .ParameterDeclaration(parameterSymbol, argumentInitializer);
+
+                if (anySymbolReferencesNotInSource && currentMethodToUpdate == method)
                 {
                     parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(CodeFixesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                 }
 
                 if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
-                {
                     insertionIndex++;
-                }
 
-                AddParameterEditor.AddParameter(syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
+                AddParameterEditor.AddParameter(
+                    syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);
             }
 
             var newRoot = editor.GetChangedRoot();

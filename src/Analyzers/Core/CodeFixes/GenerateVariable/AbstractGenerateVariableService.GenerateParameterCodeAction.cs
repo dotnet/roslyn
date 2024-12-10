@@ -7,13 +7,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private sealed class GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex) : CodeAction
+    private sealed class GenerateParameterCodeAction(
+        Document document,
+        State state,
+        bool includeOverridesAndImplementations,
+        int parameterIndex) : CodeAction
     {
         private readonly Document _document = document;
         private readonly State _state = state;
@@ -37,12 +42,12 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         protected override Task<Solution?> GetChangedSolutionAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            return AddParameterService.AddParameterAsync(
+            return AddParameterService.AddParameterAsync<TExpressionSyntax>(
                 _document,
                 _state.ContainingMethod,
                 _state.LocalType,
                 RefKind.None,
-                _state.IdentifierToken.ValueText,
+                new ParameterName(_state.IdentifierToken.ValueText, isFixed: false),
                 _parameterIndex,
                 _includeOverridesAndImplementations,
                 cancellationToken).AsNullable();

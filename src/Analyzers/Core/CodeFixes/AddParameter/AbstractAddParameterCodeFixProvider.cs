@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -24,13 +24,15 @@ internal abstract class AbstractAddParameterCodeFixProvider<
     TAttributeArgumentSyntax,
     TArgumentListSyntax,
     TAttributeArgumentListSyntax,
+    TExpressionSyntax,
     TInvocationExpressionSyntax,
     TObjectCreationExpressionSyntax> : CodeFixProvider
     where TArgumentSyntax : SyntaxNode
     where TArgumentListSyntax : SyntaxNode
     where TAttributeArgumentListSyntax : SyntaxNode
-    where TInvocationExpressionSyntax : SyntaxNode
-    where TObjectCreationExpressionSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
+    where TInvocationExpressionSyntax : TExpressionSyntax
+    where TObjectCreationExpressionSyntax : TExpressionSyntax
 {
     protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
     protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
@@ -188,7 +190,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
         ImmutableArray<IMethodSymbol> methodCandidates)
     {
         var comparer = syntaxFacts.StringComparer;
-        var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
+        using var _ = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance(out var methodsAndArgumentToAdd);
 
         foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
         {
@@ -220,7 +222,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             }
         }
 
-        return methodsAndArgumentToAdd.ToImmutableAndFree();
+        return methodsAndArgumentToAdd.ToImmutableAndClear();
     }
 
     private static int NonParamsParameterCount(IMethodSymbol method)
@@ -333,15 +335,13 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
 
             var cascadingFix = AddParameterService.HasCascadingDeclarations(methodToUpdate)
-                ? new Func<CancellationToken, Task<Solution>>(c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))
+                ? new Func<CancellationToken, Task<Solution>>(cancellationToken => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, cancellationToken))
                 : null;
 
-            var codeFixData = new CodeFixData(
+            builder.Add(new CodeFixData(
                 methodToUpdate,
-                c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c),
-                cascadingFix);
-
-            builder.Add(codeFixData);
+                cancellationToken => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, cancellationToken),
+                cascadingFix));
         }
 
         return builder.MoveToImmutable();
@@ -379,12 +379,12 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             invocationDocument, argument, method.ContainingType, cancellationToken).ConfigureAwait(false);
 
         var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
-        return await AddParameterService.AddParameterAsync(
+        return await AddParameterService.AddParameterAsync<TExpressionSyntax>(
             invocationDocument,
             method,
             argumentType,
             refKind,
-            argumentNameSuggestion,
+            new ParameterName(argumentNameSuggestion, isNamedArgument, tryMakeCamelCase: !method.ContainingType.IsRecord),
             newParameterIndex,
             fixAllReferences,
             cancellationToken).ConfigureAwait(false);

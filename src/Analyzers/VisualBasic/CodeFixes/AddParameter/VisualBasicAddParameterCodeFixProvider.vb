@@ -8,7 +8,9 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddParameter
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
+Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
@@ -20,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         ArgumentSyntax,
         ArgumentListSyntax,
         ArgumentListSyntax,
+        ExpressionSyntax,
         InvocationExpressionSyntax,
         ObjectCreationExpressionSyntax)
 

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
-
 internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
     TTypeDeclarationSyntax,
     TParameterSyntax,
@@ -52,10 +50,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         IMethodSymbol methodSymbol,
         IBlockOperation? blockStatement,
         CancellationToken cancellationToken);
-
-    protected abstract void InsertStatement(
-        SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-        SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -194,47 +188,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
                 return true;
         }
 
-        return false;
-    }
-
-    protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression)
-        => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out _);
-
-    protected static bool IsFieldOrPropertyAssignment(
-        IOperation statement, INamedTypeSymbol containingType,
-        [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression,
-        [NotNullWhen(true)] out ISymbol? fieldOrProperty)
-    {
-        if (statement is IExpressionStatementOperation expressionStatement &&
-            expressionStatement.Operation is IAssignmentOperation assignment)
-        {
-            assignmentExpression = assignment;
-            return IsFieldOrPropertyReference(assignmentExpression.Target, containingType, out fieldOrProperty);
-        }
-
-        fieldOrProperty = null;
-        assignmentExpression = null;
-        return false;
-    }
-
-    protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
-        => IsFieldOrPropertyAssignment(operation, containingType, out _);
-
-    protected static bool IsFieldOrPropertyReference(
-        IOperation? operation, INamedTypeSymbol containingType,
-        [NotNullWhen(true)] out ISymbol? fieldOrProperty)
-    {
-        if (operation is IMemberReferenceOperation memberReference &&
-            memberReference.Member.ContainingType.Equals(containingType))
-        {
-            if (memberReference.Member is IFieldSymbol or IPropertySymbol)
-            {
-                fieldOrProperty = memberReference.Member;
-                return true;
-            }
-        }
-
-        fieldOrProperty = null;
         return false;
     }
 }

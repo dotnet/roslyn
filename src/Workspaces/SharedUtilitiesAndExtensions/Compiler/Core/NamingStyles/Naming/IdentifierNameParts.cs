@@ -22,6 +22,11 @@ internal readonly struct IdentifierNameParts(string baseName, ImmutableArray<str
     {
         var baseName = RemovePrefixesAndSuffixes(symbol, rules, symbol.Name);
 
+        return CreateIdentifierNameParts(baseName);
+    }
+
+    public static IdentifierNameParts CreateIdentifierNameParts(string baseName)
+    {
         using var parts = TemporaryArray<TextSpan>.Empty;
         StringBreaker.AddWordParts(baseName, ref parts.AsRef());
         var words = CreateWords(parts, baseName);
