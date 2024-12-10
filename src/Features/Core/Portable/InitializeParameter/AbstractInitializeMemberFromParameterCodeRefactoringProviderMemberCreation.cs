@@ -41,8 +41,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected abstract IInitializeParameterService InitializeParameterService { get; }
-
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
     protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
@@ -477,7 +475,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                 });
         }
 
-        this.InitializeParameterService.AddAssignment(
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+        initializeParameterService.AddAssignment(
             constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
 
         // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
