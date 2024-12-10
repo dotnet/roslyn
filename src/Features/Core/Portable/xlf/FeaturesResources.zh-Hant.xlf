@@ -1185,6 +1185,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將內容移到命名空間...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">將檔案移至 ‘{0}'</target>

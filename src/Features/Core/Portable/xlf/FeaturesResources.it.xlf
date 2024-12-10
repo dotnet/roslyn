@@ -1185,6 +1185,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Sposta contenuto nello spazio dei nomi...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">Sposta il file in '{0}'</target>
