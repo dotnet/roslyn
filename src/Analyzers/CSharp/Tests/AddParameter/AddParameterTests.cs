@@ -3430,6 +3430,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """,
             """
+            using System;
+
             class C(string name)
             {
                 private string Name { get; } = name;

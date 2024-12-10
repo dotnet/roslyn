@@ -20,18 +20,9 @@ internal interface IInitializeParameterService : ILanguageService
         Document document, IParameterSymbol parameter, ISymbol fieldOrProperty, CancellationToken cancellationToken);
 
     bool TryGetBlockForSingleParameterInitialization(
-            SyntaxNode functionDeclaration,
-            SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken,
-            out IBlockOperation? blockStatement);
-
-    //void AddAssignment(
-    //    SyntaxNode constructorDeclaration,
-    //    IBlockOperation? blockStatement,
-    //    IParameterSymbol parameter,
-    //    ISymbol fieldOrProperty,
-    //    SyntaxEditor editor);
-
-    // SyntaxNode GetBody(SyntaxNode methodNode);
+        SyntaxNode functionDeclaration,
+        SemanticModel semanticModel,
+        ISyntaxFactsService syntaxFacts,
+        CancellationToken cancellationToken,
+        out IBlockOperation? blockStatement);
 }

@@ -34,6 +34,12 @@ internal abstract class AbstractAddParameterCodeFixProvider<
     where TInvocationExpressionSyntax : TExpressionSyntax
     where TObjectCreationExpressionSyntax : TExpressionSyntax
 {
+    private static readonly SymbolDisplayFormat SimpleFormat = new(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
     protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
     protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
@@ -421,13 +427,6 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             return (argumentNameSuggestion: argumentName, isNamed: false);
         }
     }
-
-    private static readonly SymbolDisplayFormat SimpleFormat =
-                new(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                    parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     private static TArgumentSyntax? DetermineFirstArgumentToAdd(
         SemanticModel semanticModel,
