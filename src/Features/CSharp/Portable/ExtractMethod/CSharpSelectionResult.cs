@@ -19,7 +19,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal abstract partial class CSharpSelectionResult : SelectionResult<StatementSyntax>
+internal abstract partial class CSharpSelectionResult(
+    TextSpan originalSpan,
+    TextSpan finalSpan,
+    bool selectionInExpression,
+    SemanticDocument document,
+    SyntaxAnnotation firstTokenAnnotation,
+    SyntaxAnnotation lastTokenAnnotation,
+    bool selectionChanged)
+    : SelectionResult<StatementSyntax>(
+        originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
 {
     public static async Task<CSharpSelectionResult> CreateAsync(
         TextSpan originalSpan,
@@ -56,19 +65,6 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
                 originalSpan, finalSpan, selectionInExpression,
                 newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
         }
-    }
-
-    protected CSharpSelectionResult(
-        TextSpan originalSpan,
-        TextSpan finalSpan,
-        bool selectionInExpression,
-        SemanticDocument document,
-        SyntaxAnnotation firstTokenAnnotation,
-        SyntaxAnnotation lastTokenAnnotation,
-        bool selectionChanged)
-        : base(originalSpan, finalSpan, selectionInExpression,
-               document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
-    {
     }
 
     protected override ISyntaxFacts SyntaxFacts

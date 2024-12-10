@@ -534,21 +534,24 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         ? s_removeUnusedMembersRule
                         : s_removeUnreadMembersRule;
 
-                    // Do not flag write-only properties that are not read.
-                    // Write-only properties are assumed to have side effects
-                    // visible through other means than a property getter.
-                    if (rule == s_removeUnreadMembersRule &&
-                        member is IPropertySymbol property &&
-                        property.IsWriteOnly)
+                    if (rule == s_removeUnreadMembersRule)
                     {
-                        continue;
+                        // Do not flag write-only properties that are not read. Write-only properties are assumed to
+                        // have side effects visible through other means than a property getter.
+                        if (member is IPropertySymbol { IsWriteOnly: true })
+                            continue;
+
+                        // Do not flag ref-fields that are not read.  A ref-field can exist to have side effects by
+                        // writing into some other location when a write happens to it.
+                        if (member is IFieldSymbol { IsReadOnly: false, RefKind: RefKind.Ref })
+                            continue;
                     }
 
                     // We change the message only if both 'get' and 'set' accessors are present and
                     // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
                     var isConvertibleProperty =
-                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property2 &&
-                        !_propertiesWithShadowGetAccessorUsages.Contains(property2);
+                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property &&
+                        !_propertiesWithShadowGetAccessorUsages.Contains(property);
 
                     var diagnosticLocation = GetDiagnosticLocation(member);
                     var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(

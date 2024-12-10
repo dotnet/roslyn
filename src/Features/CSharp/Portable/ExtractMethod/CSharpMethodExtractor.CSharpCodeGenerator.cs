@@ -319,7 +319,7 @@ internal sealed partial class CSharpMethodExtractor
         private ImmutableArray<StatementSyntax> MoveDeclarationOutFromMethodDefinition(
             ImmutableArray<StatementSyntax> statements, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
             var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
                 AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
@@ -335,12 +335,17 @@ internal sealed partial class CSharpMethodExtractor
                     continue;
                 }
 
-                var expressionStatements = new List<StatementSyntax>();
-                var list = new List<VariableDeclaratorSyntax>();
-                var triviaList = new List<SyntaxTrivia>();
+                using var _2 = ArrayBuilder<StatementSyntax>.GetInstance(out var expressionStatements);
+                using var _3 = ArrayBuilder<VariableDeclaratorSyntax>.GetInstance(out var variables);
+                using var _4 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
 
                 // When we modify the declaration to an initialization we have to preserve the leading trivia
                 var firstVariableToAttachTrivia = true;
+
+                var isUsingDeclarationAsReturnValue =
+                    this.AnalyzerResult.HasVariableToUseAsReturnValue &&
+                    this.AnalyzerResult.VariableToUseAsReturnValue.GetOriginalIdentifierToken(cancellationToken) != default &&
+                    this.AnalyzerResult.VariableToUseAsReturnValue.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
 
                 // go through each var decls in decl statement, and create new assignment if
                 // variable is initialized at decl.
@@ -369,17 +374,17 @@ internal sealed partial class CSharpMethodExtractor
                     // Prepend the trivia from the declarations without initialization to the next persisting variable declaration
                     if (triviaList.Count > 0)
                     {
-                        list.Add(variableDeclaration.WithPrependedLeadingTrivia(triviaList));
+                        variables.Add(variableDeclaration.WithPrependedLeadingTrivia(triviaList));
                         triviaList.Clear();
                         firstVariableToAttachTrivia = false;
                         continue;
                     }
 
                     firstVariableToAttachTrivia = false;
-                    list.Add(variableDeclaration);
+                    variables.Add(variableDeclaration);
                 }
 
-                if (list.Count == 0 && triviaList.Count > 0)
+                if (variables.Count == 0 && triviaList.Count > 0)
                 {
                     // well, there are trivia associated with the node.
                     // we can't just delete the node since then, we will lose
@@ -393,13 +398,15 @@ internal sealed partial class CSharpMethodExtractor
                 }
 
                 // return survived var decls
-                if (list.Count > 0)
+                if (variables.Count > 0)
                 {
                     result.Add(LocalDeclarationStatement(
+                        isUsingDeclarationAsReturnValue ? default : declarationStatement.AwaitKeyword,
+                        isUsingDeclarationAsReturnValue ? default : declarationStatement.UsingKeyword,
                         declarationStatement.Modifiers,
                         VariableDeclaration(
                             declarationStatement.Declaration.Type,
-                            [.. list]),
+                            [.. variables]),
                         declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
                     triviaList.Clear();
                 }
