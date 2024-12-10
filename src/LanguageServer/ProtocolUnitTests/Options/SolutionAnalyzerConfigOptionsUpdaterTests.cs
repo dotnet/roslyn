@@ -4,10 +4,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Options.UnitTests;
@@ -93,6 +95,27 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
             Assert.True(fallbackOptions!.TryGetValue(option.Definition.ConfigName, out var configValue));
             Assert.Equal(expectedValue, configValue);
         }
+    }
+
+    [Fact]
+    public void FlowsNamingStylePreferencesToWorkspace()
+    {
+        using var workspace = CreateWorkspace();
+
+        var globalOptions = workspace.GetService<IGlobalOptionService>();
+
+        // C# project hasn't been loaded to the workspace yet:
+        Assert.Empty(workspace.CurrentSolution.FallbackAnalyzerOptions);
+
+        var project = new TestHostProject(workspace, "proj1", LanguageNames.CSharp);
+        workspace.AddTestProject(project);
+
+        var preferences = OptionsTestHelpers.GetNonDefaultNamingStylePreference();
+
+        globalOptions.SetGlobalOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp, preferences);
+
+        Assert.True(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out var fallbackOptions));
+        AssertEx.EqualOrDiff(preferences.Inspect(), fallbackOptions.GetNamingStylePreferences().Inspect());
     }
 
     [Fact]
