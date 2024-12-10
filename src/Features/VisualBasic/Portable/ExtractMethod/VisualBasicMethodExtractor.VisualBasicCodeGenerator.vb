@@ -21,29 +21,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private ReadOnly _methodName As SyntaxToken
 
-            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Dim generator = Create(selectionResult, analyzerResult, options)
+            Public Shared Async Function GenerateResultAsync(
+                    insertionPoint As InsertionPoint,
+                    selectionResult As VisualBasicSelectionResult,
+                    analyzerResult As AnalyzerResult,
+                    options As VisualBasicCodeGenerationOptions,
+                    qualifyInstance As Boolean,
+                    cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+                Dim generator = Create(selectionResult, analyzerResult, options, qualifyInstance)
                 Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
-            Public Shared Function Create(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
+            Public Shared Function Create(
+                    selectionResult As VisualBasicSelectionResult,
+                    analyzerResult As AnalyzerResult,
+                    options As VisualBasicCodeGenerationOptions,
+                    qualifyInstance As Boolean) As VisualBasicCodeGenerator
                 If selectionResult.SelectionInExpression Then
-                    Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
+                    Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options, qualifyInstance)
                 End If
 
                 If selectionResult.IsExtractMethodOnSingleStatement() Then
-                    Return New SingleStatementCodeGenerator(selectionResult, analyzerResult, options)
+                    Return New SingleStatementCodeGenerator(selectionResult, analyzerResult, options, qualifyInstance)
                 End If
 
                 If selectionResult.IsExtractMethodOnMultipleStatements() Then
-                    Return New MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options)
+                    Return New MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, qualifyInstance)
                 End If
 
                 Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
-            Protected Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
+            Protected Sub New(
+                    selectionResult As VisualBasicSelectionResult,
+                    analyzerResult As AnalyzerResult,
+                    options As VisualBasicCodeGenerationOptions,
+                    qualifyInstance As Boolean)
+                MyBase.New(selectionResult, analyzerResult, options, qualifyInstance, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

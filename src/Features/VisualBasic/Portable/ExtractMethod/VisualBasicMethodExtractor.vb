@@ -60,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-            Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), cancellationToken)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, qualifyInstance As Boolean, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+            Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), qualifyInstance, cancellationToken)
         End Function
 
         Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule
