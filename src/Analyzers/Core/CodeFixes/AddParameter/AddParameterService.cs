@@ -110,7 +110,6 @@ internal static class AddParameterService
             if (syntaxFacts is null)
                 continue;
 
-            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(syntaxRoot, solution.Services);
             var generator = editor.Generator;
