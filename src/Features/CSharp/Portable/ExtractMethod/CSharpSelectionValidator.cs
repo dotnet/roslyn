@@ -195,7 +195,7 @@ internal sealed partial class CSharpSelectionValidator(
             return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
         }
 
-        if (!adjustedSpan.Contains(firstTokenInSelection.Span) && !adjustedSpan.Contains(lastTokenInSelection.Span))
+        if (firstTokenInSelection.SpanStart > lastTokenInSelection.Span.End)
         {
             return new SelectionInfo
             {

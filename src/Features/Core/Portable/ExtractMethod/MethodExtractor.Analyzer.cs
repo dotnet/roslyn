@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,7 +38,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// convert text span to node range for the flow analysis API
         /// </summary>
-        private (TStatementSyntax, TStatementSyntax) GetFlowAnalysisNodeRange()
+        private (TStatementSyntax firstStatement, TStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
         {
             var first = this.SelectionResult.GetFirstStatement();
             var last = this.SelectionResult.GetLastStatement();
@@ -64,6 +65,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// create VariableInfo type
         /// </summary>
         protected abstract VariableInfo CreateFromSymbol(Compilation compilation, ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
+
+        protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
+            => readOutsideMap.Contains(symbol);
 
         /// <summary>
         /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
@@ -121,7 +125,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// get type of the range variable symbol
         /// </summary>
-        protected abstract ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
+        protected abstract ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
 
         /// <summary>
         /// check whether the selection is at the placed where read-only field is allowed to be extracted out
@@ -420,8 +424,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             if (SelectionResult.SelectionInExpression)
                 return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
-            var pair = GetFlowAnalysisNodeRange();
-            return model.AnalyzeDataFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            return model.AnalyzeDataFlow(firstStatement, lastStatement);
         }
 
         private bool IsEndOfSelectionReachable(SemanticModel model)
@@ -431,8 +435,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return true;
             }
 
-            var pair = GetFlowAnalysisNodeRange();
-            var analysis = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var analysis = model.AnalyzeControlFlow(firstStatement, lastStatement);
             return analysis.EndPointIsReachable;
         }
 
@@ -507,7 +511,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 var variableDeclared = variableDeclaredMap.Contains(symbol);
                 var readInside = readInsideMap.Contains(symbol);
                 var writtenInside = writtenInsideMap.Contains(symbol);
-                var readOutside = readOutsideMap.Contains(symbol);
+                var readOutside = IsReadOutside(symbol, readOutsideMap);
                 var writtenOutside = writtenOutsideMap.Contains(symbol);
                 var unsafeAddressTaken = unsafeAddressTakenMap.Contains(symbol);
 
@@ -661,7 +665,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return type.Equals(SelectionResult.GetContainingScopeType());
         }
 
-        protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+        protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
                 ILocalSymbol local => local.Type,
@@ -723,8 +727,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             Contract.ThrowIfTrue(SelectionResult.SelectionInExpression);
 
-            var pair = GetFlowAnalysisNodeRange();
-            var controlFlowAnalysisData = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var controlFlowAnalysisData = model.AnalyzeControlFlow(firstStatement, lastStatement);
 
             return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
         }
