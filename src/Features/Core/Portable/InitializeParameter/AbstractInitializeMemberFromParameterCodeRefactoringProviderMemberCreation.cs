@@ -445,16 +445,21 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         var finalSolution = solutionWithAssignmentAdded;
         if (isThrowNotImplementedProperty && currentFieldOrProperty != null)
         {
-            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
-            var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
-
-            var otherDocument = finalSolution.GetDocument(propertySyntax.SyntaxTree);
-            if (otherDocument != null)
+            var compilation = await finalSolution.GetRequiredProject(documentWithMemberAdded.Project.Id).GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var finalFieldOrProperty = SymbolFinder.FindSimilarSymbols(currentFieldOrProperty, compilation, cancellationToken).FirstOrDefault();
+            if (finalFieldOrProperty != null)
             {
-                var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                finalSolution = finalSolution.WithDocumentSyntaxRoot(
-                    otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
+                var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+                var propertySyntax = await declarationService.GetDeclarations(finalFieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
+
+                var otherDocument = finalSolution.GetDocument(propertySyntax.SyntaxTree);
+                if (otherDocument != null)
+                {
+                    var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(
+                        otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
+                }
             }
         }
 
@@ -522,7 +527,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         var currentParameter = SymbolFinder.FindSimilarSymbols(parameter, compilation, cancellationToken).FirstOrDefault();
 
-        // Symbol finder won't find the current
         var currentFieldOrProperty = currentParameter?.ContainingType
             .GetMembers(fieldOrProperty.Name)
             .Where(m => m.Kind == fieldOrProperty.Kind)
