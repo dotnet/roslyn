@@ -179,7 +179,6 @@ internal static class GenerateConstructorHelpers
             ITypeSymbol parameterType,
             Argument<TExpressionSyntax> argument)
         {
-            var expectedFieldName = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
             var isFixed = argument.IsNamed;
 
             var symbol = TryFindMatchingMember(parameterName);
