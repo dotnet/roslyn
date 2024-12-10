@@ -23,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfter, statement)
         End Sub
 
+        Public Overrides Function GetBody(methodNode As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(methodNode)
+        End Function
+
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
         End Function

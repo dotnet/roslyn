@@ -24,9 +24,7 @@ using static CSharpSyntaxTokens;
 internal static class InitializeParameterHelpers
 {
     public static bool IsFunctionDeclaration(SyntaxNode node)
-        => node is BaseMethodDeclarationSyntax
-        or LocalFunctionStatementSyntax
-        or AnonymousFunctionExpressionSyntax;
+        => node is BaseMethodDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax;
 
     public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         => functionDeclaration switch

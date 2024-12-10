@@ -20,6 +20,9 @@ using static InitializeParameterHelpersCore;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpInitializeParameterService() : AbstractInitializerParameterService<StatementSyntax>
 {
+    public override SyntaxNode GetBody(SyntaxNode methodNode)
+        => InitializeParameterHelpers.GetBody(methodNode);
+
     protected override SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement)
         => InitializeParameterHelpers.TryGetLastStatement(blockStatement);
 

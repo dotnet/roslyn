@@ -19,4 +19,6 @@ internal interface IInitializeParameterService : ILanguageService
         IParameterSymbol parameter,
         ISymbol fieldOrProperty,
         SyntaxEditor editor);
+
+    SyntaxNode GetBody(SyntaxNode methodNode);
 }

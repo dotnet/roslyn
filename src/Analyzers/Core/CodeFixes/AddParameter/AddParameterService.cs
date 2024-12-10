@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -85,7 +86,6 @@ internal static class AddParameterService
         where TExpressionSyntax : SyntaxNode
     {
         var solution = invocationDocument.Project.Solution;
-        var semanticInvocationDocument = await SemanticDocument.CreateAsync(invocationDocument, cancellationToken).ConfigureAwait(false);
 
         var referencedSymbols = fixAllReferences
             ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
@@ -108,6 +108,7 @@ internal static class AddParameterService
             if (syntaxFacts is null)
                 continue;
 
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(syntaxRoot, solution.Services);
             var generator = editor.Generator;
@@ -137,10 +138,16 @@ internal static class AddParameterService
                 if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     insertionIndex++;
 
-                var memberToAssignTo = await GetMemberToAssignToAsync().ConfigureAwait(false);
+                var memberToAssignTo = await GetMemberToAssignToAsync(semanticDocument).ConfigureAwait(false);
                 if (memberToAssignTo != null)
                 {
-                    var initializeParameterService = documentLookup.Key.GetLanguageService<IInitializeParameterService>();
+                    var initializeParameterService = documentLookup.Key.GetRequiredLanguageService<IInitializeParameterService>();
+                    var body = initializeParameterService.GetBody(methodNode);
+                    if (semanticDocument.SemanticModel.GetOperation(body, cancellationToken) is IBlockOperation blockOperation)
+                    {
+                        initializeParameterService.AddAssignment(
+                            methodNode, blockOperation, parameterSymbol, memberToAssignTo, editor);
+                    }
                 }
 
                 AddParameterEditor.AddParameter(
@@ -153,7 +160,7 @@ internal static class AddParameterService
 
         return solution;
 
-        async Task<ISymbol?> GetMemberToAssignToAsync()
+        async Task<ISymbol?> GetMemberToAssignToAsync(SemanticDocument document)
         {
             if (method.MethodKind != MethodKind.Constructor)
                 return null;
@@ -162,7 +169,7 @@ internal static class AddParameterService
                 return null;
 
             var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
-                semanticInvocationDocument,
+                document,
                 method.ContainingType,
                 [argument.Value],
                 [newParameterType],

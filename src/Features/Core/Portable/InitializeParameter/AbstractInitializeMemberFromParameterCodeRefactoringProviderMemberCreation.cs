@@ -201,11 +201,11 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         var fieldAction = CodeAction.Create(
             string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-            c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, cancellationToken),
             nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
         var propertyAction = CodeAction.Create(
             string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-            c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, cancellationToken),
             nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
         return (fieldAction, propertyAction);

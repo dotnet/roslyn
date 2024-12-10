@@ -13,6 +13,7 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
     : IInitializeParameterService
     where TStatementSyntax : SyntaxNode
 {
+    public abstract SyntaxNode GetBody(SyntaxNode methodNode);
     protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
     protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 

@@ -347,7 +347,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<Document> AddNullCheckStatementAsync(
+    private static async Task<Document> AddNullCheckStatementAsync(
         Document document,
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
