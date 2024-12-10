@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
-                "Name",
+                "name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
                 accessibilityList: default,
                 modifiers: default);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
                 capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
+                name: "name",
                 prefix: "",
                 suffix: "",
                 wordSeparator: "");
