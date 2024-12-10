@@ -14097,7 +14097,7 @@ record A(int X)
                 public record DerivedRecord : BaseRecord;
                 """, assemblyName: "Derived", references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80);
 
-            var verifier = CompileAndVerify(comp2, expectedOutput: "False", verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp2, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "False" : null, verify: Verification.FailsPEVerify);
 
             // Historical note: These warnings were the cause of the bug, so they are not being suppressed
             var expectedDiagnostic =
