@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -19,9 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
-
-using static InitializeParameterHelpersCore;
-
 internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
     TTypeDeclarationSyntax,
     TParameterSyntax,
@@ -54,10 +50,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         IMethodSymbol methodSymbol,
         IBlockOperation? blockStatement,
         CancellationToken cancellationToken);
-
-    protected abstract void InsertStatement(
-        SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-        SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {

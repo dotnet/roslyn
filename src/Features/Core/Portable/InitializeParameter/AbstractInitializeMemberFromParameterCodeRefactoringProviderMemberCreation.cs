@@ -41,12 +41,12 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
+    protected abstract IInitializeParameterService InitializeParameterService { get; }
+
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
     protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
     protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
-    protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
     protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
         Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
@@ -477,7 +477,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                 });
         }
 
-        AddAssignment<TStatementSyntax>(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
+        this.InitializeParameterService.AddAssignment(
+            constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
 
         // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
         var currentSolution = document.Project.Solution;
