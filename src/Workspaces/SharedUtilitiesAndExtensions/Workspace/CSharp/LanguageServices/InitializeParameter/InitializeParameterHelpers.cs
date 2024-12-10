@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -222,4 +224,7 @@ internal static class InitializeParameterHelpers
 
         return true;
     }
+
+    public static Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
+        => new(argument.GetRefKind(), argument.NameColon?.Name.Identifier.ValueText, argument.Expression);
 }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
+using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -50,7 +51,7 @@ internal sealed class CSharpAddParameterCodeFixProvider() : AbstractAddParameter
         => ((ArgumentSyntax)argumentNode).DetermineParameterType(semanticModel, cancellationToken);
 
     protected override Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
-        => new(argument.GetRefKind(), argument.NameColon?.Name.Identifier.ValueText, argument.Expression);
+        => InitializeParameterHelpers.GetArgument(argument);
 
     protected override RegisterFixData<ArgumentSyntax>? TryGetLanguageSpecificFixInfo(
         SemanticModel semanticModel,

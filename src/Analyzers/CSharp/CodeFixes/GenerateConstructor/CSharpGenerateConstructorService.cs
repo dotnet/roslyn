@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -67,7 +68,7 @@ internal sealed class CSharpGenerateConstructorService()
     }
 
     private static ImmutableArray<Argument<ExpressionSyntax>> GetArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
-        => arguments.SelectAsArray(a => new Argument<ExpressionSyntax>(a.GetRefKind(), a.NameColon?.Name.Identifier.ValueText, a.Expression));
+        => arguments.SelectAsArray(InitializeParameterHelpers.GetArgument);
 
     private static ImmutableArray<Argument<ExpressionSyntax>> GetArguments(SeparatedSyntaxList<AttributeArgumentSyntax> arguments)
         => arguments.SelectAsArray(a => new Argument<ExpressionSyntax>(

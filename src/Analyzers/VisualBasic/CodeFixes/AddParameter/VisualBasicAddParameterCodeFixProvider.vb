@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.AddParameter
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
+Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
@@ -56,10 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         End Function
 
         Protected Overrides Function GetArgument(argument As ArgumentSyntax) As Argument(Of ExpressionSyntax)
-            Return New Argument(Of ExpressionSyntax)(
-                RefKind.None,
-                TryCast(argument, SimpleArgumentSyntax)?.NameColonEquals?.Name.Identifier.ValueText,
-                argument.GetArgumentExpression())
+            Return InitializeParameterHelpers.GetArgument(argument)
         End Function
     End Class
 End Namespace

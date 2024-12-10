@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         End Function
 
         Private Shared Function GetArguments(arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As ImmutableArray(Of Argument(Of ExpressionSyntax))
-            Return arguments.SelectAsArray(Function(a) New Argument(Of ExpressionSyntax)(RefKind.None, TryCast(a, SimpleArgumentSyntax)?.NameColonEquals?.Name.Identifier.ValueText, a.GetArgumentExpression()))
+            Return arguments.SelectAsArray(AddressOf InitializeParameterHelpers.GetArgument)
         End Function
 
         Protected Overrides Function IsConversionImplicit(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
