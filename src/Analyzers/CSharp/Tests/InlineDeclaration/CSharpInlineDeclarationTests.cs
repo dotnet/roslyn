@@ -4,9 +4,11 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
@@ -2550,5 +2552,57 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35993")]
+    public async Task InlineTemporarySpacing()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace ClassLibrary5
+            {
+                public class Class1
+                {
+                    void A()
+                    {
+                        bool [||]x;
+                        var result = B(out x);
+                    }
+
+                    object B(out bool x)
+                    {
+                        x = default;
+                        return default;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            namespace ClassLibrary5
+            {
+                public class Class1
+                {
+                    void A()
+                    {
+                        var result = B(out Boolean x);
+                    }
+
+                    object B(out bool x)
+                    {
+                        x = default;
+                        return default;
+                    }
+                }
+            }
+            """, options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOption2.FalseWithSilentEnforcement },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.FalseWithSilentEnforcement },
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, true },
+            });
     }
 }
