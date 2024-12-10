@@ -137,3 +137,16 @@ D2 d2 = (ref int i) => ref i; // an error was and continues to be reported:
 delegate void D1(scoped ref int x);
 delegate ref int D2(scoped ref int x);
 ```
+
+```cs
+using System.Diagnostics.CodeAnalysis;
+
+D1 d1 = ([UnscopedRef] ref int i) => { }; // previously no mismatch error reported, now:
+                                          // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1'.
+
+D2 d2 = ([UnscopedRef] ref int i) => ref i; // an error was and continues to be reported:
+                                            // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2'.
+
+delegate void D1(ref int x);
+delegate ref int D2(ref int x);
+```
