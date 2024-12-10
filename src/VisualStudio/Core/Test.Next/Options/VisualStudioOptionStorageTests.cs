@@ -107,9 +107,18 @@ public class VisualStudioOptionStorageTests
             return;
         }
 
-        if (!info.Option.Definition.IsEditorConfigOption)
+        // TODO: https://github.com/dotnet/roslyn/issues/65787
+        if (info.Option.Name is
+            "csharp_format_on_return" or
+            "csharp_format_on_typing" or
+            "csharp_format_on_semicolon" or
+            "csharp_format_on_close_brace" or
+            "csharp_enable_inlay_hints_for_types" or
+            "csharp_enable_inlay_hints_for_implicit_variable_types" or
+            "csharp_enable_inlay_hints_for_lambda_parameter_types" or
+            "csharp_enable_inlay_hints_for_implicit_object_creation" or
+            "csharp_enable_inlay_hints_for_collection_expressions")
         {
-            // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
             return;
         }
 
