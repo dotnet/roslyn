@@ -2554,9 +2554,21 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35993")]
-    public async Task InlineTemporarySpacing()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/35993")]
+    public async Task InlineTemporarySpacing(
+        bool preferIntrinsicPredefinedTypeKeywordInDeclaration,
+        ReportDiagnostic preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic,
+        bool varForBuiltInTypes,
+        ReportDiagnostic varForBuiltInTypesDiagnostic,
+        bool ignoreSpacing)
     {
+        if (preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic == ReportDiagnostic.Default ||
+            varForBuiltInTypesDiagnostic == ReportDiagnostic.Default)
+        {
+            return;
+        }
+
+        var expectedType = varForBuiltInTypes ? "var" : preferIntrinsicPredefinedTypeKeywordInDeclaration ? "bool" : "Boolean";
         await TestInRegularAndScriptAsync(
             """
             using System;
@@ -2579,7 +2591,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                 }
             }
             """,
-            """
+            $$"""
             using System;
 
             namespace ClassLibrary5
@@ -2588,7 +2600,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                 {
                     void A()
                     {
-                        var result = B(out Boolean x);
+                        var result = B(out {{expectedType}} x);
                     }
 
                     object B(out bool x)
@@ -2600,9 +2612,9 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             }
             """, options: new(LanguageNames.CSharp)
             {
-                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOption2.FalseWithSilentEnforcement },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.FalseWithSilentEnforcement },
-                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, true },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption2<bool>(preferIntrinsicPredefinedTypeKeywordInDeclaration, new NotificationOption2(preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic, false)) },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, new CodeStyleOption2<bool>(varForBuiltInTypes, new NotificationOption2(varForBuiltInTypesDiagnostic, false)) },
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, ignoreSpacing },
             });
     }
 }
