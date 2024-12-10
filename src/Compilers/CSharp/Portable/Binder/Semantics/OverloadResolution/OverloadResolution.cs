@@ -3452,6 +3452,12 @@ outerDefault:
                 {
                     return BetterResult.Right;
                 }
+                // The next case (a type is a better target if an implicit conversion from it to the other type exists)
+                // does not apply to span conversions except the covariant ReadOnlySpan->ReadOnlySpan conversion.
+                else if (type1.IsSpan() || type2.IsSpan())
+                {
+                    return BetterResult.Neither;
+                }
             }
 
             // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
