@@ -385,7 +385,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             method,
             argumentType,
             refKind,
-            new ParameterName(argumentNameSuggestion, isNamedArgument),
+            new ParameterName(argumentNameSuggestion, isNamedArgument, tryMakeCamelCase: !method.ContainingType.IsRecord),
             GetArgument(argument),
             newParameterIndex,
             fixAllReferences,
