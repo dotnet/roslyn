@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.AddParameter;
 
 internal static class AddParameterService
 {
-    private static readonly SyntaxAnnotation s_annotation = new();
-
     /// <summary>
     /// Checks if there are indications that there might be more than one declarations that need to be fixed.
     /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
@@ -129,8 +127,7 @@ internal static class AddParameterService
 
                 var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(newParameterType) : null;
                 var parameterDeclaration = generator
-                    .ParameterDeclaration(parameterSymbol, argumentInitializer)
-                    .WithAdditionalAnnotations(Formatter.Annotation, s_annotation);
+                    .ParameterDeclaration(parameterSymbol, argumentInitializer);
 
                 if (anySymbolReferencesNotInSource && currentMethodToUpdate == method)
                 {
