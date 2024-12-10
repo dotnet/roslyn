@@ -33,6 +33,8 @@ variables:
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
+  - name: SignType
+    value: test
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -338,6 +340,7 @@ extends:
         publishingInfraVersion: 3
         # Symbol validation is not entirely reliable as of yet, so should be turned off until
         # https://github.com/dotnet/arcade/issues/2871 is resolved.
+        enableSigningValidation: false
         enableSymbolValidation: false
         enableSourceLinkValidation: false
         SDLValidationParameters: false
