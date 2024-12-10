@@ -5606,7 +5606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                         break;
 
-                    case BoundDynamicCollectionElementInitializer dynamicInit:
+                    case BoundDynamicCollectionElementInitializer:
                         break;
 
                     default:

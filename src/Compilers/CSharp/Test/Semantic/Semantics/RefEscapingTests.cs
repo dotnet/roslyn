@@ -4322,10 +4322,16 @@ class X : List<int>
 
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
-                        return new R() { local };
+                        return new R() { local }; // 1
+                    }
+
+                    unsafe R M2()
+                    {
+                        var local = 1;
+                        return new R() { local }; // 2
                     }
                 }
 
@@ -4335,13 +4341,16 @@ class X : List<int>
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+            CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,26): error CS8168: Cannot return local 'local' by reference because it is not a ref local
-                //         return new R() { local };
+                //         return new R() { local }; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(9, 26),
                 // (9,26): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         return new R() { local };
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(9, 26));
+                //         return new R() { local }; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(9, 26),
+                // (15,26): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         return new R() { local }; // 2
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 26));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -4353,11 +4362,46 @@ class X : List<int>
 
                 class C
                 {
-                    R M()
+                    R M1()
+                    {
+                        var local = 1;
+                        var r = new R() { local };
+                        return r; // 1
+                    }
+
+                    void M2()
+                    {
+                        var local = 1;
+                        scoped R r;
+                        r = new R() { local };
+                    }
+
+                    void M3()
+                    {
+                        var local = 1;
+                        R r;
+                        r = new R() { local }; // 2
+                    }
+
+                    unsafe R M4()
                     {
                         var local = 1;
                         var r = new R() { local };
                         return r;
+                    }
+
+                    unsafe void M5()
+                    {
+                        var local = 1;
+                        scoped R r;
+                        r = new R() { local };
+                    }
+
+                    unsafe void M6()
+                    {
+                        var local = 1;
+                        R r;
+                        r = new R() { local }; // 3
                     }
                 }
 
@@ -4367,10 +4411,19 @@ class X : List<int>
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 """;
-            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+            CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (10,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
-                //         return r;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(10, 16));
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(10, 16),
+                // (24,23): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         r = new R() { local }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(24, 23),
+                // (24,23): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         r = new R() { local }; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(24, 23),
+                // (45,23): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         r = new R() { local }; // 3
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(45, 23));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -4405,11 +4458,25 @@ class X : List<int>
 
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
                         var r = new R() { local };
                         return r;
+                    }
+
+                    void M2()
+                    {
+                        var local = 1;
+                        scoped R r;
+                        r = new R() { local };
+                    }
+
+                    void M3()
+                    {
+                        var local = 1;
+                        R r;
+                        r = new R() { local };
                     }
                 }
 
