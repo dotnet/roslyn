@@ -76,7 +76,7 @@ internal static class InitializeParameterHelpersCore
     public static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatement)
         => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out _);
 
-    public static IOperation? TryFindFieldOrPropertyAssignmentStatement(
+    private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
         IParameterSymbol parameter, IBlockOperation? blockStatement, out ISymbol? fieldOrProperty)
     {
         if (blockStatement != null)
@@ -159,9 +159,6 @@ internal static class InitializeParameterHelpersCore
         fieldOrProperty = null;
         return false;
     }
-
-    public static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
-        => IsFieldOrPropertyAssignment(operation, containingType, out _);
 
     public static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression)
         => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out _);
