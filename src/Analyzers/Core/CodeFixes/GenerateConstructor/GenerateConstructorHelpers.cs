@@ -180,7 +180,6 @@ internal static class GenerateConstructorHelpers
             Argument<TExpressionSyntax> argument)
         {
             var expectedFieldName = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
-            // var expectedPropertyName = propertyNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
             var isFixed = argument.IsNamed;
 
             var symbol = TryFindMatchingMember(parameterName);
