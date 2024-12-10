@@ -29,6 +29,8 @@ using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 
+using static GenerateConstructorHelpers;
+
 internal abstract partial class AbstractGenerateConstructorService<TService, TExpressionSyntax>
 {
     protected internal sealed class State
@@ -40,7 +42,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         private readonly NamingRule _propertyNamingRule;
         private readonly NamingRule _parameterNamingRule;
 
-        private ImmutableArray<Argument> _arguments;
+        private ImmutableArray<Argument<TExpressionSyntax>> _arguments;
 
         // The type we're creating a constructor for.  Will be a class or struct type.
         public INamedTypeSymbol? TypeToGenerateIn { get; private set; }
@@ -125,23 +127,26 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 return false;
 
             if (!TryInitializeDelegatedConstructor(cancellationToken))
-                InitializeNonDelegatedConstructor(cancellationToken);
+                await InitializeNonDelegatedConstructorAsync(cancellationToken).ConfigureAwait(false);
 
             IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
             return true;
         }
 
-        private void InitializeNonDelegatedConstructor(CancellationToken cancellationToken)
+        private async Task InitializeNonDelegatedConstructorAsync(CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(TypeToGenerateIn);
             var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
             var parameterNames = GetParameterNames(_arguments, typeParametersNames, cancellationToken);
 
-            GetParameters(_arguments, ParameterTypes, parameterNames, cancellationToken);
+            (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewFieldMap) =
+                await GetParametersAsync(
+                    _document, this.TypeToGenerateIn, _arguments, ParameterTypes, parameterNames, cancellationToken).ConfigureAwait(false);
         }
 
         private ImmutableArray<ParameterName> GetParameterNames(
-            ImmutableArray<Argument> arguments, ImmutableArray<string> typeParametersNames, CancellationToken cancellationToken)
+            ImmutableArray<Argument<TExpressionSyntax>> arguments, ImmutableArray<string> typeParametersNames, CancellationToken cancellationToken)
         {
             return _service.GenerateParameterNames(_document, arguments, typeParametersNames, _parameterNamingRule, cancellationToken);
         }
@@ -405,7 +410,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;
         }
 
-        private void GetParameters(
+        private void GetParameters1(
             ImmutableArray<Argument> arguments,
             ImmutableArray<ITypeSymbol> parameterTypes,
             ImmutableArray<ParameterName> parameterNames,
@@ -424,8 +429,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 var argument = arguments[i];
 
                 // See if there's a matching field or property we can use, or create a new member otherwise.
-                FindExistingOrCreateNewMember(
-                    ref parameterName, parameterType, argument,
+                parameterName = FindExistingOrCreateNewMember(
+                    parameterName, parameterType, argument,
                     parameterToExistingMemberMap, parameterToNewFieldMap, parameterToNewPropertyMap,
                     cancellationToken);
 
@@ -443,8 +448,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();
         }
 
-        private void FindExistingOrCreateNewMember(
-            ref ParameterName parameterName,
+        private ParameterName FindExistingOrCreateNewMember(
+            ParameterName parameterName,
             ITypeSymbol parameterType,
             Argument argument,
             ImmutableDictionary<string, ISymbol>.Builder parameterToExistingMemberMap,
@@ -512,15 +517,17 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                         parameterToNewPropertyMap[newParameterName.BestNameForParameter] = newPropertyName;
                     }
                 }
-
-                return;
+            }
+            else
+            {
+                // If no matching field was found, use the fieldNamingRule to create suitable name
+                var bestNameForParameter = parameterName.BestNameForParameter;
+                var nameBasedOnArgument = parameterName.NameBasedOnArgument;
+                parameterToNewFieldMap[bestNameForParameter] = _fieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
+                parameterToNewPropertyMap[bestNameForParameter] = _propertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
             }
 
-            // If no matching field was found, use the fieldNamingRule to create suitable name
-            var bestNameForParameter = parameterName.BestNameForParameter;
-            var nameBasedOnArgument = parameterName.NameBasedOnArgument;
-            parameterToNewFieldMap[bestNameForParameter] = _fieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
-            parameterToNewPropertyMap[bestNameForParameter] = _propertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
+            return parameterName;
         }
 
         private IEnumerable<string> GetUnavailableMemberNames()

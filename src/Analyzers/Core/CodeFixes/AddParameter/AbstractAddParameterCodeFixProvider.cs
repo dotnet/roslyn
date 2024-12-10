@@ -188,7 +188,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
         ImmutableArray<IMethodSymbol> methodCandidates)
     {
         var comparer = syntaxFacts.StringComparer;
-        var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
+        using var _ = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance(out var methodsAndArgumentToAdd);
 
         foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
         {
@@ -220,7 +220,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             }
         }
 
-        return methodsAndArgumentToAdd.ToImmutableAndFree();
+        return methodsAndArgumentToAdd.ToImmutableAndClear();
     }
 
     private static int NonParamsParameterCount(IMethodSymbol method)
@@ -333,15 +333,13 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
 
             var cascadingFix = AddParameterService.HasCascadingDeclarations(methodToUpdate)
-                ? new Func<CancellationToken, Task<Solution>>(c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))
+                ? new Func<CancellationToken, Task<Solution>>(cancellationToken => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, cancellationToken))
                 : null;
 
-            var codeFixData = new CodeFixData(
+            builder.Add(new CodeFixData(
                 methodToUpdate,
-                c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c),
-                cascadingFix);
-
-            builder.Add(codeFixData);
+                cancellationToken => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, cancellationToken),
+                cascadingFix));
         }
 
         return builder.MoveToImmutable();

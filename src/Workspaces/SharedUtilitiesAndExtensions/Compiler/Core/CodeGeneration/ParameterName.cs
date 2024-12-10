@@ -9,7 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Utilities;
+namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal readonly struct ParameterName : IEquatable<ParameterName>
 {
