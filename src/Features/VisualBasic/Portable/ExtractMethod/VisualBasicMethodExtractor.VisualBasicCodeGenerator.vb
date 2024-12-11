@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return statements
             End Function
 
-            Private Function CreateMethodNameForInvocation() As ExpressionSyntax
+            Private Function CreateMethodNameForInvocation() As SimpleNameSyntax
                 If AnalyzerResult.MethodTypeParametersInDeclaration.Count = 0 Then
                     Return SyntaxFactory.IdentifierName(_methodName)
                 End If
@@ -337,15 +337,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function CreateCallSignature() As ExpressionSyntax
-                Dim methodName As ExpressionSyntax = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation)
+                Dim methodName = CreateMethodNameForInvocation()
+
+                Dim methodExpression =
+                    If(Me.AnalyzerResult.UseInstanceMember AndAlso Me.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value,
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.MeExpression(), SyntaxFactory.Token(SyntaxKind.DotToken), methodName),
+                        DirectCast(methodName, ExpressionSyntax))
+
+                methodExpression = methodExpression.WithAdditionalAnnotations(Simplifier.Annotation)
 
                 Dim arguments = New List(Of ArgumentSyntax)()
                 For Each argument In AnalyzerResult.MethodParameters
-                    arguments.Add(SyntaxFactory.SimpleArgument(expression:=GetIdentifierName(argument.Name)))
+                    arguments.Add(SyntaxFactory.SimpleArgument(GetIdentifierName(argument.Name)))
                 Next argument
 
                 Dim invocation = SyntaxFactory.InvocationExpression(
-                    methodName, SyntaxFactory.ArgumentList(arguments:=SyntaxFactory.SeparatedList(arguments)))
+                    methodExpression, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
 
                 If Me.SelectionResult.ShouldPutAsyncModifier() Then
                     If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
