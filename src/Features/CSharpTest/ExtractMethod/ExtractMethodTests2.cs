@@ -5438,7 +5438,7 @@ $@"
             {
                 public void M()
                 {
-                    {|Rename:NewMethod|}();
+                    this.{|Rename:NewMethod|}();
                 }
 
                 private static void NewMethod()

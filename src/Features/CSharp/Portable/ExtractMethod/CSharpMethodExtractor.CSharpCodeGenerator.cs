@@ -42,17 +42,16 @@ internal sealed partial class CSharpMethodExtractor
         private const string NewMethodPascalCaseStr = "NewMethod";
         private const string NewMethodCamelCaseStr = "newMethod";
 
-        public static async Task<GeneratedCode> GenerateAsync(
+        public static Task<GeneratedCode> GenerateAsync(
             InsertionPoint insertionPoint,
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
             CSharpCodeGenerationOptions options,
             bool localFunction,
+            bool qualifyInstance,
             CancellationToken cancellationToken)
         {
-            var qualifyInstance = await QualifyInstanceMethodAsync(
-                analyzerResult, insertionPoint.SemanticDocument.Document, cancellationToken).ConfigureAwait(false);
-            var codeGenerator = Create(selectionResult, analyzerResult, options, localFunction);
+            var codeGenerator = Create(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
             return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);
         }
 
@@ -60,16 +59,17 @@ internal sealed partial class CSharpMethodExtractor
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
             CSharpCodeGenerationOptions options,
-            bool localFunction)
+            bool localFunction,
+            bool qualifyInstance)
         {
             if (selectionResult.SelectionInExpression)
-                return new ExpressionCodeGenerator(selectionResult, analyzerResult, options, localFunction);
+                return new ExpressionCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
 
             if (selectionResult.IsExtractMethodOnSingleStatement())
-                return new SingleStatementCodeGenerator(selectionResult, analyzerResult, options, localFunction);
+                return new SingleStatementCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
 
             if (selectionResult.IsExtractMethodOnMultipleStatements())
-                return new MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, localFunction);
+                return new MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
 
             throw ExceptionUtilities.UnexpectedValue(selectionResult);
         }
@@ -78,8 +78,9 @@ internal sealed partial class CSharpMethodExtractor
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
             CSharpCodeGenerationOptions options,
-            bool localFunction)
-            : base(selectionResult, analyzerResult, options, localFunction)
+            bool localFunction,
+            bool qualifyInstance)
+            : base(selectionResult, analyzerResult, options, localFunction, qualifyInstance)
         {
             Contract.ThrowIfFalse(SemanticDocument == selectionResult.SemanticDocument);
 
@@ -163,7 +164,7 @@ internal sealed partial class CSharpMethodExtractor
 
             var statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken);
             statements = postProcessor.MergeDeclarationStatements(statements);
-            statements = await AddAssignmentStatementToCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
+            statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
             statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
             statements = AddReturnIfUnreachable(statements);
 
@@ -575,10 +576,10 @@ internal sealed partial class CSharpMethodExtractor
                 : ReturnStatement(IdentifierName(identifierName));
         }
 
-        protected override ExpressionSyntax CreateCallSignature(bool qualifyInstanceMember)
+        protected override ExpressionSyntax CreateCallSignature()
         {
             var methodName = CreateMethodNameForInvocation();
-            ExpressionSyntax methodExpression = qualifyInstanceMember
+            ExpressionSyntax methodExpression = this.QualifyInstance
                 ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), methodName)
                 : methodName;
 
@@ -704,9 +705,9 @@ internal sealed partial class CSharpMethodExtractor
             }
         }
 
-        protected StatementSyntax GetStatementContainingInvocationToExtractedMethodWorker(bool qualifyInstance)
+        protected StatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
         {
-            var callSignature = CreateCallSignature(qualifyInstance);
+            var callSignature = CreateCallSignature();
 
             if (AnalyzerResult.HasReturnType)
             {

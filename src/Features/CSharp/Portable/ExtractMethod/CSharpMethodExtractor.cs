@@ -23,7 +23,7 @@ internal sealed partial class CSharpMethodExtractor(CSharpSelectionResult result
     : MethodExtractor<CSharpSelectionResult, StatementSyntax, ExpressionSyntax>(result, options, localFunction)
 {
     protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
-        => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction);
+        => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction, qualifyInstance: false);
 
     protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
         => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
@@ -155,8 +155,8 @@ internal sealed partial class CSharpMethodExtractor(CSharpSelectionResult result
     protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
         => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
-    protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
-        => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
+    protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, bool qualifyInstance, CancellationToken cancellationToken)
+        => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, qualifyInstance, cancellationToken);
 
     protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
         => FormattingRule.Instance;

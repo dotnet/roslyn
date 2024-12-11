@@ -15,8 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class MultipleStatementsCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                    MyBase.New(selectionResult, analyzerResult, options)
+                Public Sub New(
+                        selectionResult As VisualBasicSelectionResult,
+                        analyzerResult As AnalyzerResult,
+                        options As VisualBasicCodeGenerationOptions,
+                        qualifyInstance As Boolean)
+                    MyBase.New(selectionResult, analyzerResult, options, qualifyInstance)
                 End Sub
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken

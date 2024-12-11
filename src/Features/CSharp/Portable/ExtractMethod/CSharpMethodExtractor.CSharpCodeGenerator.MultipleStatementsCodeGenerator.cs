@@ -24,7 +24,9 @@ internal sealed partial class CSharpMethodExtractor
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
             CSharpCodeGenerationOptions options,
-            bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
+            bool localFunction,
+            bool qualifyInstance)
+            : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance)
         {
             protected override SyntaxToken CreateMethodName()
                 => GenerateMethodNameForStatementGenerators();
@@ -82,11 +84,10 @@ internal sealed partial class CSharpMethodExtractor
             protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                 => this.SelectionResult.GetLastStatementUnderContainer();
 
-            protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
+            protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
             {
-                var options = await this.SemanticDocument.Document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var statement = GetStatementContainingInvocationToExtractedMethodWorker(options);
-                return statement.WithAdditionalAnnotations(CallSiteAnnotation);
+                var statement = (SyntaxNode)GetStatementContainingInvocationToExtractedMethodWorker();
+                return Task.FromResult(statement.WithAdditionalAnnotations(CallSiteAnnotation));
             }
         }
     }
