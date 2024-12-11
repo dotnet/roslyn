@@ -77,6 +77,24 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
         End Function
 
         <Fact>
+        Public Async Function CategoriesTest() As Task
+            Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
+                Dim parseOption = New JsonDocumentOptions() With {
+                            .CommentHandling = JsonCommentHandling.Skip
+                            }
+                Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
+                Dim categories = registrationDocument.RootElement.GetProperty("categories")
+
+                'Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings())
+                'Dim categoriesTitle = registrationJsonObject.SelectToken("$.categories['textEditor.basic'].title")
+                'Assert.Equal("Visual Basic", categoriesTitle)
+                'Dim optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.basic.intellisense'].legacyOptionPageId")
+                'Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, optionPageId.ToString())
+                'TestUnifiedSettingsCategory(registrationJsonObject, categoryBasePath:="textEditor.basic.intellisense", languageName:=LanguageNames.VisualBasic, pkgDefFile)
+            End Using
+        End Function
+
+        <Fact>
         Public Async Function IntelliSensePageTests() As Task
             Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
                 Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
@@ -87,11 +105,11 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
                                 }
                         Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
                         Dim properties = registrationDocument.RootElement.GetProperty("properties")
+
                         Assert.NotNull(properties)
                         For Each setting In properties.EnumerateObject
                             Dim unifiedSettingsName = setting.Name
                             Dim actualOption = setting.Value.Deserialize(Of UnifiedSettingsOption(Of Boolean))
-                            Dim l = 6
 
                         Next
 
