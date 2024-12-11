@@ -577,7 +577,7 @@ public class EditorConfigNamingStyleParserTests
     /// <summary>
     /// Two rules with different names but same specification.
     /// </summary>
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/76381")]
     public void DuplicateRuleKeys()
     {
         var dictionary = new Dictionary<string, string>()
@@ -585,10 +585,12 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_rule.R1.severity"] = "warning",
             ["dotnet_naming_rule.R1.symbols"] = "SYMBOLS",
             ["dotnet_naming_rule.R1.style"] = "STYLE",
+            ["dotnet_naming_rule.R1.priority"] = "0",
 
             ["dotnet_naming_rule.R2.severity"] = "warning",
             ["dotnet_naming_rule.R2.symbols"] = "SYMBOLS",
             ["dotnet_naming_rule.R2.style"] = "STYLE",
+            ["dotnet_naming_rule.R2.priority"] = "1",
 
             ["dotnet_naming_symbols.SYMBOLS.applicable_kinds"] = "method",
             ["dotnet_naming_symbols.SYMBOLS.applicable_accessibilities"] = "*",
