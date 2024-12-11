@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         private static readonly object s_resolverLock = new();
 
         /// <summary>
-        /// Attempts to set the assembly resolver. Will only succeed if the <paramref name="canaryAssembly"/> has not already been requested to load.
+        /// Attempts to set the assembly resolver. Will only succeed if the <paramref name="canaryAssembly"/> has not already been requested to load and the resolver has not been set previously.
         /// </summary>
         /// <param name="resolver">The resolver function to set.</param>
         /// <param name="canaryAssembly">The name of an assembly that is checked to see if it has been requested to load. Setting the resolver will fail if this has already been requested.</param>
