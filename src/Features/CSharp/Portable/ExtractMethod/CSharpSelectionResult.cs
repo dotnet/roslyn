@@ -111,7 +111,7 @@ internal abstract partial class CSharpSelectionResult(
             Contract.ThrowIfNull(container);
             Contract.ThrowIfFalse(
                 container.IsStatementContainerNode() ||
-                container is PrimaryConstructorBaseTypeSyntax or TypeDeclarationSyntax or ConstructorDeclarationSyntax or CompilationUnitSyntax);
+                container is BaseListSyntax or TypeDeclarationSyntax or ConstructorDeclarationSyntax or CompilationUnitSyntax);
 
             return container;
         }
@@ -196,7 +196,7 @@ internal abstract partial class CSharpSelectionResult(
 
         var primaryConstructorBaseType = GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>();
         if (primaryConstructorBaseType != null)
-            return primaryConstructorBaseType;
+            return primaryConstructorBaseType.Parent;
 
         Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement));
         Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit));

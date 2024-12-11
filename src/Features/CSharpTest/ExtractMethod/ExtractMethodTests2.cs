@@ -5284,14 +5284,12 @@ $@"
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
-    public Task TestPrimaryConstructorBaseList()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
+    public Task TestPrimaryConstructorBaseList(bool withBody)
         => TestInRegularAndScript1Async(
-            """
+            $$"""
             class C1(int p1);
-            class C2(S1 a10000, int a20000) : C1([|a10000.F1|])
-            {
-            }
+            class C2(S1 a10000, int a20000) : C1([|a10000.F1|]){{(withBody ? "{}" : ";")}}
 
             struct S1
             {
@@ -5300,9 +5298,9 @@ $@"
             """,
             """
             class C1(int p1);
-            class C2(S1 a10000, int a20000) : C1({|Rename:GetF1(a1000)|})
+            class C2(S1 a10000, int a20000) : C1({|Rename:GetF1|}(a10000))
             {
-                private static int GetF1(S1 a1000)
+                private static int GetF1(S1 a10000)
                 {
                     return a10000.F1;
                 }
