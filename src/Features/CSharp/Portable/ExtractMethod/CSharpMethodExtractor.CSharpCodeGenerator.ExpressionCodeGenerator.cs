@@ -136,7 +136,9 @@ internal sealed partial class CSharpMethodExtractor
 
                 // This is similar to FieldDeclaration case but we only want to do this 
                 // if the member has an expression body.
-                scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
+                scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>()?.Parent;
+
+                scope ??= this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>();
 
                 return scope;
             }
