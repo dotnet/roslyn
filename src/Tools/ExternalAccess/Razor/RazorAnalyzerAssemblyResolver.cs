@@ -45,12 +45,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public Assembly? ResolveAssembly(AssemblyName assemblyName)
         {
+            Func<AssemblyName, Assembly?>? resolver = null;
             lock (s_resolverLock)
             {
                 s_assembliesRequested.Add(assemblyName);
+                resolver = s_assemblyResolver;
             }
 
-            return s_assemblyResolver?.Invoke(assemblyName);
+            return resolver?.Invoke(assemblyName);
         }
     }
 }
