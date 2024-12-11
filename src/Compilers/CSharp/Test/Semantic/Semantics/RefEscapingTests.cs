@@ -4333,6 +4333,16 @@ class X : List<int>
                         var local = 1;
                         return new R() { local }; // 2
                     }
+
+                    R M3()
+                    {
+                        return new R() { 1 }; // 3
+                    }
+
+                    unsafe R M4()
+                    {
+                        return new R() { 1 }; // 4
+                    }
                 }
 
                 ref struct R : IEnumerable
@@ -4350,7 +4360,19 @@ class X : List<int>
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(9, 26),
                 // (15,26): warning CS9091: This returns local 'local' by reference but it is not a ref local
                 //         return new R() { local }; // 2
-                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 26));
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 26),
+                // (20,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R() { 1 }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(20, 26),
+                // (20,26): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R() { 1 }; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "1").WithArguments("R.Add(in int)", "x").WithLocation(20, 26),
+                // (25,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R() { 1 }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(25, 26),
+                // (25,26): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R() { 1 }; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "1").WithArguments("R.Add(in int)", "x").WithLocation(25, 26));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -4492,7 +4514,9 @@ class X : List<int>
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76374")]
         [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
         [InlineData("")]
         public void CollectionExpression_AddMethod(string attr)
