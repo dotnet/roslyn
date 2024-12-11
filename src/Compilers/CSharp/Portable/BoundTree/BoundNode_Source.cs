@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundTypePattern typePattern:
                         {
-                            append(typePattern.DeclaredType.Type.Name);
+                            append(typePattern.DeclaredType.Type.ToString());
                             break;
                         }
                     case BoundRecursivePattern recursivePattern:
@@ -451,6 +452,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 appendSource(ituplePattern.Subpatterns[i].Pattern);
                             }
                             append(")");
+                            break;
+                        }
+                    case BoundRelationalPattern relationalPattern:
+                        {
+                            string relation = (relationalPattern.Relation & BinaryOperatorKind.OpMask) switch
+                            {
+                                BinaryOperatorKind.GreaterThan => ">",
+                                BinaryOperatorKind.GreaterThanOrEqual => ">=",
+                                BinaryOperatorKind.LessThan => "<",
+                                BinaryOperatorKind.LessThanOrEqual => "<=",
+                                _ => relationalPattern.Relation.ToString()
+                            };
+
+                            append(relation);
+                            append(" ");
+                            appendConstantValue(relationalPattern.ConstantValue);
                             break;
                         }
                     default:

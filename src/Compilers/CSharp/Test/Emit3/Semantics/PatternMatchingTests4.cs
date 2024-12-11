@@ -5183,44 +5183,62 @@ _ = o switch
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_NotNullOrRecursivePattern()
         {
+            // TODO2 we may need to deduplicate diagnostics
             var source = """
 #nullable enable
 string? s = null;
 _ = s is not null or { Length: >0 }; // 1
-_ = s is (not null) or { Length: >0 }; // 2
+_ = s is null and not { Length: >0 }; // 2
+_ = s is (not null) or { Length: >0 }; // 3
 _ = s is not (null or { Length: >0 });
-_ = s is null and not { Length: >0 }; // 3
+_ = s is null and not { Length: >0 }; // 4
 
 _ = s switch
 {
     not null => 42,
-    "" => 43, // 4
+    "" => 43, // 5
+    _ => 44
+};
+
+_ = s switch
+{
+    not null => 42,
+    { Length: >0 } => 43, // 6
     _ => 44
 };
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,22): warning CS9269: The pattern is redundant.
+                // (3,32): warning CS9269: The pattern is redundant.
                 // _ = s is not null or { Length: >0 }; // 1
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(3, 22),
-                // (3,24): warning CS9269: The pattern is redundant.
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(3, 32),
+                // (3,32): warning CS9269: The pattern is redundant.
                 // _ = s is not null or { Length: >0 }; // 1
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "Length: >0").WithLocation(3, 24),
-                // (4,24): warning CS9269: The pattern is redundant.
-                // _ = s is (not null) or { Length: >0 }; // 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(4, 24),
-                // (4,26): warning CS9269: The pattern is redundant.
-                // _ = s is (not null) or { Length: >0 }; // 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "Length: >0").WithLocation(4, 26),
-                // (6,23): warning CS9269: The pattern is redundant.
-                // _ = s is null and not { Length: >0 }; // 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(6, 23),
-                // (6,25): warning CS9269: The pattern is redundant.
-                // _ = s is null and not { Length: >0 }; // 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "Length: >0").WithLocation(6, 25),
-                // (11,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     "" => 43, // 4
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(11, 5));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(3, 32),
+                // (4,33): warning CS9269: The pattern is redundant.
+                // _ = s is null and not { Length: >0 }; // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(4, 33),
+                // (4,33): warning CS9269: The pattern is redundant.
+                // _ = s is null and not { Length: >0 }; // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(4, 33),
+                // (5,34): warning CS9269: The pattern is redundant.
+                // _ = s is (not null) or { Length: >0 }; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(5, 34),
+                // (5,34): warning CS9269: The pattern is redundant.
+                // _ = s is (not null) or { Length: >0 }; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(5, 34),
+                // (7,33): warning CS9269: The pattern is redundant.
+                // _ = s is null and not { Length: >0 }; // 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(7, 33),
+                // (7,33): warning CS9269: The pattern is redundant.
+                // _ = s is null and not { Length: >0 }; // 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(7, 33),
+                // (12,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     "" => 43, // 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(12, 5),
+                // (19,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: >0 } => 43, // 6
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: >0 }").WithLocation(19, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5387,6 +5405,61 @@ switch (s)
             var source = """
 S s = default;
 _ = s is [..(not 42 or 43), not 44 or 45]; // 1, 2
+_ = s is [not 42 or 43, ..(not 44 or 45)]; // 3, 4
+
+_ = s switch
+{
+    [..(not 42 or 43), not 44 or 45] => 42, // 5, 6
+    _ => 44
+};
+
+switch (s)
+{
+    case [..(not 42 or 43), not 44 or 45]: break; // 7, 8
+    default: break;
+};
+
+public struct S
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,24): warning CS9269: The pattern is redundant.
+                // _ = s is [..(not 42 or 43), not 44 or 45]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 24),
+                // (2,39): warning CS9269: The pattern is redundant.
+                // _ = s is [..(not 42 or 43), not 44 or 45]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 39),
+                // (3,21): warning CS9269: The pattern is redundant.
+                // _ = s is [not 42 or 43, ..(not 44 or 45)]; // , 
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
+                // (3,38): warning CS9269: The pattern is redundant.
+                // _ = s is [not 42 or 43, ..(not 44 or 45)]; // , 
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 38),
+                // (7,19): warning CS9269: The pattern is redundant.
+                //     [..(not 42 or 43), not 44 or 45] => 42, // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(7, 19),
+                // (7,34): warning CS9269: The pattern is redundant.
+                //     [..(not 42 or 43), not 44 or 45] => 42, // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(7, 34),
+                // (13,24): warning CS9269: The pattern is redundant.
+                //     case [..(not 42 or 43), not 44 or 45]: break; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 24),
+                // (13,39): warning CS9269: The pattern is redundant.
+                //     case [..(not 42 or 43), not 44 or 45]: break; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(13, 39));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_SlicePattern_WithObject()
+        {
+            var source = """
+S s = default;
+_ = s is [..(not 42 or 43), not 44 or 45]; // 1, 2
 
 _ = s switch
 {
@@ -5403,8 +5476,8 @@ switch (s)
 public struct S
 {
     public int Length => throw null;
-    public int this[System.Index i] => throw null;
-    public int this[System.Range r] => throw null;
+    public object this[System.Index i] => throw null;
+    public object this[System.Range r] => throw null;
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
@@ -5430,6 +5503,46 @@ public struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_SlicePattern_WithNestedPattern()
+        {
+            var source = """
+S s = null;
+
+_ = s is [..({ Prop1: not 42 or 43, Prop2: not 44 or 45 }), { Prop1: not 46 or 47, Prop2: not 48 or 49 }]; // 1, 2, 3, 4
+
+_ = s is [{ Prop1: not 46 or 47, Prop2: not 48 or 49 }, ..({ Prop1: not 42 or 43, Prop2: not 44 or 45 })]; // 5, 6, 7, 8
+
+public class S
+{
+    public int Length => throw null;
+    public S2 this[System.Index i] => throw null;
+    public S2 this[System.Range r] => throw null;
+}
+
+public class S2
+{
+    public object Prop1 { get; set; }
+    public object Prop2 { get; set; }
+}
+""";
+            // TODO2 broken
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,33): warning CS9269: The pattern is redundant.
+                // _ = s is [..({ Prop1: not 42 or 43, Prop2: not 44 or 45 }), { Prop1: not 46 or 47, Prop2: not 48 or 49 }]; // 1, 2, 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 33),
+                // (3,54): warning CS9269: The pattern is redundant.
+                // _ = s is [..({ Prop1: not 42 or 43, Prop2: not 44 or 45 }), { Prop1: not 46 or 47, Prop2: not 48 or 49 }]; // 1, 2, 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 54),
+                // (3,80): warning CS9269: The pattern is redundant.
+                // _ = s is [..({ Prop1: not 42 or 43, Prop2: not 44 or 45 }), { Prop1: not 46 or 47, Prop2: not 48 or 49 }]; // 1, 2, 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(3, 80),
+                // (5,30): warning CS9269: The pattern is redundant.
+                // _ = s is [{ Prop1: not 46 or 47, Prop2: not 48 or 49 }, ..({ Prop1: not 42 or 43, Prop2: not 44 or 45 })]; // 5, 6, 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "47").WithLocation(5, 30));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_ITuplePattern()
         {
             var source = """
@@ -5437,7 +5550,7 @@ System.Runtime.CompilerServices.ITuple s = null;
 _ = s is (not 42 or 43, not 44 or 45); // 1, 2
 _ = s is not (42 and not 43, 44 and not 45); // 3, 4
 _ = s is not (42 and not 43, _ and var x); // 5, 6
-_ = s is not (_ and var x2, 42 and not 43); // 7, 8
+_ = s is not (_ and var x2, 42 and not 43); // 7, 8  TODO2
 _ = s is not (_, _);
 _ = s is not (var x3, var x4);
 
@@ -5472,10 +5585,13 @@ switch (s)
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(4, 26),
                 // (4,30): warning CS9269: The pattern is redundant.
                 // _ = s is not (42 and not 43, _ and var x); // 5, 6
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "_ and var x").WithLocation(4, 30),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(4, 30),
                 // (5,15): warning CS9269: The pattern is redundant.
                 // _ = s is not (_ and var x2, 42 and not 43); // 7, 8
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "_ and var x2").WithLocation(5, 15),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(5, 15),
+                // (5,29): warning CS9269: The pattern is redundant.
+                // _ = s is not (_ and var x2, 42 and not 43); // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "42 and not 43").WithLocation(5, 29),
                 // (5,40): warning CS9269: The pattern is redundant.
                 // _ = s is not (_ and var x2, 42 and not 43); // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 40),
@@ -5491,6 +5607,76 @@ switch (s)
                 // (17,35): warning CS9269: The pattern is redundant.
                 //     case (not 42 or 43, not 44 or 45): break; // 11, 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(17, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_ITuplePattern_WithInputTypeChanging()
+        {
+            var source = """
+System.Runtime.CompilerServices.ITuple i = null;
+_ = i is not object or (not 42 or 43, not 44 or 45); // 1, 2
+
+object o = null;
+_ = o is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 3, 4
+
+C c = null;
+_ = c is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 5, 6
+_ = c is not object or (not 42 or 43, not 44 or 45); // 7, 8
+
+S? s = null;
+_ = s is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 9, 10
+_ = s is not object or (not 42 or 43, not 44 or 45); // 11, 12
+
+class C : System.Runtime.CompilerServices.ITuple
+{
+    public object this[int index] => throw null;
+    public int Length => throw null;
+}
+
+struct S : System.Runtime.CompilerServices.ITuple
+{
+    public object this[int index] => throw null;
+    public int Length => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,35): warning CS9269: The pattern is redundant.
+                // _ = i is not object or (not 42 or 43, not 44 or 45); // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 35),
+                // (2,49): warning CS9269: The pattern is redundant.
+                // _ = i is not object or (not 42 or 43, not 44 or 45); // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 49),
+                // (5,64): warning CS9269: The pattern is redundant.
+                // _ = o is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 64),
+                // (5,78): warning CS9269: The pattern is redundant.
+                // _ = o is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(5, 78),
+                // (8,64): warning CS9269: The pattern is redundant.
+                // _ = c is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 64),
+                // (8,78): warning CS9269: The pattern is redundant.
+                // _ = c is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(8, 78),
+                // (9,35): warning CS9269: The pattern is redundant.
+                // _ = c is not object or (not 42 or 43, not 44 or 45); // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(9, 35),
+                // (9,49): warning CS9269: The pattern is redundant.
+                // _ = c is not object or (not 42 or 43, not 44 or 45); // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(9, 49),
+                // (12,64): warning CS9269: The pattern is redundant.
+                // _ = s is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 64),
+                // (12,78): warning CS9269: The pattern is redundant.
+                // _ = s is System.Runtime.CompilerServices.ITuple and (not 42 or 43, not 44 or 45); // 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(12, 78),
+                // (13,35): warning CS9269: The pattern is redundant.
+                // _ = s is not object or (not 42 or 43, not 44 or 45); // 11, 12
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 35),
+                // (13,49): warning CS9269: The pattern is redundant.
+                // _ = s is not object or (not 42 or 43, not 44 or 45); // 11, 12
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(13, 49));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -6100,15 +6286,15 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,31): warning CS9269: The pattern is redundant.
+                // (3,41): warning CS9269: The pattern is redundant.
                 // _ = s is not { Length: 0 } or { Length: 10 }; // 1
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: 10 }").WithLocation(3, 31),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(3, 41),
                 // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     { Length: 10 } => 43, // 2
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: 10 }").WithLocation(9, 5),
-                // (15,38): warning CS9269: The pattern is redundant.
+                // (15,55): warning CS9269: The pattern is redundant.
                 // _ = s is not string { Length: 0 } or string { Length: 10 }; // 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "string { Length: 10 }").WithLocation(15, 38),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(15, 55),
                 // (21,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string { Length: 10 } => 43, // 4
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string { Length: 10 }").WithLocation(21, 5));
@@ -6142,7 +6328,6 @@ _ = o switch
 
 _ = o is not (not string or string { Length: 0 });
 _ = o is not string or string { Length: 0 };
-_ = o is not (not string or string { Length: 0 });
 
 _ = o switch
 {
@@ -6765,26 +6950,6 @@ public struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
-        public void RedundantPattern_TODO2()
-        {
-            var source = """
-object o = null;
-_ = o is A or B;
-_ = o is not (not A and B);
-_ = o is not (A or B);
-_ = o is not (A and not B); // 1
-
-class A { }
-class B { }
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,25): error CS8121: An expression of type 'A' cannot be handled by a pattern of type 'B'.
-                // _ = o is not (A and not B); // 1
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "B").WithArguments("A", "B").WithLocation(5, 25));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_TODO2_2()
         {
             var source = """
@@ -6921,13 +7086,48 @@ public class S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_RecursivePatterns_Properties_NullableValueTypeInput()
+        {
+            var source = """
+S? s = null;
+_ = s is { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 1, 2
+
+public struct S
+{
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,29): warning CS9269: The pattern is redundant.
+                // _ = s is { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 29),
+                // (2,50): warning CS9269: The pattern is redundant.
+                // _ = s is { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 50));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_RecursivePatterns_EmptyVsNull()
         {
             var source = """
 S s = null;
 _ = s is not { } or null; // 1
-_ = s is not ({ } and not null); // 2
-_ = s is { } or not null; // 3
+_ = s is null or not { }; // 2
+_ = s is not ({ } and not null); // 3
+_ = s is { } or not null; // 4
+_ = s is not null or { }; // 5
+_ = s is not null or S { }; // 6
+_ = s is not S { } or null; // 7
+_ = s is null or not S { }; // 8
+
+_ = s switch
+{
+    null => 0,
+    not { } => 1, // 9
+    _ => 2
+};
 
 public class S
 {
@@ -6940,12 +7140,27 @@ public class S
                 // (2,21): warning CS9269: The pattern is redundant.
                 // _ = s is not { } or null; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(2, 21),
-                // (3,27): warning CS9269: The pattern is redundant.
-                // _ = s is not ({ } and not null); // 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(3, 27),
-                // (4,21): warning CS9269: The pattern is redundant.
-                // _ = s is { } or not null; // 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(4, 21));
+                // (3,22): warning CS9269: The pattern is redundant.
+                // _ = s is null or not { }; // 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ }").WithLocation(3, 22),
+                // (4,27): warning CS9269: The pattern is redundant.
+                // _ = s is not ({ } and not null); // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(4, 27),
+                // (5,21): warning CS9269: The pattern is redundant.
+                // _ = s is { } or not null; // 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(5, 21),
+                // (6,22): warning CS9269: The pattern is redundant.
+                // _ = s is not null or { }; // 5
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ }").WithLocation(6, 22),
+                // (7,22): warning CS9269: The pattern is redundant.
+                // _ = s is not null or S { }; // 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "S { }").WithLocation(7, 22),
+                // (8,23): warning CS9269: The pattern is redundant.
+                // _ = s is not S { } or null; // 7
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(8, 23),
+                // (14,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     not { } => 1, // 9
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not { }").WithLocation(14, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -6981,9 +7196,9 @@ public struct S
                 // (5,36): warning CS9269: The pattern is redundant.
                 // _ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2, 3
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 36),
-                // (5,40): warning CS9269: The pattern is redundant.
+                // (5,47): warning CS9269: The pattern is redundant.
                 // _ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2, 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "Prop2: _ and var x3").WithLocation(5, 40),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(5, 47),
                 // (10,5): error CS8518: An expression of type 'S' can never match the provided pattern.
                 // _ = s is not { Prop1: _ }; // 4
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not { Prop1: _ }").WithArguments("S").WithLocation(10, 5),
@@ -7031,8 +7246,8 @@ public class S
 object o = null;
 _ = o is not (S and { Prop1: 42 and not 43, Prop2: 44 and not 45 }); // 1, 2
 _ = o is not (S and { Prop1: 42 and not 43 } and { Prop2: 44 and not 45 }); // 3, 4
-_ = o is not (S and { } and { Prop2: 44 and not 45 }); // 5
-_ = o is not (S and { Prop1: 42 and not 43 } and { }); // 6
+_ = o is not (S and { } and { Prop2: 44 and not 45 }); // 5, 6
+_ = o is not (S and { Prop1: 42 and not 43 } and { }); // 7, 8
 
 public class S
 {
@@ -7054,12 +7269,18 @@ public class S
                 // (3,70): warning CS9269: The pattern is redundant.
                 // _ = o is not (S and { Prop1: 42 and not 43 } and { Prop2: 44 and not 45 }); // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 70),
+                // (4,21): warning CS9269: The pattern is redundant.
+                // _ = o is not (S and { } and { Prop2: 44 and not 45 }); // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ }").WithLocation(4, 21),
                 // (4,49): warning CS9269: The pattern is redundant.
-                // _ = o is not (S and { } and { Prop2: 44 and not 45 }); // 5
+                // _ = o is not (S and { } and { Prop2: 44 and not 45 }); // 5, 6
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(4, 49),
                 // (5,41): warning CS9269: The pattern is redundant.
-                // _ = o is not (S and { Prop1: 42 and not 43 } and { }); // 6
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 41));
+                // _ = o is not (S and { Prop1: 42 and not 43 } and { }); // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 41),
+                // (5,50): warning CS9269: The pattern is redundant.
+                // _ = o is not (S and { Prop1: 42 and not 43 } and { }); // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "{ }").WithLocation(5, 50));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7076,6 +7297,10 @@ _ = c is C and (int x2, int y2);
 
 _ = c is (int, int); // 5, 6
 _ = c is (int x3, int y3);
+
+_ = c is not object or (< 42, <= 43);
+_ = c is not object or (int x4, int y4); // 7, 8, 9
+_ = c is not object or (int, int); // 10
 
 public class C
 {
@@ -7101,7 +7326,19 @@ public class C
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "int").WithLocation(9, 11),
                 // (9,16): warning CS9269: The pattern is redundant.
                 // _ = c is (int, int); // 5, 6
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "int").WithLocation(9, 16));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "int").WithLocation(9, 16),
+                // (13,5): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                // _ = c is not object or (int x4, int y4); // 7, 8, 9
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "c is not object or (int x4, int y4)").WithArguments("C").WithLocation(13, 5),
+                // (13,29): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // _ = c is not object or (int x4, int y4); // 7, 8, 9
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x4").WithLocation(13, 29),
+                // (13,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // _ = c is not object or (int x4, int y4); // 7, 8, 9
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(13, 37),
+                // (14,5): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                // _ = c is not object or (int, int); // 10
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "c is not object or (int, int)").WithArguments("C").WithLocation(14, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7112,6 +7349,7 @@ int[] o = null;
 _ = o is not [42 and not 43, 44 and not 45]; // 1, 2
 _ = o is [not 42 or 43, not 44 or 45]; // 3, 4
 _ = o is not [_, _];
+_ = o is not [.._]; // 5
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
@@ -7126,7 +7364,90 @@ _ = o is not [_, _];
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
                 // (3,35): warning CS9269: The pattern is redundant.
                 // _ = o is [not 42 or 43, not 44 or 45]; // 3, 4
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 35));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 35),
+                // (5,17): warning CS9269: The pattern is redundant.
+                // _ = o is not [.._]; // 5
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(5, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_ListPatterns_WithNestedPropertyPattern()
+        {
+            var source = """
+C[] o = null;
+_ = o is not [{ Prop: 42 and not 43 }, { Prop: 44 and not 45 }]; // 1, 2
+_ = o is [{ Prop: not 42 or 43 }, { Prop: not 44 or 45 }]; // 3, 4 TODO2
+
+public class C
+{
+    public object Prop { get; set; }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,34): warning CS9269: The pattern is redundant.
+                // _ = o is not [{ Prop: 42 and not 43 }, { Prop: 44 and not 45 }]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 34),
+                // (2,59): warning CS9269: The pattern is redundant.
+                // _ = o is not [{ Prop: 42 and not 43 }, { Prop: 44 and not 45 }]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 59),
+                // (3,29): warning CS9269: The pattern is redundant.
+                // _ = o is [{ Prop: not 42 or 43 }, { Prop: not 44 or 45 }]; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 29));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_ListPattern_WithInputTypeChanging()
+        {
+            var source = """
+int[] i = null;
+_ = i is not object or [not 42 or 43, not 44 or 45]; // 1, 2
+
+object o = null;
+_ = o is int[] and [not 42 or 43, not 44 or 45]; // 3, 4
+_ = o is C and [not 42 or 43, not 44 or 45]; // 5, 6 TODO2
+
+C c = null;
+_ = c is not object or [not 42 or 43, not 44 or 45]; // 7, 8 TODO2
+
+S? s = null;
+_ = s is not object or [not 42 or 43, not 44 or 45]; // 9, 10 TODO2
+
+class C
+{
+    public object this[int index] => throw null;
+    public int Length => throw null;
+}
+
+struct S
+{
+    public object this[int index] => throw null;
+    public int Length => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,35): warning CS9269: The pattern is redundant.
+                // _ = i is not object or [not 42 or 43, not 44 or 45]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 35),
+                // (2,49): warning CS9269: The pattern is redundant.
+                // _ = i is not object or [not 42 or 43, not 44 or 45]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 49),
+                // (5,31): warning CS9269: The pattern is redundant.
+                // _ = o is int[] and [not 42 or 43, not 44 or 45]; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 31),
+                // (5,45): warning CS9269: The pattern is redundant.
+                // _ = o is int[] and [not 42 or 43, not 44 or 45]; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(5, 45),
+                // (6,27): warning CS9269: The pattern is redundant.
+                // _ = o is C and [not 42 or 43, not 44 or 45]; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 27),
+                // (9,35): warning CS9269: The pattern is redundant.
+                // _ = c is not object or [not 42 or 43, not 44 or 45]; // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(9, 35),
+                // (12,35): warning CS9269: The pattern is redundant.
+                // _ = s is not object or [not 42 or 43, not 44 or 45]; // 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 35));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7209,18 +7530,18 @@ public struct S
         {
             var source = """
 S o = default;
-_ = o is not [42 and not 43, .._]; // 1
-_ = o is [not 42 or 43, .._]; // 2
-_ = o is not [42 and not 43, ..(_ or _)]; // 3
-_ = o is not [42 and not 43, ..(_ and _)]; // 4
+_ = o is not [42 and not 43, .._]; // 1, 2
+_ = o is [not 42 or 43, .._]; // 3, 4
+_ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
+_ = o is not [42 and not 43, ..(_ and _)]; // 8, 9, 10
 
-_ = o is not [42 and not 43, ..var x]; // 5
-_ = o is [not 42 or 43, ..var y]; // 6
+_ = o is not [42 and not 43, ..var x]; // 11
+_ = o is [not 42 or 43, ..var y]; // 12
 
-_ = o is not [..var x2, 42 and not 43]; // 7
-_ = o is [..var y2, not 42 or 43]; // 8
+_ = o is not [..var x2, 42 and not 43]; // 13
+_ = o is [..var y2, not 42 or 43]; // 14
 
-_ = o is not [42 and not 43, ..var z or var t]; // 9, 10, 11
+_ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18 TODO2 unexpected diagnostic on OR
 
 public struct S
 {
@@ -7229,56 +7550,61 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            // TODO2 there is some noise on 3 and 4
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (2,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, .._]; // 1
+                // _ = o is not [42 and not 43, .._]; // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 26),
+                // (2,32): warning CS9269: The pattern is redundant.
+                // _ = o is not [42 and not 43, .._]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(2, 32),
                 // (3,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, .._]; // 2
+                // _ = o is [not 42 or 43, .._]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
+                // (3,27): warning CS9269: The pattern is redundant.
+                // _ = o is [not 42 or 43, .._]; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(3, 27),
                 // (4,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ or _)]; // 3
+                // _ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(4, 26),
-                // (4,30): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ or _)]; // 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "..(_ or _)").WithLocation(4, 30),
+                // (4,33): warning CS9269: The pattern is redundant.
+                // _ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_ or _").WithLocation(4, 33),
                 // (4,38): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ or _)]; // 3
+                // _ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(4, 38),
                 // (5,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ and _)]; // 4
+                // _ = o is not [42 and not 43, ..(_ and _)]; // 8, 9, 10
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 26),
-                // (5,30): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ and _)]; // 4
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "..(_ and _)").WithLocation(5, 30),
+                // (5,33): warning CS9269: The pattern is redundant.
+                // _ = o is not [42 and not 43, ..(_ and _)]; // 8, 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(5, 33),
                 // (5,39): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ and _)]; // 4
+                // _ = o is not [42 and not 43, ..(_ and _)]; // 8, 9, 10
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(5, 39),
                 // (7,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..var x]; // 5
+                // _ = o is not [42 and not 43, ..var x]; // 11
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(7, 26),
                 // (8,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, ..var y]; // 6
+                // _ = o is [not 42 or 43, ..var y]; // 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 21),
                 // (10,36): warning CS9269: The pattern is redundant.
-                // _ = o is not [..var x2, 42 and not 43]; // 7
+                // _ = o is not [..var x2, 42 and not 43]; // 13
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 36),
                 // (11,31): warning CS9269: The pattern is redundant.
-                // _ = o is [..var y2, not 42 or 43]; // 8
+                // _ = o is [..var y2, not 42 or 43]; // 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 31),
                 // (13,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..var z or var t]; // 9, 10, 11
+                // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 26),
-                // (13,30): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..var z or var t]; // 9, 10, 11
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "..var z or var t").WithLocation(13, 30),
+                // (13,32): warning CS9269: The pattern is redundant.
+                // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "var z or var t").WithLocation(13, 32),
                 // (13,36): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                // _ = o is not [42 and not 43, ..var z or var t]; // 9, 10, 11
+                // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(13, 36),
                 // (13,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                // _ = o is not [42 and not 43, ..var z or var t]; // 9, 10, 11
+                // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "t").WithLocation(13, 45));
         }
 
@@ -7351,14 +7677,14 @@ _ = o is [var y2, not 42 or 43]; // 6
 _ = o is not [42 and not 43, _ and var x3]; // 7, 8
 _ = o is [not 42 or 43, _ and var y3]; // 9, 10
 
-_ = o is not [42 and not 43, var x4 and _]; // 11, 12, 13
-_ = o is [not 42 or 43, var y4 and _]; // 14, 15, 16
+_ = o is not [42 and not 43, var x4 and _]; // 11, 12
+_ = o is [not 42 or 43, var y4 and _]; // 13, 14
 
-_ = o is [not 42 or 43, _ and int y5]; // 17, 18
-_ = o is [not 42 or 43, var y6]; // 19
-_ = o is [not 42 or 43, int y7]; // 20
+_ = o is [not 42 or 43, _ and int y5]; // 15, 16
+_ = o is [not 42 or 43, var y6]; // 17
+_ = o is [not 42 or 43, int y7]; // 18
 
-_ = o is not [42 and not 43, int and var y8]; // 21, 22
+_ = o is not [42 and not 43, int and var y8]; // 19, 20
 
 public struct S
 {
@@ -7392,49 +7718,43 @@ public struct S
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 26),
                 // (11,30): warning CS9269: The pattern is redundant.
                 // _ = o is not [42 and not 43, _ and var x3]; // 7, 8
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "_ and var x3").WithLocation(11, 30),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(11, 30),
                 // (12,21): warning CS9269: The pattern is redundant.
                 // _ = o is [not 42 or 43, _ and var y3]; // 9, 10
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 21),
                 // (12,25): warning CS9269: The pattern is redundant.
                 // _ = o is [not 42 or 43, _ and var y3]; // 9, 10
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "_ and var y3").WithLocation(12, 25),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(12, 25),
                 // (14,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x4 and _]; // 11, 12, 13
+                // _ = o is not [42 and not 43, var x4 and _]; // 11, 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 26),
-                // (14,30): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x4 and _]; // 11, 12, 13
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "var x4 and _").WithLocation(14, 30),
                 // (14,41): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x4 and _]; // 11, 12, 13
+                // _ = o is not [42 and not 43, var x4 and _]; // 11, 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(14, 41),
                 // (15,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, var y4 and _]; // 14, 15, 16
+                // _ = o is [not 42 or 43, var y4 and _]; // 13, 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(15, 21),
-                // (15,25): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, var y4 and _]; // 14, 15, 16
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "var y4 and _").WithLocation(15, 25),
                 // (15,36): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, var y4 and _]; // 14, 15, 16
+                // _ = o is [not 42 or 43, var y4 and _]; // 13, 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(15, 36),
                 // (17,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, _ and int y5]; // 17, 18
+                // _ = o is [not 42 or 43, _ and int y5]; // 15, 16
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(17, 21),
                 // (17,25): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, _ and int y5]; // 17, 18
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "_ and int y5").WithLocation(17, 25),
+                // _ = o is [not 42 or 43, _ and int y5]; // 15, 16
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "_").WithLocation(17, 25),
                 // (18,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, var y6]; // 19
+                // _ = o is [not 42 or 43, var y6]; // 17
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(18, 21),
                 // (19,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, int y7]; // 20
+                // _ = o is [not 42 or 43, int y7]; // 18
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(19, 21),
                 // (21,26): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, int and var y8]; // 21, 22
+                // _ = o is not [42 and not 43, int and var y8]; // 19, 20
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(21, 26),
                 // (21,30): warning CS9269: The pattern is redundant.
-                // _ = o is not [42 and not 43, int and var y8]; // 21, 22
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "int and var y8").WithLocation(21, 30));
+                // _ = o is not [42 and not 43, int and var y8]; // 19, 20
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "int").WithLocation(21, 30));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7484,15 +7804,85 @@ public struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
-        public void RedundantPattern_TODO2_14()
+        public void RedundantPattern_SlicePattern_WithInputTypeChanging()
+        {
+            var source = """
+object o = null;
+_ = o is C and [not 42 or 43, ..(not 44 or 45)]; // 1, 2
+_ = o is C and [..(42 and not 43), not 44 or 45]; // 3, 4
+
+C c = null;
+_ = c is not object or [not 42 or 43, ..(not 44 or 45)]; // 5, 6
+_ = c is not object or [..(42 and not 43), not 44 or 45]; // 7, 8
+
+S? s = null;
+_ = s is not object or [not 42 or 43, ..(44 and not 45)]; // 9, 10
+_ = s is not object or [..(not 42 or 43), 44 and not 45]; // 11, 12
+
+class C
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+}
+
+struct S
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,27): warning CS9269: The pattern is redundant.
+                // _ = o is C and [not 42 or 43, ..(not 44 or 45)]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 27),
+                // (2,44): warning CS9269: The pattern is redundant.
+                // _ = o is C and [not 42 or 43, ..(not 44 or 45)]; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 44),
+                // (3,31): warning CS9269: The pattern is redundant.
+                // _ = o is C and [..(42 and not 43), not 44 or 45]; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 31),
+                // (3,46): warning CS9269: The pattern is redundant.
+                // _ = o is C and [..(42 and not 43), not 44 or 45]; // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 46),
+                // (6,35): warning CS9269: The pattern is redundant.
+                // _ = c is not object or [not 42 or 43, ..(not 44 or 45)]; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 35),
+                // (6,52): warning CS9269: The pattern is redundant.
+                // _ = c is not object or [not 42 or 43, ..(not 44 or 45)]; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 52),
+                // (7,39): warning CS9269: The pattern is redundant.
+                // _ = c is not object or [..(42 and not 43), not 44 or 45]; // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(7, 39),
+                // (7,54): warning CS9269: The pattern is redundant.
+                // _ = c is not object or [..(42 and not 43), not 44 or 45]; // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(7, 54),
+                // (10,35): warning CS9269: The pattern is redundant.
+                // _ = s is not object or [not 42 or 43, ..(44 and not 45)]; // 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 35),
+                // (10,53): warning CS9269: The pattern is redundant.
+                // _ = s is not object or [not 42 or 43, ..(44 and not 45)]; // 9, 10
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(10, 53),
+                // (11,38): warning CS9269: The pattern is redundant.
+                // _ = s is not object or [..(not 42 or 43), 44 and not 45]; // 11, 12
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 38),
+                // (11,54): warning CS9269: The pattern is redundant.
+                // _ = s is not object or [..(not 42 or 43), 44 and not 45]; // 11, 12
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(11, 54));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_DeclarationPattern()
         {
             var source = """
 S o = default;
-_ = o is not (42 and not 43 and var x); // 1, 2
+_ = o is not (42 and not 43 and var x1); // 1, 2
 _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
 
-_ = o is not [42 and not 43, var x, ..44 and not 45]; // 5
-_ = o is [not 42 or 43, var y, ..not 44 or 45]; // 6, 7
+_ = o is not [42 and not 43, var x2, ..44 and not 45]; // 5, 6
+_ = o is [not 42 or 43, var x3, ..not 44 or 45]; // 7, 8
 
 public struct S
 {
@@ -7504,10 +7894,10 @@ public struct S
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
-                // _ = o is not (42 and not 43 and var x); // 1, 2
+                // _ = o is not (42 and not 43 and var x1); // 1, 2
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "42").WithArguments("int", "S").WithLocation(2, 15),
                 // (2,26): error CS0029: Cannot implicitly convert type 'int' to 'S'
-                // _ = o is not (42 and not 43 and var x); // 1, 2
+                // _ = o is not (42 and not 43 and var x1); // 1, 2
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "43").WithArguments("int", "S").WithLocation(2, 26),
                 // (3,21): warning CS9269: The pattern is redundant.
                 // _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
@@ -7515,15 +7905,18 @@ public struct S
                 // (3,40): warning CS9269: The pattern is redundant.
                 // _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 40),
-                // (5,34): error CS0128: A local variable or function named 'x' is already defined in this scope
-                // _ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6, TODO2
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(5, 34),
+                // (5,26): warning CS9269: The pattern is redundant.
+                // _ = o is not [42 and not 43, var x2, ..44 and not 45]; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 26),
+                // (5,51): warning CS9269: The pattern is redundant.
+                // _ = o is not [42 and not 43, var x2, ..44 and not 45]; // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(5, 51),
                 // (6,21): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, var y, ..not 44 or 45]; // 7, 8
+                // _ = o is [not 42 or 43, var x3, ..not 44 or 45]; // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 21),
-                // (6,44): warning CS9269: The pattern is redundant.
-                // _ = o is [not 42 or 43, var y, ..not 44 or 45]; // 7, 8
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 44));
+                // (6,45): warning CS9269: The pattern is redundant.
+                // _ = o is [not 42 or 43, var x3, ..not 44 or 45]; // 7, 8
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 45));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7729,28 +8122,240 @@ _ = o is (object and var z, var t and object);
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
-        public void RedundantPattern_TODO2_18()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        public void RedundantPattern_PullingBinaryPatternsFromCompositePatterns(string typeKind)
         {
-            var source = """
-object o = null;
-_ = o is { } or null;
-
-_ = o switch
+            var source = $$"""
+class C
 {
-    { } => 0,
-    null => 0,
-    _ => 0,
-};
+    void M(S s, System.Runtime.CompilerServices.ITuple t, int o)
+    {
+        if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
+        if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
+        if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 5, 6
+        if (s is { Prop1: (not 42 or 43) and var x1 }) { } // 7
+
+        if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
+        if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
+        if (s is (not 42 or 43, _) and var (x2, x3)) { } // 12
+        if (s is (not 42 or 43, _) and (_, _)) { } // 13
+        if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 14, 15
+
+        if (s is [not 42 or 43, not 44 or 45]) { } // 16, 17
+        if (s is [42 and not 43, 44 and not 45]) { } // 18, 19
+        if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 20, 21
+
+        if (t is (not 42 or 43, not 44 or 45)) { } // 22, 23
+        if (t is (42 and not 43, 44 and not 45)) { } // 24, 25
+        if (t is (not 42 or 43, not 44 or 45) and (var x8, var x9)) { } // 26, 27
+
+        if (o is (not 42 or 43) and var x10) { } // 28
+    }
+}
+
+public {{typeKind}} S
+{
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+    public void Deconstruct(out int x, out int y) => throw null;
+
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+}
 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (2,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                // _ = o is { } or null;
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is { } or null").WithArguments("object").WithLocation(2, 5),
-                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     _ => 0,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(8, 5));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            compilation.VerifyDiagnostics(
+                // (5,38): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 38),
+                // (5,66): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(5, 66),
+                // (6,37): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 37),
+                // (6,65): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 65),
+                // (7,37): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(7, 37),
+                // (7,64): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(7, 64),
+                // (8,38): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: (not 42 or 43) and var x1 }) { } // 7
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 38),
+                // (10,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 29),
+                // (10,43): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(10, 43),
+                // (11,30): warning CS9269: The pattern is redundant.
+                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 30),
+                // (11,45): warning CS9269: The pattern is redundant.
+                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(11, 45),
+                // (12,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, _) and var (x2, x3)) { } // 12
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 29),
+                // (13,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, _) and (_, _)) { } // 13
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 29),
+                // (14,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 14, 15
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 29),
+                // (14,43): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 14, 15
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(14, 43),
+                // (16,29): warning CS9269: The pattern is redundant.
+                //         if (s is [not 42 or 43, not 44 or 45]) { } // 16, 17
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(16, 29),
+                // (16,43): warning CS9269: The pattern is redundant.
+                //         if (s is [not 42 or 43, not 44 or 45]) { } // 16, 17
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(16, 43),
+                // (17,30): warning CS9269: The pattern is redundant.
+                //         if (s is [42 and not 43, 44 and not 45]) { } // 18, 19
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(17, 30),
+                // (17,45): warning CS9269: The pattern is redundant.
+                //         if (s is [42 and not 43, 44 and not 45]) { } // 18, 19
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(17, 45),
+                // (18,29): warning CS9269: The pattern is redundant.
+                //         if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 20, 21
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(18, 29),
+                // (18,43): warning CS9269: The pattern is redundant.
+                //         if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 20, 21
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(18, 43),
+                // (20,29): warning CS9269: The pattern is redundant.
+                //         if (t is (not 42 or 43, not 44 or 45)) { } // 22, 23
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(20, 29),
+                // (20,43): warning CS9269: The pattern is redundant.
+                //         if (t is (not 42 or 43, not 44 or 45)) { } // 22, 23
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(20, 43),
+                // (21,30): warning CS9269: The pattern is redundant.
+                //         if (t is (42 and not 43, 44 and not 45)) { } // 24, 25
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(21, 30),
+                // (21,45): warning CS9269: The pattern is redundant.
+                //         if (t is (42 and not 43, 44 and not 45)) { } // 24, 25
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(21, 45),
+                // (22,29): warning CS9269: The pattern is redundant.
+                //         if (t is (not 42 or 43, not 44 or 45) and (var x8, var x9)) { } // 26, 27
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(22, 29),
+                // (22,43): warning CS9269: The pattern is redundant.
+                //         if (t is (not 42 or 43, not 44 or 45) and (var x8, var x9)) { } // 26, 27
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(22, 43),
+                // (24,29): warning CS9269: The pattern is redundant.
+                //         if (o is (not 42 or 43) and var x10) { } // 28
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(24, 29));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        public void RedundantPattern_PullingBinaryPatternsFromCompositePatterns_WithObject(string typeKind)
+        {
+            var source = $$"""
+class C
+{
+    void M(S s, object o)
+    {
+        if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
+        if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
+        if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 5, 6
+        if (s is { Prop1: (not 42 or 43) and var x1 }) { } // 7
+
+        if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
+        if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
+        if (s is (not 42 or 43, _) and var (x2, x3)) { } // 12
+        if (s is (not 42 or 43, _) and (_, _)) { } // 13
+        if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 14, 15
+
+        if (s is [not 42 or 43, not 44 or 45]) { } // 16, 17 TODO2
+        if (s is [42 and not 43, 44 and not 45]) { } // 18, 19
+        if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 20, 21 TODO2
+
+        if (o is (not 42 or 43) and var x10) { } // 22
+    }
+}
+
+public {{typeKind}} S
+{
+    public object Prop1 { get; set; }
+    public object Prop2 { get; set; }
+    public void Deconstruct(out object x, out object y) => throw null;
+
+    public int Length => throw null;
+    public object this[System.Index i] => throw null;
+    public object this[System.Range r] => throw null;
+}
+""";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            compilation.VerifyDiagnostics(
+                // (5,38): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(5, 38),
+                // (5,66): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(5, 66),
+                // (6,37): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 37),
+                // (6,65): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 65),
+                // (7,37): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(7, 37),
+                // (7,64): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 5, 6
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(7, 64),
+                // (8,38): warning CS9269: The pattern is redundant.
+                //         if (s is { Prop1: (not 42 or 43) and var x1 }) { } // 7
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 38),
+                // (10,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 29),
+                // (10,43): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(10, 43),
+                // (11,30): warning CS9269: The pattern is redundant.
+                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 30),
+                // (11,45): warning CS9269: The pattern is redundant.
+                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(11, 45),
+                // (12,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, _) and var (x2, x3)) { } // 12
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 29),
+                // (13,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, _) and (_, _)) { } // 13
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 29),
+                // (14,29): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 14, 15
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 29),
+                // (14,43): warning CS9269: The pattern is redundant.
+                //         if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 14, 15
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(14, 43),
+                // (16,29): warning CS9269: The pattern is redundant.
+                //         if (s is [not 42 or 43, not 44 or 45]) { } // 16, 17 TODO2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(16, 29),
+                // (17,30): warning CS9269: The pattern is redundant.
+                //         if (s is [42 and not 43, 44 and not 45]) { } // 18, 19
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(17, 30),
+                // (17,45): warning CS9269: The pattern is redundant.
+                //         if (s is [42 and not 43, 44 and not 45]) { } // 18, 19
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(17, 45),
+                // (18,29): warning CS9269: The pattern is redundant.
+                //         if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 20, 21 TODO2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(18, 29),
+                // (20,29): warning CS9269: The pattern is redundant.
+                //         if (o is (not 42 or 43) and var x10) { } // 22
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(20, 29));
         }
     }
 }

@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!wasReported)
+            if (!wasReported && diagnostics.AccumulatesDiagnostics)
             {
                 DecisionDagBuilder.CheckRedundantPatternsForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
             }

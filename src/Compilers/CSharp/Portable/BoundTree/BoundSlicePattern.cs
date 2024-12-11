@@ -10,8 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundSlicePattern WithPattern(BoundPattern? pattern)
         {
-            return new BoundSlicePattern(this.Syntax, pattern, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder,
-                this.InputType, this.NarrowedType, this.HasErrors);
+            return Update(pattern, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.InputType, this.NarrowedType);
         }
 
         private partial void Validate()
