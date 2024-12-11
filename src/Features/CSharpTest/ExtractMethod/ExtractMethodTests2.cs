@@ -47,6 +47,25 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
 
         dotnet_naming_style.camel_case.capitalization = camel_case
         """;
+    private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+    private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
+
+    // specify all options explicitly to override defaults.
+    private OptionsCollection ImplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
+
+    private OptionsCollection ExplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+        };
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
     public async Task LocalFuncExtract()
@@ -5453,4 +5472,63 @@ $@"
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
             });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestMultipleOutTuple1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Customer
+            {
+                public int Id;
+            }
+
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+
+                public static async Task Foo(string value)
+                {
+                    [|var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);|]
+
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Customer
+            {
+                public int Id;
+            }
+            
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+            
+                public static async Task Foo(string value)
+                {
+                    var (anotherValue, customer) = await {|Rename:NewMethod|}(value.Length);
+            
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+
+                private static async Task<(string anotherValue, Customer customer)> NewMethod(string value)
+                {
+                    var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);
+                    return (anotherValue, customer);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
 }

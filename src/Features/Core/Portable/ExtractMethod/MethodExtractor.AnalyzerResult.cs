@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
 {
     protected sealed class AnalyzerResult(
-        IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
-        IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
+        ImmutableArray<ITypeParameterSymbol> typeParametersInDeclaration,
+        ImmutableArray<ITypeParameterSymbol> typeParametersInConstraintList,
         ImmutableArray<VariableInfo> variables,
-        VariableInfo variableToUseAsReturnValue,
+        ImmutableArray<VariableInfo> variablesToUseAsReturnValue,
         ITypeSymbol returnType,
         bool returnsByRef,
         bool awaitTaskReturn,
@@ -29,9 +29,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         bool endOfSelectionReachable,
         OperationStatus status)
     {
-        private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration = typeParametersInDeclaration.ToList();
-        private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
-        private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
+        private readonly ImmutableArray<ITypeParameterSymbol> _typeParametersInDeclaration = typeParametersInDeclaration;
+        private readonly ImmutableArray<ITypeParameterSymbol> _typeParametersInConstraintList = typeParametersInConstraintList;
+        private readonly  VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
 
         /// <summary>
         /// used to determine whether static can be used

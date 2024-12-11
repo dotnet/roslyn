@@ -208,7 +208,7 @@ internal sealed partial class CSharpMethodExtractor
         private DeclarationModifiers CreateMethodModifiers()
         {
             var isUnsafe = this.SelectionResult.ShouldPutUnsafeModifier();
-            var isAsync = this.SelectionResult.ShouldPutAsyncModifier();
+            var isAsync = this.SelectionResult.CreateAsyncMethod();
             var isStatic = !AnalyzerResult.UseInstanceMember;
             var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
@@ -595,7 +595,7 @@ internal sealed partial class CSharpMethodExtractor
             }
 
             var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
-            if (this.SelectionResult.ShouldPutAsyncModifier())
+            if (this.SelectionResult.CreateAsyncMethod())
             {
                 if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
                 {

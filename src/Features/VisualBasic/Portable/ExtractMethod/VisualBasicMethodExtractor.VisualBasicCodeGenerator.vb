@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     isShared = True
                 End If
 
-                Dim isAsync = Me.SelectionResult.ShouldPutAsyncModifier()
+                Dim isAsync = Me.SelectionResult.CreateAsyncMethod()
 
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim invocation = SyntaxFactory.InvocationExpression(
                     methodExpression, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
 
-                If Me.SelectionResult.ShouldPutAsyncModifier() Then
+                If Me.SelectionResult.CreateAsyncMethod() Then
                     If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
                         If AnalyzerResult.ReturnType.GetMembers().Any(
                         Function(x)
