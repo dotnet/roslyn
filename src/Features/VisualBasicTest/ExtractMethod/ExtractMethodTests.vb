@@ -1101,7 +1101,7 @@ class Program
     dim i as integer
 
     public sub M()
-        {|Rename:NewMethod|}();
+        {|Rename:NewMethod|}()
     end sub
 
     Private Sub NewMethod()
@@ -1173,7 +1173,7 @@ class Program
     end sub
 
     Private Shared Sub NewMethod()
-        Console.WriteLine();
+        Console.WriteLine()
     End Sub
 end class
 ",
