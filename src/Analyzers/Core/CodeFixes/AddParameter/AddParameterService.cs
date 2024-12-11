@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.AddParameter;
 
 internal static class AddParameterService
 {
+    private static readonly SyntaxAnnotation s_annotation = new();
+
     /// <summary>
     /// Checks if there are indications that there might be more than one declarations that need to be fixed.
     /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
@@ -80,6 +82,7 @@ internal static class AddParameterService
         ITypeSymbol newParameterType,
         RefKind refKind,
         ParameterName parameterName,
+        Argument<TExpressionSyntax>? argument,
         int? newParameterIndex,
         bool fixAllReferences,
         CancellationToken cancellationToken)
@@ -108,6 +111,7 @@ internal static class AddParameterService
             if (syntaxFacts is null)
                 continue;
 
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(syntaxRoot, solution.Services);
             var generator = editor.Generator;
@@ -127,7 +131,8 @@ internal static class AddParameterService
 
                 var argumentInitializer = parameterMustBeOptional ? generator.DefaultExpression(newParameterType) : null;
                 var parameterDeclaration = generator
-                    .ParameterDeclaration(parameterSymbol, argumentInitializer);
+                    .ParameterDeclaration(parameterSymbol, argumentInitializer)
+                    .WithAdditionalAnnotations(Formatter.Annotation, s_annotation);
 
                 if (anySymbolReferencesNotInSource && currentMethodToUpdate == method)
                 {
@@ -146,7 +151,83 @@ internal static class AddParameterService
             solution = solution.WithDocumentSyntaxRoot(document.Id, newRoot);
         }
 
+        // Now that we've added the parameter to the method, see if we added to a constructor that we then want to
+        // assign that parameter to a field/property to as well.
+        solution = await AddConstructorAssignmentsAsync(solution).ConfigureAwait(false);
+
         return solution;
+
+        async Task<Solution> AddConstructorAssignmentsAsync(Solution rewrittenSolution)
+        {
+            var finalSolution = await TryAddConstructorAssignmentsAsync(rewrittenSolution).ConfigureAwait(false);
+            return finalSolution ?? rewrittenSolution;
+        }
+
+        async Task<Solution?> TryAddConstructorAssignmentsAsync(Solution rewrittenSolution)
+        {
+            // If we weren't adding a parameter to a constructor, we have nothing to do here.
+            if (method.MethodKind != MethodKind.Constructor)
+                return null;
+
+            // If we didn't have an argument indicating what was passed to the constructor, then we have nothing to do.
+            if (argument is null)
+                return null;
+
+            // Only want to do this if we updated a single constructor in a single document.
+            var documentsUpdated = locationsByDocument.Select(g => g.Key).ToSet();
+            if (documentsUpdated.Count != 1)
+                return null;
+
+            var documentId = documentsUpdated.Single().Id;
+
+            var memberToAssignTo = await GetMemberToAssignToAsync(documentId).ConfigureAwait(false);
+            if (memberToAssignTo is null)
+                return null;
+
+            // Now go find the constructor after the parameter was added to it.
+            var rewrittenDocument = rewrittenSolution.GetRequiredDocument(documentId);
+            var rewrittenSyntaxRoot = await rewrittenDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var parameterDeclaration = rewrittenSyntaxRoot.GetAnnotatedNodes(s_annotation).SingleOrDefault();
+            if (parameterDeclaration is null)
+                return null;
+
+            var initializeParameterService = rewrittenDocument.GetRequiredLanguageService<IInitializeParameterService>();
+            var semanticModel = await rewrittenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel.GetDeclaredSymbol(parameterDeclaration, cancellationToken) is not IParameterSymbol parameter)
+                return null;
+
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, DeclaringSyntaxReferences: [var reference] })
+                return null;
+
+            var methodNode = reference.GetSyntax(cancellationToken);
+            var body = initializeParameterService.GetBody(methodNode);
+            if (semanticModel.GetOperation(body, cancellationToken) is not IBlockOperation blockOperation)
+                return rewrittenSolution;
+
+            var editor = new SyntaxEditor(rewrittenSyntaxRoot, rewrittenSolution.Services);
+            initializeParameterService.AddAssignment(
+                methodNode, blockOperation, parameter, memberToAssignTo, editor);
+
+            var finalDocument = rewrittenDocument.WithSyntaxRoot(editor.GetChangedRoot());
+            return finalDocument.Project.Solution;
+        }
+
+        async Task<ISymbol?> GetMemberToAssignToAsync(DocumentId documentId)
+        {
+            var constructorDocument = invocationDocument.Project.Solution.GetRequiredDocument(documentId);
+            var constructorSemanticDocument = await SemanticDocument.CreateAsync(constructorDocument, cancellationToken).ConfigureAwait(false);
+
+            var (_, parameterToExistingMember, _, _) = await GenerateConstructorHelpers.GetParametersAsync(
+                constructorSemanticDocument,
+                method.ContainingType,
+                [argument.Value],
+                [newParameterType],
+                [parameterName],
+                cancellationToken).ConfigureAwait(false);
+
+            return parameterToExistingMember.FirstOrDefault().Value;
+        }
     }
 
     private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(

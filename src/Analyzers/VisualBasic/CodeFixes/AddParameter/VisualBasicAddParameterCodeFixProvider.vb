@@ -55,5 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         Protected Overrides Function GetArgumentType(argumentNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ITypeSymbol
             Return DirectCast(argumentNode, ArgumentSyntax).DetermineType(semanticModel, cancellationToken)
         End Function
+
+        Protected Overrides Function GetArgument(argument As ArgumentSyntax) As Argument(Of ExpressionSyntax)
+            Return InitializeParameterHelpers.GetArgument(argument)
+        End Function
     End Class
 End Namespace

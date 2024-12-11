@@ -3153,4 +3153,191 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingField_BlockInitialize()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private readonly string s;
+                private readonly string t;
+                private readonly int i;
+
+                public C(string s, int i)
+                {
+                    this.s = s;
+                    this.i = i;
+                }
+            }
+
+            class D
+            {
+                void M(string t)
+                {
+                    new [|C|]("", t, 0);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string s;
+                private readonly string t;
+                private readonly int i;
+
+                public C(string s, string t, int i)
+                {
+                    this.s = s;
+                    this.t = t;
+                    this.i = i;
+                }
+            }
+            
+            class D
+            {
+                void M(string t)
+                {
+                    new C("", t, 0);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingField_ExpressionBodyInitialize()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private readonly string s;
+                private readonly string t;
+
+                public C(string s)
+                    => this.s = s;
+            }
+
+            class D
+            {
+                void M(string t)
+                {
+                    new [|C|]("", t);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string s;
+                private readonly string t;
+
+                public C(string s, string t)
+                {
+                    this.s = s;
+                    this.t = t;
+                }
+            }
+            
+            class D
+            {
+                void M(string t)
+                {
+                    new C("", t);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingField_TupleInitialize()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private readonly string s;
+                private readonly string t;
+                private readonly string i;
+
+                public C(string s, string t)
+                {
+                    (this.s, this.t) = (s, t);
+                }
+            }
+
+            class D
+            {
+                void M(string i)
+                {
+                    new [|C|]("", "", i);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string s;
+                private readonly string t;
+                private readonly string i;
+
+                public C(string s, string t, string i)
+                {
+                    (this.s, this.t, this.i) = (s, t, i);
+                }
+            }
+            
+            class D
+            {
+                void M(string i)
+                {
+                    new C("", "", i);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingField_UnderscoreName()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private readonly string _s;
+
+                public C()
+                {
+                }
+            }
+
+            class D
+            {
+                void M(string s)
+                {
+                    new [|C|](s);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
+
+                public C(string s)
+                {
+                    _s = s;
+                }
+            }
+            
+            class D
+            {
+                void M(string s)
+                {
+                    new C(s);
+                }
+            }
+            """);
+    }
 }

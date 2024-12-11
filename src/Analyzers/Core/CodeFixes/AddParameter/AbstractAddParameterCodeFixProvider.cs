@@ -38,6 +38,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
     protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
     protected abstract ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken);
+    protected abstract Argument<TExpressionSyntax> GetArgument(TArgumentSyntax argument);
 
     public override FixAllProvider? GetFixAllProvider()
     {
@@ -385,6 +386,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             argumentType,
             refKind,
             new ParameterName(argumentNameSuggestion, isNamedArgument, tryMakeCamelCase: !method.ContainingType.IsRecord),
+            GetArgument(argument),
             newParameterIndex,
             fixAllReferences,
             cancellationToken).ConfigureAwait(false);
