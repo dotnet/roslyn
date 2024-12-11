@@ -4387,7 +4387,7 @@ class X : List<int>
                     {
                         var local = 1;
                         var r = new R() { local };
-                        return r;
+                        return r; // 3
                     }
 
                     unsafe void M5()
@@ -4401,7 +4401,7 @@ class X : List<int>
                     {
                         var local = 1;
                         R r;
-                        r = new R() { local }; // 3
+                        r = new R() { local }; // 4
                     }
                 }
 
@@ -4421,8 +4421,11 @@ class X : List<int>
                 // (24,23): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         r = new R() { local }; // 2
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(24, 23),
+                // (31,16): warning CS9080: Use of variable 'r' in this context may expose referenced variables outside of their declaration scope
+                //         return r; // 3
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "r").WithArguments("r").WithLocation(31, 16),
                 // (45,23): warning CS9091: This returns local 'local' by reference but it is not a ref local
-                //         r = new R() { local }; // 3
+                //         r = new R() { local }; // 4
                 Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(45, 23));
         }
 
