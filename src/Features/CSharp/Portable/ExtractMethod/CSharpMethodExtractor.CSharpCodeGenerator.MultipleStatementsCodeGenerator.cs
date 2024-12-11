@@ -24,8 +24,7 @@ internal sealed partial class CSharpMethodExtractor
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
             ExtractMethodGenerationOptions options,
-            bool localFunction)
-            : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
+            bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
         {
             protected override SyntaxToken CreateMethodName()
                 => GenerateMethodNameForStatementGenerators();
