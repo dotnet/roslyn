@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             lock (s_resolverLock)
             {
-                if (s_assemblyResolver is not null && !s_assembliesRequested.Contains(canaryAssembly))
+                if (s_assemblyResolver is null && !s_assembliesRequested.Contains(canaryAssembly))
                 {
                     s_assemblyResolver = resolver;
                     return true;
