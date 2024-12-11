@@ -644,28 +644,39 @@ internal sealed partial class CSharpMethodExtractor
         }
 
         protected override StatementSyntax CreateDeclarationStatement(
-            VariableInfo variable,
+            ImmutableArray<VariableInfo> variableInfos,
             ExpressionSyntax initialValue,
             CancellationToken cancellationToken)
         {
-            var type = variable.GetVariableType();
-            var typeNode = type.GenerateTypeSyntax();
+            Contract.ThrowIfTrue(variableInfos.Length == 0);
 
-            var originalIdentifierToken = variable.GetOriginalIdentifierToken(cancellationToken);
+            if (variableInfos is [var singleVariable])
+            {
+                var type = singleVariable.GetVariableType();
+                var typeNode = type.GenerateTypeSyntax();
 
-            // Hierarchy being checked for to see if a using keyword is needed is
-            // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
-            var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
-                ? UsingKeyword
-                : default;
+                var originalIdentifierToken = singleVariable.GetOriginalIdentifierToken(cancellationToken);
 
-            var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);
+                // Hierarchy being checked for to see if a using keyword is needed is
+                // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
+                var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
+                    ? UsingKeyword
+                    : default;
 
-            return LocalDeclarationStatement(
-                VariableDeclaration(typeNode)
-                      .AddVariables(VariableDeclarator(Identifier(variable.Name))
-                      .WithInitializer(equalsValueClause)))
-                .WithUsingKeyword(usingKeyword);
+                var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);
+
+                return LocalDeclarationStatement(
+                    VariableDeclaration(typeNode)
+                          .AddVariables(VariableDeclarator(singleVariable.Name.ToIdentifierToken())
+                          .WithInitializer(equalsValueClause)))
+                    .WithUsingKeyword(usingKeyword);
+            }
+            else
+            {
+                if (this.Options.simpl)
+
+                var tuple = TupleExpression(SeparatedList(arguments));
+            }
         }
 
         protected override async Task<GeneratedCode> CreateGeneratedCodeAsync(
