@@ -574,13 +574,12 @@ internal sealed partial class CSharpMethodExtractor
 
         protected override ExpressionSyntax CreateCallSignature()
         {
-            var methodName = CreateMethodNameForInvocation();
+            var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
             ExpressionSyntax methodExpression =
                 this.AnalyzerResult.UseInstanceMember && this.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value && !LocalFunction
                 ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), methodName)
                 : methodName;
 
-            methodExpression = methodExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
 
             using var _ = ArrayBuilder<ArgumentSyntax>.GetInstance(out var arguments);

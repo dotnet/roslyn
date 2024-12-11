@@ -337,14 +337,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function CreateCallSignature() As ExpressionSyntax
-                Dim methodName = CreateMethodNameForInvocation()
+                Dim methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation)
 
                 Dim methodExpression =
                     If(Me.AnalyzerResult.UseInstanceMember AndAlso Me.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value,
                         SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.MeExpression(), SyntaxFactory.Token(SyntaxKind.DotToken), methodName),
                         DirectCast(methodName, ExpressionSyntax))
-
-                methodExpression = methodExpression.WithAdditionalAnnotations(Simplifier.Annotation)
 
                 Dim arguments = New List(Of ArgumentSyntax)()
                 For Each argument In AnalyzerResult.MethodParameters
