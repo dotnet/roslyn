@@ -178,14 +178,14 @@ internal sealed partial class CSharpMethodExtractor
 
         private SimpleNameSyntax CreateMethodNameForInvocation()
         {
-            return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
+            return AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty
                 ? IdentifierName(_methodName)
                 : GenericName(_methodName, TypeArgumentList(CreateMethodCallTypeVariables()));
         }
 
         private SeparatedSyntaxList<TypeSyntax> CreateMethodCallTypeVariables()
         {
-            Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
+            Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty);
 
             // propagate any type variable used in extracted code
             return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];
@@ -526,13 +526,13 @@ internal sealed partial class CSharpMethodExtractor
             return declStatements.Concat(statements);
         }
 
-        private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
-        {
-            return AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                IdentifierName(identifier),
-                rvalue);
-        }
+        //private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
+        //{
+        //    return AssignmentExpression(
+        //        SyntaxKind.SimpleAssignmentExpression,
+        //        IdentifierName(identifier),
+        //        rvalue);
+        //}
 
         protected override bool LastStatementOrHasReturnStatementInReturnableConstruct()
         {
@@ -563,14 +563,12 @@ internal sealed partial class CSharpMethodExtractor
         }
 
         protected override SyntaxToken CreateIdentifier(string name)
-            => Identifier(name);
+            => name.ToIdentifierToken();
 
-        protected override StatementSyntax CreateReturnStatement(string identifierName = null)
-        {
-            return string.IsNullOrEmpty(identifierName)
-                ? ReturnStatement()
-                : ReturnStatement(IdentifierName(identifierName));
-        }
+        protected override StatementSyntax CreateReturnStatement(string[] identifierNames)
+            => identifierNames.Length == 0 ? ReturnStatement() :
+               identifierNames.Length == 1 ? ReturnStatement(IdentifierName(identifierNames[0])) :
+               ReturnStatement(TupleExpression(SeparatedList(identifierNames.Select(n => Argument(n.ToIdentifierName())))));
 
         protected override ExpressionSyntax CreateCallSignature()
         {
@@ -623,8 +621,27 @@ internal sealed partial class CSharpMethodExtractor
             return invocation;
         }
 
-        protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
-            => ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
+        protected override StatementSyntax CreateAssignmentExpressionStatement(
+            ImmutableArray<VariableInfo> variableInfos, ExpressionSyntax rvalue)
+        {
+            Contract.ThrowIfTrue(variableInfos.IsEmpty);
+            if (variableInfos is [var singleInfo])
+            {
+                return ExpressionStatement(AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    singleInfo.Name.ToIdentifierName(),
+                    rvalue));
+            }
+            else
+            {
+                var tupleExpression = TupleExpression(
+                    SeparatedList(variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))));
+                return ExpressionStatement(AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    tupleExpression,
+                    rvalue));
+            }
+        }
 
         protected override StatementSyntax CreateDeclarationStatement(
             VariableInfo variable,
