@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         private static Func<AssemblyName, Assembly?>? s_assemblyResolver;
 
-        private static readonly List<AssemblyName>? s_assembliesRequested = [];
+        private static readonly List<AssemblyName> s_assembliesRequested = [];
 
         private static readonly object s_resolverLock = new();
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             lock (s_resolverLock)
             {
-                if (s_assemblyResolver is not null && s_assembliesRequested is not null && !s_assembliesRequested.Contains(canaryAssembly))
+                if (s_assemblyResolver is not null && !s_assembliesRequested.Contains(canaryAssembly))
                 {
                     s_assemblyResolver = resolver;
                     return true;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             lock (s_resolverLock)
             {
-                s_assembliesRequested?.Add(assemblyName);
+                s_assembliesRequested.Add(assemblyName);
                 return s_assemblyResolver?.Invoke(assemblyName);
             }
         }
