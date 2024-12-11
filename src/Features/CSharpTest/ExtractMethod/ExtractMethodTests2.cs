@@ -5516,7 +5516,7 @@ $@"
             
                 public static async Task Foo(string value)
                 {
-                    var (anotherValue, customer) = await {|Rename:NewMethod|}(value.Length);
+                    var (anotherValue, customer) = await {|Rename:NewMethod|}(value);
             
                     Console.Write(customer.Id);
                     Console.Write(anotherValue);

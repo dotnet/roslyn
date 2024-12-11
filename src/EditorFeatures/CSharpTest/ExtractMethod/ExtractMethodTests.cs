@@ -10861,7 +10861,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
     public async Task TestAsyncMethodWithRefOrOutParameters()
     {
-        var code =
+        await TestExtractMethodAsync(
             """
             using System.Threading.Tasks;
 
@@ -10876,9 +10876,29 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     var s = p;
                 }
             }
-            """;
+            """,
 
-        await ExpectExtractMethodToFailAsync(code);
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async void Goo()
+                {
+                    (int q, int p) = await {|Rename:NewMethod|}();
+                    var r = q;
+                    var s = p;
+                }
+
+                private static async Task<(int q, int p)> NewMethod()
+                {
+                     var q = 1;
+                     var p = 2;
+                     await Task.Yield();
+                     return (q, p);
+                 }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
