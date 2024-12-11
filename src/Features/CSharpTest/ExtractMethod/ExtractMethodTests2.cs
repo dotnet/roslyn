@@ -156,7 +156,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
                 private static int NewMethod(int x) => 1 + x;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
     }
 
     [Fact]
@@ -198,7 +198,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
     }
 
     [Fact]
@@ -227,7 +227,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static bool NewMethod(bool b) => b != true;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
     }
 
     [Fact]
@@ -256,7 +256,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static bool NewMethod(bool b) => b != true;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -291,7 +291,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static bool NewMethod(bool b) => b != true;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -325,7 +325,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -359,7 +359,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -384,7 +384,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static int NewMethod(int i) => i * 10 + 2;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -409,7 +409,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -520,7 +520,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -554,7 +554,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
@@ -846,7 +846,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 static void Main()
                 {
                     byte z = 0;
-                    Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
+                    Goo({|Rename:NewMethod|}(), y => 0, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -888,7 +888,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 static void Main()
                 {
                     byte z = 0;
-                    Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
+                    Goo({|Rename:NewMethod|}(), y => { return 0; }, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -985,7 +985,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), - -1);
                 }
 
                 private static string GetX(string x)
@@ -1087,7 +1087,7 @@ parseOptions: TestOptions.Regular);
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), - -1);
                 }
 
                 private static string GetX(string x)
@@ -5299,4 +5299,158 @@ $@"
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForInstanceMethodWhenOff()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    [|Console.WriteLine(i);|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private void NewMethod()
+                {
+                    Console.WriteLine(i);
+                }
+            }
+            """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement },
+            });
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public async Task TestPreferThisPreference_ForInstanceMethodWhenOn(ReportDiagnostic diagnostic)
+    {
+        if (diagnostic is ReportDiagnostic.Default)
+            return;
+
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    [|Console.WriteLine(i);|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    this.{|Rename:NewMethod|}();
+                }
+
+                private void NewMethod()
+                {
+                    Console.WriteLine(i);
+                }
+            }
+            """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, new CodeStyleOption2<bool>(true, new(diagnostic, true)) },
+            });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForStaticMethodWhenOn()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    [|Console.WriteLine();|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    Console.WriteLine();
+                }
+            }
+            """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForLocalFunctionWhenOn()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    [|Console.WriteLine();|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+
+                    static void NewMethod()
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            }
+            """,
+            index: 1,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
+            });
 }

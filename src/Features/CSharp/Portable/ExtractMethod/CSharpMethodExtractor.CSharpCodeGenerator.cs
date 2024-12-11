@@ -45,7 +45,7 @@ internal sealed partial class CSharpMethodExtractor
             InsertionPoint insertionPoint,
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction,
             CancellationToken cancellationToken)
         {
@@ -56,7 +56,7 @@ internal sealed partial class CSharpMethodExtractor
         public static CSharpCodeGenerator Create(
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction)
         {
             if (selectionResult.SelectionInExpression)
@@ -74,7 +74,7 @@ internal sealed partial class CSharpMethodExtractor
         protected CSharpCodeGenerator(
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction)
             : base(selectionResult, analyzerResult, options, localFunction)
         {
@@ -575,6 +575,11 @@ internal sealed partial class CSharpMethodExtractor
         protected override ExpressionSyntax CreateCallSignature()
         {
             var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
+            ExpressionSyntax methodExpression =
+                this.AnalyzerResult.UseInstanceMember && this.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value && !LocalFunction
+                ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), methodName)
+                : methodName;
+
             var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
 
             using var _ = ArrayBuilder<ArgumentSyntax>.GetInstance(out var arguments);
@@ -589,7 +594,7 @@ internal sealed partial class CSharpMethodExtractor
                 }
             }
 
-            var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList([.. arguments]));
+            var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
             if (this.SelectionResult.ShouldPutAsyncModifier())
             {
                 if (this.SelectionResult.ShouldCallConfigureAwaitFalse())

@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -45,15 +47,22 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly AnalyzerResult AnalyzerResult;
 
+        protected readonly ExtractMethodGenerationOptions ExtractMethodGenerationOptions;
         protected readonly TCodeGenerationOptions Options;
+
         protected readonly bool LocalFunction;
 
-        protected CodeGenerator(TSelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+        protected CodeGenerator(
+            TSelectionResult selectionResult,
+            AnalyzerResult analyzerResult,
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         {
             SelectionResult = selectionResult;
             AnalyzerResult = analyzerResult;
 
-            Options = options;
+            ExtractMethodGenerationOptions = options;
+            Options = (TCodeGenerationOptions)options.CodeGenerationOptions;
             LocalFunction = localFunction;
 
             MethodNameAnnotation = new SyntaxAnnotation();

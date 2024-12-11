@@ -9,13 +9,15 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod;
+
+using VerifyCS = CSharpCodeRefactoringVerifier<
+    ExtractMethodCodeRefactoringProvider>;
 
 public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
 {
@@ -590,7 +592,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
                 static void Main()
                 {
                     byte z = 0;
-                    Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
+                    Goo({|Rename:NewMethod|}(), y => 0, z, z);
 
                     static Func<byte, byte> NewMethod()
                     {
@@ -632,7 +634,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
                 static void Main()
                 {
                     byte z = 0;
-                    Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
+                    Goo({|Rename:NewMethod|}(), y => { return 0; }, z, z);
 
                     static Func<byte, byte> NewMethod()
                     {
@@ -727,7 +729,7 @@ public sealed class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoE
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), - -1);
 
                     static string GetX(string x)
                     {
@@ -828,7 +830,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), - -1);
 
                     static string GetX(string x)
                     {
