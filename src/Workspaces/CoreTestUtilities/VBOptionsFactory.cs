@@ -18,6 +18,6 @@ internal static class VBOptionsFactory
         => new()
         {
             CodeGenerationOptions = codeGenerationOptions,
-            CodeCleanupOptions = codeCleanupOptions,
+            CodeCleanupOptions = codeCleanupOptions
         };
 }
