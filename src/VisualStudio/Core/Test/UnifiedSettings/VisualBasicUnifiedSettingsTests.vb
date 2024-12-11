@@ -84,18 +84,19 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
                             }
                 Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
                 Dim categories = registrationDocument.RootElement.GetProperty("categories")
+                Dim nameToCategories = categories.EnumerateObject.ToDictionary(
+                    Function(kvp) kvp.Name,
+                    Function(kvp) kvp.Value.Deserialize(Of UnifiedSettingsCategory))
 
-                'Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings())
-                'Dim categoriesTitle = registrationJsonObject.SelectToken("$.categories['textEditor.basic'].title")
-                'Assert.Equal("Visual Basic", categoriesTitle)
-                'Dim optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.basic.intellisense'].legacyOptionPageId")
-                'Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, optionPageId.ToString())
-                'TestUnifiedSettingsCategory(registrationJsonObject, categoryBasePath:="textEditor.basic.intellisense", languageName:=LanguageNames.VisualBasic, pkgDefFile)
+                Assert.True(nameToCategories.ContainsKey("textEditor.basic"))
+                Assert.Equal("Visual Basic", nameToCategories("textEditor.basic").Title)
+
+                Assert.True(nameToCategories.ContainsKey("textEditor.basic.intellisense"))
             End Using
         End Function
 
         <Fact>
-        Public Async Function IntelliSensePageTests() As Task
+        Public Async Function IntelliSensePageTest() As Task
             Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
                 Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
                     Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
