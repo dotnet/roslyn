@@ -40,7 +40,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
             language,
             entryWriter: (name, value) => builder.AppendLine($"{name} = {value}"),
             triviaWriter: trivia => builder.AppendLine(trivia),
-            priority: null);
+            setPrioritiesToPreserveOrder: false);
     }
 
     public static void WriteNamingStylePreferencesToEditorConfig(
@@ -50,7 +50,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         string language,
         Action<string, string> entryWriter,
         Action<string>? triviaWriter,
-        int? priority)
+        bool setPrioritiesToPreserveOrder)
     {
         triviaWriter?.Invoke($"#### {CompilerExtensionsResources.Naming_styles} ####");
 
@@ -61,7 +61,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         triviaWriter?.Invoke("");
         triviaWriter?.Invoke($"# {CompilerExtensionsResources.Naming_rules}");
 
-        var ruleIndex = 0;
+        var priority = 0;
         foreach (var namingRule in rules)
         {
             referencedElements.Add(namingRule.SymbolSpecificationID);
@@ -70,16 +70,16 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
             triviaWriter?.Invoke("");
             var ruleName = ruleNameMap[namingRule];
 
-            if (priority.HasValue)
+            if (setPrioritiesToPreserveOrder)
             {
-                entryWriter($"dotnet_naming_rule.{ruleName}.priority", $"{priority.Value + ruleIndex}");
+                entryWriter($"dotnet_naming_rule.{ruleName}.priority", priority.ToString());
             }
 
             entryWriter($"dotnet_naming_rule.{ruleName}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
             entryWriter($"dotnet_naming_rule.{ruleName}.symbols", serializedNameMap[namingRule.SymbolSpecificationID]);
             entryWriter($"dotnet_naming_rule.{ruleName}.style", serializedNameMap[namingRule.NamingStyleID]);
 
-            ruleIndex++;
+            priority++;
         }
 
         triviaWriter?.Invoke("");

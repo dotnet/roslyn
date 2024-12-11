@@ -95,8 +95,7 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService 
                                 language,
                                 entryWriter: (name, value) => lazyBuilder[name] = value,
                                 triviaWriter: null,
-                                // lower priority than any that would be specified explicitly in editorconfig:
-                                priority: int.MaxValue - preferences.NamingRules.Length);
+                                setPrioritiesToPreserveOrder: true);
                         }
                         else
                         {
