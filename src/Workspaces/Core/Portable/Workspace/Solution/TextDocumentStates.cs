@@ -49,6 +49,7 @@ internal sealed class TextDocumentStates<TState>
 #endif
 
     private readonly ImmutableList<DocumentId> _ids;
+    private ImmutableArray<TState> _statesInCompilationOrder;
     private FilePathToDocumentIds? _filePathToDocumentIds;
 
     private TextDocumentStates(
@@ -61,6 +62,7 @@ internal sealed class TextDocumentStates<TState>
         _ids = ids;
         States = map;
         _filePathToDocumentIds = filePathToDocumentIds;
+        _statesInCompilationOrder = ImmutableArray<TState>.Empty;
     }
 
     public TextDocumentStates(IEnumerable<TState> states)
@@ -117,10 +119,15 @@ internal sealed class TextDocumentStates<TState>
     /// Get states ordered in compilation order.
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<TState> GetStatesInCompilationOrder()
+    public ImmutableArray<TState> GetStatesInCompilationOrder()
     {
-        var map = States;
-        return Ids.Select(id => map[id]);
+        if (_statesInCompilationOrder.IsEmpty)
+        {
+            var map = States;
+            _statesInCompilationOrder = Ids.SelectAsArray(static (id, map) => map[id], map);
+        }
+
+        return _statesInCompilationOrder;
     }
 
     public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
