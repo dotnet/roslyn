@@ -8630,6 +8630,31 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsUserDefined_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M(new E());
+
+            static class C
+            {
+                public static void M(Span<object> arg) => Console.Write(1);
+                public static void M(D arg) => Console.Write(2);
+            }
+
+            class D
+            {
+                public static implicit operator Span<object>(D d) => default;
+            }
+
+            class E : D;
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "2", verify: Verification.FailsILVerify).VerifyDiagnostics();
+    }
+
     [Fact]
     public void OverloadResolution_ReadOnlySpanVsArrayVsSpan()
     {
