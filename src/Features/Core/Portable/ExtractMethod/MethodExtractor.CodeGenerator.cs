@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -36,6 +38,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         where TNodeUnderContainer : SyntaxNode
         where TCodeGenerationOptions : CodeGenerationOptions
     {
+        private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+
         protected readonly SyntaxAnnotation MethodNameAnnotation;
         protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
         protected readonly SyntaxAnnotation CallSiteAnnotation;
@@ -43,15 +47,22 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly AnalyzerResult AnalyzerResult;
 
+        protected readonly ExtractMethodGenerationOptions ExtractMethodGenerationOptions;
         protected readonly TCodeGenerationOptions Options;
+
         protected readonly bool LocalFunction;
 
-        protected CodeGenerator(TSelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+        protected CodeGenerator(
+            TSelectionResult selectionResult,
+            AnalyzerResult analyzerResult,
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         {
             SelectionResult = selectionResult;
             AnalyzerResult = analyzerResult;
 
-            Options = options;
+            ExtractMethodGenerationOptions = options;
+            Options = (TCodeGenerationOptions)options.CodeGenerationOptions;
             LocalFunction = localFunction;
 
             MethodNameAnnotation = new SyntaxAnnotation();
@@ -134,7 +145,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             {
                 // Now, insert the local function.
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(generateDefaultAccessibility: false),
+                    s_codeGenerationContext.With(generateDefaultAccessibility: false),
                     Options,
                     document.Project.ParseOptions);
 
@@ -166,7 +177,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 var destination = mappedMember.Parent ?? mappedMember;
 
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(
+                    s_codeGenerationContext.With(
                         afterThisLocation: mappedMember.GetLocation(),
                         generateDefaultAccessibility: true,
                         generateMethodBodies: true),

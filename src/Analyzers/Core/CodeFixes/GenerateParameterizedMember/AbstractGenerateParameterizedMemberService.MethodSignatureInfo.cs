@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 

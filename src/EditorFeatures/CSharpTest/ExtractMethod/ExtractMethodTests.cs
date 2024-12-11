@@ -10626,7 +10626,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
 
                 static void Main()
                 {
-                    Outer(null, (Action<string>)(y => Inner(x => { GetX(x).Ex(); }, y))); // Prints 1
+                    Outer(null, y => Inner(x => { GetX(x).Ex(); }, y)); // Prints 1
                 }
 
                 private static string GetX(string x)
@@ -10689,7 +10689,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
 
                 static void Main()
                 {
-                    Outer(null, (Action<string>)(y => Inner(x => { NewMethod(x); }, y))); // Prints 1
+                    Outer(null, y => Inner(x => { NewMethod(x); }, y)); // Prints 1
                 }
 
                 private static void NewMethod(string x)
@@ -10752,7 +10752,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
 
                 static void Main()
                 {
-                    Outer(null, (Action<string>)(y => Inner(x => { NewMethod(x); }, y))); // Prints 1
+                    Outer(null, y => Inner(x => { NewMethod(x); }, y)); // Prints 1
                 }
 
                 private static void NewMethod(string x)
@@ -12140,7 +12140,7 @@ $@"namespace ClassLibrary9
             System.Console.WriteLine([|"string"|]);
             """;
         var expected = """
-            System.Console.WriteLine((string)NewMethod());
+            System.Console.WriteLine(NewMethod());
 
             static string NewMethod()
             {
@@ -12637,6 +12637,52 @@ $@"namespace ClassLibrary9
             class Item
             {
                 public bool IsSelected { get; set; }
+            }
+            """";
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70024")]
+    public async Task TestAliasedType()
+    {
+        var code = """"
+            using System;
+            using Spec = System.Collections.Specialized;
+
+            namespace ClassLibrary3
+            {
+                public class T
+                {
+                    public void Method()
+                    {
+                        var value = new Spec.ListDictionary();
+
+                        [|Console.WriteLine(value);|]
+                    }
+                }
+            }
+            """";
+        var expected = """"
+            using System;
+            using Spec = System.Collections.Specialized;
+            
+            namespace ClassLibrary3
+            {
+                public class T
+                {
+                    public void Method()
+                    {
+                        var value = new Spec.ListDictionary();
+            
+                        NewMethod(value);
+                    }
+
+                    private static void NewMethod(Spec.ListDictionary value)
+                    {
+                        Console.WriteLine(value);
+                    }
+                }
             }
             """";
 

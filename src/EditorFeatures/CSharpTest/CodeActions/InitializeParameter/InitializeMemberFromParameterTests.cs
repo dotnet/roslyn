@@ -1026,358 +1026,358 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
     public async Task TestNoParameterNamingStyle_CreateAndInitField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string s)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                public C([||]string s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string s)
-    {
-        _s = s;
-    }
-}
-""", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                public C(string s)
+                {
+                    _s = s;
+                }
+            }
+            """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
     }
 
     [Fact]
     public async Task TestCommonParameterNamingStyle_CreateAndInitField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string t_s)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                public C([||]string t_s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string t_s)
-    {
-        _s = t_s;
-    }
-}
-""", index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                public C(string t_s)
+                {
+                    _s = t_s;
+                }
+            }
+            """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
     }
 
     [Fact]
     public async Task TestSpecifiedParameterNamingStyle_CreateAndInitField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string p_s_End)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                public C([||]string p_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string p_s_End)
-    {
-        _s = p_s_End;
-    }
-}
-""", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public C(string p_s_End)
+                {
+                    _s = p_s_End;
+                }
+            }
+            """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
     public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string t_p_s_End)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                public C([||]string t_p_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string t_p_s_End)
-    {
-        _s = t_p_s_End;
-    }
-}
-""", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public C(string t_p_s_End)
+                {
+                    _s = t_p_s_End;
+                }
+            }
+            """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
     public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string p_t_s)
-    {
-    }
-}
-""",
-    """
-    class C
-    {
-        private readonly string _s;
+            """
+            class C
+            {
+                public C([||]string p_t_s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-        public C([||]string p_t_s)
-        {
-            _s = p_t_s;
-        }
-    }
-    """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+                public C([||]string p_t_s)
+                {
+                    _s = p_t_s;
+                }
+            }
+            """, index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
     }
 
     [Fact]
     public async Task TestNoParameterNamingStyle_CreateAndInitProperty()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string s)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    public C(string s)
-    {
-        S = s;
-    }
+            """
+            class C
+            {
+                public C([||]string s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(string s)
+                {
+                    S = s;
+                }
 
-    public string S { get; }
-}
-""", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                public string S { get; }
+            }
+            """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
     }
 
     [Fact]
     public async Task TestCommonParameterNamingStyle_CreateAndInitProperty()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string t_s)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    public C(string t_s)
-    {
-        S = t_s;
-    }
+            """
+            class C
+            {
+                public C([||]string t_s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(string t_s)
+                {
+                    S = t_s;
+                }
 
-    public string S { get; }
-}
-""", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+                public string S { get; }
+            }
+            """, parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
     }
 
     [Fact]
     public async Task TestSpecifiedParameterNamingStyle_CreateAndInitProperty()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string p_s_End)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    public C(string p_s_End)
-    {
-        S = p_s_End;
-    }
+            """
+            class C
+            {
+                public C([||]string p_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(string p_s_End)
+                {
+                    S = p_s_End;
+                }
 
-    public string S { get; }
-}
-""", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public string S { get; }
+            }
+            """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
     public async Task TestCommonAndSpecifiedParameterNamingStyle_CreateAndInitProperty()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string t_p_s_End)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    public C(string t_p_s_End)
-    {
-        S = t_p_s_End;
-    }
+            """
+            class C
+            {
+                public C([||]string t_p_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(string t_p_s_End)
+                {
+                    S = t_p_s_End;
+                }
 
-    public string S { get; }
-}
-""", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public string S { get; }
+            }
+            """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
     public async Task TestCommonAndSpecifiedParameterNamingStyle2_CreateAndInitProperty()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    public C([||]string p_t_s_End)
-    {
-    }
-}
-""",
-    """
-    class C
-    {
-        public C([||]string p_t_s_End)
-        {
-            S = p_t_s_End;
-        }
+            """
+            class C
+            {
+                public C([||]string p_t_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C([||]string p_t_s_End)
+                {
+                    S = p_t_s_End;
+                }
 
-        public string S { get; }
-    }
-    """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public string S { get; }
+            }
+            """, parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
     public async Task TestNoParameterNamingStyle_InitializeField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C([||]string s)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+                public C([||]string s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string s)
-    {
-        _s = s;
-    }
-}
-""", index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                public C(string s)
+                {
+                    _s = s;
+                }
+            }
+            """, index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
     }
 
     [Fact]
     public async Task TestCommonParameterNamingStyle_InitializeField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C([||]string t_s)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+                public C([||]string t_s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string t_s)
-    {
-        _s = t_s;
-    }
-}
-""", index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
+                public C(string t_s)
+                {
+                    _s = t_s;
+                }
+            }
+            """, index: 0, parameters: new TestParameters(options: options.FieldNamesAreCamelCaseWithUnderscorePrefix));
     }
 
     [Fact]
     public async Task TestSpecifiedParameterNamingStyle_InitializeField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C([||]string p_s_End)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+                public C([||]string p_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string p_s_End)
-    {
-        _s = p_s_End;
-    }
-}
-""", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public C(string p_s_End)
+                {
+                    _s = p_s_End;
+                }
+            }
+            """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
     public async Task TestCommonAndSpecifiedParameterNamingStyle_InitializeField()
     {
         await TestInRegularAndScript1Async(
-"""
-class C
-{
-    private readonly string _s;
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C([||]string t_p_s_End)
-    {
-    }
-}
-""",
-"""
-class C
-{
-    private readonly string _s;
+                public C([||]string t_p_s_End)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _s;
 
-    public C(string t_p_s_End)
-    {
-        _s = t_p_s_End;
-    }
-}
-""", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
+                public C(string t_p_s_End)
+                {
+                    _s = t_p_s_End;
+                }
+            }
+            """, index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
     }
 
     [Fact]
