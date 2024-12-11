@@ -5741,7 +5741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
         private BoundExpression BindObjectInitializerMember(
             AssignmentExpressionSyntax namedAssignment,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
@@ -5757,7 +5757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
         private BoundExpression BindObjectInitializerMemberMissingAssignment(
             ExpressionSyntax leftSyntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
@@ -5767,7 +5767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftSyntax, implicitReceiver, BindValueKind.Assignable, false, diagnostics);
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
         private BoundExpression BindObjectInitializerMemberCommon(
             ExpressionSyntax leftSyntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
