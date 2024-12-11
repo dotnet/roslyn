@@ -22,17 +22,17 @@ internal static class SymbolCompletionItem
 {
     private const string InsertionTextProperty = "InsertionText";
 
-    private static readonly Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
-    private static readonly Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
+    private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
+    private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
     private static readonly char[] s_projectSeperators = [';'];
 
     private static CompletionItem CreateWorker(
         string displayText,
         string? displayTextSuffix,
-        IReadOnlyList<ISymbol> symbols,
+        ImmutableArray<ISymbol> symbols,
         CompletionItemRules rules,
         int contextPosition,
-        Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> symbolEncoder,
+        Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> symbolEncoder,
         string? sortText = null,
         string? insertionText = null,
         string? filterText = null,
@@ -50,16 +50,14 @@ internal static class SymbolCompletionItem
             builder.AddRange(properties);
 
         if (insertionText != null)
-        {
             builder.Add(KeyValuePairUtil.Create(InsertionTextProperty, insertionText));
-        }
 
         builder.Add(KeyValuePairUtil.Create("ContextPosition", contextPosition.ToString()));
         AddSupportedPlatforms(builder, supportedPlatforms);
         symbolEncoder(symbols, builder);
 
         tags = tags.NullToEmpty();
-        if (symbols.All(symbol => symbol.IsObsolete()) && !tags.Contains(WellKnownTags.Deprecated))
+        if (!tags.Contains(WellKnownTags.Deprecated) && symbols.All(static symbol => symbol.IsObsolete()))
             tags = tags.Add(WellKnownTags.Deprecated);
 
         var firstSymbol = symbols[0];
@@ -80,10 +78,10 @@ internal static class SymbolCompletionItem
         return item;
     }
 
-    private static void AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
+    private static void AddSymbolEncoding(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
         => properties.Add(KeyValuePairUtil.Create("Symbols", EncodeSymbols(symbols)));
 
-    private static void AddSymbolInfo(IReadOnlyList<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
+    private static void AddSymbolInfo(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
     {
         var symbol = symbols[0];
         var isGeneric = symbol.GetArity() > 0;
@@ -107,13 +105,13 @@ internal static class SymbolCompletionItem
         return false;
     }
 
-    public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
+    public static string EncodeSymbols(ImmutableArray<ISymbol> symbols)
     {
-        if (symbols.Count > 1)
+        if (symbols.Length > 1)
         {
             return string.Join("|", symbols.Select(EncodeSymbol));
         }
-        else if (symbols.Count == 1)
+        else if (symbols.Length == 1)
         {
             return EncodeSymbol(symbols[0]);
         }
@@ -270,7 +268,7 @@ internal static class SymbolCompletionItem
     // COMPAT OVERLOAD: This is used by IntelliCode.
     public static CompletionItem CreateWithSymbolId(
         string displayText,
-        IReadOnlyList<ISymbol> symbols,
+        ImmutableArray<ISymbol> symbols,
         CompletionItemRules rules,
         int contextPosition,
         string? sortText = null,
@@ -302,7 +300,7 @@ internal static class SymbolCompletionItem
     public static CompletionItem CreateWithSymbolId(
         string displayText,
         string? displayTextSuffix,
-        IReadOnlyList<ISymbol> symbols,
+        ImmutableArray<ISymbol> symbols,
         CompletionItemRules rules,
         int contextPosition,
         string? sortText = null,
@@ -326,7 +324,7 @@ internal static class SymbolCompletionItem
     public static CompletionItem CreateWithNameAndKind(
         string displayText,
         string displayTextSuffix,
-        IReadOnlyList<ISymbol> symbols,
+        ImmutableArray<ISymbol> symbols,
         CompletionItemRules rules,
         int contextPosition,
         string? sortText = null,
@@ -357,12 +355,12 @@ internal static class SymbolCompletionItem
         => item.TryGetProperty("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
     public static async Task<CompletionDescription> GetDescriptionAsync(
-        CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, SymbolDescriptionOptions options, CancellationToken cancellationToken)
     {
         var position = GetDescriptionPosition(item);
         var supportedPlatforms = GetSupportedPlatforms(item, document.Project.Solution);
 
-        if (symbols.Count != 0)
+        if (symbols.Length != 0)
         {
             return await CommonCompletionUtilities.CreateDescriptionAsync(document.Project.Solution.Services, semanticModel, position, symbols, options, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
