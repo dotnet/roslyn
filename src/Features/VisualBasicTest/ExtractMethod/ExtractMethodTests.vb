@@ -1105,7 +1105,7 @@ class Program
     end sub
 
     Private Sub NewMethod()
-        Console.WriteLine(i);
+        Console.WriteLine(i)
     End Sub
 end class
 ",
