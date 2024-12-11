@@ -4455,17 +4455,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CollectionInitializerExpression:
                     {
+                        if (scopeOfTheContainingExpression == SafeContext.CallingMethod)
+                        {
+                            return SafeContext.CallingMethod;
+                        }
+
                         var colExpr = (BoundCollectionInitializerExpression)expr;
                         // If arg mixing fails when the receiver has calling-method scope (i.e., some arguments could escape into the receiver), make the value scoped.
 
                         // We are interested in the CheckValEscape's return value, but it can be false only if not in an unsafe region.
                         using var _ = new UnsafeRegion(this, inUnsafeRegion: false);
 
-                        return
-                            !scopeOfTheContainingExpression.IsConvertibleTo(SafeContext.CallingMethod) &&
-                            !CheckValEscapeOfCollectionInitializer(colExpr, escapeFrom: scopeOfTheContainingExpression, escapeTo: SafeContext.CallingMethod, BindingDiagnosticBag.Discarded)
-                                ? scopeOfTheContainingExpression
-                                : SafeContext.CallingMethod;
+                        return !CheckValEscapeOfCollectionInitializer(colExpr, escapeFrom: scopeOfTheContainingExpression, escapeTo: SafeContext.CallingMethod, BindingDiagnosticBag.Discarded)
+                            ? scopeOfTheContainingExpression
+                            : SafeContext.CallingMethod;
                     }
 
                 case BoundKind.ObjectInitializerMember:
