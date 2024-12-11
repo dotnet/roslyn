@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -342,10 +343,9 @@ internal sealed partial class CSharpMethodExtractor
                 // When we modify the declaration to an initialization we have to preserve the leading trivia
                 var firstVariableToAttachTrivia = true;
 
-                var isUsingDeclarationAsReturnValue =
-                    this.AnalyzerResult.HasVariableToUseAsReturnValue &&
-                    this.AnalyzerResult.VariableToUseAsReturnValue.GetOriginalIdentifierToken(cancellationToken) != default &&
-                    this.AnalyzerResult.VariableToUseAsReturnValue.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
+                var isUsingDeclarationAsReturnValue = this.AnalyzerResult.VariablesToUseAsReturnValue is [var variable] &&
+                    variable.GetOriginalIdentifierToken(cancellationToken) != default &&
+                    variable.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
 
                 // go through each var decls in decl statement, and create new assignment if
                 // variable is initialized at decl.
@@ -358,7 +358,8 @@ internal sealed partial class CSharpMethodExtractor
                             var identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
 
                             // move comments with the variable here
-                            expressionStatements.Add(CreateAssignmentExpressionStatement(identifier, variableDeclaration.Initializer.Value));
+                            expressionStatements.Add(ExpressionStatement(AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression, IdentifierName(identifier), variableDeclaration.Initializer.Value)));
                         }
                         else
                         {
@@ -526,14 +527,6 @@ internal sealed partial class CSharpMethodExtractor
             return declStatements.Concat(statements);
         }
 
-        //private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
-        //{
-        //    return AssignmentExpression(
-        //        SyntaxKind.SimpleAssignmentExpression,
-        //        IdentifierName(identifier),
-        //        rvalue);
-        //}
-
         protected override bool LastStatementOrHasReturnStatementInReturnableConstruct()
         {
             var lastStatement = GetLastStatementOrInitializerSelectedAtCallSite();
@@ -634,8 +627,7 @@ internal sealed partial class CSharpMethodExtractor
             }
             else
             {
-                var tupleExpression = TupleExpression(
-                    SeparatedList(variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))));
+                var tupleExpression = TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]);
                 return ExpressionStatement(AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     tupleExpression,
@@ -667,15 +659,38 @@ internal sealed partial class CSharpMethodExtractor
 
                 return LocalDeclarationStatement(
                     VariableDeclaration(typeNode)
-                          .AddVariables(VariableDeclarator(singleVariable.Name.ToIdentifierToken())
-                          .WithInitializer(equalsValueClause)))
+                        .AddVariables(VariableDeclarator(singleVariable.Name.ToIdentifierToken())
+                        .WithInitializer(equalsValueClause)))
                     .WithUsingKeyword(usingKeyword);
             }
             else
             {
-                if (this.Options.simpl)
+                // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
+                // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
+                // producing new variables for all variable infos.  If we're producing new variables only for some
+                // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if the
+                // type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in, we'll
+                // use "use var elsewhere" to determine what to do.
+                var varForBuiltInTypes = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarForBuiltInTypes.Value;
+                var varElsewhere = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
 
-                var tuple = TupleExpression(SeparatedList(arguments));
+                ExpressionSyntax left;
+                if (variableInfos.All(i => i.ReturnBehavior == ReturnBehavior.Initialization) && varElsewhere)
+                {
+                    left = DeclarationExpression(
+                        type: IdentifierName("var"),
+                        ParenthesizedVariableDesignation(
+                            [.. variableInfos.Select(v => SingleVariableDesignation(v.Name.ToIdentifierToken()))]));
+                }
+                else
+                {
+                    left = TupleExpression(
+                        [.. variableInfos.Select(v => Argument(v.ReturnBehavior == ReturnBehavior.Initialization
+                            ? DeclarationExpression(v.GetVariableType().GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
+                            : v.Name.ToIdentifierName()))]);
+                }
+
+                return ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initialValue));
             }
         }
 
@@ -735,7 +750,7 @@ internal sealed partial class CSharpMethodExtractor
 
             if (AnalyzerResult.HasReturnType)
             {
-                Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
+                // Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
                 return ReturnStatement(callSignature);
             }
 
