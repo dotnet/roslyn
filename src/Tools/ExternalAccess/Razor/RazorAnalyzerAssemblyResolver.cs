@@ -48,8 +48,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             lock (s_resolverLock)
             {
                 s_assembliesRequested.Add(assemblyName);
-                return s_assemblyResolver?.Invoke(assemblyName);
             }
+
+            return s_assemblyResolver?.Invoke(assemblyName);
         }
     }
 }
