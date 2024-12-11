@@ -62,14 +62,18 @@ internal partial class CodeGenerator
     {
         Debug.Assert(receiverAddressKind is null || receiverType is not null);
 
-        // number of outputs that can capture references
+        // We check the signature of the method, counting potential `ref` sources and destinations
+        // to determine whether a `ref` can be captured by the method.
+        // The emit layer then uses this information to avoid reusing temporaries that are passed by ref to such methods.
+
+        // number of outputs that can capture `ref`s
         int refTargets = 0;
-        // number of inputs that can contain references
+        // number of inputs that can contain `ref`s
         int refSources = 0;
 
         if (used && (returnRefKind != RefKind.None || returnType.IsRefLikeOrAllowsRefLikeType()))
         {
-            // If returning by reference or returning a ref struct, the result might capture references.
+            // If returning by ref or returning a ref struct, the result might capture `ref`s.
             refTargets++;
         }
 
@@ -120,7 +124,7 @@ internal partial class CodeGenerator
 
         static bool shouldReturnTrue(int writableRefs, int readableRefs)
         {
-            // If there is at least one output and at least one input, a reference can be captured.
+            // If there is at least one output and at least one input, a `ref` can be captured.
             return writableRefs > 0 && readableRefs > 0;
         }
     }
