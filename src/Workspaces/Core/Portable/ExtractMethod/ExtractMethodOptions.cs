@@ -23,14 +23,12 @@ internal readonly record struct ExtractMethodGenerationOptions
 {
     [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
     [DataMember] public required CodeCleanupOptions CodeCleanupOptions { get; init; }
-    [DataMember] public required SimplifierOptions SimplifierOptions { get; init; }
 
     public static ExtractMethodGenerationOptions GetDefault(LanguageServices languageServices)
         => new()
         {
             CodeGenerationOptions = CodeGenerationOptionsProviders.GetDefault(languageServices),
             CodeCleanupOptions = CodeCleanupOptionsProviders.GetDefault(languageServices),
-            SimplifierOptions = SimplifierOptionsProviders.GetDefault(languageServices),
         };
 
     public ExtractMethodGenerationOptions()
@@ -39,6 +37,7 @@ internal readonly record struct ExtractMethodGenerationOptions
 
     public AddImportPlacementOptions AddImportOptions => CodeCleanupOptions.AddImportOptions;
     public LineFormattingOptions LineFormattingOptions => CodeCleanupOptions.FormattingOptions.LineFormatting;
+    public SimplifierOptions SimplifierOptions => CodeCleanupOptions.SimplifierOptions;
 }
 
 internal static class ExtractMethodGenerationOptionsProviders
@@ -48,6 +47,5 @@ internal static class ExtractMethodGenerationOptionsProviders
         {
             CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
             CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false),
-            SimplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false),
         };
 }
