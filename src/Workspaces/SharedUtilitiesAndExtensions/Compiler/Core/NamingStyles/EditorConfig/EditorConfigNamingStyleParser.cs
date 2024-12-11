@@ -66,7 +66,7 @@ internal static partial class EditorConfigNamingStyleParser
         // which a user has trouble ordering, the intersection of the two rules can be broken out into a new rule
         // will always match earlier than the broader rules it was derived from.
         var orderedRules = preferences.Rules.NamingRules
-            .OrderByDescending(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].priority)
+            .OrderBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].priority)
             .ThenBy(rule => rule, NamingRuleModifierListComparer.Instance)
             .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
             .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
