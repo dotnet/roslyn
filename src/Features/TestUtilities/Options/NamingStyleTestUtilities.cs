@@ -4,14 +4,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 internal static class NamingStyleTestUtilities
 {
+    public static string Inspect(this NamingRule rule)
+        => $"{rule.NamingStyle.Inspect()} {rule.SymbolSpecification.Inspect()} {rule.EnforcementLevel}";
+
+    public static string Inspect(this NamingStyle style)
+        => $"{style.Name} prefix='{style.Prefix}' suffix='{style.Suffix}' separator='{style.WordSeparator}'";
+
+    public static string Inspect(this SymbolSpecification symbol)
+        => $"{symbol.Name} {Inspect(symbol.ApplicableSymbolKindList)} {Inspect(symbol.ApplicableAccessibilityList)} {Inspect(symbol.RequiredModifierList)}";
+
+    public static string Inspect<T>(ImmutableArray<T> items) where T : notnull
+        => string.Join(",", items.Select(item => item.ToString()));
+
     public static string Inspect(this NamingStylePreferences preferences, string[]? excludeNodes = null)
     {
         var xml = preferences.CreateXElement();
@@ -43,6 +57,7 @@ internal static class NamingStyleTestUtilities
                     if (!guidMap.TryGetValue(guid, out var existingOrdinal))
                     {
                         existingOrdinal = ordinal++;
+                        guidMap.Add(guid, existingOrdinal);
                     }
 
                     attribute.Value = existingOrdinal.ToString();

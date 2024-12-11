@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         LanguageName,
                         entryWriter: builder.Add,
                         triviaWriter: null,
-                        priority: null);
+                        setPrioritiesToPreserveOrder: false);
                 }
                 else
                 {
