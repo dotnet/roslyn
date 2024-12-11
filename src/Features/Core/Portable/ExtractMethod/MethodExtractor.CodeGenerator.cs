@@ -335,10 +335,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()
         {
-            if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
-            {
+            if (AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty)
                 return [];
-            }
 
             var set = new HashSet<ITypeParameterSymbol>(AnalyzerResult.MethodTypeParametersInConstraintList);
 

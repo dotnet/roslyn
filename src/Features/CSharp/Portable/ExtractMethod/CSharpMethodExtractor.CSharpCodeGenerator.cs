@@ -178,14 +178,14 @@ internal sealed partial class CSharpMethodExtractor
 
         private SimpleNameSyntax CreateMethodNameForInvocation()
         {
-            return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
+            return AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty
                 ? IdentifierName(_methodName)
                 : GenericName(_methodName, TypeArgumentList(CreateMethodCallTypeVariables()));
         }
 
         private SeparatedSyntaxList<TypeSyntax> CreateMethodCallTypeVariables()
         {
-            Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
+            Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty);
 
             // propagate any type variable used in extracted code
             return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];

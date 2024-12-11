@@ -823,7 +823,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             }
         }
 
-        private IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
+        private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
             SemanticModel model,
             IDictionary<ISymbol, VariableInfo> variableInfoMap,
             IDictionary<ISymbol, List<SyntaxToken>> symbolMap,
@@ -836,7 +836,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // recursively dive into constraints to find all constraints needed
             AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(sortedMap);
 
-            return sortedMap.Values.ToList();
+            return [.. sortedMap.Values];
         }
 
         private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
@@ -917,14 +917,14 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return typeParameters;
         }
 
-        private static IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+        private static ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
         {
             // add return type to the map
             AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);
 
             AppendMethodTypeParameterFromConstraint(sortedMap);
 
-            return sortedMap.Values.ToList();
+            return [.. sortedMap.Values];
         }
 
         private OperationStatus CheckReadOnlyFields(SemanticModel semanticModel, Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
