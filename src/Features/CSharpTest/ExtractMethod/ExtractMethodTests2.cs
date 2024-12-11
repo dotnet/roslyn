@@ -5301,7 +5301,7 @@ $@"
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
-    public Task TestPreferThisPreference1()
+    public Task TestPreferThisPreference_NotForInstanceMethodWhenOff()
         => TestInRegularAndScriptAsync(
             """
             using System;
@@ -5339,48 +5339,13 @@ $@"
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement },
             });
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
-    public Task TestPreferThisPreference2()
-        => TestInRegularAndScriptAsync(
-            """
-            using System;
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public async Task TestPreferThisPreference_ForInstanceMethodWhenOn(ReportDiagnostic diagnostic)
+    {
+        if (diagnostic is ReportDiagnostic.Default)
+            return;
 
-            class Program
-            {
-                int i;
-
-                public void M()
-                {
-                    [|Console.WriteLine(i);|]
-                }
-            }
-            """,
-            """
-            using System;
-
-            class Program
-            {
-                int i;
-
-                public void M()
-                {
-                    {|Rename:NewMethod|}();
-                }
-
-                private void NewMethod()
-                {
-                    Console.WriteLine(i);
-                }
-            }
-            """,
-            options: new(LanguageNames.CSharp)
-            {
-                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
-            });
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
-    public Task TestPreferThisPreference3()
-        => TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5414,11 +5379,12 @@ $@"
             """,
             options: new(LanguageNames.CSharp)
             {
-                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSuggestionEnforcement },
+                { CodeStyleOptions2.QualifyMethodAccess, new CodeStyleOption2<bool>(true, new(diagnostic, true)) },
             });
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
-    public Task TestPreferThisPreference4()
+    public Task TestPreferThisPreference_NotForStaticMethodWhenOn()
         => TestInRegularAndScriptAsync(
             """
             using System;
@@ -5438,7 +5404,7 @@ $@"
             {
                 public void M()
                 {
-                    this.{|Rename:NewMethod|}();
+                    {|Rename:NewMethod|}();
                 }
 
                 private static void NewMethod()
@@ -5447,6 +5413,42 @@ $@"
                 }
             }
             """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForLocalFunctionWhenOn()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    [|Console.WriteLine();|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+
+                    static void NewMethod()
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            }
+            """,
+            index: 1,
             options: new(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
