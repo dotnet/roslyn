@@ -5453,4 +5453,32 @@ $@"
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
             });
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
+    public Task TestPrimaryConstructorBaseList(bool withBody)
+        => TestInRegularAndScript1Async(
+            $$"""
+            class C1(int p1);
+            class C2(S1 a10000, int a20000) : C1([|a10000.F1|]){{(withBody ? "{}" : ";")}}
+
+            struct S1
+            {
+                public int F1;
+            }
+            """,
+            """
+            class C1(int p1);
+            class C2(S1 a10000, int a20000) : C1({|Rename:GetF1|}(a10000))
+            {
+                private static int GetF1(S1 a10000)
+                {
+                    return a10000.F1;
+                }
+            }
+            
+            struct S1
+            {
+                public int F1;
+            }
+            """);
 }
