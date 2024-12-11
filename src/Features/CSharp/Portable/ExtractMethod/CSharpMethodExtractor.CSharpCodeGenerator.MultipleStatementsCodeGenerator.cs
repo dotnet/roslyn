@@ -85,8 +85,8 @@ internal sealed partial class CSharpMethodExtractor
 
             protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
             {
-                var statement = (SyntaxNode)GetStatementContainingInvocationToExtractedMethodWorker();
-                return Task.FromResult(statement.WithAdditionalAnnotations(CallSiteAnnotation));
+                var statement = GetStatementContainingInvocationToExtractedMethodWorker();
+                return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
             }
         }
     }
