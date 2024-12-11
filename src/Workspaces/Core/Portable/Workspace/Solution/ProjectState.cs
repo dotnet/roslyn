@@ -155,7 +155,13 @@ internal sealed partial class ProjectState
     {
         get
         {
-            _lazyChecksums ??= AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
+            if (_lazyChecksums is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyChecksums,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this),
+                    null);
+            }
 
             return _lazyChecksums;
         }
@@ -165,7 +171,13 @@ internal sealed partial class ProjectState
     {
         get
         {
-            _lazyContentHashToDocumentId ??= AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
+            if (_lazyContentHashToDocumentId is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyContentHashToDocumentId,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this),
+                    null);
+            }
 
             return _lazyContentHashToDocumentId;
         }
