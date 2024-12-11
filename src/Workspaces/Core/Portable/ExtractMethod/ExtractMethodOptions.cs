@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
@@ -22,12 +23,14 @@ internal readonly record struct ExtractMethodGenerationOptions
 {
     [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
     [DataMember] public required CodeCleanupOptions CodeCleanupOptions { get; init; }
+    [DataMember] public required SimplifierOptions SimplifierOptions { get; init; }
 
     public static ExtractMethodGenerationOptions GetDefault(LanguageServices languageServices)
         => new()
         {
             CodeGenerationOptions = CodeGenerationOptionsProviders.GetDefault(languageServices),
             CodeCleanupOptions = CodeCleanupOptionsProviders.GetDefault(languageServices),
+            SimplifierOptions = SimplifierOptionsProviders.GetDefault(languageServices),
         };
 
     public ExtractMethodGenerationOptions()
@@ -41,11 +44,10 @@ internal readonly record struct ExtractMethodGenerationOptions
 internal static class ExtractMethodGenerationOptionsProviders
 {
     public static async ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        return new ExtractMethodGenerationOptions()
+        => new()
         {
             CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
             CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false),
+            SimplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false),
         };
-    }
 }

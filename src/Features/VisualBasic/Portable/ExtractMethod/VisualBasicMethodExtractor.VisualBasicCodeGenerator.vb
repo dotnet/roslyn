@@ -25,28 +25,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     insertionPoint As InsertionPoint,
                     selectionResult As VisualBasicSelectionResult,
                     analyzerResult As AnalyzerResult,
-                    options As VisualBasicCodeGenerationOptions,
-                    qualifyInstance As Boolean,
+                    options As ExtractMethodGenerationOptions,
                     cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Dim generator = Create(selectionResult, analyzerResult, options, qualifyInstance)
+                Dim generator = Create(selectionResult, analyzerResult, options)
                 Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
             Public Shared Function Create(
                     selectionResult As VisualBasicSelectionResult,
                     analyzerResult As AnalyzerResult,
-                    options As VisualBasicCodeGenerationOptions,
-                    qualifyInstance As Boolean) As VisualBasicCodeGenerator
+                    options As ExtractMethodGenerationOptions) As VisualBasicCodeGenerator
                 If selectionResult.SelectionInExpression Then
-                    Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options, qualifyInstance)
+                    Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
                 If selectionResult.IsExtractMethodOnSingleStatement() Then
-                    Return New SingleStatementCodeGenerator(selectionResult, analyzerResult, options, qualifyInstance)
+                    Return New SingleStatementCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
                 If selectionResult.IsExtractMethodOnMultipleStatements() Then
-                    Return New MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, qualifyInstance)
+                    Return New MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
                 Throw ExceptionUtilities.UnexpectedValue(selectionResult)
@@ -55,9 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Protected Sub New(
                     selectionResult As VisualBasicSelectionResult,
                     analyzerResult As AnalyzerResult,
-                    options As VisualBasicCodeGenerationOptions,
-                    qualifyInstance As Boolean)
-                MyBase.New(selectionResult, analyzerResult, options, qualifyInstance, localFunction:=False)
+                    options As ExtractMethodGenerationOptions)
+                MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
@@ -16,5 +17,6 @@ internal static class ExtractMethodOptionsStorage
         {
             CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
             CodeCleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
+            SimplifierOptions = globalOptions.GetSimplifierOptions(languageServices),
         };
 }

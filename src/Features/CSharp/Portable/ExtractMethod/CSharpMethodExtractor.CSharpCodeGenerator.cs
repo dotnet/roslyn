@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -46,30 +45,28 @@ internal sealed partial class CSharpMethodExtractor
             InsertionPoint insertionPoint,
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction,
-            bool qualifyInstance,
             CancellationToken cancellationToken)
         {
-            var codeGenerator = Create(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
+            var codeGenerator = Create(selectionResult, analyzerResult, options, localFunction);
             return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);
         }
 
         public static CSharpCodeGenerator Create(
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
-            bool localFunction,
-            bool qualifyInstance)
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         {
             if (selectionResult.SelectionInExpression)
-                return new ExpressionCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
+                return new ExpressionCodeGenerator(selectionResult, analyzerResult, options, localFunction);
 
             if (selectionResult.IsExtractMethodOnSingleStatement())
-                return new SingleStatementCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
+                return new SingleStatementCodeGenerator(selectionResult, analyzerResult, options, localFunction);
 
             if (selectionResult.IsExtractMethodOnMultipleStatements())
-                return new MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, localFunction, qualifyInstance);
+                return new MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, localFunction);
 
             throw ExceptionUtilities.UnexpectedValue(selectionResult);
         }
@@ -77,10 +74,9 @@ internal sealed partial class CSharpMethodExtractor
         protected CSharpCodeGenerator(
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
-            bool localFunction,
-            bool qualifyInstance)
-            : base(selectionResult, analyzerResult, options, localFunction, qualifyInstance)
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
+            : base(selectionResult, analyzerResult, options, localFunction)
         {
             Contract.ThrowIfFalse(SemanticDocument == selectionResult.SemanticDocument);
 
@@ -579,7 +575,8 @@ internal sealed partial class CSharpMethodExtractor
         protected override ExpressionSyntax CreateCallSignature()
         {
             var methodName = CreateMethodNameForInvocation();
-            ExpressionSyntax methodExpression = this.QualifyInstance
+            ExpressionSyntax methodExpression =
+                this.AnalyzerResult.UseInstanceMember && this.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value && !LocalFunction
                 ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), methodName)
                 : methodName;
 

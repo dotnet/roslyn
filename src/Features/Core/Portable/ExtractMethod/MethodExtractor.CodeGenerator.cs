@@ -47,23 +47,22 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly AnalyzerResult AnalyzerResult;
 
+        protected readonly ExtractMethodGenerationOptions ExtractMethodGenerationOptions;
         protected readonly TCodeGenerationOptions Options;
 
-        protected readonly bool QualifyInstance;
         protected readonly bool LocalFunction;
 
         protected CodeGenerator(
             TSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            TCodeGenerationOptions options,
-            bool qualifyInstance,
+            ExtractMethodGenerationOptions options,
             bool localFunction)
         {
             SelectionResult = selectionResult;
             AnalyzerResult = analyzerResult;
 
-            Options = options;
-            QualifyInstance = qualifyInstance;
+            ExtractMethodGenerationOptions = options;
+            Options = (TCodeGenerationOptions)options.CodeGenerationOptions;
             LocalFunction = localFunction;
 
             MethodNameAnnotation = new SyntaxAnnotation();

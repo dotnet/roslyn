@@ -18,9 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Public Sub New(
                         selectionResult As VisualBasicSelectionResult,
                         analyzerResult As AnalyzerResult,
-                        options As VisualBasicCodeGenerationOptions,
-                        qualifyInstance As Boolean)
-                    MyBase.New(selectionResult, analyzerResult, options, qualifyInstance)
+                        options As ExtractMethodGenerationOptions)
+                    MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 
                 Public Shared Function IsExtractMethodOnExpression(code As VisualBasicSelectionResult) As Boolean
