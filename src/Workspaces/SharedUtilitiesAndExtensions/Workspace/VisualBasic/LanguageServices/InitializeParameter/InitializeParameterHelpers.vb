@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -57,5 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                 editor.SetStatements(functionDeclaration, newStatements)
             End If
         End Sub
+
+        Public Shared Function GetArgument(argument As ArgumentSyntax) As Argument(Of ExpressionSyntax)
+            Return New Argument(Of ExpressionSyntax)(
+                RefKind.None,
+                TryCast(argument, SimpleArgumentSyntax)?.NameColonEquals?.Name.Identifier.ValueText,
+                argument.GetArgumentExpression())
+        End Function
     End Class
 End Namespace

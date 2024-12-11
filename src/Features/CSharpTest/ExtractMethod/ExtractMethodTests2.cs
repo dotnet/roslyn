@@ -846,7 +846,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
                 static void Main()
                 {
                     byte z = 0;
-                    Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
+                    Goo({|Rename:NewMethod|}(), y => 0, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -888,7 +888,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
                 static void Main()
                 {
                     byte z = 0;
-                    Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
+                    Goo({|Rename:NewMethod|}(), y => { return 0; }, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -985,7 +985,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), - -1);
                 }
 
                 private static string GetX(string x)
@@ -1087,7 +1087,7 @@ parseOptions: TestOptions.Regular);
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), - -1);
                 }
 
                 private static string GetX(string x)
