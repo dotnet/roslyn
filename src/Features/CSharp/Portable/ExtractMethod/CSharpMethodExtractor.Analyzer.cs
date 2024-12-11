@@ -25,10 +25,8 @@ internal sealed partial class CSharpMethodExtractor
         protected override bool TreatOutAsRef
             => false;
 
-        protected override bool IsInPrimaryConstructorBaseTypeList()
-        {
-            return this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>() != null;
-        }
+        protected override bool IsInPrimaryConstructorBaseType()
+            => this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>() != null;
 
         protected override VariableInfo CreateFromSymbol(
             Compilation compilation,

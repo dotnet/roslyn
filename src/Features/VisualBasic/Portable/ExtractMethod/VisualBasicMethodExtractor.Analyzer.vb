@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides ReadOnly Property TreatOutAsRef As Boolean = True
 
-            Protected Overrides Function IsInPrimaryConstructorBaseTypeList() As Boolean
+            Protected Overrides Function IsInPrimaryConstructorBaseType() As Boolean
                 Return False
             End Function
 
