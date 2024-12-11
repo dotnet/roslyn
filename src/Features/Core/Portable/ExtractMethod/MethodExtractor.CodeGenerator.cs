@@ -36,6 +36,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         where TNodeUnderContainer : SyntaxNode
         where TCodeGenerationOptions : CodeGenerationOptions
     {
+        private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+
         protected readonly SyntaxAnnotation MethodNameAnnotation;
         protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
         protected readonly SyntaxAnnotation CallSiteAnnotation;
@@ -134,7 +136,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             {
                 // Now, insert the local function.
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(generateDefaultAccessibility: false),
+                    s_codeGenerationContext.With(generateDefaultAccessibility: false),
                     Options,
                     document.Project.ParseOptions);
 
@@ -162,7 +164,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 var destination = mappedMember.Parent ?? mappedMember;
 
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(
+                    s_codeGenerationContext.With(
                         afterThisLocation: mappedMember.GetLocation(),
                         generateDefaultAccessibility: true,
                         generateMethodBodies: true),
