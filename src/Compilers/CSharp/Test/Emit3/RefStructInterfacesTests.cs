@@ -3804,12 +3804,18 @@ public interface Vec4<TVec4> where TVec4 : Vec4<TVec4>
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
+                // (21,31): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         ref TVec4 xyzw1 = ref ReadOnlyVec.Self;
+                Diagnostic(ErrorCode.ERR_EscapeOther, "ReadOnlyVec.Self").WithLocation(21, 31),
                 // (22,20): error CS8157: Cannot return 'xyzw1' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref xyzw1;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw1").WithArguments("xyzw1").WithLocation(22, 20),
                 // (29,20): error CS8157: Cannot return 'xyzw2' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref xyzw2;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw2").WithArguments("xyzw2").WithLocation(29, 20),
+                // (34,31): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         ref TVec4 xyzw3 = ref ReadOnlyVec.Self2();
+                Diagnostic(ErrorCode.ERR_EscapeOther, "ReadOnlyVec.Self2()").WithLocation(34, 31),
                 // (35,20): error CS8157: Cannot return 'xyzw3' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref xyzw3;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "xyzw3").WithArguments("xyzw3").WithLocation(35, 20),
@@ -3980,12 +3986,18 @@ interface Wrap<T> where T : Wrap<T>
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
+                // (7,28): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         ref TWrap r1 = ref i.Self; // defensive copy
+                Diagnostic(ErrorCode.ERR_EscapeOther, "i.Self").WithLocation(7, 28),
                 // (8,20): error CS8157: Cannot return 'r1' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r1; // ref to the local copy
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r1").WithArguments("r1").WithLocation(8, 20),
                 // (15,20): error CS8157: Cannot return 'r2' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r2; // ref to the local copy
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r2").WithArguments("r2").WithLocation(15, 20),
+                // (20,28): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         ref TWrap r3 = ref i.Self2();
+                Diagnostic(ErrorCode.ERR_EscapeOther, "i.Self2()").WithLocation(20, 28),
                 // (21,20): error CS8157: Cannot return 'r3' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r3;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r3").WithArguments("r3").WithLocation(21, 20),
@@ -4127,6 +4139,9 @@ public interface Vec4
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
+                // (15,21): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         var xyzw1 = ReadOnlyVec.Self;
+                Diagnostic(ErrorCode.ERR_EscapeOther, "ReadOnlyVec.Self").WithLocation(15, 21),
                 // (16,16): error CS8352: Cannot use variable 'xyzw1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return xyzw1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw1").WithArguments("xyzw1").WithLocation(16, 16),
@@ -4291,6 +4306,9 @@ public interface Vec4
                 // (23,16): error CS8352: Cannot use variable 'xyzw2' in this context because it may expose referenced variables outside of their declaration scope
                 //         return xyzw2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw2").WithArguments("xyzw2").WithLocation(23, 16),
+                // (28,37): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         ReadOnlyVec.Deconstruct(out var xyzw3, out _);
+                Diagnostic(ErrorCode.ERR_EscapeOther, "var xyzw3").WithLocation(28, 37),
                 // (29,16): error CS8352: Cannot use variable 'xyzw3' in this context because it may expose referenced variables outside of their declaration scope
                 //         return xyzw3;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw3").WithArguments("xyzw3").WithLocation(29, 16),

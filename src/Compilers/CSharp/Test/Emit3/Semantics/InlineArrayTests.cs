@@ -8660,7 +8660,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (17,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int? M2(C c) => c.F?[..5][0];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "c.F?").WithLocation(17, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "c.F?").WithLocation(17, 28),
+                // (17,32): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //     static int? M2(C c) => c.F?[..5][0];
+                Diagnostic(ErrorCode.ERR_EscapeOther, "[..5]").WithLocation(17, 32)
                 );
         }
 
@@ -8692,7 +8695,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (17,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int? M2(C c) => c.F?[M3(default)..][M3(default)];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "c.F?").WithLocation(17, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "c.F?").WithLocation(17, 28),
+                // (17,32): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //     static int? M2(C c) => c.F?[M3(default)..][M3(default)];
+                Diagnostic(ErrorCode.ERR_EscapeOther, "[M3(default)..]").WithLocation(17, 32)
                 );
         }
 
@@ -9194,7 +9200,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (9,27): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //     static int M2() => M4(M3()[..], default);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "M3()").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "M3()").WithLocation(9, 27),
+                // (9,27): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //     static int M2() => M4(M3()[..], default);
+                Diagnostic(ErrorCode.ERR_EscapeOther, "M3()[..]").WithLocation(9, 27)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -16484,9 +16493,15 @@ class Program
                 // (9,27): error CS9165: Cannot convert expression to 'ReadOnlySpan<int>' because it may not be passed or returned by reference
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_InlineArrayConversionToReadOnlySpanNotSupported, "M3()").WithArguments("System.ReadOnlySpan<int>").WithLocation(9, 27),
+                // (9,27): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //     static int M2() => M4(M3(), default);
+                Diagnostic(ErrorCode.ERR_EscapeOther, "M3()").WithLocation(9, 27),
                 // (23,27): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
                 //     static int M5() => M6(M3(), default);
-                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "M3()").WithArguments("System.Span<int>").WithLocation(23, 27)
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "M3()").WithArguments("System.Span<int>").WithLocation(23, 27),
+                // (23,27): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //     static int M5() => M6(M3(), default);
+                Diagnostic(ErrorCode.ERR_EscapeOther, "M3()").WithLocation(23, 27)
                 );
 
             var tree = comp.SyntaxTrees.First();

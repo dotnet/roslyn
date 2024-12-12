@@ -2083,7 +2083,7 @@ readonly struct S
         return ref arg2;
     }
 
-    public bool GreaterThan(in S arg)
+    public bool GreaterThan(S arg)
     {
         return this.x > arg.x;
     }
@@ -2101,7 +2101,7 @@ readonly struct S
             compilation.VerifyIL("S.Main",
 @"
 {
-  // Code size       57 (0x39)
+  // Code size       62 (0x3e)
   .maxstack  3
   .locals init (S V_0,
                 S V_1,
@@ -2125,9 +2125,10 @@ readonly struct S
   IL_0025:  ldloca.s   V_3
   IL_0027:  ldloca.s   V_2
   IL_0029:  call       ""ref readonly S S.RefMethod(in S, in S)""
-  IL_002e:  call       ""bool S.GreaterThan(in S)""
-  IL_0033:  call       ""void System.Console.WriteLine(bool)""
-  IL_0038:  ret
+  IL_002e:  ldobj      ""S""
+  IL_0033:  call       ""bool S.GreaterThan(S)""
+  IL_0038:  call       ""void System.Console.WriteLine(bool)""
+  IL_003d:  ret
 }
 ");
         }

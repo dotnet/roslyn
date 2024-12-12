@@ -182,11 +182,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : (SafeContext.CurrentMethod, SafeContext.CallingMethod);
         }
 
-        private void SetLocalScopes(LocalSymbol local, SafeContext refEscapeScope, SafeContext valEscapeScope)
+        private void SetLocalScopes(BoundExpression initializer, LocalSymbol local, SafeContext refEscapeScope, SafeContext valEscapeScope)
         {
             Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true);
 
             AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
+
+            if (!valEscapeScope.IsConvertibleTo(_localScopeDepth) ||
+                (local.RefKind != RefKind.None && !refEscapeScope.IsConvertibleTo(_localScopeDepth)))
+            {
+                Error(_diagnostics, ErrorCode.ERR_EscapeOther, initializer.Syntax);
+            }
         }
 
         private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, SafeContext valEscapeScope)
@@ -500,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // default to the current scope in case we need to handle self-referential error cases.
-                    SetLocalScopes(localSymbol, _localScopeDepth, _localScopeDepth);
+                    SetLocalScopes(initializer, localSymbol, _localScopeDepth, _localScopeDepth);
 
                     valEscapeScope = GetValEscape(initializer, _localScopeDepth);
                     if (localSymbol.RefKind != RefKind.None)
@@ -508,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refEscapeScope = GetRefEscape(initializer, _localScopeDepth);
                     }
 
-                    SetLocalScopes(localSymbol, refEscapeScope, valEscapeScope);
+                    SetLocalScopes(initializer, localSymbol, refEscapeScope, valEscapeScope);
                 }
             }
 
@@ -618,7 +624,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (pattern.Variable is LocalSymbol local)
             {
-                SetLocalScopes(local, _localScopeDepth, _patternInputValEscape);
+                var placeholder = new BoundDeconstructValuePlaceholder(pattern.Syntax, local, isDiscardExpression: false, pattern.InputType);
+                using var _ = new PlaceholderRegion(this, [(placeholder, _patternInputValEscape)]);
+                SetLocalScopes(placeholder, local, _localScopeDepth, _patternInputValEscape);
             }
         }
 

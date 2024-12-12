@@ -15322,6 +15322,9 @@ class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (12,15): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         R r = F2($"");
+                Diagnostic(ErrorCode.ERR_EscapeOther, @"F2($"""")").WithLocation(12, 15),
                 // (13,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 16));
@@ -15483,6 +15486,9 @@ class Program
                 // (13,16): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return $"{1}";
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, in int)", "i").WithLocation(13, 16),
+                // (17,28): error CS8349: Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope
+                //         CustomHandler h2 = $"{2}";
+                Diagnostic(ErrorCode.ERR_EscapeOther, @"$""{2}""").WithLocation(17, 28),
                 // (18,16): error CS8352: Cannot use variable 'h2' in this context because it may expose referenced variables outside of their declaration scope
                 //         return h2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "h2").WithArguments("h2").WithLocation(18, 16));
