@@ -126,6 +126,7 @@ Scope can be changed when overriding a method, implementing an interface, or con
 [some conditions](https://github.com/dotnet/csharplang/blob/05064c2a9567b7a58a07e526dff403ece1866541/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch)
 (roughly, `scoped` can be added and `[UnscopedRef]` can be removed).
 Previously, the compiler did not report an error/warning for such mismatch under some circumstances, but it is now always reported.
+Note that the error is downgraded to a warning in `unsafe` contexts and also (in scenarios where it would be a breaking change) with LangVersion 12 or lower.
 
 ```cs
 D1 d1 = (ref int i) => { }; // previously no mismatch error reported, now:

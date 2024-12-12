@@ -25629,9 +25629,12 @@ public class A
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.Preview)]
+        [InlineData(LanguageVersion.CSharp13)]
+        [InlineData(LanguageVersion.CSharp12)]
         [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
-        public void UnscopedRefAttribute_InterfaceImplementation_03()
+        public void UnscopedRefAttribute_InterfaceImplementation_03(LanguageVersion langVersion)
         {
             string source = """
                 using System.Diagnostics.CodeAnalysis;
@@ -25663,7 +25666,7 @@ public class A
                     public int P3 { [UnscopedRef] set { } } // 7
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (16,40): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation because implemented member 'I1<int>.P1.get' doesn't have this attribute.
                 //     [UnscopedRef] public ref int P1 => throw null; // 1
