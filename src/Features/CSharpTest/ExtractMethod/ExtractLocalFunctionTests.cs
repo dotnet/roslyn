@@ -5398,7 +5398,6 @@ class Program
             },
             FixedCode = expected,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
     }
@@ -5412,13 +5411,11 @@ class Program
             """;
         var expected =
             """
-            {
-                System.Console.WriteLine({|Rename:NewMethod|}());
+            System.Console.WriteLine({|Rename:NewMethod|}());
 
-                static string NewMethod()
-                {
-                    return "string";
-                }
+            static string NewMethod()
+            {
+                return "string";
             }
             """;
 

@@ -5074,6 +5074,10 @@ $@"
             },
             FixedCode = """
             System.Console.WriteLine("string");
+
+            int x = NewMethod();
+
+            System.Console.WriteLine(x);
             
             static int NewMethod()
             {
@@ -5081,8 +5085,6 @@ $@"
                 System.Console.WriteLine(x);
                 return x;
             }
-
-            int x = NewMethod();
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
@@ -5155,21 +5157,7 @@ $@"
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = """"
-            using System;
-
-            Console.WriteLine("string");
-
-            class Ignored { }
-
-            [|{|CS8803:int x = int.Parse("0");|}
-            Console.WriteLine(x);|]
-
-            Console.WriteLine(x);
-
-            class Ignored2 { }
-            """
-            """",
+            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
         }.RunAsync();
