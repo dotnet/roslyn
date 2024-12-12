@@ -14,12 +14,19 @@ internal partial class RazorDynamicFileInfoProvider
 {
     private sealed class TextChangesTextLoader(
         TextDocument? document,
-        IEnumerable<TextChange> changes,
+        IEnumerable<RazorDynamicFileUpdate> updates,
         byte[] checksum,
         SourceHashAlgorithm checksumAlgorithm,
         int? codePage,
         Uri razorUri) : TextLoader
     {
+        private readonly TextDocument? _document = document;
+        private readonly IEnumerable<RazorDynamicFileUpdate> _updates = updates;
+        private readonly byte[] _checksum = checksum;
+        private readonly SourceHashAlgorithm _checksumAlgorithm = checksumAlgorithm;
+        private readonly int? _codePage = codePage;
+        private readonly Uri _razorUri = razorUri;
+
         private readonly Lazy<SourceText> _emptySourceText = new Lazy<SourceText>(() =>
         {
             var encoding = codePage is null ? null : Encoding.GetEncoding(codePage.Value);
@@ -28,38 +35,38 @@ internal partial class RazorDynamicFileInfoProvider
 
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            if (document is null)
+            if (_document is null)
             {
-                var text = _emptySourceText.Value.WithChanges(changes);
+                var text = UpdateSourceTextWithEdits(_emptySourceText.Value, _updates);
                 return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
             }
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Validate the checksum information so the edits are known to be correct
             if (IsSourceTextMatching(sourceText))
             {
-                var version = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-                var newText = sourceText.WithChanges(changes);
+                var version = await _document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                var newText = UpdateSourceTextWithEdits(sourceText, _updates);
                 return TextAndVersion.Create(newText, version.GetNewerVersion());
             }
 
-            return await GetFullDocumentFromServerAsync(razorUri, cancellationToken).ConfigureAwait(false);
+            return await GetFullDocumentFromServerAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private bool IsSourceTextMatching(SourceText sourceText)
         {
-            if (sourceText.ChecksumAlgorithm != checksumAlgorithm)
+            if (sourceText.ChecksumAlgorithm != _checksumAlgorithm)
             {
                 return false;
             }
 
-            if (sourceText.Encoding?.CodePage != codePage)
+            if (sourceText.Encoding?.CodePage != _codePage)
             {
                 return false;
             }
 
-            if (!sourceText.GetChecksum().SequenceEqual(checksum))
+            if (!sourceText.GetChecksum().SequenceEqual(_checksum))
             {
                 return false;
             }
@@ -67,7 +74,7 @@ internal partial class RazorDynamicFileInfoProvider
             return true;
         }
 
-        private async Task<TextAndVersion> GetFullDocumentFromServerAsync(Uri razorUri, CancellationToken cancellationToken)
+        private async Task<TextAndVersion> GetFullDocumentFromServerAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
             var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
@@ -78,18 +85,28 @@ internal partial class RazorDynamicFileInfoProvider
                 {
                     RazorDocument = new()
                     {
-                        Uri = razorUri,
+                        Uri = _razorUri,
                     },
                     FullText = true
                 },
                 cancellationToken);
 
-            RoslynDebug.AssertNotNull(response.Edits);
-            RoslynDebug.Assert(response.Edits.IsSingle());
+            RoslynDebug.AssertNotNull(response.Updates);
+            RoslynDebug.Assert(response.Updates.IsSingle());
 
-            var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
-            var text = _emptySourceText.Value.WithChanges(textChanges);
+            var text = UpdateSourceTextWithEdits(_emptySourceText.Value, response.Updates);
             return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
+        }
+
+        private static SourceText UpdateSourceTextWithEdits(SourceText sourceText, IEnumerable<RazorDynamicFileUpdate> updates)
+        {
+            foreach (var update in updates)
+            {
+                var changes = update.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
+                sourceText = sourceText.WithChanges(changes);
+            }
+
+            return sourceText;
         }
     }
 

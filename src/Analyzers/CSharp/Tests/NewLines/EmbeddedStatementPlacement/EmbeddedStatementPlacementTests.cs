@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatementPlacement;
@@ -15,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmbeddedStatementPlacementDiagnosticAnalyzer,
     EmbeddedStatementPlacementCodeFixProvider>;
 
-public class EmbeddedStatementPlacementTests
+public sealed class EmbeddedStatementPlacementTests
 {
     [Fact]
     public async Task NoErrorOnWrappedStatement()
@@ -326,6 +327,41 @@ public class EmbeddedStatementPlacementTests
                         return;
                     if (true)
                         return;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66017")]
+    public async Task SwitchFollowedByEmptyStatement()
+    {
+        var source = """
+            class TestClass
+            {
+                void M()
+                {
+                    switch (0)
+                    {
+                    }[|;|]
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
+            {
+                void M()
+                {
+                    switch (0)
+                    {
+                    }
+
+                    ;
                 }
             }
             """;

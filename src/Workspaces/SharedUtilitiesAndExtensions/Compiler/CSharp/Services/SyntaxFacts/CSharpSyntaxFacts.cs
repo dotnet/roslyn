@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -11,13 +12,13 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
@@ -1371,6 +1372,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsPreprocessorDirective(SyntaxTrivia trivia)
         => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
+
+    public SyntaxNode? GetMatchingDirective(SyntaxNode directive, CancellationToken cancellationToken)
+        => ((DirectiveTriviaSyntax)directive).GetMatchingDirective(cancellationToken);
+
+    public ImmutableArray<SyntaxNode> GetMatchingConditionalDirectives(SyntaxNode directive, CancellationToken cancellationToken)
+        => ((DirectiveTriviaSyntax)directive).GetMatchingConditionalDirectives(cancellationToken).CastArray<SyntaxNode>();
 
     public bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
         => token.ContainsInterleavedDirective(span, cancellationToken);

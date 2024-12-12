@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
 {
     protected sealed class AnalyzerResult(
-        IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
-        IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
+        ImmutableArray<ITypeParameterSymbol> typeParametersInDeclaration,
+        ImmutableArray<ITypeParameterSymbol> typeParametersInConstraintList,
         ImmutableArray<VariableInfo> variables,
-        VariableInfo variableToUseAsReturnValue,
+        ImmutableArray<VariableInfo> variablesToUseAsReturnValue,
         ITypeSymbol returnType,
         bool returnsByRef,
         bool awaitTaskReturn,
@@ -29,9 +29,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         bool endOfSelectionReachable,
         OperationStatus status)
     {
-        private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration = typeParametersInDeclaration.ToList();
-        private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
-        private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
+        public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInDeclaration { get; } = typeParametersInDeclaration;
+        public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInConstraintList { get; } = typeParametersInConstraintList;
+        public ImmutableArray<VariableInfo> VariablesToUseAsReturnValue { get; } = variablesToUseAsReturnValue;
 
         /// <summary>
         /// used to determine whether static can be used
@@ -62,39 +62,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         public OperationStatus Status { get; } = status;
 
         public ImmutableArray<VariableInfo> Variables { get; } = variables;
-
-        public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
-        {
-            get
-            {
-                return new ReadOnlyCollection<ITypeParameterSymbol>(_typeParametersInDeclaration);
-            }
-        }
-
-        public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInConstraintList
-        {
-            get
-            {
-                return new ReadOnlyCollection<ITypeParameterSymbol>(_typeParametersInConstraintList);
-            }
-        }
-
-        public bool HasVariableToUseAsReturnValue
-        {
-            get
-            {
-                return _variableToUseAsReturnValue != null;
-            }
-        }
-
-        public VariableInfo VariableToUseAsReturnValue
-        {
-            get
-            {
-                Contract.ThrowIfNull(_variableToUseAsReturnValue);
-                return _variableToUseAsReturnValue;
-            }
-        }
 
         public bool HasReturnType
         {

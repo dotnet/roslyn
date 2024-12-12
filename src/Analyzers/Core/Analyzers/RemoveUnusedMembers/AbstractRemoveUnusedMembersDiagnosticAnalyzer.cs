@@ -220,8 +220,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
                 var hasUnsupportedOperation = false;
                 symbolStartContext.RegisterOperationAction(
-                    _ => hasUnsupportedOperation = true,
-                    OperationKind.Invalid, OperationKind.None, OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
+                    context =>
+                    {
+                        var operation = context.Operation;
+
+                        // 'nameof(argument)' currently returns a 'None' operation for its argument.  We don't want this
+                        // to cause us to bail out of processing. Instead, we'll handle this case explicitly in AnalyzeNameOfOperation.
+                        if (operation is { Kind: OperationKind.None, Parent: INameOfOperation { Argument: var nameofArgument } } &&
+                            nameofArgument == operation)
+                        {
+                            return;
+                        }
+
+                        hasUnsupportedOperation = true;
+                    },
+                    OperationKind.Invalid,
+                    OperationKind.None,
+                    OperationKind.DynamicIndexerAccess,
+                    OperationKind.DynamicInvocation,
+                    OperationKind.DynamicMemberReference,
+                    OperationKind.DynamicObjectCreation);
 
                 symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
@@ -429,17 +447,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // a bound method group/property group.
             var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
             foreach (var symbol in symbolInfo.GetAllSymbols())
-            {
-                switch (symbol.Kind)
-                {
-                    // Handle potential references to methods/properties from missing IOperation
-                    // for method group/property group.
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                        OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
-                        break;
-                }
-            }
+                OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
         }
 
         private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
@@ -526,21 +534,24 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         ? s_removeUnusedMembersRule
                         : s_removeUnreadMembersRule;
 
-                    // Do not flag write-only properties that are not read.
-                    // Write-only properties are assumed to have side effects
-                    // visible through other means than a property getter.
-                    if (rule == s_removeUnreadMembersRule &&
-                        member is IPropertySymbol property &&
-                        property.IsWriteOnly)
+                    if (rule == s_removeUnreadMembersRule)
                     {
-                        continue;
+                        // Do not flag write-only properties that are not read. Write-only properties are assumed to
+                        // have side effects visible through other means than a property getter.
+                        if (member is IPropertySymbol { IsWriteOnly: true })
+                            continue;
+
+                        // Do not flag ref-fields that are not read.  A ref-field can exist to have side effects by
+                        // writing into some other location when a write happens to it.
+                        if (member is IFieldSymbol { IsReadOnly: false, RefKind: RefKind.Ref })
+                            continue;
                     }
 
                     // We change the message only if both 'get' and 'set' accessors are present and
                     // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
                     var isConvertibleProperty =
-                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property2 &&
-                        !_propertiesWithShadowGetAccessorUsages.Contains(property2);
+                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property &&
+                        !_propertiesWithShadowGetAccessorUsages.Contains(property);
 
                     var diagnosticLocation = GetDiagnosticLocation(member);
                     var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(

@@ -79,14 +79,13 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         var responseUri = response.CSharpDocument.Uri;
         var dynamicFileInfoFilePath = ProtocolConversions.GetDocumentFilePathFromUri(responseUri);
 
-        if (response.Edits is not null)
+        if (response.Updates is not null)
         {
             var textDocument = await _workspaceFactory.Workspace.CurrentSolution.GetTextDocumentAsync(response.CSharpDocument, cancellationToken).ConfigureAwait(false);
-            var textChanges = response.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
             var checksum = Convert.FromBase64String(response.Checksum);
             var textLoader = new TextChangesTextLoader(
                 textDocument,
-                textChanges,
+                response.Updates,
                 checksum,
                 response.ChecksumAlgorithm,
                 response.SourceEncodingCodePage,

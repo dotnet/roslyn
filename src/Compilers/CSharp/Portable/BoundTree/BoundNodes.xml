@@ -2016,6 +2016,9 @@
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
 
+  <!-- Initializers of this are BoundAssignmentOperators whose Left is
+    BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember
+    or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess. -->
   <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase">
   </Node>
   

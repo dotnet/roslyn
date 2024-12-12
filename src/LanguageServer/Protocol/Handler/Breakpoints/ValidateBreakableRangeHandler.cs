@@ -18,14 +18,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal sealed class ValidateBreakableRangeHandler : ILspServiceDocumentRequestHandler<VSInternalValidateBreakableRangeParams, LSP.Range?>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class ValidateBreakableRangeHandler() : ILspServiceDocumentRequestHandler<VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ValidateBreakableRangeHandler()
-        {
-        }
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
