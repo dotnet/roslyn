@@ -2427,10 +2427,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool InterceptorsDiscoveryComplete;
 
+        /// <remarks>Equals and GetHashCode on this type intentionally resemble corresponding methods on <see cref="InterceptableLocation1"/>.</remarks>
         private sealed class InterceptorKeyComparer : IEqualityComparer<(ImmutableArray<byte> ContentHash, int Position)>
         {
             private InterceptorKeyComparer() { }
-            public static InterceptorKeyComparer Instance { get; } = new InterceptorKeyComparer();
+            public static readonly InterceptorKeyComparer Instance = new InterceptorKeyComparer();
 
             public bool Equals((ImmutableArray<byte> ContentHash, int Position) x, (ImmutableArray<byte> ContentHash, int Position) y)
             {
