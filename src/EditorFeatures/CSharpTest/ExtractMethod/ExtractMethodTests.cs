@@ -10901,6 +10901,49 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             """);
     }
 
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
+    public async Task TestAsyncLocalFunctionWithRefOrOutParameters()
+    {
+        await TestExtractMethodAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async void Goo()
+                {
+                    [|var q = 1;
+                    var p = 2;
+                    await Task.Yield();|]
+                    var r = q;
+                    var s = p;
+                }
+            }
+            """,
+
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async void Goo()
+                {
+                    (int q, int p) = await NewMethod();
+                    var r = q;
+                    var s = p;
+
+                    static async Task<(int q, int p)> NewMethod()
+                    {
+                        var q = 1;
+                        var p = 2;
+                        await Task.Yield();
+                        return (q, p);
+                    }
+                }
+            }
+            """, localFunction: true);
+    }
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
     public async Task TestAsyncMethodWithWellKnownValueType()
     {

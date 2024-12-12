@@ -79,14 +79,15 @@ public class ExtractMethodBase
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool temporaryFailing = false,
-        CSharpParseOptions parseOptions = null)
+        CSharpParseOptions parseOptions = null,
+        bool localFunction = false)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
         var testDocument = workspace.Documents.Single();
         var subjectBuffer = testDocument.GetTextBuffer();
 
         var tree = await ExtractMethodAsync(
-            workspace, testDocument);
+            workspace, testDocument, localFunction: localFunction);
 
         using (var edit = subjectBuffer.CreateEdit())
         {
@@ -116,7 +117,8 @@ public class ExtractMethodBase
     protected static async Task<SyntaxNode> ExtractMethodAsync(
         EditorTestWorkspace workspace,
         EditorTestHostDocument testDocument,
-        bool succeed = true)
+        bool succeed = true,
+        bool localFunction = false)
     {
         var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
         Assert.NotNull(document);
@@ -137,7 +139,7 @@ public class ExtractMethodBase
         Assert.NotNull(selectedCode);
 
         // extract method
-        var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction: false);
+        var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction);
         var result = extractor.ExtractMethod(status, CancellationToken.None);
         Assert.NotNull(result);
 
