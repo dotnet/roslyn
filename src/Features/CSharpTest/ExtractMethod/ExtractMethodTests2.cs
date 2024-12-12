@@ -5046,9 +5046,15 @@ $@"
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = code,
+            FixedCode = """
+            NewMethod();
+            
+            static void NewMethod()
+            {
+                System.Console.WriteLine("string");
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
         }.RunAsync();
     }
 
@@ -5072,9 +5078,21 @@ $@"
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = code,
+            FixedCode = """
+            System.Console.WriteLine("string");
+
+            int x = NewMethod();
+
+            System.Console.WriteLine(x);
+            
+            static int NewMethod()
+            {
+                int x = int.Parse("0");
+                System.Console.WriteLine(x);
+                return x;
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
         }.RunAsync();
     }
 
@@ -5102,9 +5120,25 @@ $@"
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = code,
+            FixedCode = """
+                using System;
+            
+                Console.WriteLine("string");
+            
+                int x = NewMethod();
+            
+                Console.WriteLine(x);
+
+                static int NewMethod()
+                {
+                    int x = int.Parse("0");
+                    Console.WriteLine(x);
+                    return x;
+                }
+                
+                class Ignored { }
+                """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
         }.RunAsync();
     }
 
@@ -5134,9 +5168,27 @@ $@"
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = code,
+            FixedCode = """
+            using System;
+
+            Console.WriteLine("string");
+
+            class Ignored { }
+
+            {|CS8803:int x = NewMethod();|}
+
+            Console.WriteLine(x);
+
+            static int NewMethod()
+            {
+                int x = int.Parse("0");
+                Console.WriteLine(x);
+                return x;
+            }
+            
+            class Ignored2 { }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
         }.RunAsync();
     }
 

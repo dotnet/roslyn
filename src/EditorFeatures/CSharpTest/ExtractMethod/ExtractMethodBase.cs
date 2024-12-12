@@ -86,8 +86,7 @@ public class ExtractMethodBase
         var testDocument = workspace.Documents.Single();
         var subjectBuffer = testDocument.GetTextBuffer();
 
-        var tree = await ExtractMethodAsync(
-            workspace, testDocument, localFunction: localFunction);
+        var tree = await ExtractMethodAsync(workspace, testDocument, localFunction: localFunction);
 
         using (var edit = subjectBuffer.CreateEdit())
         {
@@ -130,7 +129,7 @@ public class ExtractMethodBase
         };
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-        var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction: false);
+        var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction);
 
         var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
         if (!succeed && status.Failed)
