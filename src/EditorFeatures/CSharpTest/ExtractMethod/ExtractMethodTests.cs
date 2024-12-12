@@ -63,6 +63,48 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact]
+    public async Task ExtractMethod_KeywordName()
+    {
+        var code = """
+            using System;
+
+            class Program
+            {
+                void Test(string[] args)
+                {
+                    int @class = 0;
+                    int @interface = 0;
+                    [|@class++;
+                    @interface++;|]
+                    Console.WriteLine(@class + @interface);
+                }
+            }
+            """;
+        var expected = """
+            using System;
+
+            class Program
+            {
+                void Test(string[] args)
+                {
+                    int @class = 0;
+                    int @interface = 0;
+                    NewMethod(ref @class, ref @interface);
+                    Console.WriteLine(@class + @interface);
+                }
+
+                private static void NewMethod(ref int @class, ref int @interface)
+                {
+                    @class++;
+                    @interface++;
+                }
+            }
+            """;
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact]
     public async Task ExtractMethod2()
     {
         var code = """
@@ -10861,7 +10903,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
     public async Task TestAsyncMethodWithRefOrOutParameters()
     {
-        var code =
+        await TestExtractMethodAsync(
             """
             using System.Threading.Tasks;
 
@@ -10876,15 +10918,78 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     var s = p;
                 }
             }
-            """;
+            """,
 
-        await ExpectExtractMethodToFailAsync(code);
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async void Goo()
+                {
+                    (int q, int p) = await NewMethod();
+                    var r = q;
+                    var s = p;
+                }
+
+                private static async Task<(int q, int p)> NewMethod()
+                {
+                    var q = 1;
+                    var p = 2;
+                    await Task.Yield();
+                    return (q, p);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
+    public async Task TestAsyncLocalFunctionWithRefOrOutParameters()
+    {
+        await TestExtractMethodAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async void Goo()
+                {
+                    [|var q = 1;
+                    var p = 2;
+                    await Task.Yield();|]
+                    var r = q;
+                    var s = p;
+                }
+            }
+            """,
+
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async void Goo()
+                {
+                    (int q, int p) = await NewMethod();
+                    var r = q;
+                    var s = p;
+
+                    static async Task<(int q, int p)> NewMethod()
+                    {
+                        var q = 1;
+                        var p = 2;
+                        await Task.Yield();
+                        return (q, p);
+                    }
+                }
+            }
+            """, localFunction: true);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
     public async Task TestAsyncMethodWithWellKnownValueType()
     {
-        var code =
+        await TestExtractMethodAsync(
             """
             using System;
             using System.Threading;
@@ -10908,8 +11013,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     Console.WriteLine(i);
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             using System.Threading;
             using System.Threading.Tasks;
@@ -10920,56 +11024,25 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     var cancellationToken = CancellationToken.None;
 
-                    int i = await NewMethod(ref cancellationToken);
+                    (int i, cancellationToken) = await NewMethod(cancellationToken);
 
                     cancellationToken.ThrowIfCancellationRequested();
                     Console.WriteLine(i);
                 }
 
-                private static async Task<int> NewMethod(ref CancellationToken cancellationToken)
+                private static async Task<(int i, CancellationToken cancellationToken)> NewMethod(CancellationToken cancellationToken)
                 {
-                    return await Task.Run(() =>
+                    var i = await Task.Run(() =>
                     {
                         Console.WriteLine();
                         cancellationToken.ThrowIfCancellationRequested();
 
                         return 1;
                     }, cancellationToken);
+                    return (i, cancellationToken);
                 }
             }
-            """;
-        await ExpectExtractMethodToFailAsync(code, expected);
-    }
-
-    [Fact]
-    public async Task TestAsyncMethodWithWellKnownValueType1()
-    {
-        var code =
-            """
-            using System;
-            using System.Threading;
-            using System.Threading.Tasks;
-
-            class Program
-            {
-                public async Task Hello()
-                {
-                    var cancellationToken = CancellationToken.None;
-
-                    [|var i = await Task.Run(() =>
-                    {
-                        Console.WriteLine();
-                        cancellationToken = CancellationToken.None;
-
-                        return 1;
-                    }, cancellationToken);|]
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                    Console.WriteLine(i);
-                }
-            }
-            """;
-        await ExpectExtractMethodToFailAsync(code);
+            """);
     }
 
     [Fact]
@@ -11050,34 +11123,38 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     {
         // This code intentionally omits a 'using System;'
         var code =
-$@"namespace ClassLibrary9
-{{
-    public class Class
-    {{
-        public event EventHandler Event
-        {{
-            {testedAccessor} {{ [|throw new NotImplementedException();|] }}
-            {untestedAccessor} {{ throw new NotImplementedException(); }}
-        }}
-    }}
-}}";
+            $$"""
+            namespace ClassLibrary9
+            {
+                public class Class
+                {
+                    public event EventHandler Event
+                    {
+                        {{testedAccessor}} { [|throw new NotImplementedException();|] }
+                        {{untestedAccessor}} { throw new NotImplementedException(); }
+                    }
+                }
+            }
+            """;
         var expected =
-$@"namespace ClassLibrary9
-{{
-    public class Class
-    {{
-        public event EventHandler Event
-        {{
-            {testedAccessor} {{ NewMethod(); }}
-            {untestedAccessor} {{ throw new NotImplementedException(); }}
-        }}
+            $$"""
+            namespace ClassLibrary9
+            {
+                public class Class
+                {
+                    public event EventHandler Event
+                    {
+                        {{testedAccessor}} { NewMethod(); }
+                        {{untestedAccessor}} { throw new NotImplementedException(); }
+                    }
 
-        private static void NewMethod()
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
-}}";
+                    private static void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
@@ -11461,40 +11538,44 @@ $@"namespace ClassLibrary9
     [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
     public async Task ExtractMethodFlowsToLocalFunction1(string usageSyntax)
     {
-        var code = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            [|arg = arg + 3;|]
+        var code = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        [|arg = arg + 3;|]
 
-            {usageSyntax}
+                        {{usageSyntax}}
 
-            int LocalCapture() => arg;
-        }}
-    }}
-}}";
-        var expected = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            arg = NewMethod(arg);
+                        int LocalCapture() => arg;
+                    }
+                }
+            }
+            """;
+        var expected = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        arg = NewMethod(arg);
 
-            {usageSyntax}
+                        {{usageSyntax}}
 
-            int LocalCapture() => arg;
-        }}
+                        int LocalCapture() => arg;
+                    }
 
-        private static int NewMethod(int arg)
-        {{
-            arg = arg + 3;
-            return arg;
-        }}
-    }}
-}}";
+                    private static int NewMethod(int arg)
+                    {
+                        arg = arg + 3;
+                        return arg;
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
@@ -11506,40 +11587,44 @@ $@"namespace ClassLibrary9
     [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
     public async Task ExtractMethodFlowsToLocalFunction2(string usageSyntax)
     {
-        var code = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int LocalCapture() => arg;
+        var code = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int LocalCapture() => arg;
 
-            [|arg = arg + 3;|]
+                        [|arg = arg + 3;|]
 
-            {usageSyntax}
-        }}
-    }}
-}}";
-        var expected = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int LocalCapture() => arg;
+                        {{usageSyntax}}
+                    }
+                }
+            }
+            """;
+        var expected = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int LocalCapture() => arg;
 
-            arg = NewMethod(arg);
+                        arg = NewMethod(arg);
 
-            {usageSyntax}
-        }}
+                        {{usageSyntax}}
+                    }
 
-        private static int NewMethod(int arg)
-        {{
-            arg = arg + 3;
-            return arg;
-        }}
-    }}
-}}";
+                    private static int NewMethod(int arg)
+                    {
+                        arg = arg + 3;
+                        return arg;
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
@@ -11555,42 +11640,46 @@ $@"namespace ClassLibrary9
     [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
     public async Task ExtractMethodFlowsToLocalFunctionWithUnassignedLocal(string usageSyntax)
     {
-        var code = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int local;
-            int LocalCapture() => arg + local;
+        var code = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int local;
+                        int LocalCapture() => arg + local;
 
-            [|arg = arg + 3;|]
+                        [|arg = arg + 3;|]
 
-            {usageSyntax}
-        }}
-    }}
-}}";
-        var expected = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int local;
-            int LocalCapture() => arg + local;
+                        {{usageSyntax}}
+                    }
+                }
+            }
+            """;
+        var expected = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int local;
+                        int LocalCapture() => arg + local;
 
-            arg = NewMethod(arg);
+                        arg = NewMethod(arg);
 
-            {usageSyntax}
-        }}
+                        {{usageSyntax}}
+                    }
 
-        private static int NewMethod(int arg)
-        {{
-            arg = arg + 3;
-            return arg;
-        }}
-    }}
-}}";
+                    private static int NewMethod(int arg)
+                    {
+                        arg = arg + 3;
+                        return arg;
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }

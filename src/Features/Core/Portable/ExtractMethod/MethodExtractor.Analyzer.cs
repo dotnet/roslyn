@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -24,6 +25,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly CancellationToken CancellationToken;
         protected readonly TSelectionResult SelectionResult;
         protected readonly bool LocalFunction;
+
+        protected ISyntaxFactsService SyntaxFacts => _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
         {
@@ -70,57 +73,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
             => readOutsideMap.Contains(symbol);
-
-        /// <summary>
-        /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
-        /// </summary>
-        private int GetIndexOfVariableInfoToUseAsReturnValue(IList<VariableInfo> variableInfo)
-        {
-            var numberOfOutParameters = 0;
-            var numberOfRefParameters = 0;
-
-            var outSymbolIndex = -1;
-            var refSymbolIndex = -1;
-
-            for (var i = 0; i < variableInfo.Count; i++)
-            {
-                var variable = variableInfo[i];
-
-                // there should be no-one set as return value yet
-                Contract.ThrowIfTrue(variable.UseAsReturnValue);
-
-                if (!variable.CanBeUsedAsReturnValue)
-                {
-                    continue;
-                }
-
-                // check modifier
-                if (variable.ParameterModifier == ParameterBehavior.Ref ||
-                    (variable.ParameterModifier == ParameterBehavior.Out && TreatOutAsRef))
-                {
-                    numberOfRefParameters++;
-                    refSymbolIndex = i;
-                }
-                else if (variable.ParameterModifier == ParameterBehavior.Out)
-                {
-                    numberOfOutParameters++;
-                    outSymbolIndex = i;
-                }
-            }
-
-            // if there is only one "out" or "ref", that will be converted to return statement.
-            if (numberOfOutParameters == 1)
-            {
-                return outSymbolIndex;
-            }
-
-            if (numberOfRefParameters == 1)
-            {
-                return refSymbolIndex;
-            }
-
-            return -1;
-        }
 
         protected abstract bool TreatOutAsRef { get; }
 
@@ -193,14 +145,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // collects various variable informations
             // extracted code contains return value
             var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement(model);
-            var (parameters, returnType, returnsByRef, variableToUseAsReturnValue, unsafeAddressTakenUsed) =
+            var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue, unsafeAddressTakenUsed) =
                 GetSignatureInformation(dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
 
-            var returnTypeTuple = AdjustReturnType(model, returnType);
-
-            returnType = returnTypeTuple.typeSymbol;
-            var returnTypeHasAnonymousType = returnTypeTuple.hasAnonymousType;
-            var awaitTaskReturn = returnTypeTuple.awaitTaskReturn;
+            (returnType, var returnTypeHasAnonymousType, var awaitTaskReturn) = AdjustReturnType(model, returnType);
 
             // collect method type variable used in selected code
             var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
@@ -215,7 +163,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 typeParametersInDeclaration,
                 typeParametersInConstraintList,
                 parameters,
-                variableToUseAsReturnValue,
+                variablesToUseAsReturnValue,
                 returnType,
                 returnsByRef,
                 awaitTaskReturn,
@@ -233,7 +181,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             // if selection contains await which is not under async lambda or anonymous delegate,
             // change return type to be wrapped in Task
-            var shouldPutAsyncModifier = SelectionResult.ShouldPutAsyncModifier();
+            var shouldPutAsyncModifier = SelectionResult.CreateAsyncMethod();
             if (shouldPutAsyncModifier)
             {
                 WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
@@ -306,7 +254,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             }
         }
 
-        private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
+        private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue, bool unsafeAddressTakenUsed)
             GetSignatureInformation(
                 DataFlowAnalysis dataFlowAnalysisData,
                 Dictionary<ISymbol, VariableInfo> variableInfoMap,
@@ -322,19 +270,31 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 returnType ??= compilation.GetSpecialType(SpecialType.System_Object);
 
                 var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                return (parameters, returnType, returnsByRef, null, unsafeAddressTakenUsed);
+                return (parameters, returnType, returnsByRef, [], unsafeAddressTakenUsed);
             }
             else
             {
                 // no return statement
-                var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap));
-                var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
-                var returnType = variableToUseAsReturnValue != null
-                    ? variableToUseAsReturnValue.GetVariableType()
-                    : compilation.GetSpecialType(SpecialType.System_Void);
+                var parameters = MarkVariableInfosToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap));
+                var variablesToUseAsReturnValue = parameters.WhereAsArray(v => v.UseAsReturnValue);
+
+                var returnType = GetReturnType(variablesToUseAsReturnValue);
 
                 var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                return (parameters, returnType, returnsByRef: false, variableToUseAsReturnValue, unsafeAddressTakenUsed);
+                return (parameters, returnType, returnsByRef: false, variablesToUseAsReturnValue, unsafeAddressTakenUsed);
+            }
+
+            ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
+            {
+                if (variablesToUseAsReturnValue.IsEmpty)
+                    return compilation.GetSpecialType(SpecialType.System_Void);
+
+                if (variablesToUseAsReturnValue is [var info])
+                    return info.GetVariableType();
+
+                return compilation.CreateTupleTypeSymbol(
+                    variablesToUseAsReturnValue.SelectAsArray(v => v.GetVariableType()),
+                    variablesToUseAsReturnValue.SelectAsArray(v => v.Name)!);
             }
         }
 
@@ -397,7 +357,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
         {
-            if (SelectionResult.ShouldPutAsyncModifier())
+            if (SelectionResult.CreateAsyncMethod())
             {
                 var names = parameters.Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
                                       .Select(p => p.Name ?? string.Empty);
@@ -411,9 +371,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
         {
-            var syntaxFactsService = _semanticDocument.Document.Project.Services.GetService<ISyntaxFactsService>();
             var context = SelectionResult.GetContainingScope();
-            var symbolMap = SymbolMapBuilder.Build(syntaxFactsService, model, context, SelectionResult.FinalSpan, CancellationToken);
+            var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, model, context, SelectionResult.FinalSpan, CancellationToken);
             return symbolMap;
         }
 
@@ -445,13 +404,87 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return analysis.EndPointIsReachable;
         }
 
-        private ImmutableArray<VariableInfo> MarkVariableInfoToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
+        private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
         {
-            var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo);
-            if (index < 0)
-                return variableInfo;
+            var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo, out var numberOfOutParameters, out var numberOfRefParameters);
 
-            return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
+            // If there are any variables we'd make out/ref and this is async, then we need to make these the
+            // return values of the method since we can't actually have out/ref with an async method.
+            var outRefCount = numberOfOutParameters + numberOfRefParameters;
+            if (outRefCount > 0 &&
+                this.SelectionResult.CreateAsyncMethod() &&
+                this.SyntaxFacts.SupportsTupleDeconstruction(_semanticDocument.Document.Project.ParseOptions!))
+            {
+                var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfo.Length);
+                foreach (var info in variableInfo)
+                {
+                    result.Add(info.CanBeUsedAsReturnValue && info.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref
+                        ? VariableInfo.CreateReturnValue(info)
+                        : info);
+                }
+
+                return result.MoveToImmutable();
+            }
+
+            // If there's just one variable that would be ref/out, then make that the return value of the final method.
+            if (index >= 0)
+                return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
+
+            return variableInfo;
+        }
+
+        /// <summary>
+        /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
+        /// </summary>
+        private int GetIndexOfVariableInfoToUseAsReturnValue(
+            ImmutableArray<VariableInfo> variableInfo,
+            out int numberOfOutParameters,
+            out int numberOfRefParameters)
+        {
+            numberOfOutParameters = 0;
+            numberOfRefParameters = 0;
+
+            var outSymbolIndex = -1;
+            var refSymbolIndex = -1;
+
+            for (var i = 0; i < variableInfo.Length; i++)
+            {
+                var variable = variableInfo[i];
+
+                // there should be no-one set as return value yet
+                Contract.ThrowIfTrue(variable.UseAsReturnValue);
+
+                if (!variable.CanBeUsedAsReturnValue)
+                {
+                    continue;
+                }
+
+                // check modifier
+                if (variable.ParameterModifier == ParameterBehavior.Ref ||
+                    (variable.ParameterModifier == ParameterBehavior.Out && TreatOutAsRef))
+                {
+                    numberOfRefParameters++;
+                    refSymbolIndex = i;
+                }
+                else if (variable.ParameterModifier == ParameterBehavior.Out)
+                {
+                    numberOfOutParameters++;
+                    outSymbolIndex = i;
+                }
+            }
+
+            // if there is only one "out" or "ref", that will be converted to return statement.
+            if (numberOfOutParameters == 1)
+            {
+                return outSymbolIndex;
+            }
+
+            if (numberOfRefParameters == 1)
+            {
+                return refSymbolIndex;
+            }
+
+            return -1;
         }
 
         private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)

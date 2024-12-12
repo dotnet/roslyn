@@ -48,6 +48,34 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
         dotnet_naming_style.camel_case.capitalization = camel_case
         """;
 
+    private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+    private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
+
+    // specify all options explicitly to override defaults.
+    private OptionsCollection ImplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
+
+    private OptionsCollection ExplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+        };
+
+    private OptionsCollection ImplicitForBuiltInTypes()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
     public async Task LocalFuncExtract()
     {
@@ -138,7 +166,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
             """
             class Program
             {
-                int Foo(int x) => x switch
+                int Goo(int x) => x switch
                 {
                     1 => 1,
                     _ => [|1 + x|]
@@ -148,7 +176,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
             """
             class Program
             {
-                int Foo(int x) => x switch
+                int Goo(int x) => x switch
                 {
                     1 => 1,
                     _ => {|Rename:NewMethod|}(x)
@@ -367,18 +395,18 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
         await TestInRegularAndScript1Async(
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i) : this([|i * 10 + 2|], 2)
+                public Goo(int a, int b){}
+                public Goo(int i) : this([|i * 10 + 2|], 2)
                 {}
             }
             """,
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+                public Goo(int a, int b){}
+                public Goo(int i) : this({|Rename:NewMethod|}(i), 2)
                 { }
 
                 private static int NewMethod(int i) => i * 10 + 2;
@@ -392,18 +420,18 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
         await TestInRegularAndScript1Async(
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
+                public Goo(int a, int b){}
+                public Goo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
                 {}
             }
             """,
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+                public Goo(int a, int b){}
+                public Goo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
                 { }
 
                 private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
@@ -5453,6 +5481,391 @@ $@"
             {
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
             });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleOutTuple1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Customer
+            {
+                public int Id;
+            }
+
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+
+                public static async Task Goo(string value)
+                {
+                    [|var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);|]
+
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Customer
+            {
+                public int Id;
+            }
+            
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+            
+                public static async Task Goo(string value)
+                {
+                    var (anotherValue, customer) = await {|Rename:NewMethod|}(value);
+            
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+
+                private static async Task<(string anotherValue, Customer customer)> NewMethod(string value)
+                {
+                    var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);
+                    return (anotherValue, customer);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleOutTuple_ExplicitEverywhere()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Customer
+            {
+                public int Id;
+            }
+
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+
+                public static async Task Goo(string value)
+                {
+                    [|var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);|]
+
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Customer
+            {
+                public int Id;
+            }
+            
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+            
+                public static async Task Goo(string value)
+                {
+                    (string anotherValue, Customer customer) = await {|Rename:NewMethod|}(value);
+            
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+
+                private static async Task<(string anotherValue, Customer customer)> NewMethod(string value)
+                {
+                    var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);
+                    return (anotherValue, customer);
+                }
+            }
+            """,
+            options: ExplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleOutTuple_ImplicitForBuiltInTypes()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Customer
+            {
+                public int Id;
+            }
+
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+
+                public static async Task Goo(string value)
+                {
+                    [|var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);|]
+
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Customer
+            {
+                public int Id;
+            }
+            
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+            
+                public static async Task Goo(string value)
+                {
+                    (var anotherValue, Customer customer) = await {|Rename:NewMethod|}(value);
+            
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+
+                private static async Task<(string anotherValue, Customer customer)> NewMethod(string value)
+                {
+                    var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);
+                    return (anotherValue, customer);
+                }
+            }
+            """,
+            options: ImplicitForBuiltInTypes());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleRefCapture()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    int b = 0;
+
+                    [|a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    int b = 0;
+                    (a, b) = await {|Rename:NewMethod|}(a, b);
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod(int a, int b)
+                {
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleRefCapture_PartialCapture()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    [|int b = 0;
+
+                    a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    (a, var b) = await {|Rename:NewMethod|}(a);
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod(int a)
+                {
+                    int b = 0;
+
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleRefCapture_PartialCapture_InitializedInside()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    [|int b;
+
+                    b = 0;
+                    a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    (a, var b) = await {|Rename:NewMethod|}(a);
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod(int a)
+                {
+                    int b = 0;
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleRefCapture_PartialCapture_InitializedInside2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a;
+                    [|int b;
+
+                    a = 0;
+                    b = 0;
+                    a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a;
+                    (a, var b) = await {|Rename:NewMethod|}();
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod()
+                {
+                    int a;
+                    int b;
+
+                    a = 0;
+                    b = 0;
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)
