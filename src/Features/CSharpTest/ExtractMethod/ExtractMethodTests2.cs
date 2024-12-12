@@ -47,6 +47,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
 
         dotnet_naming_style.camel_case.capitalization = camel_case
         """;
+
     private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
     private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
 
@@ -65,6 +66,14 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
             { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
             { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+        };
+
+    private OptionsCollection ImplicitForBuiltInTypes()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
         };
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
@@ -5531,4 +5540,122 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestMultipleOutTuple_ExplicitEverywhere()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Customer
+            {
+                public int Id;
+            }
+
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+
+                public static async Task Foo(string value)
+                {
+                    [|var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);|]
+
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Customer
+            {
+                public int Id;
+            }
+            
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+            
+                public static async Task Foo(string value)
+                {
+                    (string anotherValue, Customer customer) = await {|Rename:NewMethod|}(value);
+            
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+
+                private static async Task<(string anotherValue, Customer customer)> NewMethod(string value)
+                {
+                    var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);
+                    return (anotherValue, customer);
+                }
+            }
+            """,
+            options: ExplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestMultipleOutTuple_ImplicitForBuiltInTypes()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Customer
+            {
+                public int Id;
+            }
+
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+
+                public static async Task Foo(string value)
+                {
+                    [|var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);|]
+
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Customer
+            {
+                public int Id;
+            }
+            
+            class Repository
+            {
+                private static readonly Repository _repository = new();
+                public Task<Customer> GetValue(int i) => null!;
+            
+                public static async Task Foo(string value)
+                {
+                    (var anotherValue, Customer customer) = await {|Rename:NewMethod|}(value);
+            
+                    Console.Write(customer.Id);
+                    Console.Write(anotherValue);
+                }
+
+                private static async Task<(string anotherValue, Customer customer)> NewMethod(string value)
+                {
+                    var anotherValue = "GooBar";
+                    var customer = await _repository.GetValue(value.Length);
+                    return (anotherValue, customer);
+                }
+            }
+            """,
+            options: ImplicitForBuiltInTypes());
 }

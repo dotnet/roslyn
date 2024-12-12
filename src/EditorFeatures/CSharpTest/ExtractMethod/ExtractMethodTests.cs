@@ -10885,7 +10885,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             {
                 public async void Goo()
                 {
-                    (int q, int p) = await {|Rename:NewMethod|}();
+                    (int q, int p) = await NewMethod();
                     var r = q;
                     var s = p;
                 }
