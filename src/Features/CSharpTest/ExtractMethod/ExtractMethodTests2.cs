@@ -3304,7 +3304,7 @@ class Program
             {
                 public string? M()
                 {
-                    string? x = {|Rename:NewMethod|}();
+                    string x = {|Rename:NewMethod|}();
 
                     return x;
                 }

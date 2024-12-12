@@ -1025,16 +1025,37 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             bool IsMaybeNullWithinSelection()
             {
-                if (symbolMap.TryGetValue(symbol, out var tokens))
-                {
-                    foreach (var token in tokens)
-                    {
-                        if (token.Parent is not TExpressionSyntax expression)
-                            continue;
+                if (!symbolMap.TryGetValue(symbol, out var tokens))
+                    return true;
 
-                        var nullabilityInfo = semanticModel.GetTypeInfo(expression, this.CancellationToken).Nullability;
-                        if (nullabilityInfo.FlowState == NullableFlowState.MaybeNull)
+                var syntaxFacts = this.SyntaxFacts;
+                foreach (var token in tokens)
+                {
+                    if (token.Parent is not TExpressionSyntax expression)
+                        continue;
+
+                    // a = b;
+                    //
+                    // Need to ask what the nullability of 'b' is since 'a' may be currently non-null but may be
+                    // assigned a null value.
+                    if (syntaxFacts.IsLeftSideOfAssignment(expression))
+                    {
+                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(expression.Parent, out _, out _, out var right);
+                        var typeInfo = semanticModel.GetTypeInfo(right, this.CancellationToken);
+                        if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
+                            typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
+                        {
                             return true;
+                        }
+                    }
+                    else
+                    {
+                        var typeInfo = semanticModel.GetTypeInfo(expression, this.CancellationToken);
+                        if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
+                            typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
+                        {
+                            return true;
+                        }
                     }
                 }
 
