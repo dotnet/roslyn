@@ -1463,25 +1463,25 @@ public class InterceptorsTests : CSharpTestBase
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 11, 9)]
-                [InterceptsLocation("Program.cs", 16, 14)]
+                [InterceptsLocation("Program.cs", 10, 9)]
+                [InterceptsLocation("Program.cs", 15, 14)]
                 public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
         var compilation = CreateCompilation([(source, "Program.cs"), interceptors, s_attributesSource], parseOptions: RegularWithInterceptors);
         compilation.VerifyEmitDiagnostics(
             // (6,6): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
-            //     [InterceptsLocation("Program.cs", 11, 9)]
-            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 11, 9)").WithLocation(6, 6),
-            // (6,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'Program.cs'.
-            //     [InterceptsLocation("Program.cs", 11, 9)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""Program.cs""").WithArguments("Program.cs").WithLocation(6, 25),
+            //     [InterceptsLocation("Program.cs", 10, 9)]
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 10, 9)").WithLocation(6, 6),
+            // (6,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 10, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 10, 9)").WithArguments("action").WithLocation(6, 6),
             // (7,6): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
-            //     [InterceptsLocation("Program.cs", 16, 14)]
-            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 16, 14)").WithLocation(7, 6),
-            // (7,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'Program.cs'.
-            //     [InterceptsLocation("Program.cs", 16, 14)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""Program.cs""").WithArguments("Program.cs").WithLocation(7, 25));
+            //     [InterceptsLocation("Program.cs", 15, 14)]
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 15, 14)").WithLocation(7, 6),
+            // (7,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 15, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 15, 14)").WithArguments("action").WithLocation(7, 6));
     }
 
     [Fact]
