@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides ReadOnly Property TreatOutAsRef As Boolean = True
 
+            Protected Overrides Function IsInPrimaryConstructorBaseType() As Boolean
+                Return False
+            End Function
+
             Protected Overrides Function CreateFromSymbol(
                 compilation As Compilation, symbol As ISymbol,
                 type As ITypeSymbol, style As VariableStyle, requiresDeclarationExpressionRewrite As Boolean) As VariableInfo

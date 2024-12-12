@@ -273,8 +273,10 @@ internal sealed partial class CSharpSelectionValidator(
         {
             case BlockSyntax block:
                 return ContainsInBlockBody(block, span);
+
             case ArrowExpressionClauseSyntax expressionBodiedMember:
                 return ContainsInExpressionBodiedMemberBody(expressionBodiedMember, span);
+
             case FieldDeclarationSyntax field:
                 {
                     foreach (var variable in field.Declaration.Variables)
@@ -290,8 +292,12 @@ internal sealed partial class CSharpSelectionValidator(
 
             case GlobalStatementSyntax:
                 return true;
+
             case ConstructorInitializerSyntax constructorInitializer:
                 return constructorInitializer.ContainsInArgument(span);
+
+            case PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType:
+                return primaryConstructorBaseType.ArgumentList.Arguments.FullSpan.Contains(span);
         }
 
         return false;

@@ -113,6 +113,10 @@ internal sealed partial class CSharpMethodExtractor(CSharpSelectionResult result
         else
         {
             var baseToken = root.FindToken(originalSpanStart);
+            var primaryConstructorBaseType = baseToken.GetAncestor<PrimaryConstructorBaseTypeSyntax>();
+            if (primaryConstructorBaseType != null)
+                return primaryConstructorBaseType;
+
             var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);

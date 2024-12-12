@@ -56,6 +56,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return (firstUnderContainer, lastUnderContainer);
         }
 
+        protected abstract bool IsInPrimaryConstructorBaseType();
+
         /// <summary>
         /// check whether selection contains return statement or not
         /// </summary>
@@ -142,9 +144,11 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // build symbol map for the identifiers used inside of the selection
             var symbolMap = GetSymbolMap(model);
 
+            var isInPrimaryConstructorBaseType = this.IsInPrimaryConstructorBaseType();
+
             // gather initial local or parameter variable info
             GenerateVariableInfoMap(
-                bestEffort: false, model, dataFlowAnalysisData, symbolMap, out var variableInfoMap, out var failedVariables);
+                bestEffort: false, model, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out var variableInfoMap, out var failedVariables);
             if (failedVariables.Count > 0)
             {
                 // If we weren't able to figure something out, go back and regenerate the map
@@ -152,15 +156,16 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 // was a problem, but we allow them to proceed so they're not unnecessarily
                 // blocked just because we didn't understand something.
                 GenerateVariableInfoMap(
-                    bestEffort: true, model, dataFlowAnalysisData, symbolMap, out variableInfoMap, out var unused);
+                    bestEffort: true, model, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out variableInfoMap, out var unused);
                 Contract.ThrowIfFalse(unused.Count == 0);
             }
 
             var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(IsThisParameter);
             var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(static s => IsThisParameter(s));
 
-            // Need to generate an instance method if any primary constructor parameter is read or written inside the selection.
-            var primaryConstructorParameterReadOrWritten = dataFlowAnalysisData.ReadInside
+            // Need to generate an instance method if any primary constructor parameter is read or written inside the
+            // selection.  This does not apply if we're in the base-type-list as that will still need a static method.
+            var primaryConstructorParameterReadOrWritten = !isInPrimaryConstructorBaseType && dataFlowAnalysisData.ReadInside
                 .Concat(dataFlowAnalysisData.WrittenInside)
                 .OfType<IParameterSymbol>()
                 .FirstOrDefault(s => s.IsPrimaryConstructor(this.CancellationToken)) != null;
@@ -465,6 +470,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             SemanticModel model,
             DataFlowAnalysis dataFlowAnalysisData,
             Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+            bool isInPrimaryConstructorBaseType,
             out Dictionary<ISymbol, VariableInfo> variableInfoMap,
             out List<ISymbol> failedVariables)
         {
@@ -497,8 +503,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 if (symbol.IsThisParameter())
                     continue;
 
-                // Primary constructor parameters will be in scope for any extracted method.  No need to do anything special with them.
-                if (symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(this.CancellationToken))
+                // Primary constructor parameters will be in scope for any instance extracted method.  No need to do
+                // anything special with them.  They won't be in scope for a static method generated in a primary
+                // constructor base type list.
+                if (!isInPrimaryConstructorBaseType && symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(this.CancellationToken))
                     continue;
 
                 if (IsInteractiveSynthesizedParameter(symbol))
