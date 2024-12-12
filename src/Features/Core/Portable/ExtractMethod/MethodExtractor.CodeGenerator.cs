@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -386,6 +387,20 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             return parameterBehavior == ParameterBehavior.Ref ? RefKind.Ref :
                         parameterBehavior == ParameterBehavior.Out ? RefKind.Out : RefKind.None;
+        }
+
+        protected TStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
+        {
+            var callSignature = CreateCallSignature();
+
+            var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            if (AnalyzerResult.HasReturnType)
+            {
+                Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
+                return (TStatementSyntax)generator.ReturnStatement(callSignature);
+            }
+
+            return (TStatementSyntax)generator.ExpressionStatement(callSignature);
         }
     }
 }

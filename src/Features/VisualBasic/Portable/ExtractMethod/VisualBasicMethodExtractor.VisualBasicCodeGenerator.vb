@@ -444,17 +444,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Return Await MyBase.CreateGeneratedCodeAsync(newDocument, cancellationToken).ConfigureAwait(False)
             End Function
-
-            Protected Function GetStatementContainingInvocationToExtractedMethodWorker() As StatementSyntax
-                Dim callSignature = CreateCallSignature()
-
-                If Me.AnalyzerResult.HasReturnType Then
-                    Contract.ThrowIfTrue(Me.AnalyzerResult.HasVariableToUseAsReturnValue)
-                    Return SyntaxFactory.ReturnStatement(expression:=callSignature)
-                End If
-
-                Return SyntaxFactory.ExpressionStatement(expression:=callSignature)
-            End Function
         End Class
     End Class
 End Namespace

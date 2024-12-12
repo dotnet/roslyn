@@ -701,19 +701,6 @@ internal sealed partial class CSharpMethodExtractor
             }
         }
 
-        protected StatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
-        {
-            var callSignature = CreateCallSignature();
-
-            if (AnalyzerResult.HasReturnType)
-            {
-                Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
-                return ReturnStatement(callSignature);
-            }
-
-            return ExpressionStatement(callSignature);
-        }
-
         protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
             SemanticDocument originalDocument,
             IMethodSymbol methodSymbol,
