@@ -3,16 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.IO.Hashing
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.LanguageServices.CSharp
 Imports Microsoft.VisualStudio.LanguageServices.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 Imports Newtonsoft.Json.Linq
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
