@@ -166,7 +166,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
             """
             class Program
             {
-                int Foo(int x) => x switch
+                int Goo(int x) => x switch
                 {
                     1 => 1,
                     _ => [|1 + x|]
@@ -176,7 +176,7 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
             """
             class Program
             {
-                int Foo(int x) => x switch
+                int Goo(int x) => x switch
                 {
                     1 => 1,
                     _ => {|Rename:NewMethod|}(x)
@@ -395,18 +395,18 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
         await TestInRegularAndScript1Async(
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i) : this([|i * 10 + 2|], 2)
+                public Goo(int a, int b){}
+                public Goo(int i) : this([|i * 10 + 2|], 2)
                 {}
             }
             """,
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+                public Goo(int a, int b){}
+                public Goo(int i) : this({|Rename:NewMethod|}(i), 2)
                 { }
 
                 private static int NewMethod(int i) => i * 10 + 2;
@@ -420,18 +420,18 @@ public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
         await TestInRegularAndScript1Async(
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
+                public Goo(int a, int b){}
+                public Goo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
                 {}
             }
             """,
             """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b){}
-                public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+                public Goo(int a, int b){}
+                public Goo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
                 { }
 
                 private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
@@ -5499,7 +5499,7 @@ $@"
                 private static readonly Repository _repository = new();
                 public Task<Customer> GetValue(int i) => null!;
 
-                public static async Task Foo(string value)
+                public static async Task Goo(string value)
                 {
                     [|var anotherValue = "GooBar";
                     var customer = await _repository.GetValue(value.Length);|]
@@ -5523,7 +5523,7 @@ $@"
                 private static readonly Repository _repository = new();
                 public Task<Customer> GetValue(int i) => null!;
             
-                public static async Task Foo(string value)
+                public static async Task Goo(string value)
                 {
                     var (anotherValue, customer) = await {|Rename:NewMethod|}(value);
             
@@ -5558,7 +5558,7 @@ $@"
                 private static readonly Repository _repository = new();
                 public Task<Customer> GetValue(int i) => null!;
 
-                public static async Task Foo(string value)
+                public static async Task Goo(string value)
                 {
                     [|var anotherValue = "GooBar";
                     var customer = await _repository.GetValue(value.Length);|]
@@ -5582,7 +5582,7 @@ $@"
                 private static readonly Repository _repository = new();
                 public Task<Customer> GetValue(int i) => null!;
             
-                public static async Task Foo(string value)
+                public static async Task Goo(string value)
                 {
                     (string anotherValue, Customer customer) = await {|Rename:NewMethod|}(value);
             
@@ -5617,7 +5617,7 @@ $@"
                 private static readonly Repository _repository = new();
                 public Task<Customer> GetValue(int i) => null!;
 
-                public static async Task Foo(string value)
+                public static async Task Goo(string value)
                 {
                     [|var anotherValue = "GooBar";
                     var customer = await _repository.GetValue(value.Length);|]
@@ -5641,7 +5641,7 @@ $@"
                 private static readonly Repository _repository = new();
                 public Task<Customer> GetValue(int i) => null!;
             
-                public static async Task Foo(string value)
+                public static async Task Goo(string value)
                 {
                     (var anotherValue, Customer customer) = await {|Rename:NewMethod|}(value);
             
@@ -5658,4 +5658,55 @@ $@"
             }
             """,
             options: ImplicitForBuiltInTypes());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestMultipleRefCapture()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    int b = 0;
+
+                    [|a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    int b = 0;
+            
+                    (a, b) = await {|Rename:NewMethod|}(a, b);
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod(int a, int b)
+                {
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
 }
