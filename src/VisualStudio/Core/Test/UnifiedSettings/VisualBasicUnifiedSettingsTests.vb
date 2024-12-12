@@ -89,9 +89,10 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
                     Function(kvp) kvp.Value.Deserialize(Of UnifiedSettingsCategory))
 
                 Assert.True(nameToCategories.ContainsKey("textEditor.basic"))
-                Assert.Equal("Visual Basic", nameToCategories("textEditor.basic").Title)
+                Assert.Equal("Visual Basic", EvalResource(nameToCategories("textEditor.basic").Title))
 
                 Assert.True(nameToCategories.ContainsKey("textEditor.basic.intellisense"))
+                Assert.Equal("IntelliSense", EvalResource(nameToCategories("textEditor.basic.intellisense").Title))
             End Using
         End Function
 
