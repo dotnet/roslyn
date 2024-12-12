@@ -427,6 +427,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             return variableInfo;
         }
+
         /// <summary>
         /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
         /// </summary>
