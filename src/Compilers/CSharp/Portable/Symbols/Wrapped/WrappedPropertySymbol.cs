@@ -189,6 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int? TryGetOverloadResolutionPriority() => _underlyingProperty.OverloadResolutionPriority;
+        internal override int TryGetOverloadResolutionPriority() => _underlyingProperty.OverloadResolutionPriority;
     }
 }

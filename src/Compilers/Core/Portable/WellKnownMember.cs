@@ -625,6 +625,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
 
         System_Linq_Enumerable__ToList,
+        System_Linq_Enumerable__ToArray,
 
         System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression,
         System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions,
@@ -637,7 +638,8 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__Not_Expression,
         System_Linq_Expressions_Expression__Not_Expression_MethodInfo,
         System_Linq_Expressions_Expression__New_Type,
-        System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions,
+        System_Linq_Expressions_Expression__New_ConstructorInfo_IEnumerableExpressions,
+        System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions,
         System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions_MemberInfos,
         System_Linq_Expressions_Expression__Property,
         System_Linq_Expressions_Expression__MemberBind_MemberInfo,
@@ -710,6 +712,8 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__GreaterThan_MethodInfo,
         System_Linq_Expressions_Expression__GreaterThanOrEqual,
         System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
+        System_Linq_Expressions_Expression__Default,
+        System_Linq_Expressions_Expression__Power_MethodInfo,
 
         Count,
 

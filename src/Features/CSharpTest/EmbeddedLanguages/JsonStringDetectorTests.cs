@@ -118,7 +118,6 @@ public class JsonStringDetectorTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 
@@ -137,7 +136,6 @@ public class JsonStringDetectorTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 }

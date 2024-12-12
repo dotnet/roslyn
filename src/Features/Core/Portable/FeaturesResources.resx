@@ -294,9 +294,6 @@
   <data name="Returns_colon" xml:space="preserve">
     <value>Returns:</value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Remarks_colon" xml:space="preserve">
     <value>Remarks:</value>
   </data>
@@ -811,9 +808,6 @@ This version used in: {2}</value>
   <data name="Structures" xml:space="preserve">
     <value>Structures</value>
   </data>
-  <data name="Parameters_colon" xml:space="preserve">
-    <value>Parameters:</value>
-  </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
@@ -914,8 +908,8 @@ This version used in: {2}</value>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
   </data>
-  <data name="Generate_constructor" xml:space="preserve">
-    <value>Generate constructor...</value>
+  <data name="Generate_constructor_from_members" xml:space="preserve">
+    <value>Generate constructor from members...</value>
   </data>
   <data name="Pick_members_to_be_used_as_constructor_parameters" xml:space="preserve">
     <value>Pick members to be used as constructor parameters</value>
@@ -970,6 +964,9 @@ This version used in: {2}</value>
   </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
+  </data>
+  <data name="Move_declaration_near_reference_may_change_semantics" xml:space="preserve">
+    <value>Move declaration near reference (may change semantics)</value>
   </data>
   <data name="Convert_to_full_property" xml:space="preserve">
     <value>Convert to full property</value>
@@ -1156,8 +1153,8 @@ This version used in: {2}</value>
   <data name="Merge_with_next_0_statement" xml:space="preserve">
     <value>Merge with next '{0}' statement</value>
   </data>
-  <data name="Pull_0_up" xml:space="preserve">
-    <value>Pull '{0}' up</value>
+  <data name="Pull_0_up_to" xml:space="preserve">
+    <value>Pull '{0}' up to ...</value>
   </data>
   <data name="Pull_members_up_to_base_type" xml:space="preserve">
     <value>Pull members up to base type...</value>
@@ -1170,9 +1167,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_long_call_chain" xml:space="preserve">
     <value>Wrap long call chain</value>
-  </data>
-  <data name="Pull_0_up_to_1" xml:space="preserve">
-    <value>Pull '{0}' up to '{1}'</value>
   </data>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
@@ -1191,9 +1185,6 @@ This version used in: {2}</value>
   </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
-  </data>
-  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
-    <value>Stream must support read and seek operations.</value>
   </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
@@ -1252,6 +1243,9 @@ This version used in: {2}</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
+  </data>
+  <data name="Parameters_colon" xml:space="preserve">
+    <value>Parameters:</value>
   </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>
@@ -3176,5 +3170,29 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Symbol_search" xml:space="preserve">
     <value>Symbol search</value>
+  </data>
+  <data name="Conflict_s_detected" xml:space="preserve">
+    <value>Conflict(s) detected.</value>
+  </data>
+  <data name="Simplify_name_0" xml:space="preserve">
+    <value>Simplify name '{0}'</value>
+  </data>
+  <data name="Simplify_member_access_0" xml:space="preserve">
+    <value>Simplify member access '{0}'</value>
+  </data>
+  <data name="Not_all_code_paths_return" xml:space="preserve">
+    <value>Not all code paths return</value>
+  </data>
+  <data name="namespace_name" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
+  <data name="class_name" xml:space="preserve">
+    <value>&lt;class name&gt;</value>
+  </data>
+  <data name="interface_name" xml:space="preserve">
+    <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="Unable_to_create_0" xml:space="preserve">
+    <value>Unable to create '{0}'</value>
   </data>
 </root>

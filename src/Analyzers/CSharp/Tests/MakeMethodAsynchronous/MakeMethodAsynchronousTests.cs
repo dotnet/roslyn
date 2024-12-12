@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodAsynchronous;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-public partial class MakeMethodAsynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public partial class MakeMethodAsynchronousTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public MakeMethodAsynchronousTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
@@ -1591,5 +1587,169 @@ index: 1);
             }
             """;
         await TestInRegularAndScript1Async(initial, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
+    public async Task PartialMethod1()
+    {
+        var initial =
+            """
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                partial void M();
+            }
+
+            public partial class C
+            {
+                partial void M()
+                {
+                    [|await|] Task.Delay(1);
+                }
+            }
+            """;
+
+        var expected =
+            """
+            using System.Threading.Tasks;
+            
+            public partial class C
+            {
+                partial void MAsync();
+            }
+            
+            public partial class C
+            {
+                async partial Task MAsync()
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """;
+        await TestInRegularAndScript1Async(initial, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
+    public async Task PartialMethod2()
+    {
+        var initial =
+            """
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                public partial void M();
+            }
+
+            public partial class C
+            {
+                public partial void M()
+                {
+                    [|await|] Task.Delay(1);
+                }
+            }
+            """;
+
+        var expected =
+            """
+            using System.Threading.Tasks;
+            
+            public partial class C
+            {
+                public partial void MAsync();
+            }
+            
+            public partial class C
+            {
+                public async partial Task MAsync()
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """;
+        await TestInRegularAndScript1Async(initial, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
+    public async Task PartialMethod3()
+    {
+        var initial =
+            """
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                partial void M();
+            }
+
+            public partial class C
+            {
+                partial void M()
+                {
+                    [|await|] Task.Delay(1);
+                }
+            }
+            """;
+
+        var expected =
+            """
+            using System.Threading.Tasks;
+            
+            public partial class C
+            {
+                partial void M();
+            }
+            
+            public partial class C
+            {
+                async partial void M()
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """;
+        await TestInRegularAndScript1Async(initial, expected, index: 1);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
+    public async Task PartialMethod4()
+    {
+        var initial =
+            """
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                public partial void M();
+            }
+
+            public partial class C
+            {
+                public partial void M()
+                {
+                    [|await|] Task.Delay(1);
+                }
+            }
+            """;
+
+        var expected =
+            """
+            using System.Threading.Tasks;
+            
+            public partial class C
+            {
+                public partial void M();
+            }
+            
+            public partial class C
+            {
+                public async partial void M()
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """;
+        await TestInRegularAndScript1Async(initial, expected, index: 1);
     }
 }

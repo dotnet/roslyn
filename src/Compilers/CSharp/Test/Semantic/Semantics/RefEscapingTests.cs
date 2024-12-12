@@ -4192,6 +4192,70 @@ class Program
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76277")]
+        public void ObjectInitializer_ImplicitIndexerAccess_Span()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void M(ref S s)
+                    {
+                        s = new S()
+                        {
+                            F =
+                            {
+                                [^1] = 5,
+                            },
+                        };
+                    }
+                }
+
+                ref struct S
+                {
+                    public Span<int> F;
+                }
+                """;
+            CreateCompilationWithIndexAndRangeAndSpan(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76277")]
+        public void ObjectInitializer_ImplicitIndexerAccess_CustomRefStruct()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(ref S s)
+                    {
+                        s = new S()
+                        {
+                            F =
+                            {
+                                [^1] = 5,
+                            },
+                        };
+                    }
+                }
+
+                ref struct S
+                {
+                    public R F;
+                }
+
+                ref struct R
+                {
+                    public int Count => 0;
+                    public int this[int index]
+                    {
+                        get => 0;
+                        set { }
+                    }
+                }
+                """;
+            CreateCompilationWithIndex(source).VerifyDiagnostics();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4899,7 +4963,10 @@ unsafe class Program
                     Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet(out value1)").WithArguments("SW.TryGet(out System.Span<int>)", "result").WithLocation(14, 13),
                     // (14,33): error CS8352: Cannot use variable 'value1' in this context because it may expose referenced variables outside of their declaration scope
                     //             new SW().TryGet(out value1);
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "value1").WithArguments("value1").WithLocation(14, 33)
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "value1").WithArguments("value1").WithLocation(14, 33),
+                    // (37,10): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                    //         [UnscopedRef]
+                    Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(37, 10)
                     );
 
             }
@@ -9076,6 +9143,62 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(25, 20));
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65353")]
+        public void Local_NestedLambda([CombinatorialRange(0, 3)] int nesting)
+        {
+            var source = $$"""
+                {{new string('{', nesting)}}
+                    int x = 1;
+                    F(() =>
+                    {
+                        int y = 2;
+                        ref int r = ref y;
+                        r = ref x;
+                    });
+                {{new string('}', nesting)}}
+
+                static void F(System.Action a) { }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65353")]
+        public void Local_NestedLocalFunction([CombinatorialRange(0, 3)] int nesting)
+        {
+            var source = $$"""
+                {{new string('{', nesting)}}
+                    int x = 1;
+                    F();
+                    void F()
+                    {
+                        int y = 2;
+                        ref int r = ref y;
+                        r = ref x;
+                    }
+                {{new string('}', nesting)}}
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65353")]
+        public void Local_NestedLocalFunction_Parameter([CombinatorialRange(0, 3)] int nesting)
+        {
+            var source = $$"""
+                {{new string('{', nesting)}}
+                    int x = 1;
+                    F(ref x);
+                    void F(ref int z)
+                    {
+                        z = ref x;
+                    }
+                {{new string('}', nesting)}}
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS8374: Cannot ref-assign 'x' to 'z' because 'x' has a narrower escape scope than 'z'.
+                //         z = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "z = ref x").WithArguments("z", "x").WithLocation(6, 9));
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void ParameterEscape()
         {
@@ -10615,6 +10738,138 @@ public struct Vec4
                 Console.WriteLine(x.Length);
                 """;
             CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_ReturnOnly()
+        {
+            var source = """
+                S s = default;
+                S.M(ref s);
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    public static void M(ref S s)
+                    {
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (11,9): error CS9079: Cannot ref-assign 's.field' to 'refField' because 's.field' can only escape the current method through a return statement.
+                //         s.refField = ref s.field;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.refField = ref s.field").WithArguments("refField", "s.field").WithLocation(11, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_CallerContext()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                S s = default;
+                S.M(ref s);
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    public static void M([UnscopedRef] ref S s)
+                    {
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (4,1): error CS8350: This combination of arguments to 'S.M(ref S)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // S.M(ref s);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "S.M(ref s)").WithArguments("S.M(ref S)", "s").WithLocation(4, 1),
+                // (4,9): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                // S.M(ref s);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_CallerContext_StructReceiver()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                S s = default;
+                s.M();
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    [UnscopedRef] public void M()
+                    {
+                        this.refField = ref this.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,9): error CS9079: Cannot ref-assign 'this.field' to 'refField' because 'this.field' can only escape the current method through a return statement.
+                //         this.refField = ref this.field;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "this.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(13, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_CallerContext_Out()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                S s = default;
+                S.M(out s);
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    public static void M([UnscopedRef] out S s)
+                    {
+                        s = default;
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (4,1): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // S.M(out s);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "S.M(out s)").WithArguments("S.M(out S)", "s").WithLocation(4, 1),
+                // (4,9): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                // S.M(out s);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_CallerContext_Scoped()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped S s = default;
+                S.M(ref s);
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    public static void M([UnscopedRef] ref S s)
+                    {
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
     }
 }

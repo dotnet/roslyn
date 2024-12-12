@@ -143,9 +143,14 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
-        - powershell: Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$('$(Build.BuildNumber)')"
+        - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
+          inputs:
+            targetType: inline
+            script: |
+              $originalBuildNumber = "$(Build.BuildNumber)".Split(' - ')[0]
+              Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$originalBuildNumber"
 
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
@@ -321,6 +326,7 @@ extends:
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            retainInsertedBuild: false
         # Arcade is done so we can set BuildNumber back
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
           displayName: Reset BuildNumber
@@ -333,5 +339,6 @@ extends:
         # Symbol validation is not entirely reliable as of yet, so should be turned off until
         # https://github.com/dotnet/arcade/issues/2871 is resolved.
         enableSymbolValidation: false
+        enableSigningValidation: false
         enableSourceLinkValidation: false
         SDLValidationParameters: false

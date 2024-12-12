@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -286,9 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Instance call receivers can be implicitly captured to temps in the emit layer, but not static call arguments
                 // Therefore we may need to explicitly store the receiver to temp here.
                 if (thisRefKind != RefKind.None
-                    && !Binder.HasHome(
+                    && !CodeGenerator.HasHome(
                         receiverOpt,
-                        thisRefKind == RefKind.Ref ? Binder.AddressKind.Writeable : Binder.AddressKind.ReadOnlyStrict,
+                        thisRefKind == RefKind.Ref ? CodeGenerator.AddressKind.Writeable : CodeGenerator.AddressKind.ReadOnlyStrict,
                         _factory.CurrentFunction,
                         peVerifyCompatEnabled: false,
                         stackLocalsOpt: null))
@@ -702,8 +701,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKind = rewrittenReceiver.GetRefKind();
 
                         if (refKind == RefKind.None &&
-                            Binder.HasHome(rewrittenReceiver,
-                                           Binder.AddressKind.Constrained,
+                            CodeGenerator.HasHome(rewrittenReceiver,
+                                           CodeGenerator.AddressKind.Constrained,
                                            _factory.CurrentFunction,
                                            peVerifyCompatEnabled: false,
                                            stackLocalsOpt: null))

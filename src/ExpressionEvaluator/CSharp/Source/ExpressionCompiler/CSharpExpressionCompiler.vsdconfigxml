@@ -23,6 +23,7 @@
         <InterfaceGroup
           CallOnlyWhenLoaded="true">
           <NoFilter/>
+          <Interface Name="IDkmMetaDataPointerInvalidatedNotification"/>
           <Interface Name="IDkmModuleModifiedNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>

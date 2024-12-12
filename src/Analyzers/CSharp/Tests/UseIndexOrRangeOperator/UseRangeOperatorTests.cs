@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseRangeOperatorCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
-public class UseRangeOperatorTests
+public sealed class UseRangeOperatorTests
 {
     [Fact]
     public async Task TestNotInCSharp7()
@@ -38,7 +38,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -98,7 +97,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -399,7 +397,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -700,7 +697,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
     [Fact]
@@ -1311,7 +1307,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -1351,6 +1346,276 @@ public class UseRangeOperatorTests
                 }
             }
             """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromZeroToArbitraryLocation()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|0, x|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[x..];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromZeroToArbitraryLocation1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|0, x + 1|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[(x + 1)..];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromZeroToLengthMinusSomeAmount()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|0, s.Length - x|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[^x..];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromZeroToLengthMinusSomeAmount1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|0, s.Length - (x + 1)|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[^(x + 1)..];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromPositionToLengthMinusThatPosition()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|x, s.Length - x|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..x];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromLengthMinusPositionToPosition()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|s.Length - x, x|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..^x];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestRemoveFromLengthMinusPositionToPosition2()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|s.Length - (x + 1), x + 1|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..^(x + 1)];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestOneArgRemove()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|x|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..x];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestOneArgRemove1()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|x + 1|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..(x + 1)];
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
+    public async Task TestOneArgFromEnd()
+    {
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s.Remove([|s.Length - x|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s, int x)
+                    {
+                        var v = s[..^x];
+                    }
+                }
+                """,
         }.RunAsync();
     }
 }

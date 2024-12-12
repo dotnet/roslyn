@@ -11,9 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -36,6 +39,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         where TNodeUnderContainer : SyntaxNode
         where TCodeGenerationOptions : CodeGenerationOptions
     {
+        private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+
         protected readonly SyntaxAnnotation MethodNameAnnotation;
         protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
         protected readonly SyntaxAnnotation CallSiteAnnotation;
@@ -43,15 +48,22 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly AnalyzerResult AnalyzerResult;
 
+        protected readonly ExtractMethodGenerationOptions ExtractMethodGenerationOptions;
         protected readonly TCodeGenerationOptions Options;
+
         protected readonly bool LocalFunction;
 
-        protected CodeGenerator(TSelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+        protected CodeGenerator(
+            TSelectionResult selectionResult,
+            AnalyzerResult analyzerResult,
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         {
             SelectionResult = selectionResult;
             AnalyzerResult = analyzerResult;
 
-            Options = options;
+            ExtractMethodGenerationOptions = options;
+            Options = (TCodeGenerationOptions)options.CodeGenerationOptions;
             LocalFunction = localFunction;
 
             MethodNameAnnotation = new SyntaxAnnotation();
@@ -134,7 +146,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             {
                 // Now, insert the local function.
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(generateDefaultAccessibility: false),
+                    s_codeGenerationContext.With(generateDefaultAccessibility: false),
                     Options,
                     document.Project.ParseOptions);
 
@@ -158,11 +170,15 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     ? mappedMember.Parent
                     : mappedMember;
 
+                mappedMember = mappedMember.RawKind == syntaxKinds.PrimaryConstructorBaseType
+                    ? mappedMember.Parent
+                    : mappedMember;
+
                 // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                 var destination = mappedMember.Parent ?? mappedMember;
 
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(
+                    s_codeGenerationContext.With(
                         afterThisLocation: mappedMember.GetLocation(),
                         generateDefaultAccessibility: true,
                         generateMethodBodies: true),
@@ -324,10 +340,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()
         {
-            if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
-            {
+            if (AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty)
                 return [];
-            }
 
             var set = new HashSet<ITypeParameterSymbol>(AnalyzerResult.MethodTypeParametersInConstraintList);
 
@@ -377,6 +391,20 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             return parameterBehavior == ParameterBehavior.Ref ? RefKind.Ref :
                         parameterBehavior == ParameterBehavior.Out ? RefKind.Out : RefKind.None;
+        }
+
+        protected TStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
+        {
+            var callSignature = CreateCallSignature();
+
+            var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            if (AnalyzerResult.HasReturnType)
+            {
+                Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
+                return (TStatementSyntax)generator.ReturnStatement(callSignature);
+            }
+
+            return (TStatementSyntax)generator.ExpressionStatement(callSignature);
         }
     }
 }

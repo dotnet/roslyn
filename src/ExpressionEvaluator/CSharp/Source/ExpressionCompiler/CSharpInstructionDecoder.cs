@@ -34,6 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             AddMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
             WithParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
+        private static readonly SymbolDisplayFormat s_indexerCompactNameFormat = CompactNameFormat.
+            WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
+            WithParameterOptions(SymbolDisplayParameterOptions.None);
+
+        internal override string GetCompactName(MethodSymbol method)
+        {
+            var symbol = method.AssociatedSymbol ?? method;
+            var format = symbol is PropertySymbol { IsIndexer: true } ?
+                s_indexerCompactNameFormat :
+                CompactNameFormat;
+            return symbol.ToDisplayString(format);
+        }
+
         internal override void AppendFullName(StringBuilder builder, MethodSymbol method)
         {
             var displayFormat = method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet

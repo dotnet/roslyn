@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A source method that can have attributes, including a member method, accessor, or local function.
     /// </summary>
-    internal abstract class SourceMethodSymbolWithAttributes : SourceMethodSymbol, IAttributeTargetSymbol
+    internal abstract partial class SourceMethodSymbol : IAttributeTargetSymbol
     {
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
 
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
-        protected SourceMethodSymbolWithAttributes(SyntaxReference syntaxReferenceOpt)
+        protected SourceMethodSymbol(SyntaxReference syntaxReferenceOpt)
         {
             this.syntaxReferenceOpt = syntaxReferenceOpt;
         }
@@ -614,6 +614,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
+                if (!this.UseUpdatedEscapeRules)
+                {
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
                     arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
@@ -1106,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
 
             // Caller must free the returned builder.
-            static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbolWithAttributes @this)
+            static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbol @this)
             {
                 var namespaceNames = ArrayBuilder<string>.GetInstance();
                 for (var containingNamespace = @this.ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
@@ -1424,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbol @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(attribute.AttributeClass is not null);
                 ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
@@ -1744,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
-            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
+        internal override int TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
     }
 }

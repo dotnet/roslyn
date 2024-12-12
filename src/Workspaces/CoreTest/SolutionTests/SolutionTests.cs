@@ -823,6 +823,94 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(root1.IsIncrementallyIdenticalTo(root2));
         }
 
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_DifferentLanguage(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            var parseOptions1 = CSharpParseOptions.Default;
+            var parseOptions2 = VisualBasicParseOptions.Default;
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var docContents = "";
+
+            // Validate strange case were we have linked files to the same file, but with different languages.
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
+                .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId1, parseOptions1)
+                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.VisualBasic).WithProjectParseOptions(projectId2, parseOptions2)
+                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")));
+
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // These are different languages, so we should get entirely different tree structures.
+            Assert.NotEqual(root1.GetType(), root2.GetType());
+
+            var text = SourceText.From(" ", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+
+            // The versions will not match as we won't share the underlying text-and-tree instances between languages.
+            Assert.NotEqual(version1, version2);
+
+            // These are different languages, so we should get entirely different tree structures.
+            Assert.NotEqual(root1.GetType(), root2.GetType());
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            // But not cause them to share trees.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // These are different languages, so we should get entirely different tree structures.
+            Assert.NotEqual(root1.GetType(), root2.GetType());
+        }
+
         [Fact]
         public void WithAdditionalDocumentText_SourceText()
         {
@@ -1072,6 +1160,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataReference = MetadataReference.CreateFromImage([], filePath: "meta");
             var projectReference = new ProjectReference(projectId2);
             var analyzerReference = new TestAnalyzerReference();
+            var generatedOutputDir = Path.Combine(TempRoot.Root, "obj");
+            var assemblyPath = Path.Combine(TempRoot.Root, "bin", "assemblyName.dll");
 
             var newInfo = ProjectInfo.Create(
                 projectId,
@@ -1112,7 +1202,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     // add new document:
                     newConfigDocumentInfo3,
                     // remove existing document (c2)
-                ]);
+                ])
+                .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedOutputDir));
 
             var newSolution = solution.WithProjectInfo(newInfo);
             var newProject = newSolution.GetRequiredProject(projectId);
@@ -1124,6 +1215,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(newInfo.Language, newProject.Language);
             Assert.Equal(newInfo.FilePath, newProject.FilePath);
             Assert.Equal(newInfo.OutputFilePath, newProject.OutputFilePath);
+            Assert.Equal(newInfo.CompilationOutputInfo, newProject.CompilationOutputInfo);
             Assert.Equal(newInfo.CompilationOptions!.OutputKind, newProject.CompilationOptions!.OutputKind);
             Assert.Equal(newInfo.CompilationOptions!.ModuleName, newProject.CompilationOptions!.ModuleName);
             Assert.Equal(newInfo.ParseOptions!.LanguageVersion, newProject.ParseOptions!.LanguageVersion);
@@ -1379,7 +1471,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputFilePath(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void GetEffectiveGeneratedFilesOutputDirectory()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var objDir = Path.Combine(TempRoot.Root, "obj");
+            var binDir = Path.Combine(TempRoot.Root, "bin");
+            var otherDir = Path.Combine(TempRoot.Root, "other");
+
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+            var project = solution.GetRequiredProject(projectId);
+
+            Assert.False(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+
+            project = project
+                .WithOutputFilePath(Path.Combine(binDir, "output.dll"))
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(objDir, "output.dll"),
+                    generatedFilesOutputDirectory: null));
+
+            Assert.True(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+            AssertEx.AreEqual(objDir, project.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
+
+            project = project.WithCompilationOutputInfo(
+                project.CompilationOutputInfo.WithGeneratedFilesOutputDirectory(otherDir));
+
+            Assert.True(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+            AssertEx.AreEqual(otherDir, project.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
         }
 
         [Fact]
@@ -1415,17 +1539,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
             // any character is allowed
-            var path = "\0<>a/b/*.dll";
+            var info = new CompilationOutputInfo("\0<>a/b/*.dll", TempRoot.Root + "<>\0");
 
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectCompilationOutputInfo(projectId, value),
                 s => s.GetRequiredProject(projectId).CompilationOutputInfo,
-                new CompilationOutputInfo(path),
+                info,
                 defaultThrows: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, new CompilationOutputInfo("x.dll")));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), new CompilationOutputInfo("x.dll")));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, info));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), info));
         }
 
         [Fact]
@@ -2154,8 +2278,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FallbackAnalyzerOptions(bool isRoot)
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments(editorConfig: $"""
-                [*]
                 {(isRoot ? "root = true" : "")}
+                [*]
                 optionA = A
                 """);
             var solution = workspace.CurrentSolution;
@@ -2167,46 +2291,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .Add("optionA", "fallbackA")
                     .Add("optionB", "fallbackB")))));
 
-            TestOptionValues(solution2, expectedA: "A", expectedB: "fallbackB");
+            TestOptionValues(solution2, expectedA: "A", hasBWithoutFallback: false, expectedB: "fallbackB", expectedBFile: "fallbackB");
 
             var solution3 = solution2.WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty
                .Add(LanguageNames.CSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
                    .Add("optionA", "fallbackX")
                    .Add("optionB", "fallbackY")))));
 
-            TestOptionValues(solution3, expectedA: "A", expectedB: "fallbackY");
+            TestOptionValues(solution3, expectedA: "A", hasBWithoutFallback: false, expectedB: "fallbackY", expectedBFile: "fallbackY");
 
             Assert.True(workspace.TryApplyChanges(solution3));
-            TestOptionValues(workspace.CurrentSolution, expectedA: "A", expectedB: "fallbackY");
+            TestOptionValues(workspace.CurrentSolution, expectedA: "A", hasBWithoutFallback: false, expectedB: "fallbackY", expectedBFile: "fallbackY");
 
             var editorConfigContent = """
                 [*]
                 optionB = ec2
                 """;
             var editorConfigId = DocumentId.CreateNewId(solution3.Projects.Single().Id);
-            var solution4 = solution3.AddAnalyzerConfigDocument(editorConfigId, "editorconfig2", SourceText.From(editorConfigContent), filePath: Path.Combine(s_projectDir, "editorconfig2"));
+            var solution4 = solution3.AddAnalyzerConfigDocument(editorConfigId, ".editorconfig", SourceText.From(editorConfigContent), filePath: Path.Combine(s_projectDir, "subfolder", ".editorconfig"));
 
-            TestOptionValues(solution4, expectedA: "A", expectedB: "ec2");
+            TestOptionValues(solution4, expectedA: "A", hasBWithoutFallback: true, expectedB: "fallbackY", expectedBFile: "ec2");
 
-            static void TestOptionValues(Solution solution, string expectedA, string expectedB)
+            static void TestOptionValues(Solution solution, string expectedA, bool hasBWithoutFallback, string expectedB, string expectedBFile)
             {
                 var project2 = solution.Projects.Single();
 
                 var projectOptions = project2.GetAnalyzerConfigOptions();
                 Assert.NotNull(projectOptions);
 
-                Assert.True(projectOptions!.Value.ConfigOptions.TryGetValue("optionA", out var value1));
+                Assert.True(projectOptions!.Value.ConfigOptionsWithoutFallback.TryGetValue("optionA", out var value1));
+                Assert.Equal(expectedA, value1);
+                Assert.True(projectOptions!.Value.ConfigOptionsWithFallback.TryGetValue("optionA", out value1));
                 Assert.Equal(expectedA, value1);
 
-                Assert.True(projectOptions!.Value.ConfigOptions.TryGetValue("optionB", out var value2));
+                Assert.False(projectOptions!.Value.ConfigOptionsWithoutFallback.TryGetValue("optionB", out var value2));
+                Assert.Null(value2);
+                Assert.True(projectOptions!.Value.ConfigOptionsWithFallback.TryGetValue("optionB", out value2));
                 Assert.Equal(expectedB, value2);
 
                 var sourcePathOptions = project2.State.GetAnalyzerOptionsForPath(Path.Combine(s_projectDir, "x.cs"), CancellationToken.None);
-                Assert.True(sourcePathOptions.ConfigOptions.TryGetValue("optionA", out var value3));
+                Assert.True(sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionA", out var value3));
+                Assert.Equal(expectedA, value3);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionA", out value3));
                 Assert.Equal(expectedA, value3);
 
-                Assert.True(sourcePathOptions.ConfigOptions.TryGetValue("optionB", out var value4));
+                Assert.False(sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionB", out var value4));
+                Assert.Null(value4);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionB", out value4));
                 Assert.Equal(expectedB, value4);
+
+                sourcePathOptions = project2.State.GetAnalyzerOptionsForPath(Path.Combine(s_projectDir, "subfolder", "x.cs"), CancellationToken.None);
+                Assert.True(sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionA", out var value5));
+                Assert.Equal(expectedA, value5);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionA", out value5));
+                Assert.Equal(expectedA, value5);
+
+                Assert.Equal(hasBWithoutFallback, sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionB", out var value6));
+                Assert.Equal(hasBWithoutFallback ? expectedBFile : null, value6);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionB", out value6));
+                Assert.Equal(expectedBFile, value6);
             }
         }
 
@@ -5382,11 +5525,12 @@ class C
 #pragma warning restore
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
-            var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            var documentOptionsViaSyntaxTree = document.Project.State.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
             Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
 
             var projectOptions = document.Project.GetAnalyzerConfigOptions();
-            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptions.TryGetValue("indent_style", out value) == true && value == "tab");
+            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptionsWithoutFallback.TryGetValue("indent_style", out value) == true && value == "tab");
+            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptionsWithFallback.TryGetValue("indent_style", out value) == true && value == "tab");
         }
 
         [Fact]
@@ -5551,7 +5695,7 @@ class C
             Assert.Single(frozenCompilation2.SyntaxTrees);
             Assert.True(frozenCompilation2.ContainsSyntaxTree(await frozenProject2.Documents.Single().GetSyntaxTreeAsync()));
 
-            Assert.Single(frozenCompilation2.References.Where(r => r is CompilationReference c && c.Compilation == frozenCompilation1));
+            Assert.Single(frozenCompilation2.References, r => r is CompilationReference c && c.Compilation == frozenCompilation1);
         }
 
         [Fact]
@@ -5583,7 +5727,10 @@ class C
         public async Task TestFrozenPartialSolution7(bool freeze)
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
-            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            var project1 = workspace.CurrentSolution
+                .AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp)
+                .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath: Path.Combine(TempRoot.Root, "assembly.dll"), generatedFilesOutputDirectory: null));
+
             project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
 
             var invokeIndex = 1;

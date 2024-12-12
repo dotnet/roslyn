@@ -1327,6 +1327,11 @@
         <target state="translated">Die Methode "{0}" mit einem Iteratorblock muss "async" lauten, um "{1}" zurückzugeben.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IteratorRefLikeElementType">
+        <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
         <target state="translated">Das kontextbezogene Schlüsselwort „var“ kann nicht als expliziter Lambdarückgabetyp verwendet werden.</target>
@@ -1853,7 +1858,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">„{1}“ kann nicht auf „{0}“ verweisen, da „{1}“ einen breiteren Werte-Escapebereich als „{0}“ hat, wodurch die Zuweisung über „{0}“ von Werten mit engeren Escapebereichen als „{1}“ ermöglicht wird.</target>
         <note />
       </trans-unit>
@@ -2572,6 +2577,11 @@
         <target state="translated">Strukturfeldinitialisierer</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="new">unbound generic types in nameof operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">Unsignierte Rechtsverschiebung</target>
@@ -2660,6 +2670,16 @@
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} ist kein gültiger C#-Überfüllungsvorgang.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2930,6 +2950,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Die Verwendung der Variablen in diesem Kontext kann dazu führen, dass referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
@@ -3208,7 +3238,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Dieser weist „{1}“ für „{0}“ zu, aber „{1}“ hat einen breiteren Werte-Escapebereich als „{0}“, wodurch die Zuweisung über „{0}“ von Werten mit engeren Escapebereichen als „{1}“ ermöglicht wird.</target>
         <note />
       </trans-unit>
@@ -5336,6 +5366,16 @@
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Der Parameter wird nicht gelesen. Möglicherweise haben Sie ihn nicht zum Initialisieren der gleichnamigen Eigenschaft verwendet?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -10290,8 +10330,8 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">"{0}" kann nicht zum Schreiben geöffnet werden: "{1}"</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">"{0}" kann nicht zum Schreiben geöffnet werden: "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -12951,7 +12991,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="translated">"{0}" dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden. Unterdrücken Sie diese Diagnose, um fortzufahren.</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

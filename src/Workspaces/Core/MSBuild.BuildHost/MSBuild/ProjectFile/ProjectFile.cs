@@ -131,6 +131,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
             }
 
+            var generatedFilesOutputDirectory = project.ReadPropertyString(PropertyNames.CompilerGeneratedFilesOutputPath);
+            generatedFilesOutputDirectory = RoslynString.IsNullOrWhiteSpace(generatedFilesOutputDirectory)
+                ? null
+                : GetAbsolutePathRelativeToProject(generatedFilesOutputDirectory);
+
             var intermediateOutputFilePath = project.GetItems(ItemNames.IntermediateAssembly).FirstOrDefault()?.EvaluatedInclude;
             if (!RoslynString.IsNullOrWhiteSpace(intermediateOutputFilePath))
             {
@@ -176,26 +181,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var fileGlobs = _loadedProject?.GetAllGlobs().Select(GetFileGlobs).ToImmutableArray() ?? [];
 
-            return ProjectFileInfo.Create(
-                Language,
-                project.FullPath,
-                outputFilePath,
-                outputRefFilePath,
-                intermediateOutputFilePath,
-                defaultNamespace,
-                targetFramework,
-                targetFrameworkIdentifier,
-                targetFrameworkVersion,
-                projectAssetsFilePath,
-                commandLineArgs,
-                docs,
-                additionalDocs,
-                analyzerConfigDocs,
-                project.GetProjectReferences().ToImmutableArray(),
-                packageReferences,
-                projectCapabilities,
-                contentFileInfo,
-                fileGlobs);
+            return new ProjectFileInfo()
+            {
+                Language = Language,
+                FilePath = project.FullPath,
+                OutputFilePath = outputFilePath,
+                OutputRefFilePath = outputRefFilePath,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
+                IntermediateOutputFilePath = intermediateOutputFilePath,
+                DefaultNamespace = defaultNamespace,
+                TargetFramework = targetFramework,
+                TargetFrameworkIdentifier = targetFrameworkIdentifier,
+                TargetFrameworkVersion = targetFrameworkVersion,
+                ProjectAssetsFilePath = projectAssetsFilePath,
+                CommandLineArgs = commandLineArgs,
+                Documents = docs,
+                AdditionalDocuments = additionalDocs,
+                AnalyzerConfigDocuments = analyzerConfigDocs,
+                ProjectReferences = project.GetProjectReferences().ToImmutableArray(),
+                PackageReferences = packageReferences,
+                ProjectCapabilities = projectCapabilities,
+                ContentFilePaths = contentFileInfo,
+                FileGlobs = fileGlobs
+            };
 
             static FileGlobs GetFileGlobs(GlobResult g)
             {

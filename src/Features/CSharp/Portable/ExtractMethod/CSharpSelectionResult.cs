@@ -19,7 +19,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal abstract partial class CSharpSelectionResult : SelectionResult<StatementSyntax>
+internal abstract partial class CSharpSelectionResult(
+    TextSpan originalSpan,
+    TextSpan finalSpan,
+    bool selectionInExpression,
+    SemanticDocument document,
+    SyntaxAnnotation firstTokenAnnotation,
+    SyntaxAnnotation lastTokenAnnotation,
+    bool selectionChanged)
+    : SelectionResult<StatementSyntax>(
+        originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
 {
     public static async Task<CSharpSelectionResult> CreateAsync(
         TextSpan originalSpan,
@@ -56,19 +65,6 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
                 originalSpan, finalSpan, selectionInExpression,
                 newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
         }
-    }
-
-    protected CSharpSelectionResult(
-        TextSpan originalSpan,
-        TextSpan finalSpan,
-        bool selectionInExpression,
-        SemanticDocument document,
-        SyntaxAnnotation firstTokenAnnotation,
-        SyntaxAnnotation lastTokenAnnotation,
-        bool selectionChanged)
-        : base(originalSpan, finalSpan, selectionInExpression,
-               document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
-    {
     }
 
     protected override ISyntaxFacts SyntaxFacts
@@ -113,10 +109,9 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
             var container = this.GetInnermostStatementContainer();
 
             Contract.ThrowIfNull(container);
-            Contract.ThrowIfFalse(container.IsStatementContainerNode() ||
-                                  container is TypeDeclarationSyntax ||
-                                  container is ConstructorDeclarationSyntax ||
-                                  container is CompilationUnitSyntax);
+            Contract.ThrowIfFalse(
+                container.IsStatementContainerNode() ||
+                container is BaseListSyntax or TypeDeclarationSyntax or ConstructorDeclarationSyntax or CompilationUnitSyntax);
 
             return container;
         }
@@ -175,9 +170,7 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
         foreach (var statement in statements)
         {
             if (statement.IsStatementContainerNode())
-            {
                 return statement;
-            }
 
             last = statement;
         }
@@ -194,16 +187,16 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
         // constructor initializer case
         var constructorInitializer = GetContainingScopeOf<ConstructorInitializerSyntax>();
         if (constructorInitializer != null)
-        {
             return constructorInitializer.Parent;
-        }
 
         // field initializer case
         var field = GetContainingScopeOf<FieldDeclarationSyntax>();
         if (field != null)
-        {
             return field.Parent;
-        }
+
+        var primaryConstructorBaseType = GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>();
+        if (primaryConstructorBaseType != null)
+            return primaryConstructorBaseType.Parent;
 
         Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement));
         Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit));

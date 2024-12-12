@@ -39,6 +39,8 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int RegionDirectiveTrivia => (int)SyntaxKind.RegionDirectiveTrivia;
     public int EndRegionDirectiveTrivia => (int)SyntaxKind.EndRegionDirectiveTrivia;
     public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+    public int DefineDirectiveTrivia => (int)SyntaxKind.DefineDirectiveTrivia;
+    public int? UndefDirectiveTrivia => (int)SyntaxKind.UndefDirectiveTrivia;
 
     public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
     public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;
@@ -71,6 +73,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
+    public int? AliasQualifiedName => (int)SyntaxKind.AliasQualifiedName;
     public int GenericName => (int)SyntaxKind.GenericName;
     public int IdentifierName => (int)SyntaxKind.IdentifierName;
     public int QualifiedName => (int)SyntaxKind.QualifiedName;
@@ -112,6 +115,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
     public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
     public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
+    public int? SuppressNullableWarningExpression => (int)SyntaxKind.SuppressNullableWarningExpression;
     public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
     public int ThisExpression => (int)SyntaxKind.ThisExpression;
     public int? ThrowExpression => (int)SyntaxKind.ThrowExpression;
@@ -172,4 +176,5 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;
     public int InterpolatedStringText => (int)SyntaxKind.InterpolatedStringText;
     public int? IndexerMemberCref => (int)SyntaxKind.IndexerMemberCref;
+    public int? PrimaryConstructorBaseType => (int)SyntaxKind.PrimaryConstructorBaseType;
 }

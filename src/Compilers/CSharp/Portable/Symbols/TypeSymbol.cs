@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (implementedMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                             {
-                                if (!implementingMethod.IsExplicitInterfaceImplementation && implementingMethod is SourceMethodSymbolWithAttributes &&
+                                if (!implementingMethod.IsExplicitInterfaceImplementation && implementingMethod is SourceMethodSymbol &&
                                     implementedMethod.ContainingModule != implementingMethod.ContainingModule)
                                 {
                                     checkRefStructInterfacesFeatureAvailabilityOnUnscopedRefAttribute(implementingMethod.HasUnscopedRefAttribute ? implementingMethod : implementingMethod.AssociatedSymbol, diagnostics);

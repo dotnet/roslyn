@@ -19,6 +19,8 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <!-- CodeLens provider is not part of Roslyn ServiceHub, we just use the existing ServiceHub package as a delivery vehicle -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -111,9 +113,33 @@
   <Target Name="CompileReadyToRun"
           DependsOnTargets="CompileReadyToRunImage"
           Condition="'$(GenerateReadyToRun)' == 'true'">
-    
+
+    <PropertyGroup>
+      <_SymbolPackageId>$(ProjectName).Symbols</_SymbolPackageId>
+      <_NuspecFilePath>$(PdbWorkDir)\$(_SymbolPackageId).nuspec</_NuspecFilePath>
+      <_NuspecFileContent>
+          <![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>$(_SymbolPackageId)</id>
+    <version>$(PackageVersion)</version>
+    <authors>Microsoft</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/dotnet/roslyn</projectUrl>
+    <description>Package Description
+      More details at https://aka.ms/roslyn-packages</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+  </metadata>
+</package>
+]]>
+      </_NuspecFileContent>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(_NuspecFilePath)" Lines="$(_NuspecFileContent)" Overwrite="true"/>
+
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).Symbols.nupkg" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" />
   </Target>
 
   <!--
@@ -188,3 +214,4 @@
 
   <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup;CompileReadyToRun" Returns="@(_VsixItem)" />
 </Project>
+

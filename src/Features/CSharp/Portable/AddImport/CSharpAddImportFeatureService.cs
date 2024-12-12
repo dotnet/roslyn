@@ -32,19 +32,15 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
-internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeatureService<SimpleNameSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddImportFeatureService()
-    {
-    }
+    protected override bool IsWithinImport(SyntaxNode node)
+        => node.GetAncestor<UsingDirectiveSyntax>()?.Parent is CompilationUnitSyntax;
 
     protected override bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return node.CanAddUsingDirectives(allowInHiddenRegions, cancellationToken);
-    }
+        => node.CanAddUsingDirectives(allowInHiddenRegions, cancellationToken);
 
     protected override bool CanAddImportForMethod(
         string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)
@@ -162,7 +158,8 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
             diagnosticId == CS1929) && // An extension method is in scope, but for another type
             node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
 
-    protected override bool CanAddImportForType(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
+    protected override bool CanAddImportForTypeOrNamespace(
+        string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
     {
         nameNode = null;
         switch (diagnosticId)
@@ -189,6 +186,16 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
                 }
 
                 break;
+
+            case CS0234:
+                // The type or namespace name 'X' does not exist in the namespace 'Y'.
+                //
+                // We support this within a using, on any part of the using name that doesn't bind.
+                if (!this.IsWithinImport(node))
+                    return false;
+
+                nameNode = node as SimpleNameSyntax;
+                return true;
 
             default:
                 return false;

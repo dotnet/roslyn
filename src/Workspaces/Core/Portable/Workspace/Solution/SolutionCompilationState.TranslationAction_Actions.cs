@@ -127,7 +127,7 @@ internal sealed partial class SolutionCompilationState
             public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
-                => generatorDriver.WithUpdatedAnalyzerConfigOptions(NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider);
+                => generatorDriver.WithUpdatedAnalyzerConfigOptions(NewProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider);
         }
 
         internal sealed class RemoveDocumentsAction(
@@ -364,7 +364,7 @@ internal sealed partial class SolutionCompilationState
                 var generatorDriver = oldGeneratorDriver
                     .ReplaceAdditionalTexts(this.NewProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
                     .WithUpdatedParseOptions(this.NewProjectState.ParseOptions!)
-                    .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
+                    .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider)
                     .ReplaceGenerators(GetSourceGenerators(this.NewProjectState));
 
                 return generatorDriver;

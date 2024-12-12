@@ -33,29 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Protected Sub New()
         End Sub
 
-        Public ReadOnly Property IsCaseSensitive As Boolean Implements ISyntaxFacts.IsCaseSensitive
-            Get
-                Return False
-            End Get
-        End Property
+        Public ReadOnly Property IsCaseSensitive As Boolean = False Implements ISyntaxFacts.IsCaseSensitive
 
-        Public ReadOnly Property StringComparer As StringComparer Implements ISyntaxFacts.StringComparer
-            Get
-                Return CaseInsensitiveComparison.Comparer
-            End Get
-        End Property
+        Public ReadOnly Property StringComparer As StringComparer = CaseInsensitiveComparison.Comparer Implements ISyntaxFacts.StringComparer
 
-        Public ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFacts.ElasticMarker
-            Get
-                Return SyntaxFactory.ElasticMarker
-            End Get
-        End Property
+        Public ReadOnly Property ElasticMarker As SyntaxTrivia = SyntaxFactory.ElasticMarker Implements ISyntaxFacts.ElasticMarker
 
-        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFacts.ElasticCarriageReturnLineFeed
-            Get
-                Return SyntaxFactory.ElasticCarriageReturnLineFeed
-            End Get
-        End Property
+        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed Implements ISyntaxFacts.ElasticCarriageReturnLineFeed
 
         Public ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFacts.SyntaxKinds
 
@@ -93,6 +77,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function SupportsCollectionExpressionNaturalType(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsCollectionExpressionNaturalType
             Return False
+        End Function
+
+        Public Function SupportsImplicitImplementationOfNonPublicInterfaceMembers(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsImplicitImplementationOfNonPublicInterfaceMembers
+            Return True
         End Function
 
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
@@ -211,6 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Function IsDeconstructionForEachStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeconstructionForEachStatement
+            Return False
+        End Function
+
+        Public Function IsUsingLocalDeclarationStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingLocalDeclarationStatement
             Return False
         End Function
 
@@ -513,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken)
         End Function
 
-        Public Function IsBindableToken(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsBindableToken
+        Public Function IsBindableToken(semanticModel As SemanticModel, token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsBindableToken
             Return Me.IsWord(token) OrElse
                 Me.IsLiteral(token) OrElse
                 Me.IsOperator(token)
@@ -1252,6 +1244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function IsRawStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsRawStringLiteral
+            ' VB does not have raw strings
+            Return False
+        End Function
+
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
             Dim argumentList = DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
             Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
@@ -1471,6 +1468,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
         End Function
 
+        Public Function GetMatchingDirective(directive As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode Implements ISyntaxFacts.GetMatchingDirective
+            Return DirectCast(directive, DirectiveTriviaSyntax).GetMatchingStartOrEndDirective(cancellationToken)
+        End Function
+
+        Public Function GetMatchingConditionalDirectives(directive As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFacts.GetMatchingConditionalDirectives
+            Return DirectCast(directive, DirectiveTriviaSyntax).GetMatchingConditionalDirectives(cancellationToken).CastArray(Of SyntaxNode)
+        End Function
+
         Public Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsRegularComment
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function
@@ -1566,6 +1571,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPostfixUnaryExpression
             ' Does not exist in VB.
+            Return False
+        End Function
+
+        Public Function IsElementBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementBindingExpression
+            ' Does not exist in VB.  VB represents an element binding as a InvocationExpression with null target.
             Return False
         End Function
 
@@ -1811,6 +1821,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 #End Region
 
 #Region "GetPartsOfXXX members"
+
+        Public Sub GetPartsOfAliasQualifiedName(node As SyntaxNode, ByRef [alias] As SyntaxNode, ByRef colonColonToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAliasQualifiedName
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Sub
 
         Public Sub GetPartsOfArgumentList(node As SyntaxNode, ByRef openParenToken As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of SyntaxNode), ByRef closeParenToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfArgumentList
             Dim argumentList = DirectCast(node, ArgumentListSyntax)

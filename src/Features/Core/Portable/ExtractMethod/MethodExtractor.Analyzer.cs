@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,7 +38,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// convert text span to node range for the flow analysis API
         /// </summary>
-        private (TStatementSyntax, TStatementSyntax) GetFlowAnalysisNodeRange()
+        private (TStatementSyntax firstStatement, TStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
         {
             var first = this.SelectionResult.GetFirstStatement();
             var last = this.SelectionResult.GetLastStatement();
@@ -55,6 +56,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return (firstUnderContainer, lastUnderContainer);
         }
 
+        protected abstract bool IsInPrimaryConstructorBaseType();
+
         /// <summary>
         /// check whether selection contains return statement or not
         /// </summary>
@@ -64,6 +67,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// create VariableInfo type
         /// </summary>
         protected abstract VariableInfo CreateFromSymbol(Compilation compilation, ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
+
+        protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
+            => readOutsideMap.Contains(symbol);
 
         /// <summary>
         /// among variables that will be used as parameters at the extracted method, check whether one of the parameter can be used as return
@@ -121,7 +127,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// get type of the range variable symbol
         /// </summary>
-        protected abstract ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
+        protected abstract ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
 
         /// <summary>
         /// check whether the selection is at the placed where read-only field is allowed to be extracted out
@@ -138,10 +144,11 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // build symbol map for the identifiers used inside of the selection
             var symbolMap = GetSymbolMap(model);
 
+            var isInPrimaryConstructorBaseType = this.IsInPrimaryConstructorBaseType();
+
             // gather initial local or parameter variable info
             GenerateVariableInfoMap(
-                bestEffort: false, model, dataFlowAnalysisData, symbolMap,
-                out var variableInfoMap, out var failedVariables);
+                bestEffort: false, model, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out var variableInfoMap, out var failedVariables);
             if (failedVariables.Count > 0)
             {
                 // If we weren't able to figure something out, go back and regenerate the map
@@ -149,22 +156,33 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 // was a problem, but we allow them to proceed so they're not unnecessarily
                 // blocked just because we didn't understand something.
                 GenerateVariableInfoMap(
-                    bestEffort: true, model, dataFlowAnalysisData, symbolMap,
-                    out variableInfoMap, out var unused);
+                    bestEffort: true, model, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out variableInfoMap, out var unused);
                 Contract.ThrowIfFalse(unused.Count == 0);
             }
 
             var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(IsThisParameter);
             var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(static s => IsThisParameter(s));
 
+            // Need to generate an instance method if any primary constructor parameter is read or written inside the
+            // selection.  This does not apply if we're in the base-type-list as that will still need a static method.
+            var primaryConstructorParameterReadOrWritten = !isInPrimaryConstructorBaseType && dataFlowAnalysisData.ReadInside
+                .Concat(dataFlowAnalysisData.WrittenInside)
+                .OfType<IParameterSymbol>()
+                .FirstOrDefault(s => s.IsPrimaryConstructor(this.CancellationToken)) != null;
+
             var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(static (l, self) => self.SelectionResult.FinalSpan.Contains(l.SourceSpan), this));
 
             // Checks to see if selection includes a local function call + if the given local function declaration is not included in the selection.
             var containsAnyLocalFunctionCallNotWithinSpan = localFunctionCallsNotWithinSpan.Any();
+
             // Checks to see if selection includes a non-static local function call + if the given local function declaration is not included in the selection.
             var containsNonStaticLocalFunctionCallNotWithinSpan = containsAnyLocalFunctionCallNotWithinSpan && localFunctionCallsNotWithinSpan.Where(s => !s.IsStatic).Any();
 
-            var instanceMemberIsUsed = thisParameterBeingRead != null || isThisParameterWritten || containsNonStaticLocalFunctionCallNotWithinSpan;
+            var instanceMemberIsUsed = thisParameterBeingRead != null
+                || isThisParameterWritten
+                || containsNonStaticLocalFunctionCallNotWithinSpan
+                || primaryConstructorParameterReadOrWritten;
+
             var shouldBeReadOnly = !isThisParameterWritten
                 && thisParameterBeingRead != null
                 && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
@@ -411,8 +429,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             if (SelectionResult.SelectionInExpression)
                 return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
-            var pair = GetFlowAnalysisNodeRange();
-            return model.AnalyzeDataFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            return model.AnalyzeDataFlow(firstStatement, lastStatement);
         }
 
         private bool IsEndOfSelectionReachable(SemanticModel model)
@@ -422,8 +440,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return true;
             }
 
-            var pair = GetFlowAnalysisNodeRange();
-            var analysis = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var analysis = model.AnalyzeControlFlow(firstStatement, lastStatement);
             return analysis.EndPointIsReachable;
         }
 
@@ -452,6 +470,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             SemanticModel model,
             DataFlowAnalysis dataFlowAnalysisData,
             Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+            bool isInPrimaryConstructorBaseType,
             out Dictionary<ISymbol, VariableInfo> variableInfoMap,
             out List<ISymbol> failedVariables)
         {
@@ -480,11 +499,18 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             foreach (var symbol in candidates)
             {
-                if (symbol.IsThisParameter() ||
-                    IsInteractiveSynthesizedParameter(symbol))
-                {
+                // We don't care about the 'this' parameter.  It will be available to an extracted method already.
+                if (symbol.IsThisParameter())
                     continue;
-                }
+
+                // Primary constructor parameters will be in scope for any instance extracted method.  No need to do
+                // anything special with them.  They won't be in scope for a static method generated in a primary
+                // constructor base type list.
+                if (!isInPrimaryConstructorBaseType && symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(this.CancellationToken))
+                    continue;
+
+                if (IsInteractiveSynthesizedParameter(symbol))
+                    continue;
 
                 var captured = capturedMap.Contains(symbol);
                 var dataFlowIn = dataFlowInMap.Contains(symbol);
@@ -493,7 +519,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 var variableDeclared = variableDeclaredMap.Contains(symbol);
                 var readInside = readInsideMap.Contains(symbol);
                 var writtenInside = writtenInsideMap.Contains(symbol);
-                var readOutside = readOutsideMap.Contains(symbol);
+                var readOutside = IsReadOutside(symbol, readOutsideMap);
                 var writtenOutside = writtenOutsideMap.Contains(symbol);
                 var unsafeAddressTaken = unsafeAddressTakenMap.Contains(symbol);
 
@@ -647,7 +673,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return type.Equals(SelectionResult.GetContainingScopeType());
         }
 
-        protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
+        protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
                 ILocalSymbol local => local.Type,
@@ -709,8 +735,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             Contract.ThrowIfTrue(SelectionResult.SelectionInExpression);
 
-            var pair = GetFlowAnalysisNodeRange();
-            var controlFlowAnalysisData = model.AnalyzeControlFlow(pair.Item1, pair.Item2);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var controlFlowAnalysisData = model.AnalyzeControlFlow(firstStatement, lastStatement);
 
             return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
         }
@@ -805,7 +831,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             }
         }
 
-        private IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
+        private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
             SemanticModel model,
             IDictionary<ISymbol, VariableInfo> variableInfoMap,
             IDictionary<ISymbol, List<SyntaxToken>> symbolMap,
@@ -818,7 +844,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // recursively dive into constraints to find all constraints needed
             AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(sortedMap);
 
-            return sortedMap.Values.ToList();
+            return [.. sortedMap.Values];
         }
 
         private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
@@ -899,14 +925,14 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return typeParameters;
         }
 
-        private static IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+        private static ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
         {
             // add return type to the map
             AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);
 
             AppendMethodTypeParameterFromConstraint(sortedMap);
 
-            return sortedMap.Values.ToList();
+            return [.. sortedMap.Values];
         }
 
         private OperationStatus CheckReadOnlyFields(SemanticModel semanticModel, Dictionary<ISymbol, List<SyntaxToken>> symbolMap)

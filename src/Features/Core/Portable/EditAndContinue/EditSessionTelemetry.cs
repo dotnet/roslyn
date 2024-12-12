@@ -18,6 +18,7 @@ internal sealed class EditSessionTelemetry
         public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind, Guid projectId)> RudeEdits = telemetry._rudeEdits.AsImmutable();
         public readonly ImmutableArray<string> EmitErrorIds = telemetry._emitErrorIds.AsImmutable();
         public readonly ImmutableArray<Guid> ProjectsWithValidDelta = telemetry._projectsWithValidDelta.AsImmutable();
+        public readonly ImmutableArray<Guid> ProjectsWithUpdatedBaselines = telemetry._projectsWithUpdatedBaselines.AsImmutable();
         public readonly EditAndContinueCapabilities Capabilities = telemetry._capabilities;
         public readonly bool HadCompilationErrors = telemetry._hadCompilationErrors;
         public readonly bool HadRudeEdits = telemetry._hadRudeEdits;
@@ -38,6 +39,7 @@ internal sealed class EditSessionTelemetry
     private readonly HashSet<(ushort, ushort, Guid)> _rudeEdits = [];
     private readonly HashSet<string> _emitErrorIds = [];
     private readonly HashSet<Guid> _projectsWithValidDelta = [];
+    private readonly HashSet<Guid> _projectsWithUpdatedBaselines = [];
 
     private bool _hadCompilationErrors;
     private bool _hadRudeEdits;
@@ -58,6 +60,7 @@ internal sealed class EditSessionTelemetry
             _rudeEdits.Clear();
             _emitErrorIds.Clear();
             _projectsWithValidDelta.Clear();
+            _projectsWithUpdatedBaselines.Clear();
             _hadCompilationErrors = false;
             _hadRudeEdits = false;
             _hadValidChanges = false;
@@ -145,4 +148,7 @@ internal sealed class EditSessionTelemetry
 
     public void LogCommitted()
         => _committed = true;
+
+    public void LogUpdatedBaseline(Guid projectTelemetryId)
+        => _projectsWithUpdatedBaselines.Add(projectTelemetryId);
 }

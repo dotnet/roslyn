@@ -2,28 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
+using Roslyn.Utilities;
 using StreamJsonRpc;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
+[ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensResolveHandler)), Shared]
 [Method(LSP.Methods.CodeLensResolveName)]
-internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
 {
     /// <summary>
     /// Command name implemented by the client and invoked when the references code lens is selected.
     /// </summary>
     private const string ClientReferencesCommand = "roslyn.client.peekReferences";
-
-    public CodeLensResolveHandler()
-    {
-    }
 
     public bool MutatesSolutionState => false;
 

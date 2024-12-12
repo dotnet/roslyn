@@ -23,11 +23,25 @@ internal interface IImplementInterfaceService : ILanguageService
 {
     Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken);
 
-    Task<IImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
+    Task<ImplementInterfaceInfo?> AnalyzeAsync(Document document, SyntaxNode interfaceType, CancellationToken cancellationToken);
+
     Task<Document> ImplementInterfaceAsync(
         Document document,
-        IImplementInterfaceInfo info,
+        ImplementInterfaceInfo info,
         ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Produces the symbol that implements that provided <paramref name="interfaceMember"/> within the corresponding
+    /// <see cref="ImplementInterfaceInfo.ClassOrStructType"/>, based on the provided <paramref name="options"/> and
+    /// <paramref name="configuration"/>.
+    /// </summary>
+    ImmutableArray<ISymbol> ImplementInterfaceMember(
+        Document document,
+        ImplementInterfaceInfo info,
+        ImplementTypeOptions options,
+        ImplementInterfaceConfiguration configuration,
+        Compilation compilation,
+        ISymbol interfaceMember);
 }

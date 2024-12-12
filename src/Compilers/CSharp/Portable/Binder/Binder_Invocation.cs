@@ -1753,59 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(conversion.IsCollectionExpression);
-
-                    bool infiniteRecursion = false;
-                    if (conversion.GetCollectionExpressionTypeKind(out _, out MethodSymbol? constructor, out bool isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                        isExpanded)
-                    {
-                        Debug.Assert(constructor is not null);
-
-                        // Check for infinite recursion through the constructor
-                        var constructorSet = PooledHashSet<MethodSymbol>.GetInstance();
-                        constructorSet.Add(constructor.OriginalDefinition);
-
-                        BoundUnconvertedCollectionExpression? emptyCollection = null;
-
-                        while (true)
-                        {
-                            var paramsType = constructor.Parameters[^1].Type;
-                            if (!paramsType.IsSZArray())
-                            {
-                                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                                emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
-                                Conversion nextConversion = Conversions.ClassifyImplicitConversionFromExpression(emptyCollection, paramsType, ref discardedUseSiteInfo);
-
-                                if (nextConversion.Exists &&
-                                    nextConversion.GetCollectionExpressionTypeKind(out _, out constructor, out isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                                    isExpanded)
-                                {
-                                    Debug.Assert(constructor is not null);
-
-                                    if (constructorSet.Add(constructor.OriginalDefinition))
-                                    {
-                                        continue;
-                                    }
-
-                                    infiniteRecursion = true;
-                                }
-                            }
-
-                            break;
-                        }
-
-                        constructorSet.Free();
-                    }
-
-                    if (infiniteRecursion)
-                    {
-                        Debug.Assert(constructor is not null);
-                        Error(diagnostics, ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, node, collectionType, constructor.OriginalDefinition);
-                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
-                    }
-                    else
-                    {
-                        converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
-                    }
+                    converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
                 }
 
                 collection = new BoundConversion(

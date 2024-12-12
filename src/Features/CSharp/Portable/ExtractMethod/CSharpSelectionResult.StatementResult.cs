@@ -6,7 +6,6 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,8 +21,8 @@ internal abstract partial class CSharpSelectionResult
         SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
-        bool selectionChanged) : CSharpSelectionResult(
-            originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+        bool selectionChanged)
+        : CSharpSelectionResult(originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
         {

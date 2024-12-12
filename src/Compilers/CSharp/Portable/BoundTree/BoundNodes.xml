@@ -39,6 +39,7 @@
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
   <ValueType Name="AccessorKind" />
+  <ValueType Name="SafeContext" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -108,7 +109,7 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="uint"/>
+    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--
@@ -2015,6 +2016,9 @@
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </AbstractNode>
 
+  <!-- Initializers of this are BoundAssignmentOperators whose Left is
+    BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember
+    or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess. -->
   <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase">
   </Node>
   

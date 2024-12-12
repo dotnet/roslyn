@@ -31,7 +31,7 @@ internal abstract class AbstractPackage : AsyncPackage
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        _componentModel_doNotAccessDirectly = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+        _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
         Assumes.Present(_componentModel_doNotAccessDirectly);
     }
 

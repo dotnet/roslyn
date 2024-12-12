@@ -3740,8 +3740,7 @@ namespace System
     }
 }
 ";
-            // Note: we currently don't report Obsolete diagnostic on either Index or Range
-            // Tracked by https://github.com/dotnet/roslyn/issues/57745
+            // Note: we don't have to report Obsolete diagnostic on well-known types/members
             var comp = CreateCompilation(new[] { source, TestSources.Index });
             comp.VerifyDiagnostics();
         }

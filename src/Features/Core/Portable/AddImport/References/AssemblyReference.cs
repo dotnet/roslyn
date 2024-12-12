@@ -17,9 +17,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private sealed partial class AssemblyReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SearchResult searchResult,
-        ReferenceAssemblyWithTypeResult referenceAssemblyWithType) : Reference(provider, searchResult)
+        ReferenceAssemblyResult referenceAssemblyWithType,
+        bool isWithinImport) : Reference(provider, searchResult, isWithinImport)
     {
-        private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType = referenceAssemblyWithType;
+        private readonly ReferenceAssemblyResult _referenceAssemblyWithType = referenceAssemblyWithType;
 
         public override async Task<AddImportFixData> TryGetFixDataAsync(
             Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)

@@ -26,14 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 using static CSharpSyntaxTokens;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
-internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationContextInfo>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
+    : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationContextInfo>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
-    {
-    }
-
     protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
     {
         var rule = await document.GetApplicableNamingRuleAsync(
@@ -47,19 +44,19 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
     }
 
     protected override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-        CSharpCodeGenerationContextInfo info, SyntaxNode property,
+        CSharpCodeGenerationContextInfo info, PropertyDeclarationSyntax property,
         string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken)
     {
         // C# might have trivia with the accessors that needs to be preserved.  
         // so we will update the existing accessors instead of creating new ones
-        var accessorListSyntax = ((PropertyDeclarationSyntax)property).AccessorList;
+        var accessorListSyntax = property.AccessorList;
         var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
         var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
         var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement, cancellationToken);
 
-        SyntaxNode newSetter = null;
-        if (setAccessor != null)
+        var newSetter = setAccessor;
+        if (newSetter != null)
         {
             var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                 generator.IdentifierName(fieldName),
@@ -67,7 +64,7 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
             newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement, cancellationToken);
         }
 
-        return (newGetAccessor: newGetter, newSetAccessor: newSetter);
+        return (newGetter, newSetter);
     }
 
     private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
@@ -75,9 +72,12 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
         => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
             accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
 
-    private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
-        SyntaxNode accessor, SyntaxNode statement, CancellationToken cancellationToken)
+    private static AccessorDeclarationSyntax GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
+        AccessorDeclarationSyntax accessor, SyntaxNode statement, CancellationToken cancellationToken)
     {
+        if (accessor.Body != null || accessor.ExpressionBody != null)
+            return accessor;
+
         var newAccessor = AddStatement(accessor, statement);
         var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
 

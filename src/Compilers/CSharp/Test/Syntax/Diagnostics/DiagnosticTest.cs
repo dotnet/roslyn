@@ -322,8 +322,10 @@ class X
                         case ErrorCode.WRN_TargetDifferentRefness:
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                         case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_ExperimentalWithMessage:
                         case ErrorCode.WRN_ConvertingLock:
                         case ErrorCode.WRN_PartialPropertySignatureDifference:
+                        case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -434,6 +436,7 @@ class X
                         case ErrorCode.INF_TooManyBoundLambdas:
                         case ErrorCode.WRN_FieldIsAmbiguous:
                         case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                        case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

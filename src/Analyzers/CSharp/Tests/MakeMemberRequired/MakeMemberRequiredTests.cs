@@ -135,7 +135,6 @@ public sealed class MakeMemberRequiredTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -204,7 +203,6 @@ public sealed class MakeMemberRequiredTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
@@ -453,7 +451,6 @@ public sealed class MakeMemberRequiredTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
@@ -475,7 +472,6 @@ public sealed class MakeMemberRequiredTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
@@ -496,7 +492,6 @@ public sealed class MakeMemberRequiredTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();

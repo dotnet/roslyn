@@ -65,7 +65,7 @@ internal sealed partial class CSharpSelectionValidator(
                 // check control flow only if we are extracting statement level, not expression
                 // level. you can not have goto that moves control out of scope in expression level
                 // (even in lambda)
-                selectionInfo = selectionInfo.WithStatus(s => s.With(succeeded: true, CSharpFeaturesResources.Not_all_code_paths_return));
+                selectionInfo = selectionInfo.WithStatus(s => s.With(succeeded: true, FeaturesResources.Not_all_code_paths_return));
             }
         }
 
@@ -195,7 +195,7 @@ internal sealed partial class CSharpSelectionValidator(
             return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
         }
 
-        if (!adjustedSpan.Contains(firstTokenInSelection.Span) && !adjustedSpan.Contains(lastTokenInSelection.Span))
+        if (firstTokenInSelection.SpanStart > lastTokenInSelection.Span.End)
         {
             return new SelectionInfo
             {
@@ -273,8 +273,10 @@ internal sealed partial class CSharpSelectionValidator(
         {
             case BlockSyntax block:
                 return ContainsInBlockBody(block, span);
+
             case ArrowExpressionClauseSyntax expressionBodiedMember:
                 return ContainsInExpressionBodiedMemberBody(expressionBodiedMember, span);
+
             case FieldDeclarationSyntax field:
                 {
                     foreach (var variable in field.Declaration.Variables)
@@ -290,8 +292,12 @@ internal sealed partial class CSharpSelectionValidator(
 
             case GlobalStatementSyntax:
                 return true;
+
             case ConstructorInitializerSyntax constructorInitializer:
                 return constructorInitializer.ContainsInArgument(span);
+
+            case PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType:
+                return primaryConstructorBaseType.ArgumentList.Arguments.FullSpan.Contains(span);
         }
 
         return false;

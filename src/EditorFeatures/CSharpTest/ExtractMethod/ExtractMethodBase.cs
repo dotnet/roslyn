@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod;
 [UseExportProvider]
 public class ExtractMethodBase
 {
-    protected static async Task ExpectExtractMethodToFailAsync(string codeWithMarker, string[] features = null)
+    protected static async Task ExpectExtractMethodToFailAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker, string[] features = null)
     {
         ParseOptions parseOptions = null;
         if (features != null)
@@ -40,8 +42,8 @@ public class ExtractMethodBase
     }
 
     protected static async Task ExpectExtractMethodToFailAsync(
-        string codeWithMarker,
-        string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         CSharpParseOptions parseOptions = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
@@ -62,7 +64,8 @@ public class ExtractMethodBase
         Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
     }
 
-    protected static async Task NotSupported_ExtractMethodAsync(string codeWithMarker)
+    protected static async Task NotSupported_ExtractMethodAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker);
         Assert.NotNull(await Record.ExceptionAsync(async () =>
@@ -73,8 +76,8 @@ public class ExtractMethodBase
     }
 
     protected static async Task TestExtractMethodAsync(
-        string codeWithMarker,
-        string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool temporaryFailing = false,
         CSharpParseOptions parseOptions = null)
     {
@@ -158,7 +161,9 @@ public class ExtractMethodBase
             : await doc.GetSyntaxRootAsync();
     }
 
-    protected static async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null, TextSpan? textSpanOverride = null)
+    protected static async Task TestSelectionAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker,
+        bool expectedFail = false, CSharpParseOptions parseOptions = null, TextSpan? textSpanOverride = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
         var testDocument = workspace.Documents.Single();
@@ -184,7 +189,8 @@ public class ExtractMethodBase
             Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
     }
 
-    protected static async Task IterateAllAsync(string code)
+    protected static async Task IterateAllAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular);
         var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
