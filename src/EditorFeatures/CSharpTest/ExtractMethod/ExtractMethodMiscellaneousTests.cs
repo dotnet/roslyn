@@ -155,7 +155,7 @@ public sealed class ExtractMethodMiscellaneousTests
         Assert.Equal(result, view.TextBuffer.CurrentSnapshot.GetText());
     }
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/65465")]
     public async Task TestExtractLocalFunctionInTopLevelFromCommandHandler()
     {
         var markupCode = """
