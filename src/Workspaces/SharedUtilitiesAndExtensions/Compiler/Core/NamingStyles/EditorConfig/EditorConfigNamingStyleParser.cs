@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -22,38 +20,22 @@ internal static partial class EditorConfigNamingStyleParser
         var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
         var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
         var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
-        var ruleNames = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel), string>();
+        var ruleNamesAndPriorities = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel), (string title, int priority)>();
 
         foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
         {
             if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
                 TryGetNamingStyleData(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
-                TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule))
+                TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule, out var priority))
             {
                 symbolSpecifications.Add(symbolSpec);
                 namingStyles.Add(namingStyle);
                 namingRules.Add(serializableNamingRule);
 
-                var ruleKey = (serializableNamingRule.SymbolSpecificationID, serializableNamingRule.NamingStyleID, serializableNamingRule.EnforcementLevel);
-                if (ruleNames.TryGetValue(ruleKey, out var existingName))
-                {
-                    // For duplicated rules, only preserve the one with a name that would sort first
-                    var ordinalIgnoreCaseOrdering = StringComparer.OrdinalIgnoreCase.Compare(namingRuleTitle, existingName);
-                    if (ordinalIgnoreCaseOrdering > 0)
-                    {
-                        continue;
-                    }
-                    else if (ordinalIgnoreCaseOrdering == 0)
-                    {
-                        var ordinalOrdering = StringComparer.Ordinal.Compare(namingRuleTitle, existingName);
-                        if (ordinalOrdering > 0)
-                        {
-                            continue;
-                        }
-                    }
-                }
-
-                ruleNames[ruleKey] = namingRuleTitle;
+                // the key comprises of newly generated guids and is thus unique:
+                ruleNamesAndPriorities.Add(
+                    (serializableNamingRule.SymbolSpecificationID, serializableNamingRule.NamingStyleID, serializableNamingRule.EnforcementLevel),
+                    (namingRuleTitle, priority));
             }
         }
 
@@ -62,7 +44,9 @@ internal static partial class EditorConfigNamingStyleParser
             namingStyles.ToImmutableAndFree(),
             namingRules.ToImmutableAndFree());
 
-        // Deterministically order the naming style rules according to the symbols matched by the rule. The rules
+        // Deterministically order the naming style rules.
+        // 
+        // Rules of the same priority are ordered according to the symbols matched by the rule. The rules
         // are applied in order; later rules are only relevant if earlier rules fail to specify an order.
         //
         // 1. If the modifiers required by rule 'x' are a strict superset of the modifiers required by rule 'y',
@@ -82,11 +66,12 @@ internal static partial class EditorConfigNamingStyleParser
         // which a user has trouble ordering, the intersection of the two rules can be broken out into a new rule
         // will always match earlier than the broader rules it was derived from.
         var orderedRules = preferences.Rules.NamingRules
-            .OrderBy(rule => rule, NamingRuleModifierListComparer.Instance)
+            .OrderBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].priority)
+            .ThenBy(rule => rule, NamingRuleModifierListComparer.Instance)
             .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
             .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
-            .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)], StringComparer.OrdinalIgnoreCase)
-            .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)], StringComparer.Ordinal);
+            .ThenBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].title, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].title, StringComparer.Ordinal);
 
         return new NamingStylePreferences(
             preferences.SymbolSpecifications,
