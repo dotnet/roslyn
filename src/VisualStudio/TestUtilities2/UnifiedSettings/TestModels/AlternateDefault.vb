@@ -5,11 +5,11 @@
 Imports System.Text.Json.Serialization
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Public Class AlternateDefault
+    Public Class AlternateDefault(Of T)
         <JsonPropertyName("flagName")>
         Public Property FlagName As String
 
         <JsonPropertyName("default")>
-        Public Property [Default] As String
+        Public Property [Default] As T
     End Class
 End Namespace

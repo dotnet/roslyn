@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
         Public Property [Default] As T
 
         <JsonPropertyName("AlternateDefault")>
-        Public Property AlternateDefault As AlternateDefault
+        Public Property AlternateDefault As AlternateDefault(Of T)
 
         <JsonPropertyName("order")>
         Public Property Order As Integer
