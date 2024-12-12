@@ -90,7 +90,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // do data flow analysis
             var model = _semanticDocument.SemanticModel;
             var dataFlowAnalysisData = GetDataFlowAnalysisData(model);
-            var isAsync = this.SelectionResult.CreateAsyncMethod();
 
             // build symbol map for the identifiers used inside of the selection
             var symbolMap = GetSymbolMap(model);
