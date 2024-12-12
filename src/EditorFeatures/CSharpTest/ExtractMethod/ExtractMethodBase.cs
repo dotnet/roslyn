@@ -79,14 +79,14 @@ public class ExtractMethodBase
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool temporaryFailing = false,
-        CSharpParseOptions parseOptions = null)
+        CSharpParseOptions parseOptions = null,
+        bool localFunction = false)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
         var testDocument = workspace.Documents.Single();
         var subjectBuffer = testDocument.GetTextBuffer();
 
-        var tree = await ExtractMethodAsync(
-            workspace, testDocument);
+        var tree = await ExtractMethodAsync(workspace, testDocument, localFunction: localFunction);
 
         using (var edit = subjectBuffer.CreateEdit())
         {
@@ -116,7 +116,8 @@ public class ExtractMethodBase
     protected static async Task<SyntaxNode> ExtractMethodAsync(
         EditorTestWorkspace workspace,
         EditorTestHostDocument testDocument,
-        bool succeed = true)
+        bool succeed = true,
+        bool localFunction = false)
     {
         var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
         Assert.NotNull(document);
@@ -128,7 +129,7 @@ public class ExtractMethodBase
         };
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-        var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction: false);
+        var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction);
 
         var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
         if (!succeed && status.Failed)
@@ -137,7 +138,7 @@ public class ExtractMethodBase
         Assert.NotNull(selectedCode);
 
         // extract method
-        var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction: false);
+        var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction);
         var result = extractor.ExtractMethod(status, CancellationToken.None);
         Assert.NotNull(result);
 

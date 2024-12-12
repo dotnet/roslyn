@@ -12119,15 +12119,14 @@ $@"namespace ClassLibrary9
             """;
         var expected = """
             bool local;
+            local = NewMethod();
 
             static bool NewMethod()
             {
                 return true;
             }
-
-            local = NewMethod();
             """;
-        await TestExtractMethodAsync(code, expected);
+        await TestExtractMethodAsync(code, expected, localFunction: true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44260")]
@@ -12147,7 +12146,7 @@ $@"namespace ClassLibrary9
                 return "string";
             }
             """;
-        await TestExtractMethodAsync(code, expected);
+        await TestExtractMethodAsync(code, expected, localFunction: true);
     }
 
     [Theory]

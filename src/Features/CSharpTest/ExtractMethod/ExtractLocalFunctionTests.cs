@@ -5366,7 +5366,6 @@ class Program
             },
             FixedCode = expected,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
     }
@@ -5400,7 +5399,6 @@ class Program
             },
             FixedCode = expected,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
     }
@@ -5424,7 +5422,7 @@ class Program
             }
             """;
 
-        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9));
     }
 
     [Fact]
