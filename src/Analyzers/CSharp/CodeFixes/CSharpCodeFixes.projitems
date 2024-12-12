@@ -95,6 +95,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\CSharpUnsealClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateProjectToAllowUnsafe\CSharpUpdateProjectToAllowUnsafeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitArrayInExpressionTree\CSharpUseExplicitArrayInExpressionTreeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForBuilderCodeFixProvider.cs" />
@@ -176,6 +177,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUnboundGenericTypeInNameOf\CSharpUseUnboundGenericTypeInNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementCodeFixProvider.cs" />
   </ItemGroup>

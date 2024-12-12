@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,9 +14,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
 
-internal static class UseNullPropagationConstants
+internal static class UseNullPropagationHelpers
 {
+    public const string IsTrivialNullableValueAccess = nameof(IsTrivialNullableValueAccess);
     public const string WhenPartIsNullable = nameof(WhenPartIsNullable);
+
+    public static bool IsSystemNullableValueProperty([NotNullWhen(true)] ISymbol? symbol)
+        => symbol is
+        {
+            Name: nameof(Nullable<int>.Value),
+            ContainingType.OriginalDefinition.SpecialType: SpecialType.System_Nullable_T,
+        };
 }
 
 /// <summary>
@@ -50,7 +59,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     where TExpressionStatementSyntax : TStatementSyntax
 {
     private static readonly ImmutableDictionary<string, string?> s_whenPartIsNullableProperties =
-        ImmutableDictionary<string, string?>.Empty.Add(UseNullPropagationConstants.WhenPartIsNullable, "");
+        ImmutableDictionary<string, string?>.Empty.Add(UseNullPropagationHelpers.WhenPartIsNullable, "");
 
     protected AbstractUseNullPropagationDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
@@ -85,9 +94,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
 
             var objectType = context.Compilation.GetSpecialType(SpecialType.System_Object);
             var referenceEqualsMethod = objectType?.GetMembers(nameof(ReferenceEquals))
-                                                      .OfType<IMethodSymbol>()
-                                                      .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public &&
-                                                                           m.Parameters.Length == 2);
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(m => m is { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 2 });
 
             var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
             context.RegisterSyntaxNodeAction(
@@ -162,12 +170,17 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             // converting to c?.nullable doesn't affect the type
         }
 
+        var isTrivialNullableValueAccess = false;
         if (syntaxFacts.IsSimpleMemberAccessExpression(whenPartToCheck))
         {
             // `x == null ? x : x.M` cannot be converted to `x?.M` when M is a method symbol.
-            syntaxFacts.GetPartsOfMemberAccessExpression(whenPartToCheck, out _, out var name);
-            if (semanticModel.GetSymbolInfo(name, cancellationToken).GetAnySymbol() is IMethodSymbol)
+            var memberSymbol = semanticModel.GetSymbolInfo(whenPartToCheck, cancellationToken).GetAnySymbol();
+            if (memberSymbol is IMethodSymbol)
                 return;
+
+            // `x == null ? x : x.Value` will be converted to just 'x'.
+            if (UseNullPropagationHelpers.IsSystemNullableValueProperty(memberSymbol))
+                isTrivialNullableValueAccess = true;
         }
 
         // ?. is not available in expression-trees.  Disallow the fix in that case.
@@ -183,6 +196,9 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         var properties = whenPartIsNullable
             ? s_whenPartIsNullableProperties
             : ImmutableDictionary<string, string?>.Empty;
+
+        if (isTrivialNullableValueAccess)
+            properties = properties.Add(UseNullPropagationHelpers.IsTrivialNullableValueAccess, UseNullPropagationHelpers.IsTrivialNullableValueAccess);
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,

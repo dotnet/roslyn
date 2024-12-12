@@ -9,17 +9,23 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod;
 
+using VerifyCS = CSharpCodeRefactoringVerifier<
+    ExtractMethodCodeRefactoringProvider>;
+
 [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-public class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private const string SystemThreadingTasks = "System.Threading.Tasks";
+    private const string SystemThreadingTasksTask = $"{SystemThreadingTasks}.Task";
+    private const string SystemThreadingTasksUsing = $"using {SystemThreadingTasks};";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ExtractMethodCodeRefactoringProvider();
 
@@ -150,7 +156,7 @@ public class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
                 private static int NewMethod(int x) => 1 + x;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
     }
 
     [Fact]
@@ -192,7 +198,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
     }
 
     [Fact]
@@ -221,7 +227,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static bool NewMethod(bool b) => b != true;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
     }
 
     [Fact]
@@ -250,7 +256,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static bool NewMethod(bool b) => b != true;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -285,7 +291,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static bool NewMethod(bool b) => b != true;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -319,7 +325,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -353,7 +359,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -378,7 +384,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static int NewMethod(int i) => i * 10 + 2;
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -403,7 +409,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -514,7 +520,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact]
@@ -548,7 +554,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
             }
             """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
@@ -840,7 +846,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
+                    Goo({|Rename:NewMethod|}(), y => 0, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -882,7 +888,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
+                    Goo({|Rename:NewMethod|}(), y => { return 0; }, z, z);
                 }
 
                 private static Func<byte, byte> NewMethod()
@@ -979,7 +985,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), - -1);
                 }
 
                 private static string GetX(string x)
@@ -1081,7 +1087,7 @@ parseOptions: TestOptions.Regular);
 
                 static void Main()
                 {
-                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), - -1);
                 }
 
                 private static string GetX(string x)
@@ -4121,11 +4127,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4135,8 +4143,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4145,7 +4153,7 @@ class Program
                     await {|Rename:NewMethod|}(duration);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Run(F());
                     async Task F() => await Task.Delay(duration).ConfigureAwait(false);
@@ -4154,11 +4162,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4168,8 +4178,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4178,7 +4188,7 @@ class Program
                     await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(false);
                     await Task.Delay(duration).ConfigureAwait(true);
@@ -4187,11 +4197,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4201,8 +4213,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4211,7 +4223,7 @@ class Program
                     await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(true);
                     await Task.Delay(duration).ConfigureAwait(false);
@@ -4220,11 +4232,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4234,8 +4248,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4244,7 +4258,7 @@ class Program
                     await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(M());
                     await Task.Delay(duration).ConfigureAwait(false);
@@ -4253,11 +4267,13 @@ class Program
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection(bool includeUsing)
     {
         await TestInRegularAndScript1Async(
-            """
+            $$"""
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
+
             class C
             {
                 async Task MyDelay(TimeSpan duration) 
@@ -4267,8 +4283,8 @@ class Program
                 }
             }
             """,
-            """
-            using System.Threading.Tasks;
+            $$"""            
+            {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
             class C
             {
@@ -4278,7 +4294,7 @@ class Program
                     await {|Rename:NewMethod|}(duration);
                 }
 
-                private static async Task NewMethod(TimeSpan duration)
+                private static async {{(includeUsing ? "Task" : SystemThreadingTasksTask)}} NewMethod(TimeSpan duration)
                 {
                     await Task.Delay(duration).ConfigureAwait(true);
                 }
@@ -5283,4 +5299,158 @@ $@"
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForInstanceMethodWhenOff()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    [|Console.WriteLine(i);|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private void NewMethod()
+                {
+                    Console.WriteLine(i);
+                }
+            }
+            """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement },
+            });
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public async Task TestPreferThisPreference_ForInstanceMethodWhenOn(ReportDiagnostic diagnostic)
+    {
+        if (diagnostic is ReportDiagnostic.Default)
+            return;
+
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    [|Console.WriteLine(i);|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                int i;
+
+                public void M()
+                {
+                    this.{|Rename:NewMethod|}();
+                }
+
+                private void NewMethod()
+                {
+                    Console.WriteLine(i);
+                }
+            }
+            """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, new CodeStyleOption2<bool>(true, new(diagnostic, true)) },
+            });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForStaticMethodWhenOn()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    [|Console.WriteLine();|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    Console.WriteLine();
+                }
+            }
+            """,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    public Task TestPreferThisPreference_NotForLocalFunctionWhenOn()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    [|Console.WriteLine();|]
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                public void M()
+                {
+                    {|Rename:NewMethod|}();
+
+                    static void NewMethod()
+                    {
+                        Console.WriteLine();
+                    }
+                }
+            }
+            """,
+            index: 1,
+            options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
+            });
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -114,7 +115,18 @@ namespace Microsoft.CodeAnalysis
             private void ReportOpenFileDiagnostic(DiagnosticBag diagnostics, Exception e)
             {
                 var messageProvider = _compiler.MessageProvider;
-                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_CantOpenFileWrite, Location.None, _filePath, e.Message));
+                var lockedBy = FileLockCheck.TryGetLockingProcessInfos(_filePath);
+
+                var message = lockedBy.IsEmpty
+                    ? (object)e.Message
+                    : new LocalizableResourceString(
+                        nameof(CodeAnalysisResources.ExceptionMessage_FileMayBeLockedBy),
+                        CodeAnalysisResources.ResourceManager,
+                        typeof(CodeAnalysisResources),
+                        e.Message,
+                        string.Join(", ", lockedBy.Select(info => $"'{info.applicationName}' ({info.processId})")));
+
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_CantOpenFileWrite, Location.None, _filePath, message));
             }
         }
     }

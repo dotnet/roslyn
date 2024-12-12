@@ -2802,6 +2802,44 @@ class C
             });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
+        public void TestRemove_KeepUnbalancedDirectives_Indented()
+        {
+            var inputText = """
+                class C
+                {
+                    // before
+                    #region Fred
+                    // more before
+                    void M()
+                    {
+                    } // after
+                    #endregion
+                }
+                """;
+
+            var expectedText = """
+                class C
+                {
+
+                    #region Fred
+                    #endregion
+                }
+                """;
+
+            TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
+            {
+                var m = cu.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                Assert.NotNull(m);
+
+                var cu2 = cu.RemoveNode(m, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+                var text = cu2.ToFullString();
+
+                Assert.Equal(expected, text);
+            });
+        }
+
         [Fact]
         public void TestRemove_KeepDirectives()
         {

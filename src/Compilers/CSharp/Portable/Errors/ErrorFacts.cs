@@ -558,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_ExperimentalWithMessage:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
@@ -2410,6 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FeatureNotAvailableInVersion12
                 or ErrorCode.ERR_CollectionExpressionEscape
                 or ErrorCode.WRN_Experimental
+                or ErrorCode.WRN_ExperimentalWithMessage
                 or ErrorCode.ERR_ExpectedInterpolatedString
                 or ErrorCode.ERR_InterceptorGlobalNamespace
                 or ErrorCode.WRN_CollectionExpressionRefStructMayAllocate

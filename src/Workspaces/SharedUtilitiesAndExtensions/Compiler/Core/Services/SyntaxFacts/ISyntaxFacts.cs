@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -101,6 +102,7 @@ internal interface ISyntaxFacts
     bool SupportsConstantInterpolatedStrings(ParseOptions options);
     bool SupportsTupleDeconstruction(ParseOptions options);
     bool SupportsCollectionExpressionNaturalType(ParseOptions options);
+    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
 
     SyntaxToken ParseToken(string text);
     SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -162,6 +164,7 @@ internal interface ISyntaxFacts
 
     bool IsNumericLiteral(SyntaxToken token);
     bool IsVerbatimStringLiteral(SyntaxToken token);
+    bool IsRawStringLiteral(SyntaxToken token);
 
     bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
@@ -177,6 +180,8 @@ internal interface ISyntaxFacts
     bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
     bool IsPreprocessorDirective(SyntaxTrivia trivia);
+    SyntaxNode? GetMatchingDirective(SyntaxNode directive, CancellationToken cancellationToken);
+    ImmutableArray<SyntaxNode> GetMatchingConditionalDirectives(SyntaxNode directive, CancellationToken cancellationToken);
 
     bool IsDocumentationComment(SyntaxNode node);
 
@@ -335,6 +340,7 @@ internal interface ISyntaxFacts
 
     bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);
+    bool IsUsingLocalDeclarationStatement(SyntaxNode node);
 
     /// <summary>
     /// Returns true for nodes that represent the body of a method.
@@ -374,7 +380,7 @@ internal interface ISyntaxFacts
     bool IsTypeCharacter(char c);
 
     // Violation.  This is a feature level API for QuickInfo.
-    bool IsBindableToken(SyntaxToken token);
+    bool IsBindableToken(SemanticModel? semanticModel, SyntaxToken token);
 
     bool IsInStaticContext(SyntaxNode node);
     bool IsUnsafeContext(SyntaxNode node);
@@ -507,6 +513,7 @@ internal interface ISyntaxFacts
 
     #region GetPartsOfXXX members
 
+    void GetPartsOfAliasQualifiedName(SyntaxNode node, out SyntaxNode alias, out SyntaxToken colonColonToken, out SyntaxNode name);
     void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type);
     void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken);
     void GetPartsOfAttribute(SyntaxNode node, out SyntaxNode name, out SyntaxNode? argumentList);

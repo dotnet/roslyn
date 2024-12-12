@@ -4599,13 +4599,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? GetRefEscape(assignment.Right, scopeOfTheContainingExpression)
                     : GetValEscape(assignment.Right, scopeOfTheContainingExpression);
 
-                var left = (BoundObjectInitializerMember)assignment.Left;
-                result = left.MemberSymbol switch
+                if (assignment.Left is BoundObjectInitializerMember left)
                 {
-                    PropertySymbol { IsIndexer: true } indexer => getIndexerEscape(indexer, left, rightEscape),
-                    PropertySymbol property => getPropertyEscape(property, rightEscape),
-                    _ => rightEscape
-                };
+                    result = left.MemberSymbol switch
+                    {
+                        PropertySymbol { IsIndexer: true } indexer => getIndexerEscape(indexer, left, rightEscape),
+                        PropertySymbol property => getPropertyEscape(property, rightEscape),
+                        _ => rightEscape
+                    };
+                }
+                else
+                {
+                    result = rightEscape;
+                }
             }
             else
             {

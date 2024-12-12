@@ -98,34 +98,6 @@ internal static partial class TaskExtensions
     }
 
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task<TResult> SafeContinueWith<TInput, TResult>(
-        this Task<TInput> task,
-        Func<Task<TInput>, TResult> continuationFunction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-        return task.SafeContinueWith<TResult>(
-            (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
-    }
-
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task SafeContinueWith<TInput>(
-        this Task<TInput> task,
-        Action<Task<TInput>> continuationAction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
-        return task.SafeContinueWith(
-            (Task antecedent) => continuationAction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
-    }
-
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<TResult> SafeContinueWith<TResult>(
         this Task task,
         Func<Task, TResult> continuationFunction,
@@ -179,16 +151,6 @@ internal static partial class TaskExtensions
         return task.SafeContinueWith(continuationAction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
     }
 
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task SafeContinueWith(
-        this Task task,
-        Action<Task> continuationAction,
-        CancellationToken cancellationToken,
-        TaskScheduler scheduler)
-    {
-        return task.SafeContinueWith(continuationAction, cancellationToken, TaskContinuationOptions.None, scheduler);
-    }
-
     public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
         this Task<TInput> task,
         Func<Task<TInput>, Task<TResult>> continuationFunction,
@@ -238,15 +200,6 @@ internal static partial class TaskExtensions
     }
 
     public static Task SafeContinueWithFromAsync(
-       this Task task,
-       Func<Task, Task> continuationFunction,
-       CancellationToken cancellationToken,
-       TaskScheduler scheduler)
-    {
-        return task.SafeContinueWithFromAsync(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
-    }
-
-    public static Task SafeContinueWithFromAsync(
         this Task task,
         Func<Task, Task> continuationFunction,
         CancellationToken cancellationToken,
@@ -274,53 +227,6 @@ internal static partial class TaskExtensions
         var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
         ReportNonFatalError(nextTask, continuationFunction);
         return nextTask;
-    }
-
-    public static Task SafeContinueWithFromAsync<TInput>(
-        this Task<TInput> task,
-        Func<Task<TInput>, Task> continuationFunction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        // So here's the deal.  Say you do the following:
-#if false
-        // CancellationToken ct1 = ..., ct2 = ...;
-
-        // Task A = Task.Factory.StartNew(..., ct1);
-        // Task B = A.ContinueWith(..., ct1);
-        // Task C = B.ContinueWith(..., ct2);
-#endif
-        // If ct1 is cancelled then the following may occur: 
-        // 1) Task A can still be running (as it hasn't responded to the cancellation request
-        //    yet).
-        // 2) Task C can start running.  How?  Well if B hasn't started running, it may
-        //    immediately transition to the 'Cancelled/Completed' state.  Moving to that state will
-        //    immediately trigger C to run.
-        //
-        // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
-        // the behavior we want.
-        // This is the only place in the code where we're allowed to call ContinueWith.
-        var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-        ReportNonFatalError(nextTask, continuationFunction);
-        return nextTask;
-    }
-
-    public static Task ContinueWithAfterDelayFromAsync(
-        this Task task,
-        Func<Task, Task> continuationFunction,
-        CancellationToken cancellationToken,
-        TimeSpan delay,
-        IExpeditableDelaySource delaySource,
-        TaskContinuationOptions taskContinuationOptions,
-        TaskScheduler scheduler)
-    {
-        Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-        return task.SafeContinueWith(t =>
-            delaySource.Delay(delay, cancellationToken).SafeContinueWithFromAsync(
-                _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
-            cancellationToken, taskContinuationOptions, scheduler).Unwrap();
     }
 
     internal static void ReportNonFatalError(Task task, object? continuationFunction)

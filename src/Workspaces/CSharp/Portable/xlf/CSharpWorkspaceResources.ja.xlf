@@ -12,11 +12,6 @@
         <target state="translated">C# 書式ルール</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indentation_preferences">
-        <source>Indentation preferences</source>
-        <target state="translated">インデント設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">Using の削除と並び替え(&amp;E)</target>
@@ -27,11 +22,6 @@
         <target state="translated">using の並べ替え(&amp;S)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Space_preferences">
-        <source>Space preferences</source>
-        <target state="translated">スペース設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
         <target state="translated">明示できるのは、属性、コンストラクターの初期化子、式、ステートメントだけです</target>
@@ -40,11 +30,6 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">インターフェイスを実装します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrapping_preferences">
-        <source>Wrapping preferences</source>
-        <target state="translated">折り返しの設定</target>
         <note />
       </trans-unit>
     </body>

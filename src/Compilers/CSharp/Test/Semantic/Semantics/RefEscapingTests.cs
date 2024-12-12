@@ -4192,6 +4192,70 @@ class Program
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76277")]
+        public void ObjectInitializer_ImplicitIndexerAccess_Span()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void M(ref S s)
+                    {
+                        s = new S()
+                        {
+                            F =
+                            {
+                                [^1] = 5,
+                            },
+                        };
+                    }
+                }
+
+                ref struct S
+                {
+                    public Span<int> F;
+                }
+                """;
+            CreateCompilationWithIndexAndRangeAndSpan(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76277")]
+        public void ObjectInitializer_ImplicitIndexerAccess_CustomRefStruct()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(ref S s)
+                    {
+                        s = new S()
+                        {
+                            F =
+                            {
+                                [^1] = 5,
+                            },
+                        };
+                    }
+                }
+
+                ref struct S
+                {
+                    public R F;
+                }
+
+                ref struct R
+                {
+                    public int Count => 0;
+                    public int this[int index]
+                    {
+                        get => 0;
+                        set { }
+                    }
+                }
+                """;
+            CreateCompilationWithIndex(source).VerifyDiagnostics();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
