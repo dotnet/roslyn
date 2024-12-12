@@ -90,9 +90,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
         protected abstract TExpressionSyntax CreateCallSignature();
-        protected abstract TStatementSyntax CreateDeclarationStatement(VariableInfo variable, TExpressionSyntax initialValue, CancellationToken cancellationToken);
-        protected abstract TStatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpressionSyntax rvalue);
-        protected abstract TStatementSyntax CreateReturnStatement(string identifierName = null);
+        protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
+        protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
+        protected abstract TStatementSyntax CreateReturnStatement(params string[] identifierNames);
 
         protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
@@ -243,10 +243,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
             ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
         {
-            if (AnalyzerResult.HasVariableToUseAsReturnValue)
-            {
+            if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 return statements;
-            }
 
             Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Any(v => v.UseAsReturnValue));
 
@@ -259,33 +257,27 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             ImmutableArray<TStatementSyntax> statements,
             CancellationToken cancellationToken)
         {
-            if (!AnalyzerResult.HasVariableToUseAsReturnValue)
-            {
+            if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 return statements;
-            }
 
-            var variable = AnalyzerResult.VariableToUseAsReturnValue;
-            if (variable.ReturnBehavior == ReturnBehavior.Initialization)
+            var variables = AnalyzerResult.VariablesToUseAsReturnValue;
+            if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization))
             {
-                // there must be one decl behavior when there is "return value and initialize" variable
-                Contract.ThrowIfFalse(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
-
                 var declarationStatement = CreateDeclarationStatement(
-                    variable, CreateCallSignature(), cancellationToken);
+                    variables, CreateCallSignature(), cancellationToken);
                 declarationStatement = declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation);
 
                 return statements.Concat(declarationStatement);
             }
 
-            Contract.ThrowIfFalse(variable.ReturnBehavior == ReturnBehavior.Assignment);
             return statements.Concat(
-                CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
+                CreateAssignmentExpressionStatement(variables, CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
         }
 
         protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
             ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
         {
-            return variables.SelectAsArray(v => CreateDeclarationStatement(v, initialValue: null, cancellationToken));
+            return variables.SelectAsArray(v => CreateDeclarationStatement([v], initialValue: null, cancellationToken));
         }
 
         protected ImmutableArray<TStatementSyntax> AddSplitOrMoveDeclarationOutStatementsToCallSite(
@@ -298,9 +290,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 if (variable.UseAsReturnValue)
                     continue;
 
-                var declaration = CreateDeclarationStatement(
-                    variable, initialValue: null, cancellationToken: cancellationToken);
-                list.Add(declaration);
+                list.Add(CreateDeclarationStatement(
+                    [variable], initialValue: null, cancellationToken: cancellationToken));
             }
 
             return list.ToImmutableAndClear();
@@ -308,17 +299,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
         {
-            if (!AnalyzerResult.HasVariableToUseAsReturnValue)
-            {
+            if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 return statements;
-            }
 
-            var variableToUseAsReturnValue = AnalyzerResult.VariableToUseAsReturnValue;
-
-            Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior is ReturnBehavior.Assignment or
-                                  ReturnBehavior.Initialization);
-
-            return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
+            return statements.Concat(CreateReturnStatement([.. AnalyzerResult.VariablesToUseAsReturnValue.Select(b => b.Name)]));
         }
 
         protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
@@ -388,23 +372,21 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         }
 
         private static RefKind GetRefKind(ParameterBehavior parameterBehavior)
-        {
-            return parameterBehavior == ParameterBehavior.Ref ? RefKind.Ref :
-                        parameterBehavior == ParameterBehavior.Out ? RefKind.Out : RefKind.None;
-        }
+            => parameterBehavior switch
+            {
+                ParameterBehavior.Ref => RefKind.Ref,
+                ParameterBehavior.Out => RefKind.Out,
+                _ => RefKind.None
+            };
 
         protected TStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
         {
             var callSignature = CreateCallSignature();
 
             var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
-            if (AnalyzerResult.HasReturnType)
-            {
-                Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
-                return (TStatementSyntax)generator.ReturnStatement(callSignature);
-            }
-
-            return (TStatementSyntax)generator.ExpressionStatement(callSignature);
+            return AnalyzerResult.HasReturnType
+                ? (TStatementSyntax)generator.ReturnStatement(callSignature)
+                : (TStatementSyntax)generator.ExpressionStatement(callSignature);
         }
     }
 }
