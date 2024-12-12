@@ -5692,7 +5692,6 @@ $@"
                 {
                     int a = 0;
                     int b = 0;
-            
                     (a, b) = await {|Rename:NewMethod|}(a, b);
             
                     Console.Write(a);
