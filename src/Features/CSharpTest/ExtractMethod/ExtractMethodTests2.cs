@@ -5482,7 +5482,7 @@ $@"
                 { CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.TrueWithSilentEnforcement },
             });
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple1()
         => TestInRegularAndScriptAsync(
             """
@@ -5541,7 +5541,7 @@ $@"
             """,
             options: ImplicitTypeEverywhere());
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple_ExplicitEverywhere()
         => TestInRegularAndScriptAsync(
             """
@@ -5600,7 +5600,7 @@ $@"
             """,
             options: ExplicitTypeEverywhere());
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleOutTuple_ImplicitForBuiltInTypes()
         => TestInRegularAndScriptAsync(
             """
@@ -5659,7 +5659,7 @@ $@"
             """,
             options: ImplicitForBuiltInTypes());
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture()
         => TestInRegularAndScriptAsync(
             """
@@ -5700,6 +5700,57 @@ $@"
 
                 private async Task<(int a, int b)> NewMethod(int a, int b)
                 {
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleRefCapture_PartialCapture()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    [|int b = 0;
+
+                    a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a = 0;
+                    (a, var b) = await {|Rename:NewMethod|}(a);
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod(int a)
+                {
+                    int b = 0;
+
                     a++;
                     b++;
                     await Goo();

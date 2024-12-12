@@ -10904,7 +10904,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
     public async Task TestAsyncMethodWithWellKnownValueType()
     {
-        var code =
+        await TestExtractMethodAsync(
             """
             using System;
             using System.Threading;
@@ -10928,8 +10928,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     Console.WriteLine(i);
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             using System.Threading;
             using System.Threading.Tasks;
@@ -10940,56 +10939,25 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     var cancellationToken = CancellationToken.None;
 
-                    int i = await NewMethod(ref cancellationToken);
+                    (int i, cancellationToken) = await NewMethod(cancellationToken);
 
                     cancellationToken.ThrowIfCancellationRequested();
                     Console.WriteLine(i);
                 }
 
-                private static async Task<int> NewMethod(ref CancellationToken cancellationToken)
+                private static async Task<(int i, CancellationToken cancellationToken)> NewMethod(CancellationToken cancellationToken)
                 {
-                    return await Task.Run(() =>
+                    var i = await Task.Run(() =>
                     {
                         Console.WriteLine();
                         cancellationToken.ThrowIfCancellationRequested();
 
                         return 1;
                     }, cancellationToken);
+                    return (i, cancellationToken);
                 }
             }
-            """;
-        await ExpectExtractMethodToFailAsync(code, expected);
-    }
-
-    [Fact]
-    public async Task TestAsyncMethodWithWellKnownValueType1()
-    {
-        var code =
-            """
-            using System;
-            using System.Threading;
-            using System.Threading.Tasks;
-
-            class Program
-            {
-                public async Task Hello()
-                {
-                    var cancellationToken = CancellationToken.None;
-
-                    [|var i = await Task.Run(() =>
-                    {
-                        Console.WriteLine();
-                        cancellationToken = CancellationToken.None;
-
-                        return 1;
-                    }, cancellationToken);|]
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                    Console.WriteLine(i);
-                }
-            }
-            """;
-        await ExpectExtractMethodToFailAsync(code);
+            """);
     }
 
     [Fact]

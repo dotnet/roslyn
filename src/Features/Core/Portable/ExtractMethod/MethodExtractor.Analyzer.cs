@@ -404,11 +404,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo, out var numberOfOutParameters, out var numberOfRefParameters);
 
-            // If there's just one variable that would be ref/out, then make that the return value of the final method.
-            if (index >= 0)
-                return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
-
-            // If there are multiple variables we'd make out/ref and this is async, then we need to make these the
+            // If there are any variables we'd make out/ref and this is async, then we need to make these the
             // return values of the method since we can't actually have out/ref with an async method.
             var outRefCount = numberOfOutParameters + numberOfRefParameters;
             if (outRefCount > 0 &&
@@ -425,6 +421,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
                 return result.MoveToImmutable();
             }
+
+            // If there's just one variable that would be ref/out, then make that the return value of the final method.
+            if (index >= 0)
+                return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
 
             return variableInfo;
         }
