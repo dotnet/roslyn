@@ -3340,4 +3340,110 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingField_PrimaryConstructor()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C()
+            {
+                private readonly string _name;
+            }
+
+            class D
+            {
+                void M(string name)
+                {
+                    new [|C|](name);
+                }
+            }
+            """,
+            """
+            class C(string name)
+            {
+                private readonly string _name = name;
+            }
+            
+            class D
+            {
+                void M(string name)
+                {
+                    new C(name);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingProperty_PrimaryConstructor()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C()
+            {
+                private string Name { get; }
+            }
+
+            class D
+            {
+                void M(string name)
+                {
+                    new [|C|](name);
+                }
+            }
+            """,
+            """
+            class C(string name)
+            {
+                private string Name { get; } = name;
+            }
+            
+            class D
+            {
+                void M(string name)
+                {
+                    new C(name);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
+    public async Task TestAddConstructorParameterWithExistingThrowingProperty_PrimaryConstructor()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C()
+            {
+                private string Name => throw new NotImplementedException();
+            }
+
+            class D
+            {
+                void M(string name)
+                {
+                    new [|C|](name);
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C(string name)
+            {
+                private string Name { get; } = name;
+            }
+            
+            class D
+            {
+                void M(string name)
+                {
+                    new C(name);
+                }
+            }
+            """);
+    }
 }

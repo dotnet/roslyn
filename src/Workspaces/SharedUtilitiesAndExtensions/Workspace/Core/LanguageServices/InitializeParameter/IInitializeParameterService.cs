@@ -2,23 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
 
 internal interface IInitializeParameterService : ILanguageService
 {
+    bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken);
+
     void InsertStatement(
         SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, SyntaxNode statement);
 
-    void AddAssignment(
-        SyntaxNode constructorDeclaration,
-        IBlockOperation? blockStatement,
-        IParameterSymbol parameter,
-        ISymbol fieldOrProperty,
-        SyntaxEditor editor);
+    Task<Solution> AddAssignmentAsync(
+        Document document, IParameterSymbol parameter, ISymbol fieldOrProperty, CancellationToken cancellationToken);
 
-    SyntaxNode GetBody(SyntaxNode methodNode);
+    bool TryGetBlockForSingleParameterInitialization(
+        SyntaxNode functionDeclaration,
+        SemanticModel semanticModel,
+        ISyntaxFactsService syntaxFacts,
+        CancellationToken cancellationToken,
+        out IBlockOperation? blockStatement);
 }

@@ -5866,4 +5866,38 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
+    public async Task TestPrimaryConstructorBaseList(bool withBody)
+    {
+        var source = $$"""
+            class C1(int p1);
+            class C2(S1 a10000, int a20000) : C1([|a10000.F1|]){{(withBody ? "{}" : ";")}}
+
+            struct S1
+            {
+                public int F1;
+            }
+            """;
+
+        // Only want 'extract method' not 'extract local function' here.
+        await TestActionCountAsync(source, 1);
+        await TestInRegularAndScript1Async(
+            source,
+            """
+            class C1(int p1);
+            class C2(S1 a10000, int a20000) : C1({|Rename:GetF1|}(a10000))
+            {
+                private static int GetF1(S1 a10000)
+                {
+                    return a10000.F1;
+                }
+            }
+            
+            struct S1
+            {
+                public int F1;
+            }
+            """);
+    }
 }

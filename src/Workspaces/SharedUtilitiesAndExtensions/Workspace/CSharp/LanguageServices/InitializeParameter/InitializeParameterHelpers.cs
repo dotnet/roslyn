@@ -2,29 +2,135 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
 using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal static class InitializeParameterHelpers
 {
+    public static Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
+        => new(argument.GetRefKind(), argument.NameColon?.Name.Identifier.ValueText, argument.Expression);
+
+    public static async Task<Solution> AddAssignmentForPrimaryConstructorAsync(
+        Document document,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        CancellationToken cancellationToken)
+    {
+        var project = document.Project;
+        var solution = project.Solution;
+
+        var solutionEditor = new SolutionEditor(solution);
+        var initializer = EqualsValueClause(IdentifierName(parameter.Name.EscapeIdentifier()));
+
+        // We're assigning the parameter to a field/prop.  Convert all existing references to this primary constructor
+        // parameter (within this type) to refer to the field/prop now instead.
+        await UpdateParameterReferencesAsync(
+            solutionEditor, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
+
+        // We're updating an exiting field/prop.
+        if (fieldOrProperty is IPropertySymbol property)
+        {
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+            var isThrowNotImplementedProperty = initializeParameterService.IsThrowNotImplementedProperty(
+                compilation, property, cancellationToken);
+
+            foreach (var syntaxRef in property.DeclaringSyntaxReferences)
+            {
+                if (syntaxRef.GetSyntax(cancellationToken) is PropertyDeclarationSyntax propertyDeclaration)
+                {
+                    var editingDocument = solution.GetRequiredDocument(propertyDeclaration.SyntaxTree);
+                    var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+
+                    // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
+                    var newPropertyDeclaration = isThrowNotImplementedProperty ? RemoveThrowNotImplemented(propertyDeclaration) : propertyDeclaration;
+                    editor.ReplaceNode(
+                        propertyDeclaration,
+                        newPropertyDeclaration.WithoutTrailingTrivia()
+                            .WithSemicolonToken(SemicolonToken.WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
+                            .WithInitializer(initializer));
+                    break;
+                }
+            }
+        }
+        else if (fieldOrProperty is IFieldSymbol field)
+        {
+            foreach (var syntaxRef in field.DeclaringSyntaxReferences)
+            {
+                if (syntaxRef.GetSyntax(cancellationToken) is VariableDeclaratorSyntax variableDeclarator)
+                {
+                    var editingDocument = solution.GetRequiredDocument(variableDeclarator.SyntaxTree);
+                    var editor = await solutionEditor.GetDocumentEditorAsync(editingDocument.Id, cancellationToken).ConfigureAwait(false);
+                    editor.ReplaceNode(
+                        variableDeclarator,
+                        variableDeclarator.WithInitializer(initializer));
+                    break;
+                }
+            }
+        }
+
+        return solutionEditor.GetChangedSolution();
+    }
+
+    public static async Task UpdateParameterReferencesAsync(
+        SolutionEditor solutionEditor,
+        IParameterSymbol parameter,
+        ISymbol fieldOrProperty,
+        CancellationToken cancellationToken)
+    {
+        var solution = solutionEditor.OriginalSolution;
+        var namedType = parameter.ContainingType;
+        var documents = namedType.DeclaringSyntaxReferences
+            .Select(r => solution.GetRequiredDocument(r.SyntaxTree))
+            .ToImmutableHashSet();
+
+        var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
+        var groups = references.SelectMany(static r => r.Locations.Where(loc => !loc.IsImplicit)).GroupBy(static loc => loc.Document);
+
+        foreach (var group in groups)
+        {
+            var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
+
+            // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol is
+            // allowed to report the entire set of references it think it is compatible with.  So ensure we're hitting
+            // each location only once.
+            foreach (var location in group.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
+            {
+                var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
+                    identifierName.Identifier.ValueText == parameter.Name)
+                {
+                    // we may have things like `new MyType(x: ...)` we don't want to update `x` there to 'X'
+                    // just because we're generating a new property 'X' for the parameter to be assigned to.
+                    editor.ReplaceNode(
+                        identifierName,
+                        IdentifierName(fieldOrProperty.Name.EscapeIdentifier()).WithTriviaFrom(identifierName));
+                }
+            }
+        }
+    }
+
     public static bool IsFunctionDeclaration(SyntaxNode node)
         => node is BaseMethodDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax;
 
@@ -194,37 +300,4 @@ internal static class InitializeParameterHelpers
 
         return result.WithTrailingTrivia(accessorDeclaration.Body?.GetTrailingTrivia() ?? accessorDeclaration.SemicolonToken.TrailingTrivia);
     }
-
-    public static bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
-
-        if (property.GetMethod != null)
-            accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
-
-        if (property.SetMethod != null)
-            accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
-
-        if (accessors.Count == 0)
-            return false;
-
-        foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
-        {
-            var semanticModel = compilation.GetSemanticModel(group.Key);
-            foreach (var accessorBody in accessors)
-            {
-                var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
-                if (operation is null)
-                    return false;
-
-                if (!operation.IsSingleThrowNotImplementedOperation())
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
-    public static Argument<ExpressionSyntax> GetArgument(ArgumentSyntax argument)
-        => new(argument.GetRefKind(), argument.NameColon?.Name.Identifier.ValueText, argument.Expression);
 }

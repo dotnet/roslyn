@@ -1454,36 +1454,7 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
-        var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
-        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
-
-        foreach (var projectId in this.SolutionState.ProjectIds)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
-            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
-            if (!oldProjectState.SupportsCompilation)
-                continue;
-
-            var oldTracker = GetCompilationTracker(projectId);
-
-            // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
-            // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
-            if (oldTracker == newTracker)
-                continue;
-
-            Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
-
-            var newProjectState = newTracker.ProjectState;
-
-            newIdToProjectStateMapBuilder[projectId] = newProjectState;
-            newIdToTrackerMapBuilder[projectId] = newTracker;
-        }
-
-        var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
-        var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
+        var (newIdToProjectStateMap, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
 
         var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
 
@@ -1498,6 +1469,58 @@ internal sealed partial class SolutionCompilationState
             cachedFrozenSnapshot: _cachedFrozenSnapshot);
 
         return newCompilationState;
+    }
+
+    private (ImmutableDictionary<ProjectId, ProjectState>, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
+    {
+        // Loop until we have calculated the maps against a set of compilation trackers that hasn't changed during our calculation.
+        while (true)
+        {
+            var originalProjectIdToTrackerMap = _projectIdToTrackerMap;
+            var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
+            var newIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
+
+            // Used to track any new compilation trackers created in the loop. This is done to avoid allocations
+            // from individually adding to the _projectIdToTrackerMap ImmutableSegmentedDictionary .
+            var updatedIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
+
+            foreach (var projectId in this.SolutionState.ProjectIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
+                var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
+                if (!oldProjectState.SupportsCompilation)
+                    continue;
+
+                if (!originalProjectIdToTrackerMap.TryGetValue(projectId, out var oldTracker))
+                {
+                    oldTracker = CreateCompilationTracker(projectId, this.SolutionState);
+
+                    // Collect all compilation trackers that needed to be created
+                    updatedIdToTrackerMapBuilder[projectId] = oldTracker;
+                }
+
+                // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
+                // perf hit on either of those at all for our clients.
+                var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
+                if (oldTracker == newTracker)
+                    continue;
+
+                Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
+
+                var newProjectState = newTracker.ProjectState;
+
+                newIdToProjectStateMapBuilder[projectId] = newProjectState;
+                newIdToTrackerMapBuilder[projectId] = newTracker;
+            }
+
+            // Attempt to update _projectIdToTrackerMap to include all the newly created compilation trackers. If another thread has updated
+            // it since we captured it, then we'll need to loop again to ensure we've operated on the latest compilation trackers.
+            var updatedIdToTrackerMap = updatedIdToTrackerMapBuilder.ToImmutable();
+            if (originalProjectIdToTrackerMap == RoslynImmutableInterlocked.InterlockedCompareExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMap, originalProjectIdToTrackerMap))
+                return (newIdToProjectStateMapBuilder.ToImmutable(), newIdToTrackerMapBuilder.ToImmutable());
+        }
     }
 
     /// <summary>
