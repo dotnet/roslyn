@@ -588,7 +588,6 @@ public class InterceptorsTests : CSharpTestBase
             //     [InterceptsLocation("Program.cs", 5, 3)]
             Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 5, 3)").WithLocation(11, 6));
 
-        // note: it seems a little surprising that this warning is reported, but it's not important enough to fix.
         var comp2Verifier = CompileAndVerify((source2, "Program.cs"), references: new[] { comp1.ToMetadataReference() }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         comp2Verifier.VerifyDiagnostics(
             // Program.cs(11,6): warning CS9269: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
@@ -1469,7 +1468,7 @@ public class InterceptorsTests : CSharpTestBase
                 public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
-        var compilation = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors);
+        var compilation = CreateCompilation([(source, "Program.cs"), interceptors, s_attributesSource], parseOptions: RegularWithInterceptors);
         compilation.VerifyEmitDiagnostics(
             // (6,6): warning CS9269: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
             //     [InterceptsLocation("Program.cs", 11, 9)]
