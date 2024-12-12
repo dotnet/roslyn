@@ -2,7 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DictionaryExpressionTests : CSharpTestBase
     {
+        private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
         private const string s_dictionaryExtensions = """
             using System;
             using System.Collections.Generic;
@@ -33,15 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         builder.Append(":");
                         Append(builder, kvp.Value);
                     }
-                    builder.Append("]");
+                    builder.Append("], ");
                     Console.Write(builder.ToString());
                 }
             }
             """;
 
+        public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersion.Preview)]
+        [MemberData(nameof(LanguageVersions))]
         public void LanguageVersionDiagnostics_01(LanguageVersion languageVersion)
         {
             string source = """
@@ -66,8 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersion.Preview)]
+        [MemberData(nameof(LanguageVersions))]
         public void LanguageVersionDiagnostics_02(LanguageVersion languageVersion)
         {
             string source = """
@@ -129,9 +135,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [InlineData("IDictionary<K, V>")]
+        [InlineData("IReadOnlyDictionary<K, V>")]
+        public void DictionaryInterface_01(string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F<int, string>().Report();
+                    }
+                    static {{typeName}} F<K, V>()
+                    {
+                        return [];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.F<K, V>", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  ret
+                }
+                """);
+        }
+
+        [Theory]
         [InlineData("IDictionary<int, string>")]
         [InlineData("IReadOnlyDictionary<int, string>")]
-        public void DictionaryInterface(string typeName)
+        public void DictionaryInterface_02(string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
@@ -151,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(
                 [source, s_dictionaryExtensions],
-                expectedOutput: "[1:one, 2:two, 3:three]");
+                expectedOutput: "[1:one, 2:two, 3:three], ");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.F", """
                 {
@@ -306,6 +345,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_KeyValuePair_KV);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(3, 5),
+                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(3, 5),
+                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
+                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5));
+
+            comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
             comp.VerifyEmitDiagnostics(
                 // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
@@ -339,7 +394,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void KeyValueConversions()
+        public void KeyValuePairConversions_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F(1, "one").Report();
+                    }
+                    static IDictionary<long, object> F(int x, string y)
+                    {
+                        return [x:y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, s_dictionaryExtensions], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[1:one], ");
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var kvpElement = tree.GetRoot().DescendantNodes().OfType<KeyValuePairElementSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(kvpElement.KeyExpression);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int64, typeInfo.ConvertedType.SpecialType);
+            typeInfo = model.GetTypeInfo(kvpElement.ValueExpression);
+            Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+        }
+
+        [Fact]
+        public void KeyValuePairConversions_02()
         {
             string source = """
                 using System.Collections.Generic;
@@ -365,6 +452,119 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,22): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.KeyValuePair<int, string>' to 'System.Collections.Generic.KeyValuePair<long, object>'
                 //         return [x, ..y];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<long, object>").WithLocation(12, 22));
+        }
+
+        [Fact]
+        public void KeyValuePairConversions_03()
+        {
+            string sourceA = """
+                using System.Collections.Generic;
+                public class MyKeyValuePair<K, V>
+                {
+                    public MyKeyValuePair(K key, V value)
+                    {
+                        Key = key;
+                        Value = value;
+                    }
+                    public readonly K Key;
+                    public readonly V Value;
+                    public override string ToString() => $"{Key}:{Value}";
+                    public static implicit operator MyKeyValuePair<K, V>(KeyValuePair<K, V> kvp) => new(kvp.Key, kvp.Value);
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB1 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        F(1, "one");
+                    }
+                    static IEnumerable<MyKeyValuePair<K, V>> F<K, V>(K k, V v)
+                    {
+                        return [k:v];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB1, references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS9268: Collection expression type 'IEnumerable<MyKeyValuePair<K, V>>' does not support key-value pair elements.
+                //         return [k:v];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.Collections.Generic.IEnumerable<MyKeyValuePair<K, V>>").WithLocation(10, 17));
+
+            string sourceB2 = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var e = F(new KeyValuePair<int, string>(2, "two"), new KeyValuePair<int, string>[] { new(3, "three") });
+                        e.Report();
+                    }
+                    static IEnumerable<MyKeyValuePair<K, V>> F<K, V>(KeyValuePair<K, V> x, IEnumerable<KeyValuePair<K, V>> y)
+                    {
+                        return [x, ..y];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB2, s_collectionExtensions],
+                references: [refA],
+                expectedOutput: "[2:two, 3:three], ");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void KeyValuePairConversions_04()
+        {
+            string sourceA = """
+                using System.Collections.Generic;
+                public class MyKeyValuePair<K, V>
+                {
+                    public MyKeyValuePair(K key, V value)
+                    {
+                        Key = key;
+                        Value = value;
+                    }
+                    public readonly K Key;
+                    public readonly V Value;
+                    public static implicit operator KeyValuePair<K, V>(MyKeyValuePair<K, V> kvp) => new(kvp.Key, kvp.Value);
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new MyKeyValuePair<int, string>(2, "two");
+                        var y = new MyKeyValuePair<int, string>[] { new(3, "three") };
+                        var e = F1(x, y);
+                        e.Report();
+                        var d = F2(x, y);
+                        d.Report();
+                    }
+                    static IEnumerable<KeyValuePair<K, V>> F1<K, V>(MyKeyValuePair<K, V> x, IEnumerable<MyKeyValuePair<K, V>> y)
+                    {
+                        return [x, ..y];
+                    }
+                    static IDictionary<K, V> F2<K, V>(MyKeyValuePair<K, V> x, IEnumerable<MyKeyValuePair<K, V>> y)
+                    {
+                        return [x, ..y];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB, s_collectionExtensions],
+                references: [refA],
+                expectedOutput: "[[2, two], [3, three]], [[2, two], [3, three]], ");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -397,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     2
                     two
                     System.Collections.Generic.KeyValuePair`2[System.Int32,System.String][]
-                    [1:one, 2:two, 3:three]
+                    [1:one, 2:two, 3:three], 
                     """);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
@@ -472,10 +672,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                IDictionary<string, int> d = [default, new()];
+                IDictionary<int, string> d = [new()];
+                d.Report();
+                d = [default];
+                d.Report();
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation([source, s_dictionaryExtensions], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[0:null], [0:null], ");
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var elements = tree.GetRoot().DescendantNodes().OfType<ExpressionElementSyntax>().ToArray();
+
+            var typeInfo = model.GetTypeInfo(elements[0].Expression);
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            typeInfo = model.GetTypeInfo(elements[1].Expression);
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -483,10 +699,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = """
                 using System.Collections.Generic;
-                IDictionary<string, int> d = [default:default, null:new()];
+                IDictionary<int, string> d = [default:default];
+                d.Report();
+                d = [new():null];
+                d.Report();
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation([source, s_dictionaryExtensions], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[0:null], [0:null], ");
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var elements = tree.GetRoot().DescendantNodes().OfType<KeyValuePairElementSyntax>().ToArray();
+
+            var typeInfo = model.GetTypeInfo(elements[0].KeyExpression);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
+            typeInfo = model.GetTypeInfo(elements[0].ValueExpression);
+            Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, typeInfo.ConvertedType.SpecialType);
+
+            typeInfo = model.GetTypeInfo(elements[1].KeyExpression);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
+            typeInfo = model.GetTypeInfo(elements[1].ValueExpression);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_String, typeInfo.ConvertedType.SpecialType);
         }
 
         [Fact]
@@ -596,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var x = new Lock();
                         var y = new Lock();
                         object[] a = [x];
-                        IDictionary<object, object> d = [x:1, 2:y];
+                        IDictionary<object, object> d = [x:y];
                     }
                 }
                 """;
@@ -606,11 +844,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         object[] a = [x];
                 Diagnostic(ErrorCode.WRN_ConvertingLock, "x").WithLocation(9, 23),
                 // (10,42): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
-                //         IDictionary<object, object> d = [x:1, 2:y];
+                //         IDictionary<object, object> d = [x:y];
                 Diagnostic(ErrorCode.WRN_ConvertingLock, "x").WithLocation(10, 42),
-                // (10,49): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
-                //         IDictionary<object, object> d = [x:1, 2:y];
-                Diagnostic(ErrorCode.WRN_ConvertingLock, "y").WithLocation(10, 49));
+                // (10,44): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+                //         IDictionary<object, object> d = [x:y];
+                Diagnostic(ErrorCode.WRN_ConvertingLock, "y").WithLocation(10, 44));
         }
     }
 }

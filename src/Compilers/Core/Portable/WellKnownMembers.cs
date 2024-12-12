@@ -5172,14 +5172,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
 
                 // System_Collections_Generic_Dictionary_KV__ctor
-                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
                 // System_Collections_Generic_Dictionary_KV__Add
-                (byte)MemberFlags.Method,                                                           // Flags
+                (byte)MemberFlags.Method,                                                                                   // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
@@ -5188,14 +5188,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeParameter, 1,
 
                 // System_Collections_Generic_KeyValuePair_KV__get_Key
-                (byte)MemberFlags.PropertyGet,                                                           // Flags
+                (byte)MemberFlags.PropertyGet,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_KeyValuePair_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
 
                 // System_Collections_Generic_KeyValuePair_KV__get_Value
-                (byte)MemberFlags.PropertyGet,                                                           // Flags
+                (byte)MemberFlags.PropertyGet,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_KeyValuePair_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature

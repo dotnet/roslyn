@@ -1271,8 +1271,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             sideEffects.Add(assignmentToTemp);
             var getKeyMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key)).AsMember(sourceType);
             var getValueMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value)).AsMember(sourceType);
-            return (_factory.Convert(addMethod.Parameters[0].Type, _factory.Call(expressionTemp, getKeyMethod)),
-                _factory.Convert(addMethod.Parameters[1].Type, _factory.Call(expressionTemp, getValueMethod)));
+            Debug.Assert(ConversionsBase.HasIdentityConversion(getKeyMethod.ReturnType, addMethod.Parameters[0].Type));
+            Debug.Assert(ConversionsBase.HasIdentityConversion(getValueMethod.ReturnType, addMethod.Parameters[1].Type));
+            return (_factory.Call(expressionTemp, getKeyMethod), _factory.Call(expressionTemp, getValueMethod));
         }
 
         private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element)
