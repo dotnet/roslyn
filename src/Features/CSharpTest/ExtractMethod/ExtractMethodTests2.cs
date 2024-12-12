@@ -5128,8 +5128,6 @@ $@"
                 int x = NewMethod();
             
                 Console.WriteLine(x);
-            
-                class Ignored { }
 
                 static int NewMethod()
                 {
@@ -5137,6 +5135,8 @@ $@"
                     Console.WriteLine(x);
                     return x;
                 }
+                
+                class Ignored { }
                 """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
@@ -5175,7 +5175,7 @@ $@"
 
             class Ignored { }
 
-            int x = NewMethod();
+            {|CS8803:int x = NewMethod();|}
 
             Console.WriteLine(x);
 
@@ -5185,6 +5185,8 @@ $@"
                 Console.WriteLine(x);
                 return x;
             }
+            
+            class Ignored2 { }
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();

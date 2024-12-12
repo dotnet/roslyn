@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -137,12 +136,21 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
             return;
 
         var options = await document.GetExtractMethodGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var result = await ExtractMethodService.ExtractMethodAsync(
-            document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
+
+        var result = await ExtractMethodService.ExtractMethodAsync(document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
+
+        // If extracting a method didn't succeed, try extracting a local function instead.  If that succeeds then just
+        // proceed with that.
+        if (!Succeeded(result))
+        {
+            var localFunctionResult = await ExtractMethodService.ExtractMethodAsync(document, span, localFunction: true, options, cancellationToken).ConfigureAwait(false);
+            if (Succeeded(localFunctionResult))
+                result = localFunctionResult;
+        }
+
         Contract.ThrowIfNull(result);
 
-        result = await NotifyUserIfNecessaryAsync(
-            document, result, cancellationToken).ConfigureAwait(false);
+        result = await NotifyUserIfNecessaryAsync(document, result, cancellationToken).ConfigureAwait(false);
         if (result is null)
             return;
 
@@ -182,11 +190,14 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         undoTransaction.Complete();
     }
 
+    private static bool Succeeded(ExtractMethodResult result)
+        => result is { Succeeded: true, Reasons.Length: 0 };
+
     private async Task<ExtractMethodResult?> NotifyUserIfNecessaryAsync(
         Document document, ExtractMethodResult result, CancellationToken cancellationToken)
     {
         // If we succeeded without any problems, just proceed without notifying the user.
-        if (result is { Succeeded: true, Reasons.Length: 0 })
+        if (Succeeded(result))
             return result;
 
         // We have some sort of issue.  See what the user wants to do.  If we have no way to inform the user bail
