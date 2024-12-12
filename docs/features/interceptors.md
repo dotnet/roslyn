@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* is a C# compiler feature, first shipped experimentally in .NET 8.
+*Interceptors* is a C# compiler feature, first shipped experimentally in .NET 8, with stable support in .NET 9.0.2xx SDK and later.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
