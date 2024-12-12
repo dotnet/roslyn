@@ -11081,34 +11081,38 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     {
         // This code intentionally omits a 'using System;'
         var code =
-$@"namespace ClassLibrary9
-{{
-    public class Class
-    {{
-        public event EventHandler Event
-        {{
-            {testedAccessor} {{ [|throw new NotImplementedException();|] }}
-            {untestedAccessor} {{ throw new NotImplementedException(); }}
-        }}
-    }}
-}}";
+            $$"""
+            namespace ClassLibrary9
+            {
+                public class Class
+                {
+                    public event EventHandler Event
+                    {
+                        {{testedAccessor}} { [|throw new NotImplementedException();|] }
+                        {{untestedAccessor}} { throw new NotImplementedException(); }
+                    }
+                }
+            }
+            """;
         var expected =
-$@"namespace ClassLibrary9
-{{
-    public class Class
-    {{
-        public event EventHandler Event
-        {{
-            {testedAccessor} {{ NewMethod(); }}
-            {untestedAccessor} {{ throw new NotImplementedException(); }}
-        }}
+            $$"""
+            namespace ClassLibrary9
+            {
+                public class Class
+                {
+                    public event EventHandler Event
+                    {
+                        {{testedAccessor}} { NewMethod(); }
+                        {{untestedAccessor}} { throw new NotImplementedException(); }
+                    }
 
-        private static void NewMethod()
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
-}}";
+                    private static void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
@@ -11492,40 +11496,44 @@ $@"namespace ClassLibrary9
     [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
     public async Task ExtractMethodFlowsToLocalFunction1(string usageSyntax)
     {
-        var code = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            [|arg = arg + 3;|]
+        var code = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        [|arg = arg + 3;|]
 
-            {usageSyntax}
+                        {{usageSyntax}}
 
-            int LocalCapture() => arg;
-        }}
-    }}
-}}";
-        var expected = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            arg = NewMethod(arg);
+                        int LocalCapture() => arg;
+                    }
+                }
+            }
+            """;
+        var expected = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        arg = NewMethod(arg);
 
-            {usageSyntax}
+                        {{usageSyntax}}
 
-            int LocalCapture() => arg;
-        }}
+                        int LocalCapture() => arg;
+                    }
 
-        private static int NewMethod(int arg)
-        {{
-            arg = arg + 3;
-            return arg;
-        }}
-    }}
-}}";
+                    private static int NewMethod(int arg)
+                    {
+                        arg = arg + 3;
+                        return arg;
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
@@ -11537,40 +11545,44 @@ $@"namespace ClassLibrary9
     [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
     public async Task ExtractMethodFlowsToLocalFunction2(string usageSyntax)
     {
-        var code = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int LocalCapture() => arg;
+        var code = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int LocalCapture() => arg;
 
-            [|arg = arg + 3;|]
+                        [|arg = arg + 3;|]
 
-            {usageSyntax}
-        }}
-    }}
-}}";
-        var expected = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int LocalCapture() => arg;
+                        {{usageSyntax}}
+                    }
+                }
+            }
+            """;
+        var expected = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int LocalCapture() => arg;
 
-            arg = NewMethod(arg);
+                        arg = NewMethod(arg);
 
-            {usageSyntax}
-        }}
+                        {{usageSyntax}}
+                    }
 
-        private static int NewMethod(int arg)
-        {{
-            arg = arg + 3;
-            return arg;
-        }}
-    }}
-}}";
+                    private static int NewMethod(int arg)
+                    {
+                        arg = arg + 3;
+                        return arg;
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
@@ -11586,42 +11598,46 @@ $@"namespace ClassLibrary9
     [WorkItem("https://github.com/dotnet/roslyn/issues/18347")]
     public async Task ExtractMethodFlowsToLocalFunctionWithUnassignedLocal(string usageSyntax)
     {
-        var code = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int local;
-            int LocalCapture() => arg + local;
+        var code = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int local;
+                        int LocalCapture() => arg + local;
 
-            [|arg = arg + 3;|]
+                        [|arg = arg + 3;|]
 
-            {usageSyntax}
-        }}
-    }}
-}}";
-        var expected = $@"namespace ExtractMethodCrashRepro
-{{
-    public static class SomeClass
-    {{
-        private static void Repro( int arg )
-        {{
-            int local;
-            int LocalCapture() => arg + local;
+                        {{usageSyntax}}
+                    }
+                }
+            }
+            """;
+        var expected = $$"""
+            namespace ExtractMethodCrashRepro
+            {
+                public static class SomeClass
+                {
+                    private static void Repro( int arg )
+                    {
+                        int local;
+                        int LocalCapture() => arg + local;
 
-            arg = NewMethod(arg);
+                        arg = NewMethod(arg);
 
-            {usageSyntax}
-        }}
+                        {{usageSyntax}}
+                    }
 
-        private static int NewMethod(int arg)
-        {{
-            arg = arg + 3;
-            return arg;
-        }}
-    }}
-}}";
+                    private static int NewMethod(int arg)
+                    {
+                        arg = arg + 3;
+                        return arg;
+                    }
+                }
+            }
+            """;
 
         await TestExtractMethodAsync(code, expected);
     }
