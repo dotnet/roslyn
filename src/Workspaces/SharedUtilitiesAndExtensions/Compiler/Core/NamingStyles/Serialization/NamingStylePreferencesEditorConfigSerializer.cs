@@ -39,35 +39,47 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
             serializableNamingRules,
             language,
             entryWriter: (name, value) => builder.AppendLine($"{name} = {value}"),
-            triviaWriter: trivia => builder.AppendLine(trivia));
+            triviaWriter: trivia => builder.AppendLine(trivia),
+            setPrioritiesToPreserveOrder: false);
     }
 
     public static void WriteNamingStylePreferencesToEditorConfig(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> serializableNamingRules,
+        ImmutableArray<SerializableNamingRule> rules,
         string language,
         Action<string, string> entryWriter,
-        Action<string>? triviaWriter)
+        Action<string>? triviaWriter,
+        bool setPrioritiesToPreserveOrder)
     {
         triviaWriter?.Invoke($"#### {CompilerExtensionsResources.Naming_styles} ####");
 
         var serializedNameMap = AssignNamesToNamingStyleElements(symbolSpecifications, namingStyles);
-        var ruleNameMap = AssignNamesToNamingStyleRules(serializableNamingRules, serializedNameMap);
+        var ruleNameMap = AssignNamesToNamingStyleRules(rules, serializedNameMap);
         var referencedElements = new HashSet<Guid>();
 
         triviaWriter?.Invoke("");
         triviaWriter?.Invoke($"# {CompilerExtensionsResources.Naming_rules}");
 
-        foreach (var namingRule in serializableNamingRules)
+        var priority = 0;
+        foreach (var namingRule in rules)
         {
             referencedElements.Add(namingRule.SymbolSpecificationID);
             referencedElements.Add(namingRule.NamingStyleID);
 
             triviaWriter?.Invoke("");
-            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
-            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.symbols", serializedNameMap[namingRule.SymbolSpecificationID]);
-            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.style", serializedNameMap[namingRule.NamingStyleID]);
+            var ruleName = ruleNameMap[namingRule];
+
+            if (setPrioritiesToPreserveOrder)
+            {
+                entryWriter($"dotnet_naming_rule.{ruleName}.priority", priority.ToString());
+            }
+
+            entryWriter($"dotnet_naming_rule.{ruleName}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
+            entryWriter($"dotnet_naming_rule.{ruleName}.symbols", serializedNameMap[namingRule.SymbolSpecificationID]);
+            entryWriter($"dotnet_naming_rule.{ruleName}.style", serializedNameMap[namingRule.NamingStyleID]);
+
+            priority++;
         }
 
         triviaWriter?.Invoke("");

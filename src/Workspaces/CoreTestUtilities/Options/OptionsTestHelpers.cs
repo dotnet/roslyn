@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -147,33 +148,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static NamingStylePreferences GetNonDefaultNamingStylePreference()
+            => CreateNamingStylePreferences(([TypeKind.Class], Capitalization.PascalCase, ReportDiagnostic.Error));
+
+        public static NamingStylePreferences CreateNamingStylePreferences(
+            params (SymbolSpecification.SymbolKindOrTypeKind[], Capitalization capitalization, ReportDiagnostic severity)[] rules)
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
-                accessibilityList: default,
-                modifiers: default);
+            var symbolSpecifications = new List<SymbolSpecification>();
+            var namingStyles = new List<NamingStyle>();
+            var namingRules = new List<SerializableNamingRule>();
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
-
-            var namingRule = new SerializableNamingRule()
+            foreach (var (kinds, capitalization, severity) in rules)
             {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+                var id = namingRules.Count;
+
+                var symbolSpecification = new SymbolSpecification(
+                    Guid.NewGuid(),
+                    name: $"symbols{id}",
+                    [.. kinds],
+                    accessibilityList: default,
+                    modifiers: default);
+
+                symbolSpecifications.Add(symbolSpecification);
+
+                var namingStyle = new NamingStyle(
+                    Guid.NewGuid(),
+                    capitalizationScheme: capitalization,
+                    name: $"style{id}",
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: "");
+
+                namingStyles.Add(namingStyle);
+
+                namingRules.Add(new SerializableNamingRule()
+                {
+                    SymbolSpecificationID = symbolSpecification.ID,
+                    NamingStyleID = namingStyle.ID,
+                    EnforcementLevel = severity
+                });
+            }
 
             return new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [.. symbolSpecifications],
+                [.. namingStyles],
+                [.. namingRules]);
         }
+
+        public static NamingStylePreferences ParseNamingStylePreferences(Dictionary<string, string> options)
+            => EditorConfigNamingStyleParser.ParseDictionary(new DictionaryAnalyzerConfigOptions(options.ToImmutableDictionary()));
     }
 }
