@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -24,9 +25,9 @@ internal static partial class EditorConfigNamingStyleParser
 
         foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
         {
-            if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
-                TryGetNamingStyleData(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
-                TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule, out var priority))
+            if (TryGetSymbolSpecification(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
+                TryGetNamingStyle(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
+                TryGetRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule, out var priority))
             {
                 symbolSpecifications.Add(symbolSpec);
                 namingStyles.Add(namingStyle);
@@ -96,13 +97,35 @@ internal static partial class EditorConfigNamingStyleParser
         return trimmedDictionary;
     }
 
-    public static IEnumerable<string> GetRuleTitles<T>(IReadOnlyDictionary<string, T> allRawConventions)
+    public static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string> allRawConventions)
         => (from kvp in allRawConventions
             where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
             let nameSplit = kvp.Key.Split('.')
             where nameSplit.Length == 3
             select nameSplit[1])
             .Distinct();
+
+    private static Property<TValue> GetProperty<TValue>(
+        IReadOnlyDictionary<string, string> entries,
+        string group,
+        string ruleName,
+        string componentIdentifier,
+        Func<string, TValue> parser,
+        TValue defaultValue)
+    {
+        var key = $"{group}.{ruleName}.{componentIdentifier}";
+        var value = entries.TryGetValue(key, out var str) ? parser(str) : defaultValue;
+        return new(key, value);
+    }
+
+    private readonly struct Property<TValue>(string key, TValue value)
+    {
+        public string Key { get; } = key;
+        public TValue Value { get; } = value;
+
+        public TextSpan? GetSpan(IReadOnlyDictionary<string, TextLine> lines)
+            => lines.TryGetValue(Key, out var line) ? line.Span : null;
+    }
 
     private abstract class NamingRuleSubsetComparer : IComparer<NamingRule>
     {
