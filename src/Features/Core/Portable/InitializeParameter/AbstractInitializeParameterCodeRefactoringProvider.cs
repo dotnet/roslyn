@@ -91,7 +91,8 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             return;
 
-        if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
+        var service = document.GetRequiredLanguageService<IInitializeParameterService>();
+        if (service.TryGetBlockForSingleParameterInitialization(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
         {
             // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
             // actually determine if there are any viable refactorings here.

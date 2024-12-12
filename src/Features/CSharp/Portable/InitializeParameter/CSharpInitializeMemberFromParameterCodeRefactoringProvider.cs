@@ -39,9 +39,6 @@ internal sealed class CSharpInitializeMemberFromParameterCodeRefactoringProvider
     protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
         => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-    protected override SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
-        => InitializeParameterHelpers.GetAccessorBody(accessor, cancellationToken);
-
     protected override SyntaxNode RemoveThrowNotImplemented(SyntaxNode node)
         => InitializeParameterHelpers.RemoveThrowNotImplemented(node);
 }

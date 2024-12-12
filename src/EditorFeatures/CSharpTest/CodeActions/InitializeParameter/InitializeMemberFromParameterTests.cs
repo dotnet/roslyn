@@ -21,7 +21,7 @@ public partial class InitializeMemberFromParameterTests : AbstractCSharpCodeActi
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpInitializeMemberFromParameterCodeRefactoringProvider();
 
-    private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
 
     [Fact]
     public async Task TestInitializeFieldWithSameName()

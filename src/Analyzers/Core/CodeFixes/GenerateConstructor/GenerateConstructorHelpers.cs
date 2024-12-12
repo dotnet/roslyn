@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -185,7 +186,7 @@ internal static class GenerateConstructorHelpers
             var symbol = TryFindMatchingMember(parameterName);
             if (symbol != null)
             {
-                if (IsViableFieldOrProperty(document, parameterType, symbol))
+                if (IsViableFieldOrProperty(document, parameterType, symbol, cancellationToken))
                 {
                     // Ok!  We can just the existing field.  
                     parameterToExistingMemberMap[parameterName.BestNameForParameter] = symbol;
@@ -345,25 +346,28 @@ internal static class GenerateConstructorHelpers
     private static bool IsViableFieldOrProperty(
         SemanticDocument document,
         ITypeSymbol parameterType,
-        ISymbol symbol)
+        ISymbol symbol,
+        CancellationToken cancellationToken)
     {
         if (parameterType.Language != symbol.Language)
             return false;
 
         if (symbol != null && !symbol.IsStatic)
         {
-            if (symbol is IFieldSymbol field)
+            if (symbol is IFieldSymbol { IsConst: false } field)
             {
-                return
-                    !field.IsConst &&
-                    IsConversionImplicit(document.SemanticModel.Compilation, parameterType, field.Type);
+                return IsConversionImplicit(document.SemanticModel.Compilation, parameterType, field.Type);
             }
-            else if (symbol is IPropertySymbol property)
+            else if (symbol is IPropertySymbol { Parameters.Length: 0 } property)
             {
-                return
-                    property.Parameters.Length == 0 &&
-                    property.IsWritableInConstructor() &&
-                    IsConversionImplicit(document.SemanticModel.Compilation, parameterType, property.Type);
+                if (!IsConversionImplicit(document.SemanticModel.Compilation, parameterType, property.Type))
+                    return false;
+
+                if (property.IsWritableInConstructor())
+                    return true;
+
+                var service = document.Document.GetRequiredLanguageService<IInitializeParameterService>();
+                return service.IsThrowNotImplementedProperty(document.SemanticModel.Compilation, property, cancellationToken);
             }
         }
 

@@ -47,15 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
 
-        Protected Overrides Function GetAccessorBody(accessor As IMethodSymbol, cancellationToken As CancellationToken) As SyntaxNode
-            If accessor.DeclaringSyntaxReferences.Length = 0 Then
-                Return Nothing
-            End If
-
-            Dim reference = accessor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken)
-            Return TryCast(TryCast(reference, AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
-        End Function
-
         Protected Overrides Function RemoveThrowNotImplemented(propertySyntax As SyntaxNode) As SyntaxNode
             Dim propertyBlock = TryCast(propertySyntax, PropertyBlockSyntax)
             If propertyBlock IsNot Nothing Then
