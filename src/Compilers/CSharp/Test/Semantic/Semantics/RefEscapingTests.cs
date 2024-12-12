@@ -6077,7 +6077,7 @@ public static class Extensions
                 {
                     [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
                 }
-                ref struct R;
+                ref struct R { }
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // (7,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
@@ -6089,6 +6089,12 @@ public static class Extensions
                 // (17,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //             return x; // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 20));
+
+            // Old ref safety rules mean the [UnscopedRef] has no effect, so the Deconstruct receiver is scoped.
+            CreateCompilation([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (23,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                //     [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(23, 6));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
@@ -6151,9 +6157,10 @@ public static class Extensions
                 {
                     public void Deconstruct(out R x, out int y) => throw null;
                 }
-                ref struct R;
+                ref struct R { }
                 """;
             CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
