@@ -139,13 +139,27 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
 
         var result = await ExtractMethodService.ExtractMethodAsync(document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
 
-        // If extracting a method didn't succeed, try extracting a local function instead.  If that succeeds then just
-        // proceed with that.
         if (!Succeeded(result))
         {
+            // Extract method didn't succeed.  Or succeeded, but had some reasons to notify the user about.  See if
+            // extracting a local function would be better..
+
             var localFunctionResult = await ExtractMethodService.ExtractMethodAsync(document, span, localFunction: true, options, cancellationToken).ConfigureAwait(false);
             if (Succeeded(localFunctionResult))
+            {
+                // Extract local function completely succeeded.  Use that instead.
                 result = localFunctionResult;
+            }
+            else if (!result.Succeeded && localFunctionResult.Succeeded)
+            {
+                // Extract method entirely failed.  But extract local function was able to proceed, albeit with reasons
+                // to notify the user about.  Continue one with extract local function instead.
+                result = localFunctionResult;
+            }
+            else
+            {
+                // Extract local function was just as bad as extract method.  Just report the extract method issues below.
+            }
         }
 
         Contract.ThrowIfNull(result);
