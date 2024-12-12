@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // these locals cannot be added to "FreeSlots"
         private HashSet<LocalDefinition>? _nonReusableLocals;
 
-        // locals whose address has been taken
+        // locals whose address has been taken; excludes non-reusable local kinds
         private ArrayBuilder<LocalDefinition>? _addressedLocals;
         private int _addressedLocalScopes;
 
@@ -269,9 +269,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _addressedLocals.Count;
         }
 
-        internal void AddAddressedLocal(LocalDefinition localDef)
+        internal void AddAddressedLocal(LocalDefinition localDef, OptimizationLevel optimizations)
         {
-            if (localDef != null)
+            // No need to add non-reusable local kinds to `_addressedLocals` because that list
+            // only contains locals with reusable kinds to mark them as actually non-reusable.
+            if (localDef != null && localDef.SymbolOpt?.SynthesizedKind.IsSlotReusable(optimizations) != false)
             {
                 _addressedLocals?.Add(localDef);
             }
