@@ -39,7 +39,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
     private readonly IThreadingContext _threadingContext;
     private readonly ITextBufferUndoManagerProvider _undoManager;
     private readonly IInlineRenameService _renameService;
-    private readonly IGlobalOptionService _globalOptions;
     private readonly IAsynchronousOperationListener _asyncListener;
 
     [ImportingConstructor]
@@ -48,7 +47,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         IThreadingContext threadingContext,
         ITextBufferUndoManagerProvider undoManager,
         IInlineRenameService renameService,
-        IGlobalOptionService globalOptions,
         IAsynchronousOperationListenerProvider asyncListenerProvider)
     {
         Contract.ThrowIfNull(threadingContext);
@@ -58,7 +56,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         _threadingContext = threadingContext;
         _undoManager = undoManager;
         _renameService = renameService;
-        _globalOptions = globalOptions;
         _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.ExtractMethod);
     }
 
