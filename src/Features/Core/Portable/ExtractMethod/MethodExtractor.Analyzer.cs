@@ -67,7 +67,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// create VariableInfo type
         /// </summary>
-        protected abstract VariableInfo CreateFromSymbol(Compilation compilation, ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
+        protected abstract VariableInfo CreateFromSymbol(
+            ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared, Dictionary<ISymbol, List<SyntaxToken>> symbolMap);
 
         protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
             => readOutsideMap.Contains(symbol);
@@ -306,9 +307,12 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         }
 
         private OperationStatus GetOperationStatus(
-            SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
-            IList<VariableInfo> parameters, IList<ISymbol> failedVariables,
-            bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType,
+            SemanticModel model,
+            Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+            IList<VariableInfo> parameters,
+            IList<ISymbol> failedVariables,
+            bool unsafeAddressTakenUsed,
+            bool returnTypeHasAnonymousType,
             bool containsAnyLocalFunctionCallNotWithinSpan)
         {
             var readonlyFieldStatus = CheckReadOnlyFields(model, symbolMap);
@@ -598,7 +602,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     continue;
                 }
 
-                AddVariableToMap(variableInfoMap, symbol, CreateFromSymbol(model.Compilation, symbol, type, variableStyle, variableDeclared));
+                AddVariableToMap(
+                    variableInfoMap,
+                    symbol,
+                    CreateFromSymbol(symbol, type, variableStyle, variableDeclared, symbolMap));
             }
         }
 
@@ -986,13 +993,26 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return OperationStatus.SucceededStatus;
         }
 
-        protected static VariableInfo CreateFromSymbolCommon<T>(
-            Compilation compilation,
+        protected VariableInfo CreateFromSymbolCommon<T>(
             ISymbol symbol,
             ITypeSymbol type,
             VariableStyle style,
-            HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
+            HashSet<int> nonNoisySyntaxKindSet,
+            Dictionary<ISymbol, List<SyntaxToken>> symbolMap) where T : SyntaxNode
         {
+            var semanticModel = _semanticDocument.SemanticModel;
+            var compilation = semanticModel.Compilation;
+
+            if (style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
+                type.NullableAnnotation is NullableAnnotation.Annotated &&
+                !IsMaybeNullWithinSelection())
+            {
+                // We're going to pass this nullable variable in as a parameter to the new method we're creating. If the
+                // variable is actually never null within the section we're extracting, then change its return type to
+                // be non-nullable so that any usage of it within the new method will not warn.
+                type = type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+            }
+
             return symbol switch
             {
                 ILocalSymbol local => new VariableInfo(
@@ -1002,6 +1022,24 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
                 _ => throw ExceptionUtilities.UnexpectedValue(symbol)
             };
+
+            bool IsMaybeNullWithinSelection()
+            {
+                if (symbolMap.TryGetValue(symbol, out var tokens))
+                {
+                    foreach (var token in tokens)
+                    {
+                        if (token.Parent is not TExpressionSyntax expression)
+                            continue;
+
+                        var nullabilityInfo = semanticModel.GetTypeInfo(expression, this.CancellationToken).Nullability;
+                        if (nullabilityInfo.FlowState == NullableFlowState.MaybeNull)
+                            return true;
+                    }
+                }
+
+                return false;
+            }
         }
     }
 }

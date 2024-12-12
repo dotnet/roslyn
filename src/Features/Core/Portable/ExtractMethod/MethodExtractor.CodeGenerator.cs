@@ -345,7 +345,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
             var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
             foreach (var parameter in AnalyzerResult.MethodParameters)
             {
@@ -364,7 +364,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 }
             }
 
-            return parameters.ToImmutableAndFree();
+            return parameters.ToImmutableAndClear();
         }
 
         private static RefKind GetRefKind(ParameterBehavior parameterBehavior)

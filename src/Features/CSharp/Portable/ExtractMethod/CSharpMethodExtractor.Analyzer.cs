@@ -26,13 +26,14 @@ internal sealed partial class CSharpMethodExtractor
             => false;
 
         protected override VariableInfo CreateFromSymbol(
-            Compilation compilation,
             ISymbol symbol,
             ITypeSymbol type,
             VariableStyle style,
-            bool variableDeclared)
+            bool variableDeclared,
+            Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
         {
-            return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(compilation, symbol, type, style, s_nonNoisySyntaxKindSet);
+            return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(
+                symbol, type, style, s_nonNoisySyntaxKindSet, symbolMap);
         }
 
         protected override ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
