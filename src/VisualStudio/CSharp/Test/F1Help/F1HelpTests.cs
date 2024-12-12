@@ -2300,4 +2300,13 @@ public class C
             #pragma warning dis[||]able CS0312
             """, "#disable");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68009")]
+    public async Task TestGlobalUsing1()
+    {
+        await Test_KeywordAsync(
+            """
+            [||]global using System;
+            """, "global-using");
+    }
 }

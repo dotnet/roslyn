@@ -45,7 +45,7 @@ internal sealed partial class CSharpMethodExtractor
             InsertionPoint insertionPoint,
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction,
             CancellationToken cancellationToken)
         {
@@ -56,7 +56,7 @@ internal sealed partial class CSharpMethodExtractor
         public static CSharpCodeGenerator Create(
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction)
         {
             if (selectionResult.SelectionInExpression)
@@ -74,7 +74,7 @@ internal sealed partial class CSharpMethodExtractor
         protected CSharpCodeGenerator(
             CSharpSelectionResult selectionResult,
             AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
+            ExtractMethodGenerationOptions options,
             bool localFunction)
             : base(selectionResult, analyzerResult, options, localFunction)
         {
@@ -146,7 +146,7 @@ internal sealed partial class CSharpMethodExtractor
             var selectedNode = GetFirstStatementOrInitializerSelectedAtCallSite();
 
             // field initializer, constructor initializer, expression bodied member case
-            if (selectedNode is ConstructorInitializerSyntax or FieldDeclarationSyntax ||
+            if (selectedNode is ConstructorInitializerSyntax or FieldDeclarationSyntax or PrimaryConstructorBaseTypeSyntax ||
                 IsExpressionBodiedMember(selectedNode) ||
                 IsExpressionBodiedAccessor(selectedNode))
             {
@@ -178,14 +178,14 @@ internal sealed partial class CSharpMethodExtractor
 
         private SimpleNameSyntax CreateMethodNameForInvocation()
         {
-            return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
+            return AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty
                 ? IdentifierName(_methodName)
                 : GenericName(_methodName, TypeArgumentList(CreateMethodCallTypeVariables()));
         }
 
         private SeparatedSyntaxList<TypeSyntax> CreateMethodCallTypeVariables()
         {
-            Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
+            Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty);
 
             // propagate any type variable used in extracted code
             return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];
@@ -319,7 +319,7 @@ internal sealed partial class CSharpMethodExtractor
         private ImmutableArray<StatementSyntax> MoveDeclarationOutFromMethodDefinition(
             ImmutableArray<StatementSyntax> statements, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
             var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
                 AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
@@ -335,12 +335,17 @@ internal sealed partial class CSharpMethodExtractor
                     continue;
                 }
 
-                var expressionStatements = new List<StatementSyntax>();
-                var list = new List<VariableDeclaratorSyntax>();
-                var triviaList = new List<SyntaxTrivia>();
+                using var _2 = ArrayBuilder<StatementSyntax>.GetInstance(out var expressionStatements);
+                using var _3 = ArrayBuilder<VariableDeclaratorSyntax>.GetInstance(out var variables);
+                using var _4 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
 
                 // When we modify the declaration to an initialization we have to preserve the leading trivia
                 var firstVariableToAttachTrivia = true;
+
+                var isUsingDeclarationAsReturnValue =
+                    this.AnalyzerResult.HasVariableToUseAsReturnValue &&
+                    this.AnalyzerResult.VariableToUseAsReturnValue.GetOriginalIdentifierToken(cancellationToken) != default &&
+                    this.AnalyzerResult.VariableToUseAsReturnValue.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
 
                 // go through each var decls in decl statement, and create new assignment if
                 // variable is initialized at decl.
@@ -369,17 +374,17 @@ internal sealed partial class CSharpMethodExtractor
                     // Prepend the trivia from the declarations without initialization to the next persisting variable declaration
                     if (triviaList.Count > 0)
                     {
-                        list.Add(variableDeclaration.WithPrependedLeadingTrivia(triviaList));
+                        variables.Add(variableDeclaration.WithPrependedLeadingTrivia(triviaList));
                         triviaList.Clear();
                         firstVariableToAttachTrivia = false;
                         continue;
                     }
 
                     firstVariableToAttachTrivia = false;
-                    list.Add(variableDeclaration);
+                    variables.Add(variableDeclaration);
                 }
 
-                if (list.Count == 0 && triviaList.Count > 0)
+                if (variables.Count == 0 && triviaList.Count > 0)
                 {
                     // well, there are trivia associated with the node.
                     // we can't just delete the node since then, we will lose
@@ -393,13 +398,15 @@ internal sealed partial class CSharpMethodExtractor
                 }
 
                 // return survived var decls
-                if (list.Count > 0)
+                if (variables.Count > 0)
                 {
                     result.Add(LocalDeclarationStatement(
+                        isUsingDeclarationAsReturnValue ? default : declarationStatement.AwaitKeyword,
+                        isUsingDeclarationAsReturnValue ? default : declarationStatement.UsingKeyword,
                         declarationStatement.Modifiers,
                         VariableDeclaration(
                             declarationStatement.Declaration.Type,
-                            [.. list]),
+                            [.. variables]),
                         declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
                     triviaList.Clear();
                 }
@@ -568,6 +575,11 @@ internal sealed partial class CSharpMethodExtractor
         protected override ExpressionSyntax CreateCallSignature()
         {
             var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
+            ExpressionSyntax methodExpression =
+                this.AnalyzerResult.UseInstanceMember && this.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value && !LocalFunction
+                ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), methodName)
+                : methodName;
+
             var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
 
             using var _ = ArrayBuilder<ArgumentSyntax>.GetInstance(out var arguments);
@@ -582,7 +594,7 @@ internal sealed partial class CSharpMethodExtractor
                 }
             }
 
-            var invocation = (ExpressionSyntax)InvocationExpression(methodName, ArgumentList([.. arguments]));
+            var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
             if (this.SelectionResult.ShouldPutAsyncModifier())
             {
                 if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
@@ -687,19 +699,6 @@ internal sealed partial class CSharpMethodExtractor
             {
                 return method;
             }
-        }
-
-        protected StatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
-        {
-            var callSignature = CreateCallSignature();
-
-            if (AnalyzerResult.HasReturnType)
-            {
-                Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
-                return ReturnStatement(callSignature);
-            }
-
-            return ExpressionStatement(callSignature);
         }
 
         protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(

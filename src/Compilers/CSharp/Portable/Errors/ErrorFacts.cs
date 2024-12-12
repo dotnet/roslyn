@@ -566,6 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
+                case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                     return 1;
                 default:
@@ -2470,6 +2471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_UnassignedInternalRefField
                 or ErrorCode.WRN_AccessorDoesNotUseBackingField
                 or ErrorCode.ERR_IteratorRefLikeElementType
+                or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
                     => false,
             };

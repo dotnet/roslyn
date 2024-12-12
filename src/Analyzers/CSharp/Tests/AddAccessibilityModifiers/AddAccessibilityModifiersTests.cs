@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpAddAccessibilityModifiersCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-public class AddAccessibilityModifiersTests
+public sealed class AddAccessibilityModifiersTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
@@ -734,7 +733,7 @@ public class AddAccessibilityModifiersTests
             }
             """;
 
-        var test = new VerifyCS.Test
+        await new VerifyCS.Test
         {
             TestCode = source,
             FixedCode = fixedSource,
@@ -744,8 +743,151 @@ public class AddAccessibilityModifiersTests
             {
                 { CodeStyleOptions2.AccessibilityModifiersRequired,AccessibilityModifiersRequired.OmitIfDefault }
             }
-        };
+        }.RunAsync();
+    }
 
-        await test.RunAsync();
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74244")]
+    public async Task TestAlwaysForInterfaceMembers()
+    {
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                interface [|I|]
+                {
+                    void [|M|]();
+                    int [|P|] { get; }
+                    event Action [|E|];
+
+                    class [|Nested|]
+                    {
+                        void [|M|]() { }
+                        int [|P|] { get; }
+                        event Action [|E|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                internal interface I
+                {
+                    public void M();
+                    public int P { get; }
+                    public event Action E;
+                
+                    public class Nested
+                    {
+                        private void M() { }
+                        private int P { get; }
+                        private event Action E;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            CodeActionEquivalenceKey = nameof(AnalyzersResources.Add_accessibility_modifiers),
+            Options =
+            {
+                { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always }
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74244")]
+    public async Task TestOmitIfDefaultForInterfaceMembers()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                interface I
+                {
+                    public void [|M|]();
+                    public int [|P|] { get; }
+                    public event Action [|E|];
+                
+                    public class [|Nested|]
+                    {
+                        private void [|M|]() { }
+                        private int [|P|] { get; }
+                        private event Action [|E|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                interface I
+                {
+                    void M();
+                    int P { get; }
+                    event Action E;
+                
+                    class Nested
+                    {
+                        void M() { }
+                        int P { get; }
+                        event Action E;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
+            Options =
+            {
+                { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault }
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74244")]
+    public async Task TestForNonInterfaceMembers()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                internal interface I
+                {
+                    public void [|M|]();
+                    public int [|P|] { get; }
+                    public event Action [|E|];
+                
+                    public class [|Nested|]
+                    {
+                        private void M() { }
+                        private int P { get; }
+                        private event Action E;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                internal interface I
+                {
+                    void M();
+                    int P { get; }
+                    event Action E;
+                
+                    class Nested
+                    {
+                        private void M() { }
+                        private int P { get; }
+                        private event Action E;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
+            Options =
+            {
+                { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.ForNonInterfaceMembers }
+            }
+        }.RunAsync();
     }
 }

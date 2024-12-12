@@ -106,7 +106,7 @@ internal class TupleNameCompletionProvider : LSPCompletionProvider
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
               displayText: field.Name,
               displayTextSuffix: ColonString,
-              symbols: ImmutableArray.Create(field),
+              symbols: [field],
               rules: CompletionItemRules.Default,
               contextPosition: spanStart,
               filterText: field.Name));

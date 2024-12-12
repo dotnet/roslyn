@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using InternalUtilities = Microsoft.Internal.VisualStudio.PlatformUI.Utilities;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
@@ -294,9 +295,13 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
             try
             {
                 var textView = _viewTracker.GetActiveView();
+
+                // Attempt to move the item to the center of the view.  The user selected the item explicitly, and this
+                // gives them a consistent location they can expect to see the result at.
                 textView.TryMoveCaretToAndEnsureVisible(
                     symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start,
-                    _outliningManagerService);
+                    _outliningManagerService,
+                    EnsureSpanVisibleOptions.AlwaysCenter);
             }
             finally
             {

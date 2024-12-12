@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
-internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
 {
     private sealed class MoveTypeEditor(
         TService service,
@@ -286,17 +286,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             return removableCandidates;
         }
 
-        private static bool FilterToTopLevelMembers(SyntaxNode node, SyntaxNode typeNode)
+        private bool FilterToTopLevelMembers(SyntaxNode node, SyntaxNode typeNode)
         {
             // We never filter out the actual node we're trying to keep around.
             if (node == typeNode)
-            {
                 return false;
-            }
 
-            return node is TTypeDeclarationSyntax or
-                   TMemberDeclarationSyntax or
-                   TNamespaceDeclarationSyntax;
+            return node is TTypeDeclarationSyntax or TNamespaceDeclarationSyntax || this.Service.IsMemberDeclaration(node);
         }
 
         /// <summary>

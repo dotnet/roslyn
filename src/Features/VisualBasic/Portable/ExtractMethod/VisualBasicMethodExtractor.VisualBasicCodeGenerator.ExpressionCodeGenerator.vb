@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,7 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class ExpressionCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                Public Sub New(
+                        selectionResult As VisualBasicSelectionResult,
+                        analyzerResult As AnalyzerResult,
+                        options As ExtractMethodGenerationOptions)
                     MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 

@@ -315,12 +315,12 @@ internal sealed class CSharpChangeNamespaceService :
 
         var targetNamespaceDecl = NamespaceDeclaration(
             name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                    .WithAdditionalAnnotations(WarningAnnotation),
+                .WithAdditionalAnnotations(WarningAnnotation),
             externs: default,
             usings: default,
             members: compilationUnit.Members);
         return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
-            .WithoutAnnotations(ContainerAnnotation);   // Make sure to remove the annotation we added
+            .WithoutAnnotations(ContainerAnnotation); // Make sure to remove the annotation we added
     }
 
     /// <summary>
