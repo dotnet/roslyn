@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -67,8 +68,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// <summary>
         /// create VariableInfo type
         /// </summary>
-        protected abstract VariableInfo CreateFromSymbol(
-            ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared, Dictionary<ISymbol, List<SyntaxToken>> symbolMap);
+        protected abstract VariableInfo CreateFromSymbol(ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
 
         protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
             => readOutsideMap.Contains(symbol);
@@ -602,10 +602,59 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     continue;
                 }
 
+                type = FixNullability(symbol, type, variableStyle);
+
                 AddVariableToMap(
                     variableInfoMap,
                     symbol,
-                    CreateFromSymbol(symbol, type, variableStyle, variableDeclared, symbolMap));
+                    CreateFromSymbol(symbol, type, variableStyle, variableDeclared));
+            }
+
+            ITypeSymbol FixNullability(ISymbol symbol, ITypeSymbol type, VariableStyle style)
+            {
+                if (style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
+                    type.NullableAnnotation is NullableAnnotation.Annotated &&
+                    !IsMaybeNullWithinSelection(symbol))
+                {
+                    // We're going to pass this nullable variable in as a parameter to the new method we're creating. If the
+                    // variable is actually never null within the section we're extracting, then change its return type to
+                    // be non-nullable so that any usage of it within the new method will not warn.
+                    return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
+
+                return type;
+            }
+
+            bool IsMaybeNullWithinSelection(ISymbol symbol)
+            {
+                if (!symbolMap.TryGetValue(symbol, out var tokens))
+                    return true;
+
+                var syntaxFacts = this.SyntaxFacts;
+                foreach (var token in tokens)
+                {
+                    if (token.Parent is not TExpressionSyntax expression)
+                        continue;
+
+                    // a = b;
+                    //
+                    // Need to ask what the nullability of 'b' is since 'a' may be currently non-null but may be
+                    // assigned a null value.
+                    if (syntaxFacts.IsLeftSideOfAssignment(expression))
+                    {
+                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(expression.GetRequiredParent(), out _, out _, out var right);
+                        expression = (TExpressionSyntax)right;
+                    }
+
+                    var typeInfo = model.GetTypeInfo(expression, this.CancellationToken);
+                    if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
+                        typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -997,21 +1046,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             ISymbol symbol,
             ITypeSymbol type,
             VariableStyle style,
-            HashSet<int> nonNoisySyntaxKindSet,
-            Dictionary<ISymbol, List<SyntaxToken>> symbolMap) where T : SyntaxNode
+            HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
         {
             var semanticModel = _semanticDocument.SemanticModel;
             var compilation = semanticModel.Compilation;
-
-            if (style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
-                type.NullableAnnotation is NullableAnnotation.Annotated &&
-                !IsMaybeNullWithinSelection())
-            {
-                // We're going to pass this nullable variable in as a parameter to the new method we're creating. If the
-                // variable is actually never null within the section we're extracting, then change its return type to
-                // be non-nullable so that any usage of it within the new method will not warn.
-                type = type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-            }
 
             return symbol switch
             {
@@ -1022,45 +1060,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
                 _ => throw ExceptionUtilities.UnexpectedValue(symbol)
             };
-
-            bool IsMaybeNullWithinSelection()
-            {
-                if (!symbolMap.TryGetValue(symbol, out var tokens))
-                    return true;
-
-                var syntaxFacts = this.SyntaxFacts;
-                foreach (var token in tokens)
-                {
-                    if (token.Parent is not TExpressionSyntax expression)
-                        continue;
-
-                    // a = b;
-                    //
-                    // Need to ask what the nullability of 'b' is since 'a' may be currently non-null but may be
-                    // assigned a null value.
-                    if (syntaxFacts.IsLeftSideOfAssignment(expression))
-                    {
-                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(expression.Parent, out _, out _, out var right);
-                        var typeInfo = semanticModel.GetTypeInfo(right, this.CancellationToken);
-                        if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
-                            typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        var typeInfo = semanticModel.GetTypeInfo(expression, this.CancellationToken);
-                        if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
-                            typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
         }
     }
 }
