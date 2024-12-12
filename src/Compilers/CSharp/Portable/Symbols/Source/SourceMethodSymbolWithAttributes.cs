@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), position, attributeLocation, this);
 
             // Caller must free the returned builder.
             static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbol @this)
@@ -1321,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, referencedToken.Position, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), referencedToken.Position, attributeLocation, this);
 
             // Caller must free the returned builder.
             ArrayBuilder<string> getNamespaceNames()
