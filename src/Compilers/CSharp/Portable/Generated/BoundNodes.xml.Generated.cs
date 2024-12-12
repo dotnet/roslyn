@@ -6863,7 +6863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionElementInitializer : BoundExpression
     {
-        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors() || implicitReceiverOpt.HasErrors())
         {
 
@@ -6874,6 +6874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AddMethod = addMethod;
             this.Arguments = arguments;
             this.ImplicitReceiverOpt = implicitReceiverOpt;
+            this.InitialBindingReceiverIsSubjectToCloning = initialBindingReceiverIsSubjectToCloning;
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.DefaultArguments = defaultArguments;
@@ -6885,6 +6886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol AddMethod { get; }
         public ImmutableArray<BoundExpression> Arguments { get; }
         public BoundExpression? ImplicitReceiverOpt { get; }
+        public ThreeState InitialBindingReceiverIsSubjectToCloning { get; }
         public bool Expanded { get; }
         public ImmutableArray<int> ArgsToParamsOpt { get; }
         public BitVector DefaultArguments { get; }
@@ -6894,11 +6896,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionElementInitializer(this);
 
-        public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type)
+        public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(addMethod, this.AddMethod) || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(addMethod, this.AddMethod) || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, defaultArguments, invokedAsExtensionMethod, resultKind, type, this.HasErrors);
+                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, initialBindingReceiverIsSubjectToCloning, expanded, argsToParamsOpt, defaultArguments, invokedAsExtensionMethod, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11859,7 +11861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             BoundExpression? implicitReceiverOpt = (BoundExpression?)this.Visit(node.ImplicitReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, type);
+            return node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, type);
         }
         public override BoundNode? VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
@@ -14225,12 +14227,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(addMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, infoAndType.Type!);
+                updatedNode = node.Update(addMethod, arguments, implicitReceiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(addMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, node.Type);
+                updatedNode = node.Update(addMethod, arguments, implicitReceiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.InvokedAsExtensionMethod, node.ResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -16596,6 +16598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("addMethod", node.AddMethod, null),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("implicitReceiverOpt", null, new TreeDumperNode[] { Visit(node.ImplicitReceiverOpt, null) }),
+            new TreeDumperNode("initialBindingReceiverIsSubjectToCloning", node.InitialBindingReceiverIsSubjectToCloning, null),
             new TreeDumperNode("expanded", node.Expanded, null),
             new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
             new TreeDumperNode("defaultArguments", node.DefaultArguments, null),

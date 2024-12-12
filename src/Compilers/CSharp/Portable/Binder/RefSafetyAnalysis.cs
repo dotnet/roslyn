@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly RefSafetyAnalysis _analysis;
             private readonly ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> _placeholders;
 
+            public bool ForceRemoveOnDispose { get; init; }
+
             public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> placeholders)
             {
                 _analysis = analysis;
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var (placeholder, _) in _placeholders)
                 {
-                    _analysis.RemovePlaceholderScope(placeholder);
+                    _analysis.RemovePlaceholderScope(placeholder, forceRemove: ForceRemoveOnDispose);
                 }
                 _placeholders.Free();
             }
@@ -200,16 +202,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             _placeholderScopes[placeholder] = valEscapeScope;
         }
 
-#pragma warning disable IDE0060
-        private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder)
+        private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder, bool forceRemove)
         {
             Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
 
             // https://github.com/dotnet/roslyn/issues/65961: Currently, analysis may require subsequent calls
             // to GetRefEscape(), etc. for the same expression so we cannot remove placeholders eagerly.
-            //_placeholderScopes.Remove(placeholder);
+            if (forceRemove)
+            {
+                _placeholderScopes?.Remove(placeholder);
+            }
         }
-#pragma warning restore IDE0060
 
         private SafeContext GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {

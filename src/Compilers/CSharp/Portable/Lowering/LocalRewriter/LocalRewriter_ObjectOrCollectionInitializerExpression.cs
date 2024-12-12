@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(temps.Count == 0);
                 temps.Free();
-                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
+                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
             }
 
             if (Instrument)

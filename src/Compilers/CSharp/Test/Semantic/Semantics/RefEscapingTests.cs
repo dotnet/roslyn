@@ -4377,6 +4377,341 @@ class X : List<int>
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionInitializer_UnscopedRef_Return()
+        {
+            var source = """
+                using System.Collections;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        return new R() { local }; // 1
+                    }
+
+                    unsafe R M2()
+                    {
+                        var local = 1;
+                        return new R() { local }; // 2
+                    }
+
+                    R M3()
+                    {
+                        return new R() { 1 }; // 3
+                    }
+
+                    unsafe R M4()
+                    {
+                        return new R() { 1 }; // 4
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public void Add([UnscopedRef] in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,26): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         return new R() { local }; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(9, 26),
+                // (9,26): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R() { local }; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(9, 26),
+                // (15,26): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         return new R() { local }; // 2
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 26),
+                // (20,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R() { 1 }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(20, 26),
+                // (20,26): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R() { 1 }; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "1").WithArguments("R.Add(in int)", "x").WithLocation(20, 26),
+                // (25,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R() { 1 }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(25, 26),
+                // (25,26): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R() { 1 }; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "1").WithArguments("R.Add(in int)", "x").WithLocation(25, 26));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionInitializer_UnscopedRef_Assignment()
+        {
+            var source = """
+                using System.Collections;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        var r = new R() { local };
+                        return r; // 1
+                    }
+
+                    void M2()
+                    {
+                        var local = 1;
+                        scoped R r;
+                        r = new R() { local };
+                    }
+
+                    void M3()
+                    {
+                        var local = 1;
+                        R r;
+                        r = new R() { local }; // 2
+                    }
+
+                    unsafe R M4()
+                    {
+                        var local = 1;
+                        var r = new R() { local };
+                        return r; // 3
+                    }
+
+                    unsafe void M5()
+                    {
+                        var local = 1;
+                        scoped R r;
+                        r = new R() { local };
+                    }
+
+                    unsafe void M6()
+                    {
+                        var local = 1;
+                        R r;
+                        r = new R() { local }; // 4
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public void Add([UnscopedRef] in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (10,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(10, 16),
+                // (24,23): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         r = new R() { local }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(24, 23),
+                // (24,23): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         r = new R() { local }; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("R.Add(in int)", "x").WithLocation(24, 23),
+                // (31,16): warning CS9080: Use of variable 'r' in this context may expose referenced variables outside of their declaration scope
+                //         return r; // 3
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "r").WithArguments("r").WithLocation(31, 16),
+                // (45,23): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         r = new R() { local }; // 4
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(45, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionInitializer_UnscopedRef_OtherScopes()
+        {
+            var source = """
+                using System.Collections;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    R M1(ref int param)
+                    {
+                        var r = new R() { param };
+                        return r; // 1
+                    }
+
+                    R M2(ref int param)
+                    {
+                        var r = new R(param) { param };
+                        return r;
+                    }
+
+                    R M3([UnscopedRef] ref int param)
+                    {
+                        var r = new R() { param };
+                        return r;
+                    }
+
+                    R M4([UnscopedRef] ref int x, ref int y)
+                    {
+                        var r = new R(x) { y };
+                        return r; // 2
+                    }
+
+                    R M5([UnscopedRef] ref int x, ref int y)
+                    {
+                        var r = new R() { x, y };
+                        return r; // 3
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public R() { }
+                    public R(in int p) : this() { }
+
+                    public void Add([UnscopedRef] in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            // The `new R() { param }` expression could be inferred to have ReturnOnly scope in M1 (then there would be no errors),
+            // however the ref safety analysis is currently more conservative and only infers either CallingMethod or local scope for the expression.
+            // It is equivalent to what would happen for `var r = new R(); r.Add(param);` where the scope of `r` is also either CallingMethod or local (if `scoped` keyword is used).
+            // Similarly `new R(param) { param }` in M2 is equivalent to `var r = new R(param); r.Add(param);` so the scope of `r` is ReturnOnly.
+
+            CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(9, 16),
+                // (27,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(27, 16),
+                // (33,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(33, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionInitializer_ScopedRef_Return()
+        {
+            var source = """
+                using System.Collections;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return new R() { local };
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public void Add(in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionInitializer_ScopedRef_Assignment()
+        {
+            var source = """
+                using System.Collections;
+
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        var r = new R() { local };
+                        return r;
+                    }
+
+                    void M2()
+                    {
+                        var local = 1;
+                        scoped R r;
+                        r = new R() { local };
+                    }
+
+                    void M3()
+                    {
+                        var local = 1;
+                        R r;
+                        r = new R() { local };
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public void Add(in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76374")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("")]
+        public void CollectionExpression_AddMethod(string attr)
+        {
+            var source = $$"""
+                using System.Collections;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return [local];
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public void Add({{attr}} in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(8, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return [local];
+                    }
+                }
+
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyDiagnostics(
+                // (11,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(11, 16));
+        }
+
         [Fact]
         public void RefLikeEscapeMixingDelegate()
         {
