@@ -147,7 +147,7 @@ internal sealed partial class CSharpMethodExtractor
             var selectedNode = GetFirstStatementOrInitializerSelectedAtCallSite();
 
             // field initializer, constructor initializer, expression bodied member case
-            if (selectedNode is ConstructorInitializerSyntax or FieldDeclarationSyntax ||
+            if (selectedNode is ConstructorInitializerSyntax or FieldDeclarationSyntax or PrimaryConstructorBaseTypeSyntax ||
                 IsExpressionBodiedMember(selectedNode) ||
                 IsExpressionBodiedAccessor(selectedNode))
             {

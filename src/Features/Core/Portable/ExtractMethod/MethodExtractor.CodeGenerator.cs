@@ -170,6 +170,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     ? mappedMember.Parent
                     : mappedMember;
 
+                mappedMember = mappedMember.RawKind == syntaxKinds.PrimaryConstructorBaseType
+                    ? mappedMember.Parent
+                    : mappedMember;
+
                 // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                 var destination = mappedMember.Parent ?? mappedMember;
 

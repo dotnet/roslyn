@@ -426,6 +426,15 @@ internal sealed partial class CSharpMethodExtractor
                 return node.WithMembers(newMembers);
             }
 
+            public override SyntaxNode VisitBaseList(BaseListSyntax node)
+            {
+                if (node != ContainerOfStatementsOrFieldToReplace)
+                    return base.VisitBaseList(node);
+
+                var primaryConstructorBase = (PrimaryConstructorBaseTypeSyntax)_statementsOrMemberOrAccessorToInsert.Single();
+                return node.WithTypes(node.Types.Replace(node.Types[0], primaryConstructorBase));
+            }
+
             private SyntaxNode GetUpdatedTypeDeclaration(TypeDeclarationSyntax node)
             {
                 var newMembers = VisitList(ReplaceMembers(node.Members, global: false));

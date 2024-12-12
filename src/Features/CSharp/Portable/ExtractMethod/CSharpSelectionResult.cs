@@ -109,10 +109,9 @@ internal abstract partial class CSharpSelectionResult(
             var container = this.GetInnermostStatementContainer();
 
             Contract.ThrowIfNull(container);
-            Contract.ThrowIfFalse(container.IsStatementContainerNode() ||
-                                  container is TypeDeclarationSyntax ||
-                                  container is ConstructorDeclarationSyntax ||
-                                  container is CompilationUnitSyntax);
+            Contract.ThrowIfFalse(
+                container.IsStatementContainerNode() ||
+                container is BaseListSyntax or TypeDeclarationSyntax or ConstructorDeclarationSyntax or CompilationUnitSyntax);
 
             return container;
         }
@@ -171,9 +170,7 @@ internal abstract partial class CSharpSelectionResult(
         foreach (var statement in statements)
         {
             if (statement.IsStatementContainerNode())
-            {
                 return statement;
-            }
 
             last = statement;
         }
@@ -190,16 +187,16 @@ internal abstract partial class CSharpSelectionResult(
         // constructor initializer case
         var constructorInitializer = GetContainingScopeOf<ConstructorInitializerSyntax>();
         if (constructorInitializer != null)
-        {
             return constructorInitializer.Parent;
-        }
 
         // field initializer case
         var field = GetContainingScopeOf<FieldDeclarationSyntax>();
         if (field != null)
-        {
             return field.Parent;
-        }
+
+        var primaryConstructorBaseType = GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>();
+        if (primaryConstructorBaseType != null)
+            return primaryConstructorBaseType.Parent;
 
         Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement));
         Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit));
