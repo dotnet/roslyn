@@ -5759,6 +5759,7 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
     public Task TestMultipleRefCapture_PartialCapture_InitializedInside()
         => TestInRegularAndScriptAsync(
@@ -5801,6 +5802,62 @@ $@"
                 private async Task<(int a, int b)> NewMethod(int a)
                 {
                     int b = 0;
+                    a++;
+                    b++;
+                    await Goo();
+                    return (a, b);
+                }
+            }
+            """,
+            options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64597")]
+    public Task TestMultipleRefCapture_PartialCapture_InitializedInside2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a;
+                    [|int b;
+
+                    a = 0;
+                    b = 0;
+                    a++;
+                    b++;
+                    await Goo();|]
+
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            class Repository
+            {
+                public async Task Goo()
+                {
+                    int a;
+                    (a, var b) = await {|Rename:NewMethod|}();
+            
+                    Console.Write(a);
+                    Console.Write(b);
+                }
+
+                private async Task<(int a, int b)> NewMethod()
+                {
+                    int a;
+                    int b;
+
+                    a = 0;
+                    b = 0;
                     a++;
                     b++;
                     await Goo();
