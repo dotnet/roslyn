@@ -266,8 +266,7 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70232")]
     public async Task TestMissingWhenAlreadyContainingImpl()
     {
-        await TestMissingAsync(
-            """
+        await TestInRegularAndScriptAsync("""
             interface I
             {
                 event System.EventHandler Click;
@@ -278,7 +277,18 @@ public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
                 event System.EventHandler I.Click { add { } remove { } }
 
                 event System.EventHandler [||]I.Click
-
+            }
+            """, """
+            interface I
+            {
+                event System.EventHandler Click;
+            }
+            
+            class C : I
+            {
+                event System.EventHandler I.Click { add { } remove { } }
+            
+                public event System.EventHandler Click
             }
             """);
     }

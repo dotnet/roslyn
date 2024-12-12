@@ -12,7 +12,7 @@ using System.Xml;
 
 namespace Roslyn.Test.PdbUtilities
 {
-    public class Token2SourceLineExporter
+    public static class Token2SourceLineExporter
     {
         // NOTE: this type implementation is essentially an extraction from PdbReader 
         //       located under ndp\clr\src\ToolBox\CCI2\PdbReader folder
@@ -1126,10 +1126,6 @@ namespace Roslyn.Test.PdbUtilities
             internal uint typind;     // (type index) Type index
             //internal byte[] rgl;        // user data, force 4-byte alignment
         };
-
-        private Token2SourceLineExporter()
-        {
-        }
 
         private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {

@@ -30,12 +30,12 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
     protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract bool IsImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
-    protected abstract bool TryInitializeImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument> arguments, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument> arguments, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument> arguments, out INamedTypeSymbol typeToGenerateIn);
-    protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument> arguments, out INamedTypeSymbol typeToGenerateIn);
+    protected abstract bool TryInitializeImplicitObjectCreation(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
+    protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
+    protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
+    protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<Argument<TExpressionSyntax>> arguments, out INamedTypeSymbol typeToGenerateIn);
 
-    protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument argument, CancellationToken cancellationToken);
+    protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, Argument<TExpressionSyntax> argument, CancellationToken cancellationToken);
     protected abstract string GenerateNameForExpression(SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
 
     protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
@@ -154,7 +154,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         }
     }
 
-    protected string GenerateNameForArgument(SemanticModel semanticModel, Argument argument, CancellationToken cancellationToken)
+    protected string GenerateNameForArgument(SemanticModel semanticModel, Argument<TExpressionSyntax> argument, CancellationToken cancellationToken)
     {
         // If it named argument then we use the name provided.
         if (argument.IsNamed)
@@ -168,7 +168,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
     }
 
     private ImmutableArray<ParameterName> GenerateParameterNames(
-        SemanticDocument document, IEnumerable<Argument> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
+        SemanticDocument document, IEnumerable<Argument<TExpressionSyntax>> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
     {
         reservedNames ??= SpecializedCollections.EmptyList<string>();
 

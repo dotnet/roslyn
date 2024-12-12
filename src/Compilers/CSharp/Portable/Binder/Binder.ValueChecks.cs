@@ -1244,8 +1244,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 { RefKind: RefKind.None } => SafeContext.CurrentMethod,
                 { EffectiveScope: ScopedKind.ScopedRef } => SafeContext.CurrentMethod,
-                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => SafeContext.ReturnOnly,
-                { HasUnscopedRefAttribute: true, IsThis: false } => SafeContext.CallingMethod,
+                { HasUnscopedRefAttribute: true, UseUpdatedEscapeRules: true, RefKind: RefKind.Out } => SafeContext.ReturnOnly,
+                { HasUnscopedRefAttribute: true, UseUpdatedEscapeRules: true, IsThis: false } => SafeContext.CallingMethod,
                 _ => SafeContext.ReturnOnly
             };
         }
@@ -3033,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    if (HasUnscopedRefAttribute)
+                    if (HasUnscopedRefAttribute && UseUpdatedEscapeRules)
                     {
                         return ScopedKind.None;
                     }
@@ -4599,13 +4599,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? GetRefEscape(assignment.Right, scopeOfTheContainingExpression)
                     : GetValEscape(assignment.Right, scopeOfTheContainingExpression);
 
-                var left = (BoundObjectInitializerMember)assignment.Left;
-                result = left.MemberSymbol switch
+                if (assignment.Left is BoundObjectInitializerMember left)
                 {
-                    PropertySymbol { IsIndexer: true } indexer => getIndexerEscape(indexer, left, rightEscape),
-                    PropertySymbol property => getPropertyEscape(property, rightEscape),
-                    _ => rightEscape
-                };
+                    result = left.MemberSymbol switch
+                    {
+                        PropertySymbol { IsIndexer: true } indexer => getIndexerEscape(indexer, left, rightEscape),
+                        PropertySymbol property => getPropertyEscape(property, rightEscape),
+                        _ => rightEscape
+                    };
+                }
+                else
+                {
+                    result = rightEscape;
+                }
             }
             else
             {

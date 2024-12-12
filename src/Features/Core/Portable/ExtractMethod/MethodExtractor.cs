@@ -41,7 +41,7 @@ internal abstract partial class MethodExtractor<
 
     protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
     protected abstract Task<GeneratedCode> GenerateCodeAsync(
-        InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+        InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
 
     protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
     protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
@@ -81,13 +81,11 @@ internal abstract partial class MethodExtractor<
                 var triviaResult = await PreserveTriviaAsync((TSelectionResult)OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var expandedDocument = await ExpandAsync((TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
-
                 var generatedCode = await GenerateCodeAsync(
-                    insertionPoint.With(expandedDocument),
-                    (TSelectionResult)OriginalSelectionResult.With(expandedDocument),
+                    insertionPoint.With(triviaResult.SemanticDocument),
+                    (TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument),
                     analyzeResult,
-                    Options.CodeGenerationOptions,
+                    Options,
                     cancellationToken).ConfigureAwait(false);
 
                 var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
@@ -142,18 +140,6 @@ internal abstract partial class MethodExtractor<
             status = OperationStatus.SucceededStatus;
             return true;
         }
-    }
-
-    private static async Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken)
-    {
-        var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<TExpressionSyntax>().LastOrDefault();
-        if (lastExpression == null)
-        {
-            return selection.SemanticDocument;
-        }
-
-        var newExpression = await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, n => n != selection.GetContainingScope(), expandParameter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<(Document document, SyntaxToken? invocationNameToken)> GetFormattedDocumentAsync(

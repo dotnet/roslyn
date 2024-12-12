@@ -16,7 +16,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles;
 
-public class EditorConfigNamingStyleParserTests
+public static class EditorConfigNamingStyleParserTests
 {
     private static NamingStylePreferences ParseDictionary(Dictionary<string, string> options)
         => EditorConfigNamingStyleParser.ParseDictionary(new DictionaryAnalyzerConfigOptions(options.ToImmutableDictionary()));

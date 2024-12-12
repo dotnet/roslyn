@@ -14,6 +14,7 @@ internal static class ReferenceFinders
             ConstructorSymbolReferenceFinder.Instance,
             PropertySymbolReferenceFinder.Instance,
             new DestructorSymbolReferenceFinder(),
+            DynamicTypeSymbolReferenceFinder.Instance,
             new EventSymbolReferenceFinder(),
             new ExplicitConversionSymbolReferenceFinder(),
             new ExplicitInterfaceMethodReferenceFinder(),

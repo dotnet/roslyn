@@ -2532,7 +2532,7 @@ class G
             Assert.Same(readers[1], baselineReaders[1]);
 
             // verify that baseline is added:
-            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectBaselines(document2.Project.Id).Single().EmitBaseline);
 
             // solution update status after committing an update:
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -2660,7 +2660,7 @@ class G
             Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // verify that baseline is added:
-            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectBaselines(document2.Project.Id).Single().EmitBaseline);
 
             // solution update status after committing an update:
             ExitBreakState(debuggingSession);
@@ -3240,8 +3240,8 @@ class C { int Y => 1; }
         Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
         // verify that baseline is added for both modules:
-        Assert.Same(newBaselineA1, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectA.Id));
-        Assert.Same(newBaselineB1, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectB.Id));
+        Assert.Same(newBaselineA1, debuggingSession.GetTestAccessor().GetProjectBaselines(projectA.Id).Single().EmitBaseline);
+        Assert.Same(newBaselineB1, debuggingSession.GetTestAccessor().GetProjectBaselines(projectB.Id).Single().EmitBaseline);
 
         // solution update status after committing an update:(updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Empty(emitDiagnostics);
@@ -3293,8 +3293,8 @@ class C { int Y => 1; }
         AssertEx.Equal(readers, baselineReaders);
 
         // verify that baseline is updated for both modules:
-        Assert.Same(newBaselineA2, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectA.Id));
-        Assert.Same(newBaselineB2, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectB.Id));
+        Assert.Same(newBaselineA2, debuggingSession.GetTestAccessor().GetProjectBaselines(projectA.Id).Single().EmitBaseline);
+        Assert.Same(newBaselineB2, debuggingSession.GetTestAccessor().GetProjectBaselines(projectB.Id).Single().EmitBaseline);
 
         // solution update status after committing an update:
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -4414,5 +4414,113 @@ class C
         Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray<DocumentId>.Empty, CancellationToken.None)).IsDefault);
+    }
+
+    [Fact]
+    public async Task MultipleSharedLibraryBaselines()
+    {
+        var libSource1 = """
+            public class C
+            {
+                public int F() => 1;
+            }
+            """;
+
+        var libSource2 = """
+            public class C
+            {
+                public int F() => 2;
+            }
+            """;
+
+        var libSource3 = """
+            public class C
+            {
+                public int F() => 3;
+            }
+            """;
+
+        using var workspace = CreateWorkspace(out var solution, out var service);
+
+        (solution, var document) = AddDefaultTestProject(solution, libSource1);
+        var documentId = document.Id;
+        var oldProject = document.Project;
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // Build and load two versions of the libary.
+        // This happens when projects A and B both reference Lib project and copy the assembly to their respective output directories and
+        // 1) A is built and launched
+        // 2) an update is made to the library
+        // 3) B is built and launched
+        // 
+        // At this point we have two baselines for the Lib project (two mvids).
+        // 
+        // The update to the library source also produces delta to be applied to V1 of the library.
+
+        var libMvid1 = EmitAndLoadLibraryToDebuggee(libSource1);
+
+        // lib source is updated:
+        solution = solution.WithDocumentText(documentId, CreateText(libSource2));
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+
+        var update = updates.Updates.Single();
+        GetModuleIds(update.MetadataDelta, out var updateModuleId, out var baseId, out var genId, out var gen);
+        Assert.Equal(libMvid1, updateModuleId);
+        Assert.Equal(1, gen);
+        Assert.Equal(default, baseId);
+        Assert.NotEqual(default, genId);
+
+        CommitSolutionUpdate(debuggingSession);
+
+        // B is launched:
+        var libMvid2 = EmitAndLoadLibraryToDebuggee(libSource2);
+
+        // lib source is updated:
+        solution = solution.WithDocumentText(documentId, CreateText(libSource3));
+
+        (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+
+        Assert.Equal(2, updates.Updates.Length);
+        var libUpdate1 = updates.Updates.Single(u => u.Module == libMvid1);
+        var libUpdate2 = updates.Updates.Single(u => u.Module == libMvid2);
+
+        // update of the original library should chain to its previous delta:
+        GetModuleIds(libUpdate1.MetadataDelta, out var updateModuleId1, out var baseId1, out var genId1, out var gen1);
+        Assert.Equal(libMvid1, updateModuleId1);
+        Assert.Equal(genId, baseId1);
+        Assert.Equal(2, gen1);
+        Assert.NotEqual(default, genId1);
+
+        // update of the rebuilt library should be the first in the new chain:
+        GetModuleIds(libUpdate2.MetadataDelta, out var updateModuleId2, out var baseId2, out var genId2, out var gen2);
+        Assert.Equal(libMvid2, updateModuleId2);
+        Assert.Equal(default, baseId2);
+        Assert.Equal(1, gen2);
+        Assert.NotEqual(default, genId2);
+
+        CommitSolutionUpdate(debuggingSession);
+        EndDebuggingSession(debuggingSession);
+
+        static void GetModuleIds(
+            ImmutableArray<byte> metadataDelta,
+            out Guid mvid,
+            out Guid baseId,
+            out Guid generationId,
+            out int generation)
+        {
+            using var readerProvider = MetadataReaderProvider.FromMetadataImage(metadataDelta);
+            var reader = readerProvider.GetMetadataReader();
+            var moduleDef = reader.GetModuleDefinition();
+            baseId = reader.GetGuid(moduleDef.BaseGenerationId);
+            generationId = reader.GetGuid(moduleDef.GenerationId);
+            mvid = reader.GetGuid(moduleDef.Mvid);
+            generation = moduleDef.Generation;
+        }
     }
 }
