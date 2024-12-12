@@ -10892,11 +10892,11 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
 
                 private static async Task<(int q, int p)> NewMethod()
                 {
-                     var q = 1;
-                     var p = 2;
-                     await Task.Yield();
-                     return (q, p);
-                 }
+                    var q = 1;
+                    var p = 2;
+                    await Task.Yield();
+                    return (q, p);
+                }
             }
             """);
     }
