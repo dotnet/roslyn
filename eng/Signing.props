@@ -62,7 +62,18 @@
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == 'test'">
-    <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
-  </ItemGroup>
+  <!--
+    We do not intend to ship the artifacts produced for PR validation buildm so we can skip signing the artifacts.
+   -->
+  <Choose>
+    <When Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == 'test'">
+      <ItemGroup>
+        <ItemsToSign Remove="@(ItemsToSign)" />
+      </ItemGroup>
+
+      <PropertyGroup>
+        <AllowEmptySignList>true</AllowEmptySignList>
+      </PropertyGroup>
+    </When>
+  </Choose>
 </Project>
