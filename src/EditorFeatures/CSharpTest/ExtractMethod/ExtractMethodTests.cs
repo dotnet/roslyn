@@ -12216,7 +12216,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
 
             local = NewMethod();
             """;
-        await TestExtractMethodAsync(code, expected);
+        await TestExtractMethodAsync(code, expected, localFunction: true);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44260")]
@@ -12236,7 +12236,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 return "string";
             }
             """;
-        await TestExtractMethodAsync(code, expected);
+        await TestExtractMethodAsync(code, expected, localFunction: true);
     }
 
     [Theory]
