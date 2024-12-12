@@ -2,30 +2,32 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Text.Json.Serialization
+Imports Newtonsoft.Json
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
 
-    Public Class UnifiedSettingsOption(Of T)
-        <JsonPropertyName("title")>
+    Friend Class UnifiedSettingsOption(Of T)
+        <JsonProperty(NameOf(Title))>
+        <JsonConverter(GetType(ResourceConverter))>
         Public Property Title As String
 
-        <JsonPropertyName("type")>
+        <JsonProperty(NameOf(Type))>
         Public Property Type As String
 
-        <JsonPropertyName("default")>
+        <JsonProperty(NameOf([Default]))>
         Public Property [Default] As T
 
-        <JsonPropertyName("AlternateDefault")>
+        <JsonProperty(NameOf(AlternateDefault))>
         Public Property AlternateDefault As AlternateDefault(Of T)
 
-        <JsonPropertyName("order")>
+        <JsonProperty(NameOf(Order))>
         Public Property Order As Integer
 
-        <JsonPropertyName("enableWhen")>
+        <JsonProperty(NameOf(EnableWhen))>
         Public Property EnableWhen As String
 
-        <JsonPropertyName("migration")>
+        <JsonProperty(NameOf(Migration))>
         Public Property Migration As Migration
+
     End Class
 End Namespace

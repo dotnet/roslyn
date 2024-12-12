@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Public Class Pass
+    Friend Class Pass
         Inherits MigrationType
     End Class
 End Namespace

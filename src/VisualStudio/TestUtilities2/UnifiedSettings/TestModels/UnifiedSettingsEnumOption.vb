@@ -2,15 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Text.Json.Serialization
+Imports Newtonsoft.Json
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Public Class UnifiedSettingsEnumOption
+    Friend Class UnifiedSettingsEnumOption
         Inherits UnifiedSettingsOption(Of String)
-        <JsonPropertyName("enum")>
+        <JsonProperty(NameOf([Enum]))>
         Public Property [Enum] As String()
 
-        <JsonPropertyName("enumLabels")>
+        <JsonProperty(NameOf(EnumLabels))>
         Public Property EnumLabels As String()
     End Class
 End Namespace

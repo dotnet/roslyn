@@ -2,14 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Text.Json.Serialization
+Imports Newtonsoft.Json
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Public Class UnifiedSettingsCategory
-        <JsonPropertyName("title")>
+    Friend Class UnifiedSettingsCategory
+        <JsonProperty(NameOf(Title))>
+        <JsonConverter(GetType(ResourceConverter))>
         Public Property Title As String
 
-        <JsonPropertyName("legacyOptionPageId")>
+        <JsonProperty(NameOf(LegacyOptionPageId))>
         Public Property LegacyOptionPageId As String
 
     End Class

@@ -2,14 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Text.Json.Serialization
+Imports Newtonsoft.Json
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Public Class AlternateDefault(Of T)
-        <JsonPropertyName("flagName")>
+    Friend Class AlternateDefault(Of T)
+        <JsonProperty(NameOf(FlagName))>
         Public Property FlagName As String
 
-        <JsonPropertyName("default")>
+        <JsonProperty("default")>
         Public Property [Default] As T
     End Class
 End Namespace

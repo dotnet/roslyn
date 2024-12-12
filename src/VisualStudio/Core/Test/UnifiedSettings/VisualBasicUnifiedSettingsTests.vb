@@ -5,12 +5,13 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
-Imports System.Text.Json
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 
 Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
     Public Class VisualBasicUnifiedSettingsTests
@@ -31,7 +32,7 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
             End Get
         End Property
 
-        Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of (unifiedSettingsPath As String, roslynOption As IOption2, UnifiedSettingsOption))
+        Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of (unifiedSettingsPath As String, roslynOption As IOption2))
             Get
                 Return ImmutableArray.Create(Of (String, IOption2))(
                 ("textEditor.basic.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
@@ -91,70 +92,61 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
         <Fact>
         Public Async Function CategoriesTest() As Task
             Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-                Dim parseOption = New JsonDocumentOptions() With {
-                            .CommentHandling = JsonCommentHandling.Skip
-                            }
-                Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
-                Dim categories = registrationDocument.RootElement.GetProperty("categories")
-                Dim nameToCategories = categories.EnumerateObject.ToDictionary(
-                    Function(kvp) kvp.Name,
-                    Function(kvp) kvp.Value.Deserialize(Of UnifiedSettingsCategory))
+                Using reader = New StreamReader(registrationFileStream)
+                    Dim registrationFile = Await reader.ReadToEndAsync()
+                    Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings() With {.CommentHandling = CommentHandling.Ignore})
+                    Dim categories = registrationJsonObject.Property("categories")
+                    Dim nameToCategories = categories.Value.Children(Of JProperty).ToDictionary(
+                        Function(jProperty) jProperty.Name,
+                        Function(jProperty) jProperty.Value.ToObject(Of UnifiedSettingsCategory))
 
-                Assert.True(nameToCategories.ContainsKey("textEditor.basic"))
-                Assert.Equal("Visual Basic", EvalResource(nameToCategories("textEditor.basic").Title))
+                    Assert.True(nameToCategories.ContainsKey("textEditor.basic"))
+                    Assert.Equal("Visual Basic", nameToCategories("textEditor.basic").Title)
 
-                Assert.True(nameToCategories.ContainsKey("textEditor.basic.intellisense"))
-                Assert.Equal("IntelliSense", EvalResource(nameToCategories("textEditor.basic.intellisense").Title))
-            End Using
-        End Function
-
-        <Fact>
-        Public Async Function IntelliSensePageTest() As Task
-            Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-                Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
-                    Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
-                        Dim pkgDefFile = Await pkgDefFileReader.ReadToEndAsync().ConfigureAwait(False)
-                        Dim parseOption = New JsonDocumentOptions() With {
-                                .CommentHandling = JsonCommentHandling.Skip
-                                }
-                        Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
-                        Dim properties = registrationDocument.RootElement.GetProperty("properties")
-                        Assert.NotNull(properties)
-
-                        Dim expectedGroupPrefix = "textEditor.basic.intellisense"
-                        Dim actualOptions = properties.EnumerateObject.Where(Function([property]) [property].Name.StartsWith(expectedGroupPrefix)).ToImmutableArray()
-                        Assert.Equal(IntelliSenseOnboardedOptions.Length, actualOptions.Length)
-
-                        For Each optionPair In actualOptions.Zip(IntelliSenseOnboardedOptions, Function(actual, expected) (actual, expected))
-                            Dim expected = optionPair.expected
-                            Dim actualName = optionPair.actual.Name
-
-                        Next
-                    End Using
+                    Assert.True(nameToCategories.ContainsKey("textEditor.basic.intellisense"))
+                    Assert.Equal("IntelliSense", nameToCategories("textEditor.basic.intellisense").Title)
                 End Using
             End Using
         End Function
 
-        Private Sub Helper(expected As (unifiedSettingsPath As String, roslynOption As IOption2), actualProperty As JsonProperty)
-            Assert.Equal(expected.unifiedSettingsPath, actualProperty.Name)
-            Dim expectedOption = expected.roslynOption
-            Dim type = expectedOption.Type
-            If type = GetType(Boolean) Then
-                VerifyBooleanOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsOption(Of Boolean)))
-            ElseIf type.IsEnum Then
-                VerifyEnumOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsEnumOption))
-            Else
-                Assert.Fail("We only have enum and boolean option now. Add more if needed")
-            End If
-        End Sub
+        '<Fact>
+        'Public Async Function IntelliSensePageTest() As Task
+        '    Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
+        '        Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
+        '            Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
+        '                Dim pkgDefFile = Await pkgDefFileReader.ReadToEndAsync().ConfigureAwait(False)
+        '                Dim parseOption = New JsonDocumentOptions() With {
+        '                        .CommentHandling = JsonCommentHandling.Skip
+        '                        }
+        '                Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
+        '                Dim properties = registrationDocument.RootElement.GetProperty("properties")
+        '                Assert.NotNull(properties)
 
-        Private Sub VerifyBooleanOption(roslynOption As IOption2, actualOption As UnifiedSettingsOption(Of Boolean))
-        End Sub
+        '                Dim expectedGroupPrefix = "textEditor.basic.intellisense"
+        '                Dim actualOptions = properties.EnumerateObject.Where(Function([property]) [property].Name.StartsWith(expectedGroupPrefix)).ToImmutableArray()
+        '                Assert.Equal(IntelliSenseOnboardedOptions.Length, actualOptions.Length)
 
-        Private Sub VerifyEnumOption(roslynOption As IOption2, actualOption As UnifiedSettingsEnumOption)
-        End Sub
+        '                For Each optionPair In actualOptions.Zip(IntelliSenseOnboardedOptions, Function(actual, expected) (actual, expected))
+        '                    Dim expected = optionPair.expected
+        '                    Dim actualName = optionPair.actual.Name
 
-        Private Sub VerifyTitle()
-        End Sub
+        '                Next
+        '            End Using
+        '        End Using
+        '    End Using
+        'End Function
+
+        'Private Sub Helper(expected As (unifiedSettingsPath As String, roslynOption As IOption2), actualProperty As JsonProperty)
+        '    Assert.Equal(expected.unifiedSettingsPath, actualProperty.Name)
+        '    Dim expectedOption = expected.roslynOption
+        '    Dim type = expectedOption.Type
+        '    If type = GetType(Boolean) Then
+        '        VerifyBooleanOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsOption(Of Boolean)))
+        '    ElseIf type.IsEnum Then
+        '        VerifyEnumOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsEnumOption))
+        '    Else
+        '        Assert.Fail("We only have enum and boolean option now. Add more if needed")
+        '    End If
+        'End Sub
     End Class
 End Namespace

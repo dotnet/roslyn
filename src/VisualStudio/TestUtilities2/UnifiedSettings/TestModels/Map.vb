@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Text.Json.Serialization
+Imports Newtonsoft.Json
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Public Class Map
-        <JsonPropertyName("result")>
+    Friend Class Map
+        <JsonProperty("result")>
         Public Property Result As String
-        <JsonPropertyName("match")>
+        <JsonProperty("match")>
         Public Property Match As Integer
     End Class
 End Namespace
