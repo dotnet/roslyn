@@ -94,15 +94,11 @@ internal sealed partial class CSharpSelectionValidator(
         {
             // Cannot extract a method from a top-level statement in normal code
             if (!localFunction && options is { Kind: SourceCodeKind.Regular })
-            {
                 return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_top_level_statements));
-            }
 
             // Cannot extract a local function from a global statement in script code
             if (localFunction && options is { Kind: SourceCodeKind.Script })
-            {
                 return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_global_statements));
-            }
         }
 
         if (_localFunction)
@@ -110,21 +106,15 @@ internal sealed partial class CSharpSelectionValidator(
             foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
             {
                 if (ancestor.Kind() is SyntaxKind.BaseConstructorInitializer or SyntaxKind.ThisConstructorInitializer)
-                {
                     return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
-                }
 
                 if (ancestor is AnonymousFunctionExpressionSyntax)
-                {
                     break;
-                }
             }
         }
 
         if (!selectionInfo.SelectionInExpression)
-        {
             return selectionInfo;
-        }
 
         var expressionNode = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
         if (expressionNode is not AssignmentExpressionSyntax assign)
@@ -132,9 +122,7 @@ internal sealed partial class CSharpSelectionValidator(
 
         // make sure there is a visible token at right side expression
         if (assign.Right.GetLastToken().Kind() == SyntaxKind.None)
-        {
             return selectionInfo;
-        }
 
         return AssignFinalSpan(selectionInfo
             .With(s => s.FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true))
