@@ -12208,13 +12208,12 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             """;
         var expected = """
             bool local;
+            local = NewMethod();
 
             static bool NewMethod()
             {
                 return true;
             }
-
-            local = NewMethod();
             """;
         await TestExtractMethodAsync(code, expected, localFunction: true);
     }
