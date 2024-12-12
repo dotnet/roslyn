@@ -561,7 +561,7 @@ internal sealed partial class CSharpMethodExtractor
         protected override StatementSyntax CreateReturnStatement(string[] identifierNames)
             => identifierNames.Length == 0 ? ReturnStatement() :
                identifierNames.Length == 1 ? ReturnStatement(IdentifierName(identifierNames[0])) :
-               ReturnStatement(TupleExpression(SeparatedList(identifierNames.Select(n => Argument(n.ToIdentifierName())))));
+               ReturnStatement(TupleExpression([.. identifierNames.Select(n => Argument(n.ToIdentifierName()))]));
 
         protected override ExpressionSyntax CreateCallSignature()
         {
