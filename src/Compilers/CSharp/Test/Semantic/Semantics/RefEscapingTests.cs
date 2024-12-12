@@ -4452,6 +4452,73 @@ class X : List<int>
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionInitializer_UnscopedRef_OtherScopes()
+        {
+            var source = """
+                using System.Collections;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    R M1(ref int param)
+                    {
+                        var r = new R() { param };
+                        return r; // 1
+                    }
+
+                    R M2(ref int param)
+                    {
+                        var r = new R(param) { param };
+                        return r;
+                    }
+
+                    R M3([UnscopedRef] ref int param)
+                    {
+                        var r = new R() { param };
+                        return r;
+                    }
+
+                    R M4([UnscopedRef] ref int x, ref int y)
+                    {
+                        var r = new R(x) { y };
+                        return r; // 2
+                    }
+
+                    R M5([UnscopedRef] ref int x, ref int y)
+                    {
+                        var r = new R() { x, y };
+                        return r; // 3
+                    }
+                }
+
+                ref struct R : IEnumerable
+                {
+                    public R() { }
+                    public R(in int p) : this() { }
+
+                    public void Add([UnscopedRef] in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            // The `new R() { param }` expression could be inferred to have ReturnOnly scope in M1 (then there would be no errors),
+            // however the ref safety analysis is currently more conservative and only infers either CallingMethod or local scope for the expression.
+            // It is equivalent to what would happen for `var r = new R(); r.Add(param);` where the scope of `r` is also either CallingMethod or local (if `scoped` keyword is used).
+            // Similarly `new R(param) { param }` in M2 is equivalent to `var r = new R(param); r.Add(param);` so the scope of `r` is ReturnOnly.
+
+            CreateCompilation([source, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(9, 16),
+                // (27,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(27, 16),
+                // (33,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(33, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionInitializer_ScopedRef_Return()
         {
             var source = """

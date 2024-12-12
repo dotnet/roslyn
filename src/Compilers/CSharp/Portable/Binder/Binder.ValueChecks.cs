@@ -4272,7 +4272,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var initializerOpt = objectCreation.InitializerExpressionOpt;
                         if (initializerOpt != null)
                         {
-                            escape = escape.Intersect(GetValEscape(initializerOpt, scopeOfTheContainingExpression));
+                            escape = escape.Intersect(
+                                initializerOpt is BoundCollectionInitializerExpression colInitExpr
+                                ? GetValEscapeOfCollectionInitializer(colInitExpr, scopeOfTheContainingExpression, receiverScope: escape)
+                                : GetValEscape(initializerOpt, scopeOfTheContainingExpression));
                         }
 
                         return escape;
@@ -4454,17 +4457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscapeOfObjectInitializer(initExpr, scopeOfTheContainingExpression);
 
                 case BoundKind.CollectionInitializerExpression:
-                    {
-                        var colExpr = (BoundCollectionInitializerExpression)expr;
-
-                        // We are interested in the CheckValEscape's return value, but it can be false only if not in an unsafe region.
-                        using var _ = new UnsafeRegion(this, inUnsafeRegion: false);
-
-                        // If arg mixing fails when the receiver has calling-method scope (i.e., some arguments could escape into the receiver), make the result scoped.
-                        return CheckValEscapeOfCollectionInitializer(colExpr, escapeFrom: scopeOfTheContainingExpression, escapeTo: SafeContext.CallingMethod, BindingDiagnosticBag.Discarded)
-                            ? SafeContext.CallingMethod
-                            : scopeOfTheContainingExpression;
-                    }
+                    var colExpr = (BoundCollectionInitializerExpression)expr;
+                    return GetValEscapeOfCollectionInitializer(colExpr, scopeOfTheContainingExpression, receiverScope: SafeContext.CallingMethod);
 
                 case BoundKind.ObjectInitializerMember:
                     // this node generally makes no sense outside of the context of containing initializer
@@ -4599,6 +4593,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        private SafeContext GetValEscapeOfCollectionInitializer(BoundCollectionInitializerExpression colExpr, SafeContext scopeOfTheContainingExpression, SafeContext receiverScope)
+        {
+            // We are interested in the CheckValEscape's return value, but it can be false only if not in an unsafe region.
+            using var _ = new UnsafeRegion(this, inUnsafeRegion: false);
+
+            // If arg mixing fails (i.e., some arguments could escape into the receiver), make the result scoped.
+            return CheckValEscapeOfCollectionInitializer(colExpr, escapeFrom: scopeOfTheContainingExpression, escapeTo: receiverScope, BindingDiagnosticBag.Discarded)
+                ? receiverScope
+                : scopeOfTheContainingExpression;
         }
 
         private SafeContext GetValEscapeOfObjectMemberInitializer(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
