@@ -178,10 +178,12 @@ End Class
 
             CompileAndVerify(comp1, expectedOutput:="1", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
 
-            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            Dim compilationReference As CompilationReference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation(source, references:={compilationReference}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp2, expectedOutput:="1").VerifyDiagnostics()
 
-            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            Dim metadataReference As MetadataReference = comp1.EmitToImageReference()
+            Dim comp3 = CreateCompilation(source, references:={metadataReference}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
 
             comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
@@ -189,6 +191,29 @@ End Class
 
             comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
             comp1.AssertTheseDiagnostics(If(i1First,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Sub M(x As I1)': Not most specific.
+    'Public Shared Sub M(x As I2)': Not most specific.
+        C.M(i3)
+          ~
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+<OverloadResolutionPriority(1)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Sub M(x As I2)': Not most specific.
+    'Public Shared Sub M(x As I1)': Not most specific.
+        C.M(i3)
+          ~
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+<OverloadResolutionPriority(1)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>))
+
+            comp2 = CreateCompilation(source, references:={compilationReference}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            Dim expected = If(i1First,
 <expected>
 BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
     'Public Shared Sub M(x As I1)': Not most specific.
@@ -202,7 +227,12 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
     'Public Shared Sub M(x As I1)': Not most specific.
         C.M(i3)
           ~
-</expected>))
+</expected>)
+
+            comp2.AssertTheseDiagnostics(expected)
+
+            comp3 = CreateCompilation(source, references:={metadataReference}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            comp3.AssertTheseDiagnostics(expected)
         End Sub
 
         <Theory, CombinatorialData>
@@ -300,9 +330,6 @@ End Class
         Public Sub EarlyFilteringOnExtensionMethodTargetTypeGenericity()
 
             Dim source = "
-Imports System
-Imports System.Runtime.CompilerServices
-
 Module Program
     Sub Main()
         Dim t As new Integer?(1)
@@ -310,8 +337,12 @@ Module Program
         t.M2()
     End Sub
 End Module
-    
-Module Test1
+"
+            Dim reference = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Module Test1
     <Extension>
     Sub M1(s As Integer?)
         Console.Write(1)
@@ -334,13 +365,26 @@ Module Test1
     End Sub
 End Module
 "
-            Dim compilation = CompilationUtils.CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:="23")
 
-            compilation = CompilationUtils.CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
+            compilation = CompilationUtils.CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
             CompileAndVerify(compilation, expectedOutput:="23")
 
-            compilation = CompilationUtils.CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            compilation = CompilationUtils.CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+    <OverloadResolutionPriority(1)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+
+            Dim ref = CompilationUtils.CreateCompilation({reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
+
+            compilation = CompilationUtils.CreateCompilation(source, references:={ref.ToMetadataReference()}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="13")
+
+            compilation = CompilationUtils.CreateCompilation(source, references:={ref.EmitToImageReference()}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
             CompileAndVerify(compilation, expectedOutput:="13")
         End Sub
 
@@ -660,6 +704,51 @@ End Class
             Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
 
             ' If the priority filtering was applied - System.InvalidCastException: Unable to cast object of type 'C2' to type 'I1'.
+            CompileAndVerify(compilation, expectedOutput:="2")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingConversions_03()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        Try
+            M1(New C0())
+        Catch ex As System.InvalidCastException
+            System.Console.Write(ex)    
+        End Try
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As C1)
+    End Sub
+
+    Sub M1(x As C2)
+        System.Console.Write(2)
+    End Sub
+End Module
+
+Class C0
+    public shared narrowing operator CType(x As C0) As C1
+        throw new System.InvalidCastException()
+    End Operator
+    public shared widening operator CType(x As C0) As C2
+        return New C2()
+    End Operator
+End Class
+
+Class C1
+End Class
+
+Class C2
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On))
+            CompileAndVerify(compilation, expectedOutput:="2")
+
+            compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Off))
+            ' If the priority filtering was applied - System.InvalidCastException : Specified cast is not valid.
             CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
 
@@ -1000,10 +1089,12 @@ End Class
 
             CompileAndVerify(comp1, expectedOutput:="1", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
 
-            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            Dim compilationReference As CompilationReference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation(source, references:={compilationReference}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp2, expectedOutput:="1").VerifyDiagnostics()
 
-            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            Dim metadataReference As MetadataReference = comp1.EmitToImageReference()
+            Dim comp3 = CreateCompilation(source, references:={metadataReference}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
 
             comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
@@ -1011,6 +1102,29 @@ End Class
 
             comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
             comp1.AssertTheseDiagnostics(If(i1First,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared WriteOnly Property M(x As I1) As Integer': Not most specific.
+    'Public Shared WriteOnly Property M(x As I2) As Integer': Not most specific.
+        C.M(i3) = 0
+          ~
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+<OverloadResolutionPriority(1)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared WriteOnly Property M(x As I2) As Integer': Not most specific.
+    'Public Shared WriteOnly Property M(x As I1) As Integer': Not most specific.
+        C.M(i3) = 0
+          ~
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+<OverloadResolutionPriority(1)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>))
+
+            comp2 = CreateCompilation(source, references:={compilationReference}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            Dim expected = If(i1First,
 <expected>
 BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
     'Public Shared WriteOnly Property M(x As I1) As Integer': Not most specific.
@@ -1024,7 +1138,12 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
     'Public Shared WriteOnly Property M(x As I1) As Integer': Not most specific.
         C.M(i3) = 0
           ~
-</expected>))
+</expected>)
+
+            comp2.AssertTheseDiagnostics(expected)
+
+            comp3 = CreateCompilation(source, references:={metadataReference}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            comp3.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact>
@@ -1494,8 +1613,8 @@ BC30526: Property 'M' is 'ReadOnly'.
 
         <Fact>
         Public Sub LiftedOperator_01()
-            Dim compilationDef = "
-Structure S
+            Dim reference = "
+public Structure S
 
     <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
     public shared operator-(x As S) As S
@@ -1508,7 +1627,8 @@ Structure S
         return Nothing
     End Operator
 End Structure
-
+"
+            Dim source = "
 Module Module1
     Sub Main()
         Dim s As New S?(Nothing)
@@ -1516,13 +1636,26 @@ Module Module1
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="1")
 
-            compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular17_13)
+            compilation = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular17_13)
             CompileAndVerify(compilation, expectedOutput:="1")
 
-            compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            compilation = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+
+            Dim ref = CreateCompilation({reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseDll)
+
+            compilation = CreateCompilation(source, references:={ref.ToMetadataReference()}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="2")
+
+            compilation = CreateCompilation(source, references:={ref.EmitToImageReference()}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
             CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
 
@@ -1598,8 +1731,12 @@ End Module
 "
             Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(compilation, expectedOutput:="1")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Theory, CombinatorialData>
@@ -2078,6 +2215,10 @@ public class Base
     public Overridable Sub M(s As String)
         throw DirectCast(Nothing, System.Exception)
     End Sub
+    <OverloadResolutionPriority(3)>
+    public Overridable Sub M2(o As Object)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
 End Class
 
 public class Derived
@@ -2091,6 +2232,10 @@ public class Derived
     public Overrides Sub M(s As String)
         throw DirectCast(Nothing, System.Exception)
     End Sub
+    <OverloadResolutionPriority(3)> ' Priority matches
+    public Overrides Sub M2(o As Object)
+        System.Console.WriteLine(""1"")
+    End Sub
 End Class
 
 public class Program 
@@ -2103,8 +2248,18 @@ End Class
 
             Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37333: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+    <OverloadResolutionPriority(0)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37333: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+    <OverloadResolutionPriority(2)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37333: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+    <OverloadResolutionPriority(3)> ' Priority matches
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -2359,6 +2514,15 @@ public class Base
             throw DirectCast(Nothing, System.Exception)
         End Set
     End Property
+    <OverloadResolutionPriority(3)>
+    public Overridable Default Property Item(o As Integer) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
 End Class
 
 public class Derived
@@ -2383,6 +2547,16 @@ public class Derived
             throw DirectCast(Nothing, System.Exception)
         End Set
     End Property
+
+    <OverloadResolutionPriority(3)> ' Priority matches
+    public Overrides Default Property Item(o As Integer) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
 End Class
 
 public class Program 
@@ -2397,8 +2571,15 @@ End Class
 "
             Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(compilation, expectedOutput:="1212").VerifyDiagnostics()
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37333: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+    <OverloadResolutionPriority(2)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37333: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+    <OverloadResolutionPriority(3)> ' Priority matches
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -2962,10 +3143,12 @@ End Class
 
             CompileAndVerify(comp1, expectedOutput:="12", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
 
-            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            Dim compilationReference As CompilationReference = comp1.ToMetadataReference()
+            Dim comp2 = CreateCompilation(source, references:={compilationReference}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp2, expectedOutput:="12").VerifyDiagnostics()
 
-            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            Dim metadataReference As MetadataReference = comp1.EmitToImageReference()
+            Dim comp3 = CreateCompilation(source, references:={metadataReference}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp3, expectedOutput:="12").VerifyDiagnostics()
 
             comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
@@ -2973,6 +3156,39 @@ End Class
 
             comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
             comp1.AssertTheseDiagnostics(If(i1First,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+        Dim x = c(i3)
+                ~
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+        c(i3) = 0
+        ~
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+<OverloadResolutionPriority(1)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+        Dim x = c(i3)
+                ~
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+        c(i3) = 0
+        ~
+BC36716: Visual Basic 16.9 does not support overload resolution priority.
+<OverloadResolutionPriority(1)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>))
+
+            comp2 = CreateCompilation(source, references:={compilationReference}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            Dim expected = If(i1First,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
     'Public Default Property Item(x As I1) As Integer': Not most specific.
@@ -2996,7 +3212,12 @@ BC30521: Overload resolution failed because no accessible 'Item' is most specifi
     'Public Default Property Item(x As I1) As Integer': Not most specific.
         c(i3) = 0
         ~
-</expected>))
+</expected>)
+
+            comp2.AssertTheseDiagnostics(expected)
+
+            comp3 = CreateCompilation(source, references:={metadataReference}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            comp3.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact>
@@ -3210,7 +3431,7 @@ Public Class C
         Get
             throw DirectCast(Nothing, System.Exception)
         End Get
-        <OverloadResolutionPriority(1)>
+        <OverloadResolutionPriority(2)>
         Set
             throw DirectCast(Nothing, System.Exception)
         End Set
@@ -3220,17 +3441,22 @@ End Class
 
             Dim comp = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
 
-            Dim validate = Sub(m As ModuleSymbol)
-                               Dim c = m.ContainingAssembly.GetTypeByMetadataName("C")
-                               Dim indexer = c.GetMember(Of PropertySymbol)("Item")
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim indexer = c.GetMember(Of PropertySymbol)("Item")
 
-                               Assert.Equal(0, indexer.OverloadResolutionPriority)
-                               Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority)
-                               Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority)
-                           End Sub
+            Assert.Equal(0, indexer.OverloadResolutionPriority)
+            Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority)
+            Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(comp, symbolValidator:=validate, sourceSymbolValidator:=validate).VerifyDiagnostics()
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(1)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(2)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -3379,7 +3605,7 @@ Public Class C
         Get
             throw DirectCast(Nothing, System.Exception)
         End Get
-        <OverloadResolutionPriority(1)>
+        <OverloadResolutionPriority(2)>
         Set
             throw DirectCast(Nothing, System.Exception)
         End Set
@@ -3389,17 +3615,22 @@ End Class
 
             Dim comp = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
 
-            Dim validate = Sub(m As ModuleSymbol)
-                               Dim c = m.ContainingAssembly.GetTypeByMetadataName("C")
-                               Dim indexer = c.GetMember(Of PropertySymbol)("Prop")
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim indexer = c.GetMember(Of PropertySymbol)("Prop")
 
-                               Assert.Equal(0, indexer.OverloadResolutionPriority)
-                               Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority)
-                               Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority)
-                           End Sub
+            Assert.Equal(0, indexer.OverloadResolutionPriority)
+            Assert.Equal(0, indexer.GetMethod.OverloadResolutionPriority)
+            Assert.Equal(0, indexer.SetMethod.OverloadResolutionPriority)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(comp, symbolValidator:=validate, sourceSymbolValidator:=validate).VerifyDiagnostics()
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(1)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(2)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -3414,10 +3645,10 @@ Public Class C
         <OverloadResolutionPriority(1)>
         AddHandler(x as System.Action)
         End AddHandler
-        <OverloadResolutionPriority(1)>
+        <OverloadResolutionPriority(2)>
         RemoveHandler(x as System.Action)
         End RemoveHandler
-        <OverloadResolutionPriority(1)>
+        <OverloadResolutionPriority(3)>
         RaiseEvent()
         End RaiseEvent
     End Event
@@ -3426,17 +3657,25 @@ End Class
 
             Dim comp = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim validate = Sub(m As ModuleSymbol)
-                               Dim c = m.ContainingAssembly.GetTypeByMetadataName("C")
-                               Dim indexer = c.GetMember(Of EventSymbol)("Prop")
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim indexer = c.GetMember(Of EventSymbol)("Prop")
 
-                               Assert.Equal(0, indexer.AddMethod.OverloadResolutionPriority)
-                               Assert.Equal(0, indexer.RemoveMethod.OverloadResolutionPriority)
-                               Assert.Equal(0, indexer.RaiseMethod.OverloadResolutionPriority)
-                           End Sub
+            Assert.Equal(0, indexer.AddMethod.OverloadResolutionPriority)
+            Assert.Equal(0, indexer.RemoveMethod.OverloadResolutionPriority)
+            Assert.Equal(0, indexer.RaiseMethod.OverloadResolutionPriority)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(comp, symbolValidator:=validate, sourceSymbolValidator:=validate).VerifyDiagnostics()
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(1)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(2)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+        <OverloadResolutionPriority(3)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -3519,8 +3758,12 @@ End Class
 
             Dim comp = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(comp).VerifyDiagnostics()
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37333: Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+    <OverloadResolutionPriority(1)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -3650,8 +3893,12 @@ End Class
 
             Dim comp = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
 
-            ' Note, VB silently ignores attributes at wrong location 
-            CompileAndVerify(comp).VerifyDiagnostics()
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37334: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+    <OverloadResolutionPriority(1)>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <Theory>

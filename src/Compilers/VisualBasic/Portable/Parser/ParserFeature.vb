@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.UnmanagedConstraint
                     Return ERRID.FEATURE_UnmanagedConstraint
                 Case Feature.OverloadResolutionPriority
-                    Return ERRID.ERR_None ' We are not reporting any feature diagnostics for 'Overload Resolution Priority' feature.
+                    Return ERRID.FEATURE_OverloadResolutionPriority
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

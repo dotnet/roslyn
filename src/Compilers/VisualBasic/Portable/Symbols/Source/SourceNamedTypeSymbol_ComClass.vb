@@ -1167,7 +1167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Property
 
                 Public Overrides Function GetOverloadResolutionPriority() As Integer
-                    Return 0 ' PROTOTYPE(Priority): Implement for real 
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user  
                 End Function
 
                 Public Overrides ReadOnly Property IsOverridable As Boolean
@@ -1784,7 +1784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Property
 
                 Public Overrides Function GetOverloadResolutionPriority() As Integer
-                    Return 0 ' PROTOTYPE(Priority): Follow up
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user 
                 End Function
 
                 Public Overrides ReadOnly Property IsOverridable As Boolean

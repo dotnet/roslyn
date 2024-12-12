@@ -1533,7 +1533,6 @@ lReportErrorOnTwoTokens:
 
                     If Not CanHaveOverloadResolutionPriority Then
                         'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
-                        ' PROTOTYPE(priority): Do we want to report an error? It will be a breaking change. 
                         Return Nothing
                     End If
 
@@ -1750,6 +1749,19 @@ lReportErrorOnTwoTokens:
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
             ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.ModuleInitializerAttribute) Then
                 diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                If Not CanHaveOverloadResolutionPriority Then
+                    diagnostics.Add(If(IsOverrides,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember),
+                                    arguments.AttributeSyntaxOpt.GetLocation())
+                Else
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                   arguments.AttributeSyntaxOpt.GetLocation(),
+                                                   DirectCast(arguments.AttributeSyntaxOpt.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                   InternalSyntax.Feature.OverloadResolutionPriority)
+                End If
             Else
                 Dim methodImpl As MethodSymbol = If(Me.IsPartial, PartialImplementationPart, Me)
 
