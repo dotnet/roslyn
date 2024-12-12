@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         private static Func<AssemblyName, Assembly?>? s_assemblyResolver;
 
-        private static readonly List<AssemblyName> s_assembliesRequested = [];
+        private static readonly HashSet<AssemblyName> s_assembliesRequested = [];
 
         private static readonly object s_resolverLock = new();
 

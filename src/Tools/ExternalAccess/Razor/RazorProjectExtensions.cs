@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             var generatorIdentity = new SourceGeneratorIdentity(assemblyName, assemblyPath, assemblyVersion, typeName);
             return results.Where(s => s.Identity.Generator == generatorIdentity);
-
         }
     }
 }
