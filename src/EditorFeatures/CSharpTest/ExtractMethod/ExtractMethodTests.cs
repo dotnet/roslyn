@@ -63,6 +63,48 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact]
+    public async Task ExtractMethod_KeywordName()
+    {
+        var code = """
+            using System;
+
+            class Program
+            {
+                void Test(string[] args)
+                {
+                    int @class = 0;
+                    int @interface = 0;
+                    [|@class++;
+                    @interface++;|]
+                    Console.WriteLine(@class + @interface);
+                }
+            }
+            """;
+        var expected = """
+            using System;
+
+            class Program
+            {
+                void Test(string[] args)
+                {
+                    int @class = 0;
+                    int @interface = 0;
+                    NewMethod(ref @class, ref @interface);
+                    Console.WriteLine(@class + @interface);
+                }
+
+                private static void NewMethod(ref int @class, ref int @interface)
+                {
+                    @class++;
+                    @interface++;
+                }
+            }
+            """;
+
+        await TestExtractMethodAsync(code, expected);
+    }
+
+    [Fact]
     public async Task ExtractMethod2()
     {
         var code = """
