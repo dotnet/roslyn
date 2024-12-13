@@ -34,13 +34,26 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListener _asyncListener;
-    private CancellationTokenSource? _cancellationTokenSource;
+
+    /// <summary>
+    /// Cancellation token source for <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
+    /// Each call uses a new instance. Mutliple calls are allowed only if previous call failed or was canceled.
+    /// The request is canceled on UI thread through one of the following user interactions:
+    /// 1. <see cref="BaseViewModelPropertyChanged"/> when user types in the text box.
+    /// 2. <see cref="ToggleOrTriggerSuggestions"/> when user toggles the automatic suggestions.
+    /// 3. <see cref="Dispose"/> when the dialog is closed.
+    /// </summary>
+    private CancellationTokenSource _cancellationTokenSource = new();
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
-    private Task _getSuggestionsTask = Task.CompletedTask;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
+
+    /// <summary>
+    /// Backing field for <see cref="IsInProgress"/>.
+    /// </summary>
+    private bool _isInProgress = false;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -52,7 +65,26 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public bool HasSuggestions => _smartRenameSession.HasSuggestions;
 
-    public bool IsInProgress => _smartRenameSession.IsInProgress;
+    /// <summary>
+    /// Indicates whether a request to get suggestions is in progress.
+    /// The request to get suggestions is comprised of initial short delay, <see cref="AutomaticFetchDelay"/>
+    /// and call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
+    /// When <c>true</c>, the UI shows the progress bar, and prevents <see cref="FetchSuggestions(bool)"/> from making parallel request.
+    /// </summary>
+    public bool IsInProgress
+    {
+        get
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            return _isInProgress;
+        }
+        set
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            _isInProgress = value;
+            NotifyPropertyChanged(nameof(IsInProgress));
+        }
+    }
 
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
@@ -150,64 +182,80 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private void FetchSuggestions(bool isAutomaticOnInitialization)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (this.SuggestedNames.Count > 0 || _isDisposed)
+        if (this.SuggestedNames.Count > 0 || _isDisposed || this.IsInProgress)
         {
             // Don't get suggestions again
             return;
         }
 
-        if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
-        {
-            var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = new CancellationTokenSource();
-            _getSuggestionsTask = GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
-        }
+        var listenerToken = _asyncListener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = new CancellationTokenSource();
+        GetSuggestionsTaskAsync(isAutomaticOnInitialization, _cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
     }
 
+    /// <summary>
+    /// The request for rename suggestions. It's made of three parts:
+    /// 1. Short delay of duration <see cref="AutomaticFetchDelay"/>.
+    /// 2. Get definition and references if <see cref="IsUsingSemanticContext"/> is set.
+    /// 3. Call to <see cref="ISmartRenameSessionWrapper.GetSuggestionsAsync(ImmutableDictionary{string, ImmutableArray{ValueTuple{string, string}}}, CancellationToken)"/>.
+    /// </summary>
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
-        if (isAutomaticOnInitialization)
-        {
-            await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        RoslynDebug.Assert(!this.IsInProgress);
+        this.IsInProgress = true;
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        if (cancellationToken.IsCancellationRequested || _isDisposed)
+        try
         {
-            return;
-        }
+            if (isAutomaticOnInitialization)
+            {
+                await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
-        if (IsUsingSemanticContext)
-        {
-            var stopwatch = SharedStopwatch.StartNew();
-            _semanticContextUsed = true;
-            var document = this.BaseViewModel.Session.TriggerDocument;
-            var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
-            try
+            if (cancellationToken.IsCancellationRequested || _isDisposed)
             {
-                var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-                var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-                    .ConfigureAwait(false);
-                smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
-                    context
-                    .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
-                _semanticContextDelay = stopwatch.Elapsed;
+                return;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+
+            if (IsUsingSemanticContext)
             {
-                _semanticContextError = true;
-                // use empty smartRenameContext
+                var stopwatch = SharedStopwatch.StartNew();
+                _semanticContextUsed = true;
+                var document = this.BaseViewModel.Session.TriggerDocument;
+                var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
+                try
+                {
+                    var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+                    var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
+                        .ConfigureAwait(false);
+                    smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
+                        context
+                        .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
+                    _semanticContextDelay = stopwatch.Elapsed;
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+                {
+                    _semanticContextError = true;
+                    // use empty smartRenameContext
+                }
+                _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
+                    .ConfigureAwait(false);
             }
-            _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
-                .ConfigureAwait(false);
+            else
+            {
+                _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
-        else
+        finally
         {
-            _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
-                .ConfigureAwait(false);
+            // cancellationToken might be already canceled. Fallback to the disposal token.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+            this.IsInProgress = false;
         }
     }
 
@@ -263,7 +311,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Cancel()
     {
-        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource.Cancel();
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
         PostTelemetry(isCommit: false);
@@ -278,27 +326,32 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public void Dispose()
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         _isDisposed = true;
         _smartRenameSession.PropertyChanged -= SessionPropertyChanged;
         BaseViewModel.PropertyChanged -= BaseViewModelPropertyChanged;
         _smartRenameSession.Dispose();
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource.Cancel();
     }
 
     /// <summary>
     /// When smart rename operates in explicit mode, this method gets the suggestions.
-    /// When smart rename operates in automatic mode, this method toggles the automatic suggestions, 
-    /// and gets the suggestions if it was just enabled.
+    /// When smart rename operates in automatic mode, this method toggles the automatic suggestions:
+    /// gets the suggestions if it was just enabled, and cancels the ongoing request if it was just disabled.
     /// </summary>
     public void ToggleOrTriggerSuggestions()
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         if (this.SupportsAutomaticSuggestions)
         {
             this.IsAutomaticSuggestionsEnabled = !this.IsAutomaticSuggestionsEnabled;
             if (this.IsAutomaticSuggestionsEnabled)
             {
                 this.FetchSuggestions(isAutomaticOnInitialization: false);
+            }
+            else
+            {
+                _cancellationTokenSource.Cancel();
             }
             NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
             NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
@@ -316,9 +369,11 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private void BaseViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
         if (e.PropertyName == nameof(BaseViewModel.IdentifierText))
         {
-            _cancellationTokenSource?.Cancel();
+            // User is typing the new identifier name, cancel the ongoing request to get suggestions.
+            _cancellationTokenSource.Cancel();
         }
     }
 }

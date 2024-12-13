@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Never_add_new_line_on_enter;
 
         public static string Option_Only_add_new_line_on_enter_with_whole_word
-            => ServicesVSResources.Only_add_new_line_on_enter_after_end_of_fully_typed_word;
+            => ServicesVSResources._Only_add_new_line_on_enter_after_end_of_fully_typed_word;
 
         public static string Option_Always_add_new_line_on_enter
             => ServicesVSResources.Always_add_new_line_on_enter;

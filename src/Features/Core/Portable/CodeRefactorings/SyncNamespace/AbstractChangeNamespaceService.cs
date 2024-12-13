@@ -591,8 +591,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         if (refLocations.Count > 0)
         {
-            (document, containersToAddImports) = await FixReferencesAsync(document, this, addImportService, refLocations, newNamespaceParts, cancellationToken)
-                .ConfigureAwait(false);
+            (document, containersToAddImports) = await FixReferencesAsync(
+                document, this, addImportService, refLocations, newNamespaceParts, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -603,10 +603,10 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         Debug.Assert(containersToAddImports.Length > 0);
 
-        // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
-        // Include the new namespace in case there are multiple namespace declarations in
-        // the declaring document. They may need a using statement added to correctly keep
-        // references to the type inside it's new namespace
+        // Need to import all containing namespaces of old namespace and add them to the document (if it's not global
+        // namespace). Include the new namespace in case there are multiple namespace declarations in the declaring
+        // document. They may need a using statement added to correctly keep references to the type inside it's new
+        // namespace
         var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
         var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -621,8 +621,12 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts)
-            .WithAdditionalAnnotations(Formatter.Annotation);
+        root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts);
+
+        // We need to change the indentation here. TODO: Replace with an "indentation annotation" when
+        // https://github.com/dotnet/roslyn/issues/59228 happens.
+        if (oldNamespace is "" || newNamespace is "")
+            root = root.WithAdditionalAnnotations(Formatter.Annotation);
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
         var services = documentWithAddedImports.Project.Solution.Services;

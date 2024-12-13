@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     <Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-    Partial Public Class MoveTypeTests
+    Partial Public NotInheritable Class MoveTypeTests
         Inherits BasicMoveTypeTestsBase
 
         <WpfFact>
@@ -310,6 +310,38 @@ end class
 
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64066")>
+        Public Async Function MoveNestedTypeToNewFile_SiblingMethods() As Task
+            Dim code =
+"
+Public Class Class1
+    Class Class2[||]
+    End Class
+
+    Sub M1()
+    End Sub
+End Class
+"
+            Dim codeAfterMove =
+"
+Partial Public Class Class1
+
+    Sub M1()
+    End Sub
+End Class
+"
+            Dim expectedDocumentName = "Class2.vb"
+
+            Dim destinationDocumentText =
+"
+Partial Public Class Class1
+    Class Class2
+    End Class
+End Class
+"
+            Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
     End Class
 End Namespace
