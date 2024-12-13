@@ -27,6 +27,11 @@ Specifying `off` as the value turns the feature off (this is the default).
 The feature flag can be specified on the command line like `/features:experimental-data-section-string-literals` or `/features:experimental-data-section-string-literals=20`,
 or in a project file in a `<PropertyGroup>` like `<Features>$(Features);experimental-data-section-string-literals</Features>` or `<Features>$(Features);experimental-data-section-string-literals=20</Features>`.
 
+> [!NOTE]
+> This configuration is useful for experimenting (to see the impact of the threshold on runtime performance and IL size)
+> and also allowing users to avoid a potential overhead of many type definitions generated if their program has many short string literals
+> which do not need this new emit strategy because they can fit into the size-limited UserString heap.
+
 ## Eligible string literals
 
 A string literal is emitted with the utf8 encoding if and only if all of these are true:
@@ -44,7 +49,8 @@ That puts the string literal on the UserString heap of the PE file.
 The utf8 string literal encoding emit strategy emits `ldsfld` of a field in a generated class instead.
 
 For every string literal, a unique internal static class is generated which:
-- has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string,
+- has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string
+  (when there is a conflict, a compile-time error is reported),
 - is nested in the `<PrivateImplementationDetails>` type to avoid polluting the global namespace
   and to avoid having to enforce name uniqueness across modules,
 - has one internal static readonly `string` field which is initialized in a static constructor of the class,
@@ -62,7 +68,7 @@ string d = "Hello."; // assuming this string literal is eligible for the `ldsfld
 ```
 
 The initialization calls `<PrivateImplementationDetails>.BytesToString` helper which in turn calls `Encoding.UTF8.GetBytes`.
-This is an optimization so each of the generated class static constructors is slightly smaller in IL size.
+This is an optimization so each of the generated static constructors is slightly smaller in IL size.
 These size savings can add up since one class is generated per one eligible string literal.
 A compile-time error is reported if the `Encoding.UTF8.GetBytes` API is not available and needs to be used
 (the user can then either ensure the API is available or turn off the feature flag).
@@ -107,6 +113,19 @@ The actual generated code does not call `(byte*)Unsafe.AsPointer`.
 It simply emits `ldsflda` of the data field.
 The same approach is taken by other scenarios like [u8 string literals][u8-literals] and [constant array initializers][constant-array-init].
 That works but does not pass IL/PE verification.
+
+### Ref assemblies
+
+The synthesized types are not part of ref assemblies. That makes them smaller
+and incremental compilation is faster because it does not need to recompile dependent projects when only string literal contents change.
+
+This is automatically implemented, because during metadata-only compilation, method bodies are not emitted,
+and the synthesized types used by this feature are only emitted lazily as part of generating method body instructions.
+
+## Diagnostics
+
+The error CS8103 (Combined length of user strings used by the program exceeds allowed limit) is updated to suggest the feature flag,
+albeit with a disclaimer during the experimental phase of the feature.
 
 ## Runtime
 
@@ -160,10 +179,6 @@ That can be implemented in the future.
 
 Ahead-of-time compilation tools would need to be updated to recognize this new pattern of string literal use in place of `ldstr`.
 
-### Ref assemblies
-
-Need to confirm that no additional work is needed for ref assemblies.
-
 ### Automatic threshold
 
 The threshold could be determined automatically with some objective, for example,
@@ -181,7 +196,8 @@ hence synthesizing the utf8 string classes in the former should be possible and 
 ### Statistics
 
 The compiler could emit an info diagnostic with useful statistics for customers to determine what threshold to set.
-For example, a histogram of string literal lengths encountered while emitting of the program.
+For example, a histogram of string literal lengths encountered while emitting the program.
+Tools like ILSpy can already be used to obtain some related data, e.g., count, length, and contents of string literals in the UserString heap.
 
 ### Single blob
 
@@ -200,6 +216,9 @@ At runtime, we would do an offset to where the required data reside in the blob 
 Instead of one global feature flag, the emit strategy could be controlled using compiler-recognized attributes (applicable to assemblies or classes).
 Furthermore, we could emit more than one string per one class. That could be configurable as well.
 
+One interesting strategy would be grouping strings which occur in one user-defined type into one compiler-generated `<S>` type.
+The idea is that strings from one class are likely used "together" so there is no performance impact from initializing them all at once and we save on metadata.
+
 ### GC
 
 To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s.
@@ -211,6 +230,7 @@ This could be configurable as well.
 We could emit the strings to data fields similarly but we would not synthesize the `string` fields and static constructors.
 Instead, at the place of `ldstr`, we would directly call a runtime-provided helper, passing a pointer to the data field.
 That runtime helper would be an intrinsic recognized by the JIT (with a fallback calling `Encoding.UTF8.GetString`).
+The runtime would then be responsible for loading and caching the strings, perhaps similarly to how `ldstr` works (using a frozen GC heap).
 
 ### Custom lazy initialization
 
