@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3302,7 +3303,7 @@ class Program
             {
                 public string? M()
                 {
-                    string? x = {|Rename:NewMethod|}();
+                    string x = {|Rename:NewMethod|}();
 
                     return x;
                 }
@@ -5918,6 +5919,101 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61555")]
+    public async Task TestKnownNotNullParameter()
+        => await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                public class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+
+                        [|c.ToString();|]
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+            
+                public class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+            
+                        NewMethod(c);
+                    }
+
+                    private static void NewMethod(C c)
+                    {
+                        c.ToString();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61555")]
+    public async Task TestKnownNotNullParameter_AssignedNull()
+        => await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                public class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+
+                        [|c.ToString();
+                        c = null;
+                        c?.ToString();|]
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+            
+                public class C
+                {
+                    public void M(C? c)
+                    {
+                        if (c == null)
+                        {
+                            return;
+                        }
+            
+                        c = NewMethod(c);
+                    }
+
+                    private static C? NewMethod(C? c)
+                    {
+                        {|CS8602:c|}.ToString();
+                        c = null;
+                        c?.ToString();
+                        return c;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)

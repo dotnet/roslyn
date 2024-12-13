@@ -29,13 +29,9 @@ internal sealed partial class CSharpMethodExtractor
             => this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>() != null;
 
         protected override VariableInfo CreateFromSymbol(
-            Compilation compilation,
-            ISymbol symbol,
-            ITypeSymbol type,
-            VariableStyle style,
-            bool variableDeclared)
+            ISymbol symbol, ITypeSymbol type, VariableStyle style, bool variableDeclared)
         {
-            return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(compilation, symbol, type, style, s_nonNoisySyntaxKindSet);
+            return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(symbol, type, style, s_nonNoisySyntaxKindSet);
         }
 
         protected override ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
