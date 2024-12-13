@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
-
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal static class SmallNumberFormatter
@@ -21,10 +19,6 @@ internal static class SmallNumberFormatter
         if (value >= SmallNumberCacheLength)
             return value.ToString();
 
-        return s_smallNumberCache[value] ?? CreateAndCacheString(value);
-
-        [MethodImpl(MethodImplOptions.NoInlining)] // keep rare usage out of fast path
-        static string CreateAndCacheString(int value)
-            => s_smallNumberCache[value] = value.ToString();
+        return s_smallNumberCache[value] ??= value.ToString();
     }
 }
