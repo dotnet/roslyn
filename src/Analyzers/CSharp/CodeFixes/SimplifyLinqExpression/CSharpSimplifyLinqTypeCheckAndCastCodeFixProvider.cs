@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 
 using static SyntaxFactory;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyInterpolation), Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyLinqTypeCheckAndCast), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpSimplifyLinqTypeCheckAndCastCodeFixProvider()
