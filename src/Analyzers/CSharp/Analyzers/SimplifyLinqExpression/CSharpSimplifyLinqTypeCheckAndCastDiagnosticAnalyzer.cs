@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 
@@ -34,10 +37,49 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
         });
     }
 
+    private static bool AnalyzeWhereMethod(
+        SemanticModel semanticModel,
+        LambdaExpressionSyntax whereLambda,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ITypeSymbol? whereType)
+    {
+        whereType = null;
+
+        // has to look like `a => a is ...` or `(T a) => a is ...`
+        var whereParameters = whereLambda switch
+        {
+            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
+            SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
+            _ => [],
+        };
+
+        if (whereParameters is not [var parameter])
+            return false;
+
+        // Body needs to be `a is SomeType`
+        var parameterName = parameter.Identifier.ValueText;
+        if (whereLambda.Body is not BinaryExpressionSyntax(kind: SyntaxKind.IsExpression)
+            {
+                Left: IdentifierNameSyntax leftIdentifier,
+                Right: TypeSyntax whereTypeSyntax
+            })
+        {
+            return false;
+        }
+
+        // Value being checked needs to be the parameter passed in.
+        if (leftIdentifier.Identifier.ValueText != parameterName)
+            return false;
+
+        whereType = semanticModel.GetTypeInfo(whereTypeSyntax, cancellationToken).Type;
+        return whereType != null;
+    }
+
     private void AnalyzeInvocationExpression(
         SyntaxNodeAnalysisContext context, INamedTypeSymbol enumerableType)
     {
         var cancellationToken = context.CancellationToken;
+        var semanticModel = context.SemanticModel;
 
         if (ShouldSkipAnalysis(context, notification: null))
             return;
@@ -70,41 +112,16 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
             return;
         }
 
-        // has to look like `a => a is ...` or `(T a) => a is ...`
-        var parameters = whereLambda switch
-        {
-            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
-            SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
-            _ => [],
-        };
-
-        if (parameters is not [var parameter])
-            return;
-
-        // Body needs to be `a is SomeType`
-        var parameterName = parameter.Identifier.ValueText;
-        if (whereLambda.Body is not BinaryExpressionSyntax(kind: SyntaxKind.IsExpression)
-            {
-                Left: IdentifierNameSyntax leftIdentifier,
-                Right: TypeSyntax rightTypeSyntax
-            })
-        {
-            return;
-        }
-
-        // Value being checked needs to be the parameter passed in.
-        if (leftIdentifier.Identifier.ValueText != parameterName)
+        if (!AnalyzeWhereMethod(semanticModel, whereLambda, cancellationToken, out var whereType))
             return;
 
         // Ensure the `is SomeType` and `Cast<SomeType>` are the same type.
         var semanticModel = context.SemanticModel;
         var castType = semanticModel.GetTypeInfo(castTypeArgument, cancellationToken).Type;
-        var rightType = semanticModel.GetTypeInfo(rightTypeSyntax, cancellationToken).Type;
-
-        if (castType is null || rightType is null)
+        if (castType is null)
             return;
 
-        if (!rightType.Equals(castType))
+        if (!whereType.Equals(castType))
             return;
 
         var castSymbol = semanticModel.GetSymbolInfo(castInvocation, cancellationToken).Symbol;
