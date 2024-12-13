@@ -14148,7 +14148,7 @@ class B
             Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
         public void Repro_38087()
         {
             var comp = CreateCompilation("""
@@ -14166,17 +14166,65 @@ class B
             var tree = comp.CommonSyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            var intK = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToArray()[1];
-            Assert.Equal("int k = i + j + 1;", intK.ToString());
-            var flowAnalysis1 = model.AnalyzeDataFlow(intK);
-            Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis1.ReadInside));
+            var decls = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToArray();
+            Assert.Equal(2, decls.Length);
+            var decl = decls[1];
+            Assert.Equal("int k = i + j + 1;", decl.ToString());
+            var flowAnalysis = model.AnalyzeDataFlow(decl);
+            Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
 
-            var add = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray()[1];
+            var binOps = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
+            Assert.Equal(2, binOps.Length);
+            var add = binOps[0];
+            Assert.Equal("i + j + 1", add.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(add);
+            Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            add = binOps[1];
             Assert.Equal("i + j", add.ToString());
-            var flowAnalysis = model.AnalyzeDataFlow(add);
+            flowAnalysis = model.AnalyzeDataFlow(add);
             Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
         }
 
-        // TODO2: testing
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
+        public void FourBinaryOperands()
+        {
+            var comp = CreateCompilation("""
+                class Program
+                {
+                    private static void Repro()
+                    {
+                        int i = 1, j = 2, k = 3, l = 4;
+                        _ = i + j + k + l;
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
+            Assert.Equal("_ = i + j + k + l;", decl.ToString());
+            var flowAnalysis = model.AnalyzeDataFlow(decl);
+            Assert.Equal("i, j, k, l", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            var binOps = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
+            Assert.Equal(3, binOps.Length);
+            var add = binOps[0];
+            Assert.Equal("i + j + k + l", add.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(add);
+            Assert.Equal("i, j, k, l", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            add = binOps[1];
+            Assert.Equal("i + j + k", add.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(add);
+            Assert.Equal("i, j, k", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            add = binOps[2];
+            Assert.Equal("i + j", add.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(add);
+            Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+        }
     }
 }

@@ -2541,6 +2541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             do
             {
                 stack.Push(binary);
+                EnterRegionIfNeeded(binary);
                 binary = binary.Left as BoundBinaryOperator;
             }
             while (binary != null && !binary.OperatorKind.IsLogical() && binary.InterpolatedStringHandlerData is null);
@@ -2550,10 +2551,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        /// <param name="stack">Nested left-associative binary operators, pushed on from outermost to innermost.</param>
         protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Pop();
-            EnterRegionIfNeeded(binary);
 
             // Only the leftmost operator of a left-associative binary operator chain can learn from a conditional access on the left
             // For simplicity, we just special case it here.
@@ -2619,7 +2620,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 binary = stack.Pop();
-                EnterRegionIfNeeded(binary);
             }
 
             static bool canLearnFromOperator(BoundBinaryOperator binary)
