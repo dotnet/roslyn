@@ -15,7 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-[Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+/// <summary>Denotes an interceptable call. Used by source generators to generate '[InterceptsLocation]' attributes.</summary>
+/// <seealso href="https://github.com/dotnet/roslyn/issues/72133" />
+/// <seealso href="https://github.com/dotnet/csharplang/issues/7009" />
 public abstract class InterceptableLocation
 {
     private protected InterceptableLocation() { }

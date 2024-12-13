@@ -1160,7 +1160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // https://github.com/dotnet/roslyn/issues/72265: Remove support for path-based interceptors prior to stable release.
         private void DecodeInterceptsLocationAttributeExperimentalCompat(
             DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             string? attributeFilePath,
@@ -1171,6 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeSyntax = arguments.AttributeSyntaxOpt;
             Debug.Assert(attributeSyntax is object);
             var attributeLocation = attributeSyntax.Location;
+            diagnostics.Add(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, attributeLocation);
+
             const int filePathParameterIndex = 0;
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;

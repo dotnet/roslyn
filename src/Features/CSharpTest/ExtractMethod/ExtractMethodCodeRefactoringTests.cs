@@ -21,7 +21,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<
     ExtractMethodCodeRefactoringProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private const string SystemThreadingTasks = "System.Threading.Tasks";
     private const string SystemThreadingTasksTask = $"{SystemThreadingTasks}.Task";

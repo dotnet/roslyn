@@ -10987,7 +10987,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
-    public async Task TestAsyncMethodWithWellKnownValueType()
+    public async Task TestAsyncMethodWithWellKnownValueType1()
     {
         await TestExtractMethodAsync(
             """
@@ -11036,6 +11036,67 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     {
                         Console.WriteLine();
                         cancellationToken.ThrowIfCancellationRequested();
+
+                        return 1;
+                    }, cancellationToken);
+                    return (i, cancellationToken);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
+    public async Task TestAsyncMethodWithWellKnownValueType2()
+    {
+        await TestExtractMethodAsync(
+            """
+            using System;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public async Task Hello()
+                {
+                    var cancellationToken = CancellationToken.None;
+
+                    [|var i = await Task.Run(() =>
+                    {
+                        Console.WriteLine();
+                        cancellationToken.ThrowIfCancellationRequested();
+                        cancellationToken = default;
+
+                        return 1;
+                    }, cancellationToken);|]
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                    Console.WriteLine(i);
+                }
+            }
+            """, """
+            using System;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public async Task Hello()
+                {
+                    var cancellationToken = CancellationToken.None;
+
+                    (int i, cancellationToken) = await NewMethod(cancellationToken);
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                    Console.WriteLine(i);
+                }
+
+                private static async Task<(int i, CancellationToken cancellationToken)> NewMethod(CancellationToken cancellationToken)
+                {
+                    var i = await Task.Run(() =>
+                    {
+                        Console.WriteLine();
+                        cancellationToken.ThrowIfCancellationRequested();
+                        cancellationToken = default;
 
                         return 1;
                     }, cancellationToken);
