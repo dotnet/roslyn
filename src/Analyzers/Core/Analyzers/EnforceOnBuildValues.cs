@@ -112,6 +112,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
+    public const EnforceOnBuild SimplifyLinqTypeCheckAndCast = /*IDE0121*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild UseNullCheckOverTypeCheck = /*IDE0150*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild UseTopLevelStatements = /*IDE0210*/ EnforceOnBuild.WhenExplicitlyEnabled;
     public const EnforceOnBuild UseProgramMain = /*IDE0211*/ EnforceOnBuild.WhenExplicitlyEnabled;

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -208,7 +209,7 @@ internal sealed partial class CSharpMethodExtractor
         private DeclarationModifiers CreateMethodModifiers()
         {
             var isUnsafe = this.SelectionResult.ShouldPutUnsafeModifier();
-            var isAsync = this.SelectionResult.ShouldPutAsyncModifier();
+            var isAsync = this.SelectionResult.CreateAsyncMethod();
             var isStatic = !AnalyzerResult.UseInstanceMember;
             var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
@@ -342,10 +343,9 @@ internal sealed partial class CSharpMethodExtractor
                 // When we modify the declaration to an initialization we have to preserve the leading trivia
                 var firstVariableToAttachTrivia = true;
 
-                var isUsingDeclarationAsReturnValue =
-                    this.AnalyzerResult.HasVariableToUseAsReturnValue &&
-                    this.AnalyzerResult.VariableToUseAsReturnValue.GetOriginalIdentifierToken(cancellationToken) != default &&
-                    this.AnalyzerResult.VariableToUseAsReturnValue.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
+                var isUsingDeclarationAsReturnValue = this.AnalyzerResult.VariablesToUseAsReturnValue is [var variable] &&
+                    variable.GetOriginalIdentifierToken(cancellationToken) != default &&
+                    variable.GetIdentifierTokenAtDeclaration(declarationStatement) != default;
 
                 // go through each var decls in decl statement, and create new assignment if
                 // variable is initialized at decl.
@@ -358,7 +358,8 @@ internal sealed partial class CSharpMethodExtractor
                             var identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
 
                             // move comments with the variable here
-                            expressionStatements.Add(CreateAssignmentExpressionStatement(identifier, variableDeclaration.Initializer.Value));
+                            expressionStatements.Add(ExpressionStatement(AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression, IdentifierName(identifier), variableDeclaration.Initializer.Value)));
                         }
                         else
                         {
@@ -526,14 +527,6 @@ internal sealed partial class CSharpMethodExtractor
             return declStatements.Concat(statements);
         }
 
-        private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
-        {
-            return AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                IdentifierName(identifier),
-                rvalue);
-        }
-
         protected override bool LastStatementOrHasReturnStatementInReturnableConstruct()
         {
             var lastStatement = GetLastStatementOrInitializerSelectedAtCallSite();
@@ -563,14 +556,12 @@ internal sealed partial class CSharpMethodExtractor
         }
 
         protected override SyntaxToken CreateIdentifier(string name)
-            => Identifier(name);
+            => name.ToIdentifierToken();
 
-        protected override StatementSyntax CreateReturnStatement(string identifierName = null)
-        {
-            return string.IsNullOrEmpty(identifierName)
-                ? ReturnStatement()
-                : ReturnStatement(IdentifierName(identifierName));
-        }
+        protected override StatementSyntax CreateReturnStatement(string[] identifierNames)
+            => identifierNames.Length == 0 ? ReturnStatement() :
+               identifierNames.Length == 1 ? ReturnStatement(IdentifierName(identifierNames[0])) :
+               ReturnStatement(TupleExpression([.. identifierNames.Select(n => Argument(n.ToIdentifierName()))]));
 
         protected override ExpressionSyntax CreateCallSignature()
         {
@@ -595,7 +586,7 @@ internal sealed partial class CSharpMethodExtractor
             }
 
             var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
-            if (this.SelectionResult.ShouldPutAsyncModifier())
+            if (this.SelectionResult.CreateAsyncMethod())
             {
                 if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
                 {
@@ -623,32 +614,84 @@ internal sealed partial class CSharpMethodExtractor
             return invocation;
         }
 
-        protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
-            => ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
+        protected override StatementSyntax CreateAssignmentExpressionStatement(
+            ImmutableArray<VariableInfo> variableInfos, ExpressionSyntax rvalue)
+        {
+            Contract.ThrowIfTrue(variableInfos.IsEmpty);
+            if (variableInfos is [var singleInfo])
+            {
+                return ExpressionStatement(AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    singleInfo.Name.ToIdentifierName(),
+                    rvalue));
+            }
+            else
+            {
+                var tupleExpression = TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]);
+                return ExpressionStatement(AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    tupleExpression,
+                    rvalue));
+            }
+        }
 
         protected override StatementSyntax CreateDeclarationStatement(
-            VariableInfo variable,
+            ImmutableArray<VariableInfo> variableInfos,
             ExpressionSyntax initialValue,
             CancellationToken cancellationToken)
         {
-            var type = variable.GetVariableType();
-            var typeNode = type.GenerateTypeSyntax();
+            Contract.ThrowIfTrue(variableInfos.Length == 0);
 
-            var originalIdentifierToken = variable.GetOriginalIdentifierToken(cancellationToken);
+            if (variableInfos is [var singleVariable])
+            {
+                var type = singleVariable.GetVariableType();
+                var typeNode = type.GenerateTypeSyntax();
 
-            // Hierarchy being checked for to see if a using keyword is needed is
-            // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
-            var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
-                ? UsingKeyword
-                : default;
+                var originalIdentifierToken = singleVariable.GetOriginalIdentifierToken(cancellationToken);
 
-            var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);
+                // Hierarchy being checked for to see if a using keyword is needed is
+                // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
+                var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
+                    ? UsingKeyword
+                    : default;
 
-            return LocalDeclarationStatement(
-                VariableDeclaration(typeNode)
-                      .AddVariables(VariableDeclarator(Identifier(variable.Name))
-                      .WithInitializer(equalsValueClause)))
-                .WithUsingKeyword(usingKeyword);
+                var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);
+
+                return LocalDeclarationStatement(
+                    VariableDeclaration(typeNode)
+                        .AddVariables(VariableDeclarator(singleVariable.Name.ToIdentifierToken())
+                        .WithInitializer(equalsValueClause)))
+                    .WithUsingKeyword(usingKeyword);
+            }
+            else
+            {
+                // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
+                // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
+                // producing new variables for all variable infos.  If we're producing new variables only for some
+                // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if the
+                // type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in, we'll
+                // use "use var elsewhere" to determine what to do.
+                var varForBuiltInTypes = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarForBuiltInTypes.Value;
+                var varElsewhere = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
+
+                ExpressionSyntax left;
+                if (variableInfos.All(i => i.ReturnBehavior == ReturnBehavior.Initialization) && varElsewhere)
+                {
+                    left = DeclarationExpression(
+                        type: IdentifierName("var"),
+                        ParenthesizedVariableDesignation(
+                            [.. variableInfos.Select(v => SingleVariableDesignation(v.Name.ToIdentifierToken()))]));
+                }
+                else
+                {
+                    left = TupleExpression(
+                        [.. variableInfos.Select(v => Argument(v.ReturnBehavior == ReturnBehavior.Initialization
+                            ? DeclarationExpression(v.GetVariableType().GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
+                            : v.Name.ToIdentifierName()))]);
+                }
+
+                return ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initialValue));
+            }
         }
 
         protected override async Task<GeneratedCode> CreateGeneratedCodeAsync(

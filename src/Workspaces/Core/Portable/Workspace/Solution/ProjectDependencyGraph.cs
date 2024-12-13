@@ -543,9 +543,9 @@ public partial class ProjectDependencyGraph
         // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
         // If the information is not available, do not compute it.
         var forwardDependencies = TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-        if (forwardDependencies is object && forwardDependencies.Contains(potentialDependency))
+        if (forwardDependencies is object)
         {
-            return true;
+            return forwardDependencies.Contains(potentialDependency);
         }
 
         // Compute the set of all projects that depend on 'potentialDependency'. This information answers the same
