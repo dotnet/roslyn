@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 internal static partial class EditorConfigNamingStyleParser
 {
-    internal static bool TryGetRule(
+    internal static bool TryGetSerializableRule(
         string namingRuleTitle,
         SymbolSpecification symbolSpec,
         NamingStyle namingStyle,
@@ -37,6 +37,31 @@ internal static partial class EditorConfigNamingStyleParser
                 SymbolSpecificationID = symbolSpec.ID
             };
 
+            return true;
+        }
+
+        namingRule = null;
+        priority = 0;
+        return false;
+    }
+
+    internal static bool TryGetRule(
+        string namingRuleTitle,
+        SymbolSpecification symbolSpec,
+        NamingStyle namingStyle,
+        IReadOnlyDictionary<string, string> entries,
+        [NotNullWhen(true)] out NamingRule? namingRule,
+        out int priority)
+    {
+        if (TryGetRuleProperties(
+            namingRuleTitle,
+            entries,
+            out var severity,
+            out var priorityComponent) &&
+            severity.Value.HasValue)
+        {
+            priority = priorityComponent.Value;
+            namingRule = new NamingRule(symbolSpec, namingStyle, severity.Value.Value);
             return true;
         }
 

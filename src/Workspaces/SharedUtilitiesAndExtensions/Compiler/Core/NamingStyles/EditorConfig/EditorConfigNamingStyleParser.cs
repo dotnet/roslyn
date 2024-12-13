@@ -18,32 +18,17 @@ internal static partial class EditorConfigNamingStyleParser
     {
         var trimmedDictionary = TrimDictionary(allRawConventions);
 
-        var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
-        var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
-        var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
-        var ruleNamesAndPriorities = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel), (string title, int priority)>();
+        var _ = ArrayBuilder<(NamingRule rule, int priority, string title)>.GetInstance(out var namingRules);
 
         foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
         {
             if (TryGetSymbolSpecification(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
                 TryGetNamingStyle(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
-                TryGetRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule, out var priority))
+                TryGetRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var rule, out var priority))
             {
-                symbolSpecifications.Add(symbolSpec);
-                namingStyles.Add(namingStyle);
-                namingRules.Add(serializableNamingRule);
-
-                // the key comprises of newly generated guids and is thus unique:
-                ruleNamesAndPriorities.Add(
-                    (serializableNamingRule.SymbolSpecificationID, serializableNamingRule.NamingStyleID, serializableNamingRule.EnforcementLevel),
-                    (namingRuleTitle, priority));
+                namingRules.Add((rule.Value, priority, namingRuleTitle));
             }
         }
-
-        var preferences = new NamingStylePreferences(
-            symbolSpecifications.ToImmutableAndFree(),
-            namingStyles.ToImmutableAndFree(),
-            namingRules.ToImmutableAndFree());
 
         // Deterministically order the naming style rules.
         // 
@@ -66,24 +51,34 @@ internal static partial class EditorConfigNamingStyleParser
         // the closest deterministic match for the files without having any reliance on order. For any pair of rules
         // which a user has trouble ordering, the intersection of the two rules can be broken out into a new rule
         // will always match earlier than the broader rules it was derived from.
-        var orderedRules = preferences.Rules.NamingRules
-            .OrderBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].priority)
-            .ThenBy(rule => rule, NamingRuleModifierListComparer.Instance)
-            .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
-            .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
-            .ThenBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].title, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(rule => ruleNamesAndPriorities[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)].title, StringComparer.Ordinal);
+        var orderedRules = namingRules
+            .OrderBy(item => item.priority)
+            .ThenBy(item => item.rule, NamingRuleModifierListComparer.Instance)
+            .ThenBy(item => item.rule, NamingRuleAccessibilityListComparer.Instance)
+            .ThenBy(item => item.rule, NamingRuleSymbolListComparer.Instance)
+            .ThenBy(item => item.title, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.title, StringComparer.Ordinal);
+
+        using var _1 = ArrayBuilder<SymbolSpecification>.GetInstance(out var symbolSpecifications);
+        using var _2 = ArrayBuilder<NamingStyle>.GetInstance(out var namingStyles);
+        using var _3 = ArrayBuilder<SerializableNamingRule>.GetInstance(out var serializableRules);
+
+        foreach (var (rule, _, _) in orderedRules)
+        {
+            symbolSpecifications.Add(rule.SymbolSpecification);
+            namingStyles.Add(rule.NamingStyle);
+            serializableRules.Add(new SerializableNamingRule
+            {
+                SymbolSpecificationID = rule.SymbolSpecification.ID,
+                NamingStyleID = rule.NamingStyle.ID,
+                EnforcementLevel = rule.EnforcementLevel,
+            });
+        }
 
         return new NamingStylePreferences(
-            preferences.SymbolSpecifications,
-            preferences.NamingStyles,
-            orderedRules.SelectAsArray(
-                rule => new SerializableNamingRule
-                {
-                    SymbolSpecificationID = rule.SymbolSpecification.ID,
-                    NamingStyleID = rule.NamingStyle.ID,
-                    EnforcementLevel = rule.EnforcementLevel,
-                }));
+            symbolSpecifications.ToImmutable(),
+            namingStyles.ToImmutable(),
+            serializableRules.ToImmutable());
     }
 
     internal static Dictionary<string, string> TrimDictionary(AnalyzerConfigOptions allRawConventions)

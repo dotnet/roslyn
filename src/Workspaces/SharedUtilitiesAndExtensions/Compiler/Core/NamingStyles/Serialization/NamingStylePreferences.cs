@@ -281,40 +281,64 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     public readonly ImmutableArray<NamingStyle> NamingStyles;
 
     [DataMember(Order = 2)]
-    public readonly ImmutableArray<SerializableNamingRule> NamingRules;
+    public ImmutableArray<SerializableNamingRule> NamingRules
+    {
+        get
+        {
+            if (_lazySerializableRules.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _lazySerializableRules,
+                    Rules.NamingRules.SelectAsArray(static rule => new SerializableNamingRule
+                    {
+                        SymbolSpecificationID = rule.SymbolSpecification.ID,
+                        NamingStyleID = rule.NamingStyle.ID,
+                        EnforcementLevel = rule.EnforcementLevel,
+                    }));
+            }
 
-    private readonly Lazy<NamingStyleRules> _lazyRules;
+            return _lazySerializableRules;
+        }
+    }
+
+    private ImmutableArray<SerializableNamingRule> _lazySerializableRules;
+
+    public readonly NamingStyleRules Rules;
+
+    // used for deserialization
+    public NamingStylePreferences(
+        ImmutableArray<SymbolSpecification> symbolSpecifications,
+        ImmutableArray<NamingStyle> namingStyles,
+        ImmutableArray<SerializableNamingRule> serializableRules)
+    {
+        SymbolSpecifications = symbolSpecifications;
+        NamingStyles = namingStyles;
+        _lazySerializableRules = serializableRules;
+
+        Rules = new NamingStyleRules(
+            serializableRules.SelectAsArray(static (rule, arg) => new NamingRule(
+                arg.symbolSpecifications.Single(static (s, id) => s.ID == id, rule.SymbolSpecificationID),
+                arg.namingStyles.Single(static (s, id) => s.ID == id, rule.NamingStyleID),
+                rule.EnforcementLevel), (symbolSpecifications, namingStyles)));
+    }
 
     public NamingStylePreferences(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> namingRules)
+        ImmutableArray<NamingRule> namingRules)
     {
         SymbolSpecifications = symbolSpecifications;
         NamingStyles = namingStyles;
-        NamingRules = namingRules;
-
-        _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
+        Rules = new NamingStyleRules(namingRules);
     }
 
     public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-    public static NamingStylePreferences Empty { get; } = new([], [], []);
+    public static NamingStylePreferences Empty { get; } = new([], [], ImmutableArray<NamingRule>.Empty);
 
     public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
     public bool IsEmpty
         => SymbolSpecifications.IsEmpty && NamingStyles.IsEmpty && NamingRules.IsEmpty;
-
-    internal NamingStyle GetNamingStyle(Guid namingStyleID)
-        => NamingStyles.Single(s => s.ID == namingStyleID);
-
-    internal SymbolSpecification GetSymbolSpecification(Guid symbolSpecificationID)
-        => SymbolSpecifications.Single(s => s.ID == symbolSpecificationID);
-
-    public NamingStyleRules Rules => _lazyRules.Value;
-
-    public NamingStyleRules CreateRules()
-        => new([.. NamingRules.Select(r => r.GetRule(this))]);
 
     internal XElement CreateXElement()
     {
