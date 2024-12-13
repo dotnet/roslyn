@@ -126,6 +126,11 @@ public sealed class ExtractMethodMiscellaneousTests
             }
             """;
 
+        await TestCommandHandler(markupCode, result: null, expectNotification: true);
+    }
+
+    private static async Task TestCommandHandler(string markupCode, string? result, bool expectNotification)
+    {
         using var workspace = EditorTestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeaturesWpf);
         var testDocument = workspace.Documents.Single();
 
@@ -133,9 +138,11 @@ public sealed class ExtractMethodMiscellaneousTests
         view.Selection.Select(new SnapshotSpan(
             view.TextBuffer.CurrentSnapshot, testDocument.SelectedSpans[0].Start, testDocument.SelectedSpans[0].Length), isReversed: false);
 
+        result ??= view.TextBuffer.CurrentSnapshot.GetText();
+
         var callBackService = (INotificationServiceCallback)workspace.Services.GetRequiredService<INotificationService>();
-        var called = false;
-        callBackService.NotificationCallback = (_, _, _) => called = true;
+        var gotNotification = false;
+        callBackService.NotificationCallback = (_, _, _) => gotNotification = true;
 
         var handler = workspace.ExportProvider.GetCommandHandler<ExtractMethodCommandHandler>(PredefinedCommandHandlerNames.ExtractMethod, ContentTypeNames.CSharpContentType);
 
@@ -144,6 +151,24 @@ public sealed class ExtractMethodMiscellaneousTests
         var waiter = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.ExtractMethod);
         await waiter.ExpeditedWaitAsync();
 
-        Assert.True(called);
+        Assert.Equal(expectNotification, gotNotification);
+        Assert.Equal(result, view.TextBuffer.CurrentSnapshot.GetText());
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/65465")]
+    public async Task TestExtractLocalFunctionInTopLevelFromCommandHandler()
+    {
+        var markupCode = """
+            System.Console.WriteLine([|"string"|]);
+            """;
+
+        await TestCommandHandler(markupCode, """
+            System.Console.WriteLine(NewMethod());
+            
+            static string NewMethod()
+            {
+                return "string";
+            }
+            """, expectNotification: false);
     }
 }

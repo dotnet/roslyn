@@ -88,20 +88,17 @@ internal sealed partial class CSharpSelectionValidator(
         if (selectionInfo.Status.Failed)
             return selectionInfo;
 
-        if (selectionInfo.CommonRootFromOriginalSpan.IsKind(SyntaxKind.CompilationUnit)
-            || selectionInfo.CommonRootFromOriginalSpan.IsParentKind(SyntaxKind.GlobalStatement))
+        // If we're under a global statement (and not inside an inner lambda/local-function) then there are restrictions
+        // on if we can extract a method vs a local function.
+        if (IsCodeInGlobalLevel())
         {
-            // Cannot extract a local function from a global statement in script code
-            if (localFunction && options is { Kind: SourceCodeKind.Script })
-            {
-                return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_global_statements));
-            }
-
             // Cannot extract a method from a top-level statement in normal code
             if (!localFunction && options is { Kind: SourceCodeKind.Regular })
-            {
                 return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_top_level_statements));
-            }
+
+            // Cannot extract a local function from a global statement in script code
+            if (localFunction && options is { Kind: SourceCodeKind.Script })
+                return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_global_statements));
         }
 
         if (_localFunction)
@@ -109,21 +106,15 @@ internal sealed partial class CSharpSelectionValidator(
             foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
             {
                 if (ancestor.Kind() is SyntaxKind.BaseConstructorInitializer or SyntaxKind.ThisConstructorInitializer)
-                {
                     return selectionInfo.WithStatus(s => s.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
-                }
 
                 if (ancestor is AnonymousFunctionExpressionSyntax)
-                {
                     break;
-                }
             }
         }
 
         if (!selectionInfo.SelectionInExpression)
-        {
             return selectionInfo;
-        }
 
         var expressionNode = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
         if (expressionNode is not AssignmentExpressionSyntax assign)
@@ -131,13 +122,28 @@ internal sealed partial class CSharpSelectionValidator(
 
         // make sure there is a visible token at right side expression
         if (assign.Right.GetLastToken().Kind() == SyntaxKind.None)
-        {
             return selectionInfo;
-        }
 
-        return AssignFinalSpan(selectionInfo.With(s => s.FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true))
-                                            .With(s => s.LastTokenInFinalSpan = assign.Right.GetLastToken(includeZeroWidth: true)),
-                               text);
+        return AssignFinalSpan(selectionInfo
+            .With(s => s.FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true))
+            .With(s => s.LastTokenInFinalSpan = assign.Right.GetLastToken(includeZeroWidth: true)), text);
+
+        bool IsCodeInGlobalLevel()
+        {
+            for (var current = selectionInfo.CommonRootFromOriginalSpan; current != null; current = current.Parent)
+            {
+                if (current is CompilationUnitSyntax)
+                    return true;
+
+                if (current is GlobalStatementSyntax)
+                    return true;
+
+                if (current is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax or MemberDeclarationSyntax)
+                    return false;
+            }
+
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 
     private static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)

@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     isShared = True
                 End If
 
-                Dim isAsync = Me.SelectionResult.ShouldPutAsyncModifier()
+                Dim isAsync = Me.SelectionResult.CreateAsyncMethod()
 
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
@@ -303,15 +303,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function CreateIdentifier(name As String) As SyntaxToken
-                Return SyntaxFactory.Identifier(name)
+                Return name.ToIdentifierToken()
             End Function
 
-            Protected Overrides Function CreateReturnStatement(Optional identifierName As String = Nothing) As StatementSyntax
-                If String.IsNullOrEmpty(identifierName) Then
+            Protected Overrides Function CreateReturnStatement(ParamArray identifierNames As String()) As StatementSyntax
+                Contract.ThrowIfTrue(identifierNames.Length > 1)
+
+                If identifierNames.Length = 0 Then
                     Return SyntaxFactory.ReturnStatement()
                 End If
 
-                Return SyntaxFactory.ReturnStatement(expression:=SyntaxFactory.IdentifierName(identifierName))
+                Return SyntaxFactory.ReturnStatement(identifierNames(0).ToIdentifierName())
             End Function
 
             Protected Overrides Function LastStatementOrHasReturnStatementInReturnableConstruct() As Boolean
@@ -352,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim invocation = SyntaxFactory.InvocationExpression(
                     methodExpression, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
 
-                If Me.SelectionResult.ShouldPutAsyncModifier() Then
+                If Me.SelectionResult.CreateAsyncMethod() Then
                     If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
                         If AnalyzerResult.ReturnType.GetMembers().Any(
                         Function(x)
@@ -402,19 +404,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.IdentifierName(name)
             End Function
 
-            Protected Overrides Function CreateAssignmentExpressionStatement(identifier As SyntaxToken, rvalue As ExpressionSyntax) As StatementSyntax
+            Protected Overrides Function CreateAssignmentExpressionStatement(
+                    variables As ImmutableArray(Of VariableInfo),
+                    rvalue As ExpressionSyntax) As StatementSyntax
+                Contract.ThrowIfTrue(variables.Length <> 1)
+                Dim identifier = variables(0).Name.ToIdentifierToken()
                 Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)
             End Function
 
             Protected Overrides Function CreateDeclarationStatement(
-                    variable As VariableInfo,
-                    givenInitializer As ExpressionSyntax,
+                    variables As ImmutableArray(Of VariableInfo),
+                    initialValue As ExpressionSyntax,
                     cancellationToken As CancellationToken) As StatementSyntax
+                Contract.ThrowIfTrue(variables.Length <> 1)
 
+                Dim variable = variables(0)
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)
 
-                Dim initializer = If(givenInitializer, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
+                Dim initializer = If(initialValue, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
 
                 Dim variableType = variable.GetVariableType()
                 Dim typeNode = variableType.GenerateTypeSyntax()

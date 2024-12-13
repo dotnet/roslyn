@@ -28,6 +28,8 @@ internal abstract class SelectionResult<TStatementSyntax>(
     bool selectionChanged)
     where TStatementSyntax : SyntaxNode
 {
+    private bool? _createAsyncMethod;
+
     public TextSpan OriginalSpan { get; } = originalSpan;
     public TextSpan FinalSpan { get; } = finalSpan;
     public bool SelectionInExpression { get; } = selectionInExpression;
@@ -122,30 +124,36 @@ internal abstract class SelectionResult<TStatementSyntax>(
         return token.GetAncestor<TStatementSyntax>();
     }
 
-    public bool ShouldPutAsyncModifier()
+    public bool CreateAsyncMethod()
     {
-        var firstToken = GetFirstTokenInSelection();
-        var lastToken = GetLastTokenInSelection();
-        var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+        _createAsyncMethod ??= CreateAsyncMethodWorker();
+        return _createAsyncMethod.Value;
 
-        for (var currentToken = firstToken;
-            currentToken.Span.End < lastToken.SpanStart;
-            currentToken = currentToken.GetNextToken())
+        bool CreateAsyncMethodWorker()
         {
-            // [|
-            //     async () => await ....
-            // |]
-            //
-            // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
-            // which extract method is applied to
-            if (syntaxFacts.IsAwaitKeyword(currentToken)
-                && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
-            {
-                return true;
-            }
-        }
+            var firstToken = GetFirstTokenInSelection();
+            var lastToken = GetLastTokenInSelection();
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
 
-        return false;
+            for (var currentToken = firstToken;
+                currentToken.Span.End < lastToken.SpanStart;
+                currentToken = currentToken.GetNextToken())
+            {
+                // [|
+                //     async () => await ....
+                // |]
+                //
+                // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
+                // which extract method is applied to
+                if (syntaxFacts.IsAwaitKeyword(currentToken)
+                    && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public bool ShouldCallConfigureAwaitFalse()
