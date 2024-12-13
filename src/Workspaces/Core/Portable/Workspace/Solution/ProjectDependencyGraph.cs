@@ -228,7 +228,8 @@ public partial class ProjectDependencyGraph
             }
         }
 
-        using var _2 = PooledDictionary<ProjectId, ImmutableHashSet<ProjectId>>.GetInstance(out var reverseReferencesMap);
+        // Convert all the populated ImmutableHashSet.Builder objects to ImmutableHashSets
+        var reverseReferencesBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableHashSet<ProjectId>>();
         foreach (var (projectId, builder) in reverseReferencesMapBuilders)
         {
             // Realize an ImmutableHashSet from the builder
@@ -238,10 +239,10 @@ public partial class ProjectDependencyGraph
             builder.Clear();
             s_reverseReferencesBuilderPool.Free(builder);
 
-            reverseReferencesMap.Add(projectId, reverseReferencesForProject);
+            reverseReferencesBuilder.Add(projectId, reverseReferencesForProject);
         }
 
-        return reverseReferencesMap.ToImmutableDictionary();
+        return reverseReferencesBuilder.ToImmutable();
     }
 
     /// <summary>
