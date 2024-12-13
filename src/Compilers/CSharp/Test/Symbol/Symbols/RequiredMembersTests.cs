@@ -6276,6 +6276,212 @@ public class Derived : Base
         );
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_13()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                public required virtual string Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str)
+                {
+                }
+
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (12,12): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived(string str)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Str").WithLocation(12, 12),
+            // (12,12): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived(string str)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Str").WithLocation(12, 12)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_14()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                public virtual string Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str)
+                {
+                }
+
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (6,27): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public virtual string Str { get; set; }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Str").WithArguments("property", "Str").WithLocation(6, 27),
+            // (12,12): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived(string str)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Str").WithLocation(12, 12)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_15()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                public abstract string Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str)
+                {
+                }
+
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (12,12): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived(string str)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Str").WithLocation(12, 12)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_16()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                [SetsRequiredMembers]
+                public Base(string str)
+                {
+                }
+
+                public virtual string Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str) : base(str)
+                {
+                }
+
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (7,12): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Base(string str)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Str").WithLocation(7, 12),
+            // (17,12): warning CS8618: Non-nullable property 'Str' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public Derived(string str) : base(str)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Str").WithLocation(17, 12)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_17()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                [SetsRequiredMembers]
+                public Base(string str)
+                {
+                }
+
+                public abstract string Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str) : base(str)
+                {
+                }
+
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_18()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                [SetsRequiredMembers]
+                public Base(string str)
+                {
+                    this.Str = str;
+                }
+    
+                public required abstract string? Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str) : base(str)
+                {
+                }
+
+                [AllowNull]
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers([code, AllowNullAttributeDefinition]);
+        comp.VerifyDiagnostics(
+        );
+    }
+
     [Fact]
     public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType()
     {
