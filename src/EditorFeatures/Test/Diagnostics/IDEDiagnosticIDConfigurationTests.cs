@@ -403,6 +403,9 @@ Actual: {editorConfigString}
 
             # IDE0120
             dotnet_diagnostic.IDE0120.severity = %value%
+            
+            # IDE0121
+            dotnet_diagnostic.IDE0121.severity = %value%
 
             # IDE0130
             dotnet_diagnostic.IDE0130.severity = %value%
@@ -879,6 +882,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0100", null, null),
             ("IDE0110", null, null),
             ("IDE0120", null, null),
+            ("IDE0121", null, null),
             ("IDE0130", "dotnet_style_namespace_match_folder", "true"),
             ("IDE0150", "csharp_style_prefer_null_check_over_type_check", "true"),
             ("IDE0160", "csharp_style_namespace_declarations", "block_scoped"),
