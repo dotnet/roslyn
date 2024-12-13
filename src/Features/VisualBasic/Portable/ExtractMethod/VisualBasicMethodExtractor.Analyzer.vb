@@ -31,14 +31,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function CreateFromSymbol(
-                compilation As Compilation, symbol As ISymbol,
-                type As ITypeSymbol, style As VariableStyle, requiresDeclarationExpressionRewrite As Boolean) As VariableInfo
+                    symbol As ISymbol,
+                    type As ITypeSymbol,
+                    style As VariableStyle,
+                    requiresDeclarationExpressionRewrite As Boolean) As VariableInfo
                 If symbol.IsFunctionValue() AndAlso style.ParameterStyle.DeclarationBehavior <> DeclarationBehavior.None Then
                     Contract.ThrowIfFalse(style.ParameterStyle.DeclarationBehavior = DeclarationBehavior.MoveIn OrElse style.ParameterStyle.DeclarationBehavior = DeclarationBehavior.SplitIn)
                     style = AlwaysReturn(style)
                 End If
 
-                Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(compilation, symbol, type, style, s_nonNoisySyntaxKindSet)
+                Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(symbol, type, style, s_nonNoisySyntaxKindSet)
             End Function
 
             Protected Overrides Function GetRangeVariableType(semanticModel As SemanticModel, symbol As IRangeVariableSymbol) As ITypeSymbol
