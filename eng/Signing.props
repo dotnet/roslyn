@@ -63,7 +63,7 @@
   </ItemGroup>
 
   <!--
-    We do not intend to ship the artifacts produced for PR validation buildm so we can skip signing the artifacts.
+    We do not intend to ship the artifacts produced for PR validation build so we can skip signing the artifacts.
    -->
   <Choose>
     <When Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == ''">
