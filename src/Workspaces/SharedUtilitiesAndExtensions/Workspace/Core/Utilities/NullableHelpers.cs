@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -38,7 +39,7 @@ internal static class NullableHelpers
         }
 
         return IsSymbolAssignedPossiblyNullValue(
-            semanticFacts, semanticModel, rootOperation, declaredSymbol) == true;
+            semanticFacts, semanticModel, rootOperation, declaredSymbol, rootOperation.Syntax.Span) == true;
     }
 
     /// <summary>
@@ -49,11 +50,22 @@ internal static class NullableHelpers
     public static bool? IsSymbolAssignedPossiblyNullValue(
         ISemanticFacts semanticFacts,
         SemanticModel semanticModel,
-        IOperation operation,
-        ISymbol symbol)
+        IOperation rootOperation,
+        ISymbol symbol,
+        TextSpan span)
     {
-        var references = operation.DescendantsAndSelf()
-            .Where(o => IsSymbolReferencedByOperation(o, symbol));
+        var references = rootOperation
+            .DescendantsAndSelf()
+            .Where(o =>
+            {
+                if (o.Syntax.Span.End <= span.Start ||
+                    o.Syntax.Span.Start >= span.End)
+                {
+                    return false;
+                }
+
+                return IsSymbolReferencedByOperation(o, symbol);
+            });
 
         var hasReference = false;
 

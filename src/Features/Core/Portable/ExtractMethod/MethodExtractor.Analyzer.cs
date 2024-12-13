@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -609,59 +611,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     continue;
                 }
 
-                type = FixNullability(symbol, type, variableStyle);
-
                 AddVariableToMap(
                     variableInfoMap,
                     symbol,
                     CreateFromSymbol(symbol, type, variableStyle, variableDeclared));
-            }
-
-            ITypeSymbol FixNullability(ISymbol symbol, ITypeSymbol type, VariableStyle style)
-            {
-                if (//style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
-                    type.NullableAnnotation is NullableAnnotation.Annotated &&
-                    !IsMaybeNullWithinSelection(symbol))
-                {
-                    // We're going to pass this nullable variable in as a parameter to the new method we're creating. If the
-                    // variable is actually never null within the section we're extracting, then change its return type to
-                    // be non-nullable so that any usage of it within the new method will not warn.
-                    return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                }
-
-                return type;
-            }
-
-            bool IsMaybeNullWithinSelection(ISymbol symbol)
-            {
-                if (!symbolMap.TryGetValue(symbol, out var tokens))
-                    return true;
-
-                var syntaxFacts = this.SyntaxFacts;
-                foreach (var token in tokens)
-                {
-                    if (token.Parent is not TExpressionSyntax expression)
-                        continue;
-
-                    // a = b;
-                    //
-                    // Need to ask what the nullability of 'b' is since 'a' may be currently non-null but may be
-                    // assigned a null value.
-                    if (syntaxFacts.IsLeftSideOfAssignment(expression))
-                    {
-                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(expression.GetRequiredParent(), out _, out _, out var right);
-                        expression = (TExpressionSyntax)right;
-                    }
-
-                    var typeInfo = model.GetTypeInfo(expression, this.CancellationToken);
-                    if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
-                        typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
         }
 
@@ -782,7 +735,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
             if (selectionOperation is not null &&
-                NullableHelpers.IsSymbolAssignedPossiblyNullValue(this.SemanticFacts, semanticModel, selectionOperation, symbol) == false)
+                NullableHelpers.IsSymbolAssignedPossiblyNullValue(
+                    this.SemanticFacts, semanticModel, selectionOperation, symbol, SelectionResult.FinalSpan) == false)
             {
                 return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
             }
