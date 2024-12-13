@@ -57,7 +57,7 @@ public partial class ProjectDependencyGraph
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
     // Pool of ImmutableHashSet builders used in ComputeReverseReferencesMap to avoid temporary HashSet allocations.
-    private static readonly ObjectPool<ImmutableHashSet<ProjectId>.Builder> s_reverseReferencesBuilderPool = new(static () => ImmutableHashSet.CreateBuilder<ProjectId>(), size: 128);
+    private static readonly ObjectPool<ImmutableHashSet<ProjectId>.Builder> s_reverseReferencesBuilderPool = new(static () => ImmutableHashSet.CreateBuilder<ProjectId>(), size: 256);
 
     /// <remarks>
     ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
@@ -213,37 +213,35 @@ public partial class ProjectDependencyGraph
 
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()
     {
-        using var _ = PooledDictionary<ProjectId, ImmutableHashSet<ProjectId>.Builder>.GetInstance(out var reverseReferencesMap);
-
+        using var _1 = PooledDictionary<ProjectId, ImmutableHashSet<ProjectId>.Builder>.GetInstance(out var reverseReferencesMapBuilders);
         foreach (var (projectId, references) in _referencesMap)
         {
             foreach (var referencedId in references)
             {
-                if (!reverseReferencesMap.TryGetValue(referencedId, out var builder))
+                if (!reverseReferencesMapBuilders.TryGetValue(referencedId, out var builder))
                 {
                     builder = s_reverseReferencesBuilderPool.Allocate();
-                    reverseReferencesMap.Add(referencedId, builder);
+                    reverseReferencesMapBuilders.Add(referencedId, builder);
                 }
 
                 builder.Add(projectId);
             }
         }
 
-        return reverseReferencesMap
-            .Select(kvp =>
-            {
-                var builder = kvp.Value;
+        using var _2 = PooledDictionary<ProjectId, ImmutableHashSet<ProjectId>>.GetInstance(out var reverseReferencesMap);
+        foreach (var (projectId, builder) in reverseReferencesMapBuilders)
+        {
+            // Realize an ImmutableHashSet from the builder
+            var reverseReferencesForProject = builder.ToImmutableHashSet();
 
-                // Realize an ImmutableHashSet from the builder
-                var reverseReferencesForProject = builder.ToImmutableHashSet();
+            // Clear out the builder and release it back to the pool
+            builder.Clear();
+            s_reverseReferencesBuilderPool.Free(builder);
 
-                // Clear out the builder and release it back to the pool
-                builder.Clear();
-                s_reverseReferencesBuilderPool.Free(builder);
+            reverseReferencesMap.Add(projectId, reverseReferencesForProject);
+        }
 
-                return KeyValuePairUtil.Create(kvp.Key, reverseReferencesForProject);
-            })
-            .ToImmutableDictionary();
+        return reverseReferencesMap.ToImmutableDictionary();
     }
 
     /// <summary>
