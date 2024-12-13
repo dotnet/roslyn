@@ -85,7 +85,7 @@ internal static class SymbolCompletionItem
     {
         var symbol = symbols[0];
         var isGeneric = symbol.GetArity() > 0;
-        properties.Add(KeyValuePairUtil.Create("SymbolKind", ((int)symbol.Kind).ToString()));
+        properties.Add(KeyValuePairUtil.Create("SymbolKind", SmallNumberFormatter.ToString((int)symbol.Kind)));
         properties.Add(KeyValuePairUtil.Create("SymbolName", symbol.Name));
 
         if (isGeneric)
