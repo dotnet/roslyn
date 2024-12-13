@@ -229,7 +229,7 @@ static CliRootCommand CreateCommandLineParser()
 
     var serverPipeNameOption = new CliOption<string?>("--pipe")
     {
-        Description = "The name of the pipe used to connect to the server.",
+        Description = "The name of the pipe the server will connect to.",
         Required = false,
     };
 
