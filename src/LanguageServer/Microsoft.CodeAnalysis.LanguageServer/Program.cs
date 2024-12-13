@@ -125,16 +125,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
 
-    string clientPipeName;
-    string serverPipeName;
-    if (serverConfiguration.ServerPipeName is null)
-    {
-        (clientPipeName, serverPipeName) = CreateNewPipeNames();
-    }
-    else
-    {
-        (clientPipeName, serverPipeName) = (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
-    }
+    var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
+        ? CreateNewPipeNames()
+        : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
 
     var pipeServer = new NamedPipeServerStream(serverPipeName,
         PipeDirection.InOut,
