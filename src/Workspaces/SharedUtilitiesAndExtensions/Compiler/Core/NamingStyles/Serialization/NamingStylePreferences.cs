@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,7 +9,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -360,25 +357,25 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         element = GetUpgradedSerializationIfNecessary(element);
 
         return new NamingStylePreferences(
-            [.. element.Element("SymbolSpecifications").Elements(nameof(SymbolSpecification)).Select(SymbolSpecification.FromXElement)],
-            [.. element.Element("NamingStyles").Elements(nameof(NamingStyle)).Select(NamingStyle.FromXElement)],
-            [.. element.Element("NamingRules").Elements(nameof(SerializableNamingRule)).Select(SerializableNamingRule.FromXElement)]);
+            [.. element.Element("SymbolSpecifications")!.Elements(nameof(SymbolSpecification)).Select(SymbolSpecification.FromXElement)],
+            [.. element.Element("NamingStyles")!.Elements(nameof(NamingStyle)).Select(NamingStyle.FromXElement)],
+            [.. element.Element("NamingRules")!.Elements(nameof(SerializableNamingRule)).Select(SerializableNamingRule.FromXElement)]);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
         => Equals(obj as NamingStylePreferences);
 
-    public bool Equals(NamingStylePreferences other)
+    public bool Equals(NamingStylePreferences? other)
     {
         if (other is null)
             return false;
 
         return SymbolSpecifications.SequenceEqual(other.SymbolSpecifications)
             && NamingStyles.SequenceEqual(other.NamingStyles)
-            && SerializableNamingRules.SequenceEqual(other.SerializableNamingRules);
+            && Rules.NamingRules.SequenceEqual(other.Rules.NamingRules);
     }
 
-    public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
+    public static bool operator ==(NamingStylePreferences? left, NamingStylePreferences? right)
     {
         if (left is null && right is null)
         {
@@ -399,12 +396,12 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     {
         return Hash.Combine(Hash.CombineValues(SymbolSpecifications),
             Hash.Combine(Hash.CombineValues(NamingStyles),
-                Hash.CombineValues(SerializableNamingRules)));
+                Hash.CombineValues(Rules.NamingRules)));
     }
 
     private static XElement GetUpgradedSerializationIfNecessary(XElement rootElement)
     {
-        var serializationVersion = int.Parse(rootElement.Attribute("SerializationVersion").Value);
+        var serializationVersion = int.Parse(rootElement.Attribute("SerializationVersion")!.Value);
 
         if (serializationVersion == 4)
         {

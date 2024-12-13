@@ -29,14 +29,14 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
     public static void AppendNamingStylePreferencesToEditorConfig(
         ImmutableArray<SymbolSpecification> symbolSpecifications,
         ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<NamingRule> namingRUles,
+        ImmutableArray<NamingRule> namingRules,
         string language,
         StringBuilder builder)
     {
         WriteNamingStylePreferencesToEditorConfig(
             symbolSpecifications,
             namingStyles,
-            namingRUles,
+            namingRules,
             language,
             entryWriter: (name, value) => builder.AppendLine($"{name} = {value}"),
             triviaWriter: trivia => builder.AppendLine(trivia),
