@@ -6311,6 +6311,35 @@ public class Derived : Base
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
+    public void SetsRequiredMembersHonoredForPropertyOverride_13A()
+    {
+        var code = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            public abstract class Base
+            {
+                public required virtual string Str { get; set; }
+            }
+
+            public class Derived : Base
+            {
+                [SetsRequiredMembers]
+                public Derived(string str)
+                {
+                    Str = str;
+                    base.Str = str;
+                }
+
+                public override required string Str { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74423")]
     public void SetsRequiredMembersHonoredForPropertyOverride_14()
     {
         var code = """
