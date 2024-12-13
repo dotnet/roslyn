@@ -14147,5 +14147,36 @@ class B
             Assert.Null(GetSymbolNamesJoined(flowAnalysis.ReadInside));
             Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
         }
+
+        [Fact]
+        public void Repro_38087()
+        {
+            var comp = CreateCompilation("""
+                class Program
+                {
+                    private static void Repro()
+                    {
+                        int i = 1, j = 2;
+                        int k = i + j + 1;
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var intK = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToArray()[1];
+            Assert.Equal("int k = i + j + 1;", intK.ToString());
+            var flowAnalysis1 = model.AnalyzeDataFlow(intK);
+            Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis1.ReadInside));
+
+            var add = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray()[1];
+            Assert.Equal("i + j", add.ToString());
+            var flowAnalysis = model.AnalyzeDataFlow(add);
+            Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+        }
+
+        // TODO2: testing
     }
 }

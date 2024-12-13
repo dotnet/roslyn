@@ -2553,6 +2553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Pop();
+            EnterRegionIfNeeded(binary);
 
             // Only the leftmost operator of a left-associative binary operator chain can learn from a conditional access on the left
             // For simplicity, we just special case it here.
@@ -2592,6 +2593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetConditionalState(isNullConstant == isEquals(binary)
                     ? (State, stateWhenNotNull)
                     : (stateWhenNotNull, State));
+                LeaveRegionIfNeeded(binary);
 
                 if (stack.Count == 0)
                 {
@@ -2609,6 +2611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Unsplit();
                     VisitRvalue(binary.Right);
                 }
+                LeaveRegionIfNeeded(binary);
 
                 if (stack.Count == 0)
                 {
@@ -2616,6 +2619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 binary = stack.Pop();
+                EnterRegionIfNeeded(binary);
             }
 
             static bool canLearnFromOperator(BoundBinaryOperator binary)
