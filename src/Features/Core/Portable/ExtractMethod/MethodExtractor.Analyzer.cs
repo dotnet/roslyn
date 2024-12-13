@@ -734,9 +734,18 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return type;
 
             var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
+
+            // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
+            // have been referenced in.
+            var span = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, SelectionResult.GetContainingScope().Span.End);
+
+            // For Extract-Method we don't care about analyzing the declaration of this variable. For example, even if
+            // it was initially assigned 'null' for the purposes of determining the type of it for a return value, all
+            // we care is if it is null at the end of the selection.  If it is only assigned non-null values, for
+            // example, we want to treat it as non-null.
             if (selectionOperation is not null &&
                 NullableHelpers.IsSymbolAssignedPossiblyNullValue(
-                    this.SemanticFacts, semanticModel, selectionOperation, symbol, SelectionResult.FinalSpan, this.CancellationToken) == false)
+                    this.SemanticFacts, semanticModel, selectionOperation, symbol, span, includeDeclaration: false, this.CancellationToken) == false)
             {
                 return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
             }
