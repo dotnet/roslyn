@@ -729,17 +729,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             Dictionary<ISymbol, List<SyntaxToken>> symbolMap, SemanticModel model, ISymbol symbol, bool writtenInside)
         {
             if (!symbolMap.TryGetValue(symbol, out var tokens))
-            {
                 return writtenInside;
-            }
 
-            // this relies on the fact that our IsWrittenTo only cares about syntax to figure out whether
-            // something is written to or not. but not semantic. 
-            // we probably need to move the API to syntaxFact service not semanticFact.
-            //
-            // if one wants to get result that also considers semantic, he should use data control flow analysis API.
             var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
-            return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
+            return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, this.CancellationToken));
         }
 
         private bool SelectionContainsOnlyIdentifierWithSameType(ITypeSymbol type)
