@@ -619,7 +619,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             ITypeSymbol FixNullability(ISymbol symbol, ITypeSymbol type, VariableStyle style)
             {
-                if (style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
+                if (//style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
                     type.NullableAnnotation is NullableAnnotation.Annotated &&
                     !IsMaybeNullWithinSelection(symbol))
                 {
