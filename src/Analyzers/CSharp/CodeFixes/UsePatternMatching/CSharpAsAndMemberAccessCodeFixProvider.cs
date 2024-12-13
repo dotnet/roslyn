@@ -120,7 +120,7 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
             // if we had `.X.Y is some_pattern` we can just convert that to `X.Y: some_pattern`
             if (isPatternExpression != null)
             {
-                // If this is a `not { ..  var name ... }` pattern, then we need to life the 'not' outwards to ensure
+                // If this is a `not { ..  var name ... }` pattern, then we need to lift the 'not' outwards to ensure
                 // that 'var name' is still in scope when the pattern is checked. The lang only allows this for
                 // top-level 'not' pattern, not for an inner 'not' pattern.
                 if (isPatternExpression.Pattern is UnaryPatternSyntax(kind: SyntaxKind.NotPattern) unaryPattern &&
