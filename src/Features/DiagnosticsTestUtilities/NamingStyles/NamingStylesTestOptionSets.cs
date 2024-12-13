@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, new NamingStylePreferences(
                 firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
                 firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
-                firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)) } };
+                firstPreferences.SerializableNamingRules.AddRange(secondPreferences.SerializableNamingRules)) } };
         }
 
         internal OptionsCollection ClassNamesArePascalCase

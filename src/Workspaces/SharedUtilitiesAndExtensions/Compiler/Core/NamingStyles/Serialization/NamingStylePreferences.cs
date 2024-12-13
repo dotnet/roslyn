@@ -281,7 +281,7 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     public readonly ImmutableArray<NamingStyle> NamingStyles;
 
     [DataMember(Order = 2)]
-    public ImmutableArray<SerializableNamingRule> NamingRules
+    public ImmutableArray<SerializableNamingRule> SerializableNamingRules
     {
         get
         {
@@ -311,6 +311,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         ImmutableArray<NamingStyle> namingStyles,
         ImmutableArray<SerializableNamingRule> serializableRules)
     {
+        Contract.ThrowIfFalse(serializableRules.IsEmpty == namingStyles.IsEmpty);
+        Contract.ThrowIfFalse(serializableRules.IsEmpty == symbolSpecifications.IsEmpty);
+
         SymbolSpecifications = symbolSpecifications;
         NamingStyles = namingStyles;
         _lazySerializableRules = serializableRules;
@@ -327,6 +330,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         ImmutableArray<NamingStyle> namingStyles,
         ImmutableArray<NamingRule> namingRules)
     {
+        Contract.ThrowIfFalse(namingRules.IsEmpty == namingStyles.IsEmpty);
+        Contract.ThrowIfFalse(namingRules.IsEmpty == symbolSpecifications.IsEmpty);
+
         SymbolSpecifications = symbolSpecifications;
         NamingStyles = namingStyles;
         Rules = new NamingStyleRules(namingRules);
@@ -338,7 +344,7 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
     public bool IsEmpty
-        => SymbolSpecifications.IsEmpty && NamingStyles.IsEmpty && NamingRules.IsEmpty;
+        => Rules.NamingRules.IsEmpty;
 
     internal XElement CreateXElement()
     {
@@ -346,7 +352,7 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
             new XAttribute("SerializationVersion", s_serializationVersion),
             new XElement("SymbolSpecifications", SymbolSpecifications.Select(s => s.CreateXElement())),
             new XElement("NamingStyles", NamingStyles.Select(n => n.CreateXElement())),
-            new XElement("NamingRules", NamingRules.Select(n => n.CreateXElement())));
+            new XElement("NamingRules", SerializableNamingRules.Select(n => n.CreateXElement())));
     }
 
     internal static NamingStylePreferences FromXElement(XElement element)
@@ -369,7 +375,7 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
 
         return SymbolSpecifications.SequenceEqual(other.SymbolSpecifications)
             && NamingStyles.SequenceEqual(other.NamingStyles)
-            && NamingRules.SequenceEqual(other.NamingRules);
+            && SerializableNamingRules.SequenceEqual(other.SerializableNamingRules);
     }
 
     public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
@@ -393,7 +399,7 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     {
         return Hash.Combine(Hash.CombineValues(SymbolSpecifications),
             Hash.Combine(Hash.CombineValues(NamingStyles),
-                Hash.CombineValues(NamingRules)));
+                Hash.CombineValues(SerializableNamingRules)));
     }
 
     private static XElement GetUpgradedSerializationIfNecessary(XElement rootElement)

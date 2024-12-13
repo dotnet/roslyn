@@ -31,8 +31,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -79,7 +79,7 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        var namingRule = Assert.Single(result.NamingRules);
+        var namingRule = Assert.Single(result.SerializableNamingRules);
         var namingStyle = Assert.Single(result.NamingStyles);
         var symbolSpec = Assert.Single(result.SymbolSpecifications);
         Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
@@ -101,8 +101,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.end_in_async_style.required_suffix"] = "Async",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -159,8 +159,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.first_word_upper_case_style.capitalization"] = "first_word_upper",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -207,8 +207,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.all_lower_case_style.capitalization"] = "all_lower",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -249,8 +249,8 @@ public class EditorConfigNamingStyleParserTests
         };
 
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -292,8 +292,8 @@ public class EditorConfigNamingStyleParserTests
         };
 
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -328,7 +328,7 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.all_lower_case_style.capitalization"] = "all_lower",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Empty(result.NamingRules);
+        Assert.Empty(result.SerializableNamingRules);
         Assert.Empty(result.NamingStyles);
         Assert.Empty(result.SymbolSpecifications);
     }
@@ -438,8 +438,8 @@ public class EditorConfigNamingStyleParserTests
         };
 
         var result = OptionsTestHelpers.ParseNamingStylePreferences(rule);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
