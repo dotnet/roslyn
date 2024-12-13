@@ -23,7 +23,8 @@ jobs:
       shell: pwsh
       run: |
         if ('${{ secrets.NUGET_API_KEY }}') {
-          echo "NUGET_API_KEY_DEFINED=true" >> $GITHUB_ENV
+          Write-Host "NUGET_API_KEY secret detected. NuGet packages will be pushed."
+          echo "NUGET_API_KEY_DEFINED=true" >> $env:GITHUB_ENV
         }
 
     - name: 🔎 Search for build of ${{ github.ref }}
