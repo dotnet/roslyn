@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
                 Return roamingProfileStorage.Key.Replace("%LANGUAGE%", GetSubstituteLanguage(If(languageName = Nothing, String.Empty, languageName)))
             ElseIf TypeOf storage Is LocalUserProfileStorage Then
                 Dim localUserProfileStorage = DirectCast(storage, LocalUserProfileStorage)
-                Return $"{localUserProfileStorage.Path}\\{localUserProfileStorage.key}"
+                Return $"{localUserProfileStorage.Path}\\{localUserProfileStorage.Key}"
             Else
                 Throw ExceptionUtilities.Unreachable
             End If
@@ -65,6 +65,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
                 Case Else
                     Return languageName
             End Select
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim input = TryCast(obj, Input)
+            Return input IsNot Nothing AndAlso
+                   Store = input.Store AndAlso
+                   Path = input.Path
         End Function
     End Class
 End Namespace

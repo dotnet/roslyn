@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Completion_Lists
 
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_typed As String =
-            ServicesVSResources.Show_completion_list_after_a_character_is_typed
+            ServicesVSResources._Show_completion_list_after_a_character_is_typed
 
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted As String =
             ServicesVSResources.Show_completion_list_after_a_character_is_deleted

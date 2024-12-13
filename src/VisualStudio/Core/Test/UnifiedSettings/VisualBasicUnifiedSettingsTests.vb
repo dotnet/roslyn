@@ -139,6 +139,7 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
                                 If expectedOption.Option.Type Is GetType(Boolean) Then
                                     Dim actualOption = actualProperty.Value.ToObject(Of UnifiedSettingsOption(Of Boolean))
                                     Assert.Equal(expectedOption.UnifiedSettingPath, actualProperty.Name)
+                                    Assert.Equal(expectedOption.UnifiedSettingsOption, actualOption)
 
                                 End If
                             Next

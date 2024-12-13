@@ -9,5 +9,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
         Public Sub New(input As Input)
             MyBase.New(input)
         End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim pass = TryCast(obj, Pass)
+            Return pass IsNot Nothing AndAlso
+                   EqualityComparer(Of Input).Default.Equals(Input, pass.Input)
+        End Function
     End Class
 End Namespace

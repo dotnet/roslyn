@@ -20,5 +20,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
             Me.Default = [default]
             Me.AlternateDefault = alternateDefault
         End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim [option] = TryCast(obj, UnifiedSettingsOption(Of T))
+            Return [option] IsNot Nothing AndAlso
+                   Title = [option].Title AndAlso
+                   Type = [option].Type AndAlso
+                   Order = [option].Order AndAlso
+                   EnableWhen = [option].EnableWhen AndAlso
+                   EqualityComparer(Of Migration).Default.Equals(Migration, [option].Migration) AndAlso
+                   EqualityComparer(Of T).Default.Equals([Default], [option].Default) AndAlso
+                   EqualityComparer(Of AlternateDefault(Of T)).Default.Equals(AlternateDefault, [option].AlternateDefault)
+        End Function
     End Class
 End Namespace

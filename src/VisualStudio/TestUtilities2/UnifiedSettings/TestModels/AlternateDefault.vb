@@ -26,5 +26,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
             Dim featureFlagStorage = DirectCast(visualStudioStorage, FeatureFlagStorage)
             Return New AlternateDefault(Of T)(featureFlagStorage.FlagName, alternativeDefault)
         End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim [default] = TryCast(obj, AlternateDefault(Of T))
+            Return [default] IsNot Nothing AndAlso
+                   FlagName = [default].FlagName AndAlso
+                   EqualityComparer(Of T).Default.Equals(Me.Default, [default].Default)
+        End Function
     End Class
 End Namespace

@@ -12,5 +12,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
         Public Sub New(pass As Pass)
             Me.Pass = pass
         End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim migration = TryCast(obj, Migration)
+            Return migration IsNot Nothing AndAlso
+                   EqualityComparer(Of Pass).Default.Equals(Pass, migration.Pass)
+        End Function
     End Class
 End Namespace

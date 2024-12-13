@@ -1871,9 +1871,6 @@ Additional information: {1}</value>
   <data name="Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
-  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
-    <value>_Show completion list after a character is typed</value>
-  </data>
   <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
     <value>_Highlight matching portions of completion list items</value>
   </data>
@@ -1921,5 +1918,11 @@ Additional information: {1}</value>
   </data>
   <data name="Show_Remove_Unused_References_command_in_Solution_Explorer" xml:space="preserve">
     <value>Show "Remove Unused References" command in Solution Explorer</value>
+  </data>
+  <data name="_Show_completion_list_after_a_character_is_typed" xml:space="preserve">
+    <value>_Show completion list after a character is typed</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
+    <value>Show completion list after a character is typed</value>
   </data>
 </root>

@@ -12,5 +12,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
         Public Sub New(input As Input)
             Me.Input = input
         End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Dim type = TryCast(obj, MigrationType)
+            Return type IsNot Nothing AndAlso
+                   EqualityComparer(Of Input).Default.Equals(Input, type.Input)
+        End Function
     End Class
 End Namespace

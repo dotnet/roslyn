@@ -1403,8 +1403,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <source>Show completion list after a character is typed</source>
+        <target state="new">Show completion list after a character is typed</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1855,6 +1855,11 @@
       <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
         <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="new">_Show completion list after a character is typed</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">
