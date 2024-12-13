@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
+[CompilerTrait(CompilerFeature.Patterns)]
 public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
 {
     [Fact]

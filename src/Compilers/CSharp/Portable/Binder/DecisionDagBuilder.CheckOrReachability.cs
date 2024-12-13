@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
 
             var noPreviousCases = ArrayBuilder<StateForCase>.GetInstance(0);
-            CheckOrAndAndReachability(noPreviousCases, patternIndex: 0, pattern: pattern, builder: builder, rootIdentifier: rootIdentifier, defaultLabel: defaultLabel, syntax: syntax, diagnostics: diagnostics);
+            CheckOrAndAndReachability(noPreviousCases, patternIndex: 0, pattern: pattern, builder: builder, rootIdentifier: rootIdentifier, syntax: syntax, diagnostics: diagnostics);
             noPreviousCases.Free();
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
             {
-                CheckOrAndAndReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                CheckOrAndAndReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, syntax, diagnostics);
             }
 
             existingCases.Free();
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
-                        CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                        CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, builder, rootIdentifier, syntax, diagnostics);
                         patternIndex++;
                     }
                 }
@@ -138,16 +138,15 @@ namespace Microsoft.CodeAnalysis.CSharp
           BoundPattern pattern,
           DecisionDagBuilder builder,
           BoundDagTemp rootIdentifier,
-          LabelSymbol defaultLabel,
           SyntaxNode syntax,
           BindingDiagnosticBag diagnostics)
         {
             CheckOrReachability(previousCases, patternIndex, pattern,
-                builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                builder, rootIdentifier, syntax, diagnostics);
 
             var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, pattern.InputType, narrowedType: pattern.InputType);
             CheckOrReachability(previousCases, patternIndex, negated,
-                builder, rootIdentifier, defaultLabel, syntax, diagnostics);
+                builder, rootIdentifier, syntax, diagnostics);
         }
 
         private static void CheckOrReachability(
@@ -156,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             DecisionDagBuilder builder,
             BoundDagTemp rootIdentifier,
-            LabelSymbol defaultLabel,
             SyntaxNode syntax,
             BindingDiagnosticBag diagnostics)
         {
@@ -174,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
                 var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                populateStateForCases(builder, rootIdentifier, previousCases, patternIndex, orCases, labelsToIgnore, defaultLabel, syntax, ref casesBuilder.AsRef());
+                populateStateForCases(builder, rootIdentifier, previousCases, patternIndex, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
                 BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
 
                 foreach (StateForCase @case in casesBuilder)
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return;
 
             static void populateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, ArrayBuilder<StateForCase> previousCases, int patternIndex,
-                OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore, LabelSymbol defaultLabel, SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
+                OrCases set, PooledHashSet<LabelSymbol> labelsToIgnore, SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
             {
                 for (int i = 0; i < patternIndex; i++)
                 {
@@ -387,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 #if DEBUG
-            public override string ToString()
+            public string Dump()
             {
                 if (IsDefault)
                     return "DEFAULT";
@@ -447,13 +445,117 @@ namespace Microsoft.CodeAnalysis.CSharp
         // pull all the `and` and `or` patterns up the pattern tree.
         // It needs to expand composite patterns in the process.
         // It also erases/simplifies some patterns (variable declarations).
-        // Throughout the process it maintains input and narrowed types discipline, to produce a valid and consistent output.
+        //
+        // For example, given `not { Prop: 42 or 43 }`
+        // it produces `not null or ({ Prop: not 42 } and { Prop: not 43 })`.
+        //
+        // A Visit should return a node with the original InputType. When adjustments are needed,
+        //   that is the responsibility of the caller of Visit.
+        //
+        // Some synthesized patterns are marked as compiler-generated so they will not be reported as redundant.
         private class PatternNormalizer : BoundTreeWalkerWithStackGuard
         {
+            /// <summary>
+            /// Set whenever we request Visit to negate the given pattern.
+            /// </summary>
             private bool _negated;
+
+            /// <summary>
+            /// Set to true when the evaluations yielded by Visit will be combined with `or`.
+            /// Set to false when the evaluations yielded by Visit will be combined with `and`.
+            /// Set to null otherwise.
+            ///
+            /// This lets us drop values that are skipped: discard (always true) in `and` and negated discard (always false) in `or`.
+            /// </summary>
             private bool? _expectingOperandOfDisjunction;
+
+            /// <summary>
+            /// We visiting a composite pattern such as `{ Prop: A or B }`
+            /// we'll want to push operand `{ Prop: A }`, operand `{ Prop: B }` and operation `or`
+            /// in the eval sequence.
+            /// This delegate is set before calling Visit on the nested pattern. The delegate returns
+            /// the operand that will go into the eval stack.
+            ///
+            /// For example, when visiting recursive property pattern `Prop:`, we'll use a delegate
+            /// that transforms pattern `A` into pattern `{ Prop: A }`.
+            /// </summary>
             private Func<BoundPattern, BoundPattern>? _makeEvaluationSequenceOperand;
-            private readonly ArrayBuilder<(BoundPattern? Operand, int? OnTheLeftOf, bool? Disjunction, SyntaxNode? OperationSyntax)> _evalSequence = ArrayBuilder<(BoundPattern?, int?, bool?, SyntaxNode?)>.GetInstance();
+
+            /// <summary>
+            /// The eval sequence contains operands and binary operations.
+            /// It is populated by Visit.
+            /// It is turned back into a BoundPattern by <see cref="GetResult(TypeSymbol)"/>.
+            ///
+            /// For example, if Visit populated:
+            /// [pattern1, pattern2, `or`, pattern3, `and`]
+            /// which is used by GetResult to produce:
+            ///     new BoundBinaryPattern(disjunction: false,
+            ///         new BoundBinaryPattern(disjunction: true,
+            ///             pattern1,
+            ///             pattern2),
+            ///         pattern3)
+            /// </summary>
+            private readonly ArrayBuilder<OperandOrOperation> _evalSequence = ArrayBuilder<OperandOrOperation>.GetInstance();
+
+            private struct OperandOrOperation
+            {
+                private readonly BoundPattern? _operand;
+                private readonly bool? _disjunction;
+                private readonly SyntaxNode? _operationSyntax;
+
+                /// <summary>
+                /// When we find that an operand or operation is on the left of a binary operation
+                /// we record whether the binary operation is a disjunction.
+                /// This makes it easier to track input types while processing the eval sequence.
+                /// </summary>
+                public bool? OnTheLeftOfDisjunction { get; set { Debug.Assert(field is null); field = value; } }
+
+                private OperandOrOperation(BoundPattern? operand, bool? disjunction, SyntaxNode? operationSyntax)
+                {
+                    _operand = operand;
+                    OnTheLeftOfDisjunction = null;
+                    _disjunction = disjunction;
+                    _operationSyntax = operationSyntax;
+                }
+
+                public static OperandOrOperation CreateOperation(bool disjunction, SyntaxNode operationSyntax)
+                {
+                    return new OperandOrOperation(null, disjunction, operationSyntax);
+                }
+
+                public static OperandOrOperation CreateOperand(BoundPattern operand)
+                {
+                    return new OperandOrOperation(operand, null, null);
+                }
+
+                public bool IsOperand([NotNullWhen(true)] out BoundPattern? operand)
+                {
+                    if (_operand is not null)
+                    {
+                        operand = _operand;
+                        return true;
+                    }
+
+                    operand = null;
+                    return false;
+                }
+
+                public bool IsOperation(out bool disjunction, [NotNullWhen(true)] out SyntaxNode? operationSyntax)
+                {
+                    if (_operand is null)
+                    {
+                        Debug.Assert(_disjunction.HasValue);
+                        disjunction = _disjunction.Value;
+                        Debug.Assert(_operationSyntax is not null);
+                        operationSyntax = _operationSyntax;
+                        return true;
+                    }
+
+                    disjunction = false;
+                    operationSyntax = null;
+                    return false;
+                }
+            }
 
             private PatternNormalizer()
             {
@@ -468,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundPattern GetResult(TypeSymbol inputType)
             {
-                Debug.Assert(_evalSequence is [(not null, _, _, _), ..]);
+                Debug.Assert(_evalSequence is [var first, ..] && first.IsOperand(out _));
 
                 var stack = ArrayBuilder<BoundPattern>.GetInstance();
 
@@ -477,16 +579,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (_evalSequence[evalPosition])
                     {
-                        case (null, _, bool disjunction, SyntaxNode operationSyntax):
+                        case var x when x.IsOperation(out bool disjunction, out SyntaxNode? operationSyntax):
                             {
                                 var right = stack.Pop();
                                 var left = stack.Pop();
-                                TypeSymbol narrowedTypeForBinary = NarrowedTypeForBinary(left, right, disjunction);
-                                stack.Push(new BoundBinaryPattern(operationSyntax, disjunction, left, right, left.InputType, narrowedTypeForBinary));
+                                TypeSymbol narrowedType = narrowedTypeForBinary(left, right, disjunction);
+                                stack.Push(new BoundBinaryPattern(operationSyntax, disjunction, left, right, left.InputType, narrowedType));
                             }
                             break;
 
-                        case ({ } operand, _, null, null):
+                        case var y when y.IsOperand(out BoundPattern? operand):
                             {
                                 stack.Push(WithInputTypeCheckIfNeeded(operand, inputType));
                             }
@@ -496,9 +598,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(_evalSequence[evalPosition]);
                     }
 
-                    if (_evalSequence[evalPosition].OnTheLeftOf is int onTheLeftOf)
+                    if (_evalSequence[evalPosition].OnTheLeftOfDisjunction is bool onTheLeftOfDisjunction)
                     {
-                        if (_evalSequence[onTheLeftOf].Disjunction!.Value)
+                        if (onTheLeftOfDisjunction)
                         {
                             inputType = stack.Peek().InputType;
                         }
@@ -516,8 +618,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Free();
                 _evalSequence.Free();
                 return result;
+
+                static TypeSymbol narrowedTypeForBinary(BoundPattern resultLeft, BoundPattern resultRight, bool resultDisjunction)
+                {
+                    TypeSymbol narrowedType;
+                    if (resultDisjunction)
+                    {
+                        if (resultRight.NarrowedType.Equals(resultLeft.NarrowedType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            return resultLeft.NarrowedType;
+                        }
+
+                        return resultLeft.InputType;
+                    }
+                    else
+                    {
+                        narrowedType = resultRight.NarrowedType;
+                    }
+
+                    return narrowedType;
+                }
             }
 
+            // Updates the eval sequence from [...eval sequence...]
+            // to [...eval sequence..., ...eval for left..., ...eval for right..., binaryOperation]
+            // in the general case.
+            //
+            // If the left is a skipped, then update it to
+            // [...eval sequence..., ...eval for right...]
+            //
+            // If the right is a skipped, then update it to
+            // [...eval sequence..., ...eval for left...]
             public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
             {
                 bool disjunction = node.Disjunction;
@@ -554,21 +685,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                PushBinaryPattern(node.Syntax, endOfLeft, disjunction);
+                PushBinaryOperation(node.Syntax, endOfLeft, disjunction);
 
                 return null;
             }
 
-            private void PushBinaryPattern(SyntaxNode syntax, int endOfLeft, bool disjunction)
+            // Updates the eval sequence from [..., endOfLeft, ...]
+            // to [..., endOfLeft /*marked on the left of <disjunction>*/, ..., operation]
+            private void PushBinaryOperation(SyntaxNode syntax, int endOfLeft, bool disjunction)
             {
                 var left = _evalSequence[endOfLeft];
-                left.OnTheLeftOf = _evalSequence.Count;
+                left.OnTheLeftOfDisjunction = disjunction;
                 _evalSequence[endOfLeft] = left;
 
-                _evalSequence.Push((null, null, disjunction, syntax));
+                _evalSequence.Push(OperandOrOperation.CreateOperation(disjunction, syntax));
             }
 
-            private void TryPush(BoundPattern pattern)
+            // Updates the eval sequence from [...sequence...]
+            // to [...sequence..., pattern]
+            // unless the pattern is considered no-op.
+            private void TryPushOperand(BoundPattern pattern)
             {
                 switch (_expectingOperandOfDisjunction)
                 {
@@ -587,27 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                _evalSequence.Push((_makeEvaluationSequenceOperand?.Invoke(pattern) ?? pattern, null, null, null));
-            }
-
-            private TypeSymbol NarrowedTypeForBinary(BoundPattern resultLeft, BoundPattern resultRight, bool resultDisjunction)
-            {
-                TypeSymbol narrowedType;
-                if (resultDisjunction)
-                {
-                    if (resultRight.NarrowedType.Equals(resultLeft.NarrowedType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        return resultLeft.NarrowedType;
-                    }
-
-                    return resultLeft.InputType;
-                }
-                else
-                {
-                    narrowedType = resultRight.NarrowedType;
-                }
-
-                return narrowedType;
+                _evalSequence.Push(OperandOrOperation.CreateOperand(_makeEvaluationSequenceOperand?.Invoke(pattern) ?? pattern));
             }
 
             public override BoundNode? VisitNegatedPattern(BoundNegatedPattern node)
@@ -642,28 +758,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitTypePattern(BoundTypePattern node)
             {
-                TryPush(NegateIfNeeded(node));
+                TryPushOperand(NegateIfNeeded(node));
                 return null;
             }
 
             public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
             {
-                TryPush(NegateIfNeeded(node));
+                TryPushOperand(NegateIfNeeded(node));
                 return null;
             }
 
             public override BoundNode? VisitDiscardPattern(BoundDiscardPattern node)
             {
-                TryPush(NegateIfNeeded(node));
+                TryPushOperand(NegateIfNeeded(node));
                 return null;
             }
 
             public override BoundNode? VisitRelationalPattern(BoundRelationalPattern node)
             {
-                TryPush(NegateIfNeeded(node));
+                TryPushOperand(NegateIfNeeded(node));
                 return null;
             }
 
+            // Given a pattern that expects `pattern.InputType` as input type, produce
+            // one that expects `inputType.
+            //
+            // For example, when splitting a pattern `{ Prop: A and B }` into `{ Prop: A } and/or { Prop: B }`
+            // the original `B` pattern expects an input type that is the narrowed type from `A`
+            // but the rewritten `B` pattern expects an input type that is the type of `Prop`.
             private static BoundPattern WithInputTypeCheckIfNeeded(BoundPattern pattern, TypeSymbol inputType)
             {
                 if (pattern.InputType.Equals(inputType, TypeCompareKind.AllIgnoreOptions))
@@ -717,6 +839,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            // If the type of the declaration pattern implies a meaningful type test
+            // then we keep it.
+            // Otherwise, we push a discard.
             public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
             {
                 BoundPattern result;
@@ -736,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                TryPush(NegateIfNeeded(result));
+                TryPushOperand(NegateIfNeeded(result));
                 return null;
             }
 
@@ -754,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   If there's not Type, we substitute a null check
 
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
-                int startOfLeft = _evalSequence.Count;
+                int startOfLeft = _evalSequence.Count; // all the operands we push from here will be combined in `or` for negation and `and` otherwise
 
                 bool isEmptyPropertyPattern = node.Deconstruction.IsDefault && node.Properties is { IsDefault: false, IsEmpty: true };
                 if (_negated)
@@ -764,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node.DeclaredType is not null)
                     {
                         // `not Type`
-                        TryPush(new BoundNegatedPattern(node.Syntax,
+                        TryPushOperand(new BoundNegatedPattern(node.Syntax,
                             new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, node.InputType, node.NarrowedType, node.HasErrors),
                             node.InputType, narrowedType: node.InputType, node.HasErrors).MakeCompilerGenerated());
                     }
@@ -780,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             nullPattern = nullPattern.MakeCompilerGenerated();
                         }
 
-                        TryPush(nullPattern);
+                        TryPushOperand(nullPattern);
                     }
                 }
                 else
@@ -788,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _expectingOperandOfDisjunction = false;
                     if (isEmptyPropertyPattern)
                     {
-                        TryPush(node);
+                        TryPushOperand(node);
                     }
                 }
 
@@ -800,6 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     int i = 0;
 
+                    // Given `newPattern`, produce `(..., _, newPattern, _, ...)`
                     _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                     {
                         newPattern = WithInputTypeCheckIfNeeded(newPattern, deconstruction[i].Pattern.InputType);
@@ -816,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (; i < deconstruction.Length; i++)
                     {
-                        VisitPatternForSupPatternAndCombine(node.Syntax, deconstruction[i].Pattern, startOfLeft);
+                        VisitPatternAndCombine(node.Syntax, deconstruction[i].Pattern, startOfLeft);
                     }
 
                     _makeEvaluationSequenceOperand = saveMakeEvaluationSequenceOperand;
@@ -827,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
                     BoundPropertySubpattern? property = null;
 
+                    // Given `newPattern`, produce `{ Prop: newPattern }`
                     _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                     {
                         newPattern = WithInputTypeCheckIfNeeded(newPattern, property!.Pattern.InputType);
@@ -844,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (BoundPropertySubpattern subPattern in node.Properties)
                     {
                         property = subPattern;
-                        VisitPatternForSupPatternAndCombine(node.Syntax, property.Pattern, startOfLeft);
+                        VisitPatternAndCombine(node.Syntax, property.Pattern, startOfLeft);
                     }
 
                     _makeEvaluationSequenceOperand = saveMakeEvaluationSequenceOperand;
@@ -855,13 +982,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_evalSequence.Count - 1 < startOfLeft)
                 {
                     // Everything was skipped
-                    TryPush(MakeDefaultPattern(node.Syntax, node.InputType));
+                    TryPushOperand(MakeDefaultPattern(node.Syntax, node.InputType));
                 }
 
                 return null;
             }
 
-            private void VisitPatternForSupPatternAndCombine(SyntaxNode syntax, BoundPattern pattern, int startOfLeft)
+            private void VisitPatternAndCombine(SyntaxNode syntax, BoundPattern pattern, int startOfLeft)
             {
                 int endOfLeft = _evalSequence.Count - 1;
                 int startOfRight = _evalSequence.Count;
@@ -874,7 +1001,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                PushBinaryPattern(syntax, endOfLeft, disjunction: _negated);
+                PushBinaryOperation(syntax, endOfLeft, disjunction: _negated);
+            }
+
+            private void TryPushOperandAndCombine(SyntaxNode syntax, BoundPattern pattern, int startOfLeft)
+            {
+                int endOfLeft = _evalSequence.Count - 1;
+                TryPushOperand(pattern);
+
+                if (endOfLeft < startOfLeft)
+                {
+                    // Left is are skipped
+                    return;
+                }
+
+                PushBinaryOperation(syntax, endOfLeft, disjunction: _negated);
             }
 
             private BoundPattern MakeDefaultPattern(SyntaxNode syntax, TypeSymbol inputType)
@@ -903,7 +1044,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitITuplePattern(BoundITuplePattern ituplePattern)
             {
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
-                int startOfLeft = _evalSequence.Count;
+                int startOfLeft = _evalSequence.Count; // all the operands we push from here will be combined in `or` for negation and `and` otherwise
+                var subpatterns = ituplePattern.Subpatterns;
+                var discards = subpatterns.SelectAsArray(d => d.WithPattern(MakeDiscardPattern(d.Syntax, d.Pattern.InputType)));
 
                 if (_negated)
                 {
@@ -912,18 +1055,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ituplePattern.InputType.CanContainNull())
                     {
                         // `null`
-                        TryPush(new BoundConstantPattern(ituplePattern.Syntax,
+                        TryPushOperand(new BoundConstantPattern(ituplePattern.Syntax,
                             new BoundLiteral(ituplePattern.Syntax, constantValueOpt: null, type: null, hasErrors: false),
                             ConstantValue.Null, ituplePattern.InputType, ituplePattern.InputType, hasErrors: false).MakeCompilerGenerated());
                     }
+
+                    int leftEndBeforeLengthCheck = _evalSequence.Count - 1;
+
+                    // `not (_, ..., _)` (a Length check)
+                    var notLengthPattern = new BoundNegatedPattern(ituplePattern.Syntax,
+                        new BoundITuplePattern(ituplePattern.Syntax, ituplePattern.GetLengthMethod, ituplePattern.GetItemMethod, discards,
+                            ituplePattern.InputType, ituplePattern.NarrowedType),
+                        ituplePattern.InputType, ituplePattern.InputType).MakeCompilerGenerated();
+
+                    TryPushOperandAndCombine(ituplePattern.Syntax, notLengthPattern, startOfLeft);
                 }
                 else
                 {
                     _expectingOperandOfDisjunction = false;
                 }
 
-                var subpatterns = ituplePattern.Subpatterns;
-                var discards = subpatterns.SelectAsArray(d => d.WithPattern(MakeDiscardPattern(d.Syntax, d.Pattern.InputType)));
                 var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
                 int i = 0;
 
@@ -940,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (; i < subpatterns.Length; i++)
                 {
-                    VisitPatternForSupPatternAndCombine(ituplePattern.Syntax, subpatterns[i].Pattern, startOfLeft);
+                    VisitPatternAndCombine(ituplePattern.Syntax, subpatterns[i].Pattern, startOfLeft);
                 }
 
                 _makeEvaluationSequenceOperand = saveMakeEvaluationSequenceOperand;
@@ -949,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_evalSequence.Count - 1 < startOfLeft)
                 {
                     // Everything was skipped
-                    TryPush(MakeDefaultPattern(ituplePattern.Syntax, ituplePattern.InputType));
+                    TryPushOperand(MakeDefaultPattern(ituplePattern.Syntax, ituplePattern.InputType));
                 }
 
                 return null;
@@ -965,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   and the `and` and `or` patterns in the resulting element patterns can then be lifted out further.
 
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
-                int startOfLeft = _evalSequence.Count;
+                int startOfLeft = _evalSequence.Count; // all the operands we push from here will be combined in `or` for negation and `and` otherwise
 
                 ImmutableArray<BoundPattern> discards = listPattern.Subpatterns.SelectAsArray(replaceWithDiscards);
 
@@ -976,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (listPattern.InputType.CanContainNull())
                     {
                         // `null`
-                        TryPush(new BoundConstantPattern(listPattern.Syntax,
+                        TryPushOperand(new BoundConstantPattern(listPattern.Syntax,
                             new BoundLiteral(listPattern.Syntax, constantValueOpt: null, type: null, hasErrors: false),
                             ConstantValue.Null, listPattern.InputType, listPattern.InputType).MakeCompilerGenerated());
                     }
@@ -987,12 +1138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         int endOfLeft = _evalSequence.Count - 1;
 
-                        TryPush(new BoundNegatedPattern(listPattern.Syntax,
+                        TryPushOperand(new BoundNegatedPattern(listPattern.Syntax,
                             listOfDiscards, listPattern.InputType, listPattern.InputType, listPattern.HasErrors).MakeCompilerGenerated());
 
                         if (endOfLeft >= startOfLeft)
                         {
-                            PushBinaryPattern(listPattern.Syntax, endOfLeft, disjunction: true);
+                            PushBinaryOperation(listPattern.Syntax, endOfLeft, disjunction: true);
                         }
                     }
                 }
@@ -1002,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (discards.IsEmpty)
                     {
-                        TryPush(listPattern);
+                        TryPushOperand(listPattern);
                     }
                 }
 
@@ -1025,12 +1176,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Func<BoundPattern, BoundPattern> makeListPatternWithSlice = (BoundPattern newPattern) =>
                 {
-                    var sliceTemplate = (BoundSlicePattern)listPattern.Subpatterns[i];
-                    Debug.Assert(sliceTemplate.Pattern is not null);
+                    var slice = (BoundSlicePattern)listPattern.Subpatterns[i];
+                    Debug.Assert(slice.Pattern is not null);
 
-                    newPattern = WithInputTypeCheckIfNeeded(newPattern, sliceTemplate.Pattern.InputType);
-                    newPattern = new BoundSlicePattern(newPattern.Syntax, newPattern, sliceTemplate.IndexerAccess,
-                        sliceTemplate.ReceiverPlaceholder, sliceTemplate.ArgumentPlaceholder, sliceTemplate.InputType, sliceTemplate.NarrowedType);
+                    newPattern = WithInputTypeCheckIfNeeded(newPattern, slice.Pattern.InputType);
+                    newPattern = new BoundSlicePattern(newPattern.Syntax, newPattern, slice.IndexerAccess,
+                        slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, slice.InputType, slice.NarrowedType);
 
                     ImmutableArray<BoundPattern> newSubpatterns = discards.SetItem(i, newPattern);
 
@@ -1052,12 +1203,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         _makeEvaluationSequenceOperand = makeListPatternWithSlice;
-                        VisitPatternForSupPatternAndCombine(listPattern.Syntax, slicePattern.Pattern, startOfLeft);
+                        VisitPatternAndCombine(listPattern.Syntax, slicePattern.Pattern, startOfLeft);
                     }
                     else
                     {
                         _makeEvaluationSequenceOperand = makeListPattern;
-                        VisitPatternForSupPatternAndCombine(listPattern.Syntax, listPattern.Subpatterns[i], startOfLeft);
+                        VisitPatternAndCombine(listPattern.Syntax, listPattern.Subpatterns[i], startOfLeft);
                     }
                 }
 
@@ -1067,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_evalSequence.Count - 1 < startOfLeft)
                 {
                     // Everything was skipped
-                    TryPush(MakeDefaultPattern(listPattern.Syntax, listPattern.InputType));
+                    TryPushOperand(MakeDefaultPattern(listPattern.Syntax, listPattern.InputType));
                 }
 
                 return null;
