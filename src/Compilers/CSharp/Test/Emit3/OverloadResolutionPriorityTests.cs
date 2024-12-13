@@ -1876,7 +1876,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 End Property
             End Class
             """;
-        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.NetStandard20References, referencedCompilations: [attrRef]);
+        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.NetStandard20References, referencedCompilations: [attrRef],
+            parseOptions: VisualBasic.VisualBasicParseOptions.Default.WithLanguageVersion(VisualBasic.LanguageVersion.Latest));
         var vbRef = vb.EmitToImageReference();
 
         var executable = """
@@ -2948,7 +2949,8 @@ End Class
 
 """ + OverloadResolutionPriorityAttributeDefinitionVB;
 
-        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+            parseOptions: VisualBasic.VisualBasicParseOptions.Default.WithLanguageVersion(VisualBasic.LanguageVersion.Latest));
         var vbRef = vb.EmitToImageReference();
 
         var source1 = """
@@ -3001,7 +3003,8 @@ End Class
 
 """ + OverloadResolutionPriorityAttributeDefinitionVB;
 
-        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+            parseOptions: VisualBasic.VisualBasicParseOptions.Default.WithLanguageVersion(VisualBasic.LanguageVersion.Latest));
         var vbRef = vb.EmitToImageReference();
 
         var source1 = """

@@ -552,7 +552,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If Not CanHaveOverloadResolutionPriority Then
                     'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
-                    ' PROTOTYPE(priority): Do we want to report an error? It will be a breaking change. 
                     Return Nothing
                 End If
 
@@ -611,6 +610,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
                         diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
+                    Return
+                ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                    If Not CanHaveOverloadResolutionPriority Then
+                        diagnostics.Add(If(IsOverrides,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember),
+                                    arguments.AttributeSyntaxOpt.GetLocation())
+                    Else
+                        InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                   arguments.AttributeSyntaxOpt.GetLocation(),
+                                                   DirectCast(arguments.AttributeSyntaxOpt.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                   InternalSyntax.Feature.OverloadResolutionPriority)
+                    End If
+
                     Return
                 End If
             End If
