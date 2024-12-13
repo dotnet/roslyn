@@ -22691,14 +22691,21 @@ using @scoped = System.Int32;
 
             var expectedOutput = "<>A{00000001}`1[System.Int32]";
 
+            var expectedDiagnostics = new[]
+            {
+                // (3,14): warning CS9073: The 'scoped' modifier of parameter 'x' doesn't match target '<anonymous delegate>'.
+                // Delegate d = C.M;
+                Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("x", "<anonymous delegate>").WithLocation(3, 14)
+            };
+
             CompileAndVerify(source2, [ref1],
                 parseOptions: TestOptions.Regular10,
                 symbolValidator: validate,
-                expectedOutput: expectedOutput).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
 
             CompileAndVerify(source2, [ref1],
                 symbolValidator: validate,
-                expectedOutput: expectedOutput).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
 
             static void validate(ModuleSymbol module)
             {
