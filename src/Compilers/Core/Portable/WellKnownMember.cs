@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__Power_MethodInfo,
 
         System_Collections_Generic_Dictionary_KV__ctor,
-        System_Collections_Generic_Dictionary_KV__Add,
+        System_Collections_Generic_Dictionary_KV__set_Item,
         System_Collections_Generic_KeyValuePair_KV__get_Key,
         System_Collections_Generic_KeyValuePair_KV__get_Value,
 

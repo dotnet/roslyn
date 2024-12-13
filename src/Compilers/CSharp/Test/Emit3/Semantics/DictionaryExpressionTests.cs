@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string s_dictionaryExtensions = """
             using System;
             using System.Collections.Generic;
+            using System.Linq;
             using System.Text;
             static class DictionaryExtensions
             {
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 internal static void Report<K, V>(this IEnumerable<KeyValuePair<K, V>> e)
                 {
+                    e = e.OrderBy(kvp => kvp.Key);
                     var builder = new StringBuilder();
                     builder.Append("[");
                     bool isFirst = true;
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0006:  ldloc.0
                   IL_0007:  ldc.i4.1
                   IL_0008:  ldstr      "one"
-                  IL_000d:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.Add(int, string)"
+                  IL_000d:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
                   IL_0012:  ldarg.0
                   IL_0013:  stloc.1
                   IL_0014:  ldloc.0
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0017:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
                   IL_001c:  ldloca.s   V_1
                   IL_001e:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
-                  IL_0023:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.Add(int, string)"
+                  IL_0023:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
                   IL_0028:  ldarg.1
                   IL_0029:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, string>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>.GetEnumerator()"
                   IL_002e:  stloc.3
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IL_003b:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
                     IL_0040:  ldloca.s   V_2
                     IL_0042:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
-                    IL_0047:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.Add(int, string)"
+                    IL_0047:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
                     IL_004c:  ldloc.3
                     IL_004d:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
                     IL_0052:  brtrue.s   IL_0031
@@ -246,6 +248,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0061:  ret
                 }
                 """);
+        }
+
+        [Theory]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
+        public void DictionaryInterface_DuplicateKeys(string typeName)
+        {
+            string source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(101, "one");
+                        var y = new KeyValuePair<int, string>(202, "two");
+                        var z = new KeyValuePair<int, string>(101, "three");
+                        Report(F1(x, y, z));
+                        Report(F1(y, z, x));
+                        Report(F1(z, x, y));
+                        Report(F2(x, y, z));
+                        Report(F2(y, z, x));
+                        Report(F2(z, x, y));
+                        Report(F3(x, y, z));
+                        Report(F3(y, z, x));
+                        Report(F3(z, x, y));
+                    }
+                    static void Report<K, V>({{typeName}}<K, V> d)
+                    {
+                        d.Report();
+                        Console.WriteLine();
+                    }
+                    static {{typeName}}<K, V> F1<K, V>(KeyValuePair<K, V> x, KeyValuePair<K, V> y, KeyValuePair<K, V> z)
+                    {
+                        return [x.Key:x.Value, y, .. new[] { z }];
+                    }
+                    static {{typeName}}<K, V> F2<K, V>(KeyValuePair<K, V> x, KeyValuePair<K, V> y, KeyValuePair<K, V> z)
+                    {
+                        return [x, .. new[] { y }, z.Key:z.Value];
+                    }
+                    static {{typeName}}<K, V> F3<K, V>(KeyValuePair<K, V> x, KeyValuePair<K, V> y, KeyValuePair<K, V> z)
+                    {
+                        return [.. new[] { x }, y.Key:y.Value, z];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: """
+                    [101:three, 202:two], 
+                    [101:one, 202:two], 
+                    [101:one, 202:two], 
+                    [101:three, 202:two], 
+                    [101:one, 202:two], 
+                    [101:one, 202:two], 
+                    [101:three, 202:two], 
+                    [101:one, 202:two], 
+                    [101:one, 202:two], 
+                    """);
+            verifier.VerifyDiagnostics();
         }
 
         [Theory]
@@ -313,9 +375,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public sealed class Dictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
                     {
                         public Dictionary() { }
-                        public void Add(TKey key, TValue value) { }
+                        public TValue this[TKey key] { get { return default; } set { } }
                         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
                         IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                namespace System.Reflection
+                {
+                    public class DefaultMemberAttribute : Attribute
+                    {
+                        public DefaultMemberAttribute(string name) { }
                     }
                 }
                 """;
@@ -367,36 +436,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(3, 5),
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(3, 5),
                 // (4,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
                 // d = [1:"one"];
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(4, 5),
                 // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [1:"one"];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(4, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(4, 5),
                 // (5,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
                 // d = [new KeyValuePair<int, string>(2, "two")];
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(5, 5),
                 // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [new KeyValuePair<int, string>(2, "two")];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(5, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(5, 5),
                 // (6,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(6, 5),
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 5));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor);
@@ -415,20 +484,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 5));
 
             comp = CreateCompilation(source);
-            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_Dictionary_KV__Add);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item);
             comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(3, 5),
+                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(4, 5),
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(5, 5),
+                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 5));
         }
 
         [Theory]
@@ -725,13 +794,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_001a:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
                   IL_001f:  ldloca.s   V_1
                   IL_0021:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
-                  IL_0026:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.Add(int, string)"
+                  IL_0026:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
                   IL_002b:  ldloc.0
                   IL_002c:  ldc.i4.2
                   IL_002d:  call       "int Program.Identity<int>(int)"
                   IL_0032:  ldstr      "two"
                   IL_0037:  call       "string Program.Identity<string>(string)"
-                  IL_003c:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.Add(int, string)"
+                  IL_003c:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
                   IL_0041:  ldc.i4.1
                   IL_0042:  newarr     "System.Collections.Generic.KeyValuePair<int, string>"
                   IL_0047:  dup
@@ -754,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0070:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
                   IL_0075:  ldloca.s   V_2
                   IL_0077:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
-                  IL_007c:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.Add(int, string)"
+                  IL_007c:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
                   IL_0081:  ldloc.s    V_4
                   IL_0083:  ldc.i4.1
                   IL_0084:  add

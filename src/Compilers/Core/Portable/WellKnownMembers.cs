@@ -5178,8 +5178,8 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                // System_Collections_Generic_Dictionary_KV__Add
-                (byte)MemberFlags.Method,                                                                                   // Flags
+                // System_Collections_Generic_Dictionary_KV__set_Item
+                (byte)MemberFlags.PropertySet,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
@@ -5824,7 +5824,7 @@ namespace Microsoft.CodeAnalysis
                 "Default",                                  // System_Linq_Expressions_Expression__Default
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
                 ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor,
-                "Add",                                      // System_Collections_Generic_Dictionary_KV__Add
+                "set_Item",                                 // System_Collections_Generic_Dictionary_KV__set_Item
                 "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key
                 "get_Value",                                // System_Collections_Generic_KeyValuePair_KV__get_Value
             };

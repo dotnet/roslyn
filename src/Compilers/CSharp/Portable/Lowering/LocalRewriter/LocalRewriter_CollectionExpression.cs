@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(dictionaryTemp);
             sideEffects.Add(assignmentToTemp);
 
-            var addMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_Dictionary_KV__Add).AsMember(collectionType);
+            var setItemMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item).AsMember(collectionType);
             for (int i = 0; i < elements.Length; i++)
             {
                 var element = elements[i];
@@ -1208,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var rewrittenKey = VisitExpression(keyValuePairElement.Key);
                             var rewrittenValue = VisitExpression(keyValuePairElement.Value);
-                            sideEffects.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
+                            sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
                         }
                         break;
                     case BoundCollectionExpressionSpreadElement spreadElement:
@@ -1220,8 +1220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var expression = ((BoundExpressionStatement)iteratorBody).Expression;
                                 var builder = ArrayBuilder<BoundExpression>.GetInstance();
-                                var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair(expression, addMethod, builder, localsBuilder);
-                                builder.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
+                                var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair(expression, setItemMethod, builder, localsBuilder);
+                                builder.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
                                 var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
                                 builder.Free();
                                 Debug.Assert(statements.Length > 0);
@@ -1233,8 +1233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     default:
                         {
-                            var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair((BoundExpression)element, addMethod, sideEffects, localsBuilder);
-                            sideEffects.Add(_factory.Call(dictionaryTemp, addMethod, rewrittenKey, rewrittenValue));
+                            var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair((BoundExpression)element, setItemMethod, sideEffects, localsBuilder);
+                            sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
                         }
                         break;
                 }
