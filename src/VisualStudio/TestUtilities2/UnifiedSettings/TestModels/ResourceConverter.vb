@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
         Public Overrides Function ReadJson(reader As JsonReader, objectType As Type, existingValue As Object, serializer As JsonSerializer) As Object
             Dim token = JToken.Load(reader)
             If token.Type = JTokenType.String Then
-                Return EvalResource(token.ToString)
+                Return EvalResource(token.ToString())
             ElseIf token.Type = JTokenType.Array Then
                 Dim array = token.Values
                 Return array.Where(Function(arrayElement) arrayElement.Type = JTokenType.String).SelectAsArray(Function(arrayElement) EvalResource(arrayElement.ToString()))

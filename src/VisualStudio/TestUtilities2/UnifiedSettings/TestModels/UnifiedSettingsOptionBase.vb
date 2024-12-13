@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Newtonsoft.Json
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-    Friend Class UnifiedSettingsOptionBase
+    Friend MustInherit Class UnifiedSettingsOptionBase
         <JsonProperty(NameOf(Title))>
         <JsonConverter(GetType(ResourceConverter))>
         Public ReadOnly Property Title As String
@@ -36,22 +36,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
                 title As String,
                 order As Integer,
                 defaultValue As Boolean,
-                alternativeDefault As Boolean,
-                featureFlagOption As IOption2,
+                alternativeDefault As (featureFlagOption As IOption2, alternateDefault As Boolean),
                 enableWhenOptionAndValue As ([option] As String, value As Object),
                 languageName As String) As UnifiedSettingsOption(Of Boolean)
             Dim type = roslynOption.Type
             Assert.True(type = GetType(Boolean) OrElse Nullable.GetUnderlyingType(type) = GetType(Boolean))
-            Assert.NotEqual(defaultValue, alternativeDefault)
 
             Return New UnifiedSettingsOption(Of Boolean)(
                 title,
                 "boolean",
                 order,
-                $"config:{enableWhenOptionAndValue.option}=='{enableWhenOptionAndValue.value}'",
+                If(enableWhenOptionAndValue.option Is Nothing, Nothing, $"config:{enableWhenOptionAndValue.option}=='{enableWhenOptionAndValue.value}'"),
                 New Migration(New Pass(Input.CreateInput(roslynOption))),
                 defaultValue,
-                AlternateDefault(Of Boolean).CreateFromOption(roslynOption, alternativeDefault))
+                If(alternativeDefault.featureFlagOption Is Nothing, Nothing, AlternateDefault(Of Boolean).CreateFromOption(roslynOption, alternativeDefault.alternateDefault)))
         End Function
     End Class
 End Namespace

@@ -35,7 +35,7 @@ Friend Module Utilities
                 Assert.Fail($"Unexpected package Id: {packageGuid}")
             End If
         Else
-            resourceDll = resourceReference.Substring(resourceReference.IndexOf("\\") + 1)
+            resourceDll = resourceReference.Substring(resourceReference.IndexOf("\") + 1)
         End If
 
         Select Case resourceDll
