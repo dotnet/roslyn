@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
@@ -160,7 +161,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
                         // occurring
                         var dataTagSpans = tag.Span.GetSpans(snapshot);
-                        if (dataTagSpans.Count == 1)
+
+                        // Checks to see if location and hint name are already present in the cache.
+                        var cacheContainsTag = _cache.Any(c => (c.mappingTagSpan.Tag.Hint.Span == tag.Tag.Hint.Span)
+                            && (c.mappingTagSpan.Tag.Hint.DisplayParts[0] == tag.Tag.Hint.DisplayParts[0]));
+
+                        if (dataTagSpans.Count == 1 && !cacheContainsTag)
                         {
                             _cache.Add((tag, tagSpan: null));
                         }
