@@ -6048,4 +6048,35 @@ $@"
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
+    public async Task TestPartialSelectionOfArithmeticExpression()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private void Repro()
+                {
+                    int i = 1, j = 2;
+                    int k = [|i + j|] + 1;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private void Repro()
+                {
+                    int i = 1, j = 2;
+                    int k = {|Rename:NewMethod|}(i, j) + 1;
+                }
+
+                private static int NewMethod(int i, int j)
+                {
+                    return i + j;
+                }
+            }
+            """);
+    }
 }
