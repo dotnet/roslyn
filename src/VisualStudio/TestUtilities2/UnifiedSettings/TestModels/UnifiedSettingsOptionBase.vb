@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
                 "boolean",
                 order,
                 If(enableWhenOptionAndValue.option Is Nothing, Nothing, $"config:{enableWhenOptionAndValue.option}=='{enableWhenOptionAndValue.value}'"),
-                New Migration(New Pass(Input.CreateInput(roslynOption))),
+                New Migration(New Pass(Input.CreateInput(CType(roslynOption, IPerLanguageValuedOption), languageName))),
                 defaultValue,
                 If(alternativeDefault.featureFlagOption Is Nothing, Nothing, AlternateDefault(Of Boolean).CreateFromOption(roslynOption, alternativeDefault.alternateDefault)))
         End Function
