@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [InlineData("IDictionary<K, V>")]
-        [InlineData("IReadOnlyDictionary<K, V>")]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
         public void DictionaryInterface_01(string typeName)
         {
             string source = $$"""
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         F<int, string>().Report();
                     }
-                    static {{typeName}} F<K, V>()
+                    static {{typeName}}<K, V> F<K, V>()
                     {
                         return [];
                     }
@@ -168,8 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [InlineData("IDictionary<int, string>")]
-        [InlineData("IReadOnlyDictionary<int, string>")]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
         public void DictionaryInterface_02(string typeName)
         {
             string source = $$"""
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var y = new KeyValuePair<int, string>[] { new(3, "three") };
                         F(x, y).Report();
                     }
-                    static {{typeName}} F(KeyValuePair<int, string> x, IEnumerable<KeyValuePair<int, string>> y)
+                    static {{typeName}}<int, string> F(KeyValuePair<int, string> x, IEnumerable<KeyValuePair<int, string>> y)
                     {
                         return [1:"one", x, ..y];
                     }
@@ -249,6 +249,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
+        public void DictionaryNotImplementingIDictionary(string typeName)
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct Enum { }
+                    public class Attribute { }
+                    public class AttributeUsageAttribute : Attribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets t) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                    public enum AttributeTargets { }
+                    public interface IDisposable
+                    {
+                        void Dispose();
+                    }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerator
+                    {
+                        bool MoveNext();
+                        object Current { get; }
+                    }
+                    public interface IEnumerable
+                    {
+                        IEnumerator GetEnumerator();
+                    }
+                }
+                namespace System.Collections.Generic
+                {
+                    public interface IEnumerator<T> : IEnumerator
+                    {
+                        new T Current { get; }
+                    }
+                    public interface IEnumerable<T> : IEnumerable
+                    {
+                        new IEnumerator<T> GetEnumerator();
+                    }
+                    public interface IDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+                    {
+                    }
+                    public interface IReadOnlyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+                    {
+                    }
+                    public struct KeyValuePair<TKey, TValue>
+                    {
+                        public TKey Key { get; }
+                        public TValue Value { get; }
+                    }
+                    public sealed class Dictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+                    {
+                        public Dictionary() { }
+                        public void Add(TKey key, TValue value) { }
+                        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                """;
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var d = F(1, "one", new KeyValuePair<int, string>(), null);
+                    }
+                    static {{typeName}}<K, V> F<K, V>(K k, V v, KeyValuePair<K, V> x, IEnumerable<KeyValuePair<K, V>> y)
+                    {
+                        return [k:v, x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            comp.VerifyEmitDiagnostics(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"),
+                // 1.cs(10,16): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.Dictionary<K, V>' to 'System.Collections.Generic.IDictionary<K, V>'
+                //         return [k:v, x, ..y];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[k:v, x, ..y]").WithArguments("System.Collections.Generic.Dictionary<K, V>", $"System.Collections.Generic.{typeName}<K, V>").WithLocation(10, 16));
+        }
+
+        [Theory]
         [InlineData("IDictionary<int, string>")]
         [InlineData("IReadOnlyDictionary<int, string>")]
         public void DictionaryInterface_MissingMember(string typeName)
@@ -269,24 +361,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_Dictionary_KV);
             comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
+                // d = [];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(3, 5),
                 // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(3, 5),
                 // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
                 // d = [];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(3, 5),
+                // (4,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(4, 5),
                 // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [1:"one"];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(4, 5),
                 // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
                 // d = [1:"one"];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(4, 5),
+                // (5,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(5, 5),
                 // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [new KeyValuePair<int, string>(2, "two")];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(5, 5),
                 // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.Add'
                 // d = [new KeyValuePair<int, string>(2, "two")];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "Add").WithLocation(5, 5),
+                // (6,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(6, 5),
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 5),

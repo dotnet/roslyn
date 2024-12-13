@@ -937,6 +937,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // gives a consistent behavior, regardless of collection expression elements.
                 if (collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface)
                 {
+                    var dictionaryType = GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).
+                        Construct(((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                    var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    var dictionaryConversion = Conversions.ClassifyConversionFromType(dictionaryType, targetType, isChecked: false, ref useSiteInfo);
+                    diagnostics.Add(syntax, useSiteInfo);
+                    if (!dictionaryConversion.IsImplicit)
+                    {
+                        GenerateImplicitConversionError(diagnostics, Compilation, syntax, dictionaryConversion, dictionaryType, targetType);
+                    }
+
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__Add, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
