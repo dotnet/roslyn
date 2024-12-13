@@ -1662,7 +1662,7 @@ public class InterceptorsTests : CSharpTestBase
     [Fact]
     public void ArgumentLabels()
     {
-        var source = ("""
+        var source = """
             using System;
 
             class C
@@ -1679,9 +1679,9 @@ public class InterceptorsTests : CSharpTestBase
                     c.InterceptableMethod(s2: "World", s1: "Hello ");
                 }
             }
-            """, "Program.cs");
+            """;
         var locations = GetInterceptableLocations(source);
-        var interceptors = ($$"""
+        var interceptors = $$"""
             using System.Runtime.CompilerServices;
             using System;
 
@@ -1690,7 +1690,7 @@ public class InterceptorsTests : CSharpTestBase
                 [InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
                 public static void Interceptor1(this C c, string s1, string s2) { Console.Write("interceptor " + s1 + s2); }
             }
-            """, "Interceptors.cs");
+            """;
         var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, expectedOutput: "interceptor Hello World");
         verifier.VerifyDiagnostics();
     }
@@ -3964,7 +3964,7 @@ public class InterceptorsTests : CSharpTestBase
     public void SignatureMismatch_08()
     {
         // nint/IntPtr difference
-        var source = ("""
+        var source = """
             using System;
 
             class C
@@ -3986,9 +3986,9 @@ public class InterceptorsTests : CSharpTestBase
                     c.Method1(default!);
                 }
             }
-            """, "Program.cs");
+            """;
         var locations = GetInterceptableLocations(source);
-        var interceptors = ($$"""
+        var interceptors = $$"""
             using System.Runtime.CompilerServices;
             using System;
 
@@ -4002,7 +4002,8 @@ public class InterceptorsTests : CSharpTestBase
                 [InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
                 public static void Interceptor2(this C s, nint param2) => Console.Write(2);
             }
-            """, "Interceptors.cs");
+            """;
+
         var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, expectedOutput: "1122");
         verifier.VerifyDiagnostics(
             // (6,6): warning CS9154: Intercepting a call to 'C.Method1(nint)' with interceptor 'D.Interceptor1(C, IntPtr)', but the signatures do not match.
