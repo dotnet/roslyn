@@ -43,21 +43,37 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastCodeFixProvider()
         // be nested in another.  So we don't have to process these inside-out like we do with other fixers.
         foreach (var diagnostic in diagnostics)
         {
-            var castInvocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var castMemberAccess = (MemberAccessExpressionSyntax)castInvocation.Expression;
-            var castName = castMemberAccess.Name;
-            var castNameToken = castName.Identifier;
+            var castOrSelectInvocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var typeSyntax = (TypeSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            // Change .Cast<T>() to .OfType<T>()
-            editor.ReplaceNode(
-                castName,
-                castName.ReplaceToken(castNameToken, Identifier(nameof(Enumerable.OfType)).WithTriviaFrom(castNameToken)));
+            var castOrSelectMemberAccess = (MemberAccessExpressionSyntax)castOrSelectInvocation.Expression;
+            var castOrSelectName = castOrSelectMemberAccess.Name;
+            var castOrSelectNameToken = castOrSelectName.Identifier;
 
-            var whereInvocation = (InvocationExpressionSyntax)castMemberAccess.Expression;
+            var ofTypeToken = Identifier(nameof(Enumerable.OfType)).WithTriviaFrom(castOrSelectNameToken);
+            if (castOrSelectName is GenericNameSyntax)
+            {
+                // Change .Cast<T>() to .OfType<T>()
+                editor.ReplaceNode(
+                    castOrSelectName,
+                    castOrSelectName.ReplaceToken(castOrSelectNameToken, ofTypeToken));
+            }
+            else
+            {
+                // Change .Select(...) to .OfType<T>()
+                editor.ReplaceNode(
+                    castOrSelectName,
+                    GenericName(ofTypeToken).AddTypeArgumentListArguments(typeSyntax.WithoutTrivia()));
+                editor.ReplaceNode(
+                    castOrSelectInvocation.ArgumentList,
+                    castOrSelectInvocation.ArgumentList.WithArguments([]));
+            }
+
+            var whereInvocation = (InvocationExpressionSyntax)castOrSelectMemberAccess.Expression;
             var whereMemberAccess = (MemberAccessExpressionSyntax)whereInvocation.Expression;
 
             // Snip out the `.Where(...)` portion so that `expr.Where(...).OfType<T>()` becomes `expr.OfType<T>()`
-            editor.ReplaceNode(castMemberAccess.Expression, whereMemberAccess.Expression);
+            editor.ReplaceNode(whereInvocation, whereMemberAccess.Expression);
         }
 
         return Task.CompletedTask;

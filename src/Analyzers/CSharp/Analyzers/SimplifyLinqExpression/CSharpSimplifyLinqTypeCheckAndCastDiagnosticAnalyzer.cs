@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 
@@ -37,6 +36,25 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
         });
     }
 
+    private static bool TryGetSingleLambdaParameter(
+        LambdaExpressionSyntax lambda,
+        [NotNullWhen(true)] out ParameterSyntax? lambdaParameter)
+    {
+        lambdaParameter = null;
+        var whereParameters = lambda switch
+        {
+            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
+            SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
+            _ => [],
+        };
+
+        if (whereParameters is not [var parameter])
+            return false;
+
+        lambdaParameter = parameter;
+        return true;
+    }
+
     private static bool AnalyzeWhereMethod(
         SemanticModel semanticModel,
         LambdaExpressionSyntax whereLambda,
@@ -46,14 +64,7 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
         whereType = null;
 
         // has to look like `a => a is ...` or `(T a) => a is ...`
-        var whereParameters = whereLambda switch
-        {
-            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
-            SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
-            _ => [],
-        };
-
-        if (whereParameters is not [var parameter])
+        if (!TryGetSingleLambdaParameter(whereLambda, out var parameter))
             return false;
 
         // Body needs to be `a is SomeType`
@@ -75,6 +86,94 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
         return whereType != null;
     }
 
+    private bool AnalyzeInvocationExpression(
+        InvocationExpressionSyntax invocationExpression,
+        [NotNullWhen(true)] out LambdaExpressionSyntax? whereLambda,
+        [NotNullWhen(true)] out InvocationExpressionSyntax? whereInvocation,
+        [NotNullWhen(true)] out SimpleNameSyntax? caseOrSelectName,
+        [NotNullWhen(true)] out TypeSyntax? caseOrSelectType)
+    {
+        whereLambda = null;
+        whereInvocation = null;
+        caseOrSelectName = null;
+        caseOrSelectType = null;
+
+        // Both forms need to be accessed off of `.Where(... => ...)`
+        // Needs to look like `.Where(...).Cast<...>()`
+        if (invocationExpression is not
+            {
+                Expression: MemberAccessExpressionSyntax
+                {
+                    Expression: InvocationExpressionSyntax
+                    {
+                        // Needs to be `.Where(... => ...)`
+                        ArgumentList.Arguments: [{ Expression: LambdaExpressionSyntax whereLambda1 }],
+                        Expression: MemberAccessExpressionSyntax
+                        {
+                            Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Enumerable.Where) },
+                        },
+                    } whereInvocation1,
+                },
+            })
+        {
+            return false;
+        }
+
+        whereLambda = whereLambda1;
+        whereInvocation = whereInvocation1;
+
+        if (invocationExpression is
+            {
+                // Needs to be `.Cast<T>()`
+                ArgumentList.Arguments: [],
+                Expression: MemberAccessExpressionSyntax
+                {
+                    Name: GenericNameSyntax
+                    {
+                        Identifier.ValueText: nameof(Enumerable.Cast),
+                        TypeArgumentList.Arguments: [var castTypeArgument]
+                    } castName,
+                },
+            })
+        {
+            caseOrSelectName = castName;
+            caseOrSelectType = castTypeArgument;
+            return true;
+        }
+
+        // Needs to be `.Select(a => (T)a)`
+        if (invocationExpression is
+            {
+                ArgumentList.Arguments: [
+                    {
+                        // a => (T)a
+                        Expression: LambdaExpressionSyntax
+                        {
+                            ExpressionBody: CastExpressionSyntax
+                            {
+                                Type: var lambdaCastType,
+                                Expression: IdentifierNameSyntax castIdentifier,
+                            } lambdaCast,
+                        } selectLambda
+                    }],
+                Expression: MemberAccessExpressionSyntax
+                {
+                    Name: IdentifierNameSyntax
+                    {
+                        Identifier.ValueText: nameof(Enumerable.Select),
+                    } selectName,
+                },
+            } && TryGetSingleLambdaParameter(selectLambda, out var selectLambdaParameter) &&
+            selectLambdaParameter.Identifier.ValueText == castIdentifier.Identifier.ValueText)
+        {
+            caseOrSelectName = selectName;
+            caseOrSelectType = lambdaCastType;
+            return true;
+        }
+
+        return false;
+    }
+
     private void AnalyzeInvocationExpression(
         SyntaxNodeAnalysisContext context, INamedTypeSymbol enumerableType)
     {
@@ -84,30 +183,13 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
         if (ShouldSkipAnalysis(context, notification: null))
             return;
 
-        // Needs to look like `.Where(...).Cast<...>()`
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
-        if (invocationExpression is not
-            {
-                // Needs to be `.Cast<...>()`
-                ArgumentList.Arguments: [],
-                Expression: MemberAccessExpressionSyntax
-                {
-                    Name: GenericNameSyntax
-                    {
-                        Identifier.ValueText: nameof(Enumerable.Cast),
-                        TypeArgumentList.Arguments: [var castTypeArgument]
-                    } castName,
-                    Expression: InvocationExpressionSyntax
-                    {
-                        // Needs to be `.Where(... => ...)`
-                        ArgumentList.Arguments: [{ Expression: LambdaExpressionSyntax whereLambda }],
-                        Expression: MemberAccessExpressionSyntax
-                        {
-                            Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Enumerable.Where) },
-                        },
-                    } whereInvocation,
-                },
-            } castInvocation)
+
+        if (!AnalyzeInvocationExpression(invocationExpression,
+                out var whereLambda,
+                out var whereInvocation,
+                out var castOrSelectName,
+                out var castTypeArgument))
         {
             return;
         }
@@ -116,7 +198,6 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
             return;
 
         // Ensure the `is SomeType` and `Cast<SomeType>` are the same type.
-        var semanticModel = context.SemanticModel;
         var castType = semanticModel.GetTypeInfo(castTypeArgument, cancellationToken).Type;
         if (castType is null)
             return;
@@ -124,10 +205,10 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
         if (!whereType.Equals(castType))
             return;
 
-        var castSymbol = semanticModel.GetSymbolInfo(castInvocation, cancellationToken).Symbol;
+        var castOrSelectSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol;
         var whereSymbol = semanticModel.GetSymbolInfo(whereInvocation, cancellationToken).Symbol;
 
-        if (!enumerableType.Equals(castSymbol?.OriginalDefinition.ContainingType) ||
+        if (!enumerableType.Equals(castOrSelectSymbol?.OriginalDefinition.ContainingType) ||
             !enumerableType.Equals(whereSymbol?.OriginalDefinition.ContainingType))
         {
             return;
@@ -135,7 +216,7 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
 
         context.ReportDiagnostic(Diagnostic.Create(
             Descriptor,
-            castName.Identifier.GetLocation(),
-            additionalLocations: [invocationExpression.GetLocation()]));
+            castOrSelectName.Identifier.GetLocation(),
+            additionalLocations: [invocationExpression.GetLocation(), castTypeArgument.GetLocation()]));
     }
 }
