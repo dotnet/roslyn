@@ -7,6 +7,10 @@ Imports Newtonsoft.Json
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class MigrationType
         <JsonProperty("input")>
-        Public Property Input As Input
+        Public ReadOnly Property Input As Input
+
+        Public Sub New(input As Input)
+            Me.Input = input
+        End Sub
     End Class
 End Namespace

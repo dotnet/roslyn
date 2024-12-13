@@ -6,28 +6,32 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage
-Imports Microsoft.VisualStudio.Shell
 Imports Newtonsoft.Json
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class Input
         <JsonProperty("store")>
-        Public Property Store As String
+        Public ReadOnly Property Store As String
         <JsonProperty("path")>
-        Public Property Path As String
+        Public ReadOnly Property Path As String
+
+        Public Sub New(store As String, path As String)
+            Me.Store = store
+            Me.Path = path
+        End Sub
 
         Public Shared Function CreateInput([option] As IOption2) As Input
             Dim configName = [option].Definition.ConfigName
             Dim visualStudioStorage = Storages(configName)
 
-            Return New Input() With {.Store = GetStore(visualStudioStorage), .Path = GetPath(visualStudioStorage)}
+            Return New Input(GetStore(visualStudioStorage), GetPath(visualStudioStorage))
         End Function
 
         Public Shared Function CreateInput([option] As IPerLanguageValuedOption, languageName As String) As Input
             Dim configName = [option].Definition.ConfigName
             Dim visualStudioStorage = Storages(configName)
-            Return New Input() With {.Store = GetStore(visualStudioStorage), .Path = GetPath(visualStudioStorage, languageName)}
+            Return New Input(GetStore(visualStudioStorage), GetPath(visualStudioStorage, languageName))
         End Function
 
         Private Shared Function GetStore(storage As VisualStudioOptionStorage) As String

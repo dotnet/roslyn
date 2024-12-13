@@ -7,8 +7,13 @@ Imports Newtonsoft.Json
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class Map
         <JsonProperty("result")>
-        Public Property Result As String
+        Public ReadOnly Property Result As String
         <JsonProperty("match")>
-        Public Property Match As Integer
+        Public ReadOnly Property Match As Integer
+
+        Public Sub New(result As String, match As Integer)
+            Me.Result = result
+            Me.Match = match
+        End Sub
     End Class
 End Namespace

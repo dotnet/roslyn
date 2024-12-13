@@ -3,11 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices
 Imports Microsoft.VisualStudio.LanguageServices.CSharp
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
-Imports Roslyn.Utilities
 Imports Microsoft.CodeAnalysis
 
 Friend Module Utilities

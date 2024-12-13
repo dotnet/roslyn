@@ -5,5 +5,9 @@
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class Pass
         Inherits MigrationType
+
+        Public Sub New(input As Input)
+            MyBase.New(input)
+        End Sub
     End Class
 End Namespace

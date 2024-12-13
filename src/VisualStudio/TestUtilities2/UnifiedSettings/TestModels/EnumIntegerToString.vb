@@ -7,7 +7,13 @@ Imports Newtonsoft.Json
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class EnumIntegerToString
         Inherits MigrationType
+
         <JsonProperty(NameOf(Map))>
-        Public Property Map() As Map
+        Public ReadOnly Property Map As Map()
+
+        Public Sub New(map As Map(), input As Input)
+            MyBase.New(input)
+            Me.Map = map
+        End Sub
     End Class
 End Namespace

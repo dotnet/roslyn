@@ -8,11 +8,19 @@ Imports Newtonsoft.Json
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class UnifiedSettingsEnumOption
         Inherits UnifiedSettingsOption(Of String)
+
         <JsonProperty(NameOf([Enum]))>
-        Public Property [Enum] As String()
+        Public ReadOnly Property [Enum] As String()
 
         <JsonProperty(NameOf(EnumLabels))>
-        Public Property EnumLabels As String()
+        <JsonConverter(GetType(ResourceConverter))>
+        Public ReadOnly Property EnumLabels As String()
+
+        Public Sub New(title As String, type As String, order As Integer, enableWhen As String, migration As Migration, [default] As String, alternateDefault As AlternateDefault(Of String), [enum] As String(), enumLabels As String())
+            MyBase.New(title, type, order, enableWhen, migration, [default], alternateDefault)
+            Me.Enum = [enum]
+            Me.EnumLabels = enumLabels
+        End Sub
 
         Public Shared Function CreateEnumOption(
                 roslynOption As IOption2,

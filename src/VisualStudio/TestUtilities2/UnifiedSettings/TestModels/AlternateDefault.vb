@@ -9,17 +9,22 @@ Imports Newtonsoft.Json
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
     Friend Class AlternateDefault(Of T)
         <JsonProperty(NameOf(FlagName))>
-        Public Property FlagName As String
+        Public ReadOnly Property FlagName As String
 
         <JsonProperty("default")>
-        Public Property [Default] As T
+        Public ReadOnly Property [Default] As T
+
+        Public Sub New(flagName As String, [default] As T)
+            Me.FlagName = flagName
+            Me.Default = [default]
+        End Sub
 
         Public Shared Function CreateFromOption([option] As IOption2, alternativeDefault As T) As AlternateDefault(Of T)
             Dim configName = [option].Definition.ConfigName
             Dim visualStudioStorage = Storages(configName)
             ' Option has to be FeatureFlagStorage to be used as alternative default
             Dim featureFlagStorage = DirectCast(visualStudioStorage, FeatureFlagStorage)
-            Return New AlternateDefault(Of T) With {.FlagName = featureFlagStorage.FlagName, .[Default] = alternativeDefault}
+            Return New AlternateDefault(Of T)(featureFlagStorage.FlagName, alternativeDefault)
         End Function
     End Class
 End Namespace

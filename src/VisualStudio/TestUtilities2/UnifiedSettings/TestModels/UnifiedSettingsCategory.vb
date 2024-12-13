@@ -8,10 +8,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.Test
     Friend Class UnifiedSettingsCategory
         <JsonProperty(NameOf(Title))>
         <JsonConverter(GetType(ResourceConverter))>
-        Public Property Title As String
+        Public ReadOnly Property Title As String
 
         <JsonProperty(NameOf(LegacyOptionPageId))>
-        Public Property LegacyOptionPageId As String
+        Public ReadOnly Property LegacyOptionPageId As String
 
+        Public Sub New(title As String, legacyOptionPageId As String)
+            Me.Title = title
+            Me.LegacyOptionPageId = legacyOptionPageId
+        End Sub
     End Class
 End Namespace

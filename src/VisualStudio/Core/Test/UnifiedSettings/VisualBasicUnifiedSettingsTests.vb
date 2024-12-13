@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
 Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
@@ -29,20 +28,6 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
                 CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
                 CompletionViewOptionsStorage.EnableArgumentCompletionSnippets
                 )
-            End Get
-        End Property
-
-        Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of (unifiedSettingsPath As String, roslynOption As IOption2))
-            Get
-                Return ImmutableArray.Create(Of (String, IOption2))(
-                ("textEditor.basic.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
-                ("textEditor.basic.intellisense.triggerCompletionOnDeletion", CompletionOptionsStorage.TriggerOnDeletion),
-                ("textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems", CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems),
-                ("textEditor.basic.intellisense.showCompletionItemFilters", CompletionViewOptionsStorage.ShowCompletionItemFilters),
-                ("textEditor.basic.intellisense.snippetsBehavior", CompletionOptionsStorage.SnippetsBehavior),
-                ("textEditor.basic.intellisense.returnKeyCompletionBehavior", CompletionOptionsStorage.EnterKeyBehavior),
-                ("textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces", CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces),
-                ("textEditor.basic.intellisense.enableArgumentCompletionSnippets", CompletionViewOptionsStorage.EnableArgumentCompletionSnippets))
             End Get
         End Property
 
@@ -109,44 +94,50 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
             End Using
         End Function
 
-        '<Fact>
-        'Public Async Function IntelliSensePageTest() As Task
-        '    Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-        '        Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
-        '            Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
-        '                Dim pkgDefFile = Await pkgDefFileReader.ReadToEndAsync().ConfigureAwait(False)
-        '                Dim parseOption = New JsonDocumentOptions() With {
-        '                        .CommentHandling = JsonCommentHandling.Skip
-        '                        }
-        '                Dim registrationDocument = Await JsonDocument.ParseAsync(registrationFileStream, parseOption)
-        '                Dim properties = registrationDocument.RootElement.GetProperty("properties")
-        '                Assert.NotNull(properties)
+        Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of ExpectedUnifiedSetting)
+            Get
+                Return ImmutableArray.Create(Of ExpectedUnifiedSetting)(
+                    New ExpectedUnifiedSetting(
+                        "textEditor.basic.intellisense.triggerCompletionOnTypingLetters",
+                        CompletionOptionsStorage.TriggerOnTypingLetters,
+                        UnifiedSettingsOptionBase
+                        )
+                        }
 
-        '                Dim expectedGroupPrefix = "textEditor.basic.intellisense"
-        '                Dim actualOptions = properties.EnumerateObject.Where(Function([property]) [property].Name.StartsWith(expectedGroupPrefix)).ToImmutableArray()
-        '                Assert.Equal(IntelliSenseOnboardedOptions.Length, actualOptions.Length)
+                '("textEditor.basic.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
+                '("textEditor.basic.intellisense.triggerCompletionOnDeletion", CompletionOptionsStorage.TriggerOnDeletion),
+                '("textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems", CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems),
+                '("textEditor.basic.intellisense.showCompletionItemFilters", CompletionViewOptionsStorage.ShowCompletionItemFilters),
+                '("textEditor.basic.intellisense.snippetsBehavior", CompletionOptionsStorage.SnippetsBehavior),
+                '("textEditor.basic.intellisense.returnKeyCompletionBehavior", CompletionOptionsStorage.EnterKeyBehavior),
+                '("textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces", CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces),
+                '("textEditor.basic.intellisense.enableArgumentCompletionSnippets", CompletionViewOptionsStorage.EnableArgumentCompletionSnippets))
+            End Get
+        End Property
 
-        '                For Each optionPair In actualOptions.Zip(IntelliSenseOnboardedOptions, Function(actual, expected) (actual, expected))
-        '                    Dim expected = optionPair.expected
-        '                    Dim actualName = optionPair.actual.Name
 
-        '                Next
-        '            End Using
-        '        End Using
-        '    End Using
-        'End Function
+        <Fact>
+        Public Async Function IntelliSensePageTest() As Task
+            Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
+                Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
+                    Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
 
-        'Private Sub Helper(expected As (unifiedSettingsPath As String, roslynOption As IOption2), actualProperty As JsonProperty)
-        '    Assert.Equal(expected.unifiedSettingsPath, actualProperty.Name)
-        '    Dim expectedOption = expected.roslynOption
-        '    Dim type = expectedOption.Type
-        '    If type = GetType(Boolean) Then
-        '        VerifyBooleanOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsOption(Of Boolean)))
-        '    ElseIf type.IsEnum Then
-        '        VerifyEnumOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsEnumOption))
-        '    Else
-        '        Assert.Fail("We only have enum and boolean option now. Add more if needed")
-        '    End If
-        'End Sub
+                    End Using
+                End Using
+            End Using
+        End Function
+
+        Private Sub Helper(expected As (unifiedSettingsPath As String, roslynOption As IOption2), actualProperty As JsonProperty)
+            Assert.Equal(expected.unifiedSettingsPath, actualProperty.Name)
+            Dim expectedOption = expected.roslynOption
+            Dim type = expectedOption.Type
+            If type = GetType(Boolean) Then
+                VerifyBooleanOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsOption(Of Boolean)))
+            ElseIf type.IsEnum Then
+                VerifyEnumOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsEnumOption))
+            Else
+                Assert.Fail("We only have enum and boolean option now. Add more if needed")
+            End If
+        End Sub
     End Class
 End Namespace
