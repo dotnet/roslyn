@@ -25,6 +25,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly bool LocalFunction;
 
+        protected ISemanticFactsService SemanticFacts => _semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
         protected ISyntaxFactsService SyntaxFacts => _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
@@ -738,8 +739,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // we probably need to move the API to syntaxFact service not semanticFact.
             //
             // if one wants to get result that also considers semantic, he should use data control flow analysis API.
-            var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
-            return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, CancellationToken.None));
+            var semanticFacts = this.SemanticFacts;
+            return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, this.CancellationToken));
         }
 
         private bool SelectionContainsOnlyIdentifierWithSameType(ITypeSymbol type)
@@ -760,14 +761,34 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return type.Equals(SelectionResult.GetContainingScopeType());
         }
 
-        protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
-            => symbol switch
+        private ITypeSymbol? GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
+        {
+            var type = symbol switch
             {
                 ILocalSymbol local => local.Type,
                 IParameterSymbol parameter => parameter.Type,
-                IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                IRangeVariableSymbol rangeVariable => GetRangeVariableType(semanticModel, rangeVariable),
                 _ => throw ExceptionUtilities.UnexpectedValue(symbol)
             };
+
+            if (type is null)
+                return type;
+
+            // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise we
+            // can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
+
+            if (type.NullableAnnotation is not NullableAnnotation.Annotated)
+                return type;
+
+            var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
+            if (selectionOperation is not null &&
+                NullableHelpers.IsSymbolAssignedPossiblyNullValue(this.SemanticFacts, semanticModel, selectionOperation, symbol) == false)
+            {
+                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+            }
+
+            return type;
+        }
 
         protected static VariableStyle AlwaysReturn(VariableStyle style)
         {
@@ -1028,7 +1049,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return OperationStatus.SucceededStatus;
 
             using var _ = ArrayBuilder<string>.GetInstance(out var names);
-            var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
+            var semanticFacts = this.SemanticFacts;
             foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
             {
                 var field = (IFieldSymbol)pair.Key;

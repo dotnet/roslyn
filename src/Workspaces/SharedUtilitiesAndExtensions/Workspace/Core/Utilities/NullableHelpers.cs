@@ -4,8 +4,8 @@
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -14,12 +14,15 @@ namespace Microsoft.CodeAnalysis;
 internal static class NullableHelpers
 {
     /// <summary>
-    /// Gets the declared symbol and root operation from the passed in declarationSyntax and calls
-    /// <see cref="IsSymbolAssignedPossiblyNullValue(SemanticModel, IOperation, ISymbol)"/>. Note
-    /// that this is bool and not bool? because we know that the symbol is at the very least declared, 
-    /// so there's no need to return a null value. 
+    /// Gets the declared symbol and root operation from the passed in declarationSyntax and calls <see
+    /// cref="IsSymbolAssignedPossiblyNullValue"/>. Note that this is bool and not bool? because we know that the symbol
+    /// is at the very least declared, so there's no need to return a null value. 
     /// </summary>
-    public static bool IsDeclaredSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+    public static bool IsDeclaredSymbolAssignedPossiblyNullValue(
+        ISemanticFacts semanticFacts,
+        SemanticModel semanticModel,
+        SyntaxNode declarationSyntax,
+        CancellationToken cancellationToken)
     {
         var declaredSymbol = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
         var declaredOperation = semanticModel.GetRequiredOperation(declarationSyntax, cancellationToken);
@@ -34,15 +37,20 @@ internal static class NullableHelpers
             rootOperation = rootOperation.Parent;
         }
 
-        return IsSymbolAssignedPossiblyNullValue(semanticModel, rootOperation, declaredSymbol) == true;
+        return IsSymbolAssignedPossiblyNullValue(
+            semanticFacts, semanticModel, rootOperation, declaredSymbol) == true;
     }
 
     /// <summary>
-    /// Given an operation, goes through all decendent operations and returns true if the symbol passed in
+    /// Given an operation, goes through all descendent operations and returns true if the symbol passed in
     /// is ever assigned a possibly null value as determined by nullable flow state. Returns
     /// null if no references are found, letting the caller determine what to do with that information
     /// </summary>
-    public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation operation, ISymbol symbol)
+    public static bool? IsSymbolAssignedPossiblyNullValue(
+        ISemanticFacts semanticFacts,
+        SemanticModel semanticModel,
+        IOperation operation,
+        ISymbol symbol)
     {
         var references = operation.DescendantsAndSelf()
             .Where(o => IsSymbolReferencedByOperation(o, symbol));
@@ -53,24 +61,19 @@ internal static class NullableHelpers
         {
             hasReference = true;
 
-            // foreach statements are handled special because the iterator is not assignable, so the elementtype 
-            // annotation is accurate for determining if the loop declaration has a reference that allows the symbol
-            // to be null
+            // foreach statements are handled special because the iterator is not assignable, so the element type
+            // annotation is accurate for determining if the loop declaration has a reference that allows the symbol to
+            // be null
             if (reference is IForEachLoopOperation forEachLoop)
             {
-                var foreachInfo = semanticModel.GetForEachStatementInfo((CommonForEachStatementSyntax)forEachLoop.Syntax);
-
+                var foreachInfo = semanticFacts.GetForEachSymbols(semanticModel, forEachLoop.Syntax);
                 if (foreachInfo.ElementType is null)
-                {
                     continue;
-                }
 
                 // Use NotAnnotated here to keep both Annotated and None (oblivious) treated the same, since
                 // this is directly looking at the annotation and not the flow state
                 if (foreachInfo.ElementType.NullableAnnotation != NullableAnnotation.NotAnnotated)
-                {
                     return true;
-                }
 
                 continue;
             }
@@ -87,7 +90,7 @@ internal static class NullableHelpers
             }
         }
 
-        return hasReference ? (bool?)false : null;
+        return hasReference ? false : null;
     }
 
     /// <summary>
