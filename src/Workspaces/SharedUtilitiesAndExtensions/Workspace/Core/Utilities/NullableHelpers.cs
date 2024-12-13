@@ -39,7 +39,7 @@ internal static class NullableHelpers
         }
 
         return IsSymbolAssignedPossiblyNullValue(
-            semanticFacts, semanticModel, rootOperation, declaredSymbol, rootOperation.Syntax.Span) == true;
+            semanticFacts, semanticModel, rootOperation, declaredSymbol, rootOperation.Syntax.Span, cancellationToken) == true;
     }
 
     /// <summary>
@@ -52,7 +52,8 @@ internal static class NullableHelpers
         SemanticModel semanticModel,
         IOperation rootOperation,
         ISymbol symbol,
-        TextSpan span)
+        TextSpan span,
+        CancellationToken cancellationToken)
     {
         var references = rootOperation
             .DescendantsAndSelf()
@@ -86,23 +87,38 @@ internal static class NullableHelpers
                 // this is directly looking at the annotation and not the flow state
                 if (foreachInfo.ElementType.NullableAnnotation != NullableAnnotation.NotAnnotated)
                     return true;
-
-                continue;
             }
-
-            var syntax = reference is IVariableDeclaratorOperation variableDeclarator
-                ? variableDeclarator.GetVariableInitializer()!.Value.Syntax
-                : reference.Syntax;
-
-            var typeInfo = semanticModel.GetTypeInfo(syntax);
-
-            if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
+            else if (reference is IAssignmentOperation assignmentOperation)
             {
-                return true;
+                // IsSymbolReferencedByOperation will ensure that the reference is the target of the assignment.
+                //
+                // Note: we care about the value after the assignment, so we have to check the RHS to see if maybe-null
+                // is flowing in.  In other workd  `currentlyNotNull = maybeNUll;` will be maybe-null *after* the
+                // assignment. and should cause our caller to keep the type as nullable.
+                var typeInfo = semanticModel.GetTypeInfo(assignmentOperation.Value.Syntax, cancellationToken);
+                if (IsMaybeNull(typeInfo))
+                    return true;
+            }
+            else if (reference is IVariableDeclaratorOperation variableDeclarator)
+            {
+                // IsSymbolReferencedByOperation ensures that GetVariableInitializer() returns a non-null value
+                var syntax = variableDeclarator.GetVariableInitializer()!.Value.Syntax;
+                var typeInfo = semanticModel.GetTypeInfo(syntax, cancellationToken);
+                if (IsMaybeNull(typeInfo))
+                    return true;
+            }
+            else
+            {
+                var typeInfo = semanticModel.GetTypeInfo(reference.Syntax, cancellationToken);
+                if (IsMaybeNull(typeInfo))
+                    return true;
             }
         }
 
         return hasReference ? false : null;
+
+        static bool IsMaybeNull(TypeInfo typeInfo)
+            => typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull || typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull;
     }
 
     /// <summary>

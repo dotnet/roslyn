@@ -736,7 +736,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
             if (selectionOperation is not null &&
                 NullableHelpers.IsSymbolAssignedPossiblyNullValue(
-                    this.SemanticFacts, semanticModel, selectionOperation, symbol, SelectionResult.FinalSpan) == false)
+                    this.SemanticFacts, semanticModel, selectionOperation, symbol, SelectionResult.FinalSpan, this.CancellationToken) == false)
             {
                 return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
             }
