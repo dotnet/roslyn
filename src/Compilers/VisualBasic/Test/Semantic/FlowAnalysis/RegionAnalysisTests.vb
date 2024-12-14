@@ -10016,11 +10016,11 @@ End Module
             Assert.Equal("i + j + k + l", nodes(0).ToString())
             Dim dataFlowResults = model.AnalyzeDataFlow(nodes(0))
             Assert.Equal("i, j, k, l", GetSymbolNamesJoined(dataFlowResults.ReadInside))
-            
+
             Assert.Equal("i + j + k", nodes(1).ToString())
             dataFlowResults = model.AnalyzeDataFlow(nodes(1))
             Assert.Equal("i, j, k", GetSymbolNamesJoined(dataFlowResults.ReadInside))
-            
+
             Assert.Equal("i + j", nodes(2).ToString())
             dataFlowResults = model.AnalyzeDataFlow(nodes(2))
             Assert.Equal("i, j", GetSymbolNamesJoined(dataFlowResults.ReadInside))
