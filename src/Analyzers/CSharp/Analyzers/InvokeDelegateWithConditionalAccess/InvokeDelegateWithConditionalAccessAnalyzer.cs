@@ -8,10 +8,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 
@@ -224,10 +226,13 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
         cancellationToken.ThrowIfCancellationRequested();
 
         // look for the form "if (a != null)" or "if (null != a)"
-        if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
-        {
+        var parentBlock = ifStatement.Parent is GlobalStatementSyntax globalStatement
+            ? globalStatement.Parent
+            : ifStatement.Parent;
+
+        var blockFacts = CSharpBlockFacts.Instance;
+        if (!blockFacts.IsExecutableBlock(parentBlock))
             return false;
-        }
 
         if (!IsNullCheckExpression(condition.Left, condition.Right) &&
             !IsNullCheckExpression(condition.Right, condition.Left))
@@ -249,62 +254,39 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
         if (invocationName is null)
             return false;
 
-        var conditionName = condition.Left is IdentifierNameSyntax
-            ? (IdentifierNameSyntax)condition.Left
+        var conditionName = condition.Left is IdentifierNameSyntax leftIdentifier
+            ? leftIdentifier
             : (IdentifierNameSyntax)condition.Right;
 
         if (!Equals(conditionName.Identifier.ValueText, invocationName.Identifier.ValueText))
-        {
             return false;
-        }
 
         // Now make sure the previous statement is "var a = ..."
-        var parentBlock = (BlockSyntax)ifStatement.Parent;
-        var ifIndex = parentBlock.Statements.IndexOf(ifStatement);
+        var blockStatements = blockFacts.GetExecutableBlockStatements(parentBlock);
+        var ifIndex = blockStatements.IndexOf(ifStatement);
         if (ifIndex == 0)
-        {
             return false;
-        }
 
-        var previousStatement = parentBlock.Statements[ifIndex - 1];
-        if (previousStatement is not LocalDeclarationStatementSyntax localDeclarationStatement)
-        {
+        var previousStatement = blockStatements[ifIndex - 1];
+        if (previousStatement is not LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer.Value: { } initializer } declarator] }  localDeclarationStatement)
             return false;
-        }
-
-        var variableDeclaration = localDeclarationStatement.Declaration;
-
-        if (variableDeclaration.Variables.Count != 1)
-        {
-            return false;
-        }
-
-        var declarator = variableDeclaration.Variables[0];
-        if (declarator.Initializer == null)
-        {
-            return false;
-        }
 
         cancellationToken.ThrowIfCancellationRequested();
         if (!Equals(declarator.Identifier.ValueText, conditionName.Identifier.ValueText))
-        {
             return false;
-        }
 
         // Syntactically this looks good.  Now make sure that the local is a delegate type.
         var semanticModel = syntaxContext.SemanticModel;
 
         // The initializer can't be inlined if it's an actual lambda/method reference.
         // These cannot be invoked with `?.` (only delegate *values* can be).
-        var initializer = declarator.Initializer.Value.WalkDownParentheses();
+        initializer = initializer.WalkDownParentheses();
         if (initializer is AnonymousFunctionExpressionSyntax)
             return false;
 
         var initializerSymbol = semanticModel.GetSymbolInfo(initializer, cancellationToken).GetAnySymbol();
         if (initializerSymbol is IMethodSymbol)
-        {
             return false;
-        }
 
         var localSymbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
 
@@ -316,15 +298,14 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
             return false;
 
         // Looks good!
-        var tree = semanticModel.SyntaxTree;
-        var additionalLocations = ImmutableArray.Create(
-            Location.Create(tree, localDeclarationStatement.Span),
-            Location.Create(tree, ifStatement.Span),
-            Location.Create(tree, expressionStatement.Span));
-
-        ReportDiagnostics(syntaxContext,
-            localDeclarationStatement, ifStatement, expressionStatement,
-            notificationOption, additionalLocations, Constants.VariableAndIfStatementForm);
+        ReportDiagnostics(
+            syntaxContext,
+            localDeclarationStatement,
+            ifStatement,
+            expressionStatement,
+            notificationOption,
+            [localDeclarationStatement.GetLocation(), ifStatement.GetLocation(), expressionStatement.GetLocation()],
+            Constants.VariableAndIfStatementForm);
 
         return true;
     }

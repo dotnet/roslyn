@@ -37,7 +37,7 @@ internal class CSharpBlockFacts : AbstractBlockFacts
     }
 
     public override SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-        => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
+        => nodes.FindInnermostCommonNode(IsExecutableBlock);
 
     public override bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
         => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
@@ -47,7 +47,7 @@ internal class CSharpBlockFacts : AbstractBlockFacts
         if (IsExecutableBlock(node))
             return GetExecutableBlockStatements(node);
         else if (node.GetEmbeddedStatement() is { } embeddedStatement)
-            return ImmutableArray.Create<SyntaxNode>(embeddedStatement);
+            return [embeddedStatement];
         else
             return [];
     }

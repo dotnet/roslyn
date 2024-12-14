@@ -32,8 +32,8 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
                 void Goo()
                 {
-                    [||]var v = a;
-                    if (v != null)
+                    var v = a;
+                    [||]if (v != null)
                     {
                         v();
                     }
@@ -68,6 +68,25 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             var v = () => {};
             v?.Invoke();
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public async Task Test2_TopLevel()
+    {
+        await TestAsync(
+            """
+            Action a = null;
+            [||]var v = a;
+            if (v != null)
+            {
+                v();
+            }
+            """,
+            """
+            Action a = null;
+
+            a?.Invoke();
+            """, parseOptions: CSharpParseOptions.Default);
     }
 
     [Fact]
