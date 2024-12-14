@@ -2389,12 +2389,14 @@
     <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
-  <Node Name="BoundConstantPattern" Base="BoundPattern">
+  <!-- NarrowedType is either the InputType, or the Value.Type -->
+  <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundDiscardPattern" Base="BoundPattern">
+  <!-- NarrowedType is always the InputType -->
+  <Node Name="BoundDiscardPattern" Base="BoundPattern" HasValidate="true">
   </Node>
 
   <AbstractNode Name="BoundObjectPattern" Base="BoundPattern">
@@ -2411,12 +2413,14 @@
     <Field Name="VariableAccess" Type="BoundExpression?"/>
   </AbstractNode>
 
-  <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern">
+  <!-- NarrowedType is the DeclaredType if given, or an InputType -->
+  <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
-  <Node Name="BoundRecursivePattern" Base="BoundObjectPattern">
+  <!-- NarrowedType is the DeclaredType if given, or an InputType, or its underlying type when the InputType is a Nullable of T -->
+  <Node Name="BoundRecursivePattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
@@ -2424,6 +2428,7 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
+  <!-- NarrowedType is always an InputType, or its underlying type when the InputType is a Nullable of T -->
   <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
@@ -2442,6 +2447,7 @@
     <Field Name="ArgumentPlaceholder" Type="BoundListPatternIndexPlaceholder?" SkipInVisitor="true"/>
   </Node>
 
+  <!-- NarrowedType is always the InputType -->
   <Node Name="BoundSlicePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Pattern" Type="BoundPattern?"/>
 
@@ -2458,7 +2464,8 @@
     <Field Name="ArgumentPlaceholder" Type="BoundSlicePatternRangePlaceholder?" SkipInVisitor="true"/>
   </Node>
 
-  <Node Name="BoundITuplePattern" Base="BoundPattern">
+  <!-- Narrowed type is always System.Runtime.CompilerServices.ITuple -->
+  <Node Name="BoundITuplePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
@@ -2482,22 +2489,37 @@
     <Field Name="Type" Type="TypeSymbol"/>
   </Node>
 
-  <Node Name="BoundTypePattern" Base="BoundPattern">
+  <!-- NarrowedType is always the DeclaredType -->
+  <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <Node Name="BoundBinaryPattern" Base="BoundPattern">
+  <!-- 
+       For Disjunction
+           NarrowedType is the least specific NarrowedType type across all leafs of constituent disjunctions, or
+                        the InputType if one cannot be determined
+           Left.InputType is the InputType 
+           Right.InputType is the InputType 
+       
+       For Conjunction
+           NarrowedType is the Right.NarrowedType
+           Left.InputType is the InputType 
+           Right.InputType is the Left.NarrowedType 
+  -->
+  <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>
   </Node>
 
-  <Node Name="BoundNegatedPattern" Base="BoundPattern">
+  <!-- NarrowedType is always the InputType -->
+  <Node Name="BoundNegatedPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Negated" Type="BoundPattern"/>
   </Node>
 
-  <Node Name="BoundRelationalPattern" Base="BoundPattern">
+  <!-- NarrowedType is either the InputType, or the Value.Type -->
+  <Node Name="BoundRelationalPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Relation" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
