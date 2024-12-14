@@ -109,18 +109,4 @@ public static partial class SymbolFinder
             options, cancellationToken).ConfigureAwait(false);
         return streamingProgress.GetReferencedSymbols();
     }
-
-    internal static class TestAccessor
-    {
-        internal static Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
-            ISymbol symbol,
-            Solution solution,
-            IFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return SymbolFinder.FindReferencesAsync(symbol, solution, progress, documents, options, cancellationToken);
-        }
-    }
 }
