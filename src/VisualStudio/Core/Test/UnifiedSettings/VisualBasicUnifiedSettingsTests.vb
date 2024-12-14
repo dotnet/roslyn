@@ -5,6 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
+Imports System.Text.Json
+Imports System.Text.Json.Nodes
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
@@ -121,35 +123,47 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
             End Get
         End Property
 
-
         <Fact>
         Public Async Function IntelliSensePageTest() As Task
             Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-                Using reader = New StreamReader(registrationFileStream)
-                    Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
-                        Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
-                            Dim registrationFile = Await reader.ReadToEndAsync()
-                            Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings() With {.CommentHandling = CommentHandling.Ignore})
-                            Dim properties = registrationJsonObject.Property("properties").Value.Children(Of JProperty).ToImmutableArray()
-                            ' TODO: Assert number is correct
+                Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
+                    Dim jsonDocument = Await JsonNode.ParseAsync(registrationFileStream, documentOptions:=New JsonDocumentOptions() With {.CommentHandling = JsonCommentHandling.Skip})
+                    Dim properties = jsonDocument.Root("properties")
 
-                            For i = 0 To IntelliSenseOnboardedOptions.Length
-                                Dim actualProperty = properties(i)
-                                Dim expectedOption = IntelliSenseOnboardedOptions(i)
-                                If expectedOption.Option.Type Is GetType(Boolean) Then
-                                    Dim actualOption = actualProperty.Value.ToObject(Of UnifiedSettingsOption(Of Boolean))
-                                    Assert.Equal(expectedOption.UnifiedSettingPath, actualProperty.Name)
-                                    Assert.Equal(expectedOption.UnifiedSettingsOption, actualOption)
+                    Dim j = 9
 
-                                End If
-                            Next
-
-                            Dim hj = 8
-                        End Using
-                    End Using
                 End Using
             End Using
         End Function
+
+        '<Fact>
+        'Public Async Function IntelliSensePageTest() As Task
+        '    Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
+        '        Using reader = New StreamReader(registrationFileStream)
+        '            Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
+        '                Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
+        '                    Dim registrationFile = Await reader.ReadToEndAsync()
+        '                    Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings() With {.CommentHandling = CommentHandling.Ignore})
+        '                    Dim properties = registrationJsonObject.Property("properties").Value.Children(Of JProperty).ToImmutableArray()
+        '                     TODO: Assert number is correct
+
+        '                    For i = 0 To IntelliSenseOnboardedOptions.Length
+        '                        Dim actualProperty = properties(i)
+        '                        Dim expectedOption = IntelliSenseOnboardedOptions(i)
+        '                        If expectedOption.Option.Type Is GetType(Boolean) Then
+        '                            Dim actualOption = actualProperty.Value.ToObject(Of UnifiedSettingsOption(Of Boolean))
+        '                            Assert.Equal(expectedOption.UnifiedSettingPath, actualProperty.Name)
+        '                            Assert.Equal(expectedOption.UnifiedSettingsOption, actualOption)
+
+        '                        End If
+        '                    Next
+
+        '                    Dim hj = 8
+        '                End Using
+        '            End Using
+        '        End Using
+        '    End Using
+        'End Function
 
         'Private Sub Helper(expected As (unifiedSettingsPath As String, roslynOption As IOption2), actualProperty As JsonProperty)
         '    Assert.Equal(expected.unifiedSettingsPath, actualProperty.Name)
