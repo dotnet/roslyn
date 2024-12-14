@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         namingPreferences.NamingRules,
                         LanguageName,
                         entryWriter: builder.Add,
-                        triviaWriter: null);
+                        triviaWriter: null,
+                        setPrioritiesToPreserveOrder: false);
                 }
                 else
                 {
