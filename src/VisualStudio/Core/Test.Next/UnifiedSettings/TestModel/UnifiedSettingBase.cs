@@ -9,6 +9,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
     internal abstract record UnifiedSettingBase()
     {
         [JsonPropertyName("title")]
+        [JsonConverter(typeof(ResourceConverter))]
         public required string Title { get; init; }
 
         [JsonPropertyName("type")]
