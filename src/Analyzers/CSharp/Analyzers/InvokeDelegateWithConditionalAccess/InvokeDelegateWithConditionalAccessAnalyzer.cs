@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,16 +22,13 @@ internal static class Constants
 }
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+        EnforceOnBuildValues.InvokeDelegateWithConditionalAccess,
+        CSharpCodeStyleOptions.PreferConditionalDelegateCall,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public InvokeDelegateWithConditionalAccessAnalyzer()
-        : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-               EnforceOnBuildValues.InvokeDelegateWithConditionalAccess,
-               CSharpCodeStyleOptions.PreferConditionalDelegateCall,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
 
@@ -129,13 +125,13 @@ internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractBuiltInCode
             {
                 // Looks good!
                 var tree = syntaxContext.SemanticModel.SyntaxTree;
-                var additionalLocations = ImmutableArray.Create<Location>(
-                    Location.Create(tree, ifStatement.Span),
-                    Location.Create(tree, expressionStatement.Span));
-
                 ReportDiagnostics(
-                    syntaxContext, ifStatement, ifStatement,
-                    expressionStatement, notificationOption, additionalLocations,
+                    syntaxContext,
+                    ifStatement,
+                    ifStatement,
+                    expressionStatement,
+                    notificationOption,
+                    [Location.Create(tree, ifStatement.Span), Location.Create(tree, expressionStatement.Span)],
                     Constants.SingleIfStatementForm);
 
                 return true;

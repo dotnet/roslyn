@@ -15,13 +15,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public InvokeDelegateWithConditionalAccessTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new InvokeDelegateWithConditionalAccessAnalyzer(), new InvokeDelegateWithConditionalAccessCodeFixProvider());
 
@@ -55,6 +51,23 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public async Task Test1_TopLevel()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            var v = () => {};
+            [||]if (v != null)
+            {
+                v();
+            }
+            """,
+            """
+            var v = () => {};
+            v?.Invoke();
+            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
     }
 
     [Fact]
@@ -1110,6 +1123,23 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public async Task TestWithExplicitInvokeCall2_TopLevel()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            var v = () => {};
+            [||]if (v != null)
+            {
+                v.Invoke();
+            }
+            """,
+            """
+            var v = () => {};
+            v?.Invoke();
+            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50976")]

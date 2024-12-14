@@ -78,10 +78,12 @@ internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider
         var ifStatementLocation = diagnostic.AdditionalLocations[0];
         var expressionStatementLocation = diagnostic.AdditionalLocations[1];
 
-        var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan, getInnermostNodeForTie: true);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
+        // Always under another statement.block.  So getInnermostNodeForTie: true` is not necessary, but keeps things consistent.
+        var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan, getInnermostNodeForTie: true);
         cancellationToken.ThrowIfCancellationRequested();
 
         var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
