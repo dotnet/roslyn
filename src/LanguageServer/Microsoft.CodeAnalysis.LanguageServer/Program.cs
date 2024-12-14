@@ -125,23 +125,32 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
 
-    var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
-        ? CreateNewPipeNames()
-        : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+    LanguageServerHost? server = null;
+    if (serverConfiguration.UseStdIo)
+    {
+        server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, languageServerLogger, typeRefResolver);
+    }
+    else
+    {
+        var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
+            ? CreateNewPipeNames()
+            : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
 
-    var pipeServer = new NamedPipeServerStream(serverPipeName,
-        PipeDirection.InOut,
-        maxNumberOfServerInstances: 1,
-        PipeTransmissionMode.Byte,
-        PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+        var pipeServer = new NamedPipeServerStream(serverPipeName,
+            PipeDirection.InOut,
+            maxNumberOfServerInstances: 1,
+            PipeTransmissionMode.Byte,
+            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
-    // Send the named pipe connection info to the client 
-    Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
+        // Send the named pipe connection info to the client 
+        Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
-    // Wait for connection from client
-    await pipeServer.WaitForConnectionAsync(cancellationToken);
+        // Wait for connection from client
+        await pipeServer.WaitForConnectionAsync(cancellationToken);
 
-    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
+        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
+    }
+
     server.Start();
 
     logger.LogInformation("Language server initialized");
@@ -232,6 +241,11 @@ static CliRootCommand CreateCommandLineParser()
         Description = "The name of the pipe the server will connect to.",
         Required = false,
     };
+    var useStdIoOption = new CliOption<bool?>("--stdio")
+    {
+        Description = "Use stdio for communication with the client.",
+        Required = false
+    };
 
     var rootCommand = new CliRootCommand()
     {
@@ -246,7 +260,8 @@ static CliRootCommand CreateCommandLineParser()
         razorSourceGeneratorOption,
         razorDesignTimePathOption,
         extensionLogDirectoryOption,
-        serverPipeNameOption
+        serverPipeNameOption,
+        useStdIoOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
@@ -261,19 +276,21 @@ static CliRootCommand CreateCommandLineParser()
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
+        var useStdIo = parseResult.GetValue(useStdIoOption) ?? false;
 
         var serverConfiguration = new ServerConfiguration(
-            LaunchDebugger: launchDebugger,
-            LogConfiguration: new LogConfiguration(logLevel),
-            StarredCompletionsPath: starredCompletionsPath,
-            TelemetryLevel: telemetryLevel,
-            SessionId: sessionId,
-            ExtensionAssemblyPaths: extensionAssemblyPaths,
-            DevKitDependencyPath: devKitDependencyPath,
-            RazorSourceGenerator: razorSourceGenerator,
-            RazorDesignTimePath: razorDesignTimePath,
-            ServerPipeName: serverPipeName,
-            ExtensionLogDirectory: extensionLogDirectory);
+        LaunchDebugger: launchDebugger,
+        LogConfiguration: new LogConfiguration(logLevel),
+        StarredCompletionsPath: starredCompletionsPath,
+        TelemetryLevel: telemetryLevel,
+        SessionId: sessionId,
+        ExtensionAssemblyPaths: extensionAssemblyPaths,
+        DevKitDependencyPath: devKitDependencyPath,
+        RazorSourceGenerator: razorSourceGenerator,
+        RazorDesignTimePath: razorDesignTimePath,
+        ServerPipeName: serverPipeName,
+        UseStdIo: useStdIo,
+        ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
