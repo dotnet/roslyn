@@ -1165,6 +1165,30 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     {
         await TestMissingAsync(
             """
+            class C
+            {
+                void M()
+                {
+                    [||]var v = new C();
+                    if (v != null)
+                    {
+                        v.Invoke();
+                    }
+                }
+            }
+                        
+            class C
+            {
+                public void Invoke() { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
+    public async Task TestInvokeMethodOnNonDelegate_TopLevel()
+    {
+        await TestMissingAsync(
+            """
             var v = new C();
             [||]if (v != null)
             {
