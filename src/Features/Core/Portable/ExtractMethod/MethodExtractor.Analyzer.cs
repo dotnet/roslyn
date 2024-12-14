@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -25,6 +27,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly bool LocalFunction;
 
+        protected ISemanticFactsService SemanticFacts => _semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
         protected ISyntaxFactsService SyntaxFacts => _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
@@ -532,6 +535,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             candidates.UnionWith(writtenInsideMap);
             candidates.UnionWith(variableDeclaredMap);
 
+            // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
+            // have been referenced in.
+            var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, SelectionResult.GetContainingScope().Span.End);
+
             foreach (var symbol in candidates)
             {
                 // We don't care about the 'this' parameter.  It will be available to an extracted method already.
@@ -585,7 +592,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     continue;
                 }
 
-                var type = GetSymbolType(model, symbol);
+                var type = GetSymbolType(model, symbol, analysisRange);
                 if (type == null)
                 {
                     continue;
@@ -608,59 +615,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     continue;
                 }
 
-                type = FixNullability(symbol, type, variableStyle);
-
                 AddVariableToMap(
                     variableInfoMap,
                     symbol,
                     CreateFromSymbol(symbol, type, variableStyle, variableDeclared));
-            }
-
-            ITypeSymbol FixNullability(ISymbol symbol, ITypeSymbol type, VariableStyle style)
-            {
-                if (style.ParameterStyle.ParameterBehavior != ParameterBehavior.None &&
-                    type.NullableAnnotation is NullableAnnotation.Annotated &&
-                    !IsMaybeNullWithinSelection(symbol))
-                {
-                    // We're going to pass this nullable variable in as a parameter to the new method we're creating. If the
-                    // variable is actually never null within the section we're extracting, then change its return type to
-                    // be non-nullable so that any usage of it within the new method will not warn.
-                    return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                }
-
-                return type;
-            }
-
-            bool IsMaybeNullWithinSelection(ISymbol symbol)
-            {
-                if (!symbolMap.TryGetValue(symbol, out var tokens))
-                    return true;
-
-                var syntaxFacts = this.SyntaxFacts;
-                foreach (var token in tokens)
-                {
-                    if (token.Parent is not TExpressionSyntax expression)
-                        continue;
-
-                    // a = b;
-                    //
-                    // Need to ask what the nullability of 'b' is since 'a' may be currently non-null but may be
-                    // assigned a null value.
-                    if (syntaxFacts.IsLeftSideOfAssignment(expression))
-                    {
-                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(expression.GetRequiredParent(), out _, out _, out var right);
-                        expression = (TExpressionSyntax)right;
-                    }
-
-                    var typeInfo = model.GetTypeInfo(expression, this.CancellationToken);
-                    if (typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull ||
-                        typeInfo.ConvertedNullability.FlowState == NullableFlowState.MaybeNull)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
         }
 
@@ -731,7 +689,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             if (!symbolMap.TryGetValue(symbol, out var tokens))
                 return writtenInside;
 
-            var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
+            var semanticFacts = this.SemanticFacts;
             return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, this.CancellationToken));
         }
 
@@ -753,14 +711,43 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return type.Equals(SelectionResult.GetContainingScopeType());
         }
 
-        protected virtual ITypeSymbol? GetSymbolType(SemanticModel model, ISymbol symbol)
-            => symbol switch
+        private ITypeSymbol? GetSymbolType(
+            SemanticModel semanticModel,
+            ISymbol symbol,
+            TextSpan analysisRange)
+        {
+            var type = symbol switch
             {
                 ILocalSymbol local => local.Type,
                 IParameterSymbol parameter => parameter.Type,
-                IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                IRangeVariableSymbol rangeVariable => GetRangeVariableType(semanticModel, rangeVariable),
                 _ => throw ExceptionUtilities.UnexpectedValue(symbol)
             };
+
+            if (type is null)
+                return type;
+
+            // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise we
+            // can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
+
+            if (type.NullableAnnotation is not NullableAnnotation.Annotated)
+                return type;
+
+            var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
+
+            // For Extract-Method we don't care about analyzing the declaration of this variable. For example, even if
+            // it was initially assigned 'null' for the purposes of determining the type of it for a return value, all
+            // we care is if it is null at the end of the selection.  If it is only assigned non-null values, for
+            // example, we want to treat it as non-null.
+            if (selectionOperation is not null &&
+                NullableHelpers.IsSymbolAssignedPossiblyNullValue(
+                    this.SemanticFacts, semanticModel, selectionOperation, symbol, analysisRange, includeDeclaration: false, this.CancellationToken) == false)
+            {
+                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+            }
+
+            return type;
+        }
 
         protected static VariableStyle AlwaysReturn(VariableStyle style)
         {
@@ -1021,7 +1008,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return OperationStatus.SucceededStatus;
 
             using var _ = ArrayBuilder<string>.GetInstance(out var names);
-            var semanticFacts = _semanticDocument.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
+            var semanticFacts = this.SemanticFacts;
             foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.Field))
             {
                 var field = (IFieldSymbol)pair.Key;
