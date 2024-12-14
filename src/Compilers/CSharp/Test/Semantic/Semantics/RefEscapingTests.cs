@@ -6049,6 +6049,459 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M1()
+                    {
+                        new S().Deconstruct(out var x, out _);
+                        return x; // 1
+                    }
+                    R M2()
+                    {
+                        (var x, _) = new S();
+                        return x; // 2
+                    }
+                    R M3()
+                    {
+                        if (new S() is (var x, _))
+                            return x; // 3
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R { }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 16),
+                // (12,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(12, 16),
+                // (17,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 20));
+
+            // Old ref safety rules mean the [UnscopedRef] has no effect, so the Deconstruct receiver is scoped.
+            CreateCompilation([source, UnscopedRefAttributeDefinition], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (23,6): warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+                //     [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                Diagnostic(ErrorCode.WRN_UnscopedRefAttributeOldRules, "UnscopedRef").WithLocation(23, 6));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_ReturnInt()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    int M1()
+                    {
+                        new S().Deconstruct(out var x, out var y);
+                        return y; // 1
+                    }
+                    int M2()
+                    {
+                        (var x, var y) = new S();
+                        return y; // 2
+                    }
+                    int M3()
+                    {
+                        if (new S() is (var x, var y))
+                            return y; // 3
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruction_ScopedRef()
+        {
+            var source = """
+                class C
+                {
+                    R M1()
+                    {
+                        new S().Deconstruct(out var x, out _);
+                        return x;
+                    }
+                    R M2()
+                    {
+                        (var x, _) = new S();
+                        return x;
+                    }
+                    R M3()
+                    {
+                        if (new S() is (var x, _))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R { }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_ExtensionMethod()
+        {
+            var source = """
+                class C
+                {
+                    R M1()
+                    {
+                        new S().Deconstruct(out var x, out _);
+                        return x; // 1
+                    }
+                    R M2()
+                    {
+                        (var x, _) = new S();
+                        return x; // 2
+                    }
+                    R M3()
+                    {
+                        if (new S() is (var x, _))
+                            return x; // 3
+                        return default;
+                    }
+                }
+                struct S;
+                ref struct R;
+                static class E
+                {
+                    public static void Deconstruct(this in S s, out R x, out int y) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(6, 16),
+                // (11,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(11, 16),
+                // (16,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 20));
+        }
+
+        [Fact]
+        public void Deconstruction_ScopedRef_ExtensionMethod()
+        {
+            var source = """
+                class C
+                {
+                    R M1()
+                    {
+                        new S().Deconstruct(out var x, out _);
+                        return x;
+                    }
+                    R M2()
+                    {
+                        (var x, _) = new S();
+                        return x;
+                    }
+                    R M3()
+                    {
+                        if (new S() is (var x, _))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S;
+                ref struct R;
+                static class E
+                {
+                    public static void Deconstruct(this scoped in S s, out R x, out int y) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_RefReturnableReceiver()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M1(ref S s)
+                    {
+                        s.Deconstruct(out var x, out _);
+                        return x;
+                    }
+                    R M2(ref S s)
+                    {
+                        (var x, _) = s;
+                        return x; // 1
+                    }
+                    R M3(ref S s)
+                    {
+                        if (s is (var x, _))
+                            return x; // 2
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            // M2 and M3 copy the receiver `s`, so the ref safety errors are expected.
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (12,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(12, 16),
+                // (17,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_PatternMatching_BinaryPattern_01()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M()
+                    {
+                        if (new S() is (var x and { F: 0 }, _))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R(int f)
+                {
+                    public int F = f;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_PatternMatching_BinaryPattern_02()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M()
+                    {
+                        if (new S() is (var x and var y, _))
+                            return y;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,20): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //             return y;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_ScopedRef_PatternMatching_BinaryPattern_01()
+        {
+            var source = """
+                class C
+                {
+                    R M()
+                    {
+                        if (new S() is (var x and { F: 0 }, _))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R(int f)
+                {
+                    public int F = f;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_ScopedRef_PatternMatching_BinaryPattern_02()
+        {
+            var source = """
+                class C
+                {
+                    R M()
+                    {
+                        if (new S() is (var x and var y, _))
+                            return y;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_PatternMatching_NestedDeconstruction()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M()
+                    {
+                        if (new S() is ((var x, var y), var z))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    public void Deconstruct(out T x, out int y) => throw null;
+                }
+                struct T
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_ScopedRef_PatternMatching_NestedDeconstruction()
+        {
+            var source = """
+                class C
+                {
+                    R M()
+                    {
+                        if (new S() is ((var x, var y), var z))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    public void Deconstruct(out T x, out int y) => throw null;
+                }
+                struct T
+                {
+                    public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_PatternMatching_NestedProp()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    S Prop { get; set; }
+                    R M()
+                    {
+                        if (new C() is { Prop: (var x, _) })
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (8,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(8, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_PatternMatching_NestedPattern()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M1()
+                    {
+                        if (new S() is ({ Prop: (var x2, _) } x, _))
+                            return x;
+                        return default;
+                    }
+                    R M2()
+                    {
+                        if (new S() is ({ Prop: (var x2, _) } x, _))
+                            return x2;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R
+                {
+                    public S Prop { get; set; }
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 20),
+                // (13,20): error CS8352: Cannot use variable 'x2' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x2").WithArguments("x2").WithLocation(13, 20));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
