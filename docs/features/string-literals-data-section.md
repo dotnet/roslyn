@@ -100,7 +100,7 @@ internal static class <PrivateImplementationDetails>
         }
     }
 
-    internal unsafe static string BytesToString(byte* bytes, int length)
+    private unsafe static string BytesToString(byte* bytes, int length)
     {
         return Encoding.UTF8.GetString(bytes, length);
     }
