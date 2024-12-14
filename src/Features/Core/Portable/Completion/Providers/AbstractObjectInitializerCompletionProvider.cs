@@ -29,24 +29,16 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
         if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
-        {
             return;
-        }
 
         if (type is ITypeParameterSymbol typeParameterSymbol)
-        {
             type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
-        }
 
         if (type is not INamedTypeSymbol initializedType)
-        {
             return;
-        }
 
         if (await IsExclusiveAsync(document, position, cancellationToken).ConfigureAwait(false))
-        {
             context.IsExclusive = true;
-        }
 
         var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
         Contract.ThrowIfNull(enclosing);
@@ -61,10 +53,11 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
         // Sort the members by name so if we preselect one, it'll be stable
-        uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation))
-                                                   .OrderBy(m => m.Name);
+        uninitializedMembers = uninitializedMembers
+            .Where(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation))
+            .OrderBy(m => m.Name);
 
-        var firstUnitializedRequiredMember = true;
+        var firstUninitializedRequiredMember = true;
 
         foreach (var uninitializedMember in uninitializedMembers)
         {
@@ -72,17 +65,17 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
             // We'll hard select the first required member to make it a bit easier to type out an object initializer
             // with a bunch of members.
-            if (firstUnitializedRequiredMember && uninitializedMember.IsRequired())
+            if (firstUninitializedRequiredMember && uninitializedMember.IsRequired())
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect);
-                firstUnitializedRequiredMember = false;
+                firstUninitializedRequiredMember = false;
             }
 
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: EscapeIdentifier(uninitializedMember),
                 displayTextSuffix: "",
                 insertionText: null,
-                symbols: ImmutableArray.Create(uninitializedMember),
+                symbols: [uninitializedMember],
                 contextPosition: initializerLocation.SourceSpan.Start,
                 inlineDescription: uninitializedMember.IsRequired() ? FeaturesResources.Required : null,
                 rules: rules));
@@ -100,9 +93,9 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
     {
         if (!fieldOrProperty.IsStatic &&
             !fieldOrProperty.IsImplicitlyDeclared &&
+            fieldOrProperty.CanBeReferencedByName &&
             fieldOrProperty.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
-            fieldOrProperty.IsAccessibleWithin(containingType) &&
-            fieldOrProperty.CanBeReferencedByName)
+            fieldOrProperty.IsAccessibleWithin(containingType) )
         {
             if (fieldOrProperty.IsWriteableFieldOrProperty() ||
                 fieldOrProperty.ContainingType.IsAnonymousType ||

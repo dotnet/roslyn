@@ -196,14 +196,14 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
         return [];
     }
 
-    protected override bool IsInitializableFieldOrProperty(ISymbol member, INamedTypeSymbol containingType)
+    protected override bool IsInitializableFieldOrProperty(ISymbol fieldOrProperty, INamedTypeSymbol containingType)
     {
-        if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
+        if (fieldOrProperty is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
         {
             return false;
         }
 
-        return base.IsInitializableFieldOrProperty(member, containingType);
+        return base.IsInitializableFieldOrProperty(fieldOrProperty, containingType);
     }
 
     protected override string EscapeIdentifier(ISymbol symbol)
