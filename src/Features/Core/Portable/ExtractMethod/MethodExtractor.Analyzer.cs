@@ -535,6 +535,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             candidates.UnionWith(writtenInsideMap);
             candidates.UnionWith(variableDeclaredMap);
 
+            // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
+            // have been referenced in.
+            var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, SelectionResult.GetContainingScope().Span.End);
+
             foreach (var symbol in candidates)
             {
                 // We don't care about the 'this' parameter.  It will be available to an extracted method already.
@@ -588,7 +592,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     continue;
                 }
 
-                var type = GetSymbolType(model, symbol);
+                var type = GetSymbolType(model, symbol, analysisRange);
                 if (type == null)
                 {
                     continue;
@@ -707,7 +711,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             return type.Equals(SelectionResult.GetContainingScopeType());
         }
 
-        private ITypeSymbol? GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
+        private ITypeSymbol? GetSymbolType(
+            SemanticModel semanticModel,
+            ISymbol symbol,
+            TextSpan analysisRange)
         {
             var type = symbol switch
             {
@@ -728,17 +735,13 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
-            // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
-            // have been referenced in.
-            var span = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, SelectionResult.GetContainingScope().Span.End);
-
             // For Extract-Method we don't care about analyzing the declaration of this variable. For example, even if
             // it was initially assigned 'null' for the purposes of determining the type of it for a return value, all
             // we care is if it is null at the end of the selection.  If it is only assigned non-null values, for
             // example, we want to treat it as non-null.
             if (selectionOperation is not null &&
                 NullableHelpers.IsSymbolAssignedPossiblyNullValue(
-                    this.SemanticFacts, semanticModel, selectionOperation, symbol, span, includeDeclaration: false, this.CancellationToken) == false)
+                    this.SemanticFacts, semanticModel, selectionOperation, symbol, analysisRange, includeDeclaration: false, this.CancellationToken) == false)
             {
                 return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
             }
