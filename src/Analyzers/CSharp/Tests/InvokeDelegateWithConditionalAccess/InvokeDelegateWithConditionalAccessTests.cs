@@ -32,8 +32,8 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
 
                 void Goo()
                 {
-                    var v = a;
-                    [||]if (v != null)
+                    [||]var v = a;
+                    if (v != null)
                     {
                         v();
                     }
