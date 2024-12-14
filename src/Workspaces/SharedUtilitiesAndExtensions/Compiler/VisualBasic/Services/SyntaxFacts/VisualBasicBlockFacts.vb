@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Overrides Function GetImmediateParentExecutableBlockForStatement(statement As StatementSyntax) As SyntaxNode
-            Throw New NotImplementedException()
+            Return If(IsExecutableBlock(statement.Parent), statement.Parent, Nothing)
         End Function
 
         Public Overrides Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of StatementSyntax)

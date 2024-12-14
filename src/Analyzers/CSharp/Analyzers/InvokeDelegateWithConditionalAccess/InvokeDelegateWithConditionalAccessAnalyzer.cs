@@ -226,12 +226,8 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
         cancellationToken.ThrowIfCancellationRequested();
 
         // look for the form "if (a != null)" or "if (null != a)"
-        var parentBlock = ifStatement.Parent is GlobalStatementSyntax globalStatement
-            ? globalStatement.Parent
-            : ifStatement.Parent;
-
-        var blockFacts = CSharpBlockFacts.Instance;
-        if (!blockFacts.IsExecutableBlock(parentBlock))
+        var parentBlock = CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(ifStatement);
+        if (parentBlock is null)
             return false;
 
         if (!IsNullCheckExpression(condition.Left, condition.Right) &&
@@ -262,7 +258,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
             return false;
 
         // Now make sure the previous statement is "var a = ..."
-        var blockStatements = blockFacts.GetExecutableBlockStatements(parentBlock);
+        var blockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlock);
         var ifIndex = blockStatements.IndexOf(ifStatement);
         if (ifIndex == 0)
             return false;
