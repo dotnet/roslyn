@@ -78,7 +78,7 @@ internal static class NullableHelpers
                     // IsSymbolReferencedByOperation will ensure that the reference is the target of the assignment.
                     //
                     // Note: we care about the value after the assignment, so we have to check the RHS to see if maybe-null
-                    // is flowing in.  In other workd  `currentlyNotNull = maybeNUll;` will be maybe-null *after* the
+                    // is flowing in.  In other  words `currentlyNotNull = maybeNUll;` will be maybe-null *after* the
                     // assignment. and should cause our caller to keep the type as nullable.
                     var typeInfo = semanticModel.GetTypeInfo(assignmentOperation.Value.Syntax, cancellationToken);
                     if (IsMaybeNull(typeInfo))
