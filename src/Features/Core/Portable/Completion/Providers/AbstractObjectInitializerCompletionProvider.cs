@@ -52,11 +52,9 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         Contract.ThrowIfNull(enclosing);
 
         // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
-        IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
-        members = members.Where(m => IsInitializable(m, enclosing) &&
-                                     m.CanBeReferencedByName &&
-                                     IsLegalFieldOrProperty(m) &&
-                                     !m.IsImplicitlyDeclared);
+        var members = semanticModel
+            .LookupSymbols(position, initializedType)
+            .Where(m => IsInitializableFieldOrProperty(m, enclosing));
 
         // Filter out those members that have already been typed
         var alreadyTypedMembers = GetInitializedMembers(semanticModel.SyntaxTree, position, cancellationToken);
@@ -96,88 +94,82 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
     protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
-    private static bool IsLegalFieldOrProperty(ISymbol symbol)
-    {
-        return symbol.IsWriteableFieldOrProperty()
-            || symbol.ContainingType.IsAnonymousType
-            || CanSupportObjectInitializer(symbol);
-    }
-
     private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-    protected virtual bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
+    protected virtual bool IsInitializableFieldOrProperty(ISymbol fieldOrProperty, INamedTypeSymbol containingType)
     {
-        return
-            !member.IsStatic &&
-            member.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
-            member.IsAccessibleWithin(containingType);
-    }
-
-    private static bool CanSupportObjectInitializer(ISymbol symbol)
-    {
-        Debug.Assert(!symbol.IsWriteableFieldOrProperty(), "Assertion failed - expected writable field/property check before calling this method.");
-
-        if (symbol is IFieldSymbol fieldSymbol)
+        if (!fieldOrProperty.IsStatic &&
+            !fieldOrProperty.IsImplicitlyDeclared &&
+            fieldOrProperty.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
+            fieldOrProperty.IsAccessibleWithin(containingType) &&
+            fieldOrProperty.CanBeReferencedByName)
         {
-            return MemberTypeCanSupportObjectInitializer(fieldSymbol.Type);
-        }
-        else if (symbol is IPropertySymbol propertySymbol)
-        {
-            return MemberTypeCanSupportObjectInitializer(propertySymbol.Type);
-        }
-
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    private static bool MemberTypeCanSupportObjectInitializer(ITypeSymbol type)
-    {
-        // NOTE: While in C# it is legal to write 'Member = {}' on a member of any of
-        // the ruled out types below, it has no effects and is thus a needless recommendation
-        // Example of the above case:
-        /*
-            class C
+            if (fieldOrProperty.IsWriteableFieldOrProperty() ||
+                fieldOrProperty.ContainingType.IsAnonymousType ||
+                CanSupportObjectInitializer(fieldOrProperty))
             {
-                string S { get; }
+                return true;
+            }
+        }
+
+        return false;
+
+        static bool CanSupportObjectInitializer(ISymbol fieldOrProperty)
+        {
+            Debug.Assert(!fieldOrProperty.IsWriteableFieldOrProperty(), "Assertion failed - expected writable field/property check before calling this method.");
+
+            return MemberTypeCanSupportObjectInitializer(fieldOrProperty switch
+            {
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                _ => throw ExceptionUtilities.Unreachable()
+            });
+        }
+
+        static bool MemberTypeCanSupportObjectInitializer(ITypeSymbol type)
+        {
+            // NOTE: While in C# it is legal to write 'Member = {}' on a member of any of
+            // the ruled out types below, it has no effects and is thus a needless recommendation
+            // Example of the above case:
+            /*
+                class C
+                {
+                    string S { get; }
+                }
+
+                new C()
+                {
+                    S = {},
+                };
+            */
+
+            // We avoid some types that are common and easy to rule out
+            var definition = type.OriginalDefinition;
+            switch (definition.SpecialType)
+            {
+                case SpecialType.System_Enum:
+                case SpecialType.System_String:
+                case SpecialType.System_Object:
+                case SpecialType.System_Delegate:
+                case SpecialType.System_MulticastDelegate:
+
+                // We cannot use collection initializers in symbols of type `System.Array` (as opposed to actual
+                // instantiations like `int[]`).
+                case SpecialType.System_Array:
+
+                // We cannot add to an enumerable or enumerator
+                // so we cannot use a collection initializer
+                case SpecialType.System_Collections_IEnumerable:
+                case SpecialType.System_Collections_IEnumerator:
+                case SpecialType.System_Collections_Generic_IEnumerable_T:
+                case SpecialType.System_Collections_Generic_IEnumerator_T:
+                    return false;
             }
 
-            new C()
-            {
-                S = {},
-            };
-        */
-
-        // We avoid some types that are common and easy to rule out
-        var definition = type.OriginalDefinition;
-        switch (definition.SpecialType)
-        {
-            case SpecialType.System_Enum:
-            case SpecialType.System_String:
-            case SpecialType.System_Object:
-            case SpecialType.System_Delegate:
-            case SpecialType.System_MulticastDelegate:
-
-            // We cannot use collection initializers in symbols of type Array,
-            // but for symbols of an array type with a specified rank we can
-            // So, `Array x` is ineligible for a collection initializer, but `int[,] x` is eligible
-            // For example, assuming `int[,] Array2D`:
-            // Array2D = { [0, 0] = value, [0, 1] = value1 },
-            case SpecialType.System_Array:
-
-            // We cannot add to an enumerable or enumerator
-            // so we cannot use a collection initializer
-            case SpecialType.System_Collections_IEnumerable:
-            case SpecialType.System_Collections_IEnumerator:
-            case SpecialType.System_Collections_Generic_IEnumerable_T:
-            case SpecialType.System_Collections_Generic_IEnumerator_T:
-                return false;
+            // - Delegate types have no settable members, which is the case for Delegate and MulticastDelegate too
+            // - Non-settable struct members cannot be used in object initializers
+            // - Pointers and function pointers do not have accessible members
+            return type.TypeKind is not (TypeKind.Delegate or TypeKind.Struct or TypeKind.FunctionPointer or TypeKind.Pointer);
         }
-
-        // - Delegate types have no settable members, which is the case for Delegate and MulticastDelegate too
-        // - Non-settable struct members cannot be used in object initializers
-        // - Pointers and function pointers do not have accessible members
-        return !type.IsDelegateType()
-            && !type.IsStructType()
-            && !type.IsFunctionPointerType()
-            && type.TypeKind != TypeKind.Pointer;
     }
 }
