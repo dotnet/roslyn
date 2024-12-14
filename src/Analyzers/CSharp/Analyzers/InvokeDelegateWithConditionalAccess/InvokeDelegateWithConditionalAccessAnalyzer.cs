@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -106,7 +107,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
     }
 
     private bool TryCheckSingleIfStatementForm(
-        SyntaxNodeAnalysisContext syntaxContext,
+        SyntaxNodeAnalysisContext context,
         IfStatementSyntax ifStatement,
         BinaryExpressionSyntax condition,
         ExpressionStatementSyntax expressionStatement,
@@ -121,12 +122,12 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
                 ? condition.Right
                 : condition.Left;
 
-            if (InvocationExpressionIsEquivalent(expr, invocationExpression))
+            if (InvocationExpressionIsEquivalent(expr))
             {
                 // Looks good!
-                var tree = syntaxContext.SemanticModel.SyntaxTree;
+                var tree = context.SemanticModel.SyntaxTree;
                 ReportDiagnostics(
-                    syntaxContext,
+                    context,
                     ifStatement,
                     ifStatement,
                     expressionStatement,
@@ -140,7 +141,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
 
         return false;
 
-        static bool InvocationExpressionIsEquivalent(ExpressionSyntax expression, InvocationExpressionSyntax invocationExpression)
+        bool InvocationExpressionIsEquivalent(ExpressionSyntax expression)
         {
             // expr(...)
             if (SyntaxFactory.AreEquivalent(expression, invocationExpression.Expression, topLevel: false))
@@ -150,7 +151,10 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
             if (invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression &&
                 SyntaxFactory.AreEquivalent(expression, memberAccessExpression.Expression, topLevel: false))
             {
-                return true;
+                // note: in this case, we have to make sure we're actually calling on some delegate type, not a random
+                // class with an 'Invoke' method.
+                var type = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken).Type;
+                return type.IsDelegateType();
             }
 
             return false;

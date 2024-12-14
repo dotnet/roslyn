@@ -67,7 +67,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             """
             var v = () => {};
             v?.Invoke();
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            """);
     }
 
     [Fact]
@@ -1139,7 +1139,7 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             """
             var v = () => {};
             v?.Invoke();
-            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50976")]
@@ -1156,6 +1156,24 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                         [||]func();
                     }
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
+    public async Task TestInvokeMethodOnNonDelegate()
+    {
+        await TestMissingAsync(
+            """
+            var v = new C();
+            [||]if (v != null)
+            {
+                v.Invoke();
+            }
+                        
+            class C
+            {
+                public void Invoke() { }
             }
             """);
     }
