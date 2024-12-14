@@ -22,7 +22,7 @@ public static partial class SymbolFinder
     /// <param name="symbol">The symbol to find references to.</param>
     /// <param name="solution">The solution to find references within.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
-    public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+    public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
         ISymbol symbol,
         Solution solution,
         CancellationToken cancellationToken = default)
@@ -32,10 +32,10 @@ public static partial class SymbolFinder
         if (solution is null)
             throw new System.ArgumentNullException(nameof(solution));
 
-        return FindReferencesAsync(symbol, solution, FindReferencesSearchOptions.Default, cancellationToken);
+        return await FindReferencesAsync(symbol, solution, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+    internal static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
         ISymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,

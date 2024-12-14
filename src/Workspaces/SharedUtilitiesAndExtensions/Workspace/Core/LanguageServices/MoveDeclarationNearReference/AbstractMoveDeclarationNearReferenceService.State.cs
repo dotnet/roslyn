@@ -88,7 +88,8 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
                 return false;
             }
 
-            var findReferencesResult = await SymbolFinder.FindReferencesAsync(LocalSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var findReferencesResult = await SymbolFinder.FindReferencesAsync(
+                LocalSymbol, document.Project.Solution, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var findReferencesList = findReferencesResult.ToList();
             if (findReferencesList.Count != 1)
             {
