@@ -204,7 +204,22 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
         AssertEx.EqualOrDiff("""
             <NamingPreferencesInfo SerializationVersion="5">
               <SymbolSpecifications>
-                <SymbolSpecification ID="0" Name="symbols1">
+                <SymbolSpecification ID="0" Name="symbols0">
+                  <ApplicableSymbolKindList>
+                    <MethodKind>Ordinary</MethodKind>
+                  </ApplicableSymbolKindList>
+                  <ApplicableAccessibilityList>
+                    <AccessibilityKind>NotApplicable</AccessibilityKind>
+                    <AccessibilityKind>Public</AccessibilityKind>
+                    <AccessibilityKind>Internal</AccessibilityKind>
+                    <AccessibilityKind>Private</AccessibilityKind>
+                    <AccessibilityKind>Protected</AccessibilityKind>
+                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
+                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+                  </ApplicableAccessibilityList>
+                  <RequiredModifierList />
+                </SymbolSpecification>
+                <SymbolSpecification ID="1" Name="symbols1">
                   <ApplicableSymbolKindList>
                     <MethodKind>Ordinary</MethodKind>
                     <SymbolKind>Field</SymbolKind>
@@ -220,29 +235,14 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
                   </ApplicableAccessibilityList>
                   <RequiredModifierList />
                 </SymbolSpecification>
-                <SymbolSpecification ID="1" Name="symbols0">
-                  <ApplicableSymbolKindList>
-                    <MethodKind>Ordinary</MethodKind>
-                  </ApplicableSymbolKindList>
-                  <ApplicableAccessibilityList>
-                    <AccessibilityKind>NotApplicable</AccessibilityKind>
-                    <AccessibilityKind>Public</AccessibilityKind>
-                    <AccessibilityKind>Internal</AccessibilityKind>
-                    <AccessibilityKind>Private</AccessibilityKind>
-                    <AccessibilityKind>Protected</AccessibilityKind>
-                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
-                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-                  </ApplicableAccessibilityList>
-                  <RequiredModifierList />
-                </SymbolSpecification>
               </SymbolSpecifications>
               <NamingStyles>
-                <NamingStyle ID="2" Name="style1" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
-                <NamingStyle ID="3" Name="style0" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+                <NamingStyle ID="2" Name="style0" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+                <NamingStyle ID="3" Name="style1" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
               </NamingStyles>
               <NamingRules>
-                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Error" />
                 <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="2" EnforcementLevel="Error" />
+                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Error" />
               </NamingRules>
             </NamingPreferencesInfo>
             """,
