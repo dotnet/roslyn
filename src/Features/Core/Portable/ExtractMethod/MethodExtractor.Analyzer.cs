@@ -505,30 +505,30 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// variable we don't understand has <see cref="VariableStyle.None"/></param>
         private void GenerateVariableInfoMap(
             bool bestEffort,
-            SemanticModel model,
+            SemanticModel semanticModel,
             DataFlowAnalysis dataFlowAnalysisData,
             Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
             bool isInPrimaryConstructorBaseType,
             out Dictionary<ISymbol, VariableInfo> variableInfoMap,
             out List<ISymbol> failedVariables)
         {
-            Contract.ThrowIfNull(model);
+            Contract.ThrowIfNull(semanticModel);
             Contract.ThrowIfNull(dataFlowAnalysisData);
 
             variableInfoMap = [];
             failedVariables = [];
 
             // create map of each data
-            var capturedMap = new HashSet<ISymbol>(dataFlowAnalysisData.Captured);
-            var dataFlowInMap = new HashSet<ISymbol>(dataFlowAnalysisData.DataFlowsIn);
-            var dataFlowOutMap = new HashSet<ISymbol>(dataFlowAnalysisData.DataFlowsOut);
-            var alwaysAssignedMap = new HashSet<ISymbol>(dataFlowAnalysisData.AlwaysAssigned);
-            var variableDeclaredMap = new HashSet<ISymbol>(dataFlowAnalysisData.VariablesDeclared);
-            var readInsideMap = new HashSet<ISymbol>(dataFlowAnalysisData.ReadInside);
-            var writtenInsideMap = new HashSet<ISymbol>(dataFlowAnalysisData.WrittenInside);
-            var readOutsideMap = new HashSet<ISymbol>(dataFlowAnalysisData.ReadOutside);
-            var writtenOutsideMap = new HashSet<ISymbol>(dataFlowAnalysisData.WrittenOutside);
-            var unsafeAddressTakenMap = new HashSet<ISymbol>(dataFlowAnalysisData.UnsafeAddressTaken);
+            using var _0 = GetPooledSymbolSet(dataFlowAnalysisData.Captured, out var capturedMap);
+            using var _1 = GetPooledSymbolSet(dataFlowAnalysisData.DataFlowsIn, out var dataFlowInMap);
+            using var _2 = GetPooledSymbolSet(dataFlowAnalysisData.DataFlowsOut, out var dataFlowOutMap);
+            using var _3 = GetPooledSymbolSet(dataFlowAnalysisData.AlwaysAssigned, out var alwaysAssignedMap);
+            using var _4 = GetPooledSymbolSet(dataFlowAnalysisData.VariablesDeclared, out var variableDeclaredMap);
+            using var _5 = GetPooledSymbolSet(dataFlowAnalysisData.ReadInside, out var readInsideMap);
+            using var _6 = GetPooledSymbolSet(dataFlowAnalysisData.WrittenInside, out var writtenInsideMap);
+            using var _7 = GetPooledSymbolSet(dataFlowAnalysisData.ReadOutside, out var readOutsideMap);
+            using var _8 = GetPooledSymbolSet(dataFlowAnalysisData.WrittenOutside, out var writtenOutsideMap);
+            using var _9 = GetPooledSymbolSet(dataFlowAnalysisData.UnsafeAddressTaken, out var unsafeAddressTakenMap);
 
             // gather all meaningful symbols for the span.
             var candidates = new HashSet<ISymbol>(readInsideMap);
@@ -538,6 +538,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
             // have been referenced in.
             var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, SelectionResult.GetContainingScope().Span.End);
+            var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
             foreach (var symbol in candidates)
             {
@@ -582,30 +583,22 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
                 // variable that is declared inside but never referenced outside. just ignore it and move to next one.
                 if (variableDeclared && !dataFlowOut && !readOutside && !writtenOutside)
-                {
                     continue;
-                }
 
                 // parameter defined inside of the selection (such as lambda parameter) will be ignored (bug # 10964)
                 if (symbol is IParameterSymbol && variableDeclared)
-                {
                     continue;
-                }
 
-                var type = GetSymbolType(model, symbol, analysisRange);
+                var type = GetSymbolType(symbol);
                 if (type == null)
-                {
                     continue;
-                }
 
                 // If the variable doesn't have a name, it is invalid.
                 if (symbol.Name.IsEmpty())
-                {
                     continue;
-                }
 
                 if (!TryGetVariableStyle(
-                        bestEffort, symbolMap, symbol, model, type,
+                        bestEffort, symbolMap, symbol, semanticModel, type,
                         captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
                         readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken,
                         out var variableStyle))
@@ -619,6 +612,48 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     variableInfoMap,
                     symbol,
                     CreateFromSymbol(symbol, type, variableStyle, variableDeclared));
+            }
+
+            return;
+
+            PooledDisposer<PooledHashSet<ISymbol>> GetPooledSymbolSet(ImmutableArray<ISymbol> symbols, out PooledHashSet<ISymbol> symbolSet)
+            {
+                var disposer = PooledHashSet<ISymbol>.GetInstance(out symbolSet);
+                symbolSet.AddRange(symbols);
+                return disposer;
+            }
+
+            ITypeSymbol? GetSymbolType(ISymbol symbol)
+            {
+                var type = symbol switch
+                {
+                    ILocalSymbol local => local.Type,
+                    IParameterSymbol parameter => parameter.Type,
+                    IRangeVariableSymbol rangeVariable => GetRangeVariableType(semanticModel, rangeVariable),
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                };
+
+                if (type is null)
+                    return type;
+
+                // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise we
+                // can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
+
+                if (type.NullableAnnotation is not NullableAnnotation.Annotated)
+                    return type;
+
+                // For Extract-Method we don't care about analyzing the declaration of this variable. For example, even if
+                // it was initially assigned 'null' for the purposes of determining the type of it for a return value, all
+                // we care is if it is null at the end of the selection.  If it is only assigned non-null values, for
+                // example, we want to treat it as non-null.
+                if (selectionOperation is not null &&
+                    NullableHelpers.IsSymbolAssignedPossiblyNullValue(
+                        this.SemanticFacts, semanticModel, selectionOperation, symbol, analysisRange, includeDeclaration: false, this.CancellationToken) == false)
+                {
+                    return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
+
+                return type;
             }
         }
 
@@ -709,44 +744,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             }
 
             return type.Equals(SelectionResult.GetContainingScopeType());
-        }
-
-        private ITypeSymbol? GetSymbolType(
-            SemanticModel semanticModel,
-            ISymbol symbol,
-            TextSpan analysisRange)
-        {
-            var type = symbol switch
-            {
-                ILocalSymbol local => local.Type,
-                IParameterSymbol parameter => parameter.Type,
-                IRangeVariableSymbol rangeVariable => GetRangeVariableType(semanticModel, rangeVariable),
-                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-            };
-
-            if (type is null)
-                return type;
-
-            // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise we
-            // can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
-
-            if (type.NullableAnnotation is not NullableAnnotation.Annotated)
-                return type;
-
-            var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
-
-            // For Extract-Method we don't care about analyzing the declaration of this variable. For example, even if
-            // it was initially assigned 'null' for the purposes of determining the type of it for a return value, all
-            // we care is if it is null at the end of the selection.  If it is only assigned non-null values, for
-            // example, we want to treat it as non-null.
-            if (selectionOperation is not null &&
-                NullableHelpers.IsSymbolAssignedPossiblyNullValue(
-                    this.SemanticFacts, semanticModel, selectionOperation, symbol, analysisRange, includeDeclaration: false, this.CancellationToken) == false)
-            {
-                return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-            }
-
-            return type;
         }
 
         protected static VariableStyle AlwaysReturn(VariableStyle style)
