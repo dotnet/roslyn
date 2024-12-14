@@ -84,9 +84,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
         var outermostUsing = (UsingStatementSyntax)context.Node;
         var semanticModel = context.SemanticModel;
 
-        var parentBlockLike = outermostUsing.Parent;
-        if (parentBlockLike is GlobalStatementSyntax)
-            parentBlockLike = parentBlockLike.Parent;
+        var parentBlockLike = CSharpBlockFacts.Instance.GetScopeBlockForStatement(outermostUsing);
 
         // Don't offer on a using statement that is parented by another using statement. We'll just offer on the
         // topmost using statement.
@@ -179,7 +177,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
         UsingStatementSyntax innermostUsing,
         CancellationToken cancellationToken)
     {
-        var statements = (IReadOnlyList<StatementSyntax>)CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlockLike);
+        var statements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlockLike);
         var index = statements.IndexOf(outermostUsing);
 
         return UsingValueDoesNotLeakToFollowingStatements(semanticModel, statements, index, cancellationToken) &&

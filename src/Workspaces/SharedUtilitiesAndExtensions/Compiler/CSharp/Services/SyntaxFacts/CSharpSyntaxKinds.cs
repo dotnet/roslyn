@@ -114,6 +114,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int? RefExpression => (int)SyntaxKind.RefExpression;
     public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
     public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
+    public int SimpleAssignmentExpression => (int)SyntaxKind.SimpleAssignmentExpression;
     public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
     public int? SuppressNullableWarningExpression => (int)SyntaxKind.SuppressNullableWarningExpression;
     public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;

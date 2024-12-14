@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private SafeContext GetFieldRefEscape(BoundFieldAccess fieldAccess, SafeContext scopeOfTheContainingExpression)
+        private SafeContext GetFieldRefEscape(BoundFieldAccess fieldAccess, SafeContext localScopeDepth)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
 
@@ -1484,12 +1484,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
                 if (fieldSymbol.RefKind != RefKind.None)
                 {
-                    return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+                    return GetValEscape(fieldAccess.ReceiverOpt, localScopeDepth);
                 }
             }
 
             // for other fields defer to the receiver.
-            return GetRefEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+            return GetRefEscape(fieldAccess.ReceiverOpt, localScopeDepth);
         }
 
         private bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal SafeContext GetInterpolatedStringHandlerConversionEscapeScope(
             BoundExpression expression,
-            SafeContext scopeOfTheContainingExpression)
+            SafeContext localScopeDepth)
         {
             var data = expression.GetInterpolatedStringHandlerData();
 #if DEBUG
@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var previousVisited = _visited;
             _visited = null;
 #endif
-            SafeContext escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+            SafeContext escapeScope = GetValEscape(data.Construction, localScopeDepth);
 #if DEBUG
             _visited = previousVisited;
 #endif
@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var argument in arguments)
             {
-                SafeContext argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
+                SafeContext argEscape = GetValEscape(argument, localScopeDepth);
                 escapeScope = escapeScope.Intersect(argEscape);
             }
 
@@ -1951,7 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not have two ref/val variants of this.
         ///       
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
+        /// NOTE: we need localScopeDepth as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
         private SafeContext GetInvocationEscapeScope(
@@ -1962,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            SafeContext scopeOfTheContainingExpression,
+            SafeContext localScopeDepth,
             bool isRefEscape
         )
         {
@@ -1972,7 +1972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodInfo.UseUpdatedEscapeRules)
             {
-                return GetInvocationEscapeWithUpdatedRules(methodInfo, receiver, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
+                return GetInvocationEscapeWithUpdatedRules(methodInfo, receiver, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, localScopeDepth, isRefEscape);
             }
 
             // SPEC: (also applies to the CheckInvocationEscape counterpart)
@@ -2016,13 +2016,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - val escape of all byval arguments  (refs cannot be wrapped into values, so their ref escape is irrelevant, only use val escapes)
                     SafeContext argumentEscape = (isRefEscape, argumentIsRefEscape) switch
                     {
-                        (true, true) => GetRefEscape(argument, scopeOfTheContainingExpression),
-                        (false, false) => GetValEscape(argument, scopeOfTheContainingExpression),
+                        (true, true) => GetRefEscape(argument, localScopeDepth),
+                        (false, false) => GetValEscape(argument, localScopeDepth),
                         _ => escapeScope
                     };
 
                     escapeScope = escapeScope.Intersect(argumentEscape);
-                    if (scopeOfTheContainingExpression.IsConvertibleTo(escapeScope))
+                    if (localScopeDepth.IsConvertibleTo(escapeScope))
                     {
                         // can't get any worse
                         return escapeScope;
@@ -2037,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check receiver if ref-like
             if (methodInfo.Method?.RequiresInstanceReceiver == true && receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
             {
-                escapeScope = escapeScope.Intersect(GetValEscape(receiver, scopeOfTheContainingExpression));
+                escapeScope = escapeScope.Intersect(GetValEscape(receiver, localScopeDepth));
             }
 
             return escapeScope;
@@ -2051,7 +2051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            SafeContext scopeOfTheContainingExpression,
+            SafeContext localScopeDepth,
             bool isRefEscape)
         {
             //by default it is safe to escape
@@ -2083,11 +2083,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isArgumentRefEscape == isRefEscape))
                 {
                     SafeContext argEscape = isArgumentRefEscape ?
-                        GetRefEscape(argument, scopeOfTheContainingExpression) :
-                        GetValEscape(argument, scopeOfTheContainingExpression);
+                        GetRefEscape(argument, localScopeDepth) :
+                        GetValEscape(argument, localScopeDepth);
 
                     escapeScope = escapeScope.Intersect(argEscape);
-                    if (scopeOfTheContainingExpression.IsConvertibleTo(escapeScope))
+                    if (localScopeDepth.IsConvertibleTo(escapeScope))
                     {
                         // can't get any worse
                         break;
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// 
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
+        /// NOTE: we need localScopeDepth as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
         private bool CheckInvocationEscape(
@@ -2774,12 +2774,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            SafeContext scopeOfTheContainingExpression,
+            SafeContext localScopeDepth,
             BindingDiagnosticBag diagnostics)
         {
             if (methodInfo.UseUpdatedEscapeRules)
             {
-                return CheckInvocationArgMixingWithUpdatedRules(syntax, methodInfo, receiverOpt, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
+                return CheckInvocationArgMixingWithUpdatedRules(syntax, methodInfo, receiverOpt, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, localScopeDepth, diagnostics);
             }
 
             // SPEC:
@@ -2795,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // widest possible escape via writeable ref-like receiver or ref/out argument.
-            SafeContext escapeTo = scopeOfTheContainingExpression;
+            SafeContext escapeTo = localScopeDepth;
 
             // collect all writeable ref-like arguments, including receiver
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
@@ -2827,7 +2827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && !argument.IsDiscardExpression()
                         && argument.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                     {
-                        escapeTo = escapeTo.Union(GetValEscape(argument, scopeOfTheContainingExpression));
+                        escapeTo = escapeTo.Union(GetValEscape(argument, localScopeDepth));
                     }
                 }
 
@@ -2840,8 +2840,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // in the old rules, we assume that refs cannot escape into ref struct variables.
                     // e.g. in `dest = M(ref arg)`, we assume `ref arg` will not escape into `dest`, but `arg` might.
-                    inferredDestinationValEscape = inferredDestinationValEscape.Intersect(GetValEscape(argument, scopeOfTheContainingExpression));
-                    if (!hasMixingError && !CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics))
+                    inferredDestinationValEscape = inferredDestinationValEscape.Intersect(GetValEscape(argument, localScopeDepth));
+                    if (!hasMixingError && !CheckValEscape(argument.Syntax, argument, localScopeDepth, escapeTo, false, diagnostics))
                     {
                         string parameterName = GetInvocationParameterName(parameter);
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
@@ -2874,7 +2874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            SafeContext scopeOfTheContainingExpression,
+            SafeContext localScopeDepth,
             BindingDiagnosticBag diagnostics)
         {
             var mixableArguments = ArrayBuilder<MixableDestination>.GetInstance();
@@ -2894,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valid = true;
             foreach (var mixableArg in mixableArguments)
             {
-                var toArgEscape = GetValEscape(mixableArg.Argument, scopeOfTheContainingExpression);
+                var toArgEscape = GetValEscape(mixableArg.Argument, localScopeDepth);
                 foreach (var (fromParameter, fromArg, escapeKind, isRefEscape) in escapeValues)
                 {
                     // This checks to see if the EscapeValue could ever be assigned to this argument based 
@@ -2906,8 +2906,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     valid = isRefEscape
-                        ? CheckRefEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics)
-                        : CheckValEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics);
+                        ? CheckRefEscape(fromArg.Syntax, fromArg, localScopeDepth, toArgEscape, checkingReceiver: false, diagnostics)
+                        : CheckValEscape(fromArg.Syntax, fromArg, localScopeDepth, toArgEscape, checkingReceiver: false, diagnostics);
 
                     if (!valid)
                     {
@@ -2937,8 +2937,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var (_, fromArg, _, isRefEscape) in escapeValues)
                 {
                     inferredDestinationValEscape = inferredDestinationValEscape.Intersect(isRefEscape
-                        ? GetRefEscape(fromArg, scopeOfTheContainingExpression)
-                        : GetValEscape(fromArg, scopeOfTheContainingExpression));
+                        ? GetRefEscape(fromArg, localScopeDepth)
+                        : GetValEscape(fromArg, localScopeDepth));
                 }
 
                 foreach (var argument in argsOpt)
@@ -3310,11 +3310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Computes the widest scope depth to which the given expression can escape by reference.
         /// 
-        /// NOTE: in a case if expression cannot be passed by an alias (RValue and similar), the ref-escape is scopeOfTheContainingExpression
+        /// NOTE: in a case if expression cannot be passed by an alias (RValue and similar), the ref-escape is localScopeDepth
         ///       There are few cases where RValues are permitted to be passed by reference which implies that a temporary local proxy is passed instead.
         ///       We reflect such behavior by constraining the escape value to the narrowest scope possible. 
         /// </summary>
-        internal SafeContext GetRefEscape(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
+        internal SafeContext GetRefEscape(BoundExpression expr, SafeContext localScopeDepth)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -3335,7 +3335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // constants/literals cannot ref-escape current scope
             if (expr.ConstantValueOpt != null)
             {
-                return scopeOfTheContainingExpression;
+                return localScopeDepth;
             }
 
             // cover case that cannot refer to local state
@@ -3386,15 +3386,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conditional.IsRef)
                     {
                         // ref conditional defers to its operands
-                        return GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression)
-                            .Intersect(GetRefEscape(conditional.Alternative, scopeOfTheContainingExpression));
+                        return GetRefEscape(conditional.Consequence, localScopeDepth)
+                            .Intersect(GetRefEscape(conditional.Alternative, localScopeDepth));
                     }
 
                     // otherwise it is an RValue
                     break;
 
                 case BoundKind.FieldAccess:
-                    return GetFieldRefEscape((BoundFieldAccess)expr, scopeOfTheContainingExpression);
+                    return GetFieldRefEscape((BoundFieldAccess)expr, localScopeDepth);
 
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
@@ -3413,7 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // for other events defer to the receiver.
-                    return GetRefEscape(eventAccess.ReceiverOpt, scopeOfTheContainingExpression);
+                    return GetRefEscape(eventAccess.ReceiverOpt, localScopeDepth);
 
                 case BoundKind.Call:
                     {
@@ -3433,7 +3433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
                             call.ArgsToParamsOpt,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: true);
                     }
 
@@ -3455,7 +3455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ptrInvocation.Arguments,
                             ptrInvocation.ArgumentRefKindsOpt,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: true);
                     }
 
@@ -3472,7 +3472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
                             indexerAccess.ArgsToParamsOpt,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: true);
                     }
 
@@ -3494,7 +3494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
                                 indexerAccess.ArgsToParamsOpt,
-                                scopeOfTheContainingExpression,
+                                localScopeDepth,
                                 isRefEscape: true);
 
                         case BoundArrayAccess:
@@ -3516,7 +3516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
                                 call.ArgsToParamsOpt,
-                                scopeOfTheContainingExpression,
+                                localScopeDepth,
                                 isRefEscape: true);
 
                         default:
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             arguments,
                             refKinds,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: true);
                     }
 
@@ -3564,7 +3564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default,
                         default,
                         default,
-                        scopeOfTheContainingExpression,
+                        localScopeDepth,
                         isRefEscape: true);
 
                 case BoundKind.AssignmentOperator:
@@ -3576,7 +3576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    return GetRefEscape(assignment.Left, scopeOfTheContainingExpression);
+                    return GetRefEscape(assignment.Left, localScopeDepth);
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
@@ -3614,7 +3614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
-            return scopeOfTheContainingExpression;
+            return localScopeDepth;
         }
 
         /// <summary>
@@ -3991,19 +3991,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal SafeContext GetBroadestValEscape(BoundTupleExpression expr, SafeContext scopeOfTheContainingExpression)
+        internal SafeContext GetBroadestValEscape(BoundTupleExpression expr, SafeContext localScopeDepth)
         {
-            SafeContext broadest = scopeOfTheContainingExpression;
+            SafeContext broadest = localScopeDepth;
             foreach (var element in expr.Arguments)
             {
                 SafeContext valEscape;
                 if (element is BoundTupleExpression te)
                 {
-                    valEscape = GetBroadestValEscape(te, scopeOfTheContainingExpression);
+                    valEscape = GetBroadestValEscape(te, localScopeDepth);
                 }
                 else
                 {
-                    valEscape = GetValEscape(element, scopeOfTheContainingExpression);
+                    valEscape = GetValEscape(element, localScopeDepth);
                 }
 
                 broadest = broadest.Union(valEscape);
@@ -4017,7 +4017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: unless the type of expression is ref-like, the result is Binder.ExternalScope since ordinary values can always be returned from methods. 
         /// </summary>
-        internal SafeContext GetValEscape(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
+        internal SafeContext GetValEscape(BoundExpression expr, SafeContext localScopeDepth)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -4066,7 +4066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     var tupleLiteral = (BoundTupleExpression)expr;
-                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
+                    return GetTupleValEscape(tupleLiteral.Arguments, localScopeDepth);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -4098,7 +4098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    var consEscape = GetValEscape(conditional.Consequence, scopeOfTheContainingExpression);
+                    var consEscape = GetValEscape(conditional.Consequence, localScopeDepth);
 
                     if (conditional.IsRef)
                     {
@@ -4108,13 +4108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // val conditional gets narrowest of its operands
-                    return consEscape.Intersect(GetValEscape(conditional.Alternative, scopeOfTheContainingExpression));
+                    return consEscape.Intersect(GetValEscape(conditional.Alternative, localScopeDepth));
 
                 case BoundKind.NullCoalescingOperator:
                     var coalescingOp = (BoundNullCoalescingOperator)expr;
 
-                    return GetValEscape(coalescingOp.LeftOperand, scopeOfTheContainingExpression)
-                        .Intersect(GetValEscape(coalescingOp.RightOperand, scopeOfTheContainingExpression));
+                    return GetValEscape(coalescingOp.LeftOperand, localScopeDepth)
+                        .Intersect(GetValEscape(coalescingOp.RightOperand, localScopeDepth));
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
@@ -4127,7 +4127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // for ref-like fields defer to the receiver.
-                    return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+                    return GetValEscape(fieldAccess.ReceiverOpt, localScopeDepth);
 
                 case BoundKind.Call:
                     {
@@ -4141,7 +4141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
                             call.ArgsToParamsOpt,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: false);
                     }
 
@@ -4157,7 +4157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
                         argsToParamsOpt: default,
-                        scopeOfTheContainingExpression,
+                        localScopeDepth,
                         isRefEscape: false);
 
                 case BoundKind.IndexerAccess:
@@ -4173,7 +4173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
                             indexerAccess.ArgsToParamsOpt,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: false);
                     }
 
@@ -4195,12 +4195,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
                                 indexerAccess.ArgsToParamsOpt,
-                                scopeOfTheContainingExpression,
+                                localScopeDepth,
                                 isRefEscape: false);
 
                         case BoundArrayAccess:
                             // only possible in error cases (if possible at all)
-                            return scopeOfTheContainingExpression;
+                            return localScopeDepth;
 
                         case BoundCall call:
                             return GetInvocationEscapeScope(
@@ -4211,7 +4211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
                                 call.ArgsToParamsOpt,
-                                scopeOfTheContainingExpression,
+                                localScopeDepth,
                                 isRefEscape: false);
 
                         default:
@@ -4234,7 +4234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             arguments,
                             refKinds,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: false);
                     }
 
@@ -4250,7 +4250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default,
                         default,
                         default,
-                        scopeOfTheContainingExpression,
+                        localScopeDepth,
                         isRefEscape: false);
 
                 case BoundKind.ObjectCreationExpression:
@@ -4266,13 +4266,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             objectCreation.Arguments,
                             objectCreation.ArgumentRefKindsOpt,
                             objectCreation.ArgsToParamsOpt,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: false);
 
                         var initializerOpt = objectCreation.InitializerExpressionOpt;
                         if (initializerOpt != null)
                         {
-                            escape = escape.Intersect(GetValEscape(initializerOpt, scopeOfTheContainingExpression));
+                            escape = escape.Intersect(GetValEscape(initializerOpt, localScopeDepth));
                         }
 
                         return escape;
@@ -4287,7 +4287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var initializerOpt = newT.InitializerExpressionOpt;
                         if (initializerOpt != null)
                         {
-                            escape = escape.Intersect(GetValEscape(initializerOpt, scopeOfTheContainingExpression));
+                            escape = escape.Intersect(GetValEscape(initializerOpt, localScopeDepth));
                         }
 
                         return escape;
@@ -4296,8 +4296,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.WithExpression:
                     var withExpression = (BoundWithExpression)expr;
 
-                    return GetValEscape(withExpression.Receiver, scopeOfTheContainingExpression)
-                        .Intersect(GetValEscape(withExpression.InitializerExpression, scopeOfTheContainingExpression));
+                    return GetValEscape(withExpression.Receiver, localScopeDepth)
+                        .Intersect(GetValEscape(withExpression.InitializerExpression, localScopeDepth));
 
                 case BoundKind.UnaryOperator:
                     var unaryOperator = (BoundUnaryOperator)expr;
@@ -4311,11 +4311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argsOpt: [unaryOperator.Operand],
                             argRefKindsOpt: default,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                            localScopeDepth: localScopeDepth,
                             isRefEscape: false);
                     }
 
-                    return GetValEscape(unaryOperator.Operand, scopeOfTheContainingExpression);
+                    return GetValEscape(unaryOperator.Operand, localScopeDepth);
 
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
@@ -4323,7 +4323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
-                        return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
+                        return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, localScopeDepth);
                     }
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
@@ -4347,7 +4347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             arguments,
                             refKinds,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression,
+                            localScopeDepth,
                             isRefEscape: false);
                     }
 
@@ -4364,24 +4364,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argsOpt: [conversion.Operand],
                             argRefKindsOpt: default,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                            localScopeDepth: localScopeDepth,
                             isRefEscape: false);
                     }
 
-                    return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
+                    return GetValEscape(conversion.Operand, localScopeDepth);
 
                 case BoundKind.AssignmentOperator:
                     // https://github.com/dotnet/roslyn/issues/73549:
                     // We do not have a test that demonstrates that the statement below makes a difference.
-                    // If 'scopeOfTheContainingExpression' is always returned, not a single test fails.
+                    // If 'localScopeDepth' is always returned, not a single test fails.
                     // Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
-                    return GetValEscape(((BoundAssignmentOperator)expr).Right, scopeOfTheContainingExpression);
+                    return GetValEscape(((BoundAssignmentOperator)expr).Right, localScopeDepth);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
-                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, scopeOfTheContainingExpression);
+                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, localScopeDepth);
 
                 case BoundKind.IncrementOperator:
-                    return GetValEscape(((BoundIncrementOperator)expr).Operand, scopeOfTheContainingExpression);
+                    return GetValEscape(((BoundIncrementOperator)expr).Operand, localScopeDepth);
 
                 case BoundKind.CompoundAssignmentOperator:
                     var compound = (BoundCompoundAssignmentOperator)expr;
@@ -4396,12 +4396,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argsOpt: [compound.Left, compound.Right],
                             argRefKindsOpt: default,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                            localScopeDepth: localScopeDepth,
                             isRefEscape: false);
                     }
 
-                    return GetValEscape(compound.Left, scopeOfTheContainingExpression)
-                        .Intersect(GetValEscape(compound.Right, scopeOfTheContainingExpression));
+                    return GetValEscape(compound.Left, localScopeDepth)
+                        .Intersect(GetValEscape(compound.Right, localScopeDepth));
 
                 case BoundKind.BinaryOperator:
                     var binary = (BoundBinaryOperator)expr;
@@ -4416,18 +4416,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argsOpt: [binary.Left, binary.Right],
                             argRefKindsOpt: default,
                             argsToParamsOpt: default,
-                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                            localScopeDepth: localScopeDepth,
                             isRefEscape: false);
                     }
 
-                    return GetValEscape(binary.Left, scopeOfTheContainingExpression)
-                        .Intersect(GetValEscape(binary.Right, scopeOfTheContainingExpression));
+                    return GetValEscape(binary.Left, localScopeDepth)
+                        .Intersect(GetValEscape(binary.Right, localScopeDepth));
 
                 case BoundKind.RangeExpression:
                     var range = (BoundRangeExpression)expr;
 
-                    return (range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : SafeContext.CallingMethod)
-                        .Intersect(range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : SafeContext.CallingMethod);
+                    return (range.LeftOperandOpt is { } left ? GetValEscape(left, localScopeDepth) : SafeContext.CallingMethod)
+                        .Intersect(range.RightOperandOpt is { } right ? GetValEscape(right, localScopeDepth) : SafeContext.CallingMethod);
 
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var uo = (BoundUserDefinedConditionalLogicalOperator)expr;
@@ -4440,48 +4440,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsOpt: [uo.Left, uo.Right],
                         argRefKindsOpt: default,
                         argsToParamsOpt: default,
-                        scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                        localScopeDepth: localScopeDepth,
                         isRefEscape: false);
 
                 case BoundKind.QueryClause:
-                    return GetValEscape(((BoundQueryClause)expr).Value, scopeOfTheContainingExpression);
+                    return GetValEscape(((BoundQueryClause)expr).Value, localScopeDepth);
 
                 case BoundKind.RangeVariable:
-                    return GetValEscape(((BoundRangeVariable)expr).Value, scopeOfTheContainingExpression);
+                    return GetValEscape(((BoundRangeVariable)expr).Value, localScopeDepth);
 
                 case BoundKind.ObjectInitializerExpression:
                     var initExpr = (BoundObjectInitializerExpression)expr;
-                    return GetValEscapeOfObjectInitializer(initExpr, scopeOfTheContainingExpression);
+                    return GetValEscapeOfObjectInitializer(initExpr, localScopeDepth);
 
                 case BoundKind.CollectionInitializerExpression:
                     var colExpr = (BoundCollectionInitializerExpression)expr;
-                    return GetValEscape(colExpr.Initializers, scopeOfTheContainingExpression);
+                    return GetValEscape(colExpr.Initializers, localScopeDepth);
 
                 case BoundKind.CollectionElementInitializer:
                     var colElement = (BoundCollectionElementInitializer)expr;
-                    return GetValEscape(colElement.Arguments, scopeOfTheContainingExpression);
+                    return GetValEscape(colElement.Arguments, localScopeDepth);
 
                 case BoundKind.ObjectInitializerMember:
                     // this node generally makes no sense outside of the context of containing initializer
                     // however binder uses it as a placeholder when binding assignments inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
-                    return scopeOfTheContainingExpression;
+                    return localScopeDepth;
 
                 case BoundKind.ImplicitReceiver:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
-                    return scopeOfTheContainingExpression;
+                    return localScopeDepth;
 
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                     // The handler placeholder cannot escape out of the current expression, as it's a compiler-synthesized
                     // location.
-                    return scopeOfTheContainingExpression;
+                    return localScopeDepth;
 
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
                     // then immediately discarded. The actual expression will be generated during lowering 
-                    return scopeOfTheContainingExpression;
+                    return localScopeDepth;
 
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
@@ -4494,19 +4494,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
-                    return scopeOfTheContainingExpression;
+                    return localScopeDepth;
 
                 case BoundKind.ConvertedSwitchExpression:
                 case BoundKind.UnconvertedSwitchExpression:
                     var switchExpr = (BoundSwitchExpression)expr;
-                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
+                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), localScopeDepth);
 
                 default:
                     // in error situations some unexpected nodes could make here
-                    // returning "scopeOfTheContainingExpression" seems safer than throwing.
+                    // returning "localScopeDepth" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for. 
                     RoslynDebug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
-                    return scopeOfTheContainingExpression;
+                    return localScopeDepth;
             }
         }
 
@@ -4560,12 +4560,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private SafeContext GetTupleValEscape(ImmutableArray<BoundExpression> elements, SafeContext scopeOfTheContainingExpression)
+        private SafeContext GetTupleValEscape(ImmutableArray<BoundExpression> elements, SafeContext localScopeDepth)
         {
-            SafeContext narrowestScope = scopeOfTheContainingExpression;
+            SafeContext narrowestScope = localScopeDepth;
             foreach (var element in elements)
             {
-                narrowestScope = narrowestScope.Intersect(GetValEscape(element, scopeOfTheContainingExpression));
+                narrowestScope = narrowestScope.Intersect(GetValEscape(element, localScopeDepth));
             }
 
             return narrowestScope;
@@ -4577,27 +4577,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// passed to an indexer for example only matter if they can escape into the receiver
         /// as a stored field.
         /// </summary>
-        private SafeContext GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, SafeContext scopeOfTheContainingExpression)
+        private SafeContext GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, SafeContext localScopeDepth)
         {
             var result = SafeContext.CallingMethod;
             foreach (var expr in initExpr.Initializers)
             {
-                var exprResult = GetValEscapeOfObjectMemberInitializer(expr, scopeOfTheContainingExpression);
+                var exprResult = GetValEscapeOfObjectMemberInitializer(expr, localScopeDepth);
                 result = result.Intersect(exprResult);
             }
 
             return result;
         }
 
-        private SafeContext GetValEscapeOfObjectMemberInitializer(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
+        private SafeContext GetValEscapeOfObjectMemberInitializer(BoundExpression expr, SafeContext localScopeDepth)
         {
             SafeContext result;
             if (expr.Kind == BoundKind.AssignmentOperator)
             {
                 var assignment = (BoundAssignmentOperator)expr;
                 var rightEscape = assignment.IsRef
-                    ? GetRefEscape(assignment.Right, scopeOfTheContainingExpression)
-                    : GetValEscape(assignment.Right, scopeOfTheContainingExpression);
+                    ? GetRefEscape(assignment.Right, localScopeDepth)
+                    : GetValEscape(assignment.Right, localScopeDepth);
 
                 if (assignment.Left is BoundObjectInitializerMember left)
                 {
@@ -4615,7 +4615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                result = GetValEscape(expr, scopeOfTheContainingExpression);
+                result = GetValEscape(expr, localScopeDepth);
             }
 
             return result;
@@ -4664,8 +4664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     SafeContext escapeScope = escapeValue.IsRefEscape
-                        ? GetRefEscape(escapeValue.Argument, scopeOfTheContainingExpression)
-                        : GetValEscape(escapeValue.Argument, scopeOfTheContainingExpression);
+                        ? GetRefEscape(escapeValue.Argument, localScopeDepth)
+                        : GetValEscape(escapeValue.Argument, localScopeDepth);
                     receiverEscapeScope = escapeScope.Intersect(receiverEscapeScope);
                 }
 
@@ -4690,12 +4690,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable disable
 
-        private SafeContext GetValEscape(ImmutableArray<BoundExpression> expressions, SafeContext scopeOfTheContainingExpression)
+        private SafeContext GetValEscape(ImmutableArray<BoundExpression> expressions, SafeContext localScopeDepth)
         {
             var result = SafeContext.CallingMethod;
             foreach (var expression in expressions)
             {
-                result = result.Intersect(GetValEscape(expression, scopeOfTheContainingExpression));
+                result = result.Intersect(GetValEscape(expression, localScopeDepth));
             }
 
             return result;

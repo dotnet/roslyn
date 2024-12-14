@@ -118,6 +118,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string SimplifyConditionalExpression = nameof(SimplifyConditionalExpression);
     public const string SimplifyInterpolation = nameof(SimplifyInterpolation);
     public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
+    public const string SimplifyLinqTypeCheckAndCast = nameof(SimplifyLinqTypeCheckAndCast);
     public const string SimplifyNames = nameof(SimplifyNames);
     public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
     public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
