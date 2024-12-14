@@ -268,7 +268,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
             return false;
 
         var previousStatement = blockStatements[ifIndex - 1];
-        if (previousStatement is not LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer.Value: { } initializer } declarator] }  localDeclarationStatement)
+        if (previousStatement is not LocalDeclarationStatementSyntax { Declaration.Variables: [{ Initializer.Value: { } initializer } declarator] } localDeclarationStatement)
             return false;
 
         cancellationToken.ThrowIfCancellationRequested();
