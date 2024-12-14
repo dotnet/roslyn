@@ -13,12 +13,21 @@ namespace Roslyn.Utilities
     internal static class RoslynDebug
     {
         /// <inheritdoc cref="Debug.Assert(bool)"/>
+#if NET9_0_OR_GREATER
+        [OverloadResolutionPriority(-1)]
+#endif
         [Conditional("DEBUG")]
         public static void Assert([DoesNotReturnIf(false)] bool condition) => Debug.Assert(condition);
 
         /// <inheritdoc cref="Debug.Assert(bool, string)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)] bool condition, string message)
+        public static void Assert([DoesNotReturnIf(false)] bool condition,
+#if NET
+            [CallerArgumentExpression(nameof(condition))] string? message = null
+#else
+            string message
+#endif
+            )
             => Debug.Assert(condition, message);
 
         /// <inheritdoc cref="Debug.Assert(bool, string)"/>
