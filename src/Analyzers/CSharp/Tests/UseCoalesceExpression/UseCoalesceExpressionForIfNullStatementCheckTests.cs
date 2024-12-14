@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-public class UseCoalesceExpressionForIfNullStatementCheckTests
+public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 {
     [Fact]
     public async Task TestLocalDeclaration_ThrowStatement()
@@ -678,6 +678,31 @@ public class UseCoalesceExpressionForIfNullStatementCheckTests
             {
             }
             """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70514")]
+    public async Task TestNotAcrossPreprocessorRegion()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #define DEBUG
+
+                class C
+                {
+                    void M()
+                    {
+                        var item = FindItem() as C;
+                #if DEBUG
+                        if (item == null)
+                            throw new System.InvalidOperationException();
+                #endif
+                    }
+
+                    object FindItem() => null;
+                }
+                """,
         }.RunAsync();
     }
 }

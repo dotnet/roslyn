@@ -257,4 +257,7 @@
   <data name="Use_collection_expression" xml:space="preserve">
     <value>Use collection expression</value>
   </data>
+  <data name="Use_explicit_array" xml:space="preserve">
+    <value>Use explicit array</value>
+  </data>
 </root>

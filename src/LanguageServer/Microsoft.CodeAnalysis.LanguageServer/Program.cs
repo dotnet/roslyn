@@ -86,7 +86,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
     var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, loggerFactory);
+    var cacheDirectory = Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "cache");
+
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory);
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.
@@ -123,7 +125,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
 
-    var (clientPipeName, serverPipeName) = CreateNewPipeNames();
+    var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
+        ? CreateNewPipeNames()
+        : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+
     var pipeServer = new NamedPipeServerStream(serverPipeName,
         PipeDirection.InOut,
         maxNumberOfServerInstances: 1,
@@ -222,6 +227,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var serverPipeNameOption = new CliOption<string?>("--pipe")
+    {
+        Description = "The name of the pipe the server will connect to.",
+        Required = false,
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -234,7 +245,8 @@ static CliRootCommand CreateCommandLineParser()
         devKitDependencyPathOption,
         razorSourceGeneratorOption,
         razorDesignTimePathOption,
-        extensionLogDirectoryOption
+        extensionLogDirectoryOption,
+        serverPipeNameOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
@@ -248,6 +260,7 @@ static CliRootCommand CreateCommandLineParser()
         var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
+        var serverPipeName = parseResult.GetValue(serverPipeNameOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -259,6 +272,7 @@ static CliRootCommand CreateCommandLineParser()
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: razorSourceGenerator,
             RazorDesignTimePath: razorDesignTimePath,
+            ServerPipeName: serverPipeName,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);

@@ -350,8 +350,8 @@ internal static partial class SyntaxGeneratorExtensions
         bool addNullChecks,
         bool preferThrowExpression)
     {
-        var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
-        var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
+        using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
         foreach (var parameter in parameters)
         {
@@ -388,7 +388,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+        return [.. nullCheckStatements, .. assignStatements];
     }
 
     public static void AddAssignmentStatements(

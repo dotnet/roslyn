@@ -1155,4 +1155,77 @@ public partial class CSharpAsAndMemberAccessTests
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76372")]
+    public async Task TestPullNotUpwards()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class D
+                {
+                    void Goo(object metadata)
+                    {
+                        if (([|metadata as C|])?.P is not E { P: G.A, M: string text })
+                        {
+                            return;
+                        }
+
+                        Console.WriteLine(text);
+                    }
+                }
+                class C
+                {
+                    public object P { get; set; }
+                }
+
+                public class E
+                {
+                    public G P { get; set; }
+
+                    public object M { get; set; }
+                }
+
+                public enum G
+                {
+                    A
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                class D
+                {
+                    void Goo(object metadata)
+                    {
+                        if (metadata is not C { P: E { P: G.A, M: string text } })
+                        {
+                            return;
+                        }
+            
+                        Console.WriteLine(text);
+                    }
+                }
+                class C
+                {
+                    public object P { get; set; }
+                }
+            
+                public class E
+                {
+                    public G P { get; set; }
+            
+                    public object M { get; set; }
+                }
+            
+                public enum G
+                {
+                    A
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 }

@@ -19,19 +19,11 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// </summary>
         public static int? GetFirstNonWhitespacePosition(this ITextSnapshotLine line)
         {
-            Contract.ThrowIfNull(line);
+            var firstNonWhitespaceOffset = line.GetFirstNonWhitespaceOffset();
 
-            var text = line.GetText();
-
-            for (var i = 0; i < text.Length; i++)
-            {
-                if (!char.IsWhiteSpace(text[i]))
-                {
-                    return line.Start + i;
-                }
-            }
-
-            return null;
+            return firstNonWhitespaceOffset.HasValue
+                ? firstNonWhitespaceOffset + line.Start
+                : null;
         }
 
         /// <summary>
@@ -43,11 +35,10 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         {
             Contract.ThrowIfNull(line);
 
-            var text = line.GetText();
-
-            for (var i = 0; i < text.Length; i++)
+            var snapshot = line.Snapshot;
+            for (var i = 0; i < line.Length; i++)
             {
-                if (!char.IsWhiteSpace(text[i]))
+                if (!char.IsWhiteSpace(snapshot[line.Start + i]))
                 {
                     return i;
                 }
@@ -71,16 +62,15 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             Contract.ThrowIfNull(line, "line");
             Contract.ThrowIfFalse(startIndex >= 0);
 
-            var text = line.GetText();
-
             if (endIndex == -1)
             {
-                endIndex = text.Length;
+                endIndex = line.Length;
             }
 
+            var snapshot = line.Snapshot;
             for (var i = startIndex; i < endIndex; i++)
             {
-                if (!char.IsWhiteSpace(text[i]))
+                if (!char.IsWhiteSpace(snapshot[line.Start + i]))
                 {
                     return false;
                 }

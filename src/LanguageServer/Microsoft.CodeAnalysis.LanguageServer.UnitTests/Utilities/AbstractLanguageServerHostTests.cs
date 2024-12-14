@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Nerdbank.Streams;
 using Roslyn.LanguageServer.Protocol;
@@ -11,18 +12,27 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public abstract class AbstractLanguageServerHostTests
+public abstract class AbstractLanguageServerHostTests : IDisposable
 {
     protected TestOutputLogger TestOutputLogger { get; }
+    protected TempRoot TempRoot { get; }
+    protected TempDirectory MefCacheDirectory { get; }
 
     protected AbstractLanguageServerHostTests(ITestOutputHelper testOutputHelper)
     {
         TestOutputLogger = new TestOutputLogger(testOutputHelper);
+        TempRoot = new();
+        MefCacheDirectory = TempRoot.CreateDirectory();
     }
 
     protected Task<TestLspServer> CreateLanguageServerAsync(bool includeDevKitComponents = true)
     {
-        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, includeDevKitComponents);
+        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path, includeDevKitComponents);
+    }
+
+    public void Dispose()
+    {
+        TempRoot.Dispose();
     }
 
     protected sealed class TestLspServer : IAsyncDisposable
@@ -32,10 +42,10 @@ public abstract class AbstractLanguageServerHostTests
 
         private ServerCapabilities? _serverCapabilities;
 
-        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
+        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, string cacheDirectory, bool includeDevKitComponents = true)
         {
             var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                logger.Factory, includeDevKitComponents, out var _, out var assemblyLoader);
+                logger.Factory, includeDevKitComponents, cacheDirectory, out var _, out var assemblyLoader);
             var testLspServer = new TestLspServer(exportProvider, logger, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);

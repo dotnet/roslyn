@@ -11,9 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -36,6 +39,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         where TNodeUnderContainer : SyntaxNode
         where TCodeGenerationOptions : CodeGenerationOptions
     {
+        private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+
         protected readonly SyntaxAnnotation MethodNameAnnotation;
         protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
         protected readonly SyntaxAnnotation CallSiteAnnotation;
@@ -43,15 +48,22 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected readonly TSelectionResult SelectionResult;
         protected readonly AnalyzerResult AnalyzerResult;
 
+        protected readonly ExtractMethodGenerationOptions ExtractMethodGenerationOptions;
         protected readonly TCodeGenerationOptions Options;
+
         protected readonly bool LocalFunction;
 
-        protected CodeGenerator(TSelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+        protected CodeGenerator(
+            TSelectionResult selectionResult,
+            AnalyzerResult analyzerResult,
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         {
             SelectionResult = selectionResult;
             AnalyzerResult = analyzerResult;
 
-            Options = options;
+            ExtractMethodGenerationOptions = options;
+            Options = (TCodeGenerationOptions)options.CodeGenerationOptions;
             LocalFunction = localFunction;
 
             MethodNameAnnotation = new SyntaxAnnotation();
@@ -78,9 +90,9 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
         protected abstract TExpressionSyntax CreateCallSignature();
-        protected abstract TStatementSyntax CreateDeclarationStatement(VariableInfo variable, TExpressionSyntax initialValue, CancellationToken cancellationToken);
-        protected abstract TStatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpressionSyntax rvalue);
-        protected abstract TStatementSyntax CreateReturnStatement(string identifierName = null);
+        protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
+        protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
+        protected abstract TStatementSyntax CreateReturnStatement(params string[] identifierNames);
 
         protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
@@ -134,7 +146,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             {
                 // Now, insert the local function.
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(generateDefaultAccessibility: false),
+                    s_codeGenerationContext.With(generateDefaultAccessibility: false),
                     Options,
                     document.Project.ParseOptions);
 
@@ -158,11 +170,15 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     ? mappedMember.Parent
                     : mappedMember;
 
+                mappedMember = mappedMember.RawKind == syntaxKinds.PrimaryConstructorBaseType
+                    ? mappedMember.Parent
+                    : mappedMember;
+
                 // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                 var destination = mappedMember.Parent ?? mappedMember;
 
                 var info = codeGenerationService.GetInfo(
-                    new CodeGenerationContext(
+                    s_codeGenerationContext.With(
                         afterThisLocation: mappedMember.GetLocation(),
                         generateDefaultAccessibility: true,
                         generateMethodBodies: true),
@@ -227,10 +243,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
             ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
         {
-            if (AnalyzerResult.HasVariableToUseAsReturnValue)
-            {
+            if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 return statements;
-            }
 
             Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Any(v => v.UseAsReturnValue));
 
@@ -243,33 +257,27 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             ImmutableArray<TStatementSyntax> statements,
             CancellationToken cancellationToken)
         {
-            if (!AnalyzerResult.HasVariableToUseAsReturnValue)
-            {
+            if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 return statements;
-            }
 
-            var variable = AnalyzerResult.VariableToUseAsReturnValue;
-            if (variable.ReturnBehavior == ReturnBehavior.Initialization)
+            var variables = AnalyzerResult.VariablesToUseAsReturnValue;
+            if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization))
             {
-                // there must be one decl behavior when there is "return value and initialize" variable
-                Contract.ThrowIfFalse(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
-
                 var declarationStatement = CreateDeclarationStatement(
-                    variable, CreateCallSignature(), cancellationToken);
+                    variables, CreateCallSignature(), cancellationToken);
                 declarationStatement = declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation);
 
                 return statements.Concat(declarationStatement);
             }
 
-            Contract.ThrowIfFalse(variable.ReturnBehavior == ReturnBehavior.Assignment);
             return statements.Concat(
-                CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
+                CreateAssignmentExpressionStatement(variables, CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
         }
 
         protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
             ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
         {
-            return variables.SelectAsArray(v => CreateDeclarationStatement(v, initialValue: null, cancellationToken));
+            return variables.SelectAsArray(v => CreateDeclarationStatement([v], initialValue: null, cancellationToken));
         }
 
         protected ImmutableArray<TStatementSyntax> AddSplitOrMoveDeclarationOutStatementsToCallSite(
@@ -282,9 +290,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 if (variable.UseAsReturnValue)
                     continue;
 
-                var declaration = CreateDeclarationStatement(
-                    variable, initialValue: null, cancellationToken: cancellationToken);
-                list.Add(declaration);
+                list.Add(CreateDeclarationStatement(
+                    [variable], initialValue: null, cancellationToken: cancellationToken));
             }
 
             return list.ToImmutableAndClear();
@@ -292,17 +299,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
         {
-            if (!AnalyzerResult.HasVariableToUseAsReturnValue)
-            {
+            if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 return statements;
-            }
 
-            var variableToUseAsReturnValue = AnalyzerResult.VariableToUseAsReturnValue;
-
-            Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior is ReturnBehavior.Assignment or
-                                  ReturnBehavior.Initialization);
-
-            return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
+            return statements.Concat(CreateReturnStatement([.. AnalyzerResult.VariablesToUseAsReturnValue.Select(b => b.Name)]));
         }
 
         protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
@@ -324,10 +324,8 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()
         {
-            if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
-            {
+            if (AnalyzerResult.MethodTypeParametersInDeclaration.IsEmpty)
                 return [];
-            }
 
             var set = new HashSet<ITypeParameterSymbol>(AnalyzerResult.MethodTypeParametersInConstraintList);
 
@@ -351,7 +349,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
             var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
             foreach (var parameter in AnalyzerResult.MethodParameters)
             {
@@ -370,13 +368,25 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 }
             }
 
-            return parameters.ToImmutableAndFree();
+            return parameters.ToImmutableAndClear();
         }
 
         private static RefKind GetRefKind(ParameterBehavior parameterBehavior)
+            => parameterBehavior switch
+            {
+                ParameterBehavior.Ref => RefKind.Ref,
+                ParameterBehavior.Out => RefKind.Out,
+                _ => RefKind.None
+            };
+
+        protected TStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
         {
-            return parameterBehavior == ParameterBehavior.Ref ? RefKind.Ref :
-                        parameterBehavior == ParameterBehavior.Out ? RefKind.Out : RefKind.None;
+            var callSignature = CreateCallSignature();
+
+            var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            return AnalyzerResult.HasReturnType
+                ? (TStatementSyntax)generator.ReturnStatement(callSignature)
+                : (TStatementSyntax)generator.ExpressionStatement(callSignature);
         }
     }
 }

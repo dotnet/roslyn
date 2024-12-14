@@ -585,7 +585,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
         {
             SetPatternLocalScopes(node);
+
+            // If the equivalent `Deconstruct` call has unscoped receiver,
+            // we narrow the escape scope of the pattern input
+            // which flows as the escape scope of all ref-struct declaration subpatterns
+            // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
+            // where "safe-context inference of declaration expressions" would have the same effect.
+            if (node.DeconstructMethod is { } m &&
+                tryGetThisParameter(m)?.EffectiveScope == ScopedKind.None)
+            {
+                using (new PatternInput(this, _localScopeDepth))
+                {
+                    return base.VisitRecursivePattern(node);
+                }
+            }
+
             return base.VisitRecursivePattern(node);
+
+            static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
+            {
+                if (method.IsExtensionMethod)
+                {
+                    return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
+                }
+
+                return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;
+            }
         }
 
         public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
