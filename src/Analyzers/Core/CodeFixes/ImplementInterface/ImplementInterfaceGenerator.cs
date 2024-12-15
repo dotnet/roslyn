@@ -201,7 +201,10 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // See if we need to generate an invisible member.  If we do, then reset the name
             // back to what then member wants it to be.
-            var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName);
+            var supportsImplicitImplementationOfNonPublicInterfaceMembers = this.Document
+                .GetRequiredLanguageService<ISyntaxFactsService>()
+                .SupportsImplicitImplementationOfNonPublicInterfaceMembers(options);
+            var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName, supportsImplicitImplementationOfNonPublicInterfaceMembers);
             memberName = generateInvisibleMember ? member.Name : memberName;
 
             // The language doesn't allow static abstract implementations of interface methods. i.e,
@@ -222,7 +225,8 @@ internal abstract partial class AbstractImplementInterfaceService
                 addNew, addUnsafe, propertyGenerationBehavior);
         }
 
-        public bool ShouldGenerateInvisibleMember(ParseOptions options, ISymbol member, string memberName)
+        public bool ShouldGenerateInvisibleMember(
+            ParseOptions options, ISymbol member, string memberName, bool supportsImplementingLessAccessibleMember)
         {
             if (Service.HasHiddenExplicitImplementation)
             {
@@ -240,9 +244,9 @@ internal abstract partial class AbstractImplementInterfaceService
                 if (member.Name != memberName)
                     return true;
 
-                // If the member is less accessible than type, for which we are implementing it,
-                // then only explicit implementation is valid.
-                if (IsLessAccessibleThan(member, State.ClassOrStructType))
+                // If the member contains a type is less accessible than type, for which we are implementing it, then
+                // only explicit implementation is valid.
+                if (ContainsTypeLessAccessibleThan(member, State.ClassOrStructType, supportsImplementingLessAccessibleMember))
                     return true;
             }
 
@@ -405,22 +409,35 @@ internal abstract partial class AbstractImplementInterfaceService
             return implementedVisibleMembers.Any(m => MembersMatch(m, member));
         }
 
-        private bool MembersMatch(ISymbol member1, ISymbol member2)
+        private bool MembersMatch(ISymbol existingMember, ISymbol memberToAdd)
         {
-            if (member1.Kind != member2.Kind)
+            if (existingMember.Kind != memberToAdd.Kind)
                 return false;
 
-            if (member1.DeclaredAccessibility != member2.DeclaredAccessibility ||
-                member1.IsStatic != member2.IsStatic)
+            if (existingMember.DeclaredAccessibility != memberToAdd.DeclaredAccessibility ||
+                existingMember.IsStatic != memberToAdd.IsStatic)
             {
                 return false;
             }
 
-            if (member1.ExplicitInterfaceImplementations().Any() || member2.ExplicitInterfaceImplementations().Any())
+            if (existingMember.ExplicitInterfaceImplementations().Any() || memberToAdd.ExplicitInterfaceImplementations().Any())
                 return false;
 
-            return SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(
-                member1, member2, IsCaseSensitive);
+            if (!SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnType(existingMember, memberToAdd, IsCaseSensitive))
+                return false;
+
+            if (existingMember is IPropertySymbol existingProperty && memberToAdd is IPropertySymbol propertyToAdd)
+            {
+                // Have to make sure the accessors of the properties are complimentary.  Note: it's ok for the new
+                // property to have a subset of the accessors of the existing property.
+                if (propertyToAdd.GetMethod != null && SignatureComparer.BadPropertyAccessor(propertyToAdd.GetMethod, existingProperty.GetMethod))
+                    return false;
+
+                if (propertyToAdd.SetMethod != null && SignatureComparer.BadPropertyAccessor(propertyToAdd.SetMethod, existingProperty.SetMethod))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

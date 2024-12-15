@@ -77,9 +77,9 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     {
         var command = (OleMenuCommand)sender;
 
-        // If the option hasn't been expicitly set then fallback to whether this is enabled as part of an experiment.
-        var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
-            ?? _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+        // If the value is null it means user loads the value from previous build (at that moment it is in experiment)
+        // Since the feature is on by default now, just set it to true
+        var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences) ?? true;
 
         var isDotNetCpsProject = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
             hierarchy.IsCapabilityMatch("CPS") &&

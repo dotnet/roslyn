@@ -33,10 +33,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
     where TTypeDeclarationSyntax : SyntaxNode
     where TArgumentSyntax : SyntaxNode
 {
-    protected AbstractGenerateTypeService()
-    {
-    }
-
     protected abstract bool TryInitializeState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out GenerateTypeServiceStateOptions generateTypeServiceStateOptions);
     protected abstract TExpressionSyntax GetLeftSideOfDot(TSimpleNameSyntax simpleName);
     protected abstract bool TryGetArgumentList(TObjectCreationExpressionSyntax objectCreationExpression, out IList<TArgumentSyntax> argumentList);

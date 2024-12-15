@@ -20,18 +20,15 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private abstract class Reference : IEquatable<Reference>
+    private abstract class Reference(
+        AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+        SearchResult searchResult,
+        bool isWithinImport) : IEquatable<Reference>
     {
-        protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
-        public readonly SearchResult SearchResult;
+        protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider = provider;
+        public readonly SearchResult SearchResult = searchResult;
 
-        protected Reference(
-            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-            SearchResult searchResult)
-        {
-            this.provider = provider;
-            SearchResult = searchResult;
-        }
+        private readonly bool _isWithinImport = isWithinImport;
 
         public int CompareTo(Document document, Reference other)
         {
@@ -106,6 +103,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
             Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
+            // Within an import, we're only adding a package/nuget reference (and we're not going to add another
+            // using/import as we're already in one).  So no need for text changes.
+            if (_isWithinImport)
+                return [];
+
             var originalDocument = document;
 
             (node, document) = await ReplaceNameNodeAsync(

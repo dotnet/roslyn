@@ -5741,7 +5741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
         private BoundExpression BindObjectInitializerMember(
             AssignmentExpressionSyntax namedAssignment,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
@@ -5757,7 +5757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
         private BoundExpression BindObjectInitializerMemberMissingAssignment(
             ExpressionSyntax leftSyntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
@@ -5767,7 +5767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftSyntax, implicitReceiver, BindValueKind.Assignable, false, diagnostics);
         }
 
-        // returns BadBoundExpression or BoundObjectInitializerMember
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
         private BoundExpression BindObjectInitializerMemberCommon(
             ExpressionSyntax leftSyntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
@@ -7197,7 +7197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return succeededConsideringAccessibility;
         }
 
-        internal static bool ReportConstructorUseSiteDiagnostics(Location errorLocation, BindingDiagnosticBag diagnostics, bool suppressUnsupportedRequiredMembersError, in CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static void ReportConstructorUseSiteDiagnostics(Location errorLocation, BindingDiagnosticBag diagnostics, bool suppressUnsupportedRequiredMembersError, in CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (suppressUnsupportedRequiredMembersError && useSiteInfo.AccumulatesDiagnostics && useSiteInfo.Diagnostics is { Count: not 0 })
             {
@@ -7213,12 +7213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     diagnostics.ReportUseSiteDiagnostic(diagnostic, errorLocation);
                 }
-
-                return true;
             }
             else
             {
-                return diagnostics.Add(errorLocation, useSiteInfo);
+                diagnostics.Add(errorLocation, useSiteInfo);
             }
         }
 
@@ -10806,7 +10804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterScopes = parameterScopesOverride ??
                 (parameters.Any(p => p.EffectiveScope != ScopedKind.None) ? parameters.SelectAsArray(p => p.EffectiveScope) : default);
             var parameterHasUnscopedRefAttributes = parameterHasUnscopedRefAttributesOverride ??
-                (parameters.Any(p => p.HasUnscopedRefAttribute) ? parameters.SelectAsArray(p => p.HasUnscopedRefAttribute) : default);
+                (parameters.Any(p => p.HasUnscopedRefAttribute && p.UseUpdatedEscapeRules) ? parameters.SelectAsArray(p => p.HasUnscopedRefAttribute && p.UseUpdatedEscapeRules) : default);
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;

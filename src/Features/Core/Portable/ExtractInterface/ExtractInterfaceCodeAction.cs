@@ -37,16 +37,14 @@ internal sealed class ExtractInterfaceCodeAction(AbstractExtractInterfaceService
 
         if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
         {
-            var extractInterfaceResult = await _extractInterfaceService
-                    .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+            var extractInterfaceResult = await _extractInterfaceService.ExtractInterfaceFromAnalyzedTypeAsync(
+                _typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
 
             if (extractInterfaceResult.Succeeded)
             {
-                operations = new CodeActionOperation[]
-                {
+                operations = [
                     new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
-                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
-                };
+                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)];
             }
         }
 

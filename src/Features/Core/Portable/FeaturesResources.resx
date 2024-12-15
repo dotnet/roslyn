@@ -908,8 +908,8 @@ This version used in: {2}</value>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
   </data>
-  <data name="Generate_constructor" xml:space="preserve">
-    <value>Generate constructor...</value>
+  <data name="Generate_constructor_from_members" xml:space="preserve">
+    <value>Generate constructor from members...</value>
   </data>
   <data name="Pick_members_to_be_used_as_constructor_parameters" xml:space="preserve">
     <value>Pick members to be used as constructor parameters</value>
@@ -964,6 +964,9 @@ This version used in: {2}</value>
   </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
+  </data>
+  <data name="Move_declaration_near_reference_may_change_semantics" xml:space="preserve">
+    <value>Move declaration near reference (may change semantics)</value>
   </data>
   <data name="Convert_to_full_property" xml:space="preserve">
     <value>Convert to full property</value>
@@ -3188,5 +3191,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="interface_name" xml:space="preserve">
     <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="Unable_to_create_0" xml:space="preserve">
+    <value>Unable to create '{0}'</value>
   </data>
 </root>

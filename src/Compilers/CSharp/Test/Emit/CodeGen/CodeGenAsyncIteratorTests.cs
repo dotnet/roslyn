@@ -10531,5 +10531,31 @@ class C
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: [libS2, missingLibS1], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+        public void StateAfterMoveNext_YieldReturn()
+        {
+            string src = """
+var enumerator = C.Produce();
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current);
+
+await enumerator.DisposeAsync();
+
+System.Console.Write(await enumerator.MoveNextAsync());
+System.Console.Write(enumerator.Current is null ? " null" : throw null);
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<string> Produce()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return " one ";
+        yield return " two ";
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("True one False null"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
     }
 }

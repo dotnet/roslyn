@@ -90,7 +90,7 @@ internal sealed partial class SyntaxTreeIndex
 
                         containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                         containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
-                        containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node);
+                        containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node) || syntaxFacts.IsUsingLocalDeclarationStatement(node);
                         containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                         containsElementAccess = containsElementAccess || (syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsImplicitElementAccess(node));
                         containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCref(node);

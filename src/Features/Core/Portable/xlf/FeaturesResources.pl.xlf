@@ -840,6 +840,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Generuj operatory porównania</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constructor_from_members">
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Wygeneruj dla elementu „{0}”</target>
@@ -1178,6 +1183,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">Przenieś zawartość do przestrzeni nazw...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -2738,6 +2748,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Nie można odczytać pliku źródłowego „{0}” lub pliku PDB skompilowanego dla projektu, w którym jest on zawarty. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -4738,11 +4753,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">Usuń separatory</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor">
-        <source>Generate constructor...</source>
-        <target state="translated">Generuj konstruktor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">
