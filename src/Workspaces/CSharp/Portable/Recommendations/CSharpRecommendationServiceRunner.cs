@@ -405,13 +405,20 @@ internal partial class CSharpRecommendationService
                 if (filterOutOfScopeLocals && symbol.IsInaccessibleLocal(context.Position))
                     return true;
 
-                var isPrimaryConstructor = IsPrimaryConstructorParameter(context, symbol, cancellationToken);
-
-                if (isPrimaryConstructor)
+                // Outside of a nameof(...) we don't want to include a primary constructor parameter if it's not
+                // available.  Inside of a nameof(...) we do want to include it as it's always legal and causes no
+                // warnings.
+                if (!context.IsNameOfContext &&
+                    IsPrimaryConstructorParameter(context, symbol, cancellationToken))
                 {
-                    if (!context.IsInstanceContext && !context.IsNameOfContext)
+                    // Primary constructor parameters are only available in instance members, so filter out if we're in
+                    // a static context.
+                    if (!context.IsInstanceContext)
                         return true;
 
+                    // If the parameter was already captured by a field, or by passing to a base-class constructor, then
+                    // we don't want to offer it as the user will get a warning about double storage by capturing both
+                    // into the field/base-type, and synthesized storage for the parameter.
                     if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, symbol, cancellationToken))
                         return true;
                 }
