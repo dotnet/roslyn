@@ -279,18 +279,18 @@ static CliRootCommand CreateCommandLineParser()
         var useStdIo = parseResult.GetValue(useStdIoOption) ?? false;
 
         var serverConfiguration = new ServerConfiguration(
-        LaunchDebugger: launchDebugger,
-        LogConfiguration: new LogConfiguration(logLevel),
-        StarredCompletionsPath: starredCompletionsPath,
-        TelemetryLevel: telemetryLevel,
-        SessionId: sessionId,
-        ExtensionAssemblyPaths: extensionAssemblyPaths,
-        DevKitDependencyPath: devKitDependencyPath,
-        RazorSourceGenerator: razorSourceGenerator,
-        RazorDesignTimePath: razorDesignTimePath,
-        ServerPipeName: serverPipeName,
-        UseStdIo: useStdIo,
-        ExtensionLogDirectory: extensionLogDirectory);
+            LaunchDebugger: launchDebugger,
+            LogConfiguration: new LogConfiguration(logLevel),
+            StarredCompletionsPath: starredCompletionsPath,
+            TelemetryLevel: telemetryLevel,
+            SessionId: sessionId,
+            ExtensionAssemblyPaths: extensionAssemblyPaths,
+            DevKitDependencyPath: devKitDependencyPath,
+            RazorSourceGenerator: razorSourceGenerator,
+            RazorDesignTimePath: razorDesignTimePath,
+            ServerPipeName: serverPipeName,
+            UseStdIo: useStdIo,
+            ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
