@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14890,7 +14888,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
     [InlineData("record class")]
-    [InlineData("class", Skip = "Class primary constructor parameter used in base constructor not recommended even inside nameof")]
+    [InlineData("class")]
     public async Task RecommendedPrimaryConstructorParameters05(string typeKind)
     {
         var markup = $$"""
@@ -14915,7 +14913,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
     [InlineData("record")]
-    [InlineData("class", Skip = "Class primary constructor parameter used in base constructor not recommended even inside nameof")]
+    [InlineData("class")]
     public async Task RecommendedPrimaryConstructorParameters06(string typeKind)
     {
         var markup = $$"""
