@@ -957,7 +957,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // We want to assume that all required members were _not_ set by the chained constructor
 
                                 // We exclude any members that are abstract and have an implementation in the current type, when that implementation passes the same heuristics
-                                // we use in the other other cases (annotations match up across overrides)
+                                // we use in the other other cases (annotations match up across overrides). This is because the chained constructor, which as SetsRequiredMembers as well,
+                                // will have already set the abstract member to non-null, and there isn't a separate slot for that abstract member.
                                 if (requiredMember is PropertySymbol { IsAbstract: true } abstractProperty)
                                 {
                                     if (members.FirstOrDefault(static (thisMember, baseMember) => thisMember.IsOverride && (object)thisMember.GetOverriddenMember() == baseMember, requiredMember) is { } overridingMember
