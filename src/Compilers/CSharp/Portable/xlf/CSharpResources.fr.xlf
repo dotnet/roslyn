@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot emit update; {0} '{1}' is missing.</source>
-        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
+        <target state="translated">Impossible d’émettre la mise à jour ;  {0} '{1}' est manquant.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -1329,7 +1329,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorRefLikeElementType">
         <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
-        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
+        <target state="translated">Le type d’élément d’un itérateur ne peut pas être un struct ref ou un paramètre de type autorisant les structs ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
@@ -1859,7 +1859,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
-        <target state="translated">Cette référence ne peut affecter '{1}' à '{0}', car '{1}' a une étendue d’échappement de valeur plus large que '{0}' permettant l’affectation via '{0}' de valeurs avec des étendues d’échappement plus restreintes que '{1}'.</target>
+        <target state="translated">Nous ne pouvons pas effectuer l’affectation de référence de « {1} » vers « {0} », car « {1} » a une étendue d’échappement de valeur plus large que « {0} » permettant l’affectation via « {0} » des valeurs avec des étendues d’échappement plus restreintes que « {1} ».</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2424,7 +2424,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFirstClassSpan">
         <source>first-class Span types</source>
-        <target state="new">first-class Span types</target>
+        <target state="translated">types Span de première classe</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2579,7 +2579,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
-        <target state="new">unbound generic types in nameof operator</target>
+        <target state="translated">types génériques indépendants dans l’opérateur nameof</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -2674,12 +2674,12 @@
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
-        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <target state="translated">L’accesseur '{0}' de la propriété '{1}' doit utiliser 'field', car l’autre accesseur l’utilise.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
         <source>Property accessor should use 'field' because the other accessor is using it.</source>
-        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
+        <target state="translated">L’accesseur de propriété doit utiliser 'field', car l’autre accesseur l’utilise.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -3229,7 +3229,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
-        <target state="translated">Cette référence affecte '{1}' à '{0}', mais '{1}' a une étendue d’échappement de valeur plus large que '{0}' permettant l’affectation via '{0}' de valeurs avec des étendues d’échappement plus restreintes que '{1}'.</target>
+        <target state="translated">Cette opération effectue une affectation de référence de « {1} » vers « {0} », mais « {1} » a une étendue d’échappement de valeur plus large que « {0} » permettant l’affectation via « {0} » des valeurs avec des étendues d’échappement plus restreintes que « {1} ».</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
@@ -5240,12 +5240,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField">
         <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">Une référence n’est jamais affectée au champ « {0} » et aura toujours sa valeur par défaut (référence nulle)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField_Title">
         <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">Une référence n’est jamais affectée au champ et aura toujours sa valeur par défaut (référence nulle)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
@@ -10311,7 +10311,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>Cannot open '{0}' for writing -- {1}</source>
-        <target state="needs-review-translation">Impossible d'ouvrir '{0}' en écriture -- '{1}'</target>
+        <target state="translated">Nous ne pouvons pas ouvrir « {0} » en écriture -- {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -13026,7 +13026,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">Nous ne pouvons pas lire les informations de débogage de la méthode « {0} » (jeton 0x{1:X8}) dans l’assembly « {2} » : {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">

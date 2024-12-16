@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot emit update; {0} '{1}' is missing.</source>
-        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
+        <target state="translated">Non è possibile creare l'aggiornamento.  {0} '{1}' mancante.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -1329,7 +1329,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorRefLikeElementType">
         <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
-        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
+        <target state="translated">Il tipo di elemento di un iteratore non può essere uno struct di riferimento o un parametro di tipo che consente struct di riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
@@ -2424,7 +2424,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFirstClassSpan">
         <source>first-class Span types</source>
-        <target state="new">first-class Span types</target>
+        <target state="translated">tipi Span di prima classe</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2579,7 +2579,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
-        <target state="new">unbound generic types in nameof operator</target>
+        <target state="translated">tipi generici non collegati nell'operatore nameof</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -2674,12 +2674,12 @@
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
-        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <target state="translated">La funzione di accesso '{0}' della proprietà '{1}' deve usare 'field' perché è utilizzata dall'altra funzione di accesso.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
         <source>Property accessor should use 'field' because the other accessor is using it.</source>
-        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
+        <target state="translated">La funzione di accesso delle proprietà deve usare 'field' perché è in uso dall'altra funzione di accesso.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -5240,12 +5240,12 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField">
         <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">Il campo '{0}' non è mai assegnato come riferimento e avrà sempre il valore predefinito (riferimento Null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField_Title">
         <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">Il campo non è mai assegnato come riferimento e avrà sempre il valore predefinito (riferimento Null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
@@ -10311,7 +10311,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>Cannot open '{0}' for writing -- {1}</source>
-        <target state="needs-review-translation">Non è possibile aprire '{0}' per la scrittura - '{1}'</target>
+        <target state="translated">Non è possibile aprire '{0}' per la scrittura -- {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -13026,7 +13026,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">Non è possibile leggere le informazione di debug del metodo '{0}' (token 0x{1:X8}) dall'assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">
