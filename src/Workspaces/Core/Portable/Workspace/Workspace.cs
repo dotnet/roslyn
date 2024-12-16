@@ -8,9 +8,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -47,7 +49,9 @@ public abstract partial class Workspace : IDisposable
     /// </summary>
     private Solution _latestSolution;
 
-    private readonly TaskQueue _taskQueue;
+    private readonly AsyncBatchingWorkQueue<Action> _workQueue;
+    private readonly CancellationTokenSource _workQueueTokenSource = new();
+    private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
     // test hooks.
     internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -74,9 +78,14 @@ public abstract partial class Workspace : IDisposable
         _legacyOptions.RegisterWorkspace(this);
 
         // queue used for sending events
-        var schedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+        _taskSchedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+
         var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-        _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
+        _workQueue = new(
+            TimeSpan.Zero,
+            ProcessWorkQueueAsync,
+            listenerProvider.GetListener(),
+            _workQueueTokenSource.Token);
 
         // initialize with empty solution
         var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
@@ -581,15 +590,25 @@ public abstract partial class Workspace : IDisposable
     /// Executes an action as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+#pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
+    {
+        _workQueue.AddWork(action);
+        return _workQueue.WaitUntilCurrentBatchCompletesAsync();
+    }
 
     /// <summary>
     /// Execute a function as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
+    protected internal async Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
+    {
+        T? result = default;
+        _workQueue.AddWork(() => result = func());
+        await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+        return result!;
+    }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     /// <summary>
     /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -695,6 +714,26 @@ public abstract partial class Workspace : IDisposable
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
+        _workQueueTokenSource.Cancel();
+    }
+
+    private ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Action> list, CancellationToken cancellationToken)
+    {
+        foreach (var item in list)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                item();
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            {
+                // Ensure we continue onto further items, even if one particular item fails.
+            }
+        }
+
+        return ValueTaskFactory.CompletedTask;
     }
 
     #region Host API
