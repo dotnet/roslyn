@@ -142,15 +142,6 @@ internal static partial class TaskExtensions
         return task.ContinueWith(outerFunction, continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
     }
 
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task SafeContinueWith(
-        this Task task,
-        Action<Task> continuationAction,
-        TaskScheduler scheduler)
-    {
-        return task.SafeContinueWith(continuationAction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
-    }
-
     public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
         this Task<TInput> task,
         Func<Task<TInput>, Task<TResult>> continuationFunction,
