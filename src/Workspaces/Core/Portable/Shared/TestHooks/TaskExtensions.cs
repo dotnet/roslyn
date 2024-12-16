@@ -36,13 +36,16 @@ internal static partial class TaskExtensions
 
         return CompletesTrackingOperationSlow(task, token);
 
-        static Task CompletesTrackingOperationSlow(Task task, IDisposable token)
+        static async Task CompletesTrackingOperationSlow(Task task, IDisposable token)
         {
-            return task.SafeContinueWith(
-                t => token.Dispose(),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+            try
+            {
+                await task.NoThrowAwaitableInternal(captureContext: false);
+            }
+            finally
+            {
+                token.Dispose();
+            }
         }
     }
 }
