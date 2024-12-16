@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,6 +36,12 @@ public abstract partial class Workspace : IDisposable
 {
     private readonly ILegacyGlobalOptionService _legacyOptions;
 
+    private readonly IAsynchronousOperationListener _asyncOperationListener;
+
+    private readonly AsyncBatchingWorkQueue<Action> _workQueue;
+    private readonly CancellationTokenSource _workQueueTokenSource = new();
+    private readonly ITaskSchedulerProvider _taskSchedulerProvider;
+
     // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
     private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
@@ -48,10 +52,6 @@ public abstract partial class Workspace : IDisposable
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
-
-    private readonly AsyncBatchingWorkQueue<Action> _workQueue;
-    private readonly CancellationTokenSource _workQueueTokenSource = new();
-    private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
     // test hooks.
     internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -81,10 +81,11 @@ public abstract partial class Workspace : IDisposable
         _taskSchedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
 
         var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+        _asyncOperationListener = listenerProvider.GetListener();
         _workQueue = new(
             TimeSpan.Zero,
             ProcessWorkQueueAsync,
-            listenerProvider.GetListener(),
+            _asyncOperationListener,
             _workQueueTokenSource.Token);
 
         // initialize with empty solution
