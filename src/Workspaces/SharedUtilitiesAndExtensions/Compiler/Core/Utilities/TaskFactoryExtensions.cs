@@ -15,42 +15,6 @@ namespace Roslyn.Utilities;
 [SuppressMessage("ApiDesign", "CA1068:CancellationToken parameters must come last", Justification = "Matching TPL Signatures")]
 internal static partial class TaskFactoryExtensions
 {
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)
-    {
-        void wrapped()
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
-    }
-
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
-    {
-        TResult wrapped()
-        {
-            try
-            {
-                return func();
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
-    }
-
     public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
     {
         // The one and only place we can call StartNew<>().
