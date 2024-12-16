@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="new">Cannot update '{0}'; attribute '{1}' is missing.</target>
+        <target state="translated">Nie można zaktualizować elementu „{0}”. Brak atrybutu „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
         <source>The type name '{0}' is reserved to be used by the compiler.</source>
-        <target state="new">The type name '{0}' is reserved to be used by the compiler.</target>
+        <target state="translated">Nazwa typu „{0}” jest zarezerwowana do użycia przez kompilator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
-        <target state="new">Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</target>
+        <target state="translated">Argument typu „{0}” musi być typem wartości niedopuszczającym wartości null wraz ze wszystkimi polami na dowolnym poziomie zagnieżdżenia, aby można było użyć go jako parametru typu „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_UnmanagedConstraint">
         <source>recognizing 'unmanaged' constraint</source>
-        <target state="new">recognizing 'unmanaged' constraint</target>
+        <target state="translated">rozpoznawanie ograniczenia "niezarządzanego"</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
@@ -9333,7 +9333,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">Nie można odczytać informacji debugowania metody „{0}” (token 0x{1:X8}) z zestawu „{2}”: {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">
