@@ -38,13 +38,9 @@ internal static partial class TaskExtensions
 
         static async Task CompletesTrackingOperationSlow(Task task, IDisposable token)
         {
-            try
+            using (token)
             {
                 await task.NoThrowAwaitableInternal(captureContext: false);
-            }
-            finally
-            {
-                token.Dispose();
             }
         }
     }
