@@ -11,35 +11,35 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings
-{
-    public class UnifiedSettingsTests
-    {
-        private static readonly ImmutableArray<ExpectedSetting> s_expectedIntellisenseSettings = [
-            new ExpectedSetting("textEditor.basic.intellisense.triggerCompletionOnTypingLetters",
-                    CompletionOptionsStorage.TriggerOnTypingLetters,
-                    new UnifiedSettingsOption<Boolean>()
-                    {
-                        Title = "Show completion list after a character is typed",
-                        Order = 0,
-                        Default = true,
-                        AlternativeDefault = null,
-                        EnableWhen = null,
-                        Type = "Boolean",
-                        Migration = null
-                    })];
+namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
-        [Fact]
-        public async Task VisualBasicIntellisenseTest()
-        {
-            using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicSettings.registration.json");
-            using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
-            var jsonDocument = await JsonNode.ParseAsync(registrationFileStream, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
-            var properties = jsonDocument!.Root["properties"];
-        }
+public class UnifiedSettingsTests
+{
+    internal static readonly ImmutableDictionary<IOption2, string> s_optionToUnifiedSettingPath = ImmutableDictionary<IOption2, string>.Empty.
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "textEditor.basic.intellisense.triggerCompletionOnTypingLetters");
+
+    private static readonly ImmutableDictionary<IOption2, UnifiedSettingBase> s_optionToExpectedUnifiedSettings = ImmutableDictionary<IOption2, UnifiedSettingBase>.Empty.
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, UnifiedSettingBase.Create(
+            CompletionOptionsStorage.TriggerOnTypingLetters,
+            title: "Show completion list after a character is typed",
+            order: 0,
+            defaultValue: true,
+            featureFlagAndExperimentValue: default,
+            enableWhenOptionAndValue: default,
+            languageName: LanguageNames.VisualBasic));
+
+    [Fact]
+    public async Task VisualBasicIntellisenseTest()
+    {
+        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicSettings.registration.json");
+        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
+        var jsonDocument = await JsonNode.ParseAsync(registrationFileStream, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
+        var properties = jsonDocument!.Root["properties"];
     }
 }

@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-using Xunit;
-using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
 {
-    internal abstract record UnifiedSettingBase()
+    internal abstract partial record UnifiedSettingBase()
     {
         [JsonPropertyName("title")]
         [JsonConverter(typeof(ResourceConverter))]
@@ -28,87 +26,45 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
 
         [JsonPropertyName("Migration")]
         public required Migration Migration { get; init; }
-    }
 
-    internal record UnifiedSettingsOption<T> : UnifiedSettingBase
-    {
-        [JsonPropertyName("Default")]
-        public required T Default { get; init; }
-
-        [JsonPropertyName("AlternativeDefault")]
-        public AlternativeDefault<T>? AlternativeDefault { get; init; }
-    }
-
-    public record AlternativeDefault<T>
-    {
-        [JsonPropertyName("flagName")]
-        public string FlagName { get; }
-
-        [JsonPropertyName("default")]
-        public T Default { get; }
-
-        public AlternativeDefault(IOption2 featureFlagOption, T defaultValue)
+        public static UnifiedSettingsOption<T> Create<T>(
+            IOption2 onboaredOption,
+            string title,
+            int order,
+            T defaultValue,
+            (IOption2 featureFlagOption, object value) featureFlagAndExperimentValue = default,
+            (IOption2 enableWhenOption, object whenValue) enableWhenOptionAndValue = default,
+            string? languageName = null)
         {
-            var optionStorage = Storages[featureFlagOption.Definition.ConfigName];
-            Assert.IsType<FeatureFlagStorage>(optionStorage);
-            FlagName = ((FeatureFlagStorage)optionStorage).FlagName;
-            Default = defaultValue;
-        }
-    }
-
-    internal record Migration
-    {
-        [JsonPropertyName("pass")]
-        public required Pass Pass { get; init; }
-    }
-
-    internal record Pass
-    {
-        [JsonPropertyName("input")]
-        public required Input Input { get; init; }
-    }
-
-    internal record Input
-    {
-        [JsonPropertyName("store")]
-        public string Store { get; }
-
-        [JsonPropertyName("path")]
-        public string Path { get; }
-
-        public Input(IOption2 option, string? languageName = null)
-        {
-            Store = GetStore(option);
-            Assert.True(option is IPerLanguageValuedOption && languageName is null);
-            Path = GetPath(option, languageName);
-        }
-
-        private static string GetStore(IOption2 option)
-        {
-            var optionStorage = Storages[option.Definition.ConfigName];
-            return optionStorage switch
+            var migration = new Migration
             {
-                RoamingProfileStorage => "SettingsManager",
-                LocalUserProfileStorage => "VsUserSettingsRegistry",
-                _ => throw ExceptionUtilities.Unreachable()
-            };
-        }
-
-        private static string GetPath(IOption2 option, string? languageName)
-        {
-            var languageId = languageName switch
-            {
-                LanguageNames.CSharp => "CSharp",
-                LanguageNames.VisualBasic => "VisualBasic",
-                null => string.Empty,
+                Pass = new Pass()
+                {
+                    Input = Input(onboaredOption, languageName)
+                }
             };
 
-            var optionStorage = Storages[option.Definition.ConfigName];
-            return option switch
+            var type = onboaredOption.Definition.Type;
+            // If the option's type is nullable type, like bool?, we use bool in the registration file.
+            var underlyingType = Nullable.GetUnderlyingType(type);
+            var nonNullableType = underlyingType ?? type;
+
+            var alternativeDefault = featureFlagAndExperimentValue is not default
+                ? new AlternativeDefault<T>(featureFlagAndExperimentValue.featureFlagOption, featureFlagAndExperimentValue.value)
+                : null;
+
+            var enableWhen = enableWhenOptionAndValue is not default
+                ? $"config:{UnifiedSettingsTests.s_optionToUnifiedSettingPath[enableWhenOptionAndValue]}='{enableWhenOptionAndValue.whenValue}'"
+                : null;
+
+            return new UnifiedSettingsOption<T>()
             {
-                RoamingProfileStorage roamingProfile => roamingProfile.Key.Replace("%LANGUAGE%", languageId),
-                LocalUserProfileStorage userProfileStorage => $"{userProfileStorage.Path}\\{userProfileStorage.Key}"
-                _ => throw ExceptionUtilities.UnexpectedValue(option)
+                Title = title,
+                Type = nonNullableType.ToString().ToCamelCase(),
+                Order = order,
+                EnableWhen = enableWhen,
+                Migration = migration,
+                AlternativeDefault = alternativeDefault,
             };
         }
     }
