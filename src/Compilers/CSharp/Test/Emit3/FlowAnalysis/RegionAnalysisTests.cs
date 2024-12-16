@@ -14226,5 +14226,49 @@ class B
             flowAnalysis = model.AnalyzeDataFlow(add);
             Assert.Equal("i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
+        public void BinaryOpConditionalAccess()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    public bool M(out int x) { x = 0; return false; }
+
+                    private static void Repro(C c)
+                    {
+                        const bool y = true;
+                        const bool z = true;
+                        int x;
+                        _ = c?.M(out x) == y == z;
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Last();
+            Assert.Equal("_ = c?.M(out x) == y == z;", decl.ToString());
+            var flowAnalysis = model.AnalyzeDataFlow(decl);
+            Assert.Equal("c, y, z", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+
+            var binOps = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
+            Assert.Equal(2, binOps.Length);
+
+            var binOp = binOps[0];
+            Assert.Equal("c?.M(out x) == y == z", binOp.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(binOp);
+            Assert.Equal("c, y, z", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+
+            binOp = binOps[1];
+            Assert.Equal("c?.M(out x) == y", binOp.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(binOp);
+            Assert.Equal("c, y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+        }
     }
 }
