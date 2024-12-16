@@ -2474,6 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IteratorRefLikeElementType
                 or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
+                or ErrorCode.HDN_RedundantPattern
                 or ErrorCode.WRN_RedundantPattern
                     => false,
             };

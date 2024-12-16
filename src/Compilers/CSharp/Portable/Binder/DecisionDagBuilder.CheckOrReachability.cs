@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
                     {
-                        diagnostics.Add(ErrorCode.WRN_RedundantPattern, @case.Syntax);
+                        diagnostics.Add(ErrorCode.HDN_RedundantPattern, @case.Syntax);
                     }
                 }
 

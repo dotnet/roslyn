@@ -389,6 +389,7 @@
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
                 case ErrorCode.HDN_DuplicateWithGlobalUsing:
+                case ErrorCode.HDN_RedundantPattern:
                     return true;
                 default:
                     return false;
