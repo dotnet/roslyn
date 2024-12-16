@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections.Generic;
                 class Program
                 {
-                    static void  Main()
+                    static void Main()
                     {
                         Dictionary<int, string> d = [];
                         d.Report();
@@ -157,7 +157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: "[], ");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
-
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                  IL_0005:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                  IL_000a:  ret
+                }
                 """);
         }
 
@@ -165,13 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void LanguageVersionDiagnostics_05(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool includeExtensionAdd)
+            bool includeExtensionMethod)
         {
             string sourceA = """
                 using System.Collections.Generic;
                 class Program
                 {
-                    static void  Main()
+                    static void Main()
                     {
                         Dictionary<int, string> d = [1:"one"];
                         d.Report();
@@ -189,39 +195,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(
-                includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
+                includeExtensionMethod ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionMethod)
             {
-                if (includeExtensionAdd)
-                {
-                    comp.VerifyEmitDiagnostics(
-                        // (2,30): error CS9274: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
-                        // Dictionary<int, string> d = [1:"one"];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(2, 30),
-                        // (2,31): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        // Dictionary<int, string> d = [1:"one"];
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(2, 31));
-                }
-                else
-                {
-                    comp.VerifyEmitDiagnostics(
-                        // (2,29): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
-                        // Dictionary<int, string> d = [1:"one"];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(2, 29),
-                        // (2,30): error CS9274: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
-                        // Dictionary<int, string> d = [1:"one"];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(2, 30),
-                        // (2,31): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        // Dictionary<int, string> d = [1:"one"];
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(2, 31));
-                }
+                comp.VerifyEmitDiagnostics(
+                    // (6,37): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         Dictionary<int, string> d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(6, 37),
+                    // (6,38): error CS9268: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
+                    //         Dictionary<int, string> d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(6, 38),
+                    // (6,39): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         Dictionary<int, string> d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(6, 39));
+            }
+            else if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,38): error CS9268: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
+                    //         Dictionary<int, string> d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(6, 38),
+                    // (6,39): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         Dictionary<int, string> d = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(6, 39));
             }
             else
             {
-                // PROTOTYPE: Execute and verify IL.
-                comp.VerifyEmitDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "[1:one], ");
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.Main", """
+                    {
+                      // Code size       23 (0x17)
+                      .maxstack  4
+                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                      IL_0005:  dup
+                      IL_0006:  ldc.i4.1
+                      IL_0007:  ldstr      "one"
+                      IL_000c:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
+                      IL_0011:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                      IL_0016:  ret
+                    }
+                    """);
             }
         }
 
@@ -229,16 +245,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void LanguageVersionDiagnostics_06(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool includeExtensionAdd)
+            bool includeExtensionMethod)
         {
             string sourceA = """
                 using System.Collections.Generic;
-                Dictionary<int, string> d;
-                d = [];
-                var x = new KeyValuePair<int, string>(2, "two");
-                var y = new KeyValuePair<int, string>[] { new(3, "three") };
-                d = [x];
-                d = [..y];
+                class Program
+                {
+                    static void Main()
+                    {
+                        Dictionary<int, string> d;
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new KeyValuePair<int, string>[] { new(3, "three") };
+                        d = [x];
+                        d.Report();
+                        d = [..y];
+                        d.Report();
+                    }
+                }
                 """;
             string sourceB = """
                 using System.Collections.Generic;
@@ -251,29 +274,149 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(
-                includeExtensionAdd ? [sourceA, sourceB] : sourceA,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
+                includeExtensionMethod ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionMethod)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,5): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
-                    // d = [x];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(6, 5),
-                    // (7,5): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
-                    // d = [..y];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..y]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(7, 5));
+                    // (9,13): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         d = [x];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(9, 13),
+                    // (11,13): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         d = [..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..y]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(11, 13));
+                return;
+            }
+            var verifier = CompileAndVerify(comp, expectedOutput: "[2:two], [3:three], ");
+            verifier.VerifyDiagnostics();
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                verifier.VerifyIL("Program.Main", """
+                    {
+                        // Code size       99 (0x63)
+                        .maxstack  5
+                        .locals init (System.Collections.Generic.KeyValuePair<int, string> V_0, //x
+                                    System.Collections.Generic.Dictionary<int, string> V_1,
+                                    System.Collections.Generic.KeyValuePair<int, string>[] V_2,
+                                    int V_3,
+                                    System.Collections.Generic.KeyValuePair<int, string> V_4)
+                        IL_0000:  ldloca.s   V_0
+                        IL_0002:  ldc.i4.2
+                        IL_0003:  ldstr      "two"
+                        IL_0008:  call       "System.Collections.Generic.KeyValuePair<int, string>..ctor(int, string)"
+                        IL_000d:  ldc.i4.1
+                        IL_000e:  newarr     "System.Collections.Generic.KeyValuePair<int, string>"
+                        IL_0013:  dup
+                        IL_0014:  ldc.i4.0
+                        IL_0015:  ldc.i4.3
+                        IL_0016:  ldstr      "three"
+                        IL_001b:  newobj     "System.Collections.Generic.KeyValuePair<int, string>..ctor(int, string)"
+                        IL_0020:  stelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                        IL_0025:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                        IL_002a:  dup
+                        IL_002b:  ldloc.0
+                        IL_002c:  call       "void Extensions.Add<int, string>(System.Collections.Generic.Dictionary<int, string>, System.Collections.Generic.KeyValuePair<int, string>)"
+                        IL_0031:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                        IL_0036:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                        IL_003b:  stloc.1
+                        IL_003c:  stloc.2
+                        IL_003d:  ldc.i4.0
+                        IL_003e:  stloc.3
+                        IL_003f:  br.s       IL_0056
+                        IL_0041:  ldloc.2
+                        IL_0042:  ldloc.3
+                        IL_0043:  ldelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                        IL_0048:  stloc.s    V_4
+                        IL_004a:  ldloc.1
+                        IL_004b:  ldloc.s    V_4
+                        IL_004d:  call       "void Extensions.Add<int, string>(System.Collections.Generic.Dictionary<int, string>, System.Collections.Generic.KeyValuePair<int, string>)"
+                        IL_0052:  ldloc.3
+                        IL_0053:  ldc.i4.1
+                        IL_0054:  add
+                        IL_0055:  stloc.3
+                        IL_0056:  ldloc.3
+                        IL_0057:  ldloc.2
+                        IL_0058:  ldlen
+                        IL_0059:  conv.i4
+                        IL_005a:  blt.s      IL_0041
+                        IL_005c:  ldloc.1
+                        IL_005d:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                        IL_0062:  ret
+                    }
+                    """);
             }
             else
             {
-                // PROTOTYPE: Execute and verify IL.
-                comp.VerifyEmitDiagnostics();
+                verifier.VerifyIL("Program.Main", """
+                    {
+                        // Code size      130 (0x82)
+                        .maxstack  5
+                        .locals init (System.Collections.Generic.KeyValuePair<int, string> V_0, //x
+                                    System.Collections.Generic.KeyValuePair<int, string> V_1,
+                                    System.Collections.Generic.Dictionary<int, string> V_2,
+                                    System.Collections.Generic.KeyValuePair<int, string>[] V_3,
+                                    int V_4)
+                        IL_0000:  ldloca.s   V_0
+                        IL_0002:  ldc.i4.2
+                        IL_0003:  ldstr      "two"
+                        IL_0008:  call       "System.Collections.Generic.KeyValuePair<int, string>..ctor(int, string)"
+                        IL_000d:  ldc.i4.1
+                        IL_000e:  newarr     "System.Collections.Generic.KeyValuePair<int, string>"
+                        IL_0013:  dup
+                        IL_0014:  ldc.i4.0
+                        IL_0015:  ldc.i4.3
+                        IL_0016:  ldstr      "three"
+                        IL_001b:  newobj     "System.Collections.Generic.KeyValuePair<int, string>..ctor(int, string)"
+                        IL_0020:  stelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                        IL_0025:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                        IL_002a:  ldloc.0
+                        IL_002b:  stloc.1
+                        IL_002c:  dup
+                        IL_002d:  ldloca.s   V_1
+                        IL_002f:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                        IL_0034:  ldloca.s   V_1
+                        IL_0036:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                        IL_003b:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
+                        IL_0040:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                        IL_0045:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                        IL_004a:  stloc.2
+                        IL_004b:  stloc.3
+                        IL_004c:  ldc.i4.0
+                        IL_004d:  stloc.s    V_4
+                        IL_004f:  br.s       IL_0074
+                        IL_0051:  ldloc.3
+                        IL_0052:  ldloc.s    V_4
+                        IL_0054:  ldelem     "System.Collections.Generic.KeyValuePair<int, string>"
+                        IL_0059:  stloc.1
+                        IL_005a:  ldloc.2
+                        IL_005b:  ldloca.s   V_1
+                        IL_005d:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                        IL_0062:  ldloca.s   V_1
+                        IL_0064:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                        IL_0069:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
+                        IL_006e:  ldloc.s    V_4
+                        IL_0070:  ldc.i4.1
+                        IL_0071:  add
+                        IL_0072:  stloc.s    V_4
+                        IL_0074:  ldloc.s    V_4
+                        IL_0076:  ldloc.3
+                        IL_0077:  ldlen
+                        IL_0078:  conv.i4
+                        IL_0079:  blt.s      IL_0051
+                        IL_007b:  ldloc.2
+                        IL_007c:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                        IL_0081:  ret
+                    }
+                    """);
             }
         }
 
         [Theory]
+        [InlineData("Dictionary")]
         [InlineData("IDictionary")]
         [InlineData("IReadOnlyDictionary")]
-        public void DictionaryInterface_01(string typeName)
+        public void Dictionary_01(string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
@@ -304,9 +447,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [InlineData("Dictionary")]
         [InlineData("IDictionary")]
         [InlineData("IReadOnlyDictionary")]
-        public void DictionaryInterface_02(string typeName)
+        public void Dictionary_02(string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
@@ -385,9 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [InlineData("Dictionary")]
         [InlineData("IDictionary")]
         [InlineData("IReadOnlyDictionary")]
-        public void DictionaryInterface_DuplicateKeys(string typeName)
+        public void Dictionary_DuplicateKeys(string typeName)
         {
             string source = $$"""
                 using System;
@@ -445,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [InlineData("Dictionary")]
         [InlineData("IDictionary")]
         [InlineData("IReadOnlyDictionary")]
         public void DictionaryNotImplementingIDictionary(string typeName)
@@ -537,10 +683,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
-            comp.VerifyEmitDiagnostics(Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"),
-                // 1.cs(10,16): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.Dictionary<K, V>' to 'System.Collections.Generic.IDictionary<K, V>'
-                //         return [k:v, x, ..y];
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "[k:v, x, ..y]").WithArguments("System.Collections.Generic.Dictionary<K, V>", $"System.Collections.Generic.{typeName}<K, V>").WithLocation(10, 16));
+            var emitOptions = Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0");
+            if (typeName == "Dictionary")
+            {
+                comp.VerifyEmitDiagnostics(emitOptions);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(emitOptions,
+                    // 1.cs(10,16): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.Dictionary<K, V>' to 'System.Collections.Generic.IDictionary<K, V>'
+                    //         return [k:v, x, ..y];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "[k:v, x, ..y]").WithArguments("System.Collections.Generic.Dictionary<K, V>", $"System.Collections.Generic.{typeName}<K, V>").WithLocation(10, 16));
+            }
         }
 
         [Theory]
