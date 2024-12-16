@@ -1678,6 +1678,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = default;
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
+            else if (destination.IsArrayInterface(out elementType))
+            {
+                return CollectionExpressionTypeKind.ArrayInterface;
+            }
+            else if (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
+                isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType))
+            {
+                return CollectionExpressionTypeKind.DictionaryInterface;
+            }
+            else if (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_Dictionary_KV, out elementType) &&
+                compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions)) // fallback to "implements IEnumerable" for earlier language versions
+            {
+                return CollectionExpressionTypeKind.Dictionary;
+            }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
                 // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
@@ -1688,14 +1702,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Instead, we just walk the implemented interfaces.
                 elementType = default;
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
-            }
-            else if (destination.IsArrayInterface(out elementType))
-            {
-                return CollectionExpressionTypeKind.ArrayInterface;
-            }
-            else if (isDictionaryInterface(compilation, destination, out elementType))
-            {
-                return CollectionExpressionTypeKind.DictionaryInterface;
             }
 
             elementType = default;
@@ -1708,11 +1714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
 
-            static bool isDictionaryInterface(CSharpCompilation compilation, TypeSymbol targetType, out TypeWithAnnotations elementType)
+            static bool isDictionaryType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType dictionaryType, out TypeWithAnnotations elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 2 } namedType &&
-                    (ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)) ||
-                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))))
+                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(dictionaryType)))
                 {
                     elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV).
                         Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
@@ -1753,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CollectionUsesKeyValuePairs(CSharpCompilation compilation, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol elementType, out TypeWithAnnotations keyType, out TypeWithAnnotations valueType)
         {
             // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
-            if (collectionTypeKind == CollectionExpressionTypeKind.DictionaryInterface)
+            if (collectionTypeKind is CollectionExpressionTypeKind.Dictionary or CollectionExpressionTypeKind.DictionaryInterface)
             {
                 bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out keyType, out valueType);
                 Debug.Assert(usesKeyValuePairs);

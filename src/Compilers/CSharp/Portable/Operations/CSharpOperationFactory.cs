@@ -1249,6 +1249,9 @@ namespace Microsoft.CodeAnalysis.Operations
                         return null;
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
+                    case CollectionExpressionTypeKind.Dictionary:
+                        Debug.Assert(expr.CollectionCreation is null);
+                        return ((MethodSymbol?)compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor))?.AsMember((NamedTypeSymbol)expr.Type);
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;
                     default:
