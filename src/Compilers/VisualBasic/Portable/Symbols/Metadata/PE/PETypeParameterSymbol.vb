@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -312,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Sub EnsureAllConstraintsAreResolved()
-            If _lazyConstraintTypes.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyConstraintTypes).IsDefault Then
                 Dim typeParameters = If(_containingSymbol.Kind = SymbolKind.Method,
                                         DirectCast(_containingSymbol, PEMethodSymbol).TypeParameters,
                                         DirectCast(_containingSymbol, PENamedTypeSymbol).TypeParameters)
@@ -324,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Debug.Assert(Not inProgress.Contains(Me))
             Debug.Assert(Not inProgress.Any() OrElse inProgress.Head.ContainingSymbol Is ContainingSymbol)
 
-            If _lazyConstraintTypes.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyConstraintTypes).IsDefault Then
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                 Dim inherited = (_containingSymbol.Kind = SymbolKind.Method) AndAlso DirectCast(_containingSymbol, MethodSymbol).IsOverrides
                 Dim hasUnmanagedModreqPattern As Boolean = False
