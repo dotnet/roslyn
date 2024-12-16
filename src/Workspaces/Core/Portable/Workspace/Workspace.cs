@@ -89,11 +89,11 @@ public abstract partial class Workspace : IDisposable
             _workQueueTokenSource.Token);
 
         // initialize with empty solution
-        var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-
-        var emptyOptions = new SolutionOptionSet(_legacyOptions);
-
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: [], fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
+        _latestSolution = CreateSolution(
+            SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()),
+            new SolutionOptionSet(_legacyOptions),
+            analyzerReferences: [],
+            fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
