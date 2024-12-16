@@ -2056,9 +2056,7 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
-            ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update all the tests that call this canary
-            ' - update the command-line documentation (CommandLine.md)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "17.13", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
