@@ -115,20 +115,10 @@ internal sealed class InteractiveSession : IDisposable
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Task task;
-            try
-            {
-                // Even producing the task may fail (due to synchronous execution of the delegate).  Ensure we NFW in
-                // that case and move on.
-                task = taskCreator();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
-            {
-                continue;
-            }
-
-            // Now that we have the task to process, ensure we always process the next piece of work, even if the
-            // current work fails.  We still report this as an nfw here though:
+            // Kick off the task to run.  This also ensures that if the taskCreator func throws synchronously, that we
+            // appropriately handle reporting it in ReportNonFatalErrorAsync.  Also,  ensure we always process the next
+            // piece of work, even if the current work fails.
+            var task = Task.Run(taskCreator, cancellationToken);
             _ = task.ReportNonFatalErrorAsync();
             await task.NoThrowAwaitableInternal(captureContext: false);
         }
