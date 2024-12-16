@@ -30,27 +30,21 @@ internal sealed class FileLogger : ILogger
     private bool _enabled;
 
     /// <summary>
-    /// Task queue to serialize all the IO to the log file.
+    /// Work queue to serialize all the IO to the log file.
     /// </summary>
     private readonly AsyncBatchingWorkQueue<(FunctionId functionId, string message)> _workQueue;
 
-    public FileLogger(
-        IGlobalOptionService globalOptions, IThreadingContext threadingContext, string logFilePath)
+    public FileLogger(IGlobalOptionService optionService, IThreadingContext threadingContext)
     {
-        _logFilePath = logFilePath;
+        _logFilePath = Path.Combine(Path.GetTempPath(), "Roslyn", "Telemetry", GetLogFileName());
         _buffer = new();
         _workQueue = new(
             DelayTimeSpan.Short,
             ProcessWorkQueueAsync,
             AsynchronousOperationListenerProvider.NullListener,
             threadingContext.DisposalToken);
-        _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
-        globalOptions.AddOptionChangedHandler(this, OptionService_OptionChanged);
-    }
-
-    public FileLogger(IGlobalOptionService optionService, IThreadingContext threadingContext)
-        : this(optionService, threadingContext, Path.Combine(Path.GetTempPath(), "Roslyn", "Telemetry", GetLogFileName()))
-    {
+        _enabled = optionService.GetOption(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
+        optionService.AddOptionChangedHandler(this, OptionService_OptionChanged);
     }
 
     private static string GetLogFileName()
