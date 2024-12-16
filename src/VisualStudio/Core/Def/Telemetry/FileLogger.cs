@@ -5,11 +5,13 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -23,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 /// </summary>
 internal sealed class FileLogger : ILogger
 {
-    private readonly object _gate;
     private readonly string _logFilePath;
     private readonly StringBuilder _buffer;
     private bool _enabled;
@@ -31,20 +32,24 @@ internal sealed class FileLogger : ILogger
     /// <summary>
     /// Task queue to serialize all the IO to the log file.
     /// </summary>
-    private readonly TaskQueue _taskQueue;
+    private readonly AsyncBatchingWorkQueue<(FunctionId functionId, string message)> _workQueue;
 
-    public FileLogger(IGlobalOptionService globalOptions, string logFilePath)
+    public FileLogger(
+        IGlobalOptionService globalOptions, IThreadingContext threadingContext, string logFilePath)
     {
         _logFilePath = logFilePath;
-        _gate = new();
         _buffer = new();
-        _taskQueue = new(AsynchronousOperationListenerProvider.NullListener, TaskScheduler.Default);
+        _workQueue = new(
+            DelayTimeSpan.Short,
+            ProcessWorkQueueAsync,
+            AsynchronousOperationListenerProvider.NullListener,
+            threadingContext.DisposalToken);
         _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
         globalOptions.AddOptionChangedHandler(this, OptionService_OptionChanged);
     }
 
-    public FileLogger(IGlobalOptionService optionService)
-        : this(optionService, Path.Combine(Path.GetTempPath(), "Roslyn", "Telemetry", GetLogFileName()))
+    public FileLogger(IGlobalOptionService optionService, IThreadingContext threadingContext)
+        : this(optionService, threadingContext, Path.Combine(Path.GetTempPath(), "Roslyn", "Telemetry", GetLogFileName()))
     {
     }
 
@@ -81,26 +86,7 @@ internal sealed class FileLogger : ILogger
     }
 
     private void Log(FunctionId functionId, string message)
-    {
-        _taskQueue.ScheduleTask(nameof(FileLogger), () =>
-        {
-            lock (_gate)
-            {
-                _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
-
-                IOUtilities.PerformIO(() =>
-                {
-                    if (!File.Exists(_logFilePath))
-                    {
-                        Directory.CreateDirectory(PathUtilities.GetDirectoryName(_logFilePath));
-                    }
-
-                    File.AppendAllText(_logFilePath, _buffer.ToString());
-                    _buffer.Clear();
-                });
-            }
-        }, CancellationToken.None);
-    }
+        => _workQueue.AddWork((functionId, message));
 
     public void Log(FunctionId functionId, LogMessage logMessage)
         => Log(functionId, logMessage.GetMessage());
@@ -113,4 +99,24 @@ internal sealed class FileLogger : ILogger
 
     private void LogBlockEvent(FunctionId functionId, LogMessage logMessage, int uniquePairId, string blockEvent)
         => Log(functionId, $"[{blockEvent} - {uniquePairId}] {logMessage.GetMessage()}");
+
+    private ValueTask ProcessWorkQueueAsync(
+        ImmutableSegmentedList<(FunctionId functionId, string message)> list, CancellationToken cancellationToken)
+    {
+        foreach (var (functionId, message) in list)
+            _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
+
+        IOUtilities.PerformIO(() =>
+        {
+            if (!File.Exists(_logFilePath))
+            {
+                Directory.CreateDirectory(PathUtilities.GetDirectoryName(_logFilePath));
+            }
+
+            File.AppendAllText(_logFilePath, _buffer.ToString());
+            _buffer.Clear();
+        });
+
+        return ValueTaskFactory.CompletedTask;
+    }
 }
