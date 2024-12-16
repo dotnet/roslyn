@@ -423,6 +423,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return 0
+        End Function
+
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 Throw ExceptionUtilities.Unreachable

@@ -95,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return Me._underlyingProperty.GetOverloadResolutionPriority()
+        End Function
+
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
             Get
                 Return Me._underlyingProperty.IsMyGroupCollectionProperty
