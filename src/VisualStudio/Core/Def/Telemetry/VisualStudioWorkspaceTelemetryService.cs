@@ -36,7 +36,7 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
             CodeMarkerLogger.Instance,
             new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions)),
             TelemetryLogger.Create(telemetrySession, logDelta),
-            new FileLogger(_globalOptions),
+            new FileLogger(_globalOptions, _threadingContext),
             Logger.GetLogger());
 
     protected override void TelemetrySessionInitialized()
