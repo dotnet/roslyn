@@ -585,13 +585,6 @@ public abstract partial class Workspace : IDisposable
         => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
 
     /// <summary>
-    /// Execute a function as a background task, as part of a sequential queue of tasks.
-    /// </summary>
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
-
-    /// <summary>
     /// Override this method to act immediately when the text of a document has changed, as opposed
     /// to waiting for the corresponding workspace changed event to fire asynchronously.
     /// </summary>
