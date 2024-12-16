@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Sub EnsureNonTypeMembersAreLoaded()
 
-            If _lazyMembers Is Nothing Then
+            If Volatile.Read(_lazyMembers) Is Nothing Then
                 ' A method may be referenced as an accessor by one or more properties. And,
                 ' any of those properties may be "bogus" if one of the property accessors
                 ' does not match the property signature. If the method is referenced by at

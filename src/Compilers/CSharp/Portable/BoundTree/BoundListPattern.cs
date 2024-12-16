@@ -15,12 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(subpatterns, this.HasSlice, this.LengthAccess, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.Variable, this.VariableAccess, this.InputType, this.NarrowedType);
         }
 
-        internal BoundPattern WithSyntax(SyntaxNode syntax)
-        {
-            return new BoundListPattern(syntax, this.Subpatterns, this.HasSlice, this.LengthAccess, this.IndexerAccess, this.ReceiverPlaceholder,
-                this.ArgumentPlaceholder, this.Variable, this.VariableAccess, this.InputType, this.NarrowedType, this.HasErrors);
-        }
-
         private partial void Validate()
         {
             Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);

@@ -16,17 +16,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                          NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions) :
                          NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
         }
-
-        internal BoundRecursivePattern WithDeconstruction(ImmutableArray<BoundPositionalSubpattern> deconstruction)
-        {
-            return this.Update(this.DeclaredType, this.DeconstructMethod, deconstruction, this.Properties, this.IsExplicitNotNullTest,
-                this.Variable, this.VariableAccess, this.InputType, this.NarrowedType);
-        }
-
-        internal BoundRecursivePattern WithProperties(ImmutableArray<BoundPropertySubpattern> properties)
-        {
-            return this.Update(this.DeclaredType, this.DeconstructMethod, this.Deconstruction, properties, this.IsExplicitNotNullTest,
-                this.Variable, this.VariableAccess, this.InputType, this.NarrowedType);
-        }
     }
 }
