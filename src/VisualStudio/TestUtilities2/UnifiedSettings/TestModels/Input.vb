@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options
-Imports Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage
+Imports 
 Imports Newtonsoft.Json
 Imports Roslyn.Utilities
 

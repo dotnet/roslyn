@@ -4,18 +4,35 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
+using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings
 {
     public class UnifiedSettingsTests
     {
+        private static readonly ImmutableArray<ExpectedSetting> s_expectedIntellisenseSettings = [
+            new ExpectedSetting("textEditor.basic.intellisense.triggerCompletionOnTypingLetters",
+                    CompletionOptionsStorage.TriggerOnTypingLetters,
+                    new UnifiedSettingsOption<Boolean>()
+                    {
+                        Title = "Show completion list after a character is typed",
+                        Order = 0,
+                        Default = true,
+                        AlternativeDefault = null,
+                        EnableWhen = null,
+                        Type = "Boolean",
+                        Migration = null
+                    })];
+
         [Fact]
         public async Task VisualBasicIntellisenseTest()
         {

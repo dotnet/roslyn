@@ -128,7 +128,7 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
             Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
                 Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
                     Dim jsonDocument = Await JsonNode.ParseAsync(registrationFileStream, documentOptions:=New JsonDocumentOptions() With {.CommentHandling = JsonCommentHandling.Skip})
-                    Dim properties = jsonDocument.Root("properties")
+                    Dim properties = jsonDocument.Root.("properties")
 
                     Dim j = 9
 

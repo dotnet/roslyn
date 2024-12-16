@@ -11,5 +11,35 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
         public string ExpectedUnifiedSettingsPath => path;
         public IOption2 Option => option;
         public UnifiedSettingBase ExpectedUnifiedSetting => setting;
+
+        public static ExpectedSetting Create<T>(
+            string ExpectedUnifiedSettingsPath,
+            IOption2 roslynOption,
+            string title,
+            int order,
+            T defaultValue,
+            (IOption2 featureFlagOption, object value) featureFlagAndExperimentValue = default,
+            (IOption2 enableWhenOption, object whenValue) enableWhenOptionAndValue = default,
+            string? languageName = null)
+        {
+            var migration = new Migration
+            {
+                Pass = new Pass()
+                {
+                    Input = Input(roslynOption, languageName)
+                }
+            };
+
+            var alternativeDefault = featureFlagAndExperimentValue is not default
+                ? new AlternativeDefault<T>(featureFlagAndExperimentValue.featureFlagOption, featureFlagAndExperimentValue.value)
+                : null;
+
+            var enableWhen = enableWhenOptionAndValue is not default
+                ? $"config:{enableWhen}"
+
+
+
+
+        }
     }
 }
