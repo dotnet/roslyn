@@ -172,6 +172,21 @@
         <target state="translated">진단 분석기 내에서 Compilation.GetSemanticModel() 메서드를 호출하지 마세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
+        <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
+        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
+        <source>Type '{0}' should not be marked with 'file'</source>
+        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
+        <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
+        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
         <target state="translated">분석기의 DiagnosticId에는 예약된 ID를 사용해서는 안 됩니다.</target>

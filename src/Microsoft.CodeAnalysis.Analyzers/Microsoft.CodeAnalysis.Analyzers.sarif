@@ -528,6 +528,21 @@
             ]
           }
         },
+        "RS1043": {
+          "id": "RS1043",
+          "shortDescription": "Do not use file types for implementing analyzers, generators, and code fixers",
+          "fullDescription": "Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "DoNotUseFileTypesForAnalyzersOrGenerators",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release",

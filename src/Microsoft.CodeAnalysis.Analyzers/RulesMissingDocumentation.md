@@ -40,3 +40,4 @@ RS1037 |  | Add "CompilationEnd" custom tag to compilation end diagnostic descri
 RS1039 |  | This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null' |
 RS1040 |  | This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null' |
 RS1042 |  | Implementations of this interface are not allowed |
+RS1043 |  | Do not use file types for implementing analyzers, generators, and code fixers |

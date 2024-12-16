@@ -172,6 +172,21 @@
         <target state="translated">Не вызывайте метод Compilation.GetSemanticModel() в диагностическом анализаторе</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
+        <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
+        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
+        <source>Type '{0}' should not be marked with 'file'</source>
+        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
+        <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
+        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
         <target state="translated">Идентификатор диагностики DiagnosticId для анализатора не должен включать зарезервированные идентификаторы.</target>

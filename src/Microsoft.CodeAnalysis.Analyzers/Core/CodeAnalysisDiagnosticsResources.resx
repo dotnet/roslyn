@@ -605,4 +605,13 @@
   <data name="ImplementationIsObsoleteTitle" xml:space="preserve">
     <value>Implementations of this interface are not allowed</value>
   </data>
+  <data name="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription" xml:space="preserve">
+    <value>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</value>
+  </data>
+  <data name="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage" xml:space="preserve">
+    <value>Type '{0}' should not be marked with 'file'</value>
+  </data>
+  <data name="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle" xml:space="preserve">
+    <value>Do not use file types for implementing analyzers, generators, and code fixers</value>
+  </data>
 </root>
