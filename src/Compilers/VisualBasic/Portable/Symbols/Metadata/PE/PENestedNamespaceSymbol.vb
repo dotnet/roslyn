@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim typesByNS = Volatile.Read(_typesByNS)
 
             If typesByNS Is Nothing Then
-                Debug.Assert(m_lazyMembers IsNot Nothing AndAlso m_lazyMembers IsNot Nothing)
+                Debug.Assert(m_lazyTypes IsNot Nothing AndAlso m_lazyMembers IsNot Nothing)
             Else
                 LoadAllMembers(typesByNS)
                 Interlocked.Exchange(_typesByNS, Nothing)
