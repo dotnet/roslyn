@@ -5216,6 +5216,46 @@ public static class S1Ext
             );
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76126")]
+    public void DisplayPathMapping_01()
+    {
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var resolver = new SourceFileResolver([], null, [new KeyValuePair<string, string>(pathPrefix, "/_/")]);
+        var options = TestOptions.DebugExe.WithSourceReferenceResolver(resolver);
+
+        var source = ("""
+            C c = new C();
+            c.M();
+            """, path);
+        var comp = CreateCompilation(source, options: options);
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var location = model.GetInterceptableLocation(node)!;
+        Assert.Equal("/_/Program.cs(2,3)", location.GetDisplayLocation());
+
+        var interceptors = $$"""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation({{GetAttributeArgs(location)}})]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(
+            [source, interceptors, s_attributesSource],
+            parseOptions: RegularWithInterceptors,
+            options: options,
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
     [Fact]
     public void PathMapping_01()
     {
