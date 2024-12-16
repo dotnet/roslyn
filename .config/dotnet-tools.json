@@ -17,7 +17,7 @@
       "rollForward": false
     },
     "nbgv": {
-      "version": "3.6.146",
+      "version": "3.7.112",
       "commands": [
         "nbgv"
       ],
