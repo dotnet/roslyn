@@ -7,17 +7,19 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class WorkspaceProjectFactoryServiceTests
+public class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerHostTests(testOutputHelper)
 {
     [Fact]
     public async Task CreateProjectAndBatch()
     {
         var loggerFactory = new LoggerFactory();
         using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-            loggerFactory, includeDevKitComponents: false, out var serverConfiguration, out var _);
+            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, out var serverConfiguration, out var _);
 
         exportProvider.GetExportedValue<ServerConfigurationFactory>()
             .InitializeConfiguration(serverConfiguration);

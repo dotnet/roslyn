@@ -221,8 +221,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 _eventSource.Changed += OnEventSourceChanged;
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
-                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                if (_dataSource.TextChangeBehavior != TaggerTextChangeBehavior.None)
                 {
                     _subjectBuffer.Changed += OnSubjectBufferChanged;
                 }
@@ -269,8 +268,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
-                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                if (_dataSource.TextChangeBehavior != TaggerTextChangeBehavior.None)
                 {
                     _subjectBuffer.Changed -= OnSubjectBufferChanged;
                 }

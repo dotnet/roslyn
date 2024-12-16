@@ -7,13 +7,18 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 
 using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 using ObjectInitializerMatch = Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
@@ -34,25 +39,37 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
     protected override CSharpUseNamedMemberInitializerAnalyzer GetAnalyzer()
         => CSharpUseNamedMemberInitializerAnalyzer.Allocate();
 
+    protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
+
+    protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+
+    protected override SyntaxTrivia Whitespace(string text)
+        => SyntaxFactory.Whitespace(text);
+
     protected override StatementSyntax GetNewStatement(
-        StatementSyntax statement, BaseObjectCreationExpressionSyntax objectCreation,
+        StatementSyntax statement,
+        BaseObjectCreationExpressionSyntax objectCreation,
+        SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         return statement.ReplaceNode(
             objectCreation,
-            GetNewObjectCreation(objectCreation, matches));
+            GetNewObjectCreation(objectCreation, options, matches));
     }
 
-    private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+    private BaseObjectCreationExpressionSyntax GetNewObjectCreation(
         BaseObjectCreationExpressionSyntax objectCreation,
+        SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         return UseInitializerHelpers.GetNewObjectCreation(
-            objectCreation, CreateExpressions(objectCreation, matches));
+            objectCreation,
+            CreateExpressions(objectCreation, options, matches));
     }
 
-    private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+    private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
         BaseObjectCreationExpressionSyntax objectCreation,
+        SyntaxFormattingOptions options,
         ImmutableArray<ObjectInitializerMatch> matches)
     {
         using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
@@ -69,8 +86,9 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
 
             var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
-            var newAssignment = assignment.WithLeft(
-                match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia));
+            var newAssignment = assignment
+                .WithLeft(match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia))
+                .WithRight(Indent(assignment.Right, options));
 
             if (i < matches.Length - 1)
             {
@@ -85,6 +103,6 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
             }
         }
 
-        return SyntaxFactory.SeparatedList<ExpressionSyntax>(nodesAndTokens);
+        return SeparatedList<ExpressionSyntax>(nodesAndTokens);
     }
 }

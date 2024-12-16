@@ -3988,10 +3988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var constructorUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, constructor.ContainingAssembly);
             constructorUseSiteInfo.Add(baseConstructor.GetUseSiteInfo());
-            if (Binder.ReportConstructorUseSiteDiagnostics(diagnosticsLocation, diagnostics, suppressUnsupportedRequiredMembersError: constructor.HasSetsRequiredMembers, constructorUseSiteInfo))
-            {
-                return null;
-            }
+            Binder.ReportConstructorUseSiteDiagnostics(diagnosticsLocation, diagnostics, suppressUnsupportedRequiredMembersError: constructor.HasSetsRequiredMembers, constructorUseSiteInfo);
 
             diagnostics.Add(diagnosticsLocation, useSiteInfo);
 

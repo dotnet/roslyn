@@ -9,16 +9,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
+public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    public TelemetryReporterTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
-    {
-    }
-
     private async Task<ITelemetryReporter> CreateReporterAsync()
     {
-        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(TestOutputLogger.Factory, includeDevKitComponents: true, out var _, out var _);
+        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
+            TestOutputLogger.Factory,
+            includeDevKitComponents: true,
+            MefCacheDirectory.Path,
+            out var _,
+            out var _);
 
         // VS Telemetry requires this environment variable to be set.
         Environment.SetEnvironmentVariable("CommonPropertyBagPath", Path.GetTempFileName());

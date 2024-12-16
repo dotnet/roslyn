@@ -2630,9 +2630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next?.GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
         }
 
-        protected AssemblySymbol GetForwardedToAssembly(string fullName, BindingDiagnosticBag diagnostics, Location location)
+        protected AssemblySymbol GetForwardedToAssembly(MetadataTypeName metadataName, BindingDiagnosticBag diagnostics, Location location)
         {
-            var metadataName = MetadataTypeName.FromFullName(fullName);
             foreach (var referencedAssembly in
                 Compilation.Assembly.Modules[0].GetReferencedAssemblySymbols())
             {
@@ -2647,7 +2646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
                         {
                             Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
-                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
+                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, metadataName.FullName, forwardedType.ContainingAssembly.Name);
                         }
                         else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
                         {
@@ -2717,7 +2716,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // File types can't be forwarded, so we won't attempt to determine a file identifier to attach to the metadata name.
             var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity, associatedFileIdentifier: null);
             var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
-            var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
+            var result = GetForwardedToAssembly(
+                MetadataTypeName.FromFullName(fullMetadataName),
+                diagnostics,
+                location);
             if ((object)result != null)
             {
                 return result;

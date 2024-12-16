@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +20,8 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
         private readonly ILocalSymbol _localSymbol;
         private readonly ExpressionSyntax _comparison;
         private readonly ExpressionSyntax _operand;
-        private readonly SyntaxNode _localStatement;
+        private readonly LocalDeclarationStatementSyntax _localStatement;
+        private readonly VariableDeclaratorSyntax _declarator;
         private readonly SyntaxNode _enclosingBlock;
         private readonly CancellationToken _cancellationToken;
 
@@ -28,7 +30,8 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
             ILocalSymbol localSymbol,
             ExpressionSyntax comparison,
             ExpressionSyntax operand,
-            SyntaxNode localStatement,
+            LocalDeclarationStatementSyntax localStatement,
+            VariableDeclaratorSyntax declarator,
             SyntaxNode enclosingBlock,
             CancellationToken cancellationToken)
         {
@@ -44,6 +47,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
             _localSymbol = localSymbol;
             _operand = operand;
             _localStatement = localStatement;
+            _declarator = declarator;
             _enclosingBlock = enclosingBlock;
             _cancellationToken = cancellationToken;
         }
@@ -53,12 +57,18 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
             ILocalSymbol localSymbol,
             ExpressionSyntax comparison,
             ExpressionSyntax operand,
-            SyntaxNode localStatement,
+            LocalDeclarationStatementSyntax localStatement,
+            VariableDeclaratorSyntax declarator,
             SyntaxNode enclosingBlock,
             CancellationToken cancellationToken)
         {
-            var analyzer = new Analyzer(semanticModel, localSymbol, comparison, operand, localStatement, enclosingBlock, cancellationToken);
+            var analyzer = new Analyzer(semanticModel, localSymbol, comparison, operand, localStatement, declarator, enclosingBlock, cancellationToken);
             return analyzer.CanSafelyConvertToPatternMatching();
+        }
+
+        private bool CanSafelyConvertToPatternMatching()
+        {
+            return CheckDefiniteAssignment() && CheckNoInterveningMutations();
         }
 
         // To convert a null-check to pattern-matching, we should make sure of a few things:
@@ -88,7 +98,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
         //          }
         //
         // We walk up the tree from the point of null-check and see if any of the above is violated.
-        private bool CanSafelyConvertToPatternMatching()
+        private bool CheckDefiniteAssignment()
         {
             // Keep track of whether the pattern variable is definitely assigned when false/true.
             // We start by the null-check itself, if it's compared with '==', the pattern variable
@@ -235,6 +245,36 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
             }
 
             return false;
+        }
+
+        private bool CheckNoInterveningMutations()
+        {
+            var semanticModel = _semanticModel;
+            foreach (var node in _enclosingBlock.DescendantNodesAndSelf())
+            {
+                // Skip until we're after the initial `var v = x as y; statement.
+                if (node.SpanStart < _localStatement.Span.End)
+                    continue;
+
+                // analyze up to the `x != null` check.
+                if (node.Span.End >= _comparison.SpanStart)
+                    break;
+
+                if (node is ExpressionSyntax currentExpression &&
+                    currentExpression.IsWrittenTo(_semanticModel, _cancellationToken))
+                {
+                    // Ok, we have a write of some value in between.  See if the initial statement used that value as
+                    // well.  For example, if we have `var v = x[current] as y;` then if we see a `current++` in between
+                    // us and the null check, then we don't want to move things as that could change semantics.
+                    if (_declarator.DescendantNodesAndSelf().OfType<ExpressionSyntax>().Any(
+                            e => SemanticEquivalence.AreEquivalent(semanticModel, e, currentExpression)))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private bool CheckLoop(SyntaxNode statement, StatementSyntax body, bool defAssignedWhenTrue)

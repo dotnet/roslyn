@@ -287,7 +287,7 @@ internal static class CodeGenerationSymbolFactory
     /// <summary>
     /// Creates a parameter symbol that can be used to describe a parameter declaration.
     /// </summary>
-    internal static IParameterSymbol CreateParameterSymbol(
+    public static IParameterSymbol CreateParameterSymbol(
         IParameterSymbol parameter,
         ImmutableArray<AttributeData>? attributes = null,
         RefKind? refKind = null,

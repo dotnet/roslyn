@@ -17,5 +17,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             return project.GetSourceGeneratorRunResultAsync(cancellationToken);
         }
+
+        internal static async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsForGeneratorAsync(this Project project, string assemblyName, string assemblyPath, Version assemblyVersion, string typeName, CancellationToken cancellationToken)
+        {
+            var results = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+
+            var generatorIdentity = new SourceGeneratorIdentity(assemblyName, assemblyPath, assemblyVersion, typeName);
+            return results.Where(s => s.Identity.Generator == generatorIdentity);
+        }
     }
 }
