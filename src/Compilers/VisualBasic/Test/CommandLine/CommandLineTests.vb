@@ -2104,6 +2104,7 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.VisualBasic17_13.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
