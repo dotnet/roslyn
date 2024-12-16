@@ -118,7 +118,7 @@ internal abstract class UnitTestingIdleProcessor(
 
     private async Task ProcessAsync()
     {
-        // Ensurew we do this processing on the background.
+        // Ensure we do this processing on the background.
         await Task.Yield().ConfigureAwait(false);
 
         while (!CancellationToken.IsCancellationRequested)
