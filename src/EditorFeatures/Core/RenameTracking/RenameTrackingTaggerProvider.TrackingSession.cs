@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
@@ -137,6 +138,8 @@ internal sealed partial class RenameTrackingTaggerProvider
 
             async Task<bool> DetermineIfNewIdentifierBindsAsync(Task<TriggerIdentifierKind> isRenamableIdentifierTask)
             {
+                // Ensure we do this work on a BG thread.
+                await TaskScheduler.Default;
                 var isRenamableIdentifier = await isRenamableIdentifierTask.ConfigureAwait(false);
                 return isRenamableIdentifier != TriggerIdentifierKind.NotRenamable &&
                     TriggerIdentifierKind.RenamableReference == await DetermineIfRenamableIdentifierAsync(
