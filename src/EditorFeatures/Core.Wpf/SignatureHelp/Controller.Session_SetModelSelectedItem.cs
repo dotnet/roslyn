@@ -5,8 +5,10 @@
 #nullable disable
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
@@ -19,16 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             {
                 this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
-                Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    model => SetModelExplicitlySelectedItemInBackground(model, selector),
-                    updateController: false);
+                Computation.ChainTaskAndNotifyControllerWhenFinished(async (modelTask, cancellationToken) =>
+                {
+                    await TaskScheduler.Default;
+                    var model = await modelTask.ConfigureAwait(false);
+                    return await SetModelExplicitlySelectedItemInBackgroundAsync(model, selector).ConfigureAwait(false);
+                }, updateController: false);
             }
 
-            private Model SetModelExplicitlySelectedItemInBackground(
+            private static async Task<Model> SetModelExplicitlySelectedItemInBackgroundAsync(
                 Model model,
                 Func<Model, SignatureHelpItem> selector)
             {
-                this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
+                await TaskScheduler.Default;
 
                 if (model == null)
                 {
