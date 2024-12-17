@@ -53,12 +53,13 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
     private readonly ImmutableArray<byte> _checksum;
     private readonly string _path;
+    private readonly SourceReferenceResolver? _resolver;
     private readonly int _position;
     private readonly int _lineNumberOneIndexed;
     private readonly int _characterNumberOneIndexed;
     private string? _lazyData;
 
-    internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, int position, int lineNumberOneIndexed, int characterNumberOneIndexed)
+    internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, SourceReferenceResolver? resolver, int position, int lineNumberOneIndexed, int characterNumberOneIndexed)
     {
         Debug.Assert(checksum.Length == ContentHashLength);
         Debug.Assert(path is not null);
@@ -68,6 +69,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
         _checksum = checksum;
         _path = path;
+        _resolver = resolver;
         _position = position;
         _lineNumberOneIndexed = lineNumberOneIndexed;
         _characterNumberOneIndexed = characterNumberOneIndexed;
@@ -75,8 +77,10 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
     public override string GetDisplayLocation()
     {
+        var mappedPath = _resolver?.NormalizePath(_path, baseFilePath: null) ?? _path;
         // e.g. `C:\project\src\Program.cs(12,34)`
-        return $"{_path}({_lineNumberOneIndexed},{_characterNumberOneIndexed})";
+        // or, with a typical pathmap setup, `/_/src/Program.cs(12,34)`
+        return $"{mappedPath}({_lineNumberOneIndexed},{_characterNumberOneIndexed})";
     }
 
     public override string ToString() => GetDisplayLocation();

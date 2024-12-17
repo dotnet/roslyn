@@ -6,13 +6,14 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Threading
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-    Public Class ModelTests
+    Public NotInheritable Class ModelTests
         Public Class Model
         End Class
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Inherits ModelComputation(Of Model)
 
             Public Sub New(threadingContext As IThreadingContext, controller As IController(Of Model))
-                MyBase.New(threadingContext, controller, TaskScheduler.Default)
+                MyBase.New(threadingContext, controller)
             End Sub
 
             Friend Shared Function Create(threadingContext As IThreadingContext, Optional controller As IController(Of Model) = Nothing) As TestModelComputation
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) m)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(m))
 
             controller.Verify(Sub(c) c.BeginAsyncOperation(
                                   It.IsAny(Of String),
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Setup(Sub(c) c.OnModelUpdated(model, True))
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             modelComputation.Wait()
 
             controller.Verify(Sub(c) c.OnModelUpdated(model, True))
@@ -79,12 +80,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim gate = New Object
 
             Monitor.Enter(gate)
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c)
                                                                           SyncLock gate
-                                                                              Return Nothing
+                                                                              Return Task.FromResult(Of Model)(Nothing)
                                                                           End SyncLock
                                                                       End Function)
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             Monitor.Exit(gate)
             modelComputation.Wait()
 
@@ -109,12 +110,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             token.Setup(Sub(t) t.Dispose()).Callback(Sub() checkpoint3.Release())
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c)
-                                                                          checkpoint1.Release()
-                                                                          checkpoint2.Task.Wait()
-                                                                          c.ThrowIfCancellationRequested()
-                                                                          Return Task.FromResult(model)
-                                                                      End Function)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(
+                Function(model1, c)
+                    checkpoint1.Release()
+                    checkpoint2.Task.Wait()
+                    c.ThrowIfCancellationRequested()
+                    Return Task.FromResult(model1)
+                End Function)
             Await checkpoint1.Task
             modelComputation.Stop()
             checkpoint2.Release()
