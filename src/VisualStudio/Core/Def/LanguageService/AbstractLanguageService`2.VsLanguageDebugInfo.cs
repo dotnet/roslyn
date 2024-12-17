@@ -133,47 +133,45 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR? ppEnum)
         {
-            // NOTE(cyrusn): cLines is ignored.  This is to match existing dev10 behavior.
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
+            ppEnum = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                VsEnumBSTR? enumBSTR = null;
-
-                if (_proximityExpressionsService != null)
+                // NOTE(cyrusn): cLines is ignored.  This is to match existing dev10 behavior.
+                using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
                 {
-                    _uiThreadOperationExecutor.Execute(
+                    using var context = _uiThreadOperationExecutor.BeginExecute(
                         title: ServicesVSResources.Debugger,
                         defaultDescription: ServicesVSResources.Determining_autos,
                         allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                        showProgress: false);
 
-                        if (textBuffer != null)
-                        {
-                            var snapshot = textBuffer.CurrentSnapshot;
-                            var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                            if (nullablePoint.HasValue)
-                            {
-                                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                                if (document != null)
-                                {
-                                    var point = nullablePoint.Value;
-                                    var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
+                    if (_proximityExpressionsService == null)
+                        return null;
 
-                                    if (proximityExpressions != null)
-                                    {
-                                        enumBSTR = new VsEnumBSTR(proximityExpressions);
-                                    }
-                                }
-                            }
-                        }
-                    });
+                    var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
+                    if (textBuffer == null)
+                        return null;
+
+                    var snapshot = textBuffer.CurrentSnapshot;
+                    var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                    if (!nullablePoint.HasValue)
+                        return null;
+
+                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                        return null;
+
+                    var point = nullablePoint.Value;
+                    var proximityExpressions = await _proximityExpressionsService.GetProximityExpressionsAsync(
+                        document, point.Position, context.UserCancellationToken).ConfigureAwait(true);
+
+                    if (proximityExpressions == null)
+                        return null;
+
+                    return new VsEnumBSTR(proximityExpressions);
                 }
+            });
 
-                ppEnum = enumBSTR;
-                return ppEnum != null ? VSConstants.S_OK : VSConstants.E_FAIL;
-            }
+            return ppEnum != null ? VSConstants.S_OK : VSConstants.E_FAIL;
         }
 
         public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
