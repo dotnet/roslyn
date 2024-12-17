@@ -528,14 +528,14 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         throw new NotImplementedException();
     }
 
-    protected override object GetBrowseObject(uint index)
+    protected override Task<object> GetBrowseObjectAsync(uint index, CancellationToken cancellationToken)
     {
         if (GetListItem(index) is SymbolListItem symbolListItem)
         {
-            return this.LibraryManager.Workspace.GetBrowseObject(symbolListItem);
+            return this.LibraryManager.Workspace.GetBrowseObjectAsync(symbolListItem, cancellationToken);
         }
 
-        return base.GetBrowseObject(index);
+        return base.GetBrowseObjectAsync(index, cancellationToken);
     }
 
     protected override bool SupportsNavInfo

@@ -76,8 +76,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         return false;
     }
 
-    protected virtual object GetBrowseObject(uint index)
-        => null;
+    protected virtual Task<object> GetBrowseObjectAsync(uint index, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<object>();
 
     protected virtual bool SupportsNavInfo
     {
@@ -158,7 +158,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetBrowseObject(uint index, out object ppdispBrowseObj)
     {
-        ppdispBrowseObj = GetBrowseObject(index);
+        ppdispBrowseObj = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(() =>
+            GetBrowseObjectAsync(index, CancellationToken.None));
 
         return ppdispBrowseObj != null
             ? VSConstants.S_OK
