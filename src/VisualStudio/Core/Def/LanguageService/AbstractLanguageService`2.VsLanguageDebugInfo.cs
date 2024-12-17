@@ -244,24 +244,23 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, VsTextSpan[] pCodeSpan)
         {
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
+            return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var result = VSConstants.E_NOTIMPL;
-                _uiThreadOperationExecutor.Execute(
-                    title: ServicesVSResources.Debugger,
-                    defaultDescription: ServicesVSResources.Validating_breakpoint_location,
-                    allowCancellation: true,
-                    showProgress: false,
-                    action: waitContext =>
+                using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
                 {
-                    result = ValidateBreakpointLocationWorker(pBuffer, iLine, iCol, pCodeSpan, waitContext.UserCancellationToken);
-                });
+                    using var waitContext = _uiThreadOperationExecutor.BeginExecute(
+                        title: ServicesVSResources.Debugger,
+                        defaultDescription: ServicesVSResources.Validating_breakpoint_location,
+                        allowCancellation: true,
+                        showProgress: false);
 
-                return result;
-            }
+                    return await ValidateBreakpointLocationAsync(
+                        pBuffer, iLine, iCol, pCodeSpan, waitContext.UserCancellationToken).ConfigureAwait(true);
+                }
+            });
         }
 
-        private int ValidateBreakpointLocationWorker(
+        private async Task<int> ValidateBreakpointLocationAsync(
             IVsTextBuffer pBuffer,
             int iLine,
             int iCol,
@@ -269,9 +268,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             CancellationToken cancellationToken)
         {
             if (_breakpointService == null)
-            {
                 return VSConstants.E_FAIL;
-            }
 
             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
             if (textBuffer != null)
@@ -333,7 +330,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     // NOTE(cyrusn): we need to wait here because ValidateBreakpointLocation is
                     // synchronous.  In the future, it would be nice for the debugger to provide
                     // an async entry point for this.
-                    var breakpoint = _breakpointService.ResolveBreakpointAsync(document, new TextSpan(point.Position, length), cancellationToken).WaitAndGetResult(cancellationToken);
+                    var breakpoint = await _breakpointService.ResolveBreakpointAsync(
+                        document, new TextSpan(point.Position, length), cancellationToken).ConfigureAwait(true);
                     if (breakpoint == null)
                     {
                         // There should *not* be a breakpoint here.  E_FAIL to let the debugger know
@@ -354,9 +352,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
                     // There should be a breakpoint at the location passed back.
                     if (pCodeSpan != null && pCodeSpan.Length > 0)
-                    {
                         pCodeSpan[0] = breakpoint.TextSpan.ToSnapshotSpan(snapshot).ToVsTextSpan();
-                    }
 
                     return VSConstants.S_OK;
                 }
