@@ -1999,9 +1999,18 @@ class Animal { }
                 // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y1 or 1) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(19, 22),
+                // (19,28): hidden CS9271: The pattern is redundant.
+                //         if (o is int y1 or 1) { }
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(19, 28),
                 // (20,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y2 or (1 or 2)) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(20, 22),
+                // (20,29): hidden CS9271: The pattern is redundant.
+                //         if (o is int y2 or (1 or 2)) { }
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(20, 29),
+                // (20,34): hidden CS9271: The pattern is redundant.
+                //         if (o is int y2 or (1 or 2)) { }
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "2").WithLocation(20, 34),
                 // (21,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is 1 or int y3) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(21, 27),
@@ -2019,7 +2028,16 @@ class Animal { }
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y7)").WithArguments("object").WithLocation(25, 13),
                 // (25,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is object or (1 or var y7)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38),
+                // (30,27): hidden CS9271: The pattern is redundant.
+                //         if (o is int _ or 1) { }
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(30, 27),
+                // (31,28): hidden CS9271: The pattern is redundant.
+                //         if (o is int _ or (1 or 2)) { }
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(31, 28),
+                // (31,33): hidden CS9271: The pattern is redundant.
+                //         if (o is int _ or (1 or 2)) { }
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "2").WithLocation(31, 33)
                 );
         }
 
@@ -2365,6 +2383,12 @@ class C
             var expectedOutput = @"111121";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
+                // (18,18): hidden CS9271: The pattern is redundant.
+                //             case 1L or int or 2L: Console.Write(2); break;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "1L").WithLocation(18, 18),
+                // (18,31): hidden CS9271: The pattern is redundant.
+                //             case 1L or int or 2L: Console.Write(2); break;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "2L").WithLocation(18, 31)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M",
@@ -2423,6 +2447,12 @@ class C
             var expectedOutput = @"121212";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
+                // (17,37): hidden CS9271: The pattern is redundant.
+                //             case (1 or not long) or 2: Console.Write(1); break;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "2").WithLocation(17, 37),
+                // (18,36): warning CS9272: The pattern is redundant.
+                //             case 1L or (not int or 2L): Console.Write(2); break;
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "2L").WithLocation(18, 36)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M",
@@ -3365,6 +3395,42 @@ Base
 ";
             var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
+                // (14,52): hidden CS9271: The pattern is redundant.
+                //         { if (o is (Dictionary<object, dynamic> or Dictionary<dynamic?, object?>) and var i) M(i); } // System.Collections.Generic.Dictionary<object, object>
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Dictionary<dynamic?, object?>").WithLocation(14, 52),
+                // (19,36): hidden CS9271: The pattern is redundant.
+                //         { if (o is (IComparable or long) and var i) M(i); } // System.IComparable
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "long").WithLocation(19, 36),
+                // (31,29): hidden CS9271: The pattern is redundant.
+                //         { if (o is (Base or Derived1) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived1").WithLocation(31, 29),
+                // (35,38): hidden CS9271: The pattern is redundant.
+                //         { if (o is (IIn<Derived1> or IIn<Base>) and var i) M(i); } // IIn<Derived1>
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "IIn<Base>").WithLocation(35, 38),
+                // (38,35): hidden CS9271: The pattern is redundant.
+                //         { if (o is (IOut<Base> or IOut<Derived1>) and var i) M(i); } // IOut<Base>
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "IOut<Derived1>").WithLocation(38, 35),
+                // (44,30): hidden CS9271: The pattern is redundant.
+                //         { if (o is (Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived1").WithLocation(44, 30),
+                // (44,42): hidden CS9271: The pattern is redundant.
+                //         { if (o is (Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived2").WithLocation(44, 42),
+                // (45,41): hidden CS9271: The pattern is redundant.
+                //         { if (o is (Derived1 or Base or Derived2) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived2").WithLocation(45, 41),
+                // (46,48): hidden CS9271: The pattern is redundant.
+                //         { if (o is ((Derived1 or Derived2) or (Derived1 or Derived2) or Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived1").WithLocation(46, 48),
+                // (46,60): hidden CS9271: The pattern is redundant.
+                //         { if (o is ((Derived1 or Derived2) or (Derived1 or Derived2) or Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived2").WithLocation(46, 60),
+                // (46,82): hidden CS9271: The pattern is redundant.
+                //         { if (o is ((Derived1 or Derived2) or (Derived1 or Derived2) or Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived1").WithLocation(46, 82),
+                // (46,94): hidden CS9271: The pattern is redundant.
+                //         { if (o is ((Derived1 or Derived2) or (Derived1 or Derived2) or Base or (Derived1 or Derived2)) and var i) M(i); } // Base
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived2").WithLocation(46, 94)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4782,6 +4848,18 @@ enum LifeStage
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
+                // (43,9): hidden CS9271: The pattern is redundant.
+                //         >= 0 and < 2 =>  LifeStage.Infant,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, ">= 0").WithLocation(43, 9),
+                // (44,9): hidden CS9271: The pattern is redundant.
+                //         >= 2 and < 4 =>  LifeStage.Toddler,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, ">= 2").WithLocation(44, 9),
+                // (46,9): hidden CS9271: The pattern is redundant.
+                //         >= 40 and < 65 => LifeStage.MiddleAdult,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, ">= 40").WithLocation(46, 9),
+                // (46,19): hidden CS9271: The pattern is redundant.
+                //         >= 40 and < 65 => LifeStage.MiddleAdult,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "< 65").WithLocation(46, 19)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.LifeStageAtAge", @"
@@ -7419,7 +7497,13 @@ class C
             compilation.VerifyDiagnostics(
                 // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //     int M((object?, bool, bool, bool) t) => t switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47),
+                // (11,18): hidden CS9271: The pattern is redundant.
+                //         ({ }, _, true, _) => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(11, 18),
+                // (12,10): hidden CS9271: The pattern is redundant.
+                //         (null, _, _, false) => 7,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(12, 10)
                 );
         }
 

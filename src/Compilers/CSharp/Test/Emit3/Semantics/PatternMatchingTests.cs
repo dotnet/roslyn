@@ -8872,6 +8872,18 @@ class C
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
+                    // (13,55): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("1." + (chars is "" and not " "));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(13, 55),
+                    // (14,52): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(14, 52),
+                    // (14,52): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" "" or """"").WithLocation(14, 52),
+                    // (15,50): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("3." + (chars is "" or ""));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @"""""").WithLocation(15, 50),
                     // (16,35): warning CS8794: An expression of type 'ReadOnlySpan<char>' always matches the provided pattern.
                     //         Console.WriteLine("4." + (chars is "" or not ""));
                     Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(16, 35));
@@ -10475,6 +10487,18 @@ class C
 ";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
+                    // (15,55): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("1." + (chars is "" and not " "));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(15, 55),
+                    // (16,52): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" """).WithLocation(16, 52),
+                    // (16,52): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("2." + (chars is "" and (" " or "")));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @""" "" or """"").WithLocation(16, 52),
+                    // (17,50): hidden CS9271: The pattern is redundant.
+                    //         Console.WriteLine("3." + (chars is "" or ""));
+                    Diagnostic(ErrorCode.HDN_RedundantPattern, @"""""").WithLocation(17, 50),
                     // (18,35): warning CS8794: An expression of type 'Span<char>' always matches the provided pattern.
                     //         Console.WriteLine("4." + (chars is "" or not ""));
                     Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.Span<char>").WithLocation(18, 35));

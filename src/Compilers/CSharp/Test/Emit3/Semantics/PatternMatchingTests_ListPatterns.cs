@@ -2611,29 +2611,29 @@ class X
     public void M(int[] a, int[,] mdarray)
     {
         _ = a is [] and [1];          // 1
-        _ = a is [1] and [1];
-        _ = a is {Length:0} and [1];  // 2
+        _ = a is [1] and [1];         // 2
+        _ = a is {Length:0} and [1];  // 3
         _ = a is {Length:1} and [1];
-        _ = a is [1,2,3] and [1,2,4]; // 3
-        _ = a is [1,2,3] and [1,2,3];
-        _ = a is ([>0]) and ([<0]);   // 4
-        _ = a is ([>0]) and ([>=0]);
-        _ = a is [>0] and [<0];       // 5
-        _ = a is [>0] and [>=0];
-        _ = a is {Length:-1};         // 6
-        _ = a is [.., >0] and [<0];   // 7
+        _ = a is [1,2,3] and [1,2,4]; // 4
+        _ = a is [1,2,3] and [1,2,3]; // 5, 6, 7
+        _ = a is ([>0]) and ([<0]);   // 8
+        _ = a is ([>0]) and ([>=0]);  // 9
+        _ = a is [>0] and [<0];       // 10
+        _ = a is [>0] and [>=0];      // 11
+        _ = a is {Length:-1};         // 12
+        _ = a is [.., >0] and [<0];   // 13
         _ = a is [.., >0, _] and [_, <=0, ..];
-        _ = new { a } is { a.Length:-1 }; // 8
-        _ = a is [..{ Length: -1 }];  // 9
-        _ = a is [..{ Length: < -1 }];  // 10
-        _ = a is [..{ Length: <= -1 }]; // 11
-        _ = a is [..{ Length: >= -1 }];
-        _ = a is [..{ Length: > -1 }];
-        _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
-        _ = a is [_, _, ..{ Length: <= int.MaxValue - 1 }];
-        _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
-        _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }];
-        _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+        _ = new { a } is { a.Length:-1 }; // 14
+        _ = a is [..{ Length: -1 }];  // 15
+        _ = a is [..{ Length: < -1 }];  // 16
+        _ = a is [..{ Length: <= -1 }]; // 17
+        _ = a is [..{ Length: >= -1 }]; // 18
+        _ = a is [..{ Length: > -1 }];  // 19
+        _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 20
+        _ = a is [_, _, ..{ Length: <= int.MaxValue - 1 }]; // 21
+        _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 22
+        _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }]; // 23
+        _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 24
         _ = a is { LongLength: -1 };
         _ = (Array)a is { Length: -1 };
         _ = mdarray is { Length: -1 };
@@ -2642,46 +2642,77 @@ class X
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
-            // (7,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            // 0.cs(7,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             //         _ = a is [] and [1];          // 1
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [] and [1]").WithArguments("int[]").WithLocation(7, 13),
-            // (9,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is {Length:0} and [1];  // 2
+            // 0.cs(8,27): hidden CS9271: The pattern is redundant.
+            //         _ = a is [1] and [1];         // 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(8, 27),
+            // 0.cs(9,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is {Length:0} and [1];  // 3
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:0} and [1]").WithArguments("int[]").WithLocation(9, 13),
-            // (11,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [1,2,3] and [1,2,4]; // 3
+            // 0.cs(11,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [1,2,3] and [1,2,4]; // 4
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [1,2,3] and [1,2,4]").WithArguments("int[]").WithLocation(11, 13),
-            // (13,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is ([>0]) and ([<0]);   // 4
+            // 0.cs(12,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [1,2,3] and [1,2,3]; // 5, 6, 7
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(12, 31),
+            // 0.cs(12,33): hidden CS9271: The pattern is redundant.
+            //         _ = a is [1,2,3] and [1,2,3]; // 5, 6, 7
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "2").WithLocation(12, 33),
+            // 0.cs(12,35): hidden CS9271: The pattern is redundant.
+            //         _ = a is [1,2,3] and [1,2,3]; // 5, 6, 7
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(12, 35),
+            // 0.cs(13,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is ([>0]) and ([<0]);   // 8
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is ([>0]) and ([<0])").WithArguments("int[]").WithLocation(13, 13),
-            // (15,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [>0] and [<0];       // 5
+            // 0.cs(14,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is ([>0]) and ([>=0]);  // 9
+            Diagnostic(ErrorCode.HDN_RedundantPattern, ">=0").WithLocation(14, 31),
+            // 0.cs(15,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [>0] and [<0];       // 10
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [>0] and [<0]").WithArguments("int[]").WithLocation(15, 13),
-            // (17,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is {Length:-1};         // 6
+            // 0.cs(16,28): hidden CS9271: The pattern is redundant.
+            //         _ = a is [>0] and [>=0];      // 11
+            Diagnostic(ErrorCode.HDN_RedundantPattern, ">=0").WithLocation(16, 28),
+            // 0.cs(17,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is {Length:-1};         // 12
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:-1}").WithArguments("int[]").WithLocation(17, 13),
-            // (18,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [.., >0] and [<0];   // 7
+            // 0.cs(18,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [.., >0] and [<0];   // 13
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [.., >0] and [<0]").WithArguments("int[]").WithLocation(18, 13),
-            //         _ = new { a } is { a.Length:-1 }; // 8
+            // 0.cs(20,13): error CS8518: An expression of type '<anonymous type: int[] a>' can never match the provided pattern.
+            //         _ = new { a } is { a.Length:-1 }; // 14
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { a } is { a.Length:-1 }").WithArguments("<anonymous type: int[] a>").WithLocation(20, 13),
-            // (21,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [..{ Length: -1 }];  // 9
+            // 0.cs(21,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [..{ Length: -1 }];  // 15
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: -1 }]").WithArguments("int[]").WithLocation(21, 13),
-            // (22,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [..{ Length: < -1 }];  // 10
+            // 0.cs(22,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [..{ Length: < -1 }];  // 16
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: < -1 }]").WithArguments("int[]").WithLocation(22, 13),
-            // (23,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [..{ Length: <= -1 }]; // 11
+            // 0.cs(23,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [..{ Length: <= -1 }]; // 17
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: <= -1 }]").WithArguments("int[]").WithLocation(23, 13),
-            // (26,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
+            // 0.cs(24,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [..{ Length: >= -1 }]; // 18
+            Diagnostic(ErrorCode.HDN_RedundantPattern, ">= -1").WithLocation(24, 31),
+            // 0.cs(25,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [..{ Length: > -1 }];  // 19
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "> -1").WithLocation(25, 31),
+            // 0.cs(26,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 20
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(26, 13),
-            // (28,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
+            // 0.cs(27,37): hidden CS9271: The pattern is redundant.
+            //         _ = a is [_, _, ..{ Length: <= int.MaxValue - 1 }]; // 21
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<= int.MaxValue - 1").WithLocation(27, 37),
+            // 0.cs(28,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 22
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: >= int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(28, 13),
-            // (30,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
-            //         _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+            // 0.cs(29,37): hidden CS9271: The pattern is redundant.
+            //         _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }]; // 23
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "< int.MaxValue - 1").WithLocation(29, 37),
+            // 0.cs(30,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            //         _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 24
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: > int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(30, 13)
         );
     }
@@ -2878,14 +2909,49 @@ class X
         _ = a is [..{ Length: <= bad }];
         _ = a is [..{ Length: >= bad }];
         _ = a is [..{ Length: > bad }];
+
+        _ = a switch
+        {
+            null => 0,
+            [..null]  => 1, 
+            [.. { Length: not bad}]  => 2, 
+            _ => 3,
+        };
+
+         _ = a switch
+        {
+            null => 0,
+            [..null]  => 1, 
+            [.. { Length: not < bad}]  => 2,
+            _ => 3,
+        };
     } 
 }
 ";
+        // TODO2 why the difference between bad and < bad?
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
-            // (7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
+            // 0.cs(7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
             //         const int bad = a;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "a").WithArguments("int[]", "int").WithLocation(7, 25));
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "a").WithArguments("int[]", "int").WithLocation(7, 25),
+            // 0.cs(11,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [..{ Length: < bad }];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "< bad").WithLocation(11, 31),
+            // 0.cs(12,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [..{ Length: <= bad }];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<= bad").WithLocation(12, 31),
+            // 0.cs(13,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [..{ Length: >= bad }];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, ">= bad").WithLocation(13, 31),
+            // 0.cs(14,31): hidden CS9271: The pattern is redundant.
+            //         _ = a is [..{ Length: > bad }];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "> bad").WithLocation(14, 31),
+            // 0.cs(20,17): hidden CS9271: The pattern is redundant.
+            //             [.. { Length: not bad}]  => 2, 
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: not bad}").WithLocation(20, 17),
+            // 0.cs(28,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //             [.. { Length: not < bad}]  => 2,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[.. { Length: not < bad}]").WithLocation(28, 13));
     }
 
     [Fact]
@@ -3038,6 +3104,7 @@ class X
     [Fact]
     public void ListPattern_Negated_02()
     {
+        // TODO2
         var source = @"
 class X
 {
@@ -4941,25 +5008,25 @@ _ = o switch
 {
     null => 0,
     [null] => 0,
-    [not null] => 0,
-    { Length: 0 or > 1 } => 0,
+    [not null] => 0, // 1
+    { Length: 0 or > 1 } => 0, // 2
 };
 
-_ = o switch // 1, didn't test for null
+_ = o switch // didn't test for null // 3
 {
     [null] => 0,
-    [not null] => 0,
-    { Length: 0 or > 1 } => 0,
+    [not null] => 0, // 4
+    { Length: 0 or > 1 } => 0, // 5
 };
 
-_ = o switch // 2, didn't test for [null]
+_ = o switch // didn't test for [null] // 6
 {
     null => 0,
     [not null] => 0,
     { Length: 0 or > 1 } => 0,
 };
 
-_ = o switch // 3, didn't test for [not null]
+_ = o switch // didn't test for [not null] // 7
 {
     null => 0,
     [null] => 0,
@@ -4971,17 +5038,17 @@ _ = o switch
     null => 0,
     [] => 0,
     [.., null] => 0,
-    [.., not null] => 0,
+    [.., not null] => 0, // 8
 };
 
-_ = o switch // 4, didn't test for [null]
+_ = o switch // didn't test for [null] // 9
 {
     null => 0,
     [] => 0,
     [.., not null] => 0,
 };
 
-_ = o switch // 5, didn't test for [not null]
+_ = o switch // didn't test for [not null] // 10
 {
     null => 0,
     [] => 0,
@@ -4993,10 +5060,10 @@ _ = o switch
     null => 0,
     [.., null] => 0,
     [not null, ..] => 0,
-    { Length: 0 or > 1 } => 0,
+    { Length: 0 or > 1 } => 0, // 11
 };
 
-_ = o switch // 6, didn't test for [_, null]
+_ = o switch // didn't test for [_, null] // 12
 {
     null => 0,
     [] => 0,
@@ -5004,7 +5071,7 @@ _ = o switch // 6, didn't test for [_, null]
     [.., not null] => 0,
 };
 
-_ = o switch // 7, didn't test for [null, _]
+_ = o switch // didn't test for [null, _] // 13
 {
     null => 0,
     [] => 0,
@@ -5012,13 +5079,13 @@ _ = o switch // 7, didn't test for [null, _]
     [not null, ..] => 0,
 };
 
-_ = o switch // 8, didn't test for { Length: 0 }
+_ = o switch // didn't test for { Length: 0 } // 14
 {
     null => 0,
     [_, ..] => 0,
 };
 
-_ = o switch // 9, didn't test for [null]
+_ = o switch // didn't test for [null] // 15
 {
     null => 0,
     [] => 0,
@@ -5027,32 +5094,50 @@ _ = o switch // 9, didn't test for [null]
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
-            // (13,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-            // _ = o switch // 1, didn't test for null
+            // 0.cs(9,10): hidden CS9271: The pattern is redundant.
+            //     [not null] => 0, // 1
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(9, 10),
+            // 0.cs(10,15): hidden CS9271: The pattern is redundant.
+            //     { Length: 0 or > 1 } => 0, // 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(10, 15),
+            // 0.cs(13,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+            // _ = o switch // didn't test for null // 3
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(13, 7),
-            // (20,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
-            // _ = o switch // 2, didn't test for [null]
+            // 0.cs(16,10): hidden CS9271: The pattern is redundant.
+            //     [not null] => 0, // 4
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(16, 10),
+            // 0.cs(17,15): hidden CS9271: The pattern is redundant.
+            //     { Length: 0 or > 1 } => 0, // 5
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(17, 15),
+            // 0.cs(20,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = o switch // didn't test for [null] // 6
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(20, 7),
-            // (27,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[not null]' is not covered.
-            // _ = o switch // 3, didn't test for [not null]
+            // 0.cs(27,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[not null]' is not covered.
+            // _ = o switch // didn't test for [not null] // 7
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[not null]").WithLocation(27, 7),
-            // (42,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
-            // _ = o switch // 4, didn't test for [null]
+            // 0.cs(39,14): hidden CS9271: The pattern is redundant.
+            //     [.., not null] => 0, // 8
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(39, 14),
+            // 0.cs(42,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = o switch // didn't test for [null] // 9
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(42, 7),
-            // (49,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[not null]' is not covered.
-            // _ = o switch // 5, didn't test for [not null]
+            // 0.cs(49,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[not null]' is not covered.
+            // _ = o switch // didn't test for [not null] // 10
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[not null]").WithLocation(49, 7),
-            // (64,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, null]' is not covered.
-            // _ = o switch // 6, didn't test for [_, null]
+            // 0.cs(61,15): hidden CS9271: The pattern is redundant.
+            //     { Length: 0 or > 1 } => 0, // 11
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(61, 15),
+            // 0.cs(64,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[_, null]' is not covered.
+            // _ = o switch // didn't test for [_, null] // 12
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[_, null]").WithLocation(64, 7),
-            // (72,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null, _]' is not covered.
-            // _ = o switch // 7, didn't test for [null, _]
+            // 0.cs(72,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null, _]' is not covered.
+            // _ = o switch // didn't test for [null, _] // 13
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null, _]").WithLocation(72, 7),
-            // (80,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
-            // _ = o switch // 8, didn't test for { Length: 0 }
+            // 0.cs(80,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = o switch // didn't test for { Length: 0 } // 14
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(80, 7),
-            // (86,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
-            // _ = o switch // 9, didn't test for [null]
+            // 0.cs(86,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = o switch // didn't test for [null] // 15
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(86, 7)
             );
     }
@@ -5076,7 +5161,7 @@ class C
             null => 0,
             [] => 0,
             [.. null] => 0,
-            [.. not null] => 0,
+            [.. not null] => 0, // 1
         };
 
         _ = this switch // no tests for [.. null, _]
@@ -5121,10 +5206,13 @@ class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // (20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null, _]' is not covered.
+            // 0.cs(17,21): hidden CS9271: The pattern is redundant.
+            //             [.. not null] => 0, // 1
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(17, 21),
+            // 0.cs(20,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[.. null, _]' is not covered.
             //         _ = this switch // no tests for [.. null, _]
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[.. null, _]").WithLocation(20, 18),
-            // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. not null, _]' is not covered.
+            // 0.cs(27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[.. not null, _]' is not covered.
             //         _ = this switch // no test for [.. not null, _]
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[.. not null, _]").WithLocation(27, 18)
             );
@@ -5186,70 +5274,70 @@ class C
         {
             null or { Length: not 1 } => 0,
             [.. null] => 0,
-            [.. [null]] => 0,
-            [not null] => 0,
+            [.. [null]] => 0, // 1, 2
+            [not null] => 0, // 3
         };
 
         _ = this switch // didn't test for [.. null] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
-            [.. [null]] => 0,
-            [not null] => 0,
+            [.. [null]] => 0, // 4
+            [not null] => 0, // 5
         };
 
-        _ = this switch // didn't test for [.. [not null]] // 1
+        _ = this switch // didn't test for [.. [not null]] // 6
         {
             null or { Length: not 1 } => 0,
             [.. [null]] => 0,
         };
 
-        _ = this switch // didn't test for [.. [not null]] // 2
+        _ = this switch // didn't test for [.. [not null]] // 7
         {
             null or { Length: not 1 } => 0,
             [.. null] => 0,
             [.. [null]] => 0,
         };
 
-        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 3
+        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 8
         {
             null or { Length: not 1 } => 0,
-            [.. [not null]] => 0,
+            [.. [not null]] => 0, // 9
         };
 
-        _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 4
+        _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 10
         {
             null or { Length: not 4 } => 0,
-            [_, .. [_, not null], _] => 0,
+            [_, .. [_, not null], _] => 0, // 11
         };
 
         _ = this switch // exhaustive
         {
             null or { Length: not 4 } => 0,
-            [_, .. [_, _], _] => 0,
+            [_, .. [_, _], _] => 0, // 12
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _] // 5
+        _ = this switch // didn't test for [_, .. [_, null], _] // 13
         {
             null or { Length: not 4 } => 0,
-            [_, .. null or [_, not null], _] => 0,
+            [_, .. null or [_, not null], _] => 0, // 14, 15
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _, _] // 6
+        _ = this switch // didn't test for [_, .. [_, null], _, _] // 16
         {
             null or { Length: not 5 } => 0,
-            [_, .. null or [_, not null], _, _] => 0,
+            [_, .. null or [_, not null], _, _] => 0, // 17, 18
         };
 
-        _ = this switch // didn't test for [_, .. [_, null, _], _] // 7
+        _ = this switch // didn't test for [_, .. [_, null, _], _] // 19
         {
             null or { Length: not 5 } => 0,
-            [_, .. null or [_, not null, _], _] => 0,
+            [_, .. null or [_, not null, _], _] => 0, // 20, 21
         };
 
         _ = this switch // didn't test for [.. null, _] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
-            [.. { Length: 1 }] => 0,
+            [.. { Length: 1 }] => 0, // 22
         };
     }
 }
@@ -5257,27 +5345,72 @@ class C
         // Note: we don't try to explain nested slice patterns right now so all these just produce a fallback example
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. [not null]] // 1
+            // 0.cs(16,17): hidden CS9271: The pattern is redundant.
+            //             [.. [null]] => 0, // 1, 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[null]").WithLocation(16, 17),
+            // 0.cs(16,17): hidden CS9271: The pattern is redundant.
+            //             [.. [null]] => 0, // 1, 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[null]").WithLocation(16, 17),
+            // 0.cs(17,18): hidden CS9271: The pattern is redundant.
+            //             [not null] => 0, // 3
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(17, 18),
+            // 0.cs(23,17): hidden CS9271: The pattern is redundant.
+            //             [.. [null]] => 0, // 4
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[null]").WithLocation(23, 17),
+            // 0.cs(24,18): hidden CS9271: The pattern is redundant.
+            //             [not null] => 0, // 5
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(24, 18),
+            // 0.cs(27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [.. [not null]] // 6
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18),
-            // (33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. [not null]] // 2
+            // 0.cs(33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [.. [not null]] // 7
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(33, 18),
-            // (40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 3
+            // 0.cs(40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 8
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(40, 18),
-            // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 4
+            // 0.cs(43,17): hidden CS9271: The pattern is redundant.
+            //             [.. [not null]] => 0, // 9
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[not null]").WithLocation(43, 17),
+            // 0.cs(46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 10
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
-            // (58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _] // 5
+            // 0.cs(49,20): hidden CS9271: The pattern is redundant.
+            //             [_, .. [_, not null], _] => 0, // 11
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(49, 20),
+            // 0.cs(55,20): hidden CS9271: The pattern is redundant.
+            //             [_, .. [_, _], _] => 0, // 12
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, _]").WithLocation(55, 20),
+            // 0.cs(58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null], _] // 13
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
-            // (64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 6
+            // 0.cs(61,28): hidden CS9271: The pattern is redundant.
+            //             [_, .. null or [_, not null], _] => 0, // 14, 15
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(61, 28),
+            // 0.cs(61,28): hidden CS9271: The pattern is redundant.
+            //             [_, .. null or [_, not null], _] => 0, // 14, 15
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(61, 28),
+            // 0.cs(64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 16
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
-            // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 7
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18)
+            // 0.cs(67,28): hidden CS9271: The pattern is redundant.
+            //             [_, .. null or [_, not null], _, _] => 0, // 17, 18
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(67, 28),
+            // 0.cs(67,28): hidden CS9271: The pattern is redundant.
+            //             [_, .. null or [_, not null], _, _] => 0, // 17, 18
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(67, 28),
+            // 0.cs(70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 19
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18),
+            // 0.cs(73,28): hidden CS9271: The pattern is redundant.
+            //             [_, .. null or [_, not null, _], _] => 0, // 20, 21
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null, _]").WithLocation(73, 28),
+            // 0.cs(73,28): hidden CS9271: The pattern is redundant.
+            //             [_, .. null or [_, not null, _], _] => 0, // 20, 21
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null, _]").WithLocation(73, 28),
+            // 0.cs(79,27): hidden CS9271: The pattern is redundant.
+            //             [.. { Length: 1 }] => 0, // 22
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(79, 27)
             );
     }
 
@@ -5786,7 +5919,7 @@ _ = new C() switch
     { Count: 0 } => 0,
     { Count: 1 } => 1,
     [_, _] => 2,
-    { Count: > 2 } => 3,
+    { Count: > 2 } => 3, // 4
 };
 
 class C
@@ -5796,15 +5929,18 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
+            // 0.cs(2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
             // _ = new C() switch // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
-            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // 0.cs(9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
             // _ = new C() switch // 2
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
-            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // 0.cs(16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
             // _ = new C() switch // 3
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13),
+            // 0.cs(29,14): hidden CS9271: The pattern is redundant.
+            //     { Count: > 2 } => 3, // 4
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "> 2").WithLocation(29, 14)
             );
 
         comp = CreateCompilation(src);
@@ -5847,7 +5983,10 @@ class C
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_, _]").WithArguments("System.Index").WithLocation(28, 5),
             // (28,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
             //     [_, _] => 2,
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_, _]").WithArguments("System.Index", "GetOffset").WithLocation(28, 5)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_, _]").WithArguments("System.Index", "GetOffset").WithLocation(28, 5),
+            // (29,14): hidden CS9271: The pattern is redundant.
+            //     { Count: > 2 } => 3, // 4
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "> 2").WithLocation(29, 14)
             );
     }
 
@@ -5873,7 +6012,7 @@ _ = new C() switch
     [> 0] => 1,
     [< 0] => 2,
     { Count: 0 or > 1 } => 3,
-    [0] => 4,
+    [0] => 4, // 3
 };
 
 class C
@@ -5883,12 +6022,15 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
+            // 0.cs(2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
             // _ = new C() switch // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 0 }").WithLocation(2, 13),
-            // (8,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0]' is not covered.
+            // 0.cs(8,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0]' is not covered.
             // _ = new C() switch // 2
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[0]").WithLocation(8, 13)
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("[0]").WithLocation(8, 13),
+            // 0.cs(20,6): hidden CS9271: The pattern is redundant.
+            //     [0] => 4, // 3
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(20, 6)
             );
     }
 
@@ -5908,11 +6050,11 @@ _ = new C() switch
 {
     null => 0,
     [not null] => 1,
-    [null] => 2,
-    { Count: 0 or > 1 } => 3,
+    [null] => 2, // 2
+    { Count: 0 or > 1 } => 3, // 3
 };
 
-_ = new C() switch // 2
+_ = new C() switch // 4
 {
     [not null] => 1,
     { Count: 0 or > 1 } => 2,
@@ -5921,8 +6063,8 @@ _ = new C() switch // 2
 _ = new C() switch
 {
     [not null] => 1,
-    [null] => 2,
-    { Count: 0 or > 1 } => 3,
+    [null] => 2, // 5
+    { Count: 0 or > 1 } => 3, // 6
 };
 
 class C
@@ -5932,12 +6074,24 @@ class C
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // 0.cs(3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
             // _ = new C() switch // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(3, 13),
-            // (18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-            // _ = new C() switch // 2
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13)
+            // 0.cs(14,6): hidden CS9271: The pattern is redundant.
+            //     [null] => 2, // 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(14, 6),
+            // 0.cs(15,14): hidden CS9271: The pattern is redundant.
+            //     { Count: 0 or > 1 } => 3, // 3
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(15, 14),
+            // 0.cs(18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+            // _ = new C() switch // 4
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13),
+            // 0.cs(27,6): hidden CS9271: The pattern is redundant.
+            //     [null] => 2, // 5
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(27, 6),
+            // 0.cs(28,14): hidden CS9271: The pattern is redundant.
+            //     { Count: 0 or > 1 } => 3, // 6
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(28, 14)
             );
     }
 
@@ -6075,7 +6229,13 @@ class C
     public int this[int i] => throw null;
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(5,6): hidden CS9271: The pattern is redundant.
+            //     [< 0] => 2,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "< 0").WithLocation(5, 6),
+            // 0.cs(6,14): hidden CS9271: The pattern is redundant.
+            //     { Count: 0 or > 1 } => 3,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(6, 14));
     }
 
     [Fact]
@@ -6096,7 +6256,13 @@ class C
     public C Slice(int i, int j) => throw null;
 }";
         var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range });
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(5,9): hidden CS9271: The pattern is redundant.
+            //     [..[< 0]] => 2,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "< 0").WithLocation(5, 9),
+            // 0.cs(6,14): hidden CS9271: The pattern is redundant.
+            //     { Count: 0 or > 1 } => 3,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(6, 14));
     }
 
     [Fact]
@@ -6903,7 +7069,10 @@ class C
 2
 ";
         var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics(
+            // (11,20): hidden CS9271: The pattern is redundant.
+            //             case [[>=0]]:
+            Diagnostic(ErrorCode.HDN_RedundantPattern, ">=0").WithLocation(11, 20));
     }
 
     [Fact]
@@ -7036,7 +7205,7 @@ public class X
 
         switch (obj)
         {
-            case Base and I1 and [.., Base and I1]:
+            case Base and I1 and [.., Base and I1]: // 14, 15
                 break;
             case Derived and [Derived s]: // OK, we're calling into different indexers
                 break;
@@ -7046,7 +7215,7 @@ public class X
         {
             case Base and not null and [.., Base and not null]:
                 break;
-            case Derived and [Derived s]: // 14
+            case Derived and [Derived s]: // 16
                 break;
         }
 
@@ -7055,7 +7224,7 @@ public class X
         {
             case [.., [.., I1 and Base]]:
                 break;
-            case [[Derived]]: // 15
+            case [[Derived]]: // 17
                 break;
         }
     }
@@ -7081,50 +7250,56 @@ class Derived : Base, I2
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, _iTupleSource }, options: TestOptions.DebugExe);
         compilation.VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived s]: // 1
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(11, 18),
-                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived s]: // 2
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(19, 18),
-                // (27,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(27,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived s]: // 3
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(27, 18),
-                // (34,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(34,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [int and 1]: // 4
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[int and 1]").WithLocation(34, 18),
-                // (41,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(41,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [ValueType and int and 1]: // 5
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[ValueType and int and 1]").WithLocation(41, 18),
-                // (49,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(49,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived s]: // 6
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived s]").WithLocation(49, 18),
-                // (61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(61,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived { F1: 1 } s]: // 7
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived { F1: 1 } s]").WithLocation(61, 18),
-                // (73,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(73,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived { P1: 1 } s]: // 8
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived { P1: 1 } s]").WithLocation(73, 18),
-                // (85,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(85,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived(1, _) s]: // 9
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived(1, _) s]").WithLocation(85, 18),
-                // (95,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(95,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived { F3: (1, _) } s]: // 10
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Derived { F3: (1, _) } s]").WithLocation(95, 18),
-                // (103,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(103,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Base and I2]: // 11
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[Base and I2]").WithLocation(103, 18),
-                // (111,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(111,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [I2 and Base]: // 12
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[I2 and Base]").WithLocation(111, 18),
-                // (120,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                // 0.cs(120,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case Derived and [Derived s]: // 13
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived and [Derived s]").WithLocation(120, 18),
-                // (136,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-                //             case Derived and [Derived s]: // 14
+                // 0.cs(126,27): hidden CS9271: The pattern is redundant.
+                //             case Base and I1 and [.., Base and I1]: // 14, 15
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(126, 27),
+                // 0.cs(126,48): hidden CS9271: The pattern is redundant.
+                //             case Base and I1 and [.., Base and I1]: // 14, 15
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(126, 48),
+                // 0.cs(136,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case Derived and [Derived s]: // 16
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "Derived and [Derived s]").WithLocation(136, 18),
-                // (145,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-                //             case [[Derived]]: // 15
+                // 0.cs(145,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [[Derived]]: // 17
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[Derived]]").WithLocation(145, 18)
                 );
     }
@@ -7381,7 +7556,28 @@ class C
     }
 }";
         var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (10,27): hidden CS9271: The pattern is redundant.
+            //             [.., >=0] or [<0] or { Length: 0 or >1 } => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<0").WithLocation(10, 27),
+            // (15,34): hidden CS9271: The pattern is redundant.
+            //             [.., >=0] or [..[.., <0]] or [] => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<0").WithLocation(15, 34),
+            // (20,27): hidden CS9271: The pattern is redundant.
+            //             [..[>=0]] or [<0] or
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<0").WithLocation(20, 27),
+            // (36,26): hidden CS9271: The pattern is redundant.
+            //             [..{ Length: <= int.MaxValue - 1 }, _] or []  => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<= int.MaxValue - 1").WithLocation(36, 26),
+            // (41,29): hidden CS9271: The pattern is redundant.
+            //             [_, ..{ Length: <= int.MaxValue - 2 }, _] or { Length: 0 or 1 } => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "<= int.MaxValue - 2").WithLocation(41, 29),
+            // (50,18): hidden CS9271: The pattern is redundant.
+            //             [{ X:0, Y:0 }] => 1,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(50, 18),
+            // (50,23): hidden CS9271: The pattern is redundant.
+            //             [{ X:0, Y:0 }] => 1,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(50, 23));
     }
 
     [Fact]
@@ -7460,52 +7656,58 @@ _ = a is { Length: -1 };
         var src = @"
 int[] a = null;
 _ = a is { Length: -1 }; // 1
-_ = a is { Length: -1 or 1 };
-_ = a is { Length: -1 } or { Length: 1 };
-
-_ = a switch // 2
-{
-    { Length: -1 } => 0, // 3
-};
+_ = a is { Length: -1 or 1 }; // 2
+_ = a is { Length: -1 } or { Length: 1 }; // 3
 
 _ = a switch // 4
 {
-    { Length: -1 or 1 } => 0,
-};
-
-_ = a switch // 5
-{
-    { Length: -1 } or { Length: 1 } => 0,
+    { Length: -1 } => 0, // 5
 };
 
 _ = a switch // 6
 {
-    { Length: -1 } => 0, // 7
+    { Length: -1 or 1 } => 0,
+};
+
+_ = a switch // 7
+{
+    { Length: -1 } or { Length: 1 } => 0,
+};
+
+_ = a switch // 8
+{
+    { Length: -1 } => 0, // 9
     { Length: 1 } => 0,
 };
 ";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
-            // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+            // 0.cs(3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             // _ = a is { Length: -1 }; // 1
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is { Length: -1 }").WithArguments("int[]").WithLocation(3, 5),
-            // (7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            // _ = a switch // 2
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
-            // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-            //     { Length: -1 } => 0, // 3
-            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(9, 5),
-            // (12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // 0.cs(4,20): hidden CS9271: The pattern is redundant.
+            // _ = a is { Length: -1 or 1 }; // 2
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(4, 20),
+            // 0.cs(5,20): hidden CS9271: The pattern is redundant.
+            // _ = a is { Length: -1 } or { Length: 1 }; // 3
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(5, 20),
+            // 0.cs(7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             // _ = a switch // 4
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(12, 7),
-            // (17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
-            // _ = a switch // 5
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(17, 7),
-            // (22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
+            // 0.cs(9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 5
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(9, 5),
+            // 0.cs(12,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
             // _ = a switch // 6
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(12, 7),
+            // 0.cs(17,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = a switch // 7
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(17, 7),
+            // 0.cs(22,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+            // _ = a switch // 8
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(22, 7),
-            // (24,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-            //     { Length: -1 } => 0, // 7
+            // 0.cs(24,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 9
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(24, 5)
             );
     }
@@ -7515,21 +7717,24 @@ _ = a switch // 6
     {
         var src = @"
 int[] a = null;
-_ = a is null or { Length: -1 };
+_ = a is null or { Length: -1 }; // 1
 
-_ = a switch // 1
+_ = a switch // 2
 {
     null => 0,
-    { Length: -1 } => 0, // 2
+    { Length: -1 } => 0, // 3
 };
 ";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
-            // (5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
-            // _ = a switch // 1
+            // 0.cs(3,28): hidden CS9271: The pattern is redundant.
+            // _ = a is null or { Length: -1 }; // 1
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(3, 28),
+            // 0.cs(5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
+            // _ = a switch // 2
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(5, 7),
-            // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-            //     { Length: -1 } => 0, // 2
+            // 0.cs(8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     { Length: -1 } => 0, // 3
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(8, 5)
             );
     }

@@ -8431,6 +8431,7 @@ class Derived : C { }
 C s = null;
 _ = s is { Prop1: not 42 } or { Prop1: 43 }; // 1
 _ = s is (not 42, _) or (not 43, _); // 2
+_ = s is null and { Prop1: 42 }; // 3
 
 class C
 {
@@ -8447,7 +8448,10 @@ class Derived : C { }
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 40),
                 // (4,30): hidden CS9271: The pattern is redundant.
                 // _ = s is (not 42, _) or (not 43, _); // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 30));
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 30),
+                // (5,5): error CS8518: An expression of type 'C' can never match the provided pattern.
+                // _ = s is null and { Prop1: 42 }; // 3
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is null and { Prop1: 42 }").WithArguments("C").WithLocation(5, 5));
         }
     }
 }

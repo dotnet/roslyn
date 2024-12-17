@@ -946,10 +946,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     _expectingOperandOfDisjunction = false;
-                    if (isEmptyPropertyPattern)
-                    {
-                        TryPushOperand(node);
-                    }
                 }
 
                 ImmutableArray<BoundPositionalSubpattern> deconstruction = node.Deconstruction;
@@ -1017,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_evalSequence.Count - 1 < startOfLeft)
                 {
                     // Everything was skipped
-                    TryPushOperand(MakeDefaultPattern(node.Syntax, node.InputType));
+                    TryPushOperand(node);
                 }
 
                 return null;

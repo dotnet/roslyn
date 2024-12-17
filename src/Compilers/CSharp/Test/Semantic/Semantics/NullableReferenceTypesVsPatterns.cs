@@ -1236,9 +1236,9 @@ class Program
         _ = t switch
         {
             (null, null) => 1,
-            (null, {}) => 2,
-            ({}, null) => 3,
-            ({}, {}) => 4,
+            (null, {}) => 2, // 1
+            ({}, null) => 3, // 2
+            ({}, {}) => 4, // 3, 4
         };
     }
     void M1(object o)
@@ -1318,25 +1318,37 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (18,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
+                // 0.cs(10,20): hidden CS9271: The pattern is redundant.
+                //             (null, {}) => 2, // 1
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(10, 20),
+                // 0.cs(11,14): hidden CS9271: The pattern is redundant.
+                //             ({}, null) => 3, // 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(11, 14),
+                // 0.cs(12,14): hidden CS9271: The pattern is redundant.
+                //             ({}, {}) => 4, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(12, 14),
+                // 0.cs(12,18): hidden CS9271: The pattern is redundant.
+                //             ({}, {}) => 4, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(12, 18),
+                // 0.cs(18,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         _ = t switch // 1 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(18, 15),
-                // (27,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
+                // 0.cs(27,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         _ = t switch // 2 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(27, 15),
-                // (36,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(not null, null)' is not covered.
+                // 0.cs(36,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(not null, null)' is not covered.
                 //         _ = t switch // 3 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(not null, null)").WithLocation(36, 15),
-                // (46,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
+                // 0.cs(46,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         _ = t switch // 4 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(46, 15),
-                // (55,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
+                // 0.cs(55,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         _ = t switch // 5 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(55, 15),
-                // (64,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(not null, null)' is not covered.
+                // 0.cs(64,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(not null, null)' is not covered.
                 //         _ = t switch // 6 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(not null, null)").WithLocation(64, 15),
-                // (73,15): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                // 0.cs(73,15): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         _ = o switch // 7 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("null").WithLocation(73, 15));
         }
