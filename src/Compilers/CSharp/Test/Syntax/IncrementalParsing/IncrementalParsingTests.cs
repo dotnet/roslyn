@@ -3666,6 +3666,41 @@ enum VirtualKey
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76439")]
+        public void InKeywordInsideAForBlock()
+        {
+            var source = """
+                public class Program
+                {
+                    public void Main()
+                    {
+                        int count = 10, n = 15;
+
+                        for (int i = -(count + 2); i < n; i++)
+                        {
+                            for (int input2 = -(count + 2); input2 < n; input2++)
+                            {
+                            }
+                        }
+                    }
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+
+            var position1 = source.IndexOf("i =") + 1;
+            var position2 = source.IndexOf("i <") + 1;
+            var position3 = source.IndexOf("i++") + 1;
+
+            text = text.WithChanges(
+                new TextChange(new TextSpan(position1, 0), "n"),
+                new TextChange(new TextSpan(position2, 0), "n"),
+                new TextChange(new TextSpan(position3, 0), "n"));
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
         #endregion
 
         #region Helper functions
