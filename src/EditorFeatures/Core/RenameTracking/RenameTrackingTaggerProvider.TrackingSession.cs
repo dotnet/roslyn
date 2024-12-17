@@ -73,22 +73,8 @@ internal sealed partial class RenameTrackingTaggerProvider
                 _isRenamableIdentifierTask = DetermineIfRenamableIdentifierAsync(snapshotSpan, initialCheck: true);
                 _isRenamableIdentifierTask.ReportNonFatalErrorAsync();
 
-                var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask");
-
-                _isRenamableIdentifierTask.SafeContinueWithFromAsync(
-                    async t =>
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
-
-                        // Avoid throwing an exception in this common case
-                        if (_cancellationToken.IsCancellationRequested)
-                            return;
-
-                        stateMachine.UpdateTrackingSessionIfRenamable();
-                    },
-                    _cancellationToken,
-                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                SwitchToMainThreadAfterAndUpdateSessionTrackerAsync(_isRenamableIdentifierTask).CompletesAsyncOperation(
+                     _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask"));
 
                 QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
             }
@@ -101,28 +87,41 @@ internal sealed partial class RenameTrackingTaggerProvider
 
                 _isRenamableIdentifierTask = s_notRenamableTask;
             }
+
+            return;
+
+            async Task SwitchToMainThreadAfterAndUpdateSessionTrackerAsync(Task isRenamableIdentifierTask)
+            {
+                // Use CA(true) so we can stay on the UI thread if already there.
+                await isRenamableIdentifierTask.ConfigureAwait(true);
+
+                // Avoid throwing an exception in this common case
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+                if (_cancellationToken.IsCancellationRequested)
+                    return;
+
+                stateMachine.UpdateTrackingSessionIfRenamable();
+            }
         }
 
         private void QueueUpdateToStateMachine(StateMachine stateMachine, Task task)
         {
-            var asyncToken = _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}");
+            QueueUpdateToStateMachineAsync().CompletesAsyncOperation(
+                _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}"));
 
-            task.SafeContinueWithFromAsync(async t =>
-               {
-                   await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+            async Task QueueUpdateToStateMachineAsync()
+            {
+                // Use CA(true) so we can stay on the UI thread if already there.
+                await task.ConfigureAwait(true);
 
-                   // Avoid throwing an exception in this common case
-                   if (_cancellationToken.IsCancellationRequested)
-                       return;
+                // Avoid throwing an exception in this common case
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+                if (_cancellationToken.IsCancellationRequested)
+                    return;
 
-                   if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
-                   {
-                       stateMachine.OnTrackingSessionUpdated(this);
-                   }
-               },
-               _cancellationToken,
-               TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-               TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                if (await _isRenamableIdentifierTask.ConfigureAwait(true) != TriggerIdentifierKind.NotRenamable)
+                    stateMachine.OnTrackingSessionUpdated(this);
+            }
         }
 
         internal void CheckNewIdentifier(StateMachine stateMachine, ITextSnapshot snapshot)
