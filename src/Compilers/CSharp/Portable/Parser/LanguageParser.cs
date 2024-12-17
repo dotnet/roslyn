@@ -9184,8 +9184,10 @@ done:
             var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
                 ? this.ParseExpressionCore()
                 : null;
-            // Pulled out as we need to track this when parsing incrementors to place skipped tokens.
+
+            // Used to place skipped tokens we run into when parsing the incrementors list.
             var secondSemicolonToken = eatCommaOrSemicolon();
+
             // Do allow semicolons (with diagnostics) in the incrementors list.  This allows us to consume
             // accidental extra incrementors that should have been separated by commas.
             var incrementors = this.CurrentToken.Kind != SyntaxKind.CloseParenToken
