@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) m)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(m))
 
             controller.Verify(Sub(c) c.BeginAsyncOperation(
                                   It.IsAny(Of String),
@@ -111,13 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             token.Setup(Sub(t) t.Dispose()).Callback(Sub() checkpoint3.Release())
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(
-                Async Function(modelTask, c)
-                    Await TaskScheduler.Default
-                    Dim model1 = Await modelTask.ConfigureAwait(False)
+                Function(model1, c)
                     checkpoint1.Release()
                     checkpoint2.Task.Wait()
                     c.ThrowIfCancellationRequested()
-                    Return model1
+                    Return Task.FromResult(model1)
                 End Function)
             Await checkpoint1.Task
             modelComputation.Stop()
