@@ -6,10 +6,12 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 
@@ -24,9 +26,10 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
     protected abstract bool CanGoToSource(uint index, VSOBJGOTOSRCTYPE srcType);
     protected abstract bool TryGetCategoryField(uint index, int category, out uint categoryField);
     protected abstract void GetDisplayData(uint index, ref VSTREEDISPLAYDATA data);
-    protected abstract bool GetExpandable(uint index, uint listTypeExcluded);
+    protected abstract Task<bool> GetExpandableAsync(uint index, uint listTypeExcluded, CancellationToken cancellationToken);
     protected abstract uint GetItemCount();
-    protected abstract IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch);
+    protected abstract Task<IVsSimpleObjectList2> GetListAsync(
+        uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken);
     protected abstract string GetText(uint index, VSTREETEXTOPTIONS tto);
     protected abstract string GetTipText(uint index, VSTREETOOLTIPTYPE eTipType);
     protected abstract Task GoToSourceAsync(uint index, VSOBJGOTOSRCTYPE srcType);
@@ -81,8 +84,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         get { return false; }
     }
 
-    protected virtual IVsNavInfo GetNavInfo(uint index)
-        => null;
+    protected virtual Task<IVsNavInfo> GetNavInfoAsync(uint index, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<IVsNavInfo>();
 
     protected virtual IVsNavInfoNode GetNavInfoNode(uint index)
         => null;
@@ -206,7 +209,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetExpandable3(uint index, uint listTypeExcluded, out int pfExpandable)
     {
-        pfExpandable = GetExpandable(index, listTypeExcluded) ? 1 : 0;
+        pfExpandable = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+            () => GetExpandableAsync(index, listTypeExcluded, CancellationToken.None)) ? 1 : 0;
         return VSConstants.S_OK;
     }
 
@@ -230,7 +234,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetList2(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
     {
-        ppIVsSimpleObjectList2 = GetList(index, listType, flags, pobSrch);
+        ppIVsSimpleObjectList2 = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+            () => GetListAsync(index, listType, flags, pobSrch, CancellationToken.None));
         return VSConstants.S_OK;
     }
 
@@ -239,16 +244,18 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetNavInfo(uint index, out IVsNavInfo ppNavInfo)
     {
-        if (!SupportsNavInfo)
+        (ppNavInfo, var result) = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(async () =>
         {
-            ppNavInfo = null;
-            return VSConstants.E_NOTIMPL;
-        }
+            if (!SupportsNavInfo)
+                return (null, VSConstants.E_NOTIMPL);
 
-        ppNavInfo = GetNavInfo(index);
-        return ppNavInfo != null
-            ? VSConstants.S_OK
-            : VSConstants.E_FAIL;
+            var ppNavInfo = await GetNavInfoAsync(index, CancellationToken.None).ConfigureAwait(true);
+            return (ppNavInfo, ppNavInfo != null
+                ? VSConstants.S_OK
+                : VSConstants.E_FAIL);
+        });
+
+        return result;
     }
 
     int IVsSimpleObjectList2.GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)

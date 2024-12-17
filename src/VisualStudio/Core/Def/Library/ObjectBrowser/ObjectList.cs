@@ -396,7 +396,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         }
     }
 
-    protected override bool GetExpandable(uint index, uint listTypeExcluded)
+    protected override async Task<bool> GetExpandableAsync(
+        uint index, uint listTypeExcluded, CancellationToken cancellationToken)
     {
         switch (Kind)
         {
@@ -408,20 +409,21 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
             case ObjectListKind.BaseTypes:
             case ObjectListKind.Types:
-                return IsExpandableType(index);
+                return await IsExpandableTypeAsync(index, cancellationToken).ConfigureAwait(true);
         }
 
         return false;
     }
 
-    private bool IsExpandableType(uint index)
+    private async Task<bool> IsExpandableTypeAsync(uint index, CancellationToken cancellationToken)
     {
         if (GetListItem(index) is not TypeListItem typeListItem)
         {
             return false;
         }
 
-        var compilation = typeListItem.GetCompilation(this.LibraryManager.Workspace);
+        var compilation = await typeListItem.GetCompilationAsync(
+            this.LibraryManager.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return false;
@@ -456,7 +458,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
     protected override uint GetItemCount()
         => (uint)_items.Length;
 
-    protected override IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
+    protected override async Task<IVsSimpleObjectList2> GetListAsync(
+        uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
 
@@ -496,15 +499,15 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
             var lookInReferences = (flags & ((uint)_VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS | (uint)_VSOBSEARCHOPTIONS2.VSOBSO_LISTREFERENCES)) != 0;
 
-            var projectAndAssemblySet = this.LibraryManager.GetAssemblySet(project, lookInReferences, CancellationToken.None);
+            var projectAndAssemblySet = await this.LibraryManager.GetAssemblySetAsync(
+                project, lookInReferences, cancellationToken).ConfigureAwait(true);
             return this.LibraryManager.GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
         }
 
-        var compilation = listItem.GetCompilation(this.LibraryManager.Workspace);
+        var compilation = await listItem.GetCompilationAsync(
+            this.LibraryManager.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
-        {
             return null;
-        }
 
         switch (listKind)
         {
@@ -540,7 +543,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         get { return true; }
     }
 
-    protected override IVsNavInfo GetNavInfo(uint index)
+    protected override async Task<IVsNavInfo> GetNavInfoAsync(
+        uint index, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
         if (listItem == null)
@@ -564,7 +568,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
         if (listItem is SymbolListItem symbolListItem)
         {
-            return this.LibraryManager.GetNavInfo(symbolListItem, useExpandedHierarchy: IsClassView());
+            return await this.LibraryManager.GetNavInfoAsync(
+                symbolListItem, useExpandedHierarchy: IsClassView(), cancellationToken).ConfigureAwait(true);
         }
 
         return null;
