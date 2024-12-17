@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Threading
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -111,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(
                 Async Function(modelTask, c)
+                    Await TaskScheduler.Default
                     Dim model1 = Await modelTask.ConfigureAwait(False)
                     checkpoint1.Release()
                     checkpoint2.Task.Wait()
