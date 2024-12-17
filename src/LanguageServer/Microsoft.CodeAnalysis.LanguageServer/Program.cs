@@ -239,12 +239,14 @@ static CliRootCommand CreateCommandLineParser()
     var serverPipeNameOption = new CliOption<string?>("--pipe")
     {
         Description = "The name of the pipe the server will connect to.",
-        Required = false,
+        Required = false
     };
-    var useStdIoOption = new CliOption<bool?>("--stdio")
+
+    var useStdIoOption = new CliOption<bool>("--stdio")
     {
         Description = "Use stdio for communication with the client.",
-        Required = false
+        Required = false,
+        DefaultValueFactory = _ => false
     };
 
     var rootCommand = new CliRootCommand()
@@ -276,7 +278,7 @@ static CliRootCommand CreateCommandLineParser()
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
-        var useStdIo = parseResult.GetValue(useStdIoOption) ?? false;
+        var useStdIo = parseResult.GetValue(useStdIoOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
