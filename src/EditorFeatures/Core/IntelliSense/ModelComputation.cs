@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
@@ -108,7 +109,7 @@ internal class ModelComputation<TModel> where TModel : class
     }
 
     public void ChainTaskAndNotifyControllerWhenFinished(
-        Func<Task<TModel>, CancellationToken, Task<TModel>> transformModelAsync,
+        Func<TModel, CancellationToken, Task<TModel>> transformModelAsync,
         bool updateController = true)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
@@ -121,7 +122,7 @@ internal class ModelComputation<TModel> where TModel : class
         var asyncToken = _controller.BeginAsyncOperation();
 
         // Create the task that will actually run the transformation step.
-        var nextTask = transformModelAsync(_lastTask, _stopCancellationToken);
+        var nextTask = TransformModelAsync(_lastTask);// transformModelAsync(_lastTask, _stopCancellationToken);
         nextTask.ReportNonFatalErrorAsync();
 
         // The next task is now the last task in the chain.
@@ -154,6 +155,14 @@ internal class ModelComputation<TModel> where TModel : class
         // When we've notified the controller of our result, we consider the async operation
         // to be completed.
         _notifyControllerTask.CompletesAsyncOperation(asyncToken);
+
+        async Task<TModel> TransformModelAsync(Task<TModel> lastTask)
+        {
+            // Ensure we're on the BG before doing any model transformation work.
+            await TaskScheduler.Default;
+            var model = await lastTask.ConfigureAwait(false);
+            return await transformModelAsync(model, _stopCancellationToken).ConfigureAwait(false);
+        }
     }
 
     private void OnModelUpdated(TModel result, bool updateController)

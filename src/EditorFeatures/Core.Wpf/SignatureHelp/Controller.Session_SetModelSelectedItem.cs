@@ -20,16 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (modelTask, cancellationToken) => SetModelExplicitlySelectedItemInBackgroundAsync(modelTask, selector),
+                    (model, cancellationToken) => Task.FromResult(SetModelExplicitlySelectedItemInBackground(model, selector)),
                     updateController: false);
             }
 
-            private static async Task<Model?> SetModelExplicitlySelectedItemInBackgroundAsync(
-                Task<Model?> modelTask,
+            private static Model? SetModelExplicitlySelectedItemInBackground(
+                Model? model,
                 Func<Model, SignatureHelpItem> selector)
             {
-                await TaskScheduler.Default;
-                var model = await modelTask.ConfigureAwait(false);
                 if (model == null)
                     return null;
 
