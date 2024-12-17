@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -26,7 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 internal sealed class FileLogger : ILogger
 {
     private readonly string _logFilePath;
-    private readonly StringBuilder _buffer;
     private bool _enabled;
 
     /// <summary>
@@ -37,7 +37,6 @@ internal sealed class FileLogger : ILogger
     public FileLogger(IGlobalOptionService optionService, IThreadingContext threadingContext)
     {
         _logFilePath = Path.Combine(Path.GetTempPath(), "Roslyn", "Telemetry", GetLogFileName());
-        _buffer = new();
         _workQueue = new(
             DelayTimeSpan.Short,
             ProcessWorkQueueAsync,
@@ -97,8 +96,9 @@ internal sealed class FileLogger : ILogger
     private ValueTask ProcessWorkQueueAsync(
         ImmutableSegmentedList<(FunctionId functionId, string message)> list, CancellationToken cancellationToken)
     {
+        using var _ = PooledStringBuilder.GetInstance(out var buffer);
         foreach (var (functionId, message) in list)
-            _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
+            buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
 
         IOUtilities.PerformIO(() =>
         {
@@ -107,8 +107,7 @@ internal sealed class FileLogger : ILogger
                 Directory.CreateDirectory(PathUtilities.GetDirectoryName(_logFilePath));
             }
 
-            File.AppendAllText(_logFilePath, _buffer.ToString());
-            _buffer.Clear();
+            File.AppendAllText(_logFilePath, buffer.ToString());
         });
 
         return ValueTaskFactory.CompletedTask;
