@@ -24,6 +24,6 @@ internal abstract partial class AbstractObjectBrowserLibraryManager
 
         return await CreateDescriptionBuilder(description, listItem, project)
             .TryBuildAsync(options, cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(true);
     }
 }
