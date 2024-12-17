@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 Model? model,
                 Func<Model, SignatureHelpItem> selector)
             {
+                this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
                 if (model == null)
                     return null;
 
