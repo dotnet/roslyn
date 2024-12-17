@@ -3104,7 +3104,6 @@ class X
     [Fact]
     public void ListPattern_Negated_02()
     {
-        // TODO2
         var source = @"
 class X
 {

@@ -381,7 +381,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundSlicePattern slicePattern:
                         {
                             append("..");
-                            appendSource(slicePattern.Pattern);
+                            if (slicePattern.Pattern is not null)
+                            {
+                                appendSource(slicePattern.Pattern);
+                            }
                             break;
                         }
                     case BoundDiscardPattern:
