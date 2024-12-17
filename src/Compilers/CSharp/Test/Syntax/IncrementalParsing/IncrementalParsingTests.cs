@@ -3672,7 +3672,7 @@ enum VirtualKey
             var source = """
                 void Main()
                 {
-                    for (int i = -(count + 2); i < n; i++)
+                    for (int i = 0; i < n; i++)
                     {
                     }
                 }
