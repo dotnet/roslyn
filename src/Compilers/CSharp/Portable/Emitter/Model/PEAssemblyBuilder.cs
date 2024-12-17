@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
         private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources;
 
-        private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
+        private NamedTypeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyParamCollectionAttribute;
@@ -387,7 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ref _lazyEmbeddedAttribute,
                 diagnostics,
                 AttributeDescription.CodeAnalysisEmbeddedAttribute,
-                createParameterlessEmbeddedAttributeSymbol);
+                createParameterlessEmbeddedAttributeSymbol,
+                validateEmbeddedAttributeSymbol);
 
             if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
             {
@@ -488,6 +490,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     AttributeDescription.RefSafetyRulesAttribute,
                     CreateRefSafetyRulesAttributeSymbol);
             }
+
+            static bool validateEmbeddedAttributeSymbol(NamedTypeSymbol existingAttribute, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+            {
+                // Validate that the attribute follows the correct pattern. It must be internal, sealed, non-static, non-generic, derive from System.Attribute,
+                // and have [EmbeddedAttribute] applied to it. It must also have a parameterless constructor.
+                if (existingAttribute is not
+                    {
+                        IsStatic: false,
+                        Arity: 0,
+                        DeclaredAccessibility: Accessibility.Internal,
+                        IsFileLocal: false,
+                        TypeKind: TypeKind.Class,
+                        IsSealed: true,
+                        BaseTypeNoUseSiteDiagnostics: { } baseType
+                    })
+                {
+                    return false;
+                }
+
+                var useSiteDiagnostics = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
+                if (!compilation.IsEqualOrDerivedFromWellKnownClass(existingAttribute, WellKnownType.System_Attribute, ref useSiteDiagnostics))
+                {
+                    return false;
+                }
+
+                diagnostics.Add(existingAttribute.GetFirstLocation(), useSiteDiagnostics);
+
+                if (!existingAttribute.GetMembersUnordered().Any(m => m is MethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [], IsStatic: false, DeclaredAccessibility: Accessibility.Public or Accessibility.Internal }))
+                {
+                    return false;
+                }
+
+                if (!existingAttribute.GetAttributes().Any((attr, existingAttribute) => attr.AttributeClass.OriginalDefinition.Equals(existingAttribute), existingAttribute))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         private SynthesizedEmbeddedAttributeSymbol CreateParameterlessEmbeddedAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
@@ -548,12 +589,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ref T symbol,
             BindingDiagnosticBag diagnostics,
             AttributeDescription description,
-            Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory)
-            where T : SynthesizedEmbeddedAttributeSymbolBase
+            Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory,
+            Func<NamedTypeSymbol, CSharpCompilation, BindingDiagnosticBag, bool> validateUserDefinedAttribute = null)
+            where T : NamedTypeSymbol
         {
+            Debug.Assert(validateUserDefinedAttribute is null || typeof(T) == typeof(NamedTypeSymbol));
             if (symbol is null)
             {
-                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                var userDefinedAttribute = getExistingType(description);
+
+                if (userDefinedAttribute is not null)
+                {
+                    if (validateUserDefinedAttribute is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                    }
+                    else if (validateUserDefinedAttribute(userDefinedAttribute, Compilation, diagnostics))
+                    {
+                        symbol = (T)userDefinedAttribute;
+                        return;
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                    }
+                }
 
                 var containingNamespace = GetOrSynthesizeNamespace(description.Namespace);
 
@@ -567,20 +627,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 AddSynthesizedDefinition(containingNamespace, symbol);
             }
-        }
 
 #nullable enable
 
-        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
-        {
-            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
-
-            if (userDefinedAttribute is not null)
+            NamedTypeSymbol? getExistingType(AttributeDescription description)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+                Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
+
+                return userDefinedAttribute;
             }
         }
 

@@ -1992,6 +1992,11 @@
         <target state="translated">Typy a aliasy nemůžou mít název required.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReservedTypeMustFollowPattern">
+        <source>The type '{0}' must be non-generic, internal, sealed, non-static, be attributed with 'Microsoft.CodeAnalysis.EmbeddedAttribute', and have a parameterless constructor.</source>
+        <target state="new">The type '{0}' must be non-generic, internal, sealed, non-static, be attributed with 'Microsoft.CodeAnalysis.EmbeddedAttribute', and have a parameterless constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
         <target state="translated">Cílový modul runtime nepodporuje obecné typy by-ref-like.</target>

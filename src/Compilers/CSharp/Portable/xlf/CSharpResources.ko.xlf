@@ -1992,6 +1992,11 @@
         <target state="translated">유형 및 별칭은 '필수'로 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReservedTypeMustFollowPattern">
+        <source>The type '{0}' must be non-generic, internal, sealed, non-static, be attributed with 'Microsoft.CodeAnalysis.EmbeddedAttribute', and have a parameterless constructor.</source>
+        <target state="new">The type '{0}' must be non-generic, internal, sealed, non-static, be attributed with 'Microsoft.CodeAnalysis.EmbeddedAttribute', and have a parameterless constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
         <target state="translated">대상 런타임은 참조와 유사한 제네릭을 지원하지 않습니다.</target>
