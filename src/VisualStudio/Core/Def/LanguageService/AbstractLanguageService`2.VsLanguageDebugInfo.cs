@@ -31,7 +31,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     {
         private readonly Guid _languageId;
         private readonly TLanguageService _languageService;
-        private readonly IThreadingContext _threadingContext;
         private readonly ILanguageDebugInfoService? _languageDebugInfo;
         private readonly IBreakpointResolutionService? _breakpointService;
         private readonly IProximityExpressionsService? _proximityExpressionsService;
@@ -41,7 +40,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             Guid languageId,
             TLanguageService languageService,
             HostLanguageServices languageServiceProvider,
-            IThreadingContext threadingContext,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             Contract.ThrowIfNull(languageService);
@@ -49,12 +47,13 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
             _languageId = languageId;
             _languageService = languageService;
-            _threadingContext = threadingContext;
             _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
             _breakpointService = languageServiceProvider.GetService<IBreakpointResolutionService>();
             _proximityExpressionsService = languageServiceProvider.GetService<IProximityExpressionsService>();
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
+
+        private IThreadingContext ThreadingContext => _languageService.ThreadingContext;
 
         public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
         {
@@ -100,7 +99,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                                         // NOTE(cyrusn): We have to wait here because the debuggers' 
                                         // GetNameOfLocation is a blocking call.  In the future, it 
                                         // would be nice if they could make it async.
-                                        _threadingContext.JoinableTaskFactory.Run(async () =>
+                                        this.ThreadingContext.JoinableTaskFactory.Run(async () =>
                                         {
                                             var debugLocationInfo = await _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).ConfigureAwait(false);
 
@@ -133,7 +132,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR? ppEnum)
         {
-            ppEnum = _threadingContext.JoinableTaskFactory.Run(async () =>
+            ppEnum = this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
                 // NOTE(cyrusn): cLines is ignored.  This is to match existing dev10 behavior.
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
@@ -199,7 +198,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                     showProgress: false,
                     action: waitContext =>
                 {
-                    _threadingContext.JoinableTaskFactory.Run(async () =>
+                    this.ThreadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         var cancellationToken = waitContext.UserCancellationToken;
                         if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
@@ -236,7 +235,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
             // Otherwise, we'll just use the original span.
             var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                _threadingContext, document.Id, cancellationToken).ConfigureAwait(false);
+                this.ThreadingContext, document.Id, cancellationToken).ConfigureAwait(false);
             if (mappedSpan != null)
                 span = mappedSpan.Value;
 
