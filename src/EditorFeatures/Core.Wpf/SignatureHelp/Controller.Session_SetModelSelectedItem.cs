@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     updateController: false);
             }
 
-            private static Model? SetModelExplicitlySelectedItemInBackground(
+            private Model? SetModelExplicitlySelectedItemInBackground(
                 Model? model,
                 Func<Model, SignatureHelpItem> selector)
             {
