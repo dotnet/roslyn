@@ -78,19 +78,6 @@ internal static partial class TaskExtensions
     // simply changing the default underlying behavior, but rejected that idea because there was
     // a good chance that existing users had already drawn a dependency on the current behavior.
 
-    public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
-        this Task<TInput> task,
-        Func<Task<TInput>, Task<TResult>> continuationFunction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-        return task.SafeContinueWithFromAsync<TResult>(
-            (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
-    }
-
     public static Task<TResult> SafeContinueWithFromAsync<TResult>(
         this Task task,
         Func<Task, Task<TResult>> continuationFunction,
