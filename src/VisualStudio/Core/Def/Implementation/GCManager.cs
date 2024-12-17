@@ -85,14 +85,26 @@ internal static class GCManager
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-            // Restore the LatencyMode a short duration after the
-            // last request to UseLowLatencyModeForProcessingUserInput.
+            // Restore the LatencyMode a short duration after the last UseLowLatencyModeForProcessingUserInput.
             currentDelay = new ResettableDelay(s_delayMilliseconds, AsynchronousOperationListenerProvider.NullListener);
-            currentDelay.Task.SafeContinueWith(_ => RestoreGCLatencyMode(currentMode), TaskScheduler.Default);
+            RestoreGCLatencyModeWhenCompleteAsync(currentDelay.Task, currentMode).ReportNonFatalErrorAsync();
             s_delay = currentDelay;
         }
 
         currentDelay?.Reset();
+        return;
+
+        async Task RestoreGCLatencyModeWhenCompleteAsync(Task task, GCLatencyMode latencyMode)
+        {
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            finally
+            {
+                RestoreGCLatencyMode(latencyMode);
+            }
+        }
     }
 
     private static void RestoreGCLatencyMode(GCLatencyMode originalMode)

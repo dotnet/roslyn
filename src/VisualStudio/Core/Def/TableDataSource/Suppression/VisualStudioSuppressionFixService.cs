@@ -278,7 +278,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                     if (suppressionFixer != null)
                     {
                         var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
-                        newSolution = _fixMultipleOccurencesService.GetFix(
+                        newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                             documentDiagnosticsPerLanguage,
                             _workspace,
                             suppressionFixer,
@@ -287,7 +287,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                             title,
                             waitDialogMessage,
                             progress,
-                            cancellationToken);
+                            cancellationToken).ConfigureAwait(false);
                         if (newSolution == null)
                         {
                             // User cancelled or fixer threw an exception, so we just bail out.
@@ -303,7 +303,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                     if (suppressionFixer != null)
                     {
                         var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
-                        newSolution = _fixMultipleOccurencesService.GetFix(
+                        newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                              projectDiagnosticsPerLanguage,
                              _workspace,
                              suppressionFixer,
@@ -312,7 +312,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                              title,
                              waitDialogMessage,
                              progress,
-                             cancellationToken);
+                             cancellationToken).ConfigureAwait(false);
                         if (newSolution == null)
                         {
                             return;
