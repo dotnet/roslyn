@@ -3680,14 +3680,24 @@ enum VirtualKey
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var text = tree.GetText();
 
+            // Update all the 'i's in the for-loop to be 'in' instead.
             var position1 = source.IndexOf("i =") + 1;
             var position2 = source.IndexOf("i <") + 1;
             var position3 = source.IndexOf("i++") + 1;
-
             text = text.WithChanges(
                 new TextChange(new TextSpan(position1, 0), "n"),
                 new TextChange(new TextSpan(position2, 0), "n"),
                 new TextChange(new TextSpan(position3, 0), "n"));
+
+            Assert.Equal("""
+                void Main()
+                {
+                    for (int in = 0; in < n; in++)
+                    {
+                    }
+                }
+                """, text.ToString());
+
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
