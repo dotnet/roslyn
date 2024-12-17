@@ -718,23 +718,25 @@ public abstract partial class Workspace : IDisposable
         _workQueueTokenSource.Cancel();
     }
 
-    private ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Action> list, CancellationToken cancellationToken)
+    private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Action> list, CancellationToken cancellationToken)
     {
-        foreach (var item in list)
+        // Hop over to the right scheduler to execute all this work.
+        await Task.Factory.StartNew(() =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
+            foreach (var item in list)
             {
-                item();
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-            {
-                // Ensure we continue onto further items, even if one particular item fails.
-            }
-        }
+                cancellationToken.ThrowIfCancellationRequested();
 
-        return ValueTaskFactory.CompletedTask;
+                try
+                {
+                    item();
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    // Ensure we continue onto further items, even if one particular item fails.
+                }
+            }
+        }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
     }
 
     #region Host API
