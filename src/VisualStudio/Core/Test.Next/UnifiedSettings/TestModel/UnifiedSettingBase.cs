@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
         [JsonPropertyName("enableWhen")]
         public string? EnableWhen { get; init; }
 
-        [JsonPropertyName("Migration")]
+        [JsonPropertyName("migration")]
         public required Migration Migration { get; init; }
 
         public static UnifiedSettingsOption<T> CreateOption<T>(
@@ -34,26 +34,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
             string title,
             int order,
             T? defaultValue = default,
-            (IOption2 featureFlagOption, T value) featureFlagAndExperimentValue = default,
-            (IOption2 enableWhenOption, object whenValue) enableWhenOptionAndValue = default,
+            (IOption2 featureFlagOption, T value)? featureFlagAndExperimentValue = null,
+            (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
             string? languageName = null) where T : notnull
         {
-            var migration = new Migration(new Pass { Input = new Input(onboardedOption, languageName) });
+            var migration = new Migration { Pass = new Pass { Input = new Input(onboardedOption, languageName) } };
             var type = onboardedOption.Definition.Type;
             // If the option's type is nullable type, like bool?, we use bool in the registration file.
             var underlyingType = Nullable.GetUnderlyingType(type);
             if (underlyingType is not null)
             {
-                Assert.True(featureFlagAndExperimentValue.value is not default);
+                Assert.True(featureFlagAndExperimentValue is not null);
             }
             var nonNullableType = underlyingType ?? type;
 
-            var alternativeDefault = featureFlagAndExperimentValue is not default
-                ? new AlternativeDefault<T>(featureFlagAndExperimentValue.featureFlagOption, featureFlagAndExperimentValue.value)
+            var alternativeDefault = featureFlagAndExperimentValue is not null
+                ? new AlternativeDefault<T>(featureFlagAndExperimentValue.Value.featureFlagOption, featureFlagAndExperimentValue.Value.value)
                 : null;
 
-            var enableWhen = enableWhenOptionAndValue is not default
-                ? $"config:{UnifiedSettingsTests.s_optionToUnifiedSettingPath[enableWhenOptionAndValue.enableWhenOption]}='{enableWhenOptionAndValue.whenValue}'"
+            var enableWhen = enableWhenOptionAndValue is not null
+                ? $"config:{UnifiedSettingsTests.s_optionToUnifiedSettingPath[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
                 : null;
 
             var expectedDefault = defaultValue ?? onboardedOption.Definition.DefaultValue;
@@ -74,7 +74,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
             return new UnifiedSettingsOption<T>
             {
                 Title = title,
-                Type = nonNullableType.ToString().ToCamelCase(),
+                Type = nonNullableType.Name.ToCamelCase(),
                 Order = order,
                 EnableWhen = enableWhen,
                 Migration = migration,
@@ -90,8 +90,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
             T? defaultValue,
             string[] enumLabels,
             T[]? enumValues = null,
-            (IOption2 featureFlagOption, T value) featureFlagAndExperimentValue = default,
-            (IOption2 enableWhenOption, object whenValue) enableWhenOptionAndValue = default,
+            (IOption2 featureFlagOption, T value)? featureFlagAndExperimentValue = null,
+            (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
             string? languageName = null) where T : Enum
         {
             var type = onboardedOption.Definition.Type;
@@ -99,22 +99,25 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
             var nonNullableType = Nullable.GetUnderlyingType(type) ?? type;
             Assert.Equal(typeof(T), nonNullableType);
 
-            var expectedEnumValues = enumValues ?? Enum.GetValues(nonNullableType).Cast<T>().ToArray();
-            var migration = new Migration(new EnumToInteger()
+            var expectedEnumValues = enumValues ?? [.. Enum.GetValues(nonNullableType).Cast<T>()];
+            var migration = new Migration
             {
-                Input = new Input(onboardedOption, languageName),
-                Map = new Map()
+                EnumToInteger = new EnumToInteger
                 {
-                    EnumValueMatches = expectedEnumValues.SelectAsArray(value => new Map.EnumToValuePair { Result = value.ToString().ToCamelCase(), Match = value })
+                    Input = new Input(onboardedOption, languageName),
+                    Map = new Map()
+                    {
+                        EnumValueMatches = [.. expectedEnumValues.Select(value => new Map.EnumToValuePair { Result = value.ToString().ToCamelCase(), Match = Convert.ToInt32(value) })]
+                    }
                 }
-            });
+            };
 
-            var alternativeDefault = featureFlagAndExperimentValue is not default
-                ? new AlternativeDefault<string>(featureFlagAndExperimentValue.featureFlagOption, featureFlagAndExperimentValue.value.ToString().ToCamelCase())
+            var alternativeDefault = featureFlagAndExperimentValue is not null
+                ? new AlternativeDefault<string>(featureFlagAndExperimentValue.Value.featureFlagOption, featureFlagAndExperimentValue.Value.value.ToString().ToCamelCase())
                 : null;
 
-            var enableWhen = enableWhenOptionAndValue is not default
-                ? $"config:{UnifiedSettingsTests.s_optionToUnifiedSettingPath[enableWhenOptionAndValue.enableWhenOption]}='{enableWhenOptionAndValue.whenValue}'"
+            var enableWhen = enableWhenOptionAndValue is not null
+                ? $"config:{UnifiedSettingsTests.s_optionToUnifiedSettingPath[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
                 : null;
 
             var expectedDefault = defaultValue ?? onboardedOption.Definition.DefaultValue;
@@ -124,7 +127,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
             {
                 Title = title,
                 Type = "string",
-                Enum = expectedEnumValues.Select(value => value.ToString()).ToArray(),
+                Enum = [.. expectedEnumValues.Select(value => value.ToString())],
                 EnumLabel = enumLabels,
                 Order = order,
                 EnableWhen = enableWhen,

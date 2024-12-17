@@ -14,10 +14,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 internal record Input
 {
     [JsonPropertyName("store")]
-    public string Store { get; }
+    public string Store { get; init; }
 
     [JsonPropertyName("path")]
-    public string Path { get; }
+    public string Path { get; init; }
+
+    [JsonConstructor]
+    public Input(string store, string path)
+    {
+        Store = store;
+        Path = path;
+    }
 
     public Input(IOption2 option, string? languageName = null)
     {
@@ -43,7 +50,7 @@ internal record Input
         {
             LanguageNames.CSharp => "CSharp",
             LanguageNames.VisualBasic => "VisualBasic",
-            null => string.Empty,
+            _ => string.Empty,
         };
 
         var optionStorage = Storages[option.Definition.ConfigName];

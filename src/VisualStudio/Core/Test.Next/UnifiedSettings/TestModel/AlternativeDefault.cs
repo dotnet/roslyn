@@ -9,13 +9,18 @@ using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionS
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-public record AlternativeDefault<T>
+internal record AlternativeDefault<T>
 {
-    [JsonPropertyName("flagName")]
-    public string FlagName { get; }
+    public string FlagName { get; init; }
 
-    [JsonPropertyName("default")]
-    public T Default { get; }
+    public T Default { get; init; }
+
+    [JsonConstructor]
+    public AlternativeDefault(string flagName, T @default)
+    {
+        FlagName = flagName;
+        Default = @default;
+    }
 
     public AlternativeDefault(IOption2 featureFlagOption, T defaultValue)
     {

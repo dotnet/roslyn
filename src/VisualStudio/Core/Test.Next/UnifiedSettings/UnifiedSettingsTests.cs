@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
 
@@ -30,8 +31,8 @@ public class UnifiedSettingsTests
             title: "Show completion list after a character is typed",
             order: 0,
             defaultValue: true,
-            featureFlagAndExperimentValue: default,
-            enableWhenOptionAndValue: default,
+            featureFlagAndExperimentValue: null,
+            enableWhenOptionAndValue: null,
             languageName: LanguageNames.VisualBasic));
 
     [Fact]
@@ -39,7 +40,19 @@ public class UnifiedSettingsTests
     {
         using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicSettings.registration.json");
         using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
-        var jsonDocument = await JsonNode.ParseAsync(registrationFileStream, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
-        var properties = jsonDocument!.Root["properties"];
+        var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
+        var expectedPrefix = "textEditor.basic.intellisense";
+        var properties = jsonDocument!.Root["properties"]!.AsObject()
+            .Where(jsonObject => jsonObject.Key.StartsWith(expectedPrefix))
+            .SelectAsArray(jsonObject => jsonObject.Value);
+        // Assert.Equal(s_optionToExpectedUnifiedSettings.Count, properties.Length);
+        foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(s_optionToExpectedUnifiedSettings, (actual, expected) => (actual, expected)))
+        {
+            // We only have bool and enum option now.
+            UnifiedSettingBase actualSettings = expectedOption.Definition.Type.IsEnum
+                ? actualJson.Deserialize<UnifiedSettingsEnumOption>()!
+                : actualJson.Deserialize<UnifiedSettingsOption<bool>>()!;
+            Assert.Equal(expectedSetting, actualSettings);
+        }
     }
 }

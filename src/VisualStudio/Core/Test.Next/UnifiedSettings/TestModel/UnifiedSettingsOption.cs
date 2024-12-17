@@ -8,9 +8,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
 internal record UnifiedSettingsOption<T> : UnifiedSettingBase
 {
-    [JsonPropertyName("Default")]
+    [JsonPropertyName("default")]
     public required T Default { get; init; }
 
-    [JsonPropertyName("AlternativeDefault")]
+    [JsonPropertyName("alternativeDefault")]
     public AlternativeDefault<T>? AlternativeDefault { get; init; }
 }

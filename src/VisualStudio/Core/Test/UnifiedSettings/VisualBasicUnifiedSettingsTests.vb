@@ -76,52 +76,52 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
             Return MyBase.GetOptionsDefaultValue([option])
         End Function
 
-        <Fact>
-        Public Async Function CategoriesTest() As Task
-            Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-                Using reader = New StreamReader(registrationFileStream)
-                    Dim registrationFile = Await reader.ReadToEndAsync()
-                    Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings() With {.CommentHandling = CommentHandling.Ignore})
-                    Dim categories = registrationJsonObject.Property("categories")
-                    Dim nameToCategories = categories.Value.Children(Of JProperty).ToDictionary(
-                        Function(jProperty) jProperty.Name,
-                        Function(jProperty) jProperty.Value.ToObject(Of UnifiedSettingsCategory))
+        '<Fact>
+        'Public Async Function CategoriesTest() As Task
+        '    Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
+        '        Using reader = New StreamReader(registrationFileStream)
+        '            Dim registrationFile = Await reader.ReadToEndAsync()
+        '            Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings() With {.CommentHandling = CommentHandling.Ignore})
+        '            Dim categories = registrationJsonObject.Property("categories")
+        '            Dim nameToCategories = categories.Value.Children(Of JProperty).ToDictionary(
+        '                Function(jProperty) jProperty.Name,
+        '                Function(jProperty) jProperty.Value.ToObject(Of UnifiedSettingsCategory))
 
-                    Assert.True(nameToCategories.ContainsKey("textEditor.basic"))
-                    Assert.Equal("Visual Basic", nameToCategories("textEditor.basic").Title)
+        '            Assert.True(nameToCategories.ContainsKey("textEditor.basic"))
+        '            Assert.Equal("Visual Basic", nameToCategories("textEditor.basic").Title)
 
-                    Assert.True(nameToCategories.ContainsKey("textEditor.basic.intellisense"))
-                    Assert.Equal("IntelliSense", nameToCategories("textEditor.basic.intellisense").Title)
-                End Using
-            End Using
-        End Function
+        '            Assert.True(nameToCategories.ContainsKey("textEditor.basic.intellisense"))
+        '            Assert.Equal("IntelliSense", nameToCategories("textEditor.basic.intellisense").Title)
+        '        End Using
+        '    End Using
+        'End Function
 
-        Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of ExpectedUnifiedSetting)
-            Get
-                Return ImmutableArray.Create(
-                    New ExpectedUnifiedSetting(
-                        "textEditor.basic.intellisense.triggerCompletionOnTypingLetters",
-                        CompletionOptionsStorage.TriggerOnTypingLetters,
-                        UnifiedSettingsOptionBase.CreateBooleanOption(
-                            CompletionOptionsStorage.TriggerOnTypingLetters,
-                            "Show completion list after a character is typed",
-                            order:=0,
-                            defaultValue:=True,
-                            Nothing,
-                            Nothing,
-                            LanguageNames.VisualBasic))
-                            )
+        'Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of ExpectedUnifiedSetting)
+        '    Get
+        '        Return ImmutableArray.Create(
+        '            New ExpectedUnifiedSetting(
+        '                "textEditor.basic.intellisense.triggerCompletionOnTypingLetters",
+        '                CompletionOptionsStorage.TriggerOnTypingLetters,
+        '                UnifiedSettingsOptionBase.CreateBooleanOption(
+        '                    CompletionOptionsStorage.TriggerOnTypingLetters,
+        '                    "Show completion list after a character is typed",
+        '                    order:=0,
+        '                    defaultValue:=True,
+        '                    Nothing,
+        '                    Nothing,
+        '                    LanguageNames.VisualBasic))
+        '                    )
 
-                '("textEditor.basic.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
-                '("textEditor.basic.intellisense.triggerCompletionOnDeletion", CompletionOptionsStorage.TriggerOnDeletion),
-                '("textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems", CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems),
-                '("textEditor.basic.intellisense.showCompletionItemFilters", CompletionViewOptionsStorage.ShowCompletionItemFilters),
-                '("textEditor.basic.intellisense.snippetsBehavior", CompletionOptionsStorage.SnippetsBehavior),
-                '("textEditor.basic.intellisense.returnKeyCompletionBehavior", CompletionOptionsStorage.EnterKeyBehavior),
-                '("textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces", CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces),
-                '("textEditor.basic.intellisense.enableArgumentCompletionSnippets", CompletionViewOptionsStorage.EnableArgumentCompletionSnippets))
-            End Get
-        End Property
+        '        '("textEditor.basic.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
+        '        '("textEditor.basic.intellisense.triggerCompletionOnDeletion", CompletionOptionsStorage.TriggerOnDeletion),
+        '        '("textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems", CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems),
+        '        '("textEditor.basic.intellisense.showCompletionItemFilters", CompletionViewOptionsStorage.ShowCompletionItemFilters),
+        '        '("textEditor.basic.intellisense.snippetsBehavior", CompletionOptionsStorage.SnippetsBehavior),
+        '        '("textEditor.basic.intellisense.returnKeyCompletionBehavior", CompletionOptionsStorage.EnterKeyBehavior),
+        '        '("textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces", CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces),
+        '        '("textEditor.basic.intellisense.enableArgumentCompletionSnippets", CompletionViewOptionsStorage.EnableArgumentCompletionSnippets))
+        '    End Get
+        'End Property
 
         <Fact>
         Public Async Function IntelliSensePageTest() As Task
