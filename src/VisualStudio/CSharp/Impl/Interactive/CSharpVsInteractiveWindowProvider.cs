@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -29,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -43,14 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             [ImportMany] IInteractiveWindowCommand[] commands,
             ITextDocumentFactoryService textDocumentFactoryService,
-            EditorOptionsService editorOptionsService,
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
             _textDocumentFactoryService = textDocumentFactoryService;
-            _editorOptionsService = editorOptionsService;
         }
 
         protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
@@ -76,7 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 CommandsFactory,
                 Commands,
                 _textDocumentFactoryService,
-                _editorOptionsService,
                 CSharpInteractiveEvaluatorLanguageInfoProvider.Instance,
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }

@@ -59,10 +59,6 @@ internal sealed class TaskQueue
     public Task ScheduleTask(string taskName, Func<Task> operation, CancellationToken cancellationToken)
         => EndOperation(BeginOperation(taskName), ScheduleTaskInProgress(operation, cancellationToken));
 
-    /// <inheritdoc cref="ScheduleTask(string, Action, CancellationToken)"/>
-    public Task<T> ScheduleTask<T>(string taskName, Func<Task<T>> operation, CancellationToken cancellationToken)
-        => EndOperation(BeginOperation(taskName), ScheduleTaskInProgress(operation, cancellationToken));
-
     /// <summary>
     /// Enqueue specified <paramref name="operation"/>.
     /// Assumes <see cref="Listener"/> has already been notified of its start and will be notified when it completes.
@@ -94,18 +90,6 @@ internal sealed class TaskQueue
     /// <inheritdoc cref="ScheduleTaskInProgress(Action, CancellationToken)"/>
     [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
     private Task ScheduleTaskInProgress(Func<Task> operation, CancellationToken cancellationToken)
-    {
-        lock (_gate)
-        {
-            var task = LastScheduledTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
-            LastScheduledTask = task;
-            return task;
-        }
-    }
-
-    /// <inheritdoc cref="ScheduleTaskInProgress(Action, CancellationToken)"/>
-    [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-    private Task<T> ScheduleTaskInProgress<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
     {
         lock (_gate)
         {

@@ -303,22 +303,28 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
 
     protected override IVsSimpleObjectList2 GetList(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
     {
-        var listKind = Helpers.ListTypeToObjectListKind(listType);
+        return this.ThreadingContext.JoinableTaskFactory.Run(() => GetListAsync());
 
-        if (Helpers.IsFindSymbol(flags))
+        async Task<IVsSimpleObjectList2> GetListAsync()
         {
-            var projectAndAssemblySet = this.GetAssemblySet(this.Workspace.CurrentSolution, _languageName, CancellationToken.None);
-            return GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
+            var listKind = Helpers.ListTypeToObjectListKind(listType);
+
+            if (Helpers.IsFindSymbol(flags))
+            {
+                var projectAndAssemblySet = await this.GetAssemblySetAsync(
+                    this.Workspace.CurrentSolution, _languageName, CancellationToken.None).ConfigureAwait(true);
+                return GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
+            }
+
+            if (listKind == ObjectListKind.Hierarchy)
+            {
+                return null;
+            }
+
+            Debug.Assert(listKind == ObjectListKind.Projects);
+
+            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
         }
-
-        if (listKind == ObjectListKind.Hierarchy)
-        {
-            return null;
-        }
-
-        Debug.Assert(listKind == ObjectListKind.Projects);
-
-        return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
     }
 
     protected override uint GetUpdateCounter()
@@ -408,7 +414,8 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return VSConstants.S_OK;
     }
 
-    internal IVsNavInfo GetNavInfo(SymbolListItem symbolListItem, bool useExpandedHierarchy)
+    internal async Task<IVsNavInfo> GetNavInfoAsync(
+        SymbolListItem symbolListItem, bool useExpandedHierarchy, CancellationToken cancellationToken)
     {
         var project = GetProject(symbolListItem);
         if (project == null)
@@ -416,7 +423,8 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
             return null;
         }
 
-        var compilation = symbolListItem.GetCompilation(this.Workspace);
+        var compilation = await symbolListItem.GetCompilationAsync(
+            this.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return null;
