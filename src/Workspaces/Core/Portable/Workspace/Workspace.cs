@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -36,6 +36,12 @@ public abstract partial class Workspace : IDisposable
 {
     private readonly ILegacyGlobalOptionService _legacyOptions;
 
+    private readonly IAsynchronousOperationListener _asyncOperationListener;
+
+    private readonly AsyncBatchingWorkQueue<Action> _workQueue;
+    private readonly CancellationTokenSource _workQueueTokenSource = new();
+    private readonly ITaskSchedulerProvider _taskSchedulerProvider;
+
     // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
     private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
@@ -46,8 +52,6 @@ public abstract partial class Workspace : IDisposable
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
-
-    private readonly TaskQueue _taskQueue;
 
     // test hooks.
     internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -74,16 +78,22 @@ public abstract partial class Workspace : IDisposable
         _legacyOptions.RegisterWorkspace(this);
 
         // queue used for sending events
-        var schedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+        _taskSchedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+
         var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-        _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
+        _asyncOperationListener = listenerProvider.GetListener();
+        _workQueue = new(
+            TimeSpan.Zero,
+            ProcessWorkQueueAsync,
+            _asyncOperationListener,
+            _workQueueTokenSource.Token);
 
         // initialize with empty solution
-        var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-
-        var emptyOptions = new SolutionOptionSet(_legacyOptions);
-
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: [], fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
+        _latestSolution = CreateSolution(
+            SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()),
+            new SolutionOptionSet(_legacyOptions),
+            analyzerReferences: [],
+            fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
@@ -581,15 +591,25 @@ public abstract partial class Workspace : IDisposable
     /// Executes an action as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+#pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
+    {
+        _workQueue.AddWork(action);
+        return _workQueue.WaitUntilCurrentBatchCompletesAsync();
+    }
 
     /// <summary>
     /// Execute a function as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
+    protected internal async Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
+    {
+        T? result = default;
+        _workQueue.AddWork(() => result = func());
+        await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+        return result!;
+    }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     /// <summary>
     /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -695,6 +715,28 @@ public abstract partial class Workspace : IDisposable
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
+        _workQueueTokenSource.Cancel();
+    }
+
+    private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Action> list, CancellationToken cancellationToken)
+    {
+        // Hop over to the right scheduler to execute all this work.
+        await Task.Factory.StartNew(() =>
+        {
+            foreach (var item in list)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    item();
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    // Ensure we continue onto further items, even if one particular item fails.
+                }
+            }
+        }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
     }
 
     #region Host API
