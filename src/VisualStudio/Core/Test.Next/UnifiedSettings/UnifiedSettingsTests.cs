@@ -25,7 +25,7 @@ public class UnifiedSettingsTests
         Add(CompletionOptionsStorage.TriggerOnTypingLetters, "textEditor.basic.intellisense.triggerCompletionOnTypingLetters");
 
     private static readonly ImmutableDictionary<IOption2, UnifiedSettingBase> s_optionToExpectedUnifiedSettings = ImmutableDictionary<IOption2, UnifiedSettingBase>.Empty.
-        Add(CompletionOptionsStorage.TriggerOnTypingLetters, UnifiedSettingBase.Create(
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, UnifiedSettingBase.CreateOption(
             CompletionOptionsStorage.TriggerOnTypingLetters,
             title: "Show completion list after a character is typed",
             order: 0,

@@ -14,15 +14,15 @@ internal record Migration
         EnumToInteger = enumToInteger;
     }
 
-    public Migration(Pass? pass)
+    public Migration(Pass pass)
     {
         Pass = pass;
     }
 
     [JsonPropertyName("pass")]
-    public Pass? Pass { get; init; }
+    public Pass? Pass { get; }
 
     [JsonPropertyName("EnumToInteger")]
-    public EnumToInteger? EnumToInteger { get; init; }
+    public EnumToInteger? EnumToInteger { get; }
 }
 
