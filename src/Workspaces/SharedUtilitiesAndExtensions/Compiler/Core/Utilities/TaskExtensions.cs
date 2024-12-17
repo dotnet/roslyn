@@ -79,25 +79,6 @@ internal static partial class TaskExtensions
     // a good chance that existing users had already drawn a dependency on the current behavior.
 
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task SafeContinueWith(
-        this Task task,
-        Action<Task> continuationAction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
-        bool continuationFunction(Task antecedent)
-        {
-            continuationAction(antecedent);
-            return true;
-        }
-
-        return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
-    }
-
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<TResult> SafeContinueWith<TResult>(
         this Task task,
         Func<Task, TResult> continuationFunction,
