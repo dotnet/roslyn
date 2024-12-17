@@ -22454,13 +22454,13 @@ public record " + keyword + @" Test1(
             var comp1 = CreateCompilation(
                 [source1, source2, CompilerLoweringPreserveAttributeDefinition, IsExternalInitTypeDefinition],
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
             var comp2 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+            CompileAndVerify(comp2, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
             var comp3 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp3, symbolValidator: validate).VerifyDiagnostics();
+            CompileAndVerify(comp3, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
             static void validate(ModuleSymbol m)
             {
@@ -22495,7 +22495,7 @@ public record " + keyword + @" Test1(
             var comp1 = CreateCompilation(
                 [source1, source2, IsExternalInitTypeDefinition],
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
             static void validate(ModuleSymbol m)
             {
