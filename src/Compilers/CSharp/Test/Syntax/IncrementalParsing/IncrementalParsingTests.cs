@@ -3670,17 +3670,14 @@ enum VirtualKey
         public void InKeywordInsideAForBlock()
         {
             var source = """
-                public class Program
+                void Main()
                 {
-                    public void Main()
-                    {
-                        int count = 10, n = 15;
+                    int count = 10, n = 15;
 
-                        for (int i = -(count + 2); i < n; i++)
+                    for (int i = -(count + 2); i < n; i++)
+                    {
+                        for (int input2 = -(count + 2); input2 < n; input2++)
                         {
-                            for (int input2 = -(count + 2); input2 < n; input2++)
-                            {
-                            }
                         }
                     }
                 }
