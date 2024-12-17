@@ -574,8 +574,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             // Switch to a background thread for expensive work
             await TaskScheduler.Default;
-            var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken);
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken).ConfigureAwait(false);
             await ApplyReplacementsAsync(
                 computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken).ConfigureAwait(true);
         });
@@ -592,8 +591,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private async Task ApplyReplacementsAsync(
         IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-        cancellationToken.ThrowIfCancellationRequested();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         RaiseReplacementsComputed(replacementInfo);
 
