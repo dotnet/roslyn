@@ -224,6 +224,15 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.13 P2]"
     },
+    "release/dev17.13-preview2.1": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.13",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.13 P2]"
+    },
     "main": {
       "nugetKind": [
         "Shipping",
