@@ -111,10 +111,9 @@ internal class ModelComputation<TModel> where TModel : class
             Func<TModel, TModel> transformModel,
             bool updateController = true)
     {
-        ChainTaskAndNotifyControllerWhenFinished(async (modelTask, c) =>
-        {
-            return transformModel(await modelTask.ConfigureAwait(false));
-        }, updateController);
+        ChainTaskAndNotifyControllerWhenFinished(
+            async (modelTask, c) => transformModel(await modelTask.ConfigureAwait(false)),
+            updateController);
     }
 
     public void ChainTaskAndNotifyControllerWhenFinished(
