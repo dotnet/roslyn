@@ -2502,6 +2502,11 @@
         <target state="translated">插補中的新行</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">無參數結構建構函式</target>
@@ -2620,11 +2625,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_OverloadResolutionPriority">
-        <source>overload resolution priority</source>
-        <target state="translated">多載解析優先順序</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

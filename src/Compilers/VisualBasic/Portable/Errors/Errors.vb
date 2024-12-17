@@ -1783,7 +1783,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_TypeReserved = 37331
         ERR_UnmanagedConstraintNotSatisfied = 37332
 
-        ERR_NextAvailable = 37333
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 37333
+        ERR_CannotApplyOverloadResolutionPriorityToMember = 37334
+
+        ERR_NextAvailable = 37335
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -2085,5 +2088,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_InitOnlySettersUsage
         FEATURE_CallerArgumentExpression
         FEATURE_UnmanagedConstraint
+        FEATURE_OverloadResolutionPriority
     End Enum
 End Namespace

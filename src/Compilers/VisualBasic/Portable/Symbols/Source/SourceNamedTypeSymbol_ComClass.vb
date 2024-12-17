@@ -1166,6 +1166,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user  
+                End Function
+
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get
                         Return False
@@ -1778,6 +1782,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return False
                     End Get
                 End Property
+
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user 
+                End Function
 
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get

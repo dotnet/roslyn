@@ -17,6 +17,16 @@
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
         <target state="translated">无法从 "{0}" 继承，因为它具有必需的成员。</target>
@@ -160,6 +170,11 @@
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
         <target state="translated">通过 init-only 资源库分配或传递 "ByRef" 属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">

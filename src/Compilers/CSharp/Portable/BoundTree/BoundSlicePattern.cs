@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
             Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
+            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
         }
     }
 }
