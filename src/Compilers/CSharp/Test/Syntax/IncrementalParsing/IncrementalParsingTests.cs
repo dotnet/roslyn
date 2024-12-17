@@ -3676,9 +3676,6 @@ enum VirtualKey
 
                     for (int i = -(count + 2); i < n; i++)
                     {
-                        for (int input2 = -(count + 2); input2 < n; input2++)
-                        {
-                        }
                     }
                 }
                 """;
