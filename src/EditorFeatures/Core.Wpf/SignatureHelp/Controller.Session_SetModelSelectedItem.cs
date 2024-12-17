@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -21,24 +19,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             {
                 this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
-                Computation.ChainTaskAndNotifyControllerWhenFinished(async (modelTask, cancellationToken) =>
-                {
-                    await TaskScheduler.Default;
-                    var model = await modelTask.ConfigureAwait(false);
-                    return await SetModelExplicitlySelectedItemInBackgroundAsync(model, selector).ConfigureAwait(false);
-                }, updateController: false);
+                Computation.ChainTaskAndNotifyControllerWhenFinished(
+                    (modelTask, cancellationToken) => SetModelExplicitlySelectedItemInBackgroundAsync(modelTask, selector),
+                    updateController: false);
             }
 
-            private static async Task<Model> SetModelExplicitlySelectedItemInBackgroundAsync(
-                Model model,
+            private static async Task<Model?> SetModelExplicitlySelectedItemInBackgroundAsync(
+                Task<Model?> modelTask,
                 Func<Model, SignatureHelpItem> selector)
             {
                 await TaskScheduler.Default;
-
+                var model = await modelTask.ConfigureAwait(false);
                 if (model == null)
-                {
                     return null;
-                }
 
                 var selectedItem = selector(model);
                 Contract.ThrowIfFalse(model.Items.Contains(selectedItem));

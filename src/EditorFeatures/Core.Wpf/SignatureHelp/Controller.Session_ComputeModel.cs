@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text;
@@ -37,16 +36,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
-                Computation.ChainTaskAndNotifyControllerWhenFinished(async (modelTask, cancellationToken) =>
-                {
-                    var model = await modelTask.ConfigureAwait(false);
-                    return await ComputeModelInBackgroundAsync(
-                           model, providers, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken).ConfigureAwait(false);
-                });
+                Computation.ChainTaskAndNotifyControllerWhenFinished(
+                    (modelTask, cancellationToken) => ComputeModelInBackgroundAsync(
+                        modelTask, providers, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken));
             }
 
             private async Task<Model> ComputeModelInBackgroundAsync(
-                Model currentModel,
+                Task<Model> currentModelTask,
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
@@ -54,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 CancellationToken cancellationToken)
             {
                 await TaskScheduler.Default;
+                var currentModel = await currentModelTask.ConfigureAwait(false);
 
                 try
                 {

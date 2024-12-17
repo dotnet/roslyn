@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) m)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) m)
 
             controller.Verify(Sub(c) c.BeginAsyncOperation(
                                   It.IsAny(Of String),
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Setup(Sub(c) c.OnModelUpdated(model, True))
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             modelComputation.Wait()
 
             controller.Verify(Sub(c) c.OnModelUpdated(model, True))
@@ -79,12 +79,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim gate = New Object
 
             Monitor.Enter(gate)
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c)
                                                                           SyncLock gate
-                                                                              Return Nothing
+                                                                              Return Task.FromResult(Of Model)(Nothing)
                                                                           End SyncLock
                                                                       End Function)
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             Monitor.Exit(gate)
             modelComputation.Wait()
 
