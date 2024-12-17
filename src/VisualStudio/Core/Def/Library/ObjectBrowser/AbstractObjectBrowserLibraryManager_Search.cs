@@ -36,7 +36,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager
         ObjectListKind listKind,
         uint flags,
         VSOBSEARCHCRITERIA2[] pobSrch,
-        ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> projectAndAssemblySet)
+        ImmutableHashSet<(ProjectId, IAssemblySymbol)> projectAndAssemblySet)
     {
         var searchText = GetSearchText(pobSrch);
         if (searchText == null)
