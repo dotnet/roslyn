@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
         <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
+        <target state="translated">Recarregar automaticamente os analisadores e geradores atualizados (requer reinicialização)</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -1139,7 +1139,7 @@
       </trans-unit>
       <trans-unit id="Prefer_unbound_generic_type_in_nameof">
         <source>Prefer unbound generic type in 'nameof'</source>
-        <target state="new">Prefer unbound generic type in 'nameof'</target>
+        <target state="translated">Preferir tipo genérico não associado em 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
