@@ -28,7 +28,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
         public required Migration Migration { get; init; }
 
         public static UnifiedSettingsOption<T> Create<T>(
-            IOption2 onboaredOption,
+            IOption2 onboardedOption,
             string title,
             int order,
             T defaultValue,
@@ -40,11 +40,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
             {
                 Pass = new Pass()
                 {
-                    Input = Input(onboaredOption, languageName)
+                    Input = Input(onboardedOption, languageName)
                 }
             };
 
-            var type = onboaredOption.Definition.Type;
+            var type = onboardedOption.Definition.Type;
             // If the option's type is nullable type, like bool?, we use bool in the registration file.
             var underlyingType = Nullable.GetUnderlyingType(type);
             var nonNullableType = underlyingType ?? type;
