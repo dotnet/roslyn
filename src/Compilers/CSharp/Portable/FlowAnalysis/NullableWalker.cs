@@ -462,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isSpeculative = false)
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true)
         {
+            Debug.Assert(!TrackingRegions);
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethodOpt is object);
             Debug.Assert(baseOrThisInitializer is null or { MethodKind: MethodKind.Constructor });
 
