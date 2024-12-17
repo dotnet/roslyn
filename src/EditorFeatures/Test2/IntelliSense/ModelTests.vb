@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-    Public Class ModelTests
+    Public NotInheritable Class ModelTests
         Public Class Model
         End Class
 
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Inherits ModelComputation(Of Model)
 
             Public Sub New(threadingContext As IThreadingContext, controller As IController(Of Model))
-                MyBase.New(threadingContext, controller, TaskScheduler.Default)
+                MyBase.New(threadingContext, controller)
             End Sub
 
             Friend Shared Function Create(threadingContext As IThreadingContext, Optional controller As IController(Of Model) = Nothing) As TestModelComputation
@@ -109,12 +109,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             token.Setup(Sub(t) t.Dispose()).Callback(Sub() checkpoint3.Release())
 
-            modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c)
-                                                                          checkpoint1.Release()
-                                                                          checkpoint2.Task.Wait()
-                                                                          c.ThrowIfCancellationRequested()
-                                                                          Return Task.FromResult(model)
-                                                                      End Function)
+            modelComputation.ChainTaskAndNotifyControllerWhenFinished(
+                Async Function(modelTask, c)
+                    Dim model1 = Await modelTask.ConfigureAwait(False)
+                    checkpoint1.Release()
+                    checkpoint2.Task.Wait()
+                    c.ThrowIfCancellationRequested()
+                    Return model1
+                End Function)
             Await checkpoint1.Task
             modelComputation.Stop()
             checkpoint2.Release()

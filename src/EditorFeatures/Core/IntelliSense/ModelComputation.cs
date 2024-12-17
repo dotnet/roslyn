@@ -32,16 +32,6 @@ internal class ModelComputation<TModel> where TModel : class
     #region Fields that can only be accessed from the foreground thread
 
     private readonly IController<TModel> _controller;
-    private readonly TaskScheduler __taskScheduler;
-
-    private TaskScheduler _taskScheduler
-    {
-        get
-        {
-            ThreadingContext.ThrowIfNotOnUIThread();
-            return __taskScheduler;
-        }
-    }
 
     private readonly CancellationTokenSource _stopTokenSource;
 
@@ -57,12 +47,10 @@ internal class ModelComputation<TModel> where TModel : class
 
     public ModelComputation(
         IThreadingContext threadingContext,
-        IController<TModel> controller,
-        TaskScheduler computationTaskScheduler)
+        IController<TModel> controller)
     {
         ThreadingContext = threadingContext;
         _controller = controller;
-        __taskScheduler = computationTaskScheduler;
 
         _stopTokenSource = new CancellationTokenSource();
         _stopCancellationToken = _stopTokenSource.Token;
@@ -123,11 +111,14 @@ internal class ModelComputation<TModel> where TModel : class
             Func<TModel, TModel> transformModel,
             bool updateController = true)
     {
-        ChainTaskAndNotifyControllerWhenFinished((m, c) => Task.FromResult(transformModel(m)), updateController);
+        ChainTaskAndNotifyControllerWhenFinished(async (modelTask, c) =>
+        {
+            return transformModel(await modelTask.ConfigureAwait(false));
+        }, updateController);
     }
 
     public void ChainTaskAndNotifyControllerWhenFinished(
-        Func<TModel, CancellationToken, Task<TModel>> transformModelAsync,
+        Func<Task<TModel>, CancellationToken, Task<TModel>> transformModelAsync,
         bool updateController = true)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
@@ -140,9 +131,7 @@ internal class ModelComputation<TModel> where TModel : class
         var asyncToken = _controller.BeginAsyncOperation();
 
         // Create the task that will actually run the transformation step.
-        var nextTask = _lastTask.SafeContinueWithFromAsync(
-            t => transformModelAsync(t.Result, _stopCancellationToken),
-            _stopCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, _taskScheduler);
+        var nextTask = transformModelAsync(_lastTask, _stopCancellationToken);
 
         // The next task is now the last task in the chain.
         _lastTask = nextTask;
