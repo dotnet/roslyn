@@ -109,7 +109,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                         // NOTE(cyrusn): We have to wait here because the debuggers' 
                         // GetNameOfLocation is a blocking call.  In the future, it 
                         // would be nice if they could make it async.
-                        var debugLocationInfo = await _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).ConfigureAwait(false);
+                        var debugLocationInfo = await _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).ConfigureAwait(true);
 
                         if (debugLocationInfo.IsDefault)
                             return default;
@@ -200,7 +200,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                             var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
                                 solution, pszName, cancellationToken).ConfigureAwait(false);
                             var debugNames = await breakpoints.SelectAsArrayAsync(
-                                bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(false);
+                                bp => CreateDebugNameAsync(bp, cancellationToken)).ConfigureAwait(true);
 
                             return new VsEnumDebugName(debugNames);
                         }
@@ -223,7 +223,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
             // Otherwise, we'll just use the original span.
             var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                this.ThreadingContext, document.Id, cancellationToken).ConfigureAwait(false);
+                this.ThreadingContext, document.Id, cancellationToken).ConfigureAwait(true);
             if (mappedSpan != null)
                 span = mappedSpan.Value;
 
