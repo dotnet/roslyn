@@ -112,7 +112,7 @@ internal sealed partial class FormatCommandHandler(
 
         try
         {
-            ExecuteReturnOrTypeCommandWorker(args, cancellationToken);
+            _threadingContext.JoinableTaskFactory.Run(() => ExecuteReturnOrTypeCommandWorkerAsync(args, cancellationToken));
         }
         catch (OperationCanceledException)
         {
@@ -122,32 +122,24 @@ internal sealed partial class FormatCommandHandler(
         }
     }
 
-    private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, CancellationToken cancellationToken)
+    private async Task ExecuteReturnOrTypeCommandWorkerAsync(EditorCommandArgs args, CancellationToken cancellationToken)
     {
         var textView = args.TextView;
         var subjectBuffer = args.SubjectBuffer;
         if (!CanExecuteCommand(subjectBuffer))
-        {
             return;
-        }
 
         var caretPosition = textView.GetCaretPoint(args.SubjectBuffer);
         if (!caretPosition.HasValue)
-        {
             return;
-        }
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return;
-        }
 
         var service = document.GetLanguageService<IFormattingInteractionService>();
         if (service == null)
-        {
             return;
-        }
 
         IList<TextChange>? textChanges;
 
@@ -155,12 +147,11 @@ internal sealed partial class FormatCommandHandler(
         if (args is ReturnKeyCommandArgs)
         {
             if (!service.SupportsFormatOnReturn)
-            {
                 return;
-            }
 
             // Note: C# always completes synchronously, TypeScript is async
-            textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+            textChanges = await service.GetFormattingChangesOnReturnAsync(
+                document, caretPosition.Value, cancellationToken).ConfigureAwait(true);
         }
         else if (args is TypeCharCommandArgs typeCharArgs)
         {
@@ -170,8 +161,8 @@ internal sealed partial class FormatCommandHandler(
             }
 
             // Note: C# always completes synchronously, TypeScript is async
-            textChanges = service.GetFormattingChangesAsync(
-                document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+            textChanges = await service.GetFormattingChangesAsync(
+                document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).ConfigureAwait(true);
         }
         else
         {
@@ -179,9 +170,7 @@ internal sealed partial class FormatCommandHandler(
         }
 
         if (textChanges == null || textChanges.Count == 0)
-        {
             return;
-        }
 
         using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
         {
@@ -193,18 +182,14 @@ internal sealed partial class FormatCommandHandler(
         // get new caret position after formatting
         var newCaretPositionMarker = args.TextView.GetCaretPoint(args.SubjectBuffer);
         if (!newCaretPositionMarker.HasValue)
-        {
             return;
-        }
 
         var snapshotAfterFormatting = subjectBuffer.CurrentSnapshot;
 
         var oldCaretPosition = caretPosition.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
         var newCaretPosition = newCaretPositionMarker.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
         if (oldCaretPosition.Position == newCaretPosition.Position)
-        {
             return;
-        }
 
         // caret has moved to wrong position, move it back to correct position
         args.TextView.TryMoveCaretToAndEnsureVisible(oldCaretPosition);
