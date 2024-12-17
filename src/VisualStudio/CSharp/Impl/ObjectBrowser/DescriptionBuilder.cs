@@ -115,7 +115,7 @@ internal sealed class DescriptionBuilder(
                     not SpecialType.System_ValueType)
                 {
                     AddText(" : ");
-                    await AddTypeLinkAsync(baseType, LinkFlags.None, cancellationToken).ConfigureAwait(false);
+                    await AddTypeLinkAsync(baseType, LinkFlags.None, cancellationToken).ConfigureAwait(true);
                 }
             }
         }
