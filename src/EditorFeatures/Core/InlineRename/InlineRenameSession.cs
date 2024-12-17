@@ -576,7 +576,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             await TaskScheduler.Default;
             var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            ApplyReplacements(computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken);
+            await ApplyReplacementsAsync(
+                computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken).ConfigureAwait(true);
         });
         replacementOperation.Task.CompletesAsyncOperation(asyncToken);
     }
@@ -588,7 +589,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return (replacementInfo, mergeResult);
     }
 
-    private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
+    private async Task ApplyReplacementsAsync(
+        IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
     {
         _threadingContext.ThrowIfNotOnUIThread();
         cancellationToken.ThrowIfCancellationRequested();
@@ -602,7 +604,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             if (documents.Any())
             {
                 var textBufferManager = _openTextBuffers[textBuffer];
-                textBufferManager.ApplyConflictResolutionEdits(replacementInfo, mergeResult, documents, cancellationToken);
+                await textBufferManager.ApplyConflictResolutionEditsAsync(
+                    replacementInfo, mergeResult, documents, cancellationToken).ConfigureAwait(true);
             }
         }
 
