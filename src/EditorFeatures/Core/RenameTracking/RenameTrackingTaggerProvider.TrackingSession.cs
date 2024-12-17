@@ -70,10 +70,8 @@ internal sealed partial class RenameTrackingTaggerProvider
                 // tagging.
 
                 OriginalName = snapshotSpan.GetText();
-                _isRenamableIdentifierTask = Task.Factory.SafeStartNewFromAsync(
-                    () => DetermineIfRenamableIdentifierAsync(snapshotSpan, initialCheck: true),
-                    _cancellationToken,
-                    TaskScheduler.Default);
+                _isRenamableIdentifierTask = DetermineIfRenamableIdentifierAsync(snapshotSpan, initialCheck: true);
+                _isRenamableIdentifierTask.ReportNonFatalErrorAsync();
 
                 SwitchToMainThreadAfterAndUpdateSessionTrackerAsync(_isRenamableIdentifierTask).CompletesAsyncOperation(
                      _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask"));
@@ -161,7 +159,9 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         private async Task<TriggerIdentifierKind> DetermineIfRenamableIdentifierAsync(SnapshotSpan snapshotSpan, bool initialCheck)
         {
-            _threadingContext.ThrowIfNotOnBackgroundThread();
+            // Ensure we do this work on the background.
+            await TaskScheduler.Default;
+
             var document = snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
