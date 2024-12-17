@@ -195,17 +195,14 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return this.GetProject(projectId);
     }
 
-    internal Compilation GetCompilation(ProjectId projectId)
+    internal async Task<Compilation> GetCompilationAsync(
+        ProjectId projectId, CancellationToken cancellationToken)
     {
         var project = GetProject(projectId);
         if (project == null)
-        {
             return null;
-        }
 
-        return project
-            .GetCompilationAsync(CancellationToken.None)
-            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+        return await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
     }
 
     public override uint GetLibraryFlags()
