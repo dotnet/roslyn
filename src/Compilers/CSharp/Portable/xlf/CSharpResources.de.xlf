@@ -2502,6 +2502,11 @@
         <target state="translated">Zeilenumbrüche in Interpolationen</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">Parameterlose Strukturkonstruktoren</target>
@@ -2620,11 +2625,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_OverloadResolutionPriority">
-        <source>overload resolution priority</source>
-        <target state="translated">Priorität der Überladungsauflösung</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

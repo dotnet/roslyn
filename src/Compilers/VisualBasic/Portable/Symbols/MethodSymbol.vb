@@ -438,6 +438,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property IsOverloads As Boolean
 
         ''' <summary>
+        ''' Gets the resolution priority of this method, 0 if not set.
+        ''' </summary>
+        ''' <remarks>
+        ''' Do not call this method from early attribute binding, cycles will occur.
+        ''' </remarks>
+        Public ReadOnly Property OverloadResolutionPriority As Integer
+            Get
+                Return If(CanHaveOverloadResolutionPriority, GetOverloadResolutionPriority(), 0)
+            End Get
+        End Property
+
+        Public MustOverride Function GetOverloadResolutionPriority() As Integer
+
+        Public ReadOnly Property CanHaveOverloadResolutionPriority As Boolean
+            Get
+                Select Case MethodKind
+                    Case MethodKind.Ordinary,
+                         MethodKind.Constructor,
+                         MethodKind.UserDefinedOperator,
+                         MethodKind.ReducedExtension
+
+                        Return Not IsOverrides
+
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
+
+        ''' <summary>
         ''' True if the implementation of this method is supplied by the runtime.
         ''' </summary>
         ''' <remarks>
