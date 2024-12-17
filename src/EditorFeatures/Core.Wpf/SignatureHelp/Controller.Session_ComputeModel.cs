@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => ComputeModelInBackgroundAsync(
-                        model, providers, caretPosition, disconnectedBufferGraph,
-                        triggerInfo, cancellationToken));
+                    async (modelTask, cancellationToken) => await ComputeModelInBackgroundAsync(
+                        await modelTask.ConfigureAwait(false), providers, caretPosition, disconnectedBufferGraph,
+                        triggerInfo, cancellationToken).ConfigureAwait(false));
             }
 
             private async Task<Model> ComputeModelInBackgroundAsync(
