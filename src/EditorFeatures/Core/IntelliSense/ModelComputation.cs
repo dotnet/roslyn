@@ -131,6 +131,7 @@ internal class ModelComputation<TModel> where TModel : class
 
         // Create the task that will actually run the transformation step.
         var nextTask = transformModelAsync(_lastTask, _stopCancellationToken);
+        nextTask.ReportNonFatalErrorAsync();
 
         // The next task is now the last task in the chain.
         _lastTask = nextTask;
