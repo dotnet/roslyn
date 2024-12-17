@@ -298,30 +298,26 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return 0;
     }
 
-    protected override IVsSimpleObjectList2 GetList(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
+    protected override async Task<IVsSimpleObjectList2> GetListAsync(
+        uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken)
     {
-        return this.ThreadingContext.JoinableTaskFactory.Run(() => GetListAsync());
+        var listKind = Helpers.ListTypeToObjectListKind(listType);
 
-        async Task<IVsSimpleObjectList2> GetListAsync()
+        if (Helpers.IsFindSymbol(flags))
         {
-            var listKind = Helpers.ListTypeToObjectListKind(listType);
-
-            if (Helpers.IsFindSymbol(flags))
-            {
-                var projectAndAssemblySet = await this.GetAssemblySetAsync(
-                    this.Workspace.CurrentSolution, _languageName, CancellationToken.None).ConfigureAwait(true);
-                return GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
-            }
-
-            if (listKind == ObjectListKind.Hierarchy)
-            {
-                return null;
-            }
-
-            Debug.Assert(listKind == ObjectListKind.Projects);
-
-            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
+            var projectAndAssemblySet = await this.GetAssemblySetAsync(
+                this.Workspace.CurrentSolution, _languageName, CancellationToken.None).ConfigureAwait(true);
+            return await GetSearchListAsync(listKind, flags, pobSrch, projectAndAssemblySet, cancellationToken).ConfigureAwait(true);
         }
+
+        if (listKind == ObjectListKind.Hierarchy)
+        {
+            return null;
+        }
+
+        Debug.Assert(listKind == ObjectListKind.Projects);
+
+        return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
     }
 
     protected override uint GetUpdateCounter()

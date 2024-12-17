@@ -654,11 +654,13 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         get { return true; }
     }
 
-    protected override bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
+    protected override Task<bool> TryFillDescriptionAsync(
+        uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
 
-        return this.LibraryManager.TryFillDescription(listItem, description, options);
+        return this.LibraryManager.TryFillDescriptionAsync(
+            listItem, description, options, cancellationToken);
     }
 
     protected override async Task<(bool success, object pvar)> TryGetPropertyAsync(

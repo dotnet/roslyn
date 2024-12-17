@@ -144,11 +144,11 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
     int IVsSimpleObjectList2.FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
     {
         if (!SupportsDescription)
-        {
             return VSConstants.E_NOTIMPL;
-        }
 
-        return TryFillDescription(index, (_VSOBJDESCOPTIONS)grfOptions, pobDesc)
+        var result = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+                () => TryFillDescriptionAsync(index, (_VSOBJDESCOPTIONS)grfOptions, pobDesc, CancellationToken.None));
+        return result
             ? VSConstants.S_OK
             : VSConstants.E_FAIL;
     }
