@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class FormatCommandHandler(
+    IThreadingContext threadingContext,
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     IGlobalOptionService globalOptions) :
@@ -47,6 +50,7 @@ internal sealed partial class FormatCommandHandler(
     IChainedCommandHandler<TypeCharCommandArgs>,
     IChainedCommandHandler<ReturnKeyCommandArgs>
 {
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
@@ -55,33 +59,39 @@ internal sealed partial class FormatCommandHandler(
 
     private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
     {
-        var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
-
         using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
         using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
         {
-            // Note: C# always completes synchronously, TypeScript is async
-            var changes = formattingService.GetFormattingChangesAsync(document, textBuffer, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.IsEmpty)
-            {
-                return;
-            }
-
-            if (selectionOpt.HasValue)
-            {
-                var ruleFactory = document.Project.Solution.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-                changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToImmutableArray();
-            }
-
-            if (!changes.IsEmpty)
-            {
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    textBuffer.ApplyChanges(changes);
-                }
-            }
+            _threadingContext.JoinableTaskFactory.Run(() => FormatAsync(
+                textBuffer, document, selectionOpt, cancellationToken));
 
             transaction.Complete();
+        }
+    }
+
+    private static async Task FormatAsync(
+        ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+    {
+        var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+
+        // Note: C# always completes synchronously, TypeScript is async
+        var changes = await formattingService.GetFormattingChangesAsync(
+            document, textBuffer, selectionOpt, cancellationToken).ConfigureAwait(true);
+        if (changes.IsEmpty)
+            return;
+
+        if (selectionOpt.HasValue)
+        {
+            var ruleFactory = document.Project.Solution.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            changes = [.. ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes)];
+        }
+
+        if (!changes.IsEmpty)
+        {
+            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+            {
+                textBuffer.ApplyChanges(changes);
+            }
         }
     }
 
