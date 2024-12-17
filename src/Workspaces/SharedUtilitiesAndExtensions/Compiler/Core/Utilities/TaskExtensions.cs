@@ -78,51 +78,6 @@ internal static partial class TaskExtensions
     // simply changing the default underlying behavior, but rejected that idea because there was
     // a good chance that existing users had already drawn a dependency on the current behavior.
 
-    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    public static Task<TResult> SafeContinueWith<TResult>(
-        this Task task,
-        Func<Task, TResult> continuationFunction,
-        CancellationToken cancellationToken,
-        TaskContinuationOptions continuationOptions,
-        TaskScheduler scheduler)
-    {
-        // So here's the deal.  Say you do the following:
-#if false
-        // CancellationToken ct1 = ..., ct2 = ...;
-
-        // Task A = Task.Factory.StartNew(..., ct1);
-        // Task B = A.ContinueWith(..., ct1);
-        // Task C = B.ContinueWith(..., ct2);
-#endif
-        // If ct1 is cancelled then the following may occur: 
-        // 1) Task A can still be running (as it hasn't responded to the cancellation request
-        //    yet).
-        // 2) Task C can start running.  How?  Well if B hasn't started running, it may
-        //    immediately transition to the 'Cancelled/Completed' state.  Moving to that state will
-        //    immediately trigger C to run.
-        //
-        // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
-        // the behavior we want.
-
-        Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-        static TResult outerFunction(Task t, object? state)
-        {
-            try
-            {
-                var continuationFunction = (Func<Task, TResult>)state!;
-                return continuationFunction(t);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        // This is the only place in the code where we're allowed to call ContinueWith.
-        return task.ContinueWith(outerFunction, continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
-    }
-
     public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
         this Task<TInput> task,
         Func<Task<TInput>, Task<TResult>> continuationFunction,
