@@ -24,9 +24,6 @@ internal class CodeStyleSeverityViewModel
     ];
 
     private readonly int _selectedSeverityIndex;
-
-    private string? _selectedSeverityValue;
-
     private readonly CodeStyleSetting _setting;
 
     public string[] Severities => s_severities;
@@ -35,12 +32,12 @@ internal class CodeStyleSeverityViewModel
     {
         get
         {
-            _selectedSeverityValue ??= Severities[_selectedSeverityIndex];
+            field ??= Severities[_selectedSeverityIndex];
 
-            return _selectedSeverityValue;
+            return field;
         }
-        set => _selectedSeverityValue = value;
-    }
+        set;
+    } = null!;
 
     public string ToolTip => ServicesVSResources.Severity;
 

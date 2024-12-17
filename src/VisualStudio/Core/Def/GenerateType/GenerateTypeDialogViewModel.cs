@@ -53,31 +53,24 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 
     // Below code details with the Access List and the manipulation
     public List<string> AccessList { get; }
-    private int _accessSelectIndex;
+
     public int AccessSelectIndex
     {
-        get
-        {
-            return _accessSelectIndex;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _accessSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
-
-    private string _selectedAccessibilityString;
     public string SelectedAccessibilityString
     {
         get
-        {
-            return _selectedAccessibilityString;
-        }
+;
 
         set
         {
-            SetProperty(ref _selectedAccessibilityString, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -89,46 +82,34 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             return _accessListMap[SelectedAccessibilityString];
         }
     }
-
-    private List<string> _kindList;
     public List<string> KindList
     {
         get
-        {
-            return _kindList;
-        }
+;
 
         set
         {
-            SetProperty(ref _kindList, value);
+            SetProperty(ref field, value);
         }
     }
-
-    private int _kindSelectIndex;
     public int KindSelectIndex
     {
         get
-        {
-            return _kindSelectIndex;
-        }
+;
 
         set
         {
-            SetProperty(ref _kindSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
-
-    private string _selectedTypeKindString;
     public string SelectedTypeKindString
     {
         get
-        {
-            return _selectedTypeKindString;
-        }
+;
 
         set
         {
-            SetProperty(ref _selectedTypeKindString, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -334,7 +315,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 
                     if (Folders.Any(folder => !(_syntaxFactsService.IsValidIdentifier(folder) || _syntaxFactsService.IsVerbatimIdentifier(folder))))
                     {
-                        _areFoldersValidIdentifiers = false;
+                        AreFoldersValidIdentifiers = false;
                     }
                 }
                 else if (containers.Length == 1)
@@ -402,24 +383,20 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 
     private void SendFailureNotification(string message)
         => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
-
-    private Project _selectedProject;
     public Project SelectedProject
     {
         get
-        {
-            return _selectedProject;
-        }
+;
 
         set
         {
-            var previousProject = _selectedProject;
-            if (SetProperty(ref _selectedProject, value))
+            var previousProject = field;
+            if (SetProperty(ref field, value))
             {
                 NotifyPropertyChanged(nameof(DocumentList));
                 this.DocumentSelectIndex = 0;
-                this.ProjectSelectIndex = this.ProjectList.FindIndex(p => p.Project == _selectedProject);
-                if (_selectedProject != _document.Project)
+                this.ProjectSelectIndex = this.ProjectList.FindIndex(p => p.Project == field);
+                if (field != _document.Project)
                 {
                     // Restrict the Access List Options
                     // 3 in the list represent the Public. 1-based array.
@@ -440,11 +417,11 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
                 }
 
                 // Update the TypeKindList if required
-                if (previousProject != null && previousProject.Language != _selectedProject.Language)
+                if (previousProject != null && previousProject.Language != field.Language)
                 {
-                    if (_selectedProject.Language == LanguageNames.CSharp)
+                    if (field.Language == LanguageNames.CSharp)
                     {
-                        var previousSelectedIndex = _kindSelectIndex;
+                        var previousSelectedIndex = KindSelectIndex;
                         this.KindList = _csharpTypeKindList;
                         if (_shouldChangeTypeKindListSelectedIndex)
                         {
@@ -457,7 +434,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
                     }
                     else
                     {
-                        var previousSelectedIndex = _kindSelectIndex;
+                        var previousSelectedIndex = KindSelectIndex;
                         this.KindList = _visualBasicTypeKindList;
                         if (_shouldChangeTypeKindListSelectedIndex)
                         {
@@ -475,18 +452,14 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             }
         }
     }
-
-    private int _projectSelectIndex;
     public int ProjectSelectIndex
     {
         get
-        {
-            return _projectSelectIndex;
-        }
+;
 
         set
         {
-            SetProperty(ref _projectSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -499,16 +472,16 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
     {
         get
         {
-            if (_previouslyPopulatedProject == _selectedProject)
+            if (_previouslyPopulatedProject == SelectedProject)
             {
                 return _previouslyPopulatedDocumentList;
             }
 
-            _previouslyPopulatedProject = _selectedProject;
+            _previouslyPopulatedProject = SelectedProject;
             _previouslyPopulatedDocumentList = [];
 
             // Check for the current project
-            if (_selectedProject == _document.Project)
+            if (SelectedProject == _document.Project)
             {
                 // populate the current document
                 _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
@@ -523,11 +496,11 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             }
             else
             {
-                _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
+                _previouslyPopulatedDocumentList.AddRange(SelectedProject.Documents
                     .Where(d => !d.IsGeneratedCode(CancellationToken.None))
                     .Select(d => new DocumentSelectItem(d)));
 
-                this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
+                this.SelectedDocument = SelectedProject.Documents.FirstOrDefault();
             }
 
             this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
@@ -535,46 +508,34 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             return _previouslyPopulatedDocumentList;
         }
     }
-
-    private bool _isExistingFileEnabled = true;
     public bool IsExistingFileEnabled
     {
         get
-        {
-            return _isExistingFileEnabled;
-        }
+;
 
         set
         {
-            SetProperty(ref _isExistingFileEnabled, value);
+            SetProperty(ref field, value);
         }
-    }
-
-    private int _documentSelectIndex;
+    } = true;
     public int DocumentSelectIndex
     {
         get
-        {
-            return _documentSelectIndex;
-        }
+;
 
         set
         {
-            SetProperty(ref _documentSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
-
-    private Document _selectedDocument;
     public Document SelectedDocument
     {
         get
-        {
-            return _selectedDocument;
-        }
+;
 
         set
         {
-            SetProperty(ref _selectedDocument, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -632,29 +593,23 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             SetProperty(ref _isNewFile, !value);
         }
     }
-
-    private bool _isAccessListEnabled;
     private bool _shouldChangeTypeKindListSelectedIndex = false;
 
     public bool IsAccessListEnabled
     {
         get
-        {
-            return _isAccessListEnabled;
-        }
+;
 
         set
         {
-            SetProperty(ref _isAccessListEnabled, value);
+            SetProperty(ref field, value);
         }
     }
-
-    private bool _areFoldersValidIdentifiers = true;
     public bool AreFoldersValidIdentifiers
     {
         get
         {
-            if (_areFoldersValidIdentifiers)
+            if (field)
             {
                 /*
                 var workspace = this.SelectedProject.Solution.Workspace as VisualStudioWorkspaceImpl;
@@ -666,7 +621,9 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 
             return false;
         }
-    }
+
+        private set;
+    } = true;
 
     public IList<string> ProjectFolders { get; private set; }
     public string FullFilePath { get; private set; }

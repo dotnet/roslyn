@@ -87,18 +87,17 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         set { SetProperty(ref _fileName, value); }
     }
 
-    private NewTypeDestination _destination = NewTypeDestination.NewFile;
     public NewTypeDestination Destination
     {
-        get { return _destination; }
+        get;
         set
         {
-            if (SetProperty(ref _destination, value))
+            if (SetProperty(ref field, value))
             {
                 NotifyPropertyChanged(nameof(FileNameEnabled));
             }
         }
-    }
+    } = NewTypeDestination.NewFile;
 
     internal bool TrySubmit([NotNullWhen(returnValue: false)] out string? message)
     {
