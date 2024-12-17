@@ -99,7 +99,7 @@ internal sealed class DescriptionBuilder(
                 if (underlyingType.SpecialType != SpecialType.System_Int32)
                 {
                     AddText(" : ");
-                    await AddTypeLinkAsync(underlyingType, LinkFlags.None, cancellationToken).ConfigureAwait(false);
+                    await AddTypeLinkAsync(underlyingType, LinkFlags.None, cancellationToken).ConfigureAwait(true);
                 }
             }
         }
