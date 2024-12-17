@@ -59,6 +59,7 @@ internal class SnippetExpansionClient : IVsExpansionClient
     /// A generated random string which is used to identify argument completion snippets from other snippets.
     /// </summary>
     private static readonly string s_fullMethodCallDescriptionSentinel = Guid.NewGuid().ToString("N");
+
     private readonly IThreadingContext _threadingContext;
     private readonly ISnippetExpansionLanguageHelper _languageHelper;
     private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
@@ -229,8 +230,8 @@ internal class SnippetExpansionClient : IVsExpansionClient
             // snippet xml will be available, and changing the buffer during OnAfterInsertion can
             // cause the underlying tracking spans to get out of sync.
             var currentStartPosition = snippetTrackingSpan.GetStartPoint(SubjectBuffer.CurrentSnapshot).Position;
-            AddReferencesAndImports(
-                ExpansionSession, currentStartPosition, cancellationToken);
+            _threadingContext.JoinableTaskFactory.Run(() => AddReferencesAndImportsAsync(
+                ExpansionSession, currentStartPosition, cancellationToken));
 
             SetNewEndPosition(endPositionTrackingSpan);
         }
@@ -1045,7 +1046,7 @@ internal class SnippetExpansionClient : IVsExpansionClient
         }
     }
 
-    private void AddReferencesAndImports(
+    private async Task AddReferencesAndImportsAsync(
         IVsExpansionSession pSession,
         int position,
         CancellationToken cancellationToken)
@@ -1066,7 +1067,8 @@ internal class SnippetExpansionClient : IVsExpansionClient
         var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, fallbackOptions, languageServices, documentWithImports.AllowImportsInHiddenRegions());
         var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, fallbackOptions, languageServices, explicitFormat: false);
 
-        documentWithImports = _languageHelper.AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
+        documentWithImports = await _languageHelper.AddImportsAsync(
+            documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken).ConfigureAwait(true);
         AddReferences(documentWithImports.Project, snippetNode);
     }
 
