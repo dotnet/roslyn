@@ -51,5 +51,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         #endregion
+
+        #region CompilerLoweringPreserveAttribute
+        private bool _hasCompilerLoweringPreserveAttribute;
+        public bool HasCompilerLoweringPreserveAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCompilerLoweringPreserveAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCompilerLoweringPreserveAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }
