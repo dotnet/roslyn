@@ -179,11 +179,11 @@ internal abstract partial class AbstractDescriptionBuilder
 
         if (symbol.TypeKind == TypeKind.Delegate)
         {
-            BuildDelegateDeclaration(symbol, options);
+            await BuildDelegateDeclarationAsync(symbol, options, cancellationToken).ConfigureAwait(true);
         }
         else
         {
-            BuildTypeDeclaration(symbol, options);
+            await BuildTypeDeclarationAsync(symbol, options, cancellationToken).ConfigureAwait(true);
         }
 
         AddEndDeclaration();
@@ -195,32 +195,28 @@ internal abstract partial class AbstractDescriptionBuilder
     {
         var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
         if (compilation == null)
-        {
             return;
-        }
 
         var symbol = memberListItem.ResolveTypedSymbol(compilation);
         if (symbol == null)
-        {
             return;
-        }
 
         switch (symbol.Kind)
         {
             case SymbolKind.Method:
-                BuildMethodDeclaration((IMethodSymbol)symbol, options);
+                await BuildMethodDeclarationAsync((IMethodSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             case SymbolKind.Field:
-                BuildFieldDeclaration((IFieldSymbol)symbol, options);
+                await BuildFieldDeclarationAsync((IFieldSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             case SymbolKind.Property:
-                BuildPropertyDeclaration((IPropertySymbol)symbol, options);
+                await BuildPropertyDeclarationAsync((IPropertySymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             case SymbolKind.Event:
-                BuildEventDeclaration((IEventSymbol)symbol, options);
+                await BuildEventDeclarationAsync((IEventSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
                 break;
 
             default:
@@ -234,12 +230,12 @@ internal abstract partial class AbstractDescriptionBuilder
     }
 
     protected abstract void BuildNamespaceDeclaration(INamespaceSymbol namespaceSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildDelegateDeclaration(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildTypeDeclaration(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildMethodDeclaration(IMethodSymbol methodSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildFieldDeclaration(IFieldSymbol fieldSymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildPropertyDeclaration(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options);
-    protected abstract void BuildEventDeclaration(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options);
+    protected abstract Task BuildDelegateDeclarationAsync(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildTypeDeclarationAsync(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildMethodDeclarationAsync(IMethodSymbol methodSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildFieldDeclarationAsync(IFieldSymbol fieldSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildPropertyDeclarationAsync(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildEventDeclarationAsync(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
 
     private async Task BuildMemberOfAsync(ISymbol containingSymbol, CancellationToken cancellationToken)
     {
