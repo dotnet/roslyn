@@ -9180,11 +9180,11 @@ done:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var (variableDeclaration, initializers) = eatVariableDeclarationOrInitializers();
 
-            // Pulled out as we need to track this when parsing incrementors to place skipped tokens.
             var firstSemicolonToken = eatCommaOrSemicolon();
             var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
                 ? this.ParseExpressionCore()
                 : null;
+            // Pulled out as we need to track this when parsing incrementors to place skipped tokens.
             var secondSemicolonToken = eatCommaOrSemicolon();
             // Do allow semicolons (with diagnostics) in the incrementors list.  This allows us to consume
             // accidental extra incrementors that should have been separated by commas.
