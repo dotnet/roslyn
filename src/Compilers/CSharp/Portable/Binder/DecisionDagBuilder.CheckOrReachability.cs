@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
@@ -179,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
                     {
-                        diagnostics.Add(ErrorCode.HDN_RedundantPattern, @case.Syntax);
+                        ErrorCode errorCode = detectNotOrPattern(@case.Syntax) ? ErrorCode.WRN_RedundantPattern : ErrorCode.HDN_RedundantPattern;
+                        diagnostics.Add(errorCode, @case.Syntax);
                     }
                 }
 
@@ -210,6 +212,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(diagSyntax is not null);
                     casesBuilder.Add(builder.MakeTestsForPattern(++index, diagSyntax, rootIdentifier, pattern, whenClause: null, label: label));
                 }
+            }
+
+            static bool detectNotOrPattern(SyntaxNode syntax)
+            {
+                // We need to reduce the break introduce by flagging redundant patterns
+                // and we never want to affect people who express their patterns thoroughly (but correctly)
+                // such as `switch { < 0 => -1, 0 => 0, > 0 => 1 }`
+                // So we're only reporting a warning for situations that syntactically look hazardous
+                // At the moment, we're only interested in patterns involved in a `not ... or ...` pattern
+
+                // If the pattern is on the right of an `or` pattern, we walk up and
+                // if any of the preceding patterns is a `not` pattern we've detected the error-prone not/or situation.
+                // For example: `not A or <redundant>` or `A or not B or <redundant>`
+                while (syntax.Parent is BinaryPatternSyntax binary && binary.Kind() == SyntaxKind.OrPattern && binary.Right == syntax)
+                {
+                    if (binary.Left.Kind() == SyntaxKind.NotPattern)
+                    {
+                        return true;
+                    }
+
+                    syntax = binary;
+                }
+
+                // If the syntax is the whole sub-pattern, we walk up to the recursive pattern.
+                // For example: `not A or { Prop: <redundant> }`
+                if (syntax.Parent is SubpatternSyntax subpatternSyntax
+                    && subpatternSyntax.Parent is (PropertyPatternClauseSyntax or PositionalPatternClauseSyntax) and var patternClause
+                    && patternClause.Parent is RecursivePatternSyntax recursive)
+                {
+                    return detectNotOrPattern(recursive);
+                }
+
+                return false;
             }
         }
 
