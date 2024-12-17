@@ -155,7 +155,8 @@ internal sealed class VisualStudioSuppressionFixService(
         var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
 
         var result = await InvokeWithWaitDialogAsync(async cancellationToken =>
-        {            // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry
+        {
+            // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry
             // snapshots. Otherwise, get all diagnostics from the diagnostic service.
             var diagnosticsToFixArray = selectedEntriesOnly
                 ? await _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken).ConfigureAwait(true)
