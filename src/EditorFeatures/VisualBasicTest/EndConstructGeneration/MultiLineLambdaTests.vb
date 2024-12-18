@@ -55,7 +55,7 @@ End Class",
   Function goo()
     Dim x = Sub()
 
-end function
+            End Sub
   End Function
 End Class",
                 afterCaret:={3, -1})
@@ -74,7 +74,7 @@ End Class",
   Function goo()
     Dim x = Sub()
 
-end function
+            End Sub
   End Function
 End Class",
                 afterCaret:={3, -1})
@@ -226,7 +226,7 @@ End Class",
                  after:="Class C
     Dim x = Sub()
 
-end function
+            End Sub
 End Class",
                 afterCaret:={2, -1})
         End Function
@@ -307,7 +307,7 @@ End Class",
     Sub s()
         Dim x = Sub()
                     f()
-    end function
+                End Sub
     End Sub
 End Class",
                    afterCaret:={3, 20})
@@ -326,7 +326,7 @@ End Class",
     Sub s()
         Dim x = Sub()
                     f() ' Invokes f()
-    end function
+                End Sub
     End Sub
 End Class",
                    afterCaret:={3, 20})
@@ -404,7 +404,7 @@ End Class",
     Sub s()
         Dim x = <xml><%= Sub()
 
-             end function %></xml>
+                         End Sub %></xml>
     End Sub
 End Class",
                    afterCaret:={3, -1})
