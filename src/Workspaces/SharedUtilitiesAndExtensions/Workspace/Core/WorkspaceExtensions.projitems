@@ -142,6 +142,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractMemberAccessExpressionSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolFinder\SymbolFinderInternal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers.cs" />

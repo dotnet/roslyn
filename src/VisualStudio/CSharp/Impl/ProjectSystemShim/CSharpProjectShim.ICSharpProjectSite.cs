@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -120,48 +121,50 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public int GetValidStartupClasses(IntPtr[] classNames, ref int count)
         {
-            var project = Workspace.CurrentSolution.GetRequiredProject(ProjectSystemProject.Id);
-            var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
+            var (result, newCount) = this.ThreadingContext.JoinableTaskFactory.Run(GetValidStartupClassesAsync);
+            if (newCount.HasValue)
+                count = newCount.Value;
 
-            // If classNames is NULL, then we need to populate the number of valid startup
-            // classes only
-            if (classNames == null)
-            {
-                count = entryPoints.Count();
-                return VSConstants.S_OK;
-            }
-            else
-            {
-                // We return S_FALSE if we have more entrypoints than places in the array.
-                var entryPointNames = entryPoints.Select(e => e.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))).ToArray();
+            return result;
 
-                if (entryPointNames.Length > classNames.Length)
+            async Task<(int result, int? newCount)> GetValidStartupClassesAsync()
+            {
+                var project = Workspace.CurrentSolution.GetRequiredProject(ProjectSystemProject.Id);
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(true);
+                var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
+
+                // If classNames is NULL, then we need to populate the number of valid startup
+                // classes only
+                if (classNames == null)
                 {
-                    return VSConstants.S_FALSE;
+                    return (VSConstants.S_OK, entryPoints.Count());
                 }
-
-                // The old language service stored startup class names in its string table,
-                // so the property page never freed them. To avoid leaking memory, we're 
-                // going to allocate our strings on the native heap and keep the pointers to them.
-                // Subsequent calls to this function will free the old strings and allocate the 
-                // new ones. The last set of marshalled strings is freed in the destructor.
-                if (_startupClasses != null)
+                else
                 {
-                    foreach (var @class in _startupClasses)
+                    // We return S_FALSE if we have more entrypoints than places in the array.
+                    var entryPointNames = entryPoints.Select(e => e.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))).ToArray();
+
+                    if (entryPointNames.Length > classNames.Length)
+                        return (VSConstants.S_FALSE, null);
+
+                    // The old language service stored startup class names in its string table,
+                    // so the property page never freed them. To avoid leaking memory, we're 
+                    // going to allocate our strings on the native heap and keep the pointers to them.
+                    // Subsequent calls to this function will free the old strings and allocate the 
+                    // new ones. The last set of marshalled strings is freed in the destructor.
+                    if (_startupClasses != null)
                     {
-                        Marshal.FreeHGlobal(@class);
+                        foreach (var @class in _startupClasses)
+                            Marshal.FreeHGlobal(@class);
                     }
+
+                    _startupClasses = entryPointNames.Select(Marshal.StringToHGlobalUni).ToArray();
+                    Array.Copy(_startupClasses, classNames, _startupClasses.Length);
+
+                    return (VSConstants.S_OK, entryPointNames.Length);
                 }
-
-                _startupClasses = entryPointNames.Select(Marshal.StringToHGlobalUni).ToArray();
-                Array.Copy(_startupClasses, classNames, _startupClasses.Length);
-
-                count = entryPointNames.Length;
-                return VSConstants.S_OK;
             }
         }
-
         public void OnAliasesChanged(string file, string project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {
             using (ProjectSystemProject.CreateBatchScope())
