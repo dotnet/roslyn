@@ -124,7 +124,7 @@ End Class",
                 text:="Class C End Class
 ",
                 caret:={0, "Class C".Length})
-            End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
         Public Async Function DeletesSelectedText() As Task

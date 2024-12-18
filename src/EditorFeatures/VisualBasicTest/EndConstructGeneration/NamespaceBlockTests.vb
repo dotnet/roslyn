@@ -58,6 +58,6 @@ End Class",
     Namespace n
 End Module",
                 caret:={1, -1})
-            End Sub
+        End Function
     End Class
 End Namespace

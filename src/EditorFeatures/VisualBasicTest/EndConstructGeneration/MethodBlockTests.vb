@@ -210,7 +210,6 @@ End Class",
 
 End Sub",
                 afterCaret:={1, -1})
-            End Sub
-
+        End Function
     End Class
 End Namespace

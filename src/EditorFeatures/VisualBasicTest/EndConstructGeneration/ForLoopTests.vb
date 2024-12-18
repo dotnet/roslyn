@@ -174,7 +174,6 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-            End Sub
-
+        End Function
     End Class
 End Namespace

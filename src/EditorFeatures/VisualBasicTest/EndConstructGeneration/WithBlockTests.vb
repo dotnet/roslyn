@@ -99,6 +99,6 @@ End Class",
     With True
 End Class",
                 caret:={1, -1})
-            End Sub
+        End Function
     End Class
 End Namespace

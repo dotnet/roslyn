@@ -199,6 +199,6 @@ End Class",
                 text:="Class C : Implements IB
 End Class",
                 caret:={0, -1})
-            End Sub
+        End Function
     End Class
 End Namespace

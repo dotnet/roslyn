@@ -65,6 +65,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 #End Region
 #End Region",
                 caret:={1, -1})
-            End Sub
+        End Function
     End Class
 End Namespace

@@ -249,6 +249,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim caretPosition = view.Caret.Position.VirtualBufferPosition
                 Assert.Equal(Of Integer)(afterCaretPoint, If(caretPosition.IsInVirtualSpace, caretPosition.Position + caretPosition.VirtualSpaces, caretPosition.Position))
             End Using
-        End Sub
+        End Function
     End Module
 End Namespace

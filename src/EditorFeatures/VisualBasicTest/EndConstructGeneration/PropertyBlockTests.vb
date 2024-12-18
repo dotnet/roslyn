@@ -307,6 +307,6 @@ End Class",
     End Property
 End Class",
                 afterCaret:={3, -1})
-            End Sub
+        End Function
     End Class
 End Namespace

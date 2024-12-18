@@ -205,6 +205,6 @@ End Class",
     do Until
 End Class",
                 caret:={3, -1})
-            End Sub
+        End Function
     End Class
 End Namespace
