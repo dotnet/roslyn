@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor;
@@ -29,15 +30,10 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
-internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVsTextViewFilter
+internal abstract class AbstractVsTextViewFilter(
+    IWpfTextView wpfTextView,
+    IComponentModel componentModel) : AbstractOleCommandTarget(wpfTextView, componentModel), IVsTextViewFilter
 {
-    public AbstractVsTextViewFilter(
-        IWpfTextView wpfTextView,
-        IComponentModel componentModel)
-        : base(wpfTextView, componentModel)
-    {
-    }
-
     int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
     {
         try
@@ -144,29 +140,21 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
 
     int IVsTextViewFilter.GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan)
     {
-        try
-        {
-            var result = VSConstants.S_OK;
-            ComponentModel.GetService<IUIThreadOperationExecutor>().Execute(
-                "Intellisense",
-                defaultDescription: "",
-                allowCancellation: true,
-                showProgress: false,
-                action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.UserCancellationToken));
-
-            return result;
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+        return this.ThreadingContext.JoinableTaskFactory.Run(() => GetPairExtentsAsync(iLine, iIndex, pSpan));
     }
 
-    private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
+    private async Task<int> GetPairExtentsAsync(int iLine, int iIndex, TextSpan[] pSpan)
     {
+        using var waitContext = ComponentModel.GetService<IUIThreadOperationExecutor>().BeginExecute(
+            "Intellisense",
+            defaultDescription: "",
+            allowCancellation: true,
+            showProgress: false);
+
         var braceMatcher = ComponentModel.GetService<IBraceMatchingService>();
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-        return GetPairExtentsWorker(
+
+        return await GetPairExtentsAsync(
             WpfTextView,
             braceMatcher,
             globalOptions,
@@ -174,11 +162,19 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
             iIndex,
             pSpan,
             (VSConstants.VSStd2KCmdID)this.CurrentlyExecutingCommand == VSConstants.VSStd2KCmdID.GOTOBRACE_EXT,
-            cancellationToken);
+            waitContext.UserCancellationToken).ConfigureAwait(true);
     }
 
     // Internal for testing purposes
-    internal static int GetPairExtentsWorker(ITextView textView, IBraceMatchingService braceMatcher, IGlobalOptionService globalOptions, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
+    internal static async Task<int> GetPairExtentsAsync(
+        ITextView textView,
+        IBraceMatchingService braceMatcher,
+        IGlobalOptionService globalOptions,
+        int iLine,
+        int iIndex,
+        TextSpan[] pSpan,
+        bool extendSelection,
+        CancellationToken cancellationToken)
     {
         pSpan[0].iStartLine = pSpan[0].iEndLine = iLine;
         pSpan[0].iStartIndex = pSpan[0].iEndIndex = iIndex;
@@ -202,7 +198,8 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                 if (document != null)
                 {
                     var options = globalOptions.GetBraceMatchingOptions(document.Project.Language);
-                    var matchingSpan = braceMatcher.FindMatchingSpanAsync(document, position, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var matchingSpan = await braceMatcher.FindMatchingSpanAsync(
+                        document, position, options, cancellationToken).ConfigureAwait(true);
 
                     if (matchingSpan.HasValue)
                     {
@@ -236,7 +233,8 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                                 if (extendSelection)
                                 {
                                     // case a.
-                                    var closingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.Start, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                                    var closingSpans = await braceMatcher.FindMatchingSpanAsync(
+                                        document, matchingSpan.Value.Start, options, cancellationToken).ConfigureAwait(true);
                                     var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                     pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                 }
@@ -255,7 +253,8 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                                     pSpan[0].iEndIndex = vsTextSpan.iStartIndex;
 
                                     // case b.
-                                    var openingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.End, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                                    var openingSpans = await braceMatcher.FindMatchingSpanAsync(
+                                        document, matchingSpan.Value.End, options, cancellationToken).ConfigureAwait(true);
                                     var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                     pSpan[0].iStartIndex = vsOpeningSpans.iStartIndex;
                                 }
