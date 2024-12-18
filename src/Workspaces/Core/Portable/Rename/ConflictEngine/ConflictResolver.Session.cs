@@ -539,8 +539,11 @@ internal static partial class ConflictResolver
 
                         hasConflict = true;
 
-                        var newLocationTasks = newReferencedSymbols.Select(async symbol => await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false));
-                        var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).WhereNotNull().Where(loc => loc.IsInSource);
+                        var newLocations = newReferencedSymbols
+                            .Select(symbol => GetSymbolLocation(solution, symbol, _cancellationToken))
+                            .WhereNotNull()
+                            .Where(loc => loc.IsInSource)
+                            .ToArray();
                         foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                         {
                             var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
@@ -581,8 +584,7 @@ internal static partial class ConflictResolver
                             break;
                         }
 
-                        var newLocation = await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false);
-
+                        var newLocation = GetSymbolLocation(solution, symbol, _cancellationToken);
                         if (newLocation != null && conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].IsSourceLocation)
                         {
                             // location was in source before, but not after rename

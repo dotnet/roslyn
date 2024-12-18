@@ -2013,7 +2013,7 @@ public abstract partial class Workspace : IDisposable
             {
                 // We have the old text, but no new text is easily available. This typically happens when the content is modified via changes to the syntax tree.
                 // Ask document to compute equivalent text changes by comparing the syntax trees, and use them to
-                var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                var textChanges = newDoc.GetTextChangesSynchronously(oldDoc, CancellationToken.None);
                 this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
             }
             else
@@ -2023,15 +2023,6 @@ public abstract partial class Workspace : IDisposable
                 this.ApplyDocumentTextChanged(documentId, newText);
             }
         }
-    }
-
-    [Conditional("DEBUG")]
-    private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
-    {
-        var changes = newSolution.GetChanges(oldSolution);
-        Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
-        Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
-        Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
     }
 
     private static ProjectInfo CreateProjectInfo(Project project)

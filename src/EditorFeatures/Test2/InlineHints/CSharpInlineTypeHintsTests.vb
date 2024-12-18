@@ -848,5 +848,46 @@ class A
 
             Await VerifyTypeHints(input, output)
         End Function
+
+        <WpfFact>
+        Public Async Function TestOnlyProduceTagsWithinSelection() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        var a = 0;
+        [|var {|int :|}b = 0;
+        var {|int :|}c = 0;|]
+        var d = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        var a = 0;
+        int b = 0;
+        int c = 0;
+        var d = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
     End Class
 End Namespace

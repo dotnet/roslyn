@@ -419,7 +419,13 @@ public class Document : TextDocument
     /// Get the text changes between this document and a prior version of the same document.
     /// The changes, when applied to the text of the old document, will produce the text of the current document.
     /// </summary>
-    public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IEnumerable<TextChange>>(GetTextChangesSynchronously(oldDocument, cancellationToken));
+    }
+
+    internal ImmutableArray<TextChange> GetTextChangesSynchronously(
+        Document oldDocument, CancellationToken cancellationToken)
     {
         try
         {
@@ -443,10 +449,10 @@ public class Document : TextDocument
                     var container = text.Container;
                     if (container != null)
                     {
-                        var textChanges = text.GetTextChanges(oldText).ToList();
+                        var textChanges = text.GetTextChanges(oldText).ToImmutableArray();
 
                         // if changes are significant (not the whole document being replaced) then use these changes
-                        if (textChanges.Count > 1 || (textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
+                        if (textChanges.Length > 1 || (textChanges.Length == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
                         {
                             return textChanges;
                         }
@@ -456,17 +462,18 @@ public class Document : TextDocument
                 // get changes by diffing the trees
                 if (this.SupportsSyntaxTree)
                 {
-                    var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-                    var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = this.GetSyntaxTreeSynchronously(cancellationToken);
+                    var oldTree = oldDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
+                    RoslynDebug.Assert(tree is object);
                     RoslynDebug.Assert(oldTree is object);
-                    return tree.GetChanges(oldTree);
+                    return tree.GetChanges(oldTree).ToImmutableArray();
                 }
 
-                text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                text = this.GetTextSynchronously(cancellationToken);
+                oldText = oldDocument.GetTextSynchronously(cancellationToken);
 
-                return text.GetTextChanges(oldText).ToList();
+                return text.GetTextChanges(oldText).ToImmutableArray();
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

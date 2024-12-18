@@ -197,7 +197,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                         // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                         ForceRenameOverloads = true;
 
-                        return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document).ConfigureAwait(false);
+                        return DetermineIfRenamableSymbols(renameSymbolInfo.Symbols, document);
                     }
                     else
                     {
@@ -208,7 +208,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                             return TriggerIdentifierKind.NotRenamable;
                         }
 
-                        return await DetermineIfRenamableSymbolAsync(renameSymbolInfo.Symbols.Single(), document, token).ConfigureAwait(false);
+                        return DetermineIfRenamableSymbol(renameSymbolInfo.Symbols.Single(), document, token);
                     }
                 }
             }
@@ -216,12 +216,12 @@ internal sealed partial class RenameTrackingTaggerProvider
             return TriggerIdentifierKind.NotRenamable;
         }
 
-        private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document)
+        private TriggerIdentifierKind DetermineIfRenamableSymbols(IEnumerable<ISymbol> symbols, Document document)
         {
             foreach (var symbol in symbols)
             {
                 // Get the source symbol if possible
-                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
+                var sourceSymbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, _cancellationToken) ?? symbol;
 
                 if (!sourceSymbol.IsFromSource())
                 {
@@ -232,10 +232,10 @@ internal sealed partial class RenameTrackingTaggerProvider
             return TriggerIdentifierKind.RenamableReference;
         }
 
-        private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolAsync(ISymbol symbol, Document document, SyntaxToken token)
+        private TriggerIdentifierKind DetermineIfRenamableSymbol(ISymbol symbol, Document document, SyntaxToken token)
         {
             // Get the source symbol if possible
-            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
+            var sourceSymbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, _cancellationToken) ?? symbol;
 
             if (sourceSymbol.Kind == SymbolKind.Field &&
                 ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
