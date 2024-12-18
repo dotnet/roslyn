@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -223,6 +224,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
                 Dim factory = workspace.GetService(Of IEditorOperationsFactoryService)()
                 Dim endConstructor = New EndConstructCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
                     factory,
                     workspace.GetService(Of ITextUndoHistoryRegistry),
                     workspace.GetService(Of EditorOptionsService))
