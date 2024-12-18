@@ -83,11 +83,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                                       End Function)
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             Monitor.Exit(gate)
-
             Await modelComputation.WaitForModelComputation_ForTestingPurposesOnlyAsync()
-            controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Once)
 
-            ' controller.Verify(Sub(c) c.OnModelUpdated(null, False), Times.Once)
+            controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Once)
         End Function
 
         <WpfFact>
