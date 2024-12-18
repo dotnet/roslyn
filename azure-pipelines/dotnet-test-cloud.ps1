@@ -25,8 +25,6 @@ Param(
 
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $ArtifactStagingFolder = & "$PSScriptRoot/Get-ArtifactsStagingDirectory.ps1"
-$TestLogsPath = "$ArtifactStagingFolder/test_logs"
-if (!(Test-Path $TestLogsPath)) { New-Item -ItemType Directory -Path $TestLogsPath | Out-Null }
 
 $dotnet = 'dotnet'
 if ($x86) {
@@ -46,46 +44,21 @@ if ($x86) {
   }
 }
 
-$dotnetTestArgs = @()
-$dotnetTestArgs2 = @()
-
-# The GitHubActions test logger fails when combined with certain switches, but only on mac/linux.
-# We avoid those switches in that specific context.
-# Failure symptoms when using the wrong switch combinations on mac/linux are (depending on the switches) EITHER:
-# - The test runner fails with exit code 1 (and no error message)
-# - The test runner succeeds but the GitHubActions logger only adds annotations on Windows agents.
-# See https://github.com/Tyrrrz/GitHubActionsTestLogger/discussions/37 for more info.
-# Thus, the mess of conditions you see below, in order to get GitHubActions to work
-# without undermining other value we have when running in other contexts.
-if ($env:GITHUB_WORKFLOW -and ($IsLinux -or $IsMacOS)) {
-    $dotnetTestArgs += '--collect','Xplat Code Coverage'
-    $dotnetTestArgs2 += 'DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover'
-} else {
-    $dotnetTestArgs += '--diag','$$TestLogsPath/diag.log;TraceLevel=info'
-    $dotnetTestArgs += '--collect','Code Coverage;Format=cobertura'
-    $dotnetTestArgs += '--settings',"$PSScriptRoot/test.runsettings"
-}
-
-if ($env:GITHUB_WORKFLOW) {
-    $dotnetTestArgs += '--logger','GitHubActions'
-    $dotnetTestArgs2 += 'RunConfiguration.CollectSourceInformation=true'
-}
-
 & $dotnet test $RepoRoot `
     --no-build `
     -c $Configuration `
     --filter "TestCategory!=FailsInCloudTest" `
+    --collect "Code Coverage;Format=cobertura" `
+    --settings "$PSScriptRoot/test.runsettings" `
     --blame-hang-timeout 60s `
     --blame-crash `
     -bl:"$ArtifactStagingFolder/build_logs/test.binlog" `
+    --diag "$ArtifactStagingFolder/test_logs/diag.log;TraceLevel=info" `
     --logger trx `
-    @dotnetTestArgs `
-    -- `
-    @dotnetTestArgs2
 
 $unknownCounter = 0
 Get-ChildItem -Recurse -Path $RepoRoot\test\*.trx |% {
-  Copy-Item $_ -Destination $TestLogsPath/
+  Copy-Item $_ -Destination $ArtifactStagingFolder/test_logs/
 
   if ($PublishResults) {
     $x = [xml](Get-Content -LiteralPath $_)
