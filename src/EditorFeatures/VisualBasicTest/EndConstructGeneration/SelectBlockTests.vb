@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SelectBlockTests
         <WpfFact>
-        Public Sub TestApplyAfterSelectKeyword()
+        Public Async Function TestApplyAfterSelectKeyword() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub goo()
@@ -23,10 +23,10 @@ End Select
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterSelectCaseKeyword()
+        Public Async Function TestApplyAfterSelectCaseKeyword() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub goo()
@@ -42,10 +42,10 @@ End Select
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedDo()
+        Public Async Function VerifyNestedDo() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -67,10 +67,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={5, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSelectBlock()
+        Public Async Function VerifyInvalidSelectBlock() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
@@ -78,10 +78,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSelectBlock01()
+        Public Async Function VerifyInvalidSelectBlock01() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Sub T
@@ -90,19 +90,19 @@ End Class",
     End Sub
 End Class",
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSelectBlock02()
+        Public Async Function VerifyInvalidSelectBlock02() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Select 1
 End Class",
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyReCommitSelectBlock()
+        Public Async Function VerifyReCommitSelectBlock() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S

@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MultiLineLambdaTests
         <WpfFact>
-        Public Sub TestApplyWithFunctionLambda()
+        Public Async Function TestApplyWithFunctionLambda() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub goo()
@@ -23,10 +23,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyWithFunctionLambdaWithMissingEndFunction()
+        Public Async Function TestApplyWithFunctionLambdaWithMissingEndFunction() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo()
@@ -40,10 +40,10 @@ End Class",
             End Function
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyWithSubLambda()
+        Public Async Function TestApplyWithSubLambda() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo()
@@ -55,14 +55,14 @@ End Class",
   Function goo()
     Dim x = Sub()
 
-            End Sub
+end function
   End Function
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Sub TestApplyWithSubLambdaWithNoParameterParenthesis()
+        Public Async Function TestApplyWithSubLambdaWithNoParameterParenthesis() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo()
@@ -74,14 +74,14 @@ End Class",
   Function goo()
     Dim x = Sub()
 
-            End Sub
+end function
   End Function
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Sub TestApplyWithSubLambdaInsideMethodCall()
+        Public Async Function TestApplyWithSubLambdaInsideMethodCall() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo()
@@ -97,10 +97,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Sub TestApplyWithSubLambdaAndStatementInsideMethodCall()
+        Public Async Function TestApplyWithSubLambdaAndStatementInsideMethodCall() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo()
@@ -116,10 +116,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, 10})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544362")>
-        Public Sub TestApplyWithFunctionLambdaInsideMethodCall()
+        Public Async Function TestApplyWithFunctionLambdaInsideMethodCall() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo()
@@ -135,10 +135,10 @@ End Class",
   End Function
 End Class",
                 afterCaret:={3, 17})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyAnonymousType()
+        Public Async Function TestVerifyAnonymousType() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -154,10 +154,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifySingleLineLambdaFunc()
+        Public Async Function VerifySingleLineLambdaFunc() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
@@ -165,10 +165,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifySingleLineLambdaSub()
+        Public Async Function VerifySingleLineLambdaSub() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
@@ -176,10 +176,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyAsDefaultParameterValue()
+        Public Async Function TestVerifyAsDefaultParameterValue() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s(Optional ByVal f As Func(Of String, String) = Function(x As String)
@@ -191,10 +191,10 @@ End Class",
                                                         End Function
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyNestedLambda()
+        Public Async Function TestVerifyNestedLambda() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     sub s
@@ -214,10 +214,10 @@ End Class",
     End sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyInField()
+        Public Async Function TestVerifyInField() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Dim x = Sub()
@@ -226,13 +226,13 @@ End Class",
                  after:="Class C
     Dim x = Sub()
 
-            End Sub
+end function
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidLambdaSyntax()
+        Public Async Function VerifyInvalidLambdaSyntax() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
@@ -240,10 +240,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNotAppliedIfSubLambdaContainsEndSub()
+        Public Async Function VerifyNotAppliedIfSubLambdaContainsEndSub() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
@@ -251,10 +251,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, 21})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNotAppliedIfSyntaxIsFunctionLambdaContainsEndFunction()
+        Public Async Function VerifyNotAppliedIfSyntaxIsFunctionLambdaContainsEndFunction() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
@@ -262,10 +262,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, 26})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyLambdaWithImplicitLC()
+        Public Async Function VerifyLambdaWithImplicitLC() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s()
@@ -273,10 +273,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyLambdaWithMissingParenthesis()
+        Public Async Function TestVerifyLambdaWithMissingParenthesis() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -292,10 +292,10 @@ End Class",
     End Sub
 End Class",
                    afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifySingleLineSubLambdaToMultiLine()
+        Public Async Function TestVerifySingleLineSubLambdaToMultiLine() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -307,14 +307,14 @@ End Class",
     Sub s()
         Dim x = Sub()
                     f()
-                End Sub
+    end function
     End Sub
 End Class",
                    afterCaret:={3, 20})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
-        Public Sub TestVerifySingleLineSubLambdaToMultiLineWithTrailingTrivia()
+        Public Async Function TestVerifySingleLineSubLambdaToMultiLineWithTrailingTrivia() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -326,14 +326,14 @@ End Class",
     Sub s()
         Dim x = Sub()
                     f() ' Invokes f()
-                End Sub
+    end function
     End Sub
 End Class",
                    afterCaret:={3, 20})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifySingleLineFunctionLambdaToMultiLine()
+        Public Async Function TestVerifySingleLineFunctionLambdaToMultiLine() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -349,10 +349,10 @@ End Class",
     End Sub
 End Class",
                    afterCaret:={3, 27})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
-        Public Sub TestVerifySingleLineFunctionLambdaToMultiLineWithTrailingTrivia()
+        Public Async Function TestVerifySingleLineFunctionLambdaToMultiLineWithTrailingTrivia() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -368,11 +368,11 @@ End Class",
     End Sub
 End Class",
                    afterCaret:={3, 27})
-        End Sub
+        End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/1922")>
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
-        Public Sub TestVerifySingleLineFunctionLambdaToMultiLineInsideXMLTag()
+        Public Async Function TestVerifySingleLineFunctionLambdaToMultiLineInsideXMLTag() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -388,11 +388,11 @@ End Class",
     End Sub
 End Class",
                    afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/1922")>
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530683")>
-        Public Sub TestVerifySingleLineSubLambdaToMultiLineInsideXMLTag()
+        Public Async Function TestVerifySingleLineSubLambdaToMultiLineInsideXMLTag() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub s()
@@ -404,7 +404,7 @@ End Class",
     Sub s()
         Dim x = <xml><%= Sub()
 
-                         End Sub %></xml>
+             end function %></xml>
     End Sub
 End Class",
                    afterCaret:={3, -1})

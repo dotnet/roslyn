@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class WhileLoopTests
         <WpfFact>
-        Public Sub ApplyAfterWithStatement()
+        Public Async Function ApplyAfterWithStatement() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub goo()
@@ -23,10 +23,10 @@ End While
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedWith()
+        Public Async Function DoNotApplyForMatchedWith() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()
@@ -35,10 +35,10 @@ End While
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedWhileBlock()
+        Public Async Function VerifyNestedWhileBlock() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -60,10 +60,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyRecommitWhileBlock()
+        Public Async Function VerifyRecommitWhileBlock() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
@@ -72,10 +72,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidWhileSyntax()
+        Public Async Function VerifyInvalidWhileSyntax() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Sub S
@@ -83,10 +83,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidWhileLocation()
+        Public Async Function VerifyInvalidWhileLocation() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     While True

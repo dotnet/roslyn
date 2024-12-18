@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class MethodBlockTests
         <WpfFact>
-        Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
+        Public Async Function TestApplyAfterSimpleSubDeclarationWithTrailingComment() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub goo() 'Extra Comment
@@ -19,10 +19,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterConstructorDeclaration()
+        Public Async Function TestApplyAfterConstructorDeclaration() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub New()
@@ -34,10 +34,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterConstructorDeclarationForDesignerGeneratedClass()
+        Public Async Function TestApplyAfterConstructorDeclarationForDesignerGeneratedClass() As Task
             VerifyStatementEndConstructApplied(
                 before:="<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>
 Class c1
@@ -62,10 +62,10 @@ Class c1
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterConstructorDeclarationWithTrailingComment()
+        Public Async Function TestApplyAfterConstructorDeclarationWithTrailingComment() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub New() 'Extra Comment
@@ -77,10 +77,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
+        Public Async Function TestApplyAfterSimpleFunctionDeclarationWithTrailingComment() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Function goo() As Integer 'Extra Comment
@@ -92,19 +92,19 @@ End Class",
   End Function
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForInterfaceFunction()
+        Public Async Function DoNotApplyForInterfaceFunction() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Interface IGoo
 Function Goo() as Integer
 End Interface",
                  caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifySubInAModule()
+        Public Async Function TestVerifySubInAModule() As Task
             VerifyStatementEndConstructApplied(
                 before:="Module C
 Public Sub s
@@ -116,10 +116,10 @@ Public Sub s
 End Sub
 End Module",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifySubWithParameters()
+        Public Async Function TestVerifySubWithParameters() As Task
             VerifyStatementEndConstructApplied(
                 before:="Module C
     Private Sub s1(byval x as Integer, Optional y as Integer = 5)
@@ -131,10 +131,10 @@ End Module",
     End Sub
 End Module",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyFuncWithParameters()
+        Public Async Function TestVerifyFuncWithParameters() As Task
             VerifyStatementEndConstructApplied(
                 before:="Module C
     Public function f(byval x as Integer,
@@ -148,10 +148,10 @@ End Module",
     End function
 End Module",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyFuncNamedWithKeyWord()
+        Public Async Function TestVerifyFuncNamedWithKeyWord() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     private funCtion f1(Optional x as integer = 5) as [if]
@@ -163,10 +163,10 @@ End Class",
     End funCtion
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifySharedOperator()
+        Public Async Function TestVerifySharedOperator() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Public Shared Operator +(ByVal a As bar, ByVal b As bar) As bar
@@ -178,20 +178,20 @@ End Class",
     End Operator
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyRecommit()
+        Public Async Function VerifyRecommit() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Protected friend sub S
     End sub
 End Class",
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidLocation01()
+        Public Async Function VerifyInvalidLocation01() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
@@ -199,10 +199,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528961")>
-        Public Sub TestVerifyInvalidLocation02()
+        Public Async Function TestVerifyInvalidLocation02() As Task
             VerifyStatementEndConstructApplied(
                 before:="Sub S",
                 beforeCaret:={0, -1},

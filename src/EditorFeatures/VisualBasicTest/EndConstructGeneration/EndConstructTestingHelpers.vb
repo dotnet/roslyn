@@ -205,11 +205,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Return VerifyTypedCharAppliedAsync(Async Function(s, v, b) Not Await s.TryDoAsync(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
         End Function
 
-        Public Sub VerifyAppliedAfterReturnUsingCommandHandler(
+        Public Async Function VerifyAppliedAfterReturnUsingCommandHandler(
             before As String,
             beforeCaret As Integer(),
             after As String,
-            afterCaret As Integer())
+            afterCaret As Integer()) As Task
 
             ' create separate composition
             Using workspace = EditorTestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)

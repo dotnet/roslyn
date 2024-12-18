@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class ForLoopTests
         <WpfFact>
-        Public Sub TestVerifyForWithIndex()
+        Public Async Function TestVerifyForWithIndex() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub goo()
@@ -23,10 +23,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyForEach()
+        Public Async Function TestVerifyForEach() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub goo()
@@ -42,10 +42,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
-        Public Sub VerifyIndexMatchedInner1()
+        Public Async Function VerifyIndexMatchedInner1() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
   Sub goo()
@@ -55,10 +55,10 @@ End Class",
   End Sub
 End Class",
                  caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
-        Public Sub TestVerifyIndexMatchedInner2()
+        Public Async Function TestVerifyIndexMatchedInner2() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub goo()
@@ -78,10 +78,10 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
-        Public Sub VerifyIndexSharedNext()
+        Public Async Function VerifyIndexSharedNext() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
   Sub goo()
@@ -91,10 +91,10 @@ End Class",
   End Sub
 End Class",
                  caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyNestedFor()
+        Public Async Function TestVerifyNestedFor() As Task
             VerifyStatementEndConstructApplied(
                 before:="' NestedFor
 Class C
@@ -116,10 +116,10 @@ Class C
     End sub
 End Class",
                 afterCaret:={5, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyNestedForEach()
+        Public Async Function TestVerifyNestedForEach() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     function f(byval x as Integer,
@@ -143,10 +143,10 @@ End Class",
     End Function
 End Class",
                 afterCaret:={5, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyReCommitForEach()
+        Public Async Function VerifyReCommitForEach() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Public Property p(byval x as Integer) as Integer
@@ -155,18 +155,18 @@ End Class",
     End Property
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyForAtIncorrectLocation()
+        Public Async Function VerifyForAtIncorrectLocation() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     For i = 1 to 10",
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidForSyntax()
+        Public Async Function VerifyInvalidForSyntax() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub s

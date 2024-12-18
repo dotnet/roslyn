@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class WithBlockTests
         <WpfFact>
-        Public Sub ApplyAfterWithStatement()
+        Public Async Function ApplyAfterWithStatement() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub goo()
@@ -23,10 +23,10 @@ End With
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedWith()
+        Public Async Function DoNotApplyForMatchedWith() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()
@@ -35,10 +35,10 @@ End With
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedWith()
+        Public Async Function VerifyNestedWith() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -58,10 +58,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyWithFollowsCode()
+        Public Async Function VerifyWithFollowsCode() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -79,10 +79,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidWithSyntax()
+        Public Async Function VerifyInvalidWithSyntax() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Sub S
@@ -90,10 +90,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidWithLocation()
+        Public Async Function VerifyInvalidWithLocation() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     With True

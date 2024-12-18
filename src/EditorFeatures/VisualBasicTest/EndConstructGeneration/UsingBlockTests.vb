@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class UsingBlockTests
         <WpfFact>
-        Public Sub ApplyAfterUsingStatement()
+        Public Async Function ApplyAfterUsingStatement() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub goo()
@@ -23,10 +23,10 @@ End Using
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedUsing()
+        Public Async Function DoNotApplyForMatchedUsing() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()
@@ -35,10 +35,10 @@ End Using
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedUsing()
+        Public Async Function VerifyNestedUsing() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -58,10 +58,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyUsingWithDelegate()
+        Public Async Function VerifyUsingWithDelegate() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -77,10 +77,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyUsingAtInvalidSyntax()
+        Public Async Function VerifyUsingAtInvalidSyntax() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Sub S
@@ -88,10 +88,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyUsingAtInvalidLocation()
+        Public Async Function VerifyUsingAtInvalidLocation() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Using x

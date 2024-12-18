@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SyncLockBlockTests
         <WpfFact>
-        Public Sub ApplyAfterSyncLockStatement()
+        Public Async Function ApplyAfterSyncLockStatement() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub goo()
@@ -23,10 +23,10 @@ End SyncLock
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedUsing()
+        Public Async Function DoNotApplyForMatchedUsing() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()
@@ -35,10 +35,10 @@ End SyncLock
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedSyncBlock()
+        Public Async Function VerifyNestedSyncBlock() As Task
             VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
@@ -58,10 +58,10 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSyntax()
+        Public Async Function VerifyInvalidSyntax() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
@@ -69,10 +69,10 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidLocation()
+        Public Async Function VerifyInvalidLocation() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Synclock 1

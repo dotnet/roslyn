@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         ' TODO(jasonmal): Figure out how to enable these tests.
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ServiceNotCompletingShouldCallNextHandler()
+public async function ServiceNotCompletingShouldCallNextHandler()
             _endConstructServiceMock.Setup(Function(s) s.TryDo(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of Char))).Returns(False)
             _featureOptions.Setup(Function(s) s.GetOption(FeatureOnOffOptions.EndConstruct)).Returns(True)
 
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ServiceCompletingShouldCallNextHandler()
+public async function ServiceCompletingShouldCallNextHandler()
             _endConstructServiceMock.Setup(Function(s) s.TryDo(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of Char))).Returns(True)
             _featureOptions.Setup(Function(s) s.GetOption(FeatureOnOffOptions.EndConstruct)).Returns(True)
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 #End If
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
-        Public Sub EndConstruct_AfterCodeCleanup()
+        Public Async Function EndConstruct_AfterCodeCleanup() As Task
             Dim code = <code>Class C
     Sub Main(args As String())
         Dim z = 1
@@ -66,10 +66,10 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 12})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
-        Public Sub EndConstruct_AfterCodeCleanup_FormatOnlyTouched()
+        Public Async Function EndConstruct_AfterCodeCleanup_FormatOnlyTouched() As Task
             Dim code = <code>Class C1
     Sub M1()
         System.Diagnostics. _Debug.Assert(True)
@@ -84,10 +84,10 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
 End Class</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyAppliedAfterReturnUsingCommandHandler(code, {2, 29}, expected, {3, 12})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
-        Public Sub EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics()
+        Public Async Function EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics() As Task
             Dim code = <code>Module Program
     Sub Main(args As String())
         Dim a
@@ -108,10 +108,10 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
 End Module</code>.Value.Replace(vbLf, vbCrLf)
 
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
-        Public Sub EndConstruct_NotOnLineFollowingToken()
+        Public Async Function EndConstruct_NotOnLineFollowingToken() As Task
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
 
