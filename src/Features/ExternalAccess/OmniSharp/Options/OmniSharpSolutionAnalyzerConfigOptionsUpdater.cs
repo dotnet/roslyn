@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.ImplementType;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
 
