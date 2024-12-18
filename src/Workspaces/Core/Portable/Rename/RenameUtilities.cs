@@ -211,19 +211,15 @@ internal static class RenameUtilities
         ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
         if (symbol.IsPropertyAccessor())
-        {
             return ((IMethodSymbol)symbol).AssociatedSymbol;
-        }
 
         if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
         {
-            var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-                symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
+            var originalSourceSymbol = SymbolFinder.FindSourceDefinition(
+                symbol.GetOverriddenMember(), solution, cancellationToken);
 
             if (originalSourceSymbol != null)
-            {
                 return await TryGetPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         if (symbol.Kind == SymbolKind.Method &&
@@ -236,9 +232,7 @@ internal static class RenameUtilities
             {
                 var propertyAccessorOrAnOverride = await TryGetPropertyFromAccessorOrAnOverrideAsync(methodImplementor, solution, cancellationToken).ConfigureAwait(false);
                 if (propertyAccessorOrAnOverride != null)
-                {
                     return propertyAccessorOrAnOverride;
-                }
             }
         }
 
@@ -325,8 +319,8 @@ internal static class RenameUtilities
         Contract.ThrowIfNull(solution);
 
         // Make sure we're on the original source definition if we can be
-        var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-            symbol, solution, cancellationToken).ConfigureAwait(false);
+        var foundSymbol = SymbolFinder.FindSourceDefinition(
+            symbol, solution, cancellationToken);
 
         var bestSymbol = foundSymbol ?? symbol;
         symbol = bestSymbol;
@@ -384,7 +378,7 @@ internal static class RenameUtilities
         }
 
         // in case this is e.g. an overridden property accessor, we'll treat the property itself as the definition symbol
-        var property = await RenameUtilities.TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
+        var property = await TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
 
         return property ?? bestSymbol;
     }
