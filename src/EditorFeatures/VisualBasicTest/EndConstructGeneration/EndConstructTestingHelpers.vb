@@ -205,11 +205,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Return VerifyTypedCharAppliedAsync(Async Function(s, v, b) Not Await s.TryDoAsync(v, b, typedChar, Nothing), before, after, typedChar, endCaretPos)
         End Function
 
-        Public Async Function VerifyAppliedAfterReturnUsingCommandHandler(
+        Public Sub VerifyAppliedAfterReturnUsingCommandHandler(
             before As String,
             beforeCaret As Integer(),
             after As String,
-            afterCaret As Integer()) As Task
+            afterCaret As Integer())
 
             ' create separate composition
             Using workspace = EditorTestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
@@ -249,6 +249,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Dim caretPosition = view.Caret.Position.VirtualBufferPosition
                 Assert.Equal(Of Integer)(afterCaretPoint, If(caretPosition.IsInVirtualSpace, caretPosition.Position + caretPosition.VirtualSpaces, caretPosition.Position))
             End Using
-        End Function
+        End Sub
     End Module
 End Namespace
