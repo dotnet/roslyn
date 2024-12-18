@@ -84,6 +84,13 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
 
             foreach (var (position, argument, parameter, kind) in buffer)
             {
+                // We get hints on *nodes* that intersect the passed in text span.  However, while the full node may
+                // intersect the span, the positions of the all the sub-nodes in it that we make hints for (like the
+                // positions of the arguments in an invocation) may not.  So, filter out any hints that aren't actually
+                // in the span we care about here.
+                if (!textSpan.IntersectsWith(position))
+                    continue;
+
                 if (string.IsNullOrEmpty(parameter?.Name))
                     continue;
 
