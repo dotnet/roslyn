@@ -23,12 +23,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For patterns that contain a disjunction `... or ...` we're going to perform reachability analysis for each branch of the `or`.
         /// We effectively pick each analyzable `or` sequence in turn and expand it to top-level cases.
         ///
-        /// For example, `A and (B or C)` is expanded to two cases: `A and B` and `A and C`.
+        /// For example `A and (B or C)` we'll check the reachability of two cases: `case A and B` and `case A and C`.
         ///
-        /// Similarly, `(A or B) and (C or D)` is expanded to two sets of two cases:
+        /// Similarly, `(A or B) and (C or D)` we'll check the reachability of two sets of two cases:
         ///   1. { `case A`, `case B` } (we can truncate later test since we only care about the reachability of `A` and `B` here)
         ///   2. { `case (A or B) and C`, `case (A or B) and D` }
-        /// We then check the reachability for each of those cases in different sets.
+        ///
+        /// Similarly, `A or ((B or C) and D)` we'll check the reachability of two sets of cases:
+        ///   1. { `case A:`, `case ((B or C) and D):` }
+        ///   2. { `case A:`, `case B:`, `case C:` }
+        ///
+        /// Similarly, `A or (B and (C or D))` we'll check the reachability of two sets of cases:
+        ///   1. { `case A:`, `case ((B or C) and D):`
+        ///   2. { `case A:`, `case B and C:`, `case B and D:` }
         /// </summary>
         internal static void CheckRedundantPatternsForIsPattern(
             CSharpCompilation compilation,
@@ -133,24 +140,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             existingCases.Free();
         }
 
-        private static void CheckOrAndAndReachability(
-          ArrayBuilder<StateForCase> previousCases,
-          int patternIndex,
-          BoundPattern pattern,
-          DecisionDagBuilder builder,
-          BoundDagTemp rootIdentifier,
-          SyntaxNode syntax,
-          BindingDiagnosticBag diagnostics)
+        private struct ReachabilityAnalysisContext
         {
-            CheckOrReachability(previousCases, patternIndex, pattern,
-                builder, rootIdentifier, syntax, diagnostics);
+            public readonly ArrayBuilder<StateForCase> PreviousCases;
+            public readonly int PatternIndex;
+            public readonly DecisionDagBuilder Builder;
+            public readonly BoundDagTemp RootIdentifier;
+            public readonly SyntaxNode Syntax;
+            public readonly BindingDiagnosticBag Diagnostics;
 
-            var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, pattern.InputType, narrowedType: pattern.InputType);
-            CheckOrReachability(previousCases, patternIndex, negated,
-                builder, rootIdentifier, syntax, diagnostics);
+            public ReachabilityAnalysisContext(ArrayBuilder<StateForCase> previousCases,
+                int patternIndex, DecisionDagBuilder builder, BoundDagTemp rootIdentifier, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            {
+                PreviousCases = previousCases;
+                PatternIndex = patternIndex;
+                Builder = builder;
+                RootIdentifier = rootIdentifier;
+                Syntax = syntax;
+                Diagnostics = diagnostics;
+            }
         }
 
-        private static void CheckOrReachability(
+        private static void CheckOrAndAndReachability(
             ArrayBuilder<StateForCase> previousCases,
             int patternIndex,
             BoundPattern pattern,
@@ -159,74 +170,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var normalizedPattern = PatternNormalizer.Rewrite(pattern, rootIdentifier.Type);
+            var context = new ReachabilityAnalysisContext(previousCases, patternIndex, builder, rootIdentifier, syntax, diagnostics);
 
-            SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(normalizedPattern, builder._conversions);
-            if (setOfOrCases.IsDefault)
+            try
             {
-                return;
+                var normalizedPattern = PatternNormalizer.Rewrite(pattern, rootIdentifier.Type);
+                analyze(normalizedPattern, context);
+
+                // The set of redundancies in pattern `A` is identical to the set of redundancies in pattern `not A`
+                // but our method for detecting redundancies only detects those in `or` cases (which we bring to the top after normalization).
+                // By analyzing `not A` too we can report more redundancies.
+                // For example: `if (o is not (<any pattern including a redundancy>))`, `if (i is 42 and not 43)` (which is the negation of `not 42 or 43`)
+                var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, pattern.InputType, narrowedType: pattern.InputType);
+                var normalizedNegatedPattern = PatternNormalizer.Rewrite(negated, rootIdentifier.Type);
+                analyze(normalizedNegatedPattern, context);
             }
-
-            // We construct a DAG and analyze reachability of branches once per `or` sequence
-            Debug.Assert(!setOfOrCases.IsDefault);
-            foreach (SetOfOrCases orCases in setOfOrCases.Set)
+            catch (InsufficientExecutionStackException)
             {
-                using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Cases.Count);
-                var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                populateStateForCases(builder, rootIdentifier, previousCases, patternIndex, orCases, labelsToIgnore, syntax, ref casesBuilder.AsRef());
-                BoundDecisionDag dag = builder.MakeBoundDecisionDag(syntax, ref casesBuilder.AsRef());
-
-                foreach (StateForCase @case in casesBuilder)
-                {
-                    if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
-                    {
-                        ErrorCode errorCode = detectNotOrPattern(@case.Syntax) ? ErrorCode.WRN_RedundantPattern : ErrorCode.HDN_RedundantPattern;
-                        diagnostics.Add(errorCode, @case.Syntax);
-                    }
-                }
-
-                labelsToIgnore.Free();
+                // We silently stop reporting diagnostics for redundant patterns
             }
 
             return;
 
-            static void populateStateForCases(DecisionDagBuilder builder, BoundDagTemp rootIdentifier, ArrayBuilder<StateForCase> previousCases, int patternIndex,
-                SetOfOrCases set, PooledHashSet<LabelSymbol> labelsToIgnore, SyntaxNode nodeSyntax, ref TemporaryArray<StateForCase> casesBuilder)
+            static void populateStateForCases(ArrayBuilder<BoundPattern> set, PooledHashSet<LabelSymbol> labelsToIgnore,
+                ref TemporaryArray<StateForCase> casesBuilder, ReachabilityAnalysisContext context)
             {
+                int patternIndex = context.PatternIndex;
+                var previousCases = context.PreviousCases;
                 for (int i = 0; i < patternIndex; i++)
                 {
                     casesBuilder.Add(previousCases[i]);
                 }
 
                 int index = patternIndex;
-                foreach ((BoundPattern pattern, SyntaxNode? syntax) in set.Cases)
+                foreach (BoundPattern pattern in set)
                 {
                     var label = new GeneratedLabelSymbol("orCase");
-                    SyntaxNode? diagSyntax = syntax;
-                    if (diagSyntax is null)
+                    SyntaxNode? diagSyntax = pattern.Syntax;
+                    if (pattern.WasCompilerGenerated)
                     {
                         labelsToIgnore.Add(label);
-                        diagSyntax = nodeSyntax;
+                        diagSyntax = context.Syntax;
                     }
 
                     Debug.Assert(diagSyntax is not null);
-                    casesBuilder.Add(builder.MakeTestsForPattern(++index, diagSyntax, rootIdentifier, pattern, whenClause: null, label: label));
+                    casesBuilder.Add(context.Builder.MakeTestsForPattern(++index, diagSyntax, context.RootIdentifier, pattern, whenClause: null, label: label));
                 }
             }
 
-            // We need to reduce the break introduced by flagging redundant patterns
+            // We need to reduce the break introduced by reporting redundant patterns
             // and we never want to affect people who express their patterns thoroughly (but correctly)
             // such as `switch { < 0 => -1, 0 => 0, > 0 => 1 }`
-            // So we're only reporting a warning for situations that syntactically look hazardous
-            // At the moment, we're only interested in patterns involved in a `not ... or ...` pattern
-
-            // If the pattern is on the right of an `or` pattern, we walk up and
-            // if any of the preceding patterns is a `not` pattern we've detected the error-prone not/or situation.
-            // For example: `not A or <redundant>` or `(A or not B) or <redundant>` or `not B or (A or <redundant>)`
+            // So we're only reporting a warning for situations that syntactically look hazardous.
+            // Others are reported as a hidden diagnostic.
+            // At the moment, we're only interested in patterns in an `or` pattern with a `not` in an early case of the `or`.
             static bool detectNotOrPattern(SyntaxNode syntax)
             {
 start:
-                syntax = unwrap(syntax);
+                syntax = enclosingParenthesizedOrSelf(syntax);
 
                 if (isRightOfOrPattern(syntax, out var binary)
                     && detectNotPatternOnLeftOfOrPattern(binary))
@@ -235,8 +236,8 @@ start:
                 }
 
                 Debug.Assert(syntax.Parent is not null);
-                if (isLeftOfOrPattern(syntax, out _)
-                    && isRightOfOrPattern(unwrap(syntax.Parent), out BinaryPatternSyntax? parentBinary)
+                if (isLeftOfBinaryPattern(syntax)
+                    && isRightOfOrPattern(enclosingParenthesizedOrSelf(syntax.Parent), out BinaryPatternSyntax? parentBinary)
                     && detectNotPatternOnLeftOfOrPattern(parentBinary))
                 {
                     return true;
@@ -249,6 +250,20 @@ start:
                     && patternClause.Parent is RecursivePatternSyntax recursive)
                 {
                     syntax = recursive;
+                    goto start;
+                }
+
+                // If the syntax is the whole list element pattern, we walk up to the list pattern.
+                // For example: `not A or [<redundant>, ...]`
+                if (syntax.Parent is ListPatternSyntax listPattern)
+                {
+                    syntax = listPattern;
+                    goto start;
+                }
+
+                if (syntax.Parent is SlicePatternSyntax slicePattern)
+                {
+                    syntax = slicePattern;
                     goto start;
                 }
 
@@ -266,15 +281,33 @@ start:
 
                 if (syntax is BinaryPatternSyntax binarySyntax && binarySyntax.Kind() == SyntaxKind.OrPattern)
                 {
-                    if (detectNotPatternInPattern(binarySyntax.Left))
+                    var stack = ArrayBuilder<BinaryPatternSyntax>.GetInstance();
+                    BinaryPatternSyntax? current = binarySyntax;
+                    do
                     {
+                        stack.Add(current);
+                        current = current.Left as BinaryPatternSyntax;
+                    }
+                    while (current is not null && current.Kind() == SyntaxKind.OrPattern);
+
+                    current = stack.Pop();
+                    if (detectNotPatternInPattern(current.Left))
+                    {
+                        stack.Free();
                         return true;
                     }
 
-                    if (detectNotPatternInPattern(binarySyntax.Right))
+                    do
                     {
-                        return true;
+                        if (detectNotPatternInPattern(current.Right))
+                        {
+                            stack.Free();
+                            return true;
+                        }
                     }
+                    while (stack.TryPop(out current));
+
+                    stack.Free();
                 }
 
                 return false;
@@ -294,18 +327,9 @@ start:
                 return false;
             }
 
-            static bool isLeftOfOrPattern(SyntaxNode syntax, [NotNullWhen(true)] out BinaryPatternSyntax? binaryPattern)
+            static bool isLeftOfBinaryPattern(SyntaxNode syntax)
             {
-                if (syntax.Parent is BinaryPatternSyntax foundBinaryPattern
-                    && foundBinaryPattern.Kind() == SyntaxKind.OrPattern
-                    && foundBinaryPattern.Left == syntax)
-                {
-                    binaryPattern = foundBinaryPattern;
-                    return true;
-                }
-
-                binaryPattern = null;
-                return false;
+                return syntax.Parent is BinaryPatternSyntax binaryPattern && binaryPattern.Left == syntax;
             }
 
             static bool detectNotPatternOnLeftOfOrPattern(BinaryPatternSyntax binarySyntax)
@@ -321,7 +345,7 @@ start:
                 }
 
                 Debug.Assert(binarySyntax.Parent is not null);
-                if (isRightOfOrPattern(unwrap(binarySyntax.Parent), out BinaryPatternSyntax? parentBinary)
+                if (isRightOfOrPattern(enclosingParenthesizedOrSelf(binarySyntax.Parent), out BinaryPatternSyntax? parentBinary)
                     && detectNotPatternOnLeftOfOrPattern(parentBinary))
                 {
                     return true;
@@ -330,7 +354,7 @@ start:
                 return false;
             }
 
-            static SyntaxNode unwrap(SyntaxNode syntax)
+            static SyntaxNode enclosingParenthesizedOrSelf(SyntaxNode syntax)
             {
                 while (syntax.Parent is ParenthesizedPatternSyntax parens)
                 {
@@ -339,100 +363,126 @@ start:
 
                 return syntax;
             }
-        }
 
-        /// <summary>
-        /// The purpose of this method is to bring `or` sequences to the top-level (so they can be used as separate cases).
-        /// Each set handles one `or`.
-        /// </summary>
-        private static SetsOfOrCases RewriteToSetsOfOrCases(BoundPattern? pattern, Conversions conversions)
-        {
-            return pattern switch
+            // Given a normalized pattern(so there are only `and` and `or` patterns at the root of the tree)
+            // we traverse the binary patterns building a set of cases and reporting reachability issues
+            // on that set of cases when applicable.
+            static void analyze(BoundPattern pattern, ReachabilityAnalysisContext context)
             {
-                BoundBinaryPattern binary => rewriteBinary(binary, conversions),
-                BoundRecursivePattern => default,
-                BoundListPattern => default,
-                BoundSlicePattern => default,
-                BoundITuplePattern => default,
-                BoundNegatedPattern => default,
-                BoundTypePattern => default,
-                BoundDeclarationPattern => default,
-                BoundConstantPattern => default,
-                BoundDiscardPattern => default,
-                BoundRelationalPattern => default,
-                null => default,
-                _ => throw ExceptionUtilities.UnexpectedValue(pattern)
-            };
+                if (pattern is BoundBinaryPattern binaryPattern)
+                {
+                    var currentCases = ArrayBuilder<BoundPattern>.GetInstance();
+                    analyzeBinary(currentCases, binaryPattern, wrapIntoParentAndPattern: null, context);
+                    currentCases.Free();
+                    return;
+                }
 
-            static SetsOfOrCases rewriteBinary(BoundBinaryPattern binaryPattern, Conversions conversions)
+                return;
+            }
+
+            static void analyzePattern(ArrayBuilder<BoundPattern> currentCases, BoundPattern pattern, Func<BoundPattern, BoundPattern>? wrapIntoParentAndPattern, ReachabilityAnalysisContext context)
             {
-                SetsOfOrCases result = default;
+                if (pattern is BoundBinaryPattern nestedBinary)
+                {
+                    analyzeBinary(currentCases, nestedBinary, wrapIntoParentAndPattern, context);
+                }
+            }
 
+            static void analyzeBinary(ArrayBuilder<BoundPattern> currentCases, BoundBinaryPattern binaryPattern, Func<BoundPattern, BoundPattern>? wrapIntoParentAndPattern, ReachabilityAnalysisContext context)
+            {
                 if (binaryPattern.Disjunction)
                 {
                     var patterns = ArrayBuilder<BoundPattern>.GetInstance();
                     addPatternsFromOrTree(binaryPattern, patterns);
 
-                    // In `A1 or ... or An`, we produce an expansion set: `case A1`, ..., `case An`
-                    SetOfOrCases resultOrSet1 = result.StartNewOrCases();
-                    var inputType = binaryPattern.InputType;
+                    // For `A1 or ... or An`, we analyze: `case A1`, ..., `case An` (with wrapping indicated by caller)
+                    int savedStackCount = currentCases.Count;
                     foreach (var pattern in patterns)
                     {
-                        resultOrSet1.Add(pattern, pattern.Syntax);
+                        var wrappedPattern = wrapIntoParentAndPattern?.Invoke(pattern) ?? pattern;
+                        currentCases.Add(wrappedPattern);
                     }
+                    checkReachability(currentCases, context);
+                    currentCases.RemoveRange(index: savedStackCount, length: currentCases.Count - savedStackCount);
 
-                    // In `A1 or ... or An or B or ...` where `B` has an expansion set: `case B1`, ..., `case Bn`
-                    // we produce an expansion set: `case A1:`, ... `case An:`, `case B1:`, ... `case Bn:`
+                    // In `A1 or ... or Ai or B or ...` where `B` has an expansion set: `case B1`, ..., `case Bn`
+                    // we produce an expansion set: `case A1:`, ... `case Ai:`, `case B1:`, ... `case Bn:`
                     for (int i = 0; i < patterns.Count; i++)
                     {
-                        BoundPattern pattern = patterns[i];
-                        using SetsOfOrCases setOfOrCases = RewriteToSetsOfOrCases(pattern, conversions);
-                        if (!setOfOrCases.IsDefault)
-                        {
-                            foreach (SetOfOrCases orSet in setOfOrCases.Set)
-                            {
-                                SetOfOrCases resultOrSet = result.StartNewOrCases();
-
-                                for (int j = 0; j < i; j++)
-                                {
-                                    resultOrSet.Add(patterns[j], syntax: null); // already checked reachability in the previous set
-                                }
-
-                                foreach ((BoundPattern resultPattern, SyntaxNode? syntax) in orSet.Cases)
-                                {
-                                    resultOrSet.Add(resultPattern, syntax);
-                                }
-                            }
-                        }
+                        analyzePattern(currentCases, patterns[i], wrapIntoParentAndPattern, context);
+                        currentCases.Add(patterns[i]);
                     }
+                    currentCases.RemoveRange(index: savedStackCount, length: currentCases.Count - savedStackCount);
 
                     patterns.Free();
                 }
                 else
                 {
-                    // In `A and B`, when found multiple `or` patterns in `A` to be expanded, we drop the `and B`
-                    result = RewriteToSetsOfOrCases(binaryPattern.Left, conversions);
-
-                    using SetsOfOrCases rightSetOfOrCases = RewriteToSetsOfOrCases(binaryPattern.Right, conversions);
-                    if (!rightSetOfOrCases.IsDefault)
+                    var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+                    BoundBinaryPattern? current = binaryPattern;
+                    do
                     {
-                        // In `A and B`, when found multiple `or` patterns in `B` to be expanded
-                        // For each such nested expansion, we'll produce a `A and ...` expansion
-                        foreach (SetOfOrCases expandedRightSet in rightSetOfOrCases.Set)
+                        stack.Push(current);
+                        current = current.Left as BoundBinaryPattern;
+                    }
+                    while (current != null && !current.Disjunction);
+
+                    current = stack.Pop();
+                    // In `A and B and ...`, when we find multiple `or` patterns in `A` to be expanded, we'll produce those as cases (without the `and B and ...`)
+                    analyzePattern(currentCases, current.Left, wrapIntoParentAndPattern, context);
+
+                    do
+                    {
+                        // In `A and B`, when we find multiple `or` patterns in `B` to be expanded
+                        // for each such nested expansion, we'll produce a `A and <expansion>` case
+                        Func<BoundPattern, BoundPattern> newWrapIntoParentAndPattern = (BoundPattern newPattern) =>
                         {
-                            SetOfOrCases resultOrSet = result.StartNewOrCases();
-                            foreach ((BoundPattern rewrittenPattern, SyntaxNode? syntax) in expandedRightSet.Cases)
+                            var wrappedPattern = new BoundBinaryPattern(newPattern.Syntax, disjunction: false, current.Left, newPattern, current.InputType, newPattern.NarrowedType);
+                            var result = wrapIntoParentAndPattern?.Invoke(wrappedPattern) ?? wrappedPattern;
+
+                            if (newPattern.WasCompilerGenerated)
                             {
-                                var rewrittenBinary = new BoundBinaryPattern(binaryPattern.Syntax, disjunction: false, binaryPattern.Left, rewrittenPattern, binaryPattern.InputType, rewrittenPattern.NarrowedType);
-                                resultOrSet.Add(rewrittenBinary, syntax);
+                                result = result.MakeCompilerGenerated();
                             }
-                        }
+
+                            return result;
+                        };
+
+                        analyzePattern(currentCases, current.Right, newWrapIntoParentAndPattern, context);
+                    }
+                    while (stack.TryPop(out current));
+
+                    stack.Free();
+                }
+            }
+
+            static void checkReachability(ArrayBuilder<BoundPattern> orCases, ReachabilityAnalysisContext context)
+            {
+                // We construct a set of cases using the previous cases from context and the current/given cases.
+                // Cases for patterns marked as compiler-generated will be ignored (not reported if unreachable).
+                // We then construct a DAG and analyze reachability of branches.
+#if DEBUG
+                string printedOrCases = dump(orCases);
+#endif
+                using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Count);
+                var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
+                populateStateForCases(orCases, labelsToIgnore, ref casesBuilder.AsRef(), context);
+                BoundDecisionDag dag = context.Builder.MakeBoundDecisionDag(context.Syntax, ref casesBuilder.AsRef());
+
+                foreach (StateForCase @case in casesBuilder)
+                {
+                    if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
+                    {
+                        ErrorCode errorCode = detectNotOrPattern(@case.Syntax) ? ErrorCode.WRN_RedundantPattern : ErrorCode.HDN_RedundantPattern;
+                        context.Diagnostics.Add(errorCode, @case.Syntax);
                     }
                 }
 
-                return result;
+                labelsToIgnore.Free();
             }
 
+            // If given an `or` pattern, gather all the patterns in this `or` sequence
+            // If given an `and` pattern, gather all the patterns in this `and` sequence
             static void addPatternsFromOrTree(BoundPattern pattern, ArrayBuilder<BoundPattern> builder)
             {
                 if (pattern is BoundBinaryPattern { Disjunction: true } orPattern)
@@ -465,65 +515,19 @@ start:
                     builder.Add(pattern);
                 }
             }
-        }
-
-        /// <summary>
-        /// When there are multiple `or` patterns, such as `(A or B) and (C or D)`
-        /// we'll expand then two sets:
-        /// 1. { `case A`, `case B` }
-        /// 2. { `case (A or B) and C`, `case (A or B) and D` }
-        /// Each set will be analyzed for reachability.
-        /// A `default` <see cref="SetsOfOrCases"/> indicates that no `or` patterns were found (so there are no expansions).
-        /// </summary>
-        private struct SetsOfOrCases : IDisposable
-        {
-            public ArrayBuilder<SetOfOrCases>? Set;
-
-            [MemberNotNullWhen(false, nameof(Set))]
-            public bool IsDefault => Set is null;
-
-            internal SetOfOrCases StartNewOrCases()
-            {
-                var orCases = new SetOfOrCases();
-                Set ??= ArrayBuilder<SetOfOrCases>.GetInstance();
-                Set.Add(orCases);
-                return orCases;
-            }
-
-            public void Dispose()
-            {
-                if (Set is not null)
-                {
-                    foreach (SetOfOrCases set in Set)
-                    {
-                        set.Dispose();
-                    }
-
-                    Set.Free();
-                }
-            }
 
 #if DEBUG
-            public string Dump()
+            static string dump(ArrayBuilder<BoundPattern> orCases)
             {
-                if (IsDefault)
-                    return "DEFAULT";
-
                 var builder = new StringBuilder();
-                foreach (var set in Set)
+                foreach (var pattern in orCases)
                 {
-                    builder.AppendLine("Set:");
-                    foreach (var @case in set.Cases)
+                    builder.Append(pattern.DumpSource());
+                    if (!pattern.WasCompilerGenerated)
                     {
-                        builder.Append(@case.pattern.DumpSource());
-                        if (@case.syntax is { } syntax)
-                        {
-                            builder.Append("  => ");
-                            builder.Append(syntax.ToString());
-                            builder.Append(", ");
-                        }
-
-                        builder.AppendLine();
+                        builder.Append("  => ");
+                        builder.Append(pattern.Syntax.ToString());
+                        builder.Append(", ");
                     }
 
                     builder.AppendLine();
@@ -534,32 +538,6 @@ start:
 #endif
         }
 
-        /// <summary>
-        /// When we have a single sequence of `or` patterns, such as `A or B or C`
-        /// we can expand it to separate cases: `A`, `B` and `C`.
-        /// This composes. So a nested `or` sequence can also be expanded: `X and (A or B or C)`
-        /// can be expanded to `X and A`, `X and B` and `X and C`.
-        /// </summary>
-        private struct SetOfOrCases : IDisposable
-        {
-            public ArrayBuilder<(BoundPattern pattern, SyntaxNode? syntax)> Cases;
-
-            public SetOfOrCases()
-            {
-                Cases = ArrayBuilder<(BoundPattern pattern, SyntaxNode? syntax)>.GetInstance();
-            }
-
-            public void Add(BoundPattern pattern, SyntaxNode? syntax)
-            {
-                Cases.Add((pattern, pattern.WasCompilerGenerated ? null : syntax));
-            }
-
-            public void Dispose()
-            {
-                Cases.Free();
-            }
-        }
-
         // The purpose of this rewriter is to push `not` patterns down the pattern tree and
         // pull all the `and` and `or` patterns up the pattern tree.
         // It needs to expand composite patterns in the process.
@@ -567,6 +545,14 @@ start:
         //
         // For example, given `not { Prop: 42 or 43 }`
         // it produces `not null or ({ Prop: not 42 } and { Prop: not 43 })`.
+        //
+        // When visiting a pattern, the caller indicates:
+        // - whether the pattern should be negated,
+        // - whether the evaluations yieled by the visit will be combined in `or` or `and`,
+        // - how visited patterns should be wrapped before being placed in the eval sequence.
+        //
+        // A Visit will push single patterns (operands) and binary operations onto the eval sequence.
+        // Once we're done visiting, the eval sequence will be converted back into a pattern.
         //
         // A Visit should produce an eval result using the original InputType. When adjustments are needed,
         //   that is the responsibility of the caller of Visit.
@@ -806,22 +792,15 @@ start:
                 _expectingOperandOfDisjunction = disjunction;
 
                 current = stack.Pop();
-                Debug.Assert((current.Left is BoundBinaryPattern binary && binary.Disjunction != node.Disjunction) || current.Left is not BoundBinaryPattern);
-
-                bool skippedAllLeft = true;
+                Debug.Assert(!(current.Left is BoundBinaryPattern binary && binary.Disjunction == node.Disjunction));
 
                 int startOfLeft = _evalSequence.Count;
                 Visit(current.Left);
                 int endOfLeft = _evalSequence.Count - 1;
 
-                if (startOfLeft <= endOfLeft)
-                {
-                    skippedAllLeft = false;
-                }
-
                 do
                 {
-                    if (skippedAllLeft && stack.IsEmpty)
+                    if (endOfLeft < startOfLeft && stack.IsEmpty)
                     {
                         _expectingOperandOfDisjunction = saveExpectingOperandOfDisjunction;
                     }
@@ -830,18 +809,12 @@ start:
                     Visit(current.Right);
                     int endOfRight = _evalSequence.Count - 1;
 
-                    if (!skippedAllLeft && startOfRight <= endOfRight)
+                    if (endOfLeft >= startOfLeft && startOfRight <= endOfRight)
                     {
-                        PushBinaryOperation(node.Syntax, endOfLeft, disjunction);
+                        PushBinaryOperation(current.Syntax, endOfLeft, disjunction);
                     }
 
-                    startOfLeft = startOfRight;
                     endOfLeft = endOfRight;
-
-                    if (startOfLeft <= endOfLeft)
-                    {
-                        skippedAllLeft = false;
-                    }
                 }
                 while (stack.TryPop(out current));
 
@@ -983,7 +956,17 @@ start:
                         inputType, inputType);
                 }
 
-                Debug.Assert(pattern is BoundConstantPattern or BoundRelationalPattern or BoundITuplePattern or BoundListPattern);
+                if (pattern is BoundConstantPattern constantPattern)
+                {
+                    return constantPattern.Update(constantPattern.Value, constantPattern.ConstantValue, inputType, inputType);
+                }
+
+                if (pattern is BoundRelationalPattern relationalPattern)
+                {
+                    return relationalPattern.Update(relationalPattern.Relation, relationalPattern.Value, relationalPattern.ConstantValue, inputType, relationalPattern.NarrowedType);
+                }
+
+                Debug.Assert(pattern is BoundITuplePattern or BoundListPattern);
 
                 // Produce `PatternInputType and pattern` given a new input type
 
@@ -1001,22 +984,35 @@ start:
                 return result;
             }
 
-            // If the type of the declaration pattern implies a meaningful type test
-            // then we keep it.
-            // Otherwise, we push a discard.
+            // Declaration patterns should never be marked as redundant.
+            // But we want to keep the type portion of the test, if there is one.
             public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
             {
-                TryPushOperand(NegateIfNeeded(MakeDiscardPattern(node).MakeCompilerGenerated()));
+                BoundPattern result;
+                if (node.IsVar)
+                {
+                    result = MakeDiscardPattern(node).MakeCompilerGenerated();
+                }
+                else
+                {
+                    Debug.Assert(node.DeclaredType.Type is not null);
+
+                    result = new BoundTypePattern(node.Syntax,
+                        new BoundTypeExpression(node.Syntax, aliasOpt: null, node.DeclaredType.Type),
+                        isExplicitNotNullTest: false, node.InputType, node.NarrowedType).MakeCompilerGenerated();
+                }
+
+                TryPushOperand(NegateIfNeeded(result));
                 return null;
             }
 
             public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
             {
                 // If we're starting with `Type (D1, D2, ...) { Prop1: P1, Prop2: P2, ... } x`
-                // - if we are not negating, we can expand it to 
-                //   `Type and Type (D1, _, ...) and Type (_, D2, ...) and Type { Prop1: P1 } and Type { Prop2: P2 } ...` 
+                // - if we are not negating, we can expand it to
+                //   `Type and Type (D1, _, ...) and Type (_, D2, ...) and Type { Prop1: P1 } and Type { Prop2: P2 } ...`
                 //
-                // - if we are negating, we can expand it to 
+                // - if we are negating, we can expand it to
                 //   `not Type or Type (not D1, _, ...) or Type (_, not D2, ...) or Type { Prop1: not P1 } or Type { Prop2: not P2 } or ...`
                 //   and the `and` and `or` patterns in the sub-patterns can then be lifted out further.
                 //   For example, if `not D1` resolves to `E1 or F1`, the `Type (not D1, _, ...)` component can be normalized to
@@ -1042,14 +1038,16 @@ start:
                     {
                         // `null`
                         BoundConstantPattern nullPattern = new BoundConstantPattern(node.Syntax,
-                            new BoundLiteral(node.Syntax, constantValueOpt: ConstantValue.Null, type: null, hasErrors: false),
+                            new BoundLiteral(node.Syntax, constantValueOpt: ConstantValue.Null, type: node.InputType, hasErrors: false),
                             ConstantValue.Null, node.InputType, node.InputType, hasErrors: false);
 
                         if (!isEmptyPropertyPattern)
                         {
                             nullPattern = nullPattern.MakeCompilerGenerated();
                         }
-
+                        // TODO2 if this is always compiler generated, then
+                        // TODO2 add test for always compiler generated vs. never compiler generated
+                        // TODO2 we could remember the position and mark as compiler generated after the fact
                         TryPushOperand(nullPattern);
                     }
                 }
@@ -1060,6 +1058,10 @@ start:
                     {
                         // `Type`
                         TryPushOperand(new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, node.InputType, node.NarrowedType, node.HasErrors));
+                    }
+                    else if (isEmptyPropertyPattern)
+                    {
+                        TryPushOperand(node); // TODO2
                     }
                 }
 
@@ -1138,14 +1140,7 @@ start:
                 if (_evalSequence.Count - 1 < startOfLeft)
                 {
                     // Everything was skipped
-                    if (node.Variable is null)
-                    {
-                        TryPushOperand(node);
-                    }
-                    else
-                    {
-                        TryPushOperand(MakeDefaultPattern(node.Syntax, node.InputType));
-                    }
+                    TryPushOperand(MakeDefaultPattern(node.Syntax, node.InputType));
                 }
 
                 return null;
@@ -1279,7 +1274,7 @@ start:
                 // If we're starting with `[L1, L2, ...]`
                 // - if we are not negating, we can expand it to `[L1, _, ...] and [_, L2, ...] and ...`
                 //   and the `and` and `or` patterns in the element patterns can then be lifted out further.
-                // 
+                //
                 // - if we are negating, we can expand it to `null or not [_, _, ...] or [not L1, _, ...] or [_, not L2, ...] or ...`
                 //   and the `and` and `or` patterns in the resulting element patterns can then be lifted out further.
 
@@ -1350,6 +1345,8 @@ start:
                     Debug.Assert(slice.Pattern is not null);
 
                     newPattern = WithInputTypeCheckIfNeeded(newPattern, slice.Pattern.InputType);
+                    bool wasCompilerGenerated = newPattern.WasCompilerGenerated;
+
                     newPattern = new BoundSlicePattern(newPattern.Syntax, newPattern, slice.IndexerAccess,
                         slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, slice.InputType, slice.NarrowedType);
 
@@ -1360,7 +1357,7 @@ start:
                         listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
                         listPattern.InputType, listPattern.NarrowedType);
 
-                    if (newPattern.WasCompilerGenerated)
+                    if (wasCompilerGenerated)
                     {
                         newList = newList.MakeCompilerGenerated();
                     }

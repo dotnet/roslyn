@@ -6940,7 +6940,7 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and { Prop: var _ and {} and var x }: return x; // 1, 2
+            case var _ and {} and { Prop: var _ and {} and var x }: return x; // 1
         }
     }
     public R M2()
@@ -6948,7 +6948,7 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and { Prop: var _ and {} and R x }: return x; // 3, 4
+            case var _ and {} and { Prop: var _ and {} and R x }: return x; // 2
         }
     }
     public R M3()
@@ -6956,7 +6956,7 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // 5, 6, 7
+            case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // 3
         }
     }
     public R M4()
@@ -6964,7 +6964,7 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // 8, 9, 10
+            case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // 4
         }
     }
     public R M5()
@@ -6972,7 +6972,7 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and var (x, y): return x; // 11, 12
+            case var _ and {} and var (x, y): return x; // 5
         }
     }
     public R M6()
@@ -6980,7 +6980,7 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and { } x: return x; // 13, 14
+            case var _ and {} and { } x: return x; // 6
         }
     }
     public R M7()
@@ -6988,58 +6988,31 @@ public class C
         R outer = stackalloc int[100];
         switch (outer)
         {
-            case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // 15, 16, 17
+            case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // 7
         }
     }
 }
 ").VerifyDiagnostics(
-                // (16,53): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(16, 53),
                 // (16,76): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // 1, 2
+                //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 76),
-                // (24,53): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(24, 53),
                 // (24,74): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // 3, 4
+                //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 74),
-                // (32,46): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(32, 46),
-                // (32,70): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(32, 70),
                 // (32,92): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // 5, 6, 7
+                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 92),
-                // (40,46): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // 8, 9, 10
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(40, 46),
-                // (40,68): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // 8, 9, 10
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(40, 68),
                 // (40,88): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // 8, 9, 10
+                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 88),
-                // (48,39): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and var (x, y): return x; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(x, y)").WithLocation(48, 39),
                 // (48,54): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and var (x, y): return x; // 11, 12
+                //             case var _ and {} and var (x, y): return x; // 5
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 54),
                 // (56,49): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and { } x: return x; // 13, 14
+                //             case var _ and {} and { } x: return x; // 6
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 49),
-                // (64,46): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // 15, 16, 17
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(64, 46),
-                // (64,66): hidden CS9271: The pattern is redundant.
-                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // 15, 16, 17
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(64, 66),
                 // (64,86): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // 15, 16, 17
+                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // 7
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 86)
                 );
         }

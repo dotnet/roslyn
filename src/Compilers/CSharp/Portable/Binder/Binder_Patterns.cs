@@ -1807,10 +1807,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, BindingDiagnosticBag diagnostics)
                     {
+                        Debug.Assert(candidates.Count >= 2);
                         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                        TypeSymbol? bestSoFar = LeastSpecificType(binder.Conversions, candidates, ref useSiteInfo);
+                        TypeSymbol? bestSoFar = candidates[0];
+                        // first pass: select a candidate for which no other has been shown to be an improvement.
+                        for (int i = 1, n = candidates.Count; i < n; i++)
+                        {
+                            TypeSymbol candidate = candidates[i];
+                            bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo) ?? bestSoFar;
+                        }
+                        // second pass: check that it is no more specific than any candidate.
+                        for (int i = 0, n = candidates.Count; i < n; i++)
+                        {
+                            TypeSymbol candidate = candidates[i];
+                            TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo);
+                            if (spoiler is null)
+                            {
+                                bestSoFar = null;
+                                break;
+                            }
+
+                            // Our specificity criteria are transitive
+                            Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
+                        }
+
                         diagnostics.Add(node, useSiteInfo);
                         return bestSoFar;
+                    }
+
+                    // Given a candidate least specific type so far, attempt to refine it with a possibly less specific candidate.
+                    TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                    {
+                        if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            // When the types are equivalent, merge them.
+                            return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
+                        }
+                        else if (binder.Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
+                        {
+                            // When there is an implicit reference conversion from T to U, U is less specific
+                            return possiblyLessSpecificCandidate;
+                        }
+                        else if (binder.Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
+                        {
+                            // when there is a boxing conversion from T to U, U is less specific.
+                            return possiblyLessSpecificCandidate;
+                        }
+                        else
+                        {
+                            // We have no improved candidate to offer.
+                            return null;
+                        }
                     }
                 }
                 else
@@ -1836,58 +1883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     candidates.Add(pat.NarrowedType);
                 }
             }
-        }
 
-        internal static TypeSymbol? LeastSpecificType(Conversions conversions, ArrayBuilder<TypeSymbol> candidates, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            Debug.Assert(candidates.Count >= 2);
-            TypeSymbol? bestSoFar = candidates[0];
-            // first pass: select a candidate for which no other has been shown to be an improvement.
-            for (int i = 1, n = candidates.Count; i < n; i++)
-            {
-                TypeSymbol candidate = candidates[i];
-                bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo, conversions) ?? bestSoFar;
-            }
-            // second pass: check that it is no more specific than any candidate.
-            for (int i = 0, n = candidates.Count; i < n; i++)
-            {
-                TypeSymbol candidate = candidates[i];
-                TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo, conversions);
-                if (spoiler is null)
-                {
-                    bestSoFar = null;
-                    break;
-                }
-
-                // Our specificity criteria are transitive
-                Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
-            }
-
-            return bestSoFar;
-
-            static TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, Conversions conversions)
-            {
-                if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
-                {
-                    // When the types are equivalent, merge them.
-                    return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
-                }
-                else if (conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
-                {
-                    // When there is an implicit reference conversion from T to U, U is less specific
-                    return possiblyLessSpecificCandidate;
-                }
-                else if (conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
-                {
-                    // when there is a boxing conversion from T to U, U is less specific.
-                    return possiblyLessSpecificCandidate;
-                }
-                else
-                {
-                    // We have no improved candidate to offer.
-                    return null;
-                }
-            }
         }
     }
 }

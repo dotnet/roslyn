@@ -2946,9 +2946,6 @@ class X
             // 0.cs(14,31): hidden CS9271: The pattern is redundant.
             //         _ = a is [..{ Length: > bad }];
             Diagnostic(ErrorCode.HDN_RedundantPattern, "> bad").WithLocation(14, 31),
-            // 0.cs(20,17): hidden CS9271: The pattern is redundant.
-            //             [.. { Length: not bad}]  => 2, 
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: not bad}").WithLocation(20, 17),
             // 0.cs(28,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             [.. { Length: not < bad}]  => 2,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[.. { Length: not < bad}]").WithLocation(28, 13));
@@ -5273,70 +5270,70 @@ class C
         {
             null or { Length: not 1 } => 0,
             [.. null] => 0,
-            [.. [null]] => 0, // 1, 2
-            [not null] => 0, // 3
+            [.. [null]] => 0,
+            [not null] => 0, // 1
         };
 
         _ = this switch // didn't test for [.. null] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
-            [.. [null]] => 0, // 4
-            [not null] => 0, // 5
+            [.. [null]] => 0,
+            [not null] => 0, // 2
         };
 
-        _ = this switch // didn't test for [.. [not null]] // 6
+        _ = this switch // didn't test for [.. [not null]] // 3
         {
             null or { Length: not 1 } => 0,
             [.. [null]] => 0,
         };
 
-        _ = this switch // didn't test for [.. [not null]] // 7
+        _ = this switch // didn't test for [.. [not null]] // 4
         {
             null or { Length: not 1 } => 0,
             [.. null] => 0,
             [.. [null]] => 0,
         };
 
-        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 8
+        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 5
         {
             null or { Length: not 1 } => 0,
-            [.. [not null]] => 0, // 9
+            [.. [not null]] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 10
+        _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 6
         {
             null or { Length: not 4 } => 0,
-            [_, .. [_, not null], _] => 0, // 11
+            [_, .. [_, not null], _] => 0,
         };
 
         _ = this switch // exhaustive
         {
             null or { Length: not 4 } => 0,
-            [_, .. [_, _], _] => 0, // 12
+            [_, .. [_, _], _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _] // 13
+        _ = this switch // didn't test for [_, .. [_, null], _] // 7
         {
             null or { Length: not 4 } => 0,
-            [_, .. null or [_, not null], _] => 0, // 14, 15
+            [_, .. null or [_, not null], _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _, _] // 16
+        _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
         {
             null or { Length: not 5 } => 0,
-            [_, .. null or [_, not null], _, _] => 0, // 17, 18
+            [_, .. null or [_, not null], _, _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null, _], _] // 19
+        _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
         {
             null or { Length: not 5 } => 0,
-            [_, .. null or [_, not null, _], _] => 0, // 20, 21
+            [_, .. null or [_, not null, _], _] => 0,
         };
 
         _ = this switch // didn't test for [.. null, _] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
-            [.. { Length: 1 }] => 0, // 22
+            [.. { Length: 1 }] => 0, // 10
         };
     }
 }
@@ -5344,71 +5341,35 @@ class C
         // Note: we don't try to explain nested slice patterns right now so all these just produce a fallback example
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // 0.cs(16,17): hidden CS9271: The pattern is redundant.
-            //             [.. [null]] => 0, // 1, 2
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[null]").WithLocation(16, 17),
-            // 0.cs(16,17): hidden CS9271: The pattern is redundant.
-            //             [.. [null]] => 0, // 1, 2
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[null]").WithLocation(16, 17),
             // 0.cs(17,18): hidden CS9271: The pattern is redundant.
-            //             [not null] => 0, // 3
+            //             [not null] => 0, // 1
             Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(17, 18),
-            // 0.cs(23,17): hidden CS9271: The pattern is redundant.
-            //             [.. [null]] => 0, // 4
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[null]").WithLocation(23, 17),
             // 0.cs(24,18): hidden CS9271: The pattern is redundant.
-            //             [not null] => 0, // 5
+            //             [not null] => 0, // 2
             Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(24, 18),
             // 0.cs(27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. [not null]] // 6
+            //         _ = this switch // didn't test for [.. [not null]] // 3
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18),
             // 0.cs(33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. [not null]] // 7
+            //         _ = this switch // didn't test for [.. [not null]] // 4
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(33, 18),
             // 0.cs(40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 8
+            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 5
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(40, 18),
-            // 0.cs(43,17): hidden CS9271: The pattern is redundant.
-            //             [.. [not null]] => 0, // 9
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[not null]").WithLocation(43, 17),
             // 0.cs(46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 10
+            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 6
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
-            // 0.cs(49,20): hidden CS9271: The pattern is redundant.
-            //             [_, .. [_, not null], _] => 0, // 11
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(49, 20),
-            // 0.cs(55,20): hidden CS9271: The pattern is redundant.
-            //             [_, .. [_, _], _] => 0, // 12
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, _]").WithLocation(55, 20),
             // 0.cs(58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _] // 13
+            //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
-            // 0.cs(61,28): hidden CS9271: The pattern is redundant.
-            //             [_, .. null or [_, not null], _] => 0, // 14, 15
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(61, 28),
-            // 0.cs(61,28): hidden CS9271: The pattern is redundant.
-            //             [_, .. null or [_, not null], _] => 0, // 14, 15
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(61, 28),
             // 0.cs(64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 16
+            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
-            // 0.cs(67,28): hidden CS9271: The pattern is redundant.
-            //             [_, .. null or [_, not null], _, _] => 0, // 17, 18
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(67, 28),
-            // 0.cs(67,28): hidden CS9271: The pattern is redundant.
-            //             [_, .. null or [_, not null], _, _] => 0, // 17, 18
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null]").WithLocation(67, 28),
             // 0.cs(70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 19
+            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18),
-            // 0.cs(73,28): hidden CS9271: The pattern is redundant.
-            //             [_, .. null or [_, not null, _], _] => 0, // 20, 21
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null, _]").WithLocation(73, 28),
-            // 0.cs(73,28): hidden CS9271: The pattern is redundant.
-            //             [_, .. null or [_, not null, _], _] => 0, // 20, 21
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, not null, _]").WithLocation(73, 28),
             // 0.cs(79,27): hidden CS9271: The pattern is redundant.
-            //             [.. { Length: 1 }] => 0, // 22
+            //             [.. { Length: 1 }] => 0, // 10
             Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(79, 27)
             );
     }
