@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Overloads Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Return, c), Sub() Return)
+            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Me.CurrentSignatureHelpPresenterSession.Dismiss(), c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendDownKey()
