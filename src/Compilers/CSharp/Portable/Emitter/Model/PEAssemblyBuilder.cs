@@ -95,7 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
 
-            builder.AddIfNotNull(_lazyEmbeddedAttribute);
+            if (_lazyEmbeddedAttribute is SynthesizedEmbeddedAttributeSymbol)
+            {
+                builder.Add(_lazyEmbeddedAttribute);
+            }
+
             builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
             builder.AddIfNotNull(_lazyRequiresLocationAttribute);
             builder.AddIfNotNull(_lazyParamCollectionAttribute);
