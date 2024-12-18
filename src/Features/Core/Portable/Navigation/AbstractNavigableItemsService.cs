@@ -49,7 +49,7 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
             var solution = project.Solution;
 
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
-            symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            symbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, symbol, cancellationToken);
 
             if (symbol is null or IErrorTypeSymbol)
                 return null;
@@ -62,7 +62,7 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
                     return null;
 
                 typeSymbol = await SymbolFinder.FindSourceDefinitionAsync(typeSymbol, solution, cancellationToken).ConfigureAwait(false) ?? typeSymbol;
-                typeSymbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, typeSymbol, cancellationToken).ConfigureAwait(false);
+                typeSymbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, typeSymbol, cancellationToken);
 
                 if (typeSymbol is null or IErrorTypeSymbol)
                     return null;

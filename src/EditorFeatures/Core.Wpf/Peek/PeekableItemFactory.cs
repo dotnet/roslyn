@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
             var solution = project.Solution;
             symbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken) ?? symbol;
-            symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            symbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, symbol, cancellationToken);
             if (symbol is null)
-                return ImmutableArray<IPeekableItem>.Empty;
+                return [];
 
             // if we mapped the symbol, then get the new project it is contained in.
             var originatingProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
