@@ -17,47 +17,44 @@ using Workspace = CodeAnalysis.Workspace;
 
 internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
 {
-    internal static void UpdateOptions(Workspace workspace, OmniSharpEditorConfigOptions editorConfigOptions)
+    internal static bool UpdateOptions(Workspace workspace, OmniSharpEditorConfigOptions editorConfigOptions)
     {
         try
         {
-            workspace.SetCurrentSolution(UpdateOptions, changeKind: WorkspaceChangeKind.SolutionChanged);
+            var oldSolution = workspace.CurrentSolution;
+            var oldFallbackOptions = oldSolution.FallbackAnalyzerOptions;
+            oldFallbackOptions.TryGetValue(LanguageNames.CSharp, out var csharpFallbackOptions);
 
-            Solution UpdateOptions(Solution oldSolution)
+            var builder = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
+            if (csharpFallbackOptions is not null)
             {
-                var oldFallbackOptions = oldSolution.FallbackAnalyzerOptions;
-                oldFallbackOptions.TryGetValue(LanguageNames.CSharp, out var csharpFallbackOptions);
-
-                var builder = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
-                if (csharpFallbackOptions is not null)
+                // copy existing option values:
+                foreach (var oldKey in csharpFallbackOptions.Keys)
                 {
-                    // copy existing option values:
-                    foreach (var oldKey in csharpFallbackOptions.Keys)
+                    if (csharpFallbackOptions.TryGetValue(oldKey, out var oldValue))
                     {
-                        if (csharpFallbackOptions.TryGetValue(oldKey, out var oldValue))
-                        {
-                            builder.Add(oldKey, oldValue);
-                        }
+                        builder.Add(oldKey, oldValue);
                     }
                 }
-
-                // add o# option values:
-                var lineFormattingOptions = editorConfigOptions.LineFormattingOptions;
-                AddOption(FormattingOptions2.UseTabs, lineFormattingOptions.UseTabs, builder);
-                AddOption(FormattingOptions2.TabSize, lineFormattingOptions.TabSize, builder);
-                AddOption(FormattingOptions2.IndentationSize, lineFormattingOptions.IndentationSize, builder);
-                AddOption(FormattingOptions2.NewLine, lineFormattingOptions.NewLine, builder);
-
-                var implementTypeOptions = editorConfigOptions.ImplementTypeOptions;
-                AddOption(ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)implementTypeOptions.InsertionBehavior, builder);
-                AddOption(ImplementTypeOptionsStorage.PropertyGenerationBehavior, (ImplementTypePropertyGenerationBehavior)implementTypeOptions.PropertyGenerationBehavior, builder);
-
-                var newFallbackOptions = oldFallbackOptions.SetItem(
-                    LanguageNames.CSharp,
-                    StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(builder.ToImmutable())));
-
-                return oldSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
             }
+
+            // add o# option values:
+            var lineFormattingOptions = editorConfigOptions.LineFormattingOptions;
+            AddOption(FormattingOptions2.UseTabs, lineFormattingOptions.UseTabs, builder);
+            AddOption(FormattingOptions2.TabSize, lineFormattingOptions.TabSize, builder);
+            AddOption(FormattingOptions2.IndentationSize, lineFormattingOptions.IndentationSize, builder);
+            AddOption(FormattingOptions2.NewLine, lineFormattingOptions.NewLine, builder);
+
+            var implementTypeOptions = editorConfigOptions.ImplementTypeOptions;
+            AddOption(ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)implementTypeOptions.InsertionBehavior, builder);
+            AddOption(ImplementTypeOptionsStorage.PropertyGenerationBehavior, (ImplementTypePropertyGenerationBehavior)implementTypeOptions.PropertyGenerationBehavior, builder);
+
+            var newFallbackOptions = oldFallbackOptions.SetItem(
+                LanguageNames.CSharp,
+                StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(builder.ToImmutable())));
+
+            var newSolution = oldSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
+            return workspace.TryApplyChanges(newSolution);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
         {
