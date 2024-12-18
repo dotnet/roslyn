@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class TryBlockTests
         <WpfFact>
         Public Async Function ApplyAfterTryStatement() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 Try
@@ -29,7 +29,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyForMatchedTryWithCatch() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 Try
@@ -42,7 +42,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyForMatchedTryWithoutCatch() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 Try
@@ -54,7 +54,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyNestedTryBlock() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Try
@@ -83,7 +83,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyNestedTryBlockWithCode() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Try
@@ -108,7 +108,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyMissingCatchInTryBlock() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         dim x = function(x)
@@ -123,7 +123,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidSyntax() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub S
         Dim x = try
@@ -134,12 +134,12 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidLocation() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub Try
 End Class",
                 caret:={1, -1})
-        End Sub
+            End Sub
 
     End Class
 End Namespace

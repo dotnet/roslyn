@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class DoLoopTests
         <WpfFact>
         Public Async Function TestApplyAfterUnmatchedDo() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
   Sub goo()
     Do
@@ -27,7 +27,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyNestedDo() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
   Sub goo()
     Do
@@ -50,7 +50,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyFromPairedDo() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Do
 Loop
@@ -60,7 +60,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyFromInsideDo() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Do
 End Class",
@@ -69,7 +69,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyFromDoOutsideMethod() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Do
 End Class",
@@ -78,7 +78,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyDoWhile() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
 Sub s
 Do While True
@@ -98,7 +98,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyNestedDoWhile() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub s
         do While True
@@ -121,7 +121,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyDoUntil() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub s
         do Until true
@@ -140,7 +140,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyNestedDoUntil() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub s
         do Until True
@@ -163,7 +163,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyDoWhileInBrokenSub() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub s
         Do While True
@@ -180,7 +180,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyDoUntilInvalidLocation01() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub s
     End Sub
@@ -191,20 +191,20 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyDoUntilInvalidLocation02() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Do",
                 caret:={0, -1})
         End Function
 
         <WpfFact>
         Public Async Function VerifyDoUntilInvalidLocation03() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub s
     End Sub
     do Until
 End Class",
                 caret:={3, -1})
-        End Sub
+            End Sub
     End Class
 End Namespace

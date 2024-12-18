@@ -112,11 +112,11 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
         Public Async Function EndConstruct_NotOnLineFollowingToken() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
 
 ",
                 caret:={2, 0})
-        End Sub
+            End Sub
     End Class
 End Namespace

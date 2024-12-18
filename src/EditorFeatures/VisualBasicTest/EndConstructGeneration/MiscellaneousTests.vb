@@ -16,14 +16,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class MiscellaneousTests
         <WpfFact>
         Public Async Function DoesNothingOnEmptyFile() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="",
                 caret:={0, -1})
         End Function
 
         <WpfFact>
         Public Async Function DoesNothingOnFileWithNoStatement() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="'Goo
 ",
                 caret:={0, -1})
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact>
         Public Async Function VerifyLineContinuationMark() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     function f(byval x as Integer,
                byref y as string) as string
@@ -44,7 +44,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyImplicitLineContinuation() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     function f() as string
         While 1 +
@@ -56,7 +56,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyNestedDo() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
         function f() as string
             for i = 1 to 10",
@@ -71,7 +71,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyMultilinesChar() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     sub s
         do :do
@@ -92,7 +92,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestVerifyInlineComments() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     sub s
         If true then 'here
@@ -112,7 +112,7 @@ End Class",
         <WpfFact>
         Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Task
             ' Try this without a newline at the end of the file
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C End Class",
                 caret:={0, "Class C".Length})
         End Function
@@ -120,11 +120,11 @@ End Class",
         <WpfFact>
         Public Async Function VerifyNotAppliedWithJunkAtEndOfLine2() As Task
             ' Try this with a newline at the end of the file
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C End Class
 ",
                 caret:={0, "Class C".Length})
-        End Sub
+            End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
         Public Async Function DeletesSelectedText() As Task

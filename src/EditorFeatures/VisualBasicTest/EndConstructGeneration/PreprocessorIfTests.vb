@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class PreprocessorIfTests
         <WpfFact>
         Public Async Function ApplyAfterHashIf() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="#If True Then",
                 beforeCaret:={0, -1},
                 after:="#If True Then
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact>
         Public Async Function DoNotApplyAfterHashIfWhenEndIfExists() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="#If True Then
 #End If",
                 caret:={0, -1})
@@ -27,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537976")>
         Public Async Function DoNotApplyAfterHashElseIfWhenEndIfExists() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="#If True Then
 #ElseIf True Then
 #End If",
                 caret:={1, -1})
-        End Sub
+            End Sub
     End Class
 End Namespace

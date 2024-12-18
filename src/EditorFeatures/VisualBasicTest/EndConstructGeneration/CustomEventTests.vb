@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class CustomEventTests
         <WpfFact>
         Public Async Function TestApplyAfterCustomEvent() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
     Custom Event goo As System.EventHandler
 End Class",
@@ -31,7 +31,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestApplyAfterCustomEventWithImportsStatement() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Imports System
 Class c1
     Custom Event goo As EventHandler
@@ -56,7 +56,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestApplyAfterCustomEventWithMissingDelegateType() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Imports System
 Class c1
     Custom Event goo As GooHandler
@@ -81,7 +81,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestApplyAfterCustomEventWithNonDelegateType() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Imports System
 Class c1
     Custom Event goo As Object
@@ -106,7 +106,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestApplyAfterCustomEventWithGenericType() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Imports System
 Class c1
     Custom Event goo As EventHandler(Of ConsoleCancelEventArgs)
@@ -131,7 +131,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyAfterCustomEventAlreadyTerminated() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Imports System
 Class c1
     Custom Event goo As EventHandler(Of ConsoleCancelEventArgs)

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class SelectBlockTests
         <WpfFact>
         Public Async Function TestApplyAfterSelectKeyword() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 Select goo
@@ -27,7 +27,7 @@ End Class",
 
         <WpfFact>
         Public Async Function TestApplyAfterSelectCaseKeyword() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 Select Case goo
@@ -46,7 +46,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyNestedDo() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Select Case 1
@@ -71,7 +71,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidSelectBlock() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         dim x = Select 1
@@ -82,7 +82,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidSelectBlock01() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub T
         Select 1
@@ -94,7 +94,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidSelectBlock02() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Select 1
 End Class",
@@ -103,7 +103,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyReCommitSelectBlock() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         Select Case 1
@@ -112,6 +112,6 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+            End Sub
     End Class
 End Namespace

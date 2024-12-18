@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class UsingBlockTests
         <WpfFact>
         Public Async Function ApplyAfterUsingStatement() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 Using variable
@@ -27,7 +27,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyForMatchedUsing() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 Using variable
@@ -39,7 +39,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyNestedUsing() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Using y
@@ -62,7 +62,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyUsingWithDelegate() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Using Func(of String, String)
@@ -81,7 +81,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyUsingAtInvalidSyntax() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub S
         Using x asf asdf
@@ -92,11 +92,11 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyUsingAtInvalidLocation() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Using x
 End Class",
                 caret:={1, -1})
-        End Sub
+            End Sub
     End Class
 End Namespace

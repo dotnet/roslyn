@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class WithBlockTests
         <WpfFact>
         Public Async Function ApplyAfterWithStatement() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 With variable
@@ -27,7 +27,7 @@ End Class",
 
         <WpfFact>
         Public Async Function DoNotApplyForMatchedWith() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 With variable
@@ -39,7 +39,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyNestedWith() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         With K
@@ -62,7 +62,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyWithFollowsCode() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         With K
@@ -83,7 +83,7 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidWithSyntax() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub S
         With using
@@ -94,11 +94,11 @@ End Class",
 
         <WpfFact>
         Public Async Function VerifyInvalidWithLocation() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     With True
 End Class",
                 caret:={1, -1})
-        End Sub
+            End Sub
     End Class
 End Namespace

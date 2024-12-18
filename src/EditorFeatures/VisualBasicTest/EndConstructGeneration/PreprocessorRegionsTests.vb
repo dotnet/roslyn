@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class PreprocessorRegionTests
         <WpfFact>
         Public Async Function ApplyAfterHashRegion() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="#Region ""Goo""",
                 beforeCaret:={0, -1},
                 after:="#Region ""Goo""
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact>
         Public Async Function ApplyAfterHashRegion1() As Task
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="#Region ""Goo""
 #Region ""Bar""
 #End Region",
@@ -34,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact>
         Public Async Function DoNotApplyAfterHashRegionWithoutStringConstant() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="#Region",
                 caret:={0, -1})
         End Function
 
         <WpfFact>
         Public Async Function DoNotApplyAfterHashRegionWhenEndRegionExists1() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="#Region ""Goo""
 #End Region",
                 caret:={0, -1})
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact>
         Public Async Function DoNotApplyAfterHashRegionWhenEndRegionExists2() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="#Region ""Goo""
 #Region ""Bar""
 #End Region
@@ -59,12 +59,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact>
         Public Async Function DoNotApplyAfterHashRegionWhenEndRegionExists3() As Task
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="#Region ""Goo""
 #Region ""Bar""
 #End Region
 #End Region",
                 caret:={1, -1})
-        End Sub
+            End Sub
     End Class
 End Namespace

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class CharacterTypingTests
         <WpfFact>
         Public Async Function TestXmlEndConstructApplied() As Task
-            VerifyEndConstructAppliedAfterChar(
+            Await VerifyEndConstructAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -33,7 +33,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlEndConstructNotApplied() As Task
-            VerifyEndConstructNotAppliedAfterChar(
+            Await VerifyEndConstructNotAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -56,7 +56,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlCommentEndConstructApplied() As Task
-            VerifyEndConstructAppliedAfterChar(
+            Await VerifyEndConstructAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -79,7 +79,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlCommentEndConstructNotApplied() As Task
-            VerifyEndConstructNotAppliedAfterChar(
+            Await VerifyEndConstructNotAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -102,7 +102,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlEmbeddedExpressionEndConstructApplied() As Task
-            VerifyEndConstructAppliedAfterChar(
+            Await VerifyEndConstructAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -125,7 +125,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlEmbeddedExpressionEndConstructNotApplied() As Task
-            VerifyEndConstructNotAppliedAfterChar(
+            Await VerifyEndConstructNotAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -148,7 +148,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlCDataEndConstructApplied() As Task
-            VerifyEndConstructAppliedAfterChar(
+            Await VerifyEndConstructAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -171,7 +171,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlCDataEndConstructNotApplied() As Task
-            VerifyEndConstructNotAppliedAfterChar(
+            Await VerifyEndConstructNotAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -194,7 +194,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlProcessingInstructionEndConstructApplied() As Task
-            VerifyEndConstructAppliedAfterChar(
+            Await VerifyEndConstructAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -217,7 +217,7 @@ End Class]]>
 
         <WpfFact>
         Public Async Function TestXmlProcessingInstructionEndConstructNotApplied() As Task
-            VerifyEndConstructNotAppliedAfterChar(
+            Await VerifyEndConstructNotAppliedAfterCharAsync(
                 before:=<Code>
                             <![CDATA[
 Class C1
@@ -236,7 +236,6 @@ End Class]]>
                        </Code>.NormalizedValue,
                 typedChar:="?"c,
                 endCaretPos:={3, 18})
-        End Sub
-
+        End Function
     End Class
 End Namespace
