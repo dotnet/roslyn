@@ -701,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     End If
 
                     If convertedType IsNot Nothing Then
-                        convertedType = If(Await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(False), convertedType)
+                        convertedType = If(SymbolFinder.FindSourceDefinition(convertedType, document.Project.Solution, cancellationToken), convertedType)
                     End If
 
                     If Equals(convertedType, symbol.ContainingType) Then
@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                         End If
 
                         If nodeType IsNot Nothing Then
-                            nodeType = If(Await SymbolFinder.FindSourceDefinitionAsync(nodeType, document.Project.Solution, cancellationToken).ConfigureAwait(False), nodeType)
+                            nodeType = If(SymbolFinder.FindSourceDefinition(nodeType, document.Project.Solution, cancellationToken), nodeType)
                         End If
 
                         If Equals(nodeType, symbol.ContainingType) Then
