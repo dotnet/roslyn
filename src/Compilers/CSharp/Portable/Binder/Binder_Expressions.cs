@@ -5199,18 +5199,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            foreach (var element in syntax.Elements)
-            {
-                if (element is KeyValuePairElementSyntax keyValuePairElement)
-                {
-                    MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, keyValuePairElement.ColonToken.GetLocation());
-
-                    // PROTOTYPE: Error for now.  Flesh this out when we do the binding for kvp elements.
-                    Error(diagnostics, ErrorCode.ERR_SyntaxError, keyValuePairElement.ColonToken, ",");
-                    return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType());
-                }
-            }
-
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
@@ -5224,6 +5212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    KeyValuePairElementSyntax kvpElementSyntax => @this.BindKeyValuePair(kvpElementSyntax, diagnostics),
                     SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
@@ -5284,6 +5273,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iteratorBody: null,
                     hasErrors: false);
             }
+        }
+
+        private BoundNode BindKeyValuePair(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
+            var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
+            var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
+            return new BoundKeyValuePairElement(syntax, key, value);
         }
 #nullable disable
 

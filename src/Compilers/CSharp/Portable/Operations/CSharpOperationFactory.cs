@@ -304,6 +304,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.KeyValuePairElement: // PROTOTYPE: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1242,6 +1243,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.None:
                     case CollectionExpressionTypeKind.Array:
                     case CollectionExpressionTypeKind.ArrayInterface:
+                    case CollectionExpressionTypeKind.DictionaryInterface:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                     case CollectionExpressionTypeKind.Span:
                         return null;
@@ -1257,9 +1259,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
-            return element is BoundCollectionExpressionSpreadElement spreadElement ?
-                CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false));
+            return element switch
+            {
+                BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
+                BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
+                _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))
+            };
         }
 
         private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)

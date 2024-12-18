@@ -3722,6 +3722,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             RemovePlaceholderReplacement(elementPlaceholder);
                         }
                         break;
+                    case BoundKeyValuePairElement keyValuePair:
+                        VisitRvalue(keyValuePair.Key);
+                        VisitRvalue(keyValuePair.Value);
+                        // PROTOTYPE: Check nullability from conversions of key and value.
+                        break;
                     default:
                         var elementExpr = (BoundExpression)element;
                         if (!targetElementType.HasType)
