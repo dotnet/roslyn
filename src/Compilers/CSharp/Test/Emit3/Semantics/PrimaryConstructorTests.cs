@@ -26,20 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
     public class PrimaryConstructorTests : CompilingTestBase
     {
-        /// <summary>
-        /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
-        /// </summary>
-        private const string CompilerLoweringPreserveAttributeDefinition = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class CompilerLoweringPreserveAttribute : Attribute
-    {
-        public CompilerLoweringPreserveAttribute() { }
-    }
-}
-";
-
         [Flags]
         public enum TestFlags
         {
@@ -22391,12 +22377,16 @@ public class Preserve1Attribute : Attribute { }
 [CompilerLoweringPreserve]
 [AttributeUsage(AttributeTargets.Parameter)]
 public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
 ";
 
             string source2 = @"
 public " + keyword + @" Test1(
     [Preserve1]
     [Preserve2]
+    [Preserve3]
     int P1)
 {
     int M1() => P1;
@@ -22530,12 +22520,16 @@ public class Preserve1Attribute : Attribute { }
 [CompilerLoweringPreserve]
 [AttributeUsage(AttributeTargets.Parameter)]
 public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
 ";
 
             string source2 = @"
 public " + keyword + @" Test1(
     [Preserve1]
     [Preserve2]
+    [Preserve3]
     int P1)
 {
     int M1() => P1;
@@ -22585,12 +22579,16 @@ public class Preserve1Attribute<T> : Attribute { }
 [CompilerLoweringPreserve]
 [AttributeUsage(AttributeTargets.Parameter)]
 public class Preserve2Attribute<T> : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute<T> : Attribute { }
 ";
 
             string source2 = @"
 public " + keyword + @" Test1(
     [Preserve1<int>]
     [Preserve2<int>]
+    [Preserve3<int>]
     int P1)
 {
     int M1() => P1;
