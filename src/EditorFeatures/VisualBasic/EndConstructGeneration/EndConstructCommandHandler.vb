@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
             ' End construct is not cancellable.
             Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
-            endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, CancellationToken.None)
+            endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, context.OperationContext.UserCancellationToken)
         End Sub
 
         Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 textView, subjectBuffer, document, cancellationToken).ConfigureAwait(True)
 
             Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
-            Dim result = endConstructService.TryDo(textView, subjectBuffer, vbLf(0), CancellationToken.None)
+            Dim result = endConstructService.TryDo(textView, subjectBuffer, vbLf(0), cancellationToken)
 
             If Not result Then
                 nextHandler()
