@@ -36,15 +36,18 @@ internal abstract class AbstractVsTextViewFilter(
 {
     int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
     {
+        (pbstrText, var result) = this.ThreadingContext.JoinableTaskFactory.Run(() => GetDataTipTextAsync(pSpan));
+        return result;
+    }
+
+    private async Task<(string pbstrText, int result)> GetDataTipTextAsync(TextSpan[] pSpan)
+    {
         try
         {
             if (pSpan == null || pSpan.Length != 1)
-            {
-                pbstrText = null;
-                return VSConstants.E_INVALIDARG;
-            }
+                return (null, VSConstants.E_INVALIDARG);
 
-            return GetDataTipTextImpl(pSpan, out pbstrText);
+            return await GetDataTipTextImplAsync(pSpan).ConfigureAwait(true);
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
         {
@@ -52,89 +55,76 @@ internal abstract class AbstractVsTextViewFilter(
         }
     }
 
-    protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
+    protected virtual async Task<(string pbstrText, int result)> GetDataTipTextImplAsync(TextSpan[] pSpan)
     {
         var subjectBuffer = WpfTextView.GetBufferContainingCaret();
         if (subjectBuffer == null)
-        {
-            pbstrText = null;
-            return VSConstants.E_FAIL;
-        }
+            return (null, VSConstants.E_FAIL);
 
-        return GetDataTipTextImpl(subjectBuffer, pSpan, out pbstrText);
+        return await GetDataTipTextImplAsync(subjectBuffer, pSpan).ConfigureAwait(true);
     }
 
-    protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, out string pbstrText)
+    protected async Task<(string pbstrText, int result)> GetDataTipTextImplAsync(ITextBuffer subjectBuffer, TextSpan[] pSpan)
     {
-        pbstrText = null;
-
         var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
 
         // TODO: broken in REPL
         if (vsBuffer == null)
-        {
-            return VSConstants.E_FAIL;
-        }
+            return (null, VSConstants.E_FAIL);
 
         using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetDataTipText, CancellationToken.None))
         {
-            pbstrText = null;
             if (pSpan == null || pSpan.Length != 1)
-            {
-                return VSConstants.E_INVALIDARG;
-            }
+                return (null, VSConstants.E_INVALIDARG);
 
             var result = VSConstants.E_FAIL;
-            string pbstrTextInternal = null;
+            string pbstrText = null;
 
             var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
-            uiThreadOperationExecutor.Execute(
+            using var context = uiThreadOperationExecutor.BeginExecute(
                 title: ServicesVSResources.Debugger,
                 defaultDescription: ServicesVSResources.Getting_DataTip_text,
                 allowCancellation: true,
-                showProgress: false,
-                action: context =>
+                showProgress: false);
+
+            IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
+            var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
+            var debugMode = new DBGMODE[1];
+
+            var cancellationToken = context.UserCancellationToken;
+            if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
             {
-                IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
-                var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
-                var debugMode = new DBGMODE[1];
+                var textSpan = pSpan[0];
 
-                var cancellationToken = context.UserCancellationToken;
-                if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
+                var textSnapshot = subjectBuffer.CurrentSnapshot;
+                var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                if (document != null)
                 {
-                    var textSpan = pSpan[0];
-
-                    var textSnapshot = subjectBuffer.CurrentSnapshot;
-                    var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                    if (document != null)
+                    var languageDebugInfo = document.Project.Services.GetService<ILanguageDebugInfoService>();
+                    if (languageDebugInfo != null)
                     {
-                        var languageDebugInfo = document.Project.Services.GetService<ILanguageDebugInfoService>();
-                        if (languageDebugInfo != null)
+                        var spanOpt = textSnapshot.TryGetSpan(textSpan);
+                        if (spanOpt.HasValue)
                         {
-                            var spanOpt = textSnapshot.TryGetSpan(textSpan);
-                            if (spanOpt.HasValue)
+                            // 'kind' is an lsp-only concept, so we don't want/need to include it here (especially
+                            // as it can be expensive to compute, and we don't want to block the UI thread).
+                            var dataTipInfo = await languageDebugInfo.GetDataTipInfoAsync(
+                                document, spanOpt.Value.Start, includeKind: false, cancellationToken).ConfigureAwait(true);
+                            if (!dataTipInfo.IsDefault)
                             {
-                                // 'kind' is an lsp-only concept, so we don't want/need to include it here (especially
-                                // as it can be expensive to compute, and we don't want to block the UI thread).
-                                var dataTipInfo = languageDebugInfo.GetDataTipInfoAsync(
-                                    document, spanOpt.Value.Start, includeKind: false, cancellationToken).WaitAndGetResult(cancellationToken);
-                                if (!dataTipInfo.IsDefault)
-                                {
-                                    var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
-                                    var textOpt = dataTipInfo.Text;
+                                var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
+                                var textOpt = dataTipInfo.Text;
 
-                                    pSpan[0] = resultSpan.ToVsTextSpan();
-                                    result = debugger.GetDataTipValue((IVsTextLines)vsBuffer, pSpan, textOpt, out pbstrTextInternal);
-                                }
+                                pSpan[0] = resultSpan.ToVsTextSpan();
+                                result = debugger.GetDataTipValue((IVsTextLines)vsBuffer, pSpan, textOpt, out pbstrText);
                             }
                         }
                     }
                 }
-            });
+            }
 
-            pbstrText = pbstrTextInternal;
-            return result;
+            return (pbstrText, result);
         }
     }
 
