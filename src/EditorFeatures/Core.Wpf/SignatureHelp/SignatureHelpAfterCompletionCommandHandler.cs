@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// down to those command handlers.     
     /// It is called after <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
     /// </summary>
-    [Export]
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
-    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    // Ensure roslyn comes after LSP to allow them to provide results.
-    // https://github.com/dotnet/roslyn/issues/42338
-    [Order(After = "LSP SignatureHelpCommandHandler")]
+    //[Export]
+    //[Export(typeof(ICommandHandler))]
+    //[ContentType(ContentTypeNames.RoslynContentType)]
+    //[Name(PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
+    //[Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
+    //// Ensure roslyn comes after LSP to allow them to provide results.
+    //// https://github.com/dotnet/roslyn/issues/42338
+    //[Order(After = "LSP SignatureHelpCommandHandler")]
     internal class SignatureHelpAfterCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
         IChainedCommandHandler<EscapeKeyCommandArgs>,
