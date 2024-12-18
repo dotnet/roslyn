@@ -40,7 +40,7 @@
         <!-- TODO until we figure out what is up with NetPrevious -->
         <NetPrevious>$(NetMinimum)</NetPrevious>
         <NetRoslyn>$(NetPrevious)</NetRoslyn>
-        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
+        <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
         <NetRoslynNext>$(NetPrevious)</NetRoslynNext>
@@ -53,7 +53,7 @@
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
       <PropertyGroup>
         <NetRoslyn>$(NetCurrent)</NetRoslyn>
-        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
+        <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
         <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
