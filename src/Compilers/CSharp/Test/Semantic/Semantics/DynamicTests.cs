@@ -11694,5 +11694,42 @@ public class C
 
             CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+class Test1
+{
+    dynamic M2<[Preserve1][Preserve2]T>(T x, dynamic y)
+    {
+        return y.M(x);
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
     }
 }
