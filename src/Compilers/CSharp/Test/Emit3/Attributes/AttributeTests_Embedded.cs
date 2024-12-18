@@ -210,7 +210,8 @@ class Test
                     }
                 }
 
-                class Test
+                [Microsoft.CodeAnalysis.Embedded]
+                public class Test
                 {
                     public static void Main()
                     {
@@ -224,7 +225,33 @@ class Test
                 }
                 """;
 
-            CompileAndVerify(code, targetFramework: TargetFramework.NetStandard20, expectedOutput: "M");
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.NetStandard20, expectedOutput: "M");
+            verifier.VerifyDiagnostics();
+
+            var reference = verifier.Compilation.EmitToImageReference();
+
+            var comp2 = CreateCompilation("""
+                Test.M(1);
+                """, references: [reference], targetFramework: TargetFramework.NetStandard20);
+
+            comp2.VerifyDiagnostics(
+                // (1,1): error CS0103: The name 'Test' does not exist in the current context
+                // Test.M(1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(1, 1));
+
+            comp2 = CreateCompilation("""
+                public class Test
+                {
+                    public static void M(in int p) {}
+                }
+                """, references: [reference], targetFramework: TargetFramework.NetStandard20);
+
+            CompileAndVerify(comp2, symbolValidator: module =>
+            {
+                var embeddedAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                Assert.NotNull(embeddedAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", embeddedAttribute.ToTestDisplayString());
+            }).VerifyDiagnostics();
         }
 
         [Fact]
