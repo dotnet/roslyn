@@ -166,7 +166,7 @@ public static partial class SymbolFinder
                             {
                                 foreach (var interfaceMember in interfaceType.GetMembers(symbol.Name))
                                 {
-                                    var sourceMethod = await FindSourceDefinitionAsync(interfaceMember, solution, cancellationToken).ConfigureAwait(false);
+                                    var sourceMethod = FindSourceDefinition(interfaceMember, solution, cancellationToken);
                                     var bestMethod = sourceMethod ?? interfaceMember;
 
                                     var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
@@ -373,7 +373,7 @@ public static partial class SymbolFinder
             var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
             foreach (var implementation in implementations)
             {
-                var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
+                var sourceDef = FindSourceDefinition(implementation, solution, cancellationToken);
                 var bestDef = sourceDef ?? implementation;
                 if (IsAccessible(bestDef))
                     results.Add(bestDef.OriginalDefinition);
