@@ -174,13 +174,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overloads Sub SendDownKey()
             MyBase.SendDownKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Return, c),
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineDown(extendSelection:=False), c),
                 Sub() EditorOperations.MoveLineDown(extendSelection:=False))
         End Sub
 
         Public Overloads Sub SendUpKey()
             MyBase.SendUpKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Return, c),
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineUp(extendSelection:=False), c),
                 Sub() EditorOperations.MoveLineUp(extendSelection:=False))
         End Sub
 
