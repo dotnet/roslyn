@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
@@ -77,11 +78,11 @@ internal abstract class AbstractController<TSession, TModel, TPresenterSession, 
         this.TextView.TextBuffer.PostChanged -= this.OnTextViewBufferPostChanged;
     }
 
-    public TModel WaitForController()
+    public Task WaitForModelComputationAsync()
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         VerifySessionIsActive();
-        return sessionOpt.WaitForController();
+        return sessionOpt.WaitForModelComputationAsync();
     }
 
     void IController<TModel>.OnModelUpdated(TModel result, bool updateController)
@@ -137,25 +138,25 @@ internal abstract class AbstractController<TSession, TModel, TPresenterSession, 
         localSession.Stop();
     }
 
-    public bool TryHandleEscapeKey()
-    {
-        this.ThreadingContext.ThrowIfNotOnUIThread();
+    //public bool TryHandleEscapeKey()
+    //{
+    //    this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        // Escape simply dismissed a session if it's up. Otherwise let the next thing in the
-        // chain handle us.
-        if (!IsSessionActive)
-        {
-            return false;
-        }
+    //    // Escape simply dismissed a session if it's up. Otherwise let the next thing in the
+    //    // chain handle us.
+    //    if (!IsSessionActive)
+    //    {
+    //        return false;
+    //    }
 
-        // If we haven't even computed a model yet, then also send this command to anyone
-        // listening.  It's unlikely that the command was intended for us (as we wouldn't
-        // have even shown ui yet.
-        var handledCommand = sessionOpt.InitialUnfilteredModel != null;
+    //    // If we haven't even computed a model yet, then also send this command to anyone
+    //    // listening.  It's unlikely that the command was intended for us (as we wouldn't
+    //    // have even shown ui yet.
+    //    var handledCommand = sessionOpt.InitialUnfilteredModel != null;
 
-        // In the presence of an escape, we always stop what we're doing.
-        this.StopModelComputation();
+    //    // In the presence of an escape, we always stop what we're doing.
+    //    this.StopModelComputation();
 
-        return handledCommand;
-    }
+    //    return handledCommand;
+    //}
 }

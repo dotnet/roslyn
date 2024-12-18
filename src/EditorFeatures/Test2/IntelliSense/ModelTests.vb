@@ -32,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Return New TestModelComputation(threadingContext, controller)
             End Function
-
-            Friend Sub Wait()
-                WaitForController()
-            End Sub
         End Class
 
         <WpfFact>
@@ -55,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact>
-        Public Sub ChainingTaskThatCompletesNotifiesController()
+        Public Async Function ChainingTaskThatCompletesNotifiesController() As Task
             Dim threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue(Of IThreadingContext)
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
@@ -64,13 +60,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
-            modelComputation.Wait()
+            Await modelComputation.WaitForModelComputationAsync()
 
             controller.Verify(Sub(c) c.OnModelUpdated(model, True))
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
+        Public Async Function ControllerIsOnlyUpdatedAfterLastTaskCompletes() As Task
             Dim threadingContext = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider().GetExportedValue(Of IThreadingContext)
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
@@ -87,10 +83,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                                       End Function)
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             Monitor.Exit(gate)
-            modelComputation.Wait()
+            Await modelComputation.WaitForModelComputationAsync()
 
             controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Once)
-        End Sub
+        End Function
 
         <WpfFact>
         Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
