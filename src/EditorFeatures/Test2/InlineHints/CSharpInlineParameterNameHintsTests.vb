@@ -1255,5 +1255,48 @@ class C
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact>
+        Public Async Function TestOnlyProduceTagsWithinSelection() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int testMethod(int a, int b, int c, int d, int e)
+    {
+        return x;
+    }
+    void Main() 
+    {
+        testMethod(1, [|{|b:|}2, {|c:|}3, {|d:|}4|], 5);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int testMethod(int a, int b, int c, int d, int e)
+    {
+        return x;
+    }
+    void Main() 
+    {
+        testMethod(1, b: 2, c: 3, d: 4, 5);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace

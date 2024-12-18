@@ -88,7 +88,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
                 // intersect the span, the positions of the all the sub-nodes in it that we make hints for (like the
                 // positions of the arguments in an invocation) may not.  So, filter out any hints that aren't actually
                 // in the span we care about here.
-                if (textSpan.IntersectsWith(position))
+                if (!textSpan.IntersectsWith(position))
                     continue;
 
                 if (string.IsNullOrEmpty(parameter?.Name))
