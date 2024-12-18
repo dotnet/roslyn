@@ -81,17 +81,8 @@ internal sealed class ModelComputation<TModel> where TModel : class
         }
     }
 
-    public async Task WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync()
-    {
-        var model = await ModelTask.ConfigureAwait(true);
-        if (!_notifyControllerTask.IsCompleted)
-        {
-            // Reset lastTask so controller.OnModelUpdated is only called once
-            _lastTask = Task.FromResult(model);
-        }
-
-        await _notifyControllerTask.ConfigureAwait(true);
-    }
+    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
+        => ModelTask;
 
     public void Stop()
     {

@@ -53,9 +53,9 @@ internal class Session<TController, TModel, TPresenterSession> : ISession<TModel
         this.PresenterSession.Dismiss();
     }
 
-    public Task WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync()
+    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
     {
         Computation.ThreadingContext.ThrowIfNotOnUIThread();
-        return Computation.WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync();
+        return Computation.WaitForModelComputation_ForTestingPurposesOnlyAsync();
     }
 }
