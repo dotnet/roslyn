@@ -679,7 +679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Return False
         End Function
 
-        Public Overrides Function ComputeDeclarationConflictsAsync(
+        Public Overrides Async Function ComputeDeclarationConflictsAsync(
             replacementText As String,
             renamedSymbol As ISymbol,
             renameSymbol As ISymbol,
@@ -703,7 +703,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim methodBase = token.Parent.AncestorsAndSelf.Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax) _
                                                               .LastOrDefault()
 
-                Dim visitor As New LocalConflictVisitor(token, newSolution, cancellationToken)
+                Dim semanticModel = Await newSolution.
+                    GetRequiredDocument(methodBase.SyntaxTree).
+                    GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim visitor As New LocalConflictVisitor(token, semanticModel, cancellationToken)
                 visitor.Visit(methodBase)
 
                 conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
@@ -719,7 +722,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                         token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken)
                         methodBase = token.GetAncestor(Of MethodBlockSyntax)
-                        visitor = New LocalConflictVisitor(token, newSolution, cancellationToken)
+
+                        semanticModel = Await newSolution.
+                            GetRequiredDocument(methodBase.SyntaxTree).
+                            GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                        visitor = New LocalConflictVisitor(token, semanticModel, cancellationToken)
                         visitor.Visit(methodBase)
 
                         conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
@@ -792,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Next
             End If
 
-            Return Task.FromResult(conflicts.ToImmutableAndFree())
+            Return conflicts.ToImmutableAndFree()
         End Function
 
         Public Overrides Async Function ComputeImplicitReferenceConflictsAsync(
