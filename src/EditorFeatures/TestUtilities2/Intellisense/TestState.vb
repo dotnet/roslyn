@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
-        Protected ReadOnly EditorSignatureHelpCommandHandler As ICommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
