@@ -197,6 +197,14 @@ Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.So
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.Solution.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.IOmniSharpLineFormattingOptionsProvider
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.IOmniSharpLineFormattingOptionsProvider.GetLineFormattingOptions() -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions!
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions!
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions? other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.ImplementTypeOptions.get -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.ImplementTypeOptions.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.LineFormattingOptions.get -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions!
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.LineFormattingOptions.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.OmniSharpEditorConfigOptions() -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmnisharpLegacyGlobalOptionsWorkspaceService
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmnisharpLegacyGlobalOptionsWorkspaceService.GenerateOverrides.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmnisharpLegacyGlobalOptionsWorkspaceService.GenerateOverrides.set -> void
@@ -226,6 +234,7 @@ Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingO
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.TabSize.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.UseTabs.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.UseTabs.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpSolutionAnalyzerConfigOptionsUpdater
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.IOmniSharpPickMembersService
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.IOmniSharpPickMembersService.PickMembers(string! title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!> members, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersOption!> options = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersOption!>), bool selectAll = true) -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersResult!
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersOption
@@ -272,6 +281,9 @@ override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpIn
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavigateToSearchResult.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.ToString() -> string!
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmnisharpLegacyGlobalOptionsWorkspaceService.OmniSharpCleanCodeGenerationOptionsProvider.GetCleanCodeGenerationOptionsAsync(Microsoft.CodeAnalysis.Host.LanguageServices! languageServices, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.CodeGeneration.CleanCodeGenerationOptions>
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.GetHashCode() -> int
@@ -328,8 +340,11 @@ static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.op
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ISymbol! symbol, string! newName, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions options, System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.ISymbol!>? nonConflictSymbols, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult>!
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions? left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions? left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions? right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions? left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions? right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions? left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpSolutionAnalyzerConfigOptionsUpdater.UpdateOptions(Microsoft.CodeAnalysis.Workspace! workspace, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpEditorConfigOptions! editorConfigOptions) -> void
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureService.GetBlockStructureAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructure?>!
