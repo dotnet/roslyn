@@ -542,6 +542,7 @@ internal static partial class ConflictResolver
                         var newLocations = newReferencedSymbols
                             .Select(symbol => GetSymbolLocation(solution, symbol, _cancellationToken))
                             .WhereNotNull()
+                            .Where(loc => loc.IsInSource))
                             .ToArray();
                         foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                         {
