@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
-        ' Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
+        Protected ReadOnly EditorSignatureHelpCommandHandler As ICommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
-            ' Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
+            ' Me.EditorSignatureHelpCommandHandler =
             Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
@@ -176,13 +176,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overloads Sub SendDownKey()
             MyBase.SendDownKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineDown(extendSelection:=False), c),
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Return, c),
                 Sub() EditorOperations.MoveLineDown(extendSelection:=False))
         End Sub
 
         Public Overloads Sub SendUpKey()
             MyBase.SendUpKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineUp(extendSelection:=False), c),
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Return, c),
                 Sub() EditorOperations.MoveLineUp(extendSelection:=False))
         End Sub
 
