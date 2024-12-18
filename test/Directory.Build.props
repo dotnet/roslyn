@@ -7,7 +7,4 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" IncludeAssets="runtime" />
-  </ItemGroup>
 </Project>
