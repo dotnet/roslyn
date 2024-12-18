@@ -86,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await modelComputation.WaitForModelComputationAsync()
 
             controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Once)
+            controller.Verify(Sub(c) c.OnModelUpdated(null, False), Times.Once)
         End Function
 
         <WpfFact>
