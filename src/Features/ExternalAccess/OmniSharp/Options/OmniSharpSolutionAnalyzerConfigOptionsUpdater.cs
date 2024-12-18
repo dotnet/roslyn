@@ -28,12 +28,6 @@ internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
                 var oldFallbackOptions = oldSolution.FallbackAnalyzerOptions;
                 oldFallbackOptions.TryGetValue(LanguageNames.CSharp, out var csharpFallbackOptions);
 
-                var changedOptions = DetermineChangedOptions(csharpFallbackOptions, editorConfigOptions);
-                if (changedOptions.IsEmpty)
-                {
-                    return oldSolution;
-                }
-
                 var builder = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
                 if (csharpFallbackOptions is not null)
                 {
@@ -47,11 +41,16 @@ internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
                     }
                 }
 
-                // update changed values:
-                foreach (var (key, value) in changedOptions)
-                {
-                    builder[key] = value;
-                }
+                // add o# option values:
+                var lineFormattingOptions = editorConfigOptions.LineFormattingOptions;
+                AddOption(FormattingOptions2.UseTabs, lineFormattingOptions.UseTabs, builder);
+                AddOption(FormattingOptions2.TabSize, lineFormattingOptions.TabSize, builder);
+                AddOption(FormattingOptions2.IndentationSize, lineFormattingOptions.IndentationSize, builder);
+                AddOption(FormattingOptions2.NewLine, lineFormattingOptions.NewLine, builder);
+
+                var implementTypeOptions = editorConfigOptions.ImplementTypeOptions;
+                AddOption(ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)implementTypeOptions.InsertionBehavior, builder);
+                AddOption(ImplementTypeOptionsStorage.PropertyGenerationBehavior, (ImplementTypePropertyGenerationBehavior)implementTypeOptions.PropertyGenerationBehavior, builder);
 
                 var newFallbackOptions = oldFallbackOptions.SetItem(
                     LanguageNames.CSharp,
@@ -64,40 +63,14 @@ internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
         {
             throw ExceptionUtilities.Unreachable();
         }
-    }
 
-    private static ImmutableDictionary<string, string> DetermineChangedOptions(
-        StructuredAnalyzerConfigOptions? csharpFallbackOptions,
-        OmniSharpEditorConfigOptions editorConfigOptions)
-    {
-        var builder = ImmutableDictionary.CreateBuilder<string, string>();
-
-        AddOptionIfChanged(FormattingOptions2.UseTabs, csharpFallbackOptions, editorConfigOptions.LineFormattingOptions.UseTabs, builder);
-        AddOptionIfChanged(FormattingOptions2.UseTabs, csharpFallbackOptions, editorConfigOptions.LineFormattingOptions.UseTabs, builder);
-        AddOptionIfChanged(FormattingOptions2.TabSize, csharpFallbackOptions, editorConfigOptions.LineFormattingOptions.TabSize, builder);
-        AddOptionIfChanged(FormattingOptions2.IndentationSize, csharpFallbackOptions, editorConfigOptions.LineFormattingOptions.IndentationSize, builder);
-        AddOptionIfChanged(FormattingOptions2.NewLine, csharpFallbackOptions, editorConfigOptions.LineFormattingOptions.NewLine, builder);
-
-        AddOptionIfChanged(ImplementTypeOptionsStorage.InsertionBehavior, csharpFallbackOptions, (ImplementTypeInsertionBehavior)editorConfigOptions.ImplementTypeOptions.InsertionBehavior, builder);
-        AddOptionIfChanged(ImplementTypeOptionsStorage.PropertyGenerationBehavior, csharpFallbackOptions, (ImplementTypePropertyGenerationBehavior)editorConfigOptions.ImplementTypeOptions.PropertyGenerationBehavior, builder);
-
-        return builder.ToImmutable();
-
-        static void AddOptionIfChanged<T>(
+        static void AddOption<T>(
             PerLanguageOption2<T> option,
-            StructuredAnalyzerConfigOptions? analyzerConfigOptions,
             T value,
             ImmutableDictionary<string, string>.Builder builder)
         {
             var configName = option.Definition.ConfigName;
             var configValue = option.Definition.Serializer.Serialize(value);
-
-            if (analyzerConfigOptions?.TryGetValue(configName, out var existingValue) == true &&
-                existingValue == configValue)
-            {
-                return;
-            }
-
             builder.Add(configName, configValue);
         }
     }

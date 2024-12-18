@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
 
 internal sealed record class OmniSharpEditorConfigOptions
 {
-    public OmniSharpLineFormattingOptions LineFormattingOptions { get; init; } = new();
-    public OmniSharpImplementTypeOptions ImplementTypeOptions { get; init; } = new();
+    public required OmniSharpLineFormattingOptions LineFormattingOptions { get; init; }
+    public OmniSharpImplementTypeOptions ImplementTypeOptions { get; init; }
 }
