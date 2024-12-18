@@ -259,8 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Conversion.NoConversion;
             }
-            // This should be conversion from type rather than conversion
-            // from expression. The difference is in handling of dynamic.
+            // This should be conversion from type rather than conversion from expression.
+            // The difference is in handling of dynamic, and fixing this would be a breaking
+            // change for that case. For instance, the following would become an error:
+            // dynamic[] x = [1, 2, 3];
+            // int[] y = [.. x];
             return ClassifyImplicitConversionFromExpression(
                 new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
                 targetType,
