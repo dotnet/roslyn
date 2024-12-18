@@ -127,7 +127,7 @@ End Class",
         End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
-        Public Sub DeletesSelectedText()
+        Public Async Function DeletesSelectedText() As Task
             Using workspace = EditorTestWorkspace.CreateVisualBasic("Interface IGoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
@@ -143,10 +143,11 @@ End Class",
                     workspace.GetService(Of IEditorOperationsFactoryService),
                     workspace.GetService(Of IEditorOptionsFactoryService))
 
-                Assert.True(endConstructService.TryDoEndConstructForEnterKey(textView, textView.TextSnapshot.TextBuffer, CancellationToken.None))
+                Assert.True(Await endConstructService.TryDoEndConstructForEnterKeyAsync(
+                            textView, textView.TextSnapshot.TextBuffer, CancellationToken.None))
 
                 Assert.Equal("End Interface", textView.TextSnapshot.Lines.Last().GetText())
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

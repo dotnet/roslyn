@@ -66,21 +66,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Function
 
         Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of TypeCharCommandArgs).ExecuteCommand
-            nextHandler()
+            _threadingContext.JoinableTaskFactory.Run(
+                Async Function()
+                    nextHandler()
 
-            If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) Then
-                Return
-            End If
+                    If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) Then
+                        Return
+                    End If
 
-            Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
-            If document Is Nothing Then
-                Return
-            End If
+                    Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
+                    Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                    If document Is Nothing Then
+                        Return
+                    End If
 
-            ' End construct is not cancellable.
-            Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
-            endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, context.OperationContext.UserCancellationToken)
+                    ' End construct is not cancellable.
+                    Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
+                    Await endConstructService.TryDoAsync(
+                        args.TextView, args.SubjectBuffer, args.TypedChar, context.OperationContext.UserCancellationToken).ConfigureAwait(True)
+                End Function)
         End Sub
 
         Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
@@ -123,7 +127,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 textView, subjectBuffer, document, cancellationToken).ConfigureAwait(True)
 
             Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
-            Dim result = endConstructService.TryDo(textView, subjectBuffer, vbLf(0), cancellationToken)
+            Dim result = Await endConstructService.TryDoAsync(
+                textView, subjectBuffer, vbLf(0), cancellationToken).ConfigureAwait(True)
 
             If Not result Then
                 nextHandler()
