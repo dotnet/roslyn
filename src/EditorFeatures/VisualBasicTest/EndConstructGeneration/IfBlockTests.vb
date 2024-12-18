@@ -380,6 +380,6 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 0})
-            End Sub
+        End Function
     End Class
 End Namespace

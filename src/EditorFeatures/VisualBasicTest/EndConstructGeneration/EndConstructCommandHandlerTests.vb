@@ -117,6 +117,6 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
 
 ",
                 caret:={2, 0})
-            End Sub
+        End Function
     End Class
 End Namespace

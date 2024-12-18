@@ -50,6 +50,6 @@ End Class",
 End Class",
                 afterCaret:={2, -1})
 
-            End Sub
+        End Function
     End Class
 End Namespace
