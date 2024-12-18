@@ -63,7 +63,7 @@ public static partial class SymbolFinder
             {
                 foreach (var m in type.GetMembers(symbol.Name))
                 {
-                    var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
+                    var sourceMember = FindSourceDefinition(m, solution, cancellationToken);
                     var bestMember = sourceMember ?? m;
 
                     if (IsOverride(solution, bestMember, symbol, allowLooseMatch))

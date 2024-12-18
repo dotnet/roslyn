@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 throw new ArgumentNullException(nameof(peekResultFactory));
 
             var solution = project.Solution;
-            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+            symbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken) ?? symbol;
             symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
                 return ImmutableArray<IPeekableItem>.Empty;
