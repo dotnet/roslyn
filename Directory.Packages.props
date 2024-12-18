@@ -6,6 +6,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageVersion Include="xunit" Version="2.9.2" />
