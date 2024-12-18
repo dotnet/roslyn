@@ -51,13 +51,13 @@ public static partial class SymbolFinder
 
         // First try finding exact overrides.  If that fails to find anything, look for overrides that loosely
         // match due to errors.
-        await FindOverridesAsync(allowLooseMatch: false).ConfigureAwait(false);
+        FindOverrides(allowLooseMatch: false);
         if (results.Count == 0)
-            await FindOverridesAsync(allowLooseMatch: true).ConfigureAwait(false);
+            FindOverrides(allowLooseMatch: true);
 
         return results.ToImmutableAndClear();
 
-        async Task FindOverridesAsync(bool allowLooseMatch)
+        void FindOverrides(bool allowLooseMatch)
         {
             foreach (var type in derivedTypes)
             {

@@ -403,7 +403,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         private async Task<bool> TryDetermineTypeToGenerateInAsync(
             INamedTypeSymbol original, CancellationToken cancellationToken)
         {
-            var definition = await SymbolFinder.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var definition = SymbolFinderInternal.FindSourceDefinition(original, _document.Project.Solution, cancellationToken);
             TypeToGenerateIn = definition as INamedTypeSymbol;
 
             return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;
