@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
 
-            Await controller.WaitForModelComputationAsync()
+            Await controller.WaitForModelComputation_ForTestingPurposesOnlyAsync()
 
             Assert.Equal(0, GetMocks(controller).Provider.GetItemsCount)
         End Function
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim controller = Await CreateController(CreateWorkspace(), waitForPresentation:=True)
 
             Mock.Get(GetMocks(controller).View.Object.Caret).Raise(Sub(c) AddHandler c.PositionChanged, Nothing, New CaretPositionChangedEventArgs(Nothing, Nothing, Nothing))
-            Await controller.WaitForModelComputationAsync()
+            Await controller.WaitForModelComputation_ForTestingPurposesOnlyAsync()
 
             ' GetItemsAsync is called once initially, and then once as a result of handling the PositionChanged event
             Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), ")"c),
                 Sub() GetMocks(controller).Buffer.Insert(0, ")"), TestCommandExecutionContext.Create())
-            Await controller.WaitForModelComputationAsync()
+            Await controller.WaitForModelComputation_ForTestingPurposesOnlyAsync()
 
             ' GetItemsAsync is called once initially, and then once as a result of handling the typechar command
             Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 provider = New MockSignatureHelpProvider(items)
             End If
 
-            Dim presenter = New Mock(Of IIntellisensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock}
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock}
             presenterSession = If(presenterSession, New Mock(Of ISignatureHelpPresenterSession)(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock})
             presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession))).Returns(presenterSession.Object)
             presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 DirectCast(controller, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(
                     New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing, TestCommandExecutionContext.Create())
                 If waitForPresentation Then
-                    Await controller.WaitForModelComputationAsync()
+                    Await controller.WaitForModelComputation_ForTestingPurposesOnlyAsync()
                 End If
             End If
 

@@ -81,19 +81,8 @@ internal class ModelComputation<TModel> where TModel : class
         }
     }
 
-    public async Task WaitForModelComputationAsync()
-    {
-        ThreadingContext.ThrowIfNotOnUIThread();
-
-        var model = await ModelTask.ConfigureAwait(true);
-        if (!_notifyControllerTask.IsCompleted)
-        {
-            OnModelUpdated(model, updateController: true);
-
-            // Reset lastTask so controller.OnModelUpdated is only called once
-            _lastTask = Task.FromResult(model);
-        }
-    }
+    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
+        => ModelTask;
 
     public virtual void Stop()
     {
