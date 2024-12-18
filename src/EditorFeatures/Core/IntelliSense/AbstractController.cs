@@ -78,11 +78,11 @@ internal abstract class AbstractController<TSession, TModel, TPresenterSession, 
         this.TextView.TextBuffer.PostChanged -= this.OnTextViewBufferPostChanged;
     }
 
-    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
+    public Task WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync()
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         VerifySessionIsActive();
-        return sessionOpt.WaitForModelComputation_ForTestingPurposesOnlyAsync();
+        return sessionOpt.WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync();
     }
 
     void IController<TModel>.OnModelUpdated(TModel result, bool updateController)

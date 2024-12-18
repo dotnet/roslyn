@@ -14,5 +14,5 @@ internal interface ISession<TModel>
 
     void Stop();
 
-    Task WaitForModelComputation_ForTestingPurposesOnlyAsync();
+    Task WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync();
 }

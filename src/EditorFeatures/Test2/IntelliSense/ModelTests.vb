@@ -56,13 +56,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
-            controller.Setup(Sub(c) c.OnModelUpdated(model, True))
+            controller.Setup(Sub(c) c.OnModelUpdated(model, False))
+
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
-            Await modelComputation.WaitForModelComputation_ForTestingPurposesOnlyAsync()
+            Await modelComputation.WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model, True))
+            controller.Verify(Sub(c) c.OnModelUpdated(model, False))
         End Function
 
         <WpfFact>
@@ -83,9 +84,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                                       End Function)
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c) Task.FromResult(model))
             Monitor.Exit(gate)
-            Await modelComputation.WaitForModelComputation_ForTestingPurposesOnlyAsync()
+            Await modelComputation.WaitForModelComputationAndControllerNotification_ForTestingPurposesOnlyAsync()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Once)
+            controller.Verify(Sub(c) c.OnModelUpdated(DirectCast(Nothing, Model), False), Times.Once)
         End Function
 
         <WpfFact>
