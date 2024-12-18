@@ -501,7 +501,8 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
             var projectAndAssemblySet = await this.LibraryManager.GetAssemblySetAsync(
                 project, lookInReferences, cancellationToken).ConfigureAwait(true);
-            return this.LibraryManager.GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
+            return await this.LibraryManager.GetSearchListAsync(
+                listKind, flags, pobSrch, projectAndAssemblySet, cancellationToken).ConfigureAwait(true);
         }
 
         var compilation = await listItem.GetCompilationAsync(
@@ -653,28 +654,26 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         get { return true; }
     }
 
-    protected override bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
+    protected override Task<bool> TryFillDescriptionAsync(
+        uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
     {
         var listItem = GetListItem(index);
 
-        return this.LibraryManager.TryFillDescription(listItem, description, options);
+        return this.LibraryManager.TryFillDescriptionAsync(
+            listItem, description, options, cancellationToken);
     }
 
-    protected override bool TryGetProperty(uint index, _VSOBJLISTELEMPROPID propertyId, out object pvar)
+    protected override async Task<(bool success, object pvar)> TryGetPropertyAsync(
+        uint index, _VSOBJLISTELEMPROPID propertyId, CancellationToken cancellationToken)
     {
-        pvar = null;
-
         var listItem = GetListItem(index);
         if (listItem == null)
-        {
-            return false;
-        }
+            return default;
 
         switch (propertyId)
         {
             case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME:
-                pvar = listItem.FullNameText;
-                return true;
+                return (true, listItem.FullNameText);
 
             case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_HELPKEYWORD:
                 if (listItem is SymbolListItem symbolListItem)
@@ -682,25 +681,21 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
                     var project = this.LibraryManager.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
                     if (project != null)
                     {
-                        var compilation = project
-                            .GetCompilationAsync(CancellationToken.None)
-                            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
 
                         var symbol = symbolListItem.ResolveSymbol(compilation);
                         if (symbol != null)
                         {
                             var helpContextService = project.Services.GetService<IHelpContextService>();
-
-                            pvar = helpContextService.FormatSymbol(symbol);
-                            return true;
+                            return (true, helpContextService.FormatSymbol(symbol));
                         }
                     }
                 }
 
-                return false;
+                return default;
         }
 
-        return false;
+        return default;
     }
 
     protected override bool TryCountSourceItems(uint index, out IVsHierarchy hierarchy, out uint itemid, out uint items)

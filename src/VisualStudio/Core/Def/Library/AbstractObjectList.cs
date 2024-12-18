@@ -62,11 +62,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         return false;
     }
 
-    protected virtual bool TryGetProperty(uint index, _VSOBJLISTELEMPROPID propertyId, out object pvar)
-    {
-        pvar = null;
-        return false;
-    }
+    protected virtual Task<(bool success, object pvar)> TryGetPropertyAsync(uint index, _VSOBJLISTELEMPROPID propertyId, CancellationToken cancellationToken)
+        => SpecializedTasks.Default<(bool success, object pvar)>();
 
     protected virtual bool TryCountSourceItems(uint index, out IVsHierarchy hierarchy, out uint itemid, out uint items)
     {
@@ -101,8 +98,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         get { return false; }
     }
 
-    protected virtual bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
-        => false;
+    protected virtual Task<bool> TryFillDescriptionAsync(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
+        => SpecializedTasks.False;
 
     int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
     {
@@ -147,11 +144,11 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
     int IVsSimpleObjectList2.FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
     {
         if (!SupportsDescription)
-        {
             return VSConstants.E_NOTIMPL;
-        }
 
-        return TryFillDescription(index, (_VSOBJDESCOPTIONS)grfOptions, pobDesc)
+        var result = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+                () => TryFillDescriptionAsync(index, (_VSOBJDESCOPTIONS)grfOptions, pobDesc, CancellationToken.None));
+        return result
             ? VSConstants.S_OK
             : VSConstants.E_FAIL;
     }
@@ -270,11 +267,15 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetProperty(uint index, int propid, out object pvar)
     {
-        if (TryGetProperty(index, (_VSOBJLISTELEMPROPID)propid, out pvar))
+        var (success, obj) = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(() =>
+            TryGetPropertyAsync(index, (_VSOBJLISTELEMPROPID)propid, CancellationToken.None));
+        if (success)
         {
+            pvar = obj;
             return VSConstants.S_OK;
         }
 
+        pvar = null;
         return VSConstants.E_FAIL;
     }
 
