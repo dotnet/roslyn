@@ -107,6 +107,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Theory]
+        [MemberData(nameof(LanguageVersions))]
+        public void LanguageVersionDiagnostics_03(LanguageVersion languageVersion)
+        {
+            string source = """
+                var x = [1:"one"];
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (1,9): error CS9176: There is no target type for the collection expression.
+                    // var x = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, @"[1:""one""]").WithLocation(1, 9),
+                    // (1,11): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var x = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(1, 11));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (1,9): error CS9176: There is no target type for the collection expression.
+                    // var x = [1:"one"];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, @"[1:""one""]").WithLocation(1, 9));
+            }
+        }
+
         [Fact]
         public void Dictionary()
         {
@@ -579,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     static IDictionary<long, object> F(int x, string y)
                     {
-                        return [x:y];
+                        return /*<bind>*/[x:y]/*</bind>*/;
                     }
                 }
                 """;
@@ -596,6 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             typeInfo = model.GetTypeInfo(kvpElement.ValueExpression);
             Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+
+            // PROTOTYPE: Implement IOperation support.
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
+                  Elements(1):
+                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x:y')
+                """);
         }
 
         [Fact]
@@ -836,6 +871,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_008e:  ldloc.0
                   IL_008f:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
                   IL_0094:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void EvaluationOrder_02()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var d = F(101, "A", 102, "B", 103, "C", true, 3);
+                        d.Report();
+                    }
+                    static IReadOnlyDictionary<K, V> F<K, V>(K k1, V v1, K k2, V v2, K k3, V v3, bool b, int i)
+                    {
+                        return [
+                            Identity(Identity(b) ? Identity(k1) : Identity(k2)) : Identity(v2),
+                            Identity(k3) : Identity(Identity(i) switch { 1 => Identity(v1), 2 => Identity(v2), _ => Identity(v3) })];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: """
+                    True
+                    101
+                    101
+                    B
+                    103
+                    3
+                    C
+                    C
+                    [101:B, 103:C], 
+                    """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.F<K, V>", """
+                {
+                  // Code size      119 (0x77)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
+                                K V_1,
+                                V V_2,
+                                int V_3,
+                                System.Collections.Generic.Dictionary<K, V> V_4)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  stloc.s    V_4
+                  IL_0007:  ldloc.s    V_4
+                  IL_0009:  ldarg.s    V_6
+                  IL_000b:  call       "bool Program.Identity<bool>(bool)"
+                  IL_0010:  brtrue.s   IL_001a
+                  IL_0012:  ldarg.2
+                  IL_0013:  call       "K Program.Identity<K>(K)"
+                  IL_0018:  br.s       IL_0020
+                  IL_001a:  ldarg.0
+                  IL_001b:  call       "K Program.Identity<K>(K)"
+                  IL_0020:  call       "K Program.Identity<K>(K)"
+                  IL_0025:  ldarg.3
+                  IL_0026:  call       "V Program.Identity<V>(V)"
+                  IL_002b:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0030:  ldloc.s    V_4
+                  IL_0032:  stloc.0
+                  IL_0033:  ldarg.s    V_4
+                  IL_0035:  call       "K Program.Identity<K>(K)"
+                  IL_003a:  stloc.1
+                  IL_003b:  ldarg.s    V_7
+                  IL_003d:  call       "int Program.Identity<int>(int)"
+                  IL_0042:  stloc.3
+                  IL_0043:  ldloc.3
+                  IL_0044:  ldc.i4.1
+                  IL_0045:  beq.s      IL_004d
+                  IL_0047:  ldloc.3
+                  IL_0048:  ldc.i4.2
+                  IL_0049:  beq.s      IL_0056
+                  IL_004b:  br.s       IL_005f
+                  IL_004d:  ldarg.1
+                  IL_004e:  call       "V Program.Identity<V>(V)"
+                  IL_0053:  stloc.2
+                  IL_0054:  br.s       IL_0067
+                  IL_0056:  ldarg.3
+                  IL_0057:  call       "V Program.Identity<V>(V)"
+                  IL_005c:  stloc.2
+                  IL_005d:  br.s       IL_0067
+                  IL_005f:  ldarg.s    V_5
+                  IL_0061:  call       "V Program.Identity<V>(V)"
+                  IL_0066:  stloc.2
+                  IL_0067:  ldloc.0
+                  IL_0068:  ldloc.1
+                  IL_0069:  ldloc.2
+                  IL_006a:  call       "V Program.Identity<V>(V)"
+                  IL_006f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0074:  ldloc.s    V_4
+                  IL_0076:  ret
                 }
                 """);
         }

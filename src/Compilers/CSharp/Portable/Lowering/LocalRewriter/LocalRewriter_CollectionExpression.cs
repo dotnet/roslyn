@@ -1206,6 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKeyValuePairElement keyValuePairElement:
                         {
+                            // dictionary[key] = value;
                             var rewrittenKey = VisitExpression(keyValuePairElement.Key);
                             var rewrittenValue = VisitExpression(keyValuePairElement.Value);
                             sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
@@ -1218,6 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenExpression,
                             iteratorBody =>
                             {
+                                // dictionary[item.Key] = item.Value;
                                 var expression = ((BoundExpressionStatement)iteratorBody).Expression;
                                 var builder = ArrayBuilder<BoundExpression>.GetInstance();
                                 var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair(expression, setItemMethod, builder, localsBuilder);
@@ -1233,6 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     default:
                         {
+                            // dictionary[element.Key] = element.Value;
                             var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair((BoundExpression)element, setItemMethod, sideEffects, localsBuilder);
                             sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
                         }
