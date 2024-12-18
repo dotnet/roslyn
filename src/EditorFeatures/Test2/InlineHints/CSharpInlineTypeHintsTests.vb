@@ -887,7 +887,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input, output)
+            Await VerifyTypeHints(input, output)
         End Function
     End Class
 End Namespace
