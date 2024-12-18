@@ -34,18 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            if (ContainingSymbol.Kind == SymbolKind.NamedType)
+            if (ContainingSymbol.Kind == SymbolKind.NamedType &&
+                ContainingSymbol.ContainingModule == _underlyingTypeParameter.OriginalDefinition.ContainingModule)
             {
-                Debug.Assert(ContainingSymbol.ContainingModule == _underlyingTypeParameter.OriginalDefinition.ContainingModule);
-
-                if (ContainingSymbol.ContainingModule == _underlyingTypeParameter.OriginalDefinition.ContainingModule)
+                foreach (CSharpAttributeData attr in _underlyingTypeParameter.OriginalDefinition.GetAttributes())
                 {
-                    foreach (CSharpAttributeData attr in _underlyingTypeParameter.OriginalDefinition.GetAttributes())
+                    if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
                     {
-                        if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
-                        {
-                            AddSynthesizedAttribute(ref attributes, attr);
-                        }
+                        AddSynthesizedAttribute(ref attributes, attr);
                     }
                 }
             }
