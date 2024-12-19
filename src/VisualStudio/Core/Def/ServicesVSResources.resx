@@ -763,6 +763,9 @@ Additional information: {1}</value>
   <data name="Analysis" xml:space="preserve">
     <value>Analysis</value>
   </data>
+  <data name="Fade_out_unused_members" xml:space="preserve">
+    <value>Fade out unused members</value>
+  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
