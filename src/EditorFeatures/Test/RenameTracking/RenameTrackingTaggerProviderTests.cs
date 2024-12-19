@@ -872,33 +872,33 @@ public sealed class RenameTrackingTaggerProviderTests
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028072")]
-    public void RenameTrackingDoesNotThrowAggregateException()
+    public async Task RenameTrackingDoesNotThrowAggregateException()
     {
-        var waitForResult = false;
         var notRenamable = Task.FromResult(RenameTrackingTaggerProvider.TriggerIdentifierKind.NotRenamable);
-        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(notRenamable, waitForResult, CancellationToken.None));
+        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(notRenamable, out _));
 
         var source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
-        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(source.Task, waitForResult, CancellationToken.None));
+        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(source.Task, out _));
         source.TrySetResult(RenameTrackingTaggerProvider.TriggerIdentifierKind.RenamableReference);
-        Assert.True(RenameTrackingTaggerProvider.IsRenamableIdentifier(source.Task, waitForResult, CancellationToken.None));
+        Assert.True(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(source.Task, out _));
 
         source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
         source.TrySetCanceled();
-        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(source.Task, waitForResult, CancellationToken.None));
-        Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(source.Task, out _));
+        Assert.False(await RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
 
         source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
         source.TrySetException(new OperationCanceledException());
-        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(source.Task, waitForResult, CancellationToken.None));
-        Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
-        Assert.False(RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationTokenSource().Token));
+        Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(source.Task, out _));
+        Assert.False(await RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
+        Assert.False(await RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
 
         source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
-        Assert.Throws<OperationCanceledException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, new CancellationToken(canceled: true)));
+        source.TrySetCanceled();
+        await Assert.ThrowsAsync<OperationCanceledException>(() => RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
         var thrownException = new Exception();
         source.TrySetException(thrownException);
-        var caughtException = Assert.Throws<Exception>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
+        var caughtException = await Assert.ThrowsAsync<Exception>(() => RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
         Assert.Same(thrownException, caughtException);
     }
 
