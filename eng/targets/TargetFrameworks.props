@@ -40,7 +40,7 @@
         <!-- TODO until we figure out what is up with NetPrevious -->
         <NetPrevious>$(NetMinimum)</NetPrevious>
         <NetRoslyn>$(NetPrevious)</NetRoslyn>
-        <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
+        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
         <NetRoslynNext>$(NetPrevious)</NetRoslynNext>
