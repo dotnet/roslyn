@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// </summary>
     internal sealed class InlineHintsTagger : EfficientTagger<IntraTextAdornmentTag>
     {
+        /// <summary>
+        /// On demand mapping of data tags to adornment tags created for them.  As long as the data tags are alive,
+        /// we'll keep the corresponding adornment tags alive <em>once it has been created</em>. Note: the underlying
+        /// tagger is a view tagger, which will toss tags once they get far enough out of view.  So we will only create
+        /// and cache as many adornment tags as what the underlying tagger thinks there should be tags for <em>and</em>
+        /// which have been requested by the view tagger.
+        /// </summary>
         private static ConditionalWeakTable<TagSpan<InlineHintDataTag>, TagSpan<IntraTextAdornmentTag>> s_dataTagToAdornmentTag = new();
 
         private readonly EfficientTagger<InlineHintDataTag> _underlyingTagger;
