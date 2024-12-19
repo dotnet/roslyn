@@ -24,14 +24,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
 internal partial class InlineHintsTaggerProvider
 {
-    private sealed class AdornmentTagInformation(
-        bool Classified,
-        TextFormattingRunProperties Format,
-        TagSpan<IntraTextAdornmentTag> AdornmentTagSpan)
+    /// <param name="classified">Whether or not the adornment tag was classified.  If the option for this changes, this
+    /// cached tag should not be reused.</param>
+    /// <param name="format">The text formatting used to create the hint.  If this format no longer matches the current
+    /// formatting, this should not be reused.</param>
+    /// <param name="adornmentTagSpan">The actual adornment tag to render.</param>
+    private sealed class CachedAdornmentTagSpan(
+        bool classified,
+        TextFormattingRunProperties format,
+        TagSpan<IntraTextAdornmentTag> adornmentTagSpan)
     {
-        public bool Classified { get; } = Classified;
-        public TextFormattingRunProperties Format { get; } = Format;
-        public TagSpan<IntraTextAdornmentTag> AdornmentTagSpan { get; } = AdornmentTagSpan;
+        public bool Classified { get; } = classified;
+        public TextFormattingRunProperties Format { get; } = format;
+        public TagSpan<IntraTextAdornmentTag> AdornmentTagSpan { get; } = adornmentTagSpan;
     }
 
     /// <summary>
@@ -160,7 +165,7 @@ internal partial class InlineHintsTaggerProvider
             TagSpan<InlineHintDataTag> dataTagSpan, bool classify, TextFormattingRunProperties format)
         {
             // If we've never computed the adornment info, or options have changed, then compute and cache the new information.
-            var cachedTagInformation = (AdornmentTagInformation?)dataTagSpan.Tag.AdditionalData;
+            var cachedTagInformation = (CachedAdornmentTagSpan?)dataTagSpan.Tag.AdditionalData;
             if (cachedTagInformation is null || cachedTagInformation.Classified != classify || cachedTagInformation.Format != format)
             {
                 var adornmentSpan = dataTagSpan.Span;
