@@ -315,10 +315,14 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             database.WriteBinary(writer);
             writer.Flush();
-            memoryStream.Position = 0;
 
+            // Obtain the underlying array from the memory stream. If for some reason this isn't available,
+            // fall back to reading the stream into a new byte array.
             if (!memoryStream.TryGetBuffer(out var arraySegmentBuffer))
+            {
+                memoryStream.Position = 0;
                 arraySegmentBuffer = new ArraySegment<byte>(writer.BaseStream.ReadAllBytes());
+            }
 
             var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
             await WriteDatabaseFileAsync(databaseBinaryFileInfo, arraySegmentBuffer, cancellationToken).ConfigureAwait(false);
@@ -381,10 +385,26 @@ internal sealed partial class SymbolSearchUpdateEngine
             LogInfo("Patching local database");
 
             LogInfo("Reading in local database");
-            // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
+
             var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
-            var isBinary = _service._ioService.Exists(databaseBinaryFileInfo);
-            var databaseBytes = _service._ioService.ReadAllBytes(isBinary ? databaseBinaryFileInfo.FullName : databaseFileInfo.FullName);
+            var isBinary = false;
+            byte[] databaseBytes = null!;
+
+            try
+            {
+                // First attempt to read from the binary file. If that fails, fall back to the text file.
+                databaseBytes = _service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName);
+                isBinary = true;
+            }
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+            {
+            }
+
+            if (!isBinary)
+            {
+                // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
+                databaseBytes = _service._ioService.ReadAllBytes(databaseFileInfo.FullName);
+            }
 
             LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
 
@@ -416,6 +436,7 @@ internal sealed partial class SymbolSearchUpdateEngine
             var delayUntilUpdate = await ProcessPatchXElementAsync(
                 databaseFileInfo,
                 element,
+                // We pass a delegate to get the database bytes so that we can avoid reading the bytes when we don't need them due to no patch to apply.
                 getDatabaseBytes: () => isBinary ? _service._ioService.ReadAllBytes(databaseFileInfo.FullName) : databaseBytes,
                 cancellationToken).ConfigureAwait(false);
 
