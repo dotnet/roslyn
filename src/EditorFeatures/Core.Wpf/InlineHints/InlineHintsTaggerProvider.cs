@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// its data tags.  Then, on demand, we convert and cache those data tags into adornment tags and pass on the
         /// results.
         /// </summary>
-        private readonly InlineHintsDataTaggerProvider _dataTaggerProvider = new(taggerHost, inlineHintKeyProcessor);
+        private readonly InlineHintsDataTaggerProvider<CachedAdornmentTagSpan> _dataTaggerProvider = new(taggerHost, inlineHintKeyProcessor);
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {

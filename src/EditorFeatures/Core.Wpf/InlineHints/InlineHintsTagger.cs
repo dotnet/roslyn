@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -25,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 internal partial class InlineHintsTaggerProvider
 {
     /// <summary>
-    /// The purpose of this tagger is to convert the <see cref="InlineHintDataTag"/> to the <see
+    /// The purpose of this tagger is to convert the <see cref="InlineHintDataTag{TAdditionalInformation}"/> to the <see
     /// cref="InlineHintsTag"/>, which actually creates the UIElement. It reacts to tags changing and updates the
     /// adornments accordingly.
     /// </summary>
     private sealed class InlineHintsTagger : EfficientTagger<IntraTextAdornmentTag>
     {
-        private readonly EfficientTagger<InlineHintDataTag> _underlyingTagger;
+        private readonly EfficientTagger<InlineHintDataTag<CachedAdornmentTagSpan>> _underlyingTagger;
 
         private readonly IClassificationFormatMap _formatMap;
 
@@ -50,7 +49,7 @@ internal partial class InlineHintsTaggerProvider
             InlineHintsTaggerProvider taggerProvider,
             IWpfTextView textView,
             ITextBuffer subjectBuffer,
-            EfficientTagger<InlineHintDataTag> tagger)
+            EfficientTagger<InlineHintDataTag<CachedAdornmentTagSpan>> tagger)
         {
             _taggerProvider = taggerProvider;
 
@@ -125,7 +124,7 @@ internal partial class InlineHintsTaggerProvider
 
                 var colorHints = _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptionsStorage.ColorHints, document.Project.Language);
 
-                using var _1 = SegmentedListPool.GetPooledList<TagSpan<InlineHintDataTag>>(out var dataTagSpans);
+                using var _1 = SegmentedListPool.GetPooledList<TagSpan<InlineHintDataTag<CachedAdornmentTagSpan>>>(out var dataTagSpans);
                 _underlyingTagger.AddTags(spans, dataTagSpans);
 
                 // Presize so we can add the elements below without continually resizing.
@@ -147,10 +146,10 @@ internal partial class InlineHintsTaggerProvider
         }
 
         private TagSpan<IntraTextAdornmentTag> GetOrCreateAdornmentTagsSpan(
-            TagSpan<InlineHintDataTag> dataTagSpan, bool classify, TextFormattingRunProperties format)
+            TagSpan<InlineHintDataTag<CachedAdornmentTagSpan>> dataTagSpan, bool classify, TextFormattingRunProperties format)
         {
             // If we've never computed the adornment info, or options have changed, then compute and cache the new information.
-            var cachedTagInformation = (CachedAdornmentTagSpan?)dataTagSpan.Tag.AdditionalData;
+            var cachedTagInformation = dataTagSpan.Tag.AdditionalData;
             if (cachedTagInformation is null || cachedTagInformation.Classified != classify || cachedTagInformation.Format != format)
             {
                 var adornmentSpan = dataTagSpan.Span;

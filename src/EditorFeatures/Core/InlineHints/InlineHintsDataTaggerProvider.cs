@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 /// <summary>
 /// The TaggerProvider that calls upon the service in order to locate the spans and names
 /// </summary>
-internal sealed partial class InlineHintsDataTaggerProvider(
+internal sealed partial class InlineHintsDataTaggerProvider<TAdditionalInformation>(
     TaggerHost taggerHost,
     IInlineHintKeyProcessor inlineHintKeyProcessor)
-    : AsynchronousViewportTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
+    : AsynchronousViewportTaggerProvider<InlineHintDataTag<TAdditionalInformation>>(taggerHost, FeatureAttribute.InlineHints)
+    where TAdditionalInformation : class
 {
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
@@ -63,7 +64,7 @@ internal sealed partial class InlineHintsDataTaggerProvider(
     }
 
     protected override async Task ProduceTagsAsync(
-        TaggerContext<InlineHintDataTag> context,
+        TaggerContext<InlineHintDataTag<TAdditionalInformation>> context,
         DocumentSnapshotSpan spanToTag,
         CancellationToken cancellationToken)
     {
@@ -95,12 +96,12 @@ internal sealed partial class InlineHintsDataTaggerProvider(
             if (hint.DisplayParts.Sum(p => p.ToString().Length) == 0)
                 continue;
 
-            context.AddTag(new TagSpan<InlineHintDataTag>(
+            context.AddTag(new TagSpan<InlineHintDataTag<TAdditionalInformation>>(
                 hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
-                new InlineHintDataTag(this, snapshotSpan.Snapshot, hint)));
+                new(this, snapshotSpan.Snapshot, hint)));
         }
     }
 
-    protected override bool TagEquals(InlineHintDataTag tag1, InlineHintDataTag tag2)
+    protected override bool TagEquals(InlineHintDataTag<TAdditionalInformation> tag1, InlineHintDataTag<TAdditionalInformation> tag2)
         => tag1.Equals(tag2);
 }
