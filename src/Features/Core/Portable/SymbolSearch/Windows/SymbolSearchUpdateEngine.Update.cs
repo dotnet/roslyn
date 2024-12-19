@@ -391,7 +391,7 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             LogInfo("Reading in local database");
 
-            var databaseBytes = GetDatabaseBytes(databaseFileInfo, out var isBinary);
+            var (databaseBytes, isBinary) = GetDatabaseBytes(databaseFileInfo);
 
             LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
 
@@ -432,24 +432,21 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             return delayUntilUpdate;
 
-            byte[] GetDatabaseBytes(FileInfo databaseFileInfo, out bool isBinary)
+            (byte[] dataBytes, bool isBinary) GetDatabaseBytes(FileInfo databaseFileInfo)
             {
                 var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
-                isBinary = true;
 
                 try
                 {
                     // First attempt to read from the binary file. If that fails, fall back to the text file.
-                    return _service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName);
+                    return (_service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName), isBinary: true);
                 }
                 catch (Exception e) when (IOUtilities.IsNormalIOException(e))
                 {
                 }
 
-                isBinary = false;
-
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                return _service._ioService.ReadAllBytes(databaseFileInfo.FullName);
+                return (_service._ioService.ReadAllBytes(databaseFileInfo.FullName), isBinary: false);
             }
         }
 
