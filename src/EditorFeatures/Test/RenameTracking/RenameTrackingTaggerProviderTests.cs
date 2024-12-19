@@ -872,7 +872,7 @@ public sealed class RenameTrackingTaggerProviderTests
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028072")]
-    public async Task RenameTrackingDoesNotThrowAggregateException()
+    public void RenameTrackingDoesNotThrowAggregateException()
     {
         var notRenamable = Task.FromResult(RenameTrackingTaggerProvider.TriggerIdentifierKind.NotRenamable);
         Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(notRenamable, out _));

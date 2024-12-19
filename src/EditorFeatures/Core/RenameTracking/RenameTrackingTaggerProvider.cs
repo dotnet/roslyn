@@ -113,8 +113,7 @@ internal sealed partial class RenameTrackingTaggerProvider(
             {
                 var textBuffer = text.Container.TryGetTextBuffer();
                 if (textBuffer != null &&
-                    textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                    stateMachine.CanInvokeRename(out _))
+                    textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                 {
                     return stateMachine.TryGetCodeAction(
                         document, text, textSpan, refactorNotifyServices, undoHistoryRegistry);

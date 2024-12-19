@@ -284,7 +284,9 @@ internal sealed partial class RenameTrackingTaggerProvider
         }
 
         internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
-            Document document, SourceText text, TextSpan userSpan,
+            Document document,
+            SourceText text,
+            TextSpan userSpan,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             ITextUndoHistoryRegistry undoHistoryRegistry)
         {
