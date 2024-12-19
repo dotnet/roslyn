@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
     <ExportBraceCompletionService(LanguageNames.VisualBasic), [Shared]>
-    Friend Class ParenthesisBraceCompletionService
+    Friend NotInheritable Class ParenthesisBraceCompletionService
         Inherits AbstractVisualBasicBraceCompletionService
 
         <ImportingConstructor>
