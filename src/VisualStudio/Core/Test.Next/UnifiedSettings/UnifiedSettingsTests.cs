@@ -37,15 +37,53 @@ public class UnifiedSettingsTests
     /// <summary>
     /// Dictionary containing the option to expected unified settings for VB intellisense page.
     /// </summary>
-    private static readonly ImmutableDictionary<IOption2, UnifiedSettingBase> s_visualBasicIntellisenseExpectedSettings = ImmutableDictionary<IOption2, UnifiedSettingBase>.Empty.
-        Add(CompletionOptionsStorage.TriggerOnTypingLetters, CreateOption(
+    private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_visualBasicIntellisenseExpectedSettings = ImmutableArray.Create<(IOption2, UnifiedSettingBase)>(
+        (CompletionOptionsStorage.TriggerOnTypingLetters, CreateBooleanOption(
             CompletionOptionsStorage.TriggerOnTypingLetters,
             title: "Show completion list after a character is typed",
             order: 0,
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.TriggerOnDeletion, CreateBooleanOption(
+            CompletionOptionsStorage.TriggerOnDeletion,
+            title: "Show completion list after a character is deleted",
+            order: 1,
             defaultValue: true,
-            featureFlagAndExperimentValue: null,
-            enableWhenOptionAndValue: null,
-            languageName: LanguageNames.VisualBasic));
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, CreateBooleanOption(
+            CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems,
+            "Highlight matching portions of completion list items",
+            order: 10,
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionViewOptionsStorage.ShowCompletionItemFilters, CreateBooleanOption(
+            CompletionViewOptionsStorage.ShowCompletionItemFilters,
+            title: "Show completion item filters",
+            order: 20,
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.SnippetsBehavior, CreateEnumOption(
+            CompletionOptionsStorage.SnippetsBehavior,
+            "Snippets behavior",
+            order: 30,
+            enumLabels: ["Never include snippets", "Always include snippets", "Include snippets when ?-Tab is typed after an identifier"],
+            enumValues: [SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab],
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.EnterKeyBehavior, CreateEnumOption(
+            CompletionOptionsStorage.EnterKeyBehavior,
+            "Enter key behavior",
+            order: 40,
+            enumLabels: ["Never add new line on enter", "Only add new line on enter after end of fully typed word", "Always add new line on enterA"],
+            enumValues: [EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always],
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
+            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
+            title: "Show items from unimported namespaces",
+            order: 50,
+            languageName: LanguageNames.VisualBasic)),
+        (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
+            CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
+            title: "Tab twice insert arguments",
+            defaultValue: false,
+            order: 60,
+            languageName: LanguageNames.VisualBasic)));
 
     [Fact]
     public async Task VisualBasicIntellisenseTest()
@@ -57,7 +95,7 @@ public class UnifiedSettingsTests
         var properties = jsonDocument!.Root["properties"]!.AsObject()
             .Where(jsonObject => jsonObject.Key.StartsWith(expectedPrefix))
             .SelectAsArray(jsonObject => jsonObject.Value);
-        // Assert.Equal(s_optionToExpectedUnifiedSettings.Count, properties.Length);
+        Assert.Equal(s_visualBasicIntellisenseExpectedSettings.Length, properties.Length);
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(s_visualBasicIntellisenseExpectedSettings, (actual, expected) => (actual, expected)))
         {
             // We only have bool and enum option now.
@@ -69,27 +107,23 @@ public class UnifiedSettingsTests
     }
 
     #region Helpers
-    private static UnifiedSettingsOption<T> CreateOption<T>(
+    private static UnifiedSettingsOption<bool> CreateBooleanOption(
         IOption2 onboardedOption,
         string title,
         int order,
-        T? defaultValue = default,
-        (IOption2 featureFlagOption, T value)? featureFlagAndExperimentValue = null,
+        bool? defaultValue = null,
+        (IOption2 featureFlagOption, bool value)? featureFlagAndExperimentValue = null,
         (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
-        string? languageName = null) where T : notnull
+        string? languageName = null)
     {
         var migration = new Migration { Pass = new Pass { Input = new Input(onboardedOption, languageName) } };
         var type = onboardedOption.Definition.Type;
         // If the option's type is nullable type, like bool?, we use bool in the registration file.
         var underlyingType = Nullable.GetUnderlyingType(type);
-        if (underlyingType is not null)
-        {
-            Assert.True(featureFlagAndExperimentValue is not null);
-        }
         var nonNullableType = underlyingType ?? type;
 
         var alternativeDefault = featureFlagAndExperimentValue is not null
-            ? new AlternativeDefault<T>(featureFlagAndExperimentValue.Value.featureFlagOption, featureFlagAndExperimentValue.Value.value)
+            ? new AlternativeDefault<bool>(featureFlagAndExperimentValue.Value.featureFlagOption, featureFlagAndExperimentValue.Value.value)
             : null;
 
         var enableWhen = enableWhenOptionAndValue is not null
@@ -111,7 +145,7 @@ public class UnifiedSettingsTests
         // so please specify a non-null default value.
         Assert.NotNull(expectedDefault);
 
-        return new UnifiedSettingsOption<T>
+        return new UnifiedSettingsOption<bool>
         {
             Title = title,
             Type = nonNullableType.Name.ToCamelCase(),
@@ -119,7 +153,7 @@ public class UnifiedSettingsTests
             EnableWhen = enableWhen,
             Migration = migration,
             AlternativeDefault = alternativeDefault,
-            Default = (T)expectedDefault
+            Default = (bool)expectedDefault
         };
     }
 
@@ -127,12 +161,11 @@ public class UnifiedSettingsTests
         IOption2 onboardedOption,
         string title,
         int order,
-        T? defaultValue,
         string[] enumLabels,
         T[]? enumValues = null,
         (IOption2 featureFlagOption, T value)? featureFlagAndExperimentValue = null,
         (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
-        string? languageName = null) where T : Enum
+        string? languageName = null)
     {
         var type = onboardedOption.Definition.Type;
         // If the option's type is nullable type, we use the original type in the registration file.
@@ -157,10 +190,10 @@ public class UnifiedSettingsTests
             : null;
 
         var enableWhen = enableWhenOptionAndValue is not null
-            ? $"config:{UnifiedSettingsTests.s_visualBasicUnifiedSettingsStorage[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
+            ? $"config:{s_visualBasicUnifiedSettingsStorage[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
             : null;
 
-        var expectedDefault = defaultValue ?? onboardedOption.Definition.DefaultValue;
+        var expectedDefault = onboardedOption.Definition.DefaultValue;
         Assert.NotNull(expectedDefault);
 
         return new UnifiedSettingsEnumOption
