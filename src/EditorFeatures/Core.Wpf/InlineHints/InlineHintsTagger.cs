@@ -152,18 +152,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     cache = _cache_doNotAccessOutsideOfGate;
                 }
 
+                var cacheBuilder = cache.ToBuilder();
+
                 // If the snapshot has changed, we can't use any of the cached data, as it is associated with the
                 // original snapshot they were created against.
                 var snapshot = spans[0].Snapshot;
-
-                var cacheChanged = false;
-                var cacheBuilder = cache.ToBuilder();
-
                 if (snapshot != cacheSnapshot)
-                {
                     cacheBuilder.Clear();
-                    cacheChanged = true;
-                }
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptionsStorage.ColorHints, document.Project.Language);
@@ -185,7 +180,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         inlineHintTags = new(dataTagSpan);
                         cacheBuilder[position] = inlineHintTags;
-                        cacheChanged = true;
                     }
 
                     if (seenPositions.Add(position))
@@ -202,14 +196,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     }
                 }
 
-                if (cacheChanged)
+                cache = cacheBuilder.ToImmutable();
+                lock (_gate)
                 {
-                    cache = cacheBuilder.ToImmutable();
-                    lock (_gate)
-                    {
-                        _cacheSnapshot_doNotAccessOutsideOfGate = snapshot;
-                        _cache_doNotAccessOutsideOfGate = cache;
-                    }
+                    _cacheSnapshot_doNotAccessOutsideOfGate = snapshot;
+                    _cache_doNotAccessOutsideOfGate = cache;
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
