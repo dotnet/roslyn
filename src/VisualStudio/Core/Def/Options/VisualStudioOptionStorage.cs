@@ -280,6 +280,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_allow_best_effort_when_extracting_method", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Allow Best Effort")},
         {"dotnet_fade_out_unreachable_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode")},
         {"dotnet_fade_out_unused_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports")},
+        {"dotnet_fade_out_unused_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedMembers")},
         {"dotnet_add_imports_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"dotnet_always_use_default_symbol_servers", new RoamingProfileStorage("TextEditor.AlwaysUseDefaultSymbolServers")},
         {"csharp_insert_block_comment_start_string", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
