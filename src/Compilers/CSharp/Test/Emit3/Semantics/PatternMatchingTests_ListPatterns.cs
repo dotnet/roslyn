@@ -3734,7 +3734,11 @@ class X
     }
 }";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
-        compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics(
+            // 0.cs(8,26): hidden CS9271: The pattern is redundant.
+            //         _ = integers is [{}];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(8, 26));
+
         var tree = compilation.SyntaxTrees[0];
         var nodes = tree.GetRoot().DescendantNodes()
             .OfType<PropertyPatternClauseSyntax>()
@@ -5309,22 +5313,22 @@ class C
         _ = this switch // exhaustive
         {
             null or { Length: not 4 } => 0,
-            [_, .. [_, _], _] => 0,
+            [_, .. [_, _], _] => 0, // 7
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _] // 7
+        _ = this switch // didn't test for [_, .. [_, null], _] // 8
         {
             null or { Length: not 4 } => 0,
             [_, .. null or [_, not null], _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+        _ = this switch // didn't test for [_, .. [_, null], _, _] // 9
         {
             null or { Length: not 5 } => 0,
             [_, .. null or [_, not null], _, _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+        _ = this switch // didn't test for [_, .. [_, null, _], _] // 10
         {
             null or { Length: not 5 } => 0,
             [_, .. null or [_, not null, _], _] => 0,
@@ -5333,7 +5337,7 @@ class C
         _ = this switch // didn't test for [.. null, _] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
-            [.. { Length: 1 }] => 0, // 10
+            [.. { Length: 1 }] => 0, // 11
         };
     }
 }
@@ -5359,17 +5363,20 @@ class C
             // 0.cs(46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
             //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 6
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
+            // 0.cs(55,20): hidden CS9271: The pattern is redundant.
+            //             [_, .. [_, _], _] => 0, // 7
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, _]").WithLocation(55, 20),
             // 0.cs(58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
+            //         _ = this switch // didn't test for [_, .. [_, null], _] // 8
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
             // 0.cs(64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 9
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
             // 0.cs(70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 10
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18),
             // 0.cs(79,27): hidden CS9271: The pattern is redundant.
-            //             [.. { Length: 1 }] => 0, // 10
+            //             [.. { Length: 1 }] => 0, // 11
             Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(79, 27)
             );
     }
@@ -6003,18 +6010,18 @@ _ = new C() switch // 1
 {
     null => 0,
     [not null] => 1,
-    { Count: 0 or > 1 } => 2,
+    { Count: 0 or > 1 } => 2, // 2
 };
 
 _ = new C() switch
 {
     null => 0,
     [not null] => 1,
-    [null] => 2, // 2
-    { Count: 0 or > 1 } => 3, // 3
+    [null] => 2, // 3
+    { Count: 0 or > 1 } => 3, // 4, 5
 };
 
-_ = new C() switch // 4
+_ = new C() switch // 6
 {
     [not null] => 1,
     { Count: 0 or > 1 } => 2,
@@ -6023,8 +6030,8 @@ _ = new C() switch // 4
 _ = new C() switch
 {
     [not null] => 1,
-    [null] => 2, // 5
-    { Count: 0 or > 1 } => 3, // 6
+    [null] => 2, // 7
+    { Count: 0 or > 1 } => 3, // 8
 };
 
 class C
@@ -7520,18 +7527,30 @@ class C
             // (10,27): hidden CS9271: The pattern is redundant.
             //             [.., >=0] or [<0] or { Length: 0 or >1 } => 0
             Diagnostic(ErrorCode.HDN_RedundantPattern, "<0").WithLocation(10, 27),
+            // (10,44): hidden CS9271: The pattern is redundant.
+            //             [.., >=0] or [<0] or { Length: 0 or >1 } => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or >1").WithLocation(10, 44),
             // (15,34): hidden CS9271: The pattern is redundant.
             //             [.., >=0] or [..[.., <0]] or [] => 0
             Diagnostic(ErrorCode.HDN_RedundantPattern, "<0").WithLocation(15, 34),
             // (20,27): hidden CS9271: The pattern is redundant.
             //             [..[>=0]] or [<0] or
             Diagnostic(ErrorCode.HDN_RedundantPattern, "<0").WithLocation(20, 27),
+            // (21,23): hidden CS9271: The pattern is redundant.
+            //             { Length: 0 or >1 } => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or >1").WithLocation(21, 23),
+            // (31,70): hidden CS9271: The pattern is redundant.
+            //             [_, ..{ Length: < int.MaxValue - 1 }] or [] or { Length: int.MaxValue } => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "int.MaxValue").WithLocation(31, 70),
             // (36,26): hidden CS9271: The pattern is redundant.
             //             [..{ Length: <= int.MaxValue - 1 }, _] or []  => 0
             Diagnostic(ErrorCode.HDN_RedundantPattern, "<= int.MaxValue - 1").WithLocation(36, 26),
             // (41,29): hidden CS9271: The pattern is redundant.
             //             [_, ..{ Length: <= int.MaxValue - 2 }, _] or { Length: 0 or 1 } => 0
             Diagnostic(ErrorCode.HDN_RedundantPattern, "<= int.MaxValue - 2").WithLocation(41, 29),
+            // (41,68): hidden CS9271: The pattern is redundant.
+            //             [_, ..{ Length: <= int.MaxValue - 2 }, _] or { Length: 0 or 1 } => 0
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or 1").WithLocation(41, 68),
             // (50,18): hidden CS9271: The pattern is redundant.
             //             [{ X:0, Y:0 }] => 1,
             Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(50, 18),
@@ -7567,7 +7586,11 @@ class C
     }
 }";
         var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (20,23): hidden CS9271: The pattern is redundant.
+            //             { Length: >=1 } => 3,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, ">=1").WithLocation(20, 23));
+
         var verifier = CompileAndVerify(comp);
         string expectedIl = @"
 {
@@ -7648,9 +7671,9 @@ _ = a switch // 8
             // 0.cs(4,20): hidden CS9271: The pattern is redundant.
             // _ = a is { Length: -1 or 1 }; // 2
             Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(4, 20),
-            // 0.cs(5,20): hidden CS9271: The pattern is redundant.
+            // 0.cs(5,10): hidden CS9271: The pattern is redundant.
             // _ = a is { Length: -1 } or { Length: 1 }; // 3
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(5, 20),
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: -1 }").WithLocation(5, 10),
             // 0.cs(7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             // _ = a switch // 4
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
@@ -7687,9 +7710,9 @@ _ = a switch // 2
 ";
         var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
-            // 0.cs(3,28): hidden CS9271: The pattern is redundant.
+            // 0.cs(3,18): hidden CS9271: The pattern is redundant.
             // _ = a is null or { Length: -1 }; // 1
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(3, 28),
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: -1 }").WithLocation(3, 18),
             // 0.cs(5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
             // _ = a switch // 2
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(5, 7),

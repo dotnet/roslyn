@@ -2358,6 +2358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         HDN_RedundantPattern = 9271,
         WRN_RedundantPattern = 9272,
+        HDN_RedundantPatternStackGuard = 9273,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

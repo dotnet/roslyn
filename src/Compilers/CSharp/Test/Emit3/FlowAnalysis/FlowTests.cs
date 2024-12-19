@@ -4881,9 +4881,9 @@ class C
                 // (21,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(21, 15),
-                // (28,46): hidden CS9271: The pattern is redundant.
+                // (28,46): warning CS9272: The pattern is redundant.
                 //         _ = c?.M0(x = y = 0) is not null and C // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C").WithLocation(28, 46),
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "C").WithLocation(28, 46),
                 // (30,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 4
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(30, 15),
