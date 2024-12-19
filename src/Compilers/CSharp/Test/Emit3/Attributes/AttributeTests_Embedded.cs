@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var code = @"
 namespace Microsoft.CodeAnalysis
 {
-    internal class EmbeddedAttribute : System.Attribute { }
+    [Embedded]
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace TestReference
 {
@@ -93,7 +94,8 @@ class Program
             var module = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
-    internal class EmbeddedAttribute : System.Attribute { }
+    [Embedded]
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace TestReference
 {
@@ -173,7 +175,8 @@ class Program
             var code = @"
 namespace Microsoft.CodeAnalysis
 {
-    public class EmbeddedAttribute : System.Attribute { }
+    [Embedded]
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace OtherNamespace
 {
@@ -504,31 +507,6 @@ class Test
         }
 
         [Fact]
-        public void EmbeddedAttributeInReferencedModuleShouldTriggerAnErrorIfCompilerNeedsToGenerateOne()
-        {
-            var module = CreateCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", source: @"
-namespace Microsoft.CodeAnalysis
-{
-    public class EmbeddedAttribute : System.Attribute { }
-}");
-
-            var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
-
-            var code = @"
-class Test
-{
-    public void M(in int p)
-    {
-        // This should trigger generating another EmbeddedAttribute
-    }
-}";
-
-            CreateCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
-                // error CS8004: Type 'EmbeddedAttribute' exported from module 'testModule.netmodule' conflicts with type declared in primary module of this assembly.
-                Diagnostic(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute", "testModule.netmodule").WithLocation(1, 1));
-        }
-
-        [Fact]
         public void EmbeddedAttributeForwardedToAnotherAssemblyShouldTriggerAnError()
         {
             var reference = CreateCompilation(@"
@@ -555,15 +533,35 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateCompilation(assemblyName: "testRef", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
-namespace Microsoft.CodeAnalysis
-{
-    public class EmbeddedAttribute : System.Attribute { }
-}
-namespace OtherNamespace
-{
-    public class TestReference { }
-}").ToMetadataReference();
+            var reference = CompileIL("""
+                .assembly extern mscorlib { }
+                .assembly testRef
+                {
+                }
+
+                .class public auto ansi beforefieldinit OtherNamespace.TestReference
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+                    {
+                        ldarg.0
+                        call instance void [mscorlib]System.Object::.ctor()
+                        ret
+                    }
+                }
+
+                .class public auto ansi beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+                    extends [mscorlib]System.Attribute
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+                    {
+                        ldarg.0
+                        call instance void [mscorlib]System.Attribute::.ctor()
+                        ret
+                    }
+                }
+                """, prependDefaultHeader: false);
 
             var code = @"
 class Test
@@ -780,7 +778,8 @@ public class Test
             var compilation1 = CreateCompilation(parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
-    public class EmbeddedAttribute : System.Attribute { }
+    [Embedded]
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 [Microsoft.CodeAnalysis.Embedded]
 public class TestReference1 { }

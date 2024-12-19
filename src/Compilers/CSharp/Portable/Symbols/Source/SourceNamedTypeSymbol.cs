@@ -1905,6 +1905,44 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
                 }
             }
+
+            if (this is
+                {
+                    Name: "EmbeddedAttribute",
+                    Arity: 0,
+                    ContainingType: null,
+                    ContainingNamespace:
+                    {
+                        Name: "CodeAnalysis",
+                        ContainingNamespace:
+                        {
+                            Name: "Microsoft",
+                            ContainingNamespace.IsGlobalNamespace: true
+                        }
+                    }
+                })
+            {
+                // This is a user-defined implement of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
+                // 1. It must be internal
+                // 2. It must be a class
+                // 3. It must be sealed
+                // 4. It must be non-static
+                // 5. It must have an internal or public parameterless constructor
+                // 6. It must be attributed with itself
+                // 7. It must be non-generic (checked above, we don't error on this because both types can exist)
+
+                if (DeclaredAccessibility != Accessibility.Internal
+                    || TypeKind != TypeKind.Class
+                    || !IsSealed
+                    || IsStatic
+                    || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
+                    || !HasCodeAnalysisEmbeddedAttribute)
+                {
+                    // The type '{0}' must be non-generic, internal, sealed, non-static, be attributed with 'Microsoft.CodeAnalysis.EmbeddedAttribute', and have a parameterless constructor.
+                    diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, GetFirstLocation(), AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                }
+
+            }
         }
     }
 }

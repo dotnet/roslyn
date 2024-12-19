@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 diagnostics,
                 AttributeDescription.CodeAnalysisEmbeddedAttribute,
                 createParameterlessEmbeddedAttributeSymbol,
-                validateEmbeddedAttributeSymbol);
+                allowUserDefinedAttribute: true);
 
             if ((needsAttributes & EmbeddableAttributes.IsReadOnlyAttribute) != 0)
             {
@@ -494,54 +494,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     AttributeDescription.RefSafetyRulesAttribute,
                     CreateRefSafetyRulesAttributeSymbol);
             }
-
-            static bool validateEmbeddedAttributeSymbol(NamedTypeSymbol existingAttribute, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
-            {
-                // The user implementation must be internal, sealed, non-static, non-generic, derive from System.Attribute,
-                // and have [EmbeddedAttribute] applied to it. It must also have a parameterless constructor.
-                if (existingAttribute is not
-                    {
-                        IsStatic: false,
-                        Arity: 0,
-                        DeclaredAccessibility: Accessibility.Internal,
-                        IsFileLocal: false,
-                        TypeKind: TypeKind.Class,
-                        IsSealed: true,
-                        BaseTypeNoUseSiteDiagnostics: { } baseType
-                    })
-                {
-                    reportDiagnostics();
-                    return false;
-                }
-
-                var useSiteDiagnostics = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
-                if (!compilation.IsEqualOrDerivedFromWellKnownClass(existingAttribute, WellKnownType.System_Attribute, ref useSiteDiagnostics))
-                {
-                    reportDiagnostics();
-                    return false;
-                }
-
-                diagnostics.Add(existingAttribute.GetFirstLocation(), useSiteDiagnostics);
-
-                if (!existingAttribute.GetMembersUnordered().Any(m => m is MethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [], IsStatic: false, DeclaredAccessibility: Accessibility.Public or Accessibility.Internal }))
-                {
-                    reportDiagnostics();
-                    return false;
-                }
-
-                if (!existingAttribute.GetAttributes().Any((attr, existingAttribute) => attr.AttributeClass.OriginalDefinition.Equals(existingAttribute), existingAttribute))
-                {
-                    reportDiagnostics();
-                    return false;
-                }
-
-                return true;
-
-                void reportDiagnostics()
-                {
-                    diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, existingAttribute.GetFirstLocation(), AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
-                }
-            }
         }
 
         private SynthesizedEmbeddedAttributeSymbol CreateParameterlessEmbeddedAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
@@ -604,24 +556,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BindingDiagnosticBag diagnostics,
             AttributeDescription description,
             Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory,
-            Func<NamedTypeSymbol, CSharpCompilation, BindingDiagnosticBag, bool>? validateUserDefinedAttribute = null)
+            bool allowUserDefinedAttribute = false)
             where T : NamedTypeSymbol
         {
-            Debug.Assert(validateUserDefinedAttribute is null || typeof(T) == typeof(NamedTypeSymbol));
+            Debug.Assert(!allowUserDefinedAttribute || typeof(T) == typeof(NamedTypeSymbol));
             if (symbol is null)
             {
                 var userDefinedAttribute = getExistingType(description);
 
                 if (userDefinedAttribute is not null)
                 {
-                    if (validateUserDefinedAttribute is null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
-                    }
-                    else if (validateUserDefinedAttribute(userDefinedAttribute, Compilation, diagnostics))
+                    if (allowUserDefinedAttribute)
                     {
                         symbol = (T)userDefinedAttribute;
                         return;
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
                     }
                 }
 
