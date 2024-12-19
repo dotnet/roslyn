@@ -7,8 +7,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class TryBlockTests
         <WpfFact>
-        Public Sub ApplyAfterTryStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function ApplyAfterTryStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 Try
@@ -25,11 +25,11 @@ End Try
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedTryWithCatch()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyForMatchedTryWithCatch() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 Try
@@ -38,11 +38,11 @@ End Try
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedTryWithoutCatch()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyForMatchedTryWithoutCatch() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 Try
@@ -50,11 +50,11 @@ End Try
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedTryBlock()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyNestedTryBlock() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Try
@@ -79,11 +79,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={6, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedTryBlockWithCode()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyNestedTryBlockWithCode() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         Try
@@ -104,11 +104,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyMissingCatchInTryBlock()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyMissingCatchInTryBlock() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         dim x = function(x)
@@ -119,27 +119,26 @@ End Class",
     End Sub
 End Class",
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub S
         Dim x = try
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLocation() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub Try
 End Class",
                 caret:={1, -1})
-        End Sub
-
+        End Function
     End Class
 End Namespace

@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             ' It's possible that there may be an end construct to generate at this position.
             ' We'll go ahead and generate it before determining whether we need to move the caret
-            TryGenerateEndConstruct(args, _cancellationToken)
+            Await TryGenerateEndConstructAsync(args, _cancellationToken).ConfigureAwait(True)
 
             Dim snapshot = args.SubjectBuffer.CurrentSnapshot
             Dim caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer).Value
@@ -92,7 +92,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Shared Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
+        Private Shared Async Function TryGenerateEndConstructAsync(
+                args As ReturnKeyCommandArgs,
+                cancellationToken As CancellationToken) As Task(Of Boolean)
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
 
             Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
@@ -112,7 +114,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim endConstructGenerationService = document.GetLanguageService(Of IEndConstructGenerationService)()
 
-            Return endConstructGenerationService.TryDo(args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken)
+            Return Await endConstructGenerationService.TryDoAsync(
+                args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken).ConfigureAwait(True)
         End Function
 
         Private Overloads Async Function TryExecuteAsync(

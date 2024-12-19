@@ -2008,7 +2008,7 @@ class A {";
         Assert.NotEmpty(results);
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/76503"), CombinatorialData]
     public async Task TestWorkspaceDiagnosticsWaitsForLspTextChangesWithMultipleSources(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup1 =
