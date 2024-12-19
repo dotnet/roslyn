@@ -18,8 +18,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
-
-    Friend Class VisualBasicRenameRewriterLanguageService
+    Friend NotInheritable Class VisualBasicRenameRewriterLanguageService
         Inherits AbstractRenameRewriterLanguageService
 
         Public Shared ReadOnly Instance As New VisualBasicRenameRewriterLanguageService()
@@ -680,15 +679,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         End Function
 
         Public Overrides Async Function ComputeDeclarationConflictsAsync(
-            replacementText As String,
-            renamedSymbol As ISymbol,
-            renameSymbol As ISymbol,
-            referencedSymbols As IEnumerable(Of ISymbol),
-            baseSolution As Solution,
-            newSolution As Solution,
-            reverseMappedLocations As IDictionary(Of Location, Location),
-            cancellationToken As CancellationToken
-        ) As Task(Of ImmutableArray(Of Location))
+                replacementText As String,
+                renamedSymbol As ISymbol,
+                renameSymbol As ISymbol,
+                referencedSymbols As IEnumerable(Of ISymbol),
+                baseSolution As Solution,
+                newSolution As Solution,
+                reverseMappedLocations As IDictionary(Of Location, Location),
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Location))
 
             Dim conflicts = ArrayBuilder(Of Location).GetInstance()
 
@@ -700,17 +698,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 ' Find the method block or field declaration that we're in. Note the LastOrDefault
                 ' so we find the uppermost one, since VariableDeclarators live in methods too.
-                Dim methodBase = token.Parent.AncestorsAndSelf.Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax) _
-                                                              .LastOrDefault()
+                Dim methodBase = token.Parent.
+                    AncestorsAndSelf().
+                    Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax).
+                    LastOrDefault()
 
-                Dim semanticModel = Await newSolution.
-                    GetRequiredDocument(methodBase.SyntaxTree).
-                    GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim visitor As New LocalConflictVisitor(token, semanticModel, cancellationToken)
-                visitor.Visit(methodBase)
-
-                conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
-                               .Select(Function(loc) reverseMappedLocations(loc)))
+                If methodBase IsNot Nothing Then
+                    Dim semanticModel = Await newSolution.
+                        GetRequiredDocument(methodBase.SyntaxTree).
+                        GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                    Dim visitor As New LocalConflictVisitor(token, semanticModel, cancellationToken)
+                    visitor.Visit(methodBase)
+                    conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()).Select(Function(loc) reverseMappedLocations(loc)))
+                End If
 
                 ' If this is a parameter symbol for a partial method definition, be sure we visited 
                 ' the implementation part's body.
@@ -723,14 +723,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken)
                         methodBase = token.GetAncestor(Of MethodBlockSyntax)
 
-                        semanticModel = Await newSolution.
-                            GetRequiredDocument(methodBase.SyntaxTree).
-                            GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                        visitor = New LocalConflictVisitor(token, semanticModel, cancellationToken)
-                        visitor.Visit(methodBase)
+                        If methodBase IsNot Nothing Then
+                            Dim semanticModel = Await newSolution.
+                                GetRequiredDocument(methodBase.SyntaxTree).
+                                GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                            Dim visitor = New LocalConflictVisitor(token, semanticModel, cancellationToken)
+                            visitor.Visit(methodBase)
 
-                        conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
-                                       .Select(Function(loc) reverseMappedLocations(loc)))
+                            conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()).Select(Function(loc) reverseMappedLocations(loc)))
+                        End If
                     End If
                 End If
 
