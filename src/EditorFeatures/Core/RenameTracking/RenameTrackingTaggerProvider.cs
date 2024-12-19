@@ -145,24 +145,4 @@ internal sealed partial class RenameTrackingTaggerProvider(
         identifierKind = default;
         return false;
     }
-
-    internal static async Task<bool> IsRenamableIdentifier_ForTestingPurposesOnlyAsync(Task<TriggerIdentifierKind> isRenamableIdentifierTask)
-    {
-        await isRenamableIdentifierTask.ConfigureAwait(false);
-        return IsRenamableIdentifierFastCheck(isRenamableIdentifierTask, out _);
-    }
-
-    //internal static bool WaitForIsRenamableIdentifier_ForTestingPurposesOnly(Task<TriggerIdentifierKind> isRenamableIdentifierTask, CancellationToken cancellationToken)
-    //{
-    //    try
-    //    {
-    //        return isRenamableIdentifierTask.WaitAndGetResult_CanCallOnBackground(cancellationToken) != TriggerIdentifierKind.NotRenamable;
-    //    }
-    //    catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
-    //    {
-    //        // We passed in a different cancellationToken, so if there's a race and 
-    //        // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
-    //        return false;
-    //    }
-    //}
 }

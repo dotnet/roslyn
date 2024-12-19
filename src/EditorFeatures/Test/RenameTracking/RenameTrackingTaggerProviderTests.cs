@@ -885,21 +885,10 @@ public sealed class RenameTrackingTaggerProviderTests
         source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
         source.TrySetCanceled();
         Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(source.Task, out _));
-        Assert.False(await RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
 
         source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
         source.TrySetException(new OperationCanceledException());
         Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifierFastCheck(source.Task, out _));
-        Assert.False(await RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
-        Assert.False(await RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
-
-        source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();
-        source.TrySetCanceled();
-        await Assert.ThrowsAsync<OperationCanceledException>(() => RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
-        var thrownException = new Exception();
-        source.TrySetException(thrownException);
-        var caughtException = await Assert.ThrowsAsync<Exception>(() => RenameTrackingTaggerProvider.IsRenamableIdentifier_ForTestingPurposesOnlyAsync(source.Task));
-        Assert.Same(thrownException, caughtException);
     }
 
     [WpfFact]
