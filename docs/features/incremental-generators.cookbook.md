@@ -208,6 +208,15 @@ public class FileTransformGenerator : IIncrementalGenerator
 }
 ```
 
+Items need to be included in your csproj files by using the `AdditionalFiles` ItemGroup:
+
+```xml
+<ItemGroup>
+    <AdditionalFiles Include="file1.xml" />
+    <AdditionalFiles Include="file2.xml" />
+<ItemGroup>
+```
+
 ### Augment user code
 
 **User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
