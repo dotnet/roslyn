@@ -324,7 +324,9 @@ internal sealed partial class SymbolSearchUpdateEngine
             if (!memoryStream.TryGetBuffer(out var arraySegmentBuffer))
             {
                 memoryStream.Position = 0;
-                arraySegmentBuffer = new ArraySegment<byte>(writer.BaseStream.ReadAllBytes());
+
+                // Read the buffer directly from the memory stream.
+                arraySegmentBuffer = new ArraySegment<byte>(memoryStream.ReadAllBytes());
             }
 
             var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
@@ -389,25 +391,7 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             LogInfo("Reading in local database");
 
-            var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
-            var isBinary = false;
-            byte[] databaseBytes = null!;
-
-            try
-            {
-                // First attempt to read from the binary file. If that fails, fall back to the text file.
-                databaseBytes = _service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName);
-                isBinary = true;
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-            }
-
-            if (!isBinary)
-            {
-                // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                databaseBytes = _service._ioService.ReadAllBytes(databaseFileInfo.FullName);
-            }
+            var databaseBytes = GetDatabaseBytes(databaseFileInfo, out var isBinary);
 
             LogInfo($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}");
 
@@ -447,6 +431,26 @@ internal sealed partial class SymbolSearchUpdateEngine
             LogInfo("Patching local database completed");
 
             return delayUntilUpdate;
+
+            byte[] GetDatabaseBytes(FileInfo databaseFileInfo, out bool isBinary)
+            {
+                var databaseBinaryFileInfo = GetBinaryFileInfo(databaseFileInfo);
+                isBinary = true;
+
+                try
+                {
+                    // First attempt to read from the binary file. If that fails, fall back to the text file.
+                    return _service._ioService.ReadAllBytes(databaseBinaryFileInfo.FullName);
+                }
+                catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+                {
+                }
+
+                isBinary = false;
+
+                // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
+                return _service._ioService.ReadAllBytes(databaseFileInfo.FullName);
+            }
         }
 
         /// <summary>
@@ -518,6 +522,7 @@ internal sealed partial class SymbolSearchUpdateEngine
             var finalBytes = _service._patchService.ApplyPatch(databaseBytes, patchBytes);
             LogInfo($"Applying patch completed. finalBytes.Length={finalBytes.Length}");
 
+            // finalBytes is generated from the current database and the patch, not from the binary file.
             database = CreateAndSetInMemoryDatabase(finalBytes, isBinary: false);
 
             // Attempt to persist the txt and binary forms of the index. It's ok if either of these writes
