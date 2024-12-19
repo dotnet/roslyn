@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             static bool validateEmbeddedAttributeSymbol(NamedTypeSymbol existingAttribute, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
             {
-                // Validate that the attribute follows the correct pattern. It must be internal, sealed, non-static, non-generic, derive from System.Attribute,
+                // The user implementation must be internal, sealed, non-static, non-generic, derive from System.Attribute,
                 // and have [EmbeddedAttribute] applied to it. It must also have a parameterless constructor.
                 if (existingAttribute is not
                     {
@@ -506,12 +506,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         BaseTypeNoUseSiteDiagnostics: { } baseType
                     })
                 {
+                    reportDiagnostics();
                     return false;
                 }
 
                 var useSiteDiagnostics = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
                 if (!compilation.IsEqualOrDerivedFromWellKnownClass(existingAttribute, WellKnownType.System_Attribute, ref useSiteDiagnostics))
                 {
+                    reportDiagnostics();
                     return false;
                 }
 
@@ -519,15 +521,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (!existingAttribute.GetMembersUnordered().Any(m => m is MethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [], IsStatic: false, DeclaredAccessibility: Accessibility.Public or Accessibility.Internal }))
                 {
+                    reportDiagnostics();
                     return false;
                 }
 
                 if (!existingAttribute.GetAttributes().Any((attr, existingAttribute) => attr.AttributeClass.OriginalDefinition.Equals(existingAttribute), existingAttribute))
                 {
+                    reportDiagnostics();
                     return false;
                 }
 
                 return true;
+
+                void reportDiagnostics()
+                {
+                    diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, existingAttribute.GetFirstLocation(), AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                }
             }
         }
 
@@ -585,12 +594,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Int32, diagnostics));
 
+#nullable enable
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,
             BindingDiagnosticBag diagnostics,
             AttributeDescription description,
             Func<string, NamespaceSymbol, BindingDiagnosticBag, T> factory,
-            Func<NamedTypeSymbol, CSharpCompilation, BindingDiagnosticBag, bool> validateUserDefinedAttribute = null)
+            Func<NamedTypeSymbol, CSharpCompilation, BindingDiagnosticBag, bool>? validateUserDefinedAttribute = null)
             where T : NamedTypeSymbol
         {
             Debug.Assert(validateUserDefinedAttribute is null || typeof(T) == typeof(NamedTypeSymbol));
@@ -609,10 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         symbol = (T)userDefinedAttribute;
                         return;
                     }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, userDefinedAttribute.GetFirstLocation(), description.FullName);
-                    }
                 }
 
                 var containingNamespace = GetOrSynthesizeNamespace(description.Namespace);
@@ -628,8 +634,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 AddSynthesizedDefinition(containingNamespace, symbol);
             }
 
-#nullable enable
-
             NamedTypeSymbol? getExistingType(AttributeDescription description)
             {
                 var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
@@ -640,7 +644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return userDefinedAttribute;
             }
         }
-
 #nullable disable
 
         protected NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
