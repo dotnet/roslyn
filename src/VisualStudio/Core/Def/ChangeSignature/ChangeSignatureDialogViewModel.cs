@@ -43,19 +43,19 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
     /// <summary>
     /// The document where the symbol we are changing signature is defined.
     /// </summary>
-    private readonly Document _document;
+    private readonly SemanticDocument _document;
     private readonly int _positionForTypeBinding;
 
     internal ChangeSignatureDialogViewModel(
+        SemanticDocument document,
         ParameterConfiguration parameters,
         ISymbol symbol,
-        Document document,
         int positionForTypeBinding,
         IClassificationFormatMap classificationFormatMap,
         ClassificationTypeMap classificationTypeMap)
     {
-        _originalParameterConfiguration = parameters;
         _document = document;
+        _originalParameterConfiguration = parameters;
         _positionForTypeBinding = positionForTypeBinding;
         _classificationFormatMap = classificationFormatMap;
         _classificationTypeMap = classificationTypeMap;

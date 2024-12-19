@@ -182,8 +182,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             GetParameters(symbol).Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
             symbol.IsExtensionMethod(), selectedIndex);
 
+        var semanticDocument = await SemanticDocument.CreateAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
         return new ChangeSignatureAnalysisSucceededContext(
-            declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
+            semanticDocument, positionForTypeBinding, symbol, parameterConfiguration);
     }
 
     internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
