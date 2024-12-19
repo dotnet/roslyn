@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionBuilder,
         ImplementsIEnumerable,
         ArrayInterface,
+        Dictionary,
         DictionaryInterface,
     }
 }
