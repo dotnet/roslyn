@@ -54,8 +54,8 @@
       <PropertyGroup>
         <NetRoslyn>$(NetCurrent)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
-        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
-        <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
+        <NetRoslynAll>$(NetCurrent)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
         <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
       </PropertyGroup>
     </When>
