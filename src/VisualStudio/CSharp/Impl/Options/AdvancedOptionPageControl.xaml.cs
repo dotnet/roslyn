@@ -129,6 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Fading
             BindToOption(Fade_out_unused_usings, FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp);
+            BindToOption(Fade_out_unused_members, FadingOptions.FadeOutUnusedMembers, LanguageNames.CSharp);
             BindToOption(Fade_out_unreachable_code, FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
 
             // Block Structure Guides

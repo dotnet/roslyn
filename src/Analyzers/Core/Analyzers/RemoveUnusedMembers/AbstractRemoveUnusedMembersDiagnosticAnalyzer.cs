@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -27,10 +26,9 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TIdentifierNameSyntax,
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
-    : AbstractCodeQualityDiagnosticAnalyzer(
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
         [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        // We want to analyze references in generated code, but not report unused members in generated code.
-        GeneratedCodeAnalysisFlags.Analyze)
+        FadingOptions.FadeOutUnusedMembers)
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -44,21 +42,23 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
     // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
-    private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
+    private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptorWithId(
         IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
         EnforceOnBuildValues.RemoveUnusedMembers,
+        hasAnyCodeStyleOption: false,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        isUnnecessary: true);
 
     // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
     // Internal for testing
-    internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+    internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptorWithId(
         IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
         EnforceOnBuildValues.RemoveUnreadMembers,
+        hasAnyCodeStyleOption: false,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        isUnnecessary: true);
 
     protected abstract ISemanticFacts SemanticFacts { get; }
 
@@ -66,12 +66,18 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
     protected abstract SyntaxNode GetParentIfSoleDeclarator(SyntaxNode declaration);
 
-    // We need to analyze the whole document even for edits within a method body,
-    // because we might add or remove references to members in executable code.
-    // For example, if we had an unused field with no references, then editing any single method body
-    // to reference this field should clear the unused field diagnostic.
-    // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
+    /// <summary>
+    /// We need to analyze the whole document even for edits within a method body, because we might add or remove
+    /// references to members in executable code. For example, if we had an unused field with no references, then
+    /// editing any single method body to reference this field should clear the unused field diagnostic. Hence, we need
+    /// to re-analyze the declarations in the whole file for any edits within the document. 
+    /// </summary>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
+    /// <summary>
+    /// We want to analyze references in generated code, but not report unused members in generated code.
+    /// </summary>
+    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
 
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(compilationStartContext
