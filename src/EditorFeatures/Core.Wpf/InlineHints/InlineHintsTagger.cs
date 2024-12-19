@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// <summary>
         /// stores the parameter hint tags in a global location
         /// </summary>
-        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, TagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = [];
+        private readonly HashSet<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, TagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = [];
 
         /// <summary>
         /// Stores the snapshot associated with the cached tags in <see cref="_cache" />
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     // active view and disregards and requests for tags not in that view
                     var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
                     var tags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
-                    foreach (var tag in tags)
+                    var uniqueTags = tags.GroupBy(tag => tag.Tag.Hint.Span.Start).Select(group => group.First());
+                    foreach (var tag in uniqueTags)
                     {
                         // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                         // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
@@ -171,26 +173,38 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptionsStorage.ColorHints, document.Project.Language);
 
                 var selectedSpans = new List<TagSpan<IntraTextAdornmentTag>>();
-                for (var i = 0; i < _cache.Count; i++)
+                var itemsToUpdate = new List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, TagSpan<IntraTextAdornmentTag> hintTagSpan)>();
+
+                foreach (var oldCacheItem in _cache)
                 {
-                    var tagSpans = _cache[i].mappingTagSpan.Span.GetSpans(snapshot);
+                    var mappingTagSpan = oldCacheItem.mappingTagSpan;
+                    var cacheTagSpan = oldCacheItem.tagSpan;
+                    var tagSpans = mappingTagSpan.Span.GetSpans(snapshot);
                     if (tagSpans.Count == 1)
                     {
                         var tagSpan = tagSpans[0];
                         if (spans.IntersectsWith(tagSpan))
                         {
-                            if (_cache[i].tagSpan is not { } hintTagSpan)
+                            if (cacheTagSpan is not { } hintTagSpan)
                             {
                                 var hintUITag = InlineHintsTag.Create(
-                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
+                                        mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
                                 hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
-                                _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                                itemsToUpdate.Add((mappingTagSpan, hintTagSpan));
                             }
 
                             selectedSpans.Add(hintTagSpan);
                         }
                     }
+                }
+
+                // Go through all the items that need to be updated and update the cache since it can't be done
+                // while iterating over it
+                foreach (var (mappingTagSpan, hintTagSpan) in itemsToUpdate)
+                {
+                    _cache.Remove((mappingTagSpan, null));
+                    _cache.Add((mappingTagSpan, hintTagSpan));
                 }
 
                 return selectedSpans;
