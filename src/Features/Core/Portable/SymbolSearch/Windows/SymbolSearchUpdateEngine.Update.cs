@@ -288,7 +288,10 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             // Write the file out to disk so we'll have it the next time we launch VS.  Do this
             // after we set the in-memory instance so we at least have something to search while
-            // we're waiting to write.
+            // we're waiting to write. It's ok if either of these writes don't succeed. If the txt
+            // file fails to persist, a subsequent VS session will redownload the index and again try
+            // to persist. If the binary file fails to persist, a subsequent VS session will just load
+            // the index from the txt file and again try to persist the binary file.
             await WriteDatabaseTextFileAsync(databaseFileInfo, bytes, cancellationToken).ConfigureAwait(false);
             await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
 
@@ -517,6 +520,10 @@ internal sealed partial class SymbolSearchUpdateEngine
 
             database = CreateAndSetInMemoryDatabase(finalBytes, isBinary: false);
 
+            // Attempt to persist the txt and binary forms of the index. It's ok if either of these writes
+            // don't succeed. If the txt file fails to persist, a subsequent VS session will redownload the
+            // index and again try to persist. If the binary file fails to persist, a subsequent VS session
+            // will just load the index from the txt file and again try to persist the binary file.
             await WriteDatabaseTextFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
             await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
 
