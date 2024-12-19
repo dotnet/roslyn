@@ -114,6 +114,10 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
         return null;
 
         string GetTypeDisplayString(ITypeSymbol type)
+            // ToMinimalDisplayString will produce the smallest name for this type that should compile at the specified
+            // location in this tree.  We want that over ToDisplayString as that will produce the most readable name,
+            // which isn't necessarily something that will compile (for example, if needed namespaces are missing from
+            // the name).
             => type.ToMinimalDisplayString(semanticModel, node.SpanStart, s_minimalTypeStyle);
 
         TypeHint CreateTypeHint(
