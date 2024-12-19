@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.QuickInfo)]
-public class DiagnosticAnalyzerQuickInfoSourceTests
+public sealed class DiagnosticAnalyzerQuickInfoSourceTests
 {
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
     public async Task ErrorTitleIsShownOnDisablePragma()
@@ -156,26 +156,26 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
             ? GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members))
             : null;
         await TestAsync(
-@$"
-using System.Diagnostics.CodeAnalysis;
-using SM = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
-namespace T
-{{
-    public static class DiagnosticIds
-    {{
-        public const string IDE0051 = ""IDE0051"";
-    }}
+            $$"""
+            using System.Diagnostics.CodeAnalysis;
+            using SM = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
+            namespace T
+            {
+                public static class DiagnosticIds
+                {
+                    public const string IDE0051 = "IDE0051";
+                }
 
-    {suppressMessageAttribute}
-    public class C
-    {{
-        private int _i;
-    }}
-}}
-", description, ImmutableArray<TextSpan>.Empty);
+                {{suppressMessageAttribute}}
+                public class C
+                {
+                    private int _i;
+                }
+            }
+            """, description, ImmutableArray<TextSpan>.Empty);
     }
 
-    protected static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
+    private static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
         ImmutableArray<TextSpan> relatedSpans)
     {
         var info = await GetQuickinfo(workspace, document, position);
@@ -194,13 +194,13 @@ namespace T
         return info;
     }
 
-    protected static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
+    private static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
     {
         var info = await GetQuickinfo(workspace, document, position);
         Assert.Null(info);
     }
 
-    protected static async Task TestAsync(
+    private static async Task TestAsync(
         string code,
         string expectedDescription,
         ImmutableArray<TextSpan> relatedSpans,
@@ -237,7 +237,7 @@ namespace T
         return $"IDE{ideDiagnosticId:0000}: {localizable}";
     }
 
-    protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
+    private static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestAsync(
             $$"""
             class C
@@ -246,7 +246,7 @@ namespace T
             }
             """, expectedDescription, relatedSpans.ToImmutableArray());
 
-    protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
+    private static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestInClassAsync(
             $$"""
             void M()
