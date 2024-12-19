@@ -203,7 +203,7 @@ public class UnifiedSettingsTests
             Title = title,
             Type = "string",
             Enum = [.. expectedEnumValues.Select(value => value.ToString())],
-            EnumLabels = enumLabels,
+            EnumItemLabels = enumLabels,
             Order = order,
             EnableWhen = enableWhen,
             Migration = migration,
