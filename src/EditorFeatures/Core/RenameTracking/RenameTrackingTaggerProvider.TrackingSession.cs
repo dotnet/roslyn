@@ -145,10 +145,10 @@ internal sealed partial class RenameTrackingTaggerProvider
             }
         }
 
-        internal bool IsDefinitelyRenamableIdentifier()
+        internal bool IsDefinitelyRenamableIdentifierFastCheck()
         {
             // This needs to be able to run on a background thread for the CodeFix
-            return IsRenamableIdentifier(_isRenamableIdentifierTask, waitForResult: false, cancellationToken: CancellationToken.None);
+            return IsRenamableIdentifierFastCheck(_isRenamableIdentifierTask, out _);
         }
 
         public void Cancel()
@@ -259,13 +259,11 @@ internal sealed partial class RenameTrackingTaggerProvider
         internal bool CanInvokeRename(
             ISyntaxFactsService syntaxFactsService,
             IRenameTrackingLanguageHeuristicsService languageHeuristicsService,
-            bool isSmartTagCheck,
-            bool waitForResult,
-            CancellationToken cancellationToken)
+            bool isSmartTagCheck)
         {
-            if (IsRenamableIdentifier(_isRenamableIdentifierTask, waitForResult, cancellationToken))
+            if (IsRenamableIdentifierFastCheck(_isRenamableIdentifierTask, out var triggerIdentifierKind))
             {
-                var isRenamingDeclaration = _isRenamableIdentifierTask.Result == TriggerIdentifierKind.RenamableDeclaration;
+                var isRenamingDeclaration = triggerIdentifierKind == TriggerIdentifierKind.RenamableDeclaration;
                 var newName = TrackingSpan.GetText(TrackingSpan.TextBuffer.CurrentSnapshot);
                 var comparison = isRenamingDeclaration || syntaxFactsService.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
