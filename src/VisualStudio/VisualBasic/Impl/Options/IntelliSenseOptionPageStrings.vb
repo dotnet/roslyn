@@ -10,8 +10,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_typed As String =
             ServicesVSResources._Show_completion_list_after_a_character_is_typed
 
-        Public ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted As String =
-            ServicesVSResources.Show_completion_list_after_a_character_is_deleted
+        Public ReadOnly Property Show_completion_list_after_a_character_is_accelerator_deleted As String =
+            ServicesVSResources.Show_completion_list_after_a_character_is_accelerator_deleted
 
         Public ReadOnly Property Option_Highlight_matching_portions_of_completion_list_items As String =
             ServicesVSResources.Highlight_matching_portions_of_completion_list_items

@@ -37,12 +37,13 @@ public class UnifiedSettingsTests
     /// <summary>
     /// Dictionary containing the option to expected unified settings for VB intellisense page.
     /// </summary>
-    private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_visualBasicIntellisenseExpectedSettings = ImmutableArray.Create<(IOption2, UnifiedSettingBase)>(
+    private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_visualBasicIntellisenseExpectedSettings =
+    [
         (CompletionOptionsStorage.TriggerOnTypingLetters, CreateBooleanOption(
-            CompletionOptionsStorage.TriggerOnTypingLetters,
-            title: "Show completion list after a character is typed",
-            order: 0,
-            languageName: LanguageNames.VisualBasic)),
+                CompletionOptionsStorage.TriggerOnTypingLetters,
+                title: "Show completion list after a character is typed",
+                order: 0,
+                languageName: LanguageNames.VisualBasic)),
         (CompletionOptionsStorage.TriggerOnDeletion, CreateBooleanOption(
             CompletionOptionsStorage.TriggerOnDeletion,
             title: "Show completion list after a character is deleted",
@@ -83,7 +84,8 @@ public class UnifiedSettingsTests
             title: "Tab twice insert arguments",
             defaultValue: false,
             order: 60,
-            languageName: LanguageNames.VisualBasic)));
+            languageName: LanguageNames.VisualBasic)),
+    ];
 
     [Fact]
     public async Task VisualBasicIntellisenseTest()
@@ -178,7 +180,7 @@ public class UnifiedSettingsTests
             EnumToInteger = new EnumToInteger
             {
                 Input = new Input(onboardedOption, languageName),
-                Map = new Map()
+                Map = new Map
                 {
                     EnumValueMatches = [.. expectedEnumValues.Select(value => new Map.EnumToValuePair { Result = value.ToString().ToCamelCase(), Match = Convert.ToInt32(value) })]
                 }

@@ -1881,6 +1881,9 @@ Additional information: {1}</value>
     <value>Snippets behavior</value>
   </data>
   <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is deleted</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_accelerator_deleted" xml:space="preserve">
     <value>Show completion list after a character is _deleted</value>
   </data>
   <data name="Never_include_snippets" xml:space="preserve">

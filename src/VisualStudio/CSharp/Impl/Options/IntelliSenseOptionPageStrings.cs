@@ -11,8 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_completion_list_after_a_character_is_typed
             => ServicesVSResources._Show_completion_list_after_a_character_is_typed;
 
-        public static string Option_Show_completion_list_after_a_character_is_deleted
-            => ServicesVSResources.Show_completion_list_after_a_character_is_deleted;
+        public static string Show_completion_list_after_a_character_is_accelerator_deleted
+            => ServicesVSResources.Show_completion_list_after_a_character_is_accelerator_deleted;
 
         public static string Option_Completion
         {

@@ -1397,9 +1397,14 @@
         <target state="translated">Pokaż listę uzupełniania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+      <trans-unit id="Show_completion_list_after_a_character_is_accelerator_deleted">
         <source>Show completion list after a character is _deleted</source>
         <target state="new">Show completion list after a character is _deleted</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is deleted</source>
+        <target state="new">Show completion list after a character is deleted</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
