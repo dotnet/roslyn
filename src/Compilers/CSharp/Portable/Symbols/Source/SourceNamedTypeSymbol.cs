@@ -1922,7 +1922,7 @@ next:;
                     }
                 })
             {
-                // This is a user-defined implement of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
+                // This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
                 // 1. It must be internal
                 // 2. It must be a class
                 // 3. It must be sealed
