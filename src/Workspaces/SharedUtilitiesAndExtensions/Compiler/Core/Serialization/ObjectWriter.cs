@@ -129,6 +129,19 @@ internal sealed partial class ObjectWriter : IDisposable
     public void WriteUInt16(ushort value) => _writer.Write(value);
     public void WriteString(string? value) => WriteStringValue(value);
 
+    public Stream BaseStream => _writer.BaseStream;
+
+    public void Reset(bool includeValidationBytes = true)
+    {
+        _stringReferenceMap.Reset();
+        _writer.BaseStream.Position = includeValidationBytes ? 2 : 0;
+
+        if (_writer.BaseStream is SerializableBytes.ReadWriteStream pooledStream)
+            pooledStream.SetLength(_writer.BaseStream.Position, truncate: false);
+        else
+            _writer.BaseStream.SetLength(_writer.BaseStream.Position);
+    }
+
     /// <summary>
     /// Used so we can easily grab the low/high 64bits of a guid for serialization.
     /// </summary>

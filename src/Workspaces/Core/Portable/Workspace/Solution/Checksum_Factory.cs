@@ -22,6 +22,8 @@ internal readonly partial record struct Checksum
 
     private static readonly ObjectPool<XxHash128> s_incrementalHashPool =
         new(() => new(), size: 20);
+    private static readonly ObjectPool<ObjectWriter> s_objectWriterPool =
+        new(() => new(SerializableBytes.CreateWritableStream(), leaveOpen: true, writeValidationBytes: true), size: 4);
 
     public static Checksum Create(IEnumerable<string?> values)
     {
@@ -57,15 +59,24 @@ internal readonly partial record struct Checksum
 
     public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
     {
-        using var stream = SerializableBytes.CreateWritableStream();
+        // Obtain a writer from the pool
+        var objectWriter = s_objectWriterPool.Allocate();
+        var stream = objectWriter.BaseStream;
 
-        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
-        {
-            writeObject(@object, objectWriter);
-        }
+        // Invoke the callback to Write object into objectWriter
+        writeObject(@object, objectWriter);
 
+        // Include validation bytes in the new checksum from the stream
         stream.Position = 0;
-        return Create(stream);
+        var newChecksum = Create(stream);
+
+        // Reset object writer back to it's initial state
+        objectWriter.Reset();
+
+        // Release the writer back to the pool
+        s_objectWriterPool.Free(objectWriter);
+
+        return newChecksum;
     }
 
     public static Checksum Create(Checksum checksum1, Checksum checksum2)
