@@ -55,6 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
         public readonly EditorOptionsService EditorOptionsService = editorOptionsService;
 
+        /// <summary>
+        /// Underlying data tagger that produces the raw data tags.  We defer to it to own the actual low level tagger.
+        /// That tagger is responsible for listening to events (like scrolling/editing the buffer) and emitting <see
+        /// cref="ITagger{T}.TagsChanged"/> events when the tags change.  We then forward those events along to any
+        /// client of us.  When that client then asks us for our adornment tags, we call into the underlying tagger for
+        /// its data tags.  Then, on demand, we convert and cache those data tags into adornment tags and pass on the
+        /// results.
+        /// </summary>
         private readonly InlineHintsDataTaggerProvider _dataTaggerProvider = new(taggerHost, inlineHintKeyProcessor);
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
