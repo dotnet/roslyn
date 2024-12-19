@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
 internal partial class InlineHintsTaggerProvider
 {
+    /// <summary>The computed adornment tag for an inline hint, along with information needed to determine if it can be
+    /// reused.  This is created and cached on <see cref="InlineHintDataTag.AdditionalData"/> on demand so that we only
+    /// create adornment tags once and reuse as long as possible.</summary>
     /// <param name="classified">Whether or not the adornment tag was classified.  If the option for this changes, this
     /// cached tag should not be reused.</param>
     /// <param name="format">The text formatting used to create the hint.  If this format no longer matches the current
