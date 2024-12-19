@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// For example `A and (B or C)` we'll check the reachability of two cases: `case A and B` and `case A and C`.
         ///
-        /// Similarly, `(A or B) and (C or D)` we'll check the reachability of two sets of two cases:
+        /// Similarly, for `(A or B) and (C or D)` we'll check the reachability of two sets of two cases:
         ///   1. { `case A`, `case B` } (we can truncate later test since we only care about the reachability of `A` and `B` here)
         ///   2. { `case (A or B) and C`, `case (A or B) and D` }
         ///
-        /// Similarly, `A or ((B or C) and D)` we'll check the reachability of two sets of cases:
+        /// Similarly, for `A or ((B or C) and D)` we'll check the reachability of two sets of cases:
         ///   1. { `case A:`, `case ((B or C) and D):` }
         ///   2. { `case A:`, `case B:`, `case C:` }
         ///
-        /// Similarly, `A or (B and (C or D))` we'll check the reachability of two sets of cases:
+        /// Similarly, for `A or (B and (C or D))` we'll check the reachability of two sets of cases:
         ///   1. { `case A:`, `case ((B or C) and D):`
         ///   2. { `case A:`, `case B and C:`, `case B and D:` }
         /// </summary>
@@ -364,7 +364,7 @@ start:
                 return syntax;
             }
 
-            // Given a normalized pattern(so there are only `and` and `or` patterns at the root of the tree)
+            // Given a normalized pattern (so there are only `and` and `or` patterns at the root of the tree)
             // we traverse the binary patterns building a set of cases and reporting reachability issues
             // on that set of cases when applicable.
             static void analyze(BoundPattern pattern, ReachabilityAnalysisContext context)
@@ -395,7 +395,7 @@ start:
                     var patterns = ArrayBuilder<BoundPattern>.GetInstance();
                     addPatternsFromOrTree(binaryPattern, patterns);
 
-                    // For `A1 or ... or An`, we analyze: `case A1`, ..., `case An` (with wrapping indicated by caller)
+                    // For `A1 or ... or An`, we check reachability on: `case A1`, ..., `case An` (with each wrapped as indicated by caller)
                     int savedStackCount = currentCases.Count;
                     foreach (var pattern in patterns)
                     {
@@ -405,8 +405,9 @@ start:
                     checkReachability(currentCases, context);
                     currentCases.RemoveRange(index: savedStackCount, length: currentCases.Count - savedStackCount);
 
-                    // In `A1 or ... or Ai or B or ...` where `B` has an expansion set: `case B1`, ..., `case Bn`
-                    // we produce an expansion set: `case A1:`, ... `case Ai:`, `case B1:`, ... `case Bn:`
+                    // In `A1 or ... or Ai or B or ...`, we analyze `B` with `case A1:`, ..., `case Ai:` added to current cases.
+                    // That way, if `B` can be seen as multiple cases: `case B1`, ..., `case Bn`
+                    // we'll be able to check reachability on: `case A1:`, ... `case Ai:`, `case B1:`, ... `case Bn:`
                     for (int i = 0; i < patterns.Count; i++)
                     {
                         analyzePattern(currentCases, patterns[i], wrapIntoParentAndPattern, context);
@@ -428,15 +429,17 @@ start:
                     while (current != null && !current.Disjunction);
 
                     current = stack.Pop();
-                    // In `A and B and ...`, when we find multiple `or` patterns in `A` to be expanded, we'll produce those as cases (without the `and B and ...`)
+                    // In `A and B and ...`, we analyze `A` without the `and B and ...`
                     analyzePattern(currentCases, current.Left, wrapIntoParentAndPattern, context);
 
                     do
                     {
-                        // In `A and B`, when we find multiple `or` patterns in `B` to be expanded
-                        // for each such nested expansion, we'll produce a `A and <expansion>` case
+                        // In `A and B`, we analyze `B` but any cases `case B1:`, ..., `case Bn:` found there
+                        // will be wrapped as `A and <expansion>`.
+                        // So we'll check reachability on `case A and B1:`, ..., `case A and Bn:`
                         Func<BoundPattern, BoundPattern> newWrapIntoParentAndPattern = (BoundPattern newPattern) =>
                         {
+                            // Note: lambda intentionally captures
                             var wrappedPattern = new BoundBinaryPattern(newPattern.Syntax, disjunction: false, current.Left, newPattern, current.InputType, newPattern.NarrowedType);
                             var result = wrapIntoParentAndPattern?.Invoke(wrappedPattern) ?? wrappedPattern;
 
@@ -459,8 +462,8 @@ start:
             static void checkReachability(ArrayBuilder<BoundPattern> orCases, ReachabilityAnalysisContext context)
             {
                 // We construct a set of cases using the previous cases from context and the current/given cases.
-                // Cases for patterns marked as compiler-generated will be ignored (not reported if unreachable).
                 // We then construct a DAG and analyze reachability of branches.
+                // Unreachable cases for patterns marked as compiler-generated will not reported.
 #if DEBUG
                 string printedOrCases = dump(orCases);
 #endif
@@ -554,7 +557,7 @@ start:
         // A Visit will push single patterns (operands) and binary operations onto the eval sequence.
         // Once we're done visiting, the eval sequence will be converted back into a pattern.
         //
-        // A Visit should produce an eval result using the original InputType. When adjustments are needed,
+        // A Visit should produce an eval result using the original InputType. When type adjustments are needed,
         //   that is the responsibility of the caller of Visit.
         //
         // Some synthesized patterns are marked as compiler-generated so they will not be reported as redundant.
@@ -916,7 +919,7 @@ start:
             }
 
             // Given a pattern that expects `pattern.InputType` as input type, produce
-            // one that expects `inputType.
+            // one that expects `inputType`.
             //
             // For example, when splitting a pattern `{ Prop: A and B }` into `{ Prop: A } and/or { Prop: B }`
             // the original `B` pattern expects an input type that is the narrowed type from `A`
@@ -1076,6 +1079,7 @@ start:
                     // Given `newPattern`, produce `(..., _, newPattern, _, ...)`
                     _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                     {
+                        // Note: lambda intentionally captures
                         newPattern = WithInputTypeCheckIfNeeded(newPattern, deconstruction[i].Pattern.InputType);
                         ImmutableArray<BoundPositionalSubpattern> newSubPatterns = discards.SetItem(i, deconstruction[i].WithPattern(newPattern));
 
@@ -1109,6 +1113,7 @@ start:
                     // Given `newPattern`, produce `{ Prop: newPattern }`
                     _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                     {
+                        // Note: lambda intentionally captures
                         newPattern = WithInputTypeCheckIfNeeded(newPattern, property!.Pattern.InputType);
                         ImmutableArray<BoundPropertySubpattern> newSubPatterns = [property.WithPattern(newPattern)];
 
@@ -1162,18 +1167,18 @@ start:
                 PushBinaryOperation(syntax, endOfLeft, disjunction: _negated);
             }
 
-            private void TryPushOperandAndCombine(SyntaxNode syntax, BoundPattern pattern, int startOfLeft)
+            private void TryPushOperandAndCombine(SyntaxNode syntax, BoundPattern pattern, int startOfEval)
             {
-                int endOfLeft = _evalSequence.Count - 1;
+                int endOfEval = _evalSequence.Count - 1;
                 TryPushOperand(pattern);
 
-                if (endOfLeft < startOfLeft)
+                if (endOfEval < startOfEval)
                 {
-                    // Left is are skipped
+                    // Operand is skipped
                     return;
                 }
 
-                PushBinaryOperation(syntax, endOfLeft, disjunction: _negated);
+                PushBinaryOperation(syntax, endOfEval, disjunction: _negated);
             }
 
             private BoundPattern MakeDefaultPattern(SyntaxNode syntax, TypeSymbol inputType)
@@ -1238,6 +1243,7 @@ start:
 
                 _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                 {
+                    // Note: lambda intentionally captures
                     newPattern = WithInputTypeCheckIfNeeded(newPattern, subpatterns[i].Pattern.InputType);
                     ImmutableArray<BoundPositionalSubpattern> newSubpatterns = discards.SetItem(i, subpatterns[i].WithPattern(newPattern));
 
@@ -1323,6 +1329,7 @@ start:
 
                 Func<BoundPattern, BoundPattern> makeListPattern = (BoundPattern newPattern) =>
                 {
+                    // Note: lambda intentionally captures
                     newPattern = WithInputTypeCheckIfNeeded(newPattern, equivalentDefaultPatterns[i].InputType);
                     ImmutableArray<BoundPattern> newSubpatterns = equivalentDefaultPatterns.SetItem(i, newPattern);
 
@@ -1341,6 +1348,7 @@ start:
 
                 Func<BoundPattern, BoundPattern> makeListPatternWithSlice = (BoundPattern newPattern) =>
                 {
+                    // Note: lambda intentionally captures
                     var slice = (BoundSlicePattern)listPattern.Subpatterns[i];
                     Debug.Assert(slice.Pattern is not null);
 
