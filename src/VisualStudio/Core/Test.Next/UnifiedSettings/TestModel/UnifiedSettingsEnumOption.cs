@@ -11,6 +11,6 @@ internal record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
     [JsonPropertyName("enum")]
     public required string[] @Enum { get; init; }
 
-    [JsonPropertyName("enumLabel")]
-    public required string[] EnumLabel { get; init; }
+    [JsonPropertyName("enumLabels")]
+    public required string[] EnumLabels { get; init; }
 }

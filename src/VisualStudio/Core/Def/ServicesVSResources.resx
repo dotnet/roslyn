@@ -1871,10 +1871,16 @@ Additional information: {1}</value>
   <data name="Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
-  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+  <data name="_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
     <value>_Highlight matching portions of completion list items</value>
   </data>
+  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>Highlight matching portions of completion list items</value>
+  </data>
   <data name="Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item filters</value>
+  </data>
+  <data name="Show_completion_item__filters" xml:space="preserve">
     <value>Show completion item _filters</value>
   </data>
   <data name="Snippets_behavior" xml:space="preserve">
@@ -1883,7 +1889,7 @@ Additional information: {1}</value>
   <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
     <value>Show completion list after a character is deleted</value>
   </data>
-  <data name="Show_completion_list_after_a_character_is_accelerator_deleted" xml:space="preserve">
+  <data name="Show_completion_list_after_a_character_is__deleted" xml:space="preserve">
     <value>Show completion list after a character is _deleted</value>
   </data>
   <data name="Never_include_snippets" xml:space="preserve">

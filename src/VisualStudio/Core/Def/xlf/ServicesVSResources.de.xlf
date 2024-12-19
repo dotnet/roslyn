@@ -523,8 +523,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <source>Highlight matching portions of completion list items</source>
+        <target state="new">Highlight matching portions of completion list items</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
@@ -1387,9 +1387,14 @@
         <target state="translated">Compilerfehler und -warnungen anzeigen für:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
+      <trans-unit id="Show_completion_item__filters">
         <source>Show completion item _filters</source>
         <target state="new">Show completion item _filters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item filters</source>
+        <target state="new">Show completion item filters</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -1397,7 +1402,7 @@
         <target state="translated">Vervollständigungsliste anzeigen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_accelerator_deleted">
+      <trans-unit id="Show_completion_list_after_a_character_is__deleted">
         <source>Show completion list after a character is _deleted</source>
         <target state="new">Show completion list after a character is _deleted</target>
         <note />
@@ -1855,6 +1860,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">"{0}" wird in öffentlichen Wert geändert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="new">_Highlight matching portions of completion list items</target>
         <note />
       </trans-unit>
       <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">

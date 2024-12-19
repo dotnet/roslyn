@@ -11,8 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_completion_list_after_a_character_is_typed
             => ServicesVSResources._Show_completion_list_after_a_character_is_typed;
 
-        public static string Show_completion_list_after_a_character_is_accelerator_deleted
-            => ServicesVSResources.Show_completion_list_after_a_character_is_accelerator_deleted;
+        public static string Option_Show_completion_list_after_a_character_is_deleted
+            => ServicesVSResources.Show_completion_list_after_a_character_is__deleted;
 
         public static string Option_Completion
         {
@@ -35,10 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_Highlight_matching_portions_of_completion_list_items
-            => ServicesVSResources.Highlight_matching_portions_of_completion_list_items;
+            => ServicesVSResources._Highlight_matching_portions_of_completion_list_items;
 
         public static string Option_Show_completion_item_filters
-            => ServicesVSResources.Show_completion_item_filters;
+            => ServicesVSResources.Show_completion_item__filters;
 
         public static string Option_Automatically_complete_statement_on_semicolon => CSharpVSResources.Automatically_complete_statement_on_semicolon;
 
