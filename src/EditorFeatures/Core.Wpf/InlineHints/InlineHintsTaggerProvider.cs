@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [Name(nameof(InlineHintsTaggerProvider))]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class InlineHintsTaggerProvider(
+    internal sealed partial class InlineHintsTaggerProvider(
         IGlobalOptionService globalOptionService,
         IClassificationFormatMapService classificationFormatMapService,
         IClassificationTypeRegistryService classificationTypeRegistryService,

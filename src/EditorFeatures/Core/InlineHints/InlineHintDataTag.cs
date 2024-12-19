@@ -27,6 +27,12 @@ internal sealed class InlineHintDataTag(InlineHintsDataTaggerProvider provider, 
 
     public readonly InlineHint Hint = hint;
 
+    /// <summary>
+    /// Additional data that can be attached to the tag.  For example, the view tagger uses this to attach the adornment
+    /// tag information so it can be created and cached on demand.
+    /// </summary>
+    public object? AdditionalData;
+
     // Intentionally throwing, we have never supported this facility, and there is no contract around placing
     // these tags in sets or maps.
     public override int GetHashCode()
