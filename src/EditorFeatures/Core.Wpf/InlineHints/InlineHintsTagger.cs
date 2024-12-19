@@ -4,12 +4,17 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -20,21 +25,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
-    using InlineHintTagCache = ImmutableDictionary<int, InlineHintTags>;
-
-    internal class InlineHintTags(TagSpan<InlineHintDataTag> dataTagSpan)
-    {
-        /// <summary>
-        /// Provided at creation time.  Never changes.
-        /// </summary>
-        public readonly TagSpan<InlineHintDataTag> DataTagSpan = dataTagSpan;
-
-        /// <summary>
-        /// Created on demand when the adornment is needed.
-        /// </summary>
-        public TagSpan<IntraTextAdornmentTag>? AdornmentTagSpan;
-    }
-
     /// <summary>
     /// The purpose of this tagger is to convert the <see cref="InlineHintDataTag"/> to the <see
     /// cref="InlineHintsTag"/>, which actually creates the UIElement. It reacts to tags changing and updates the
@@ -42,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// </summary>
     internal sealed class InlineHintsTagger : EfficientTagger<IntraTextAdornmentTag>
     {
+        private static ConditionalWeakTable<TagSpan<InlineHintDataTag>, TagSpan<IntraTextAdornmentTag>> s_dataTagToAdornmentTag = new();
+
         private readonly EfficientTagger<InlineHintDataTag> _underlyingTagger;
 
         private readonly IClassificationFormatMap _formatMap;
@@ -55,63 +47,61 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly InlineHintsTaggerProvider _taggerProvider;
 
         private readonly IWpfTextView _textView;
-
-        private readonly object _gate = new();
-        /// <summary>
-        /// Stores the snapshot associated with the cached tags in <see cref="_cache_doNotAccessOutsideOfGate"/>.
-        /// Locked by <see cref="_gate"/>.
-        /// </summary>
-        private ITextSnapshot? _cacheSnapshot_doNotAccessOutsideOfGate;
-
-        /// <summary>
-        /// Mapping from position to the data tag computed for it, and the adornment tag (once we've computed that).
-        /// Locked by <see cref="_gate"/>.
-        /// </summary>
-        private InlineHintTagCache _cache_doNotAccessOutsideOfGate = InlineHintTagCache.Empty;
+        private readonly ITextBuffer _subjectBuffer;
 
         public InlineHintsTagger(
             InlineHintsTaggerProvider taggerProvider,
             IWpfTextView textView,
+            ITextBuffer subjectBuffer,
             EfficientTagger<InlineHintDataTag> tagger)
         {
             _taggerProvider = taggerProvider;
 
             _textView = textView;
+            _subjectBuffer = subjectBuffer;
 
+            // When the underlying tagger produced new data tags, inform any clients of us that we have new adornment tags.
             _underlyingTagger = tagger;
-            _underlyingTagger.TagsChanged += OnUnderlyingTagger_TagsChanged;
+            _underlyingTagger.TagsChanged += OnTagsChanged;
 
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
+
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
+            _taggerProvider.GlobalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
         }
 
         public override void Dispose()
         {
-            _underlyingTagger.TagsChanged -= OnUnderlyingTagger_TagsChanged;
-            _underlyingTagger.Dispose();
             _formatMap.ClassificationFormatMappingChanged -= OnClassificationFormatMappingChanged;
-        }
-
-        private void OnUnderlyingTagger_TagsChanged(object sender, SnapshotSpanEventArgs e)
-        {
-            InvalidateCache();
-            OnTagsChanged(this, e);
+            _taggerProvider.GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+            _underlyingTagger.TagsChanged -= OnTagsChanged;
+            _underlyingTagger.Dispose();
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
+
+            // When classifications change we need to rebuild the inline tags with updated Font and Color information.
+
+            // Clear out the cached adornment tags we have associated with each data tag.
+            s_dataTagToAdornmentTag = new();
+
             if (_format != null)
             {
                 _format = null;
-                InvalidateCache();
+                OnTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
+            }
+        }
 
-                // When classifications change we need to rebuild the inline tags with updated Font and Color information.
-                var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
-
-                foreach (var tag in tags)
-                    OnTagsChanged(this, new SnapshotSpanEventArgs(tag.Span));
+        private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
+        {
+            if (e.HasOption(option => option.Equals(InlineHintsViewOptionsStorage.ColorHints)))
+            {
+                // Clear out cached adornments and reclassify everything.
+                s_dataTagToAdornmentTag = new();
+                OnTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
         }
 
@@ -125,15 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        private void InvalidateCache()
-        {
-            lock (_gate)
-            {
-                _cacheSnapshot_doNotAccessOutsideOfGate = null;
-                _cache_doNotAccessOutsideOfGate = InlineHintTagCache.Empty;
-            }
-        }
-
         public override void AddTags(
             NormalizedSnapshotSpanCollection spans,
             SegmentedList<TagSpan<IntraTextAdornmentTag>> adornmentTagSpans)
@@ -143,22 +124,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 if (spans.Count == 0)
                     return;
 
-                ITextSnapshot? cacheSnapshot;
-                InlineHintTagCache cache;
-
-                lock (_gate)
-                {
-                    cacheSnapshot = _cacheSnapshot_doNotAccessOutsideOfGate;
-                    cache = _cache_doNotAccessOutsideOfGate;
-                }
-
-                var cacheBuilder = cache.ToBuilder();
-
                 // If the snapshot has changed, we can't use any of the cached data, as it is associated with the
                 // original snapshot they were created against.
                 var snapshot = spans[0].Snapshot;
-                if (snapshot != cacheSnapshot)
-                    cacheBuilder.Clear();
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptionsStorage.ColorHints, document.Project.Language);
@@ -173,34 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 foreach (var dataTagSpan in dataTagSpans)
                 {
-                    // Check if we already have a tag at this position.  If not, initialize the cache to just point at
-                    // the new data tag.
-                    var position = dataTagSpan.Span.Start;
-                    if (!cache.TryGetValue(position, out var inlineHintTags))
-                    {
-                        inlineHintTags = new(dataTagSpan);
-                        cacheBuilder[position] = inlineHintTags;
-                    }
-
-                    if (seenPositions.Add(position))
-                    {
-                        // Now check if this is the first time we've been asked to compute the adornment for this particular
-                        // data tag.  If so, create and cache it so we don't recreate the adornments in the future for the
-                        // same text snapshot.
-                        //
-                        // Note: creating the adornment doesn't change the cache itself.  It just updates one of the values
-                        // the cache is already pointing to.  We only need to change the cache if we've added a new
-                        // key/value mapping to it.
-                        inlineHintTags.AdornmentTagSpan ??= CreateAdornmentTagSpan(inlineHintTags.DataTagSpan, classify);
-                        adornmentTagSpans.Add(inlineHintTags.AdornmentTagSpan);
-                    }
-                }
-
-                cache = cacheBuilder.ToImmutable();
-                lock (_gate)
-                {
-                    _cacheSnapshot_doNotAccessOutsideOfGate = snapshot;
-                    _cache_doNotAccessOutsideOfGate = cache;
+                    if (seenPositions.Add(dataTagSpan.Span.Start))
+                        adornmentTagSpans.Add(GetAdornmentTagsSpan(dataTagSpan, classify));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
@@ -209,15 +151,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        private TagSpan<IntraTextAdornmentTag> CreateAdornmentTagSpan(
+        private TagSpan<IntraTextAdornmentTag> GetAdornmentTagsSpan(
             TagSpan<InlineHintDataTag> dataTagSpan, bool classify)
         {
-            var adornmentSpan = dataTagSpan.Span;
+            if (s_dataTagToAdornmentTag.TryGetValue(dataTagSpan, out var adornmentTagSpan))
+                return adornmentTagSpan;
 
-            var hintUITag = InlineHintsTag.Create(
-                dataTagSpan.Tag.Hint, Format, _textView, adornmentSpan, _taggerProvider, _formatMap, classify);
+            // Extracted as a helper method to avoid closure allocations when we find the adornment span in the map.
+            return GetOrCreateAdornmentTagSpan(dataTagSpan, classify);
+        }
 
-            return new TagSpan<IntraTextAdornmentTag>(adornmentSpan, hintUITag);
+        private TagSpan<IntraTextAdornmentTag> GetOrCreateAdornmentTagSpan(
+            TagSpan<InlineHintDataTag> dataTagSpan, bool classify)
+        {
+            return s_dataTagToAdornmentTag.GetValue(dataTagSpan, dataTagSpan =>
+            {
+                var adornmentSpan = dataTagSpan.Span;
+
+                var hintUITag = InlineHintsTag.Create(
+                    dataTagSpan.Tag.Hint, Format, _textView, adornmentSpan, _taggerProvider, _formatMap, classify);
+
+                return new TagSpan<IntraTextAdornmentTag>(adornmentSpan, hintUITag);
+            });
         }
     }
 }

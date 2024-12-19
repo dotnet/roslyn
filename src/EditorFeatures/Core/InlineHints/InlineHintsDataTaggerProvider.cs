@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -18,19 +15,12 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
 /// <summary>
 /// The TaggerProvider that calls upon the service in order to locate the spans and names
 /// </summary>
-//[Export(typeof(IViewTaggerProvider))]
-//[VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
-//[TagType(typeof(InlineHintDataTag))]
-//[VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
-//[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-//[method: ImportingConstructor]
 internal sealed partial class InlineHintsDataTaggerProvider(
     TaggerHost taggerHost,
     IInlineHintKeyProcessor inlineHintKeyProcessor)
