@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 /// <summary>
 /// The TaggerProvider that calls upon the service in order to locate the spans and names
 /// </summary>
-[Export(typeof(IViewTaggerProvider))]
-[VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
-[TagType(typeof(InlineHintDataTag))]
-[VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-[method: ImportingConstructor]
+//[Export(typeof(IViewTaggerProvider))]
+//[VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
+//[TagType(typeof(InlineHintDataTag))]
+//[VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
+//[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+//[method: ImportingConstructor]
 internal sealed partial class InlineHintsDataTaggerProvider(
     TaggerHost taggerHost,
-    [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor)
+    IInlineHintKeyProcessor inlineHintKeyProcessor)
     : AsynchronousViewportTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
 {
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;

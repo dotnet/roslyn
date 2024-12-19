@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
     [Name(nameof(InlineHintsTaggerProvider))]
-    internal class InlineHintsTaggerProvider : IViewTaggerProvider
+    internal sealed class InlineHintsTaggerProvider : IViewTaggerProvider
     {
-        private readonly IViewTagAggregatorFactoryService _viewTagAggregatorFactoryService;
+        // private readonly IViewTagAggregatorFactoryService _viewTagAggregatorFactoryService;
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
@@ -40,10 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
         public readonly EditorOptionsService EditorOptionsService;
 
+        private readonly InlineHintsDataTaggerProvider _dataTaggerProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineHintsTaggerProvider(
-            IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
+            // IViewTagAggregatorFactoryService viewTagAggregatorFactoryService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IThreadingContext threadingContext,
@@ -52,9 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             IToolTipService toolTipService,
             ClassificationTypeMap typeMap,
             Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter,
-            EditorOptionsService editorOptionsService)
+            EditorOptionsService editorOptionsService,
+            TaggerHost taggerHost,
+            [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor)
         {
-            _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
+            // _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
             ClassificationFormatMapService = classificationFormatMapService;
             ClassificationTypeRegistryService = classificationTypeRegistryService;
             ThreadingContext = threadingContext;
@@ -65,17 +70,27 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             EditorOptionsService = editorOptionsService;
 
             AsynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
+
+            _dataTaggerProvider = new InlineHintsDataTaggerProvider(taggerHost, inlineHintKeyProcessor);
         }
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
             if (textView.IsNotSurfaceBufferOfTextView(buffer))
+                return null;
+
+            if (textView is not IWpfTextView wpfTextView)
+                return null;
+
+            var tagger = new InlineHintsTagger(
+                this, wpfTextView, _dataTaggerProvider.CreateTagger(textView, buffer));
+            if (tagger is not ITagger<T> typedTagger)
             {
+                tagger.Dispose();
                 return null;
             }
 
-            var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineHintDataTag>(textView);
-            return new InlineHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
+            return typedTagger;
         }
     }
 }
