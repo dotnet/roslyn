@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   We only report diagnostics if we detect certain syntactic structure (`not` before a redundant pattern in a binary pattern).
         ///
         /// # Normalization:
-        /// In short: 
+        /// In short:
         /// - composite patterns are expanded: `Type { Prop1: A, Prop2: B }` becomes `Type and { Prop1: A } and { Prop2: B }`
         /// - negated patterns are pushed down: `not (Type and { Prop: A } }` becomes `not Type or { Prop: not A }`
-        /// 
+        ///
         /// See <see cref="PatternNormalizer"/> for details.
-        /// 
+        ///
         /// # Identifying sets of cases to run reachability analysis on:
         /// For patterns that contain a disjunction `... or ...` we're going to perform reachability analysis for each branch of the `or`.
         /// We effectively pick each analyzable `or` sequence in turn and expand it to top-level cases.
@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We need to reduce the break introduced by reporting redundant patterns
             // and we never want to affect people who express their patterns thoroughly (but correctly)
-            // such as `switch { < 0 => -1, 0 => 0, > 0 => 1 }`
+            // such as `switch { < 0 => -1, 0 => 0, > 0 => 1 }`.
             // So we're only reporting a warning for situations that syntactically look hazardous.
             // Others are reported as a hidden diagnostic.
-            // At the moment, we're only interested in patterns in an `or` pattern with a `not` in an early case of the `or`.
+            // At the moment, we're only interested in patterns in a binary pattern with a `not` before the redundant pattern.
             static bool shouldWarn(SyntaxNode syntax)
             {
 start:
@@ -1041,12 +1041,22 @@ start:
                 //   If there's not Type, we substitute a null check
 
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
-                int startOfLeft = _evalSequence.Count; // all the operands we push from here will be combined in `or` for negation and `and` otherwise
+                int startOfLeft = _evalSequence.Count;
 
+                // All the operands we push from here will be combined in `or` for negation and `and` otherwise
+                // Note: all the operands pushed will have the original input type, we'll let GetResult adjust the input type in an `and` sequence
                 _expectingOperandOfDisjunction = _negated;
 
-                // We need an initial check in case there are no nested patterns or they end up being skipped
-                // The initial check will get marked as compiler-generated (below) as needed
+                // We need an initial check to maintain proper semantics. We only blame it if the only purpose of the pattern is that initial check.
+                // So if there are some nested patterns that aren't skipped, we won't blame the initial check.
+                // If there is a variable declaration, we won't blame the initial check.
+                // The initial check will get marked as compiler-generated later (below) as needed.
+                //
+                // For example: taking `myString is not (not null and { Length: 0 or 1 })`
+                // We produce cases:
+                //   - `null` (for the explicit null pattern)
+                //   - `null` (initial check for recursive pattern, but we don't want to blame this one)
+                //   - `{ Length: not 0 } and { Length: not 1 }`
                 BoundPattern initialCheck;
                 if (node.DeclaredType is not null)
                 {
@@ -1149,12 +1159,6 @@ start:
 
                 if (_evalSequence.Count - 1 >= startOfNestedPatterns || node.Variable is not null)
                 {
-                    // Some nested patterns weren't skipped, or we have a variable declaration, so we mark the initial check as blameless
-                    // For example: in `someString is not (not null and { Length: 0 or 1 })`
-                    // We produce the following cases:
-                    //   case null: (for `not null`)
-                    //   case null: (for recursive pattern initial check, which we need to silence)
-                    //   case { Length: not 0 } and { P: not 1 }: (for nested patterns)
                     _evalSequence[startOfLeft] = _evalSequence[startOfLeft].MakeCompilerGenerated();
                 }
 
@@ -1190,16 +1194,18 @@ start:
             public override BoundNode? VisitITuplePattern(BoundITuplePattern ituplePattern)
             {
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
-                int startOfLeft = _evalSequence.Count; // all the operands we push from here will be combined in `or` for negation and `and` otherwise
+                int startOfLeft = _evalSequence.Count;
                 var subpatterns = ituplePattern.Subpatterns;
                 var discards = subpatterns.SelectAsArray(d => d.WithPattern(MakeDiscardPattern(d.Syntax, d.Pattern.InputType)));
 
+                // all the operands we push from here will be combined in `or` for negation and `and` otherwise
                 _expectingOperandOfDisjunction = _negated;
 
                 // `(_, ..., _)` (effectively a not null and Length test)
                 var lengthTest = new BoundITuplePattern(ituplePattern.Syntax, ituplePattern.GetLengthMethod, ituplePattern.GetItemMethod, discards,
                     ituplePattern.InputType, ituplePattern.NarrowedType);
                 TryPushOperand(NegateIfNeeded(lengthTest));
+                Debug.Assert(_evalSequence.Count == startOfLeft + 1);
 
                 int startOfNestedPatterns = _evalSequence.Count;
                 var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
@@ -1235,7 +1241,6 @@ start:
 
                 if (_evalSequence.Count - 1 >= startOfNestedPatterns)
                 {
-                    // Some nested patterns weren't skipped, or we have a variable declaration, so we mark the initial check as blameless
                     _evalSequence[startOfLeft] = _evalSequence[startOfLeft].MakeCompilerGenerated();
                 }
 
@@ -1253,15 +1258,15 @@ start:
 
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
                 int startOfLeft = _evalSequence.Count;
-                // All the operands we push from here will be combined in `or` for negation and `and` otherwise
-                // Note: all the operands pushed will have the original input type, we'll let GetResult adjust the input type in an `and` sequence
 
+                // All the operands we push from here will be combined in `or` for negation and `and` otherwise
                 _expectingOperandOfDisjunction = _negated;
 
                 // `[_, _, ..., .._]` (effectively a not null and Length test)
                 ImmutableArray<BoundPattern> equivalentDefaultPatterns = listPattern.Subpatterns.SelectAsArray(makeEquivalentDefaultPattern);
                 BoundListPattern lengthTest = listPattern.WithSubpatterns(equivalentDefaultPatterns);
                 TryPushOperand(NegateIfNeeded(lengthTest));
+                Debug.Assert(_evalSequence.Count == startOfLeft + 1);
 
                 int startOfNestedPatterns = _evalSequence.Count;
                 var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
@@ -1343,7 +1348,6 @@ start:
 
                 if (_evalSequence.Count - 1 >= startOfNestedPatterns)
                 {
-                    // Some nested patterns weren't skipped, or we have a variable declaration, so we mark the initial check as blameless
                     _evalSequence[startOfLeft] = _evalSequence[startOfLeft].MakeCompilerGenerated();
                 }
 
