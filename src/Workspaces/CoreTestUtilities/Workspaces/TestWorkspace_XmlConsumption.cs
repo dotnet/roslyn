@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return null;
             }
 
-            var folderContainers = folderAttribute.Value.Split(new[] { PathUtilities.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+            var folderContainers = folderAttribute.Value.Split([PathUtilities.DirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
             return new ReadOnlyCollection<string>(folderContainers.ToList());
         }
 

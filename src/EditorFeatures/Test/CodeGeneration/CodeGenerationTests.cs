@@ -928,7 +928,7 @@ public partial class CodeGenerationTests
             }
 
             var delimiter = IsVisualBasic ? "\r\n" : ";";
-            var parts = statements.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries);
+            var parts = statements.Split([delimiter], StringSplitOptions.RemoveEmptyEntries);
             var list = new FixedSizeArrayBuilder<SyntaxNode>(parts.Length);
             foreach (var p in parts)
             {

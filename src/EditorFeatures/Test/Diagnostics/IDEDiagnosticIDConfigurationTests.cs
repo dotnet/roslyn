@@ -94,7 +94,7 @@ public class IDEDiagnosticIDConfigurationTests
 
     private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
     {
-        expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        expectedLines = expected.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
         Assert.True(expectedLines.Length % 2 == 0);
         var expectedMap = new Dictionary<string, string>();
         for (var i = 0; i < expectedLines.Length; i += 2)

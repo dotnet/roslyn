@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup2 = @"class B { }";
             var scope = fsaEnabled ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                 new[] { markup1, markup2 }, mutatingLspWorkspace, scope, useVSDiagnostics: false);
+                 [markup1, markup2], mutatingLspWorkspace, scope, useVSDiagnostics: false);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
 

@@ -244,7 +244,7 @@ namespace Roslyn.Test.Utilities
         {
             _children = children;
             _namespaces = namespaces;
-            _constants = constants ?? new ISymUnmanagedConstant[0];
+            _constants = constants ?? [];
             _startOffset = startOffset;
             _endOffset = endOffset;
         }
