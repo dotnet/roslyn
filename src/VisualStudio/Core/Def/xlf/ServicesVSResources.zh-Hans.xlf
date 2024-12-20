@@ -462,6 +462,11 @@
         <target state="translated">更新抑制时出现错误: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Experimental feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
+        <note />
+      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">外部源</target>
@@ -1568,8 +1573,13 @@
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments</source>
+        <target state="needs-review-translation">按两次 Tab 以插入参数(实验性)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="translated">按两次 Tab 以插入参数(实验性)</target>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

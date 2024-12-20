@@ -462,6 +462,11 @@
         <target state="translated">Erreur lors de la mise à jour des suppressions : {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Experimental feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
+        <note />
+      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">Sources externes</target>
@@ -1568,8 +1573,13 @@
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments</source>
+        <target state="needs-review-translation">Appuyer deux fois sur Tab pour insérer des arguments (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="translated">Appuyer deux fois sur Tab pour insérer des arguments (expérimental)</target>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

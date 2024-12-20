@@ -85,7 +85,7 @@ public class UnifiedSettingsTests
             languageName: LanguageNames.VisualBasic)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
-            title: "Tab twice insert arguments",
+            title: "Tab twice to insert arguments",
             customDefaultValue: false,
             order: 60,
             languageName: LanguageNames.VisualBasic)),

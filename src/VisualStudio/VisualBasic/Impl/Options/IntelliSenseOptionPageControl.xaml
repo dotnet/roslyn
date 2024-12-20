@@ -63,7 +63,7 @@
 
                     <CheckBox x:Uid="Tab_twice_to_insert_arguments"
                                   x:Name="Tab_twice_to_insert_arguments"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments}" />
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments_experimental}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

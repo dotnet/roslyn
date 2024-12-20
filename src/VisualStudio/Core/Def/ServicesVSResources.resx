@@ -1389,8 +1389,11 @@ Additional information: {1}</value>
   <data name="Symbols_without_references" xml:space="preserve">
     <value>Symbols without references</value>
   </data>
-  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+  <data name="Tab_twice_to_insert_arguments_experimental" xml:space="preserve">
     <value>Tab twice to insert arguments (experimental)</value>
+  </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments</value>
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Apply</value>
@@ -1936,5 +1939,8 @@ Additional information: {1}</value>
   </data>
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>Show completion list after a character is typed</value>
+  </data>
+  <data name="Experimental feature" xml:space="preserve">
+    <value>Experimental feature</value>
   </data>
 </root>
