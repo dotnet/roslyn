@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
@@ -96,5 +98,70 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.True(symbol.Parameters is [
         { Type.SpecialType: SpecialType.System_String, RefKind: RefKind.None },
         { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
+
+    [Fact]
+    public void TestOneParameterWithAnAttribute()
+    {
+        var compilation = CreateCompilation("""
+            using System;
+
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = ([CLSCompliant(false)] ref x) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(
+            symbol.Parameters.Single().GetAttributes().Single().AttributeClass,
+            compilation.GetTypeByMetadataName(typeof(CLSCompliantAttribute).FullName).GetPublicSymbol());
+    }
+
+    [Fact]
+    public void TestOneParameterWithMultipleAttribute()
+    {
+        var compilation = CreateCompilation("""
+            using System;
+
+            [AttributeUsage(AttributeTargets.Parameter)]
+            class MyAttribute : Attribute;
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = ([CLSCompliant(false), My] ref x) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(
+            symbol.Parameters.Single().GetAttributes().Any(a => a.AttributeClass!.Equals(
+                compilation.GetTypeByMetadataName(typeof(CLSCompliantAttribute).FullName).GetPublicSymbol())));
+        Assert.True(
+            symbol.Parameters.Single().GetAttributes().Any(a => a.AttributeClass!.Equals(
+                compilation.GetTypeByMetadataName("MyAttribute").GetPublicSymbol())));
     }
 }
