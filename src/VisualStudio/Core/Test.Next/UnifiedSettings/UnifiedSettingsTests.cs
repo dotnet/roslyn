@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
@@ -97,9 +98,17 @@ public class UnifiedSettingsTests
     #region VisualBasicTest
 
     [Fact]
-    public async Task VisualBasicGroupTest()
+    public async Task VisualBasicCategoriesTest()
     {
-
+        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicSettings.registration.json");
+        var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
+        var categories = jsonDocument!.Root["categories"]!.AsObject();
+        var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
+        Assert.Equal(2, propertyToCategory.Count);
+        Assert.Equal("Visual Basic", propertyToCategory["textEditor.basic"]!.Title);
+        Assert.Equal("IntelliSense", propertyToCategory["textEditor.basic.intellisense"]!.Title);
+        Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, propertyToCategory["textEditor.basic.intellisense"]!.LegacyOptionPageId);
+        await VerifyTagAsync(jsonDocument.ToString());
     }
 
     [Fact]
@@ -121,19 +130,20 @@ public class UnifiedSettingsTests
             Assert.Equal(expectedSetting, actualSetting);
         }
 
-        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
-        using var streamReader = new StreamReader(pkgDefFileStream!);
-        var pkgdefFile = await streamReader.ReadToEndAsync();
 
-        VerifyTag(jsonDocument.ToString(), pkgdefFile);
+        await VerifyTagAsync(jsonDocument.ToString());
     }
 
     #endregion
 
     #region Helpers
 
-    private static void VerifyTag(string registrationFile, string pkgdefFile)
+    private static async Task VerifyTagAsync(string registrationFile)
     {
+        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
+        using var streamReader = new StreamReader(pkgDefFileStream!);
+        var pkgdefFile = await streamReader.ReadToEndAsync();
+
         var fileBytes = ASCIIEncoding.ASCII.GetBytes(registrationFile);
         var expectedTags = BitConverter.ToInt64(XxHash128.Hash(fileBytes).Take(8).ToArray(), 0).ToString("X16");
         var regex = new Regex("""
