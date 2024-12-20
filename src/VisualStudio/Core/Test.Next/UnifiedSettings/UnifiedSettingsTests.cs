@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
@@ -25,6 +26,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
 public class UnifiedSettingsTests
 {
+    #region CSharpTest
+    /// <summary>
+    /// Dictionary containing the option to unified setting path for C#.
+    /// </summary>
+    private static readonly ImmutableDictionary<IOption2, string> s_csharpUnifiedSettingsStorage = ImmutableDictionary<IOption2, string>.Empty.
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "textEditor.csharp.intellisense.triggerCompletionOnTypingLetters").
+        Add(CompletionOptionsStorage.TriggerOnDeletion, "textEditor.csharp.intellisense.triggerCompletionOnDeletion").
+        Add(CompletionOptionsStorage.TriggerInArgumentLists, "textEditor.csharp.intellisense.triggerCompletionInArgumentLists").
+        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "textEditor.csharp.intellisense.highlightMatchingPortionsOfCompletionListItems").
+        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "textEditor.csharp.intellisense.showCompletionItemFilters").
+        Add(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, "textEditor.csharp.intellisense.completeStatementOnSemicolon").
+        Add(CompletionOptionsStorage.SnippetsBehavior, "textEditor.csharp.intellisense.snippetsBehavior").
+        Add(CompletionOptionsStorage.EnterKeyBehavior, "textEditor.csharp.intellisense.returnKeyCompletionBehavior").
+        Add(CompletionOptionsStorage.ShowNameSuggestions, "textEditor.csharp.intellisense.showNameCompletionSuggestions").
+        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "textEditor.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.csharp.intellisense.enableArgumentCompletionSnippets").
+        Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "textEditor.csharp.intellisense.showNewSnippetExperience").
+
+    #endregion
+
+    #region VisualBasicTest
     /// <summary>
     /// Dictionary containing the option to unified setting path for VB.
     /// </summary>
@@ -95,8 +117,6 @@ public class UnifiedSettingsTests
             languageName: LanguageNames.VisualBasic,
             message: "Experimental feature")),
     ];
-
-    #region VisualBasicTest
 
     [Fact]
     public async Task VisualBasicCategoriesTest()
