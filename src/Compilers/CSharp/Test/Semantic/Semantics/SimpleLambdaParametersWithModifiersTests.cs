@@ -578,6 +578,34 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
     }
 
     [Fact]
+    public void TestInModifier()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(in int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (in x) =>
+                    {
+                    };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.In, IsOptional: false }]);
+    }
+
+    [Fact]
     public void TestInModifierWriteWithinLambda()
     {
         var compilation = CreateCompilation("""
@@ -607,6 +635,38 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.In, IsOptional: false }]);
+    }
+
+    [Fact]
+    public void TestOutModifier()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(out int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (out x) =>
+                    {
+                        x = 1;
+                    };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,26): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         D d = (out x) => { };
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "{ }").WithArguments("x").WithLocation(7, 26));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Out, IsOptional: false }]);
     }
 
     [Fact]
@@ -1158,5 +1218,125 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
                 // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+    }
+
+    [Fact]
+    public void TestOneParameterWithReadonlyRef()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (readonly ref x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,16): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //         D d = (readonly ref x) => { };
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(7, 16));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(RefKind.Ref, symbol.Parameters.Single().RefKind);
+        Assert.Equal(SpecialType.System_Int32, symbol.Parameters.Single().Type.SpecialType);
+    }
+
+    [Fact]
+    public void TestOneParameterWithRefReadonly1()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref readonly x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,15): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int x' in target.
+                //         D d = (ref readonly x) => { };
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly x) => { }").WithArguments("ref readonly int x", "ref int x").WithLocation(7, 15));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(RefKind.RefReadOnlyParameter, symbol.Parameters.Single().RefKind);
+        Assert.Equal(SpecialType.System_Int32, symbol.Parameters.Single().Type.SpecialType);
+    }
+
+    [Fact]
+    public void TestOneParameterWithRefReadonly2()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref readonly int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref readonly x) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(RefKind.RefReadOnlyParameter, symbol.Parameters.Single().RefKind);
+        Assert.Equal(SpecialType.System_Int32, symbol.Parameters.Single().Type.SpecialType);
+    }
+
+    [Fact]
+    public void TestOneParameterWithRefReadonly3()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref readonly int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref readonly x) =>
+                    {
+                        x = 0;
+                    };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (9,13): error CS8331: Cannot assign to variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //             x = 0;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(9, 13));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(RefKind.RefReadOnlyParameter, symbol.Parameters.Single().RefKind);
+        Assert.Equal(SpecialType.System_Int32, symbol.Parameters.Single().Type.SpecialType);
     }
 }
