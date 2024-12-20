@@ -3,16 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Reflection
-Imports System.Text.Json
-Imports System.Text.Json.Nodes
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings.TestModels
-Imports Newtonsoft.Json.Linq
 
 Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
     Public Class VisualBasicUnifiedSettingsTests
@@ -95,86 +89,5 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
         '        End Using
         '    End Using
         'End Function
-
-        'Private Shared ReadOnly Property IntelliSenseOnboardedOptions As ImmutableArray(Of ExpectedUnifiedSetting)
-        '    Get
-        '        Return ImmutableArray.Create(
-        '            New ExpectedUnifiedSetting(
-        '                "textEditor.basic.intellisense.triggerCompletionOnTypingLetters",
-        '                CompletionOptionsStorage.TriggerOnTypingLetters,
-        '                UnifiedSettingsOptionBase.CreateBooleanOption(
-        '                    CompletionOptionsStorage.TriggerOnTypingLetters,
-        '                    "Show completion list after a character is typed",
-        '                    order:=0,
-        '                    defaultValue:=True,
-        '                    Nothing,
-        '                    Nothing,
-        '                    LanguageNames.VisualBasic))
-        '                    )
-
-        '        '("textEditor.basic.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
-        '        '("textEditor.basic.intellisense.triggerCompletionOnDeletion", CompletionOptionsStorage.TriggerOnDeletion),
-        '        '("textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems", CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems),
-        '        '("textEditor.basic.intellisense.showCompletionItemFilters", CompletionViewOptionsStorage.ShowCompletionItemFilters),
-        '        '("textEditor.basic.intellisense.snippetsBehavior", CompletionOptionsStorage.SnippetsBehavior),
-        '        '("textEditor.basic.intellisense.returnKeyCompletionBehavior", CompletionOptionsStorage.EnterKeyBehavior),
-        '        '("textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces", CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces),
-        '        '("textEditor.basic.intellisense.enableArgumentCompletionSnippets", CompletionViewOptionsStorage.EnableArgumentCompletionSnippets))
-        '    End Get
-        'End Property
-
-        <Fact>
-        Public Async Function IntelliSensePageTest() As Task
-            Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-                Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
-                    Dim jsonDocument = Await JsonNode.ParseAsync(registrationFileStream, documentOptions:=New JsonDocumentOptions() With {.CommentHandling = JsonCommentHandling.Skip})
-
-                    Dim j = 9
-
-                End Using
-            End Using
-        End Function
-
-        '<Fact>
-        'Public Async Function IntelliSensePageTest() As Task
-        '    Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-        '        Using reader = New StreamReader(registrationFileStream)
-        '            Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
-        '                Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
-        '                    Dim registrationFile = Await reader.ReadToEndAsync()
-        '                    Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings() With {.CommentHandling = CommentHandling.Ignore})
-        '                    Dim properties = registrationJsonObject.Property("properties").Value.Children(Of JProperty).ToImmutableArray()
-        '                     TODO: Assert number is correct
-
-        '                    For i = 0 To IntelliSenseOnboardedOptions.Length
-        '                        Dim actualProperty = properties(i)
-        '                        Dim expectedOption = IntelliSenseOnboardedOptions(i)
-        '                        If expectedOption.Option.Type Is GetType(Boolean) Then
-        '                            Dim actualOption = actualProperty.Value.ToObject(Of UnifiedSettingsOption(Of Boolean))
-        '                            Assert.Equal(expectedOption.UnifiedSettingPath, actualProperty.Name)
-        '                            Assert.Equal(expectedOption.UnifiedSettingsOption, actualOption)
-
-        '                        End If
-        '                    Next
-
-        '                    Dim hj = 8
-        '                End Using
-        '            End Using
-        '        End Using
-        '    End Using
-        'End Function
-
-        'Private Sub Helper(expected As (unifiedSettingsPath As String, roslynOption As IOption2), actualProperty As JsonProperty)
-        '    Assert.Equal(expected.unifiedSettingsPath, actualProperty.Name)
-        '    Dim expectedOption = expected.roslynOption
-        '    Dim type = expectedOption.Type
-        '    If type = GetType(Boolean) Then
-        '        VerifyBooleanOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsOption(Of Boolean)))
-        '    ElseIf type.IsEnum Then
-        '        VerifyEnumOption(expectedOption, actualProperty.Value.Deserialize(Of UnifiedSettingsEnumOption))
-        '    Else
-        '        Assert.Fail("We only have enum and boolean option now. Add more if needed")
-        '    End If
-        'End Sub
     End Class
 End Namespace

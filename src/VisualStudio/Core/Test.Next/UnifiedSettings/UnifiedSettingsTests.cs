@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
+using System.IO.Hashing;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -91,11 +94,18 @@ public class UnifiedSettingsTests
             languageName: LanguageNames.VisualBasic)),
     ];
 
+    #region VisualBasicTest
+
+    [Fact]
+    public async Task VisualBasicGroupTest()
+    {
+
+    }
+
     [Fact]
     public async Task VisualBasicIntellisenseTest()
     {
         using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicSettings.registration.json");
-        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var expectedPrefix = "textEditor.basic.intellisense";
         var properties = jsonDocument!.Root["properties"]!.AsObject()
@@ -105,14 +115,36 @@ public class UnifiedSettingsTests
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(s_visualBasicIntellisenseExpectedSettings, (actual, expected) => (actual, expected)))
         {
             // We only have bool and enum option now.
-            UnifiedSettingBase actualSettings = expectedOption.Definition.Type.IsEnum
+            UnifiedSettingBase actualSetting = expectedOption.Definition.Type.IsEnum
                 ? actualJson.Deserialize<UnifiedSettingsEnumOption>()!
                 : actualJson.Deserialize<UnifiedSettingsOption<bool>>()!;
-            Assert.Equal(expectedSetting, actualSettings);
+            Assert.Equal(expectedSetting, actualSetting);
         }
+
+        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
+        using var streamReader = new StreamReader(pkgDefFileStream!);
+        var pkgdefFile = await streamReader.ReadToEndAsync();
+
+        VerifyTag(jsonDocument.ToString(), pkgdefFile);
     }
 
+    #endregion
+
     #region Helpers
+
+    private static void VerifyTag(string registrationFile, string pkgdefFile)
+    {
+        var fileBytes = ASCIIEncoding.ASCII.GetBytes(registrationFile);
+        var expectedTags = BitConverter.ToInt64(XxHash128.Hash(fileBytes).Take(8).ToArray(), 0).ToString("X16");
+        var regex = new Regex("""
+                              "CacheTag"=qword:\w{16}
+                              """);
+        var match = regex.Match(pkgdefFile, 0).Value;
+        var actualTag = match[^16..];
+        // Please change the CacheTag value in pkddefFile when you modify the registration file.
+        Assert.Equal(expectedTags, actualTag);
+    }
+
     private static UnifiedSettingsOption<bool> CreateBooleanOption(
         IOption2 onboardedOption,
         string title,
