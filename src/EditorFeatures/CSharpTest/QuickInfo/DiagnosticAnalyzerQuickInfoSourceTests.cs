@@ -207,9 +207,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
         CSharpParseOptions parseOptions = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
-        var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
-            new CSharpCompilerDiagnosticAnalyzer(),
-            new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
+        var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer(), new CSharpRemoveUnusedMembersDiagnosticAnalyzer()]);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var testDocument = workspace.Documents.Single();

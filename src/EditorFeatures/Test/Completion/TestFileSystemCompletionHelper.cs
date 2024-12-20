@@ -33,9 +33,9 @@ internal sealed class TestFileSystemCompletionHelper : FileSystemCompletionHelpe
         Assert.True(drives.All(d => d.EndsWith(PathUtilities.DirectorySeparatorStr)));
         Assert.True(directories.All(d => !d.EndsWith(PathUtilities.DirectorySeparatorStr)));
 
-        _drives = ImmutableArray.CreateRange(drives);
-        _directories = ImmutableArray.CreateRange(directories);
-        _files = ImmutableArray.CreateRange(files);
+        _drives = [.. drives];
+        _directories = [.. directories];
+        _files = [.. files];
     }
 
     protected override string[] GetLogicalDrives()

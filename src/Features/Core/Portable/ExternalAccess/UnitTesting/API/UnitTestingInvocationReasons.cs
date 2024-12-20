@@ -18,7 +18,7 @@ internal partial struct UnitTestingInvocationReasons(ImmutableHashSet<string> re
     private readonly ImmutableHashSet<string> _reasons = reasons ?? [];
 
     public UnitTestingInvocationReasons(string reason)
-        : this(ImmutableHashSet.Create(reason))
+        : this([reason])
     {
     }
 

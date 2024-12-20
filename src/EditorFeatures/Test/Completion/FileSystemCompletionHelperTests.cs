@@ -28,9 +28,9 @@ public class FileSystemCompletionHelperTests
     public void GetItems_Windows1()
     {
         var fsc = new TestFileSystemCompletionHelper(
-            searchPaths: ImmutableArray.Create(@"X:\A", @"X:\B"),
+            searchPaths: [@"X:\A", @"X:\B"],
             baseDirectoryOpt: @"Z:\C",
-            allowableExtensions: ImmutableArray.Create(".abc", ".def"),
+            allowableExtensions: [".abc", ".def"],
             drives: new[] { @"X:\", @"Z:\" },
             directories: new[]
             {
@@ -90,9 +90,9 @@ public class FileSystemCompletionHelperTests
     public void GetItems_Windows_NoBaseDirectory()
     {
         var fsc = new TestFileSystemCompletionHelper(
-            searchPaths: ImmutableArray.Create(@"X:\A", @"X:\B"),
+            searchPaths: [@"X:\A", @"X:\B"],
             baseDirectoryOpt: null,
-            allowableExtensions: ImmutableArray.Create(".abc", ".def"),
+            allowableExtensions: [".abc", ".def"],
             drives: new[] { @"X:\" },
             directories: new[]
             {
@@ -128,7 +128,7 @@ public class FileSystemCompletionHelperTests
         var fsc = new TestFileSystemCompletionHelper(
             searchPaths: [],
             baseDirectoryOpt: null,
-            allowableExtensions: ImmutableArray.Create(".abc", ".def"),
+            allowableExtensions: [".abc", ".def"],
             drives: new[] { @"X:\" },
             directories: new[]
             {
@@ -160,7 +160,7 @@ public class FileSystemCompletionHelperTests
         var fsc = new TestFileSystemCompletionHelper(
             searchPaths: [],
             baseDirectoryOpt: null,
-            allowableExtensions: ImmutableArray.Create(".cs"),
+            allowableExtensions: [".cs"],
             drives: Array.Empty<string>(),
             directories: new[]
             {
@@ -188,9 +188,9 @@ public class FileSystemCompletionHelperTests
     public void GetItems_Unix1()
     {
         var fsc = new TestFileSystemCompletionHelper(
-            searchPaths: ImmutableArray.Create(@"/A", @"/B"),
+            searchPaths: [@"/A", @"/B"],
             baseDirectoryOpt: @"/C",
-            allowableExtensions: ImmutableArray.Create(".abc", ".def"),
+            allowableExtensions: [".abc", ".def"],
             drives: Array.Empty<string>(),
             directories: new[]
             {

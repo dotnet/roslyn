@@ -166,7 +166,7 @@ internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
                    displayText: p.Name.ToIdentifierToken().ToString(),
                    displayTextSuffix: displayTextSuffix,
                    insertionText: null,
-                   symbols: ImmutableArray.Create(p),
+                   symbols: [p],
                    contextPosition: token.SpanStart,
                    sortText: p.Name,
                    rules: _spaceItemFilterRule);

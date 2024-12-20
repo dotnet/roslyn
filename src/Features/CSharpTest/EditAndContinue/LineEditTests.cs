@@ -2304,10 +2304,7 @@ class D
         edits.VerifyLineEdits(
             new SequencePointUpdates[]
             {
-                new("a", ImmutableArray.Create(
-                    new SourceLineUpdate(2, 12), // x, y, F1, F2
-                    new SourceLineUpdate(6, 6), // lines between F2 and D ctor
-                    new SourceLineUpdate(9, 19))) // D ctor
+                new("a", [new SourceLineUpdate(2, 12), new SourceLineUpdate(6, 6), new SourceLineUpdate(9, 19)]) // D ctor
             },
             semanticEdits:
             [
@@ -2372,8 +2369,8 @@ class C
         edits.VerifyLineEdits(
             new SequencePointUpdates[]
             {
-                new("a", ImmutableArray.Create(new SourceLineUpdate(0, 1))),
-                new("b", ImmutableArray.Create(new SourceLineUpdate(0, 1))),
+                new("a", [new SourceLineUpdate(0, 1)]),
+                new("b", [new SourceLineUpdate(0, 1)]),
             });
     }
 
@@ -2414,7 +2411,7 @@ class C
         edits.VerifyLineEdits(
             new SequencePointUpdates[]
             {
-                new("a", ImmutableArray.Create(new SourceLineUpdate(6, 4))),
+                new("a", [new SourceLineUpdate(6, 4)]),
             },
             semanticEdits:
             [

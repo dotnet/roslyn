@@ -156,7 +156,7 @@ namespace B
             customTags: [],
             properties: ImmutableDictionary<string, string>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id),
-            additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
+            additionalLocations: [externalAdditionalLocation],
             language: document.Project.Language);
 
         var diagnostic = await diagnosticData.ToDiagnosticAsync(document.Project, CancellationToken.None);
@@ -250,7 +250,7 @@ namespace B
             customTags: [],
             properties: ImmutableDictionary<string, string>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(firstDocument.FilePath, span: default), firstDocument.Id),
-            additionalLocations: ImmutableArray.Create(additionalLocation),
+            additionalLocations: [additionalLocation],
             language: firstDocument.Project.Language);
 
         var diagnostic = await diagnosticData.ToDiagnosticAsync(firstDocument.Project, CancellationToken.None);

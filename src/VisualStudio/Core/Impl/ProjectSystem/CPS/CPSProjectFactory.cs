@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             public override ImmutableArray<string> GetItemValues(string name)
                 => name switch
                 {
-                    BuildPropertyNames.IntermediateAssembly => ImmutableArray.Create(OutputAssembly),
+                    BuildPropertyNames.IntermediateAssembly => [OutputAssembly],
                     _ => throw ExceptionUtilities.UnexpectedValue(name)
                 };
         }

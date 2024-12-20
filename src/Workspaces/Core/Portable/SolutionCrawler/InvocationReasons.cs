@@ -18,7 +18,7 @@ internal partial struct InvocationReasons(ImmutableHashSet<string> reasons) : IE
     private readonly ImmutableHashSet<string> _reasons = reasons ?? [];
 
     public InvocationReasons(string reason)
-        : this(ImmutableHashSet.Create(reason))
+        : this([reason])
     {
     }
 

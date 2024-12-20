@@ -226,7 +226,7 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
         installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "2.0")).Returns([]);
         installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
         installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
-            .Returns(ImmutableArray.Create("1.0", "2.0"));
+            .Returns(["1.0", "2.0"]);
 
         var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
         packageServiceMock.Setup(s => s.FindReferenceAssembliesAsync(new TypeQuery("NuGetType", 0), It.IsAny<NamespaceQuery>(), It.IsAny<CancellationToken>()))
@@ -312,7 +312,7 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
         installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns([]);
         installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
         installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
-            .Returns(ImmutableArray.Create("1.0"));
+            .Returns(["1.0"]);
         installerServiceMock.Setup(s => s.TryInstallPackageAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<IProgress<CodeAnalysisProgress>>(), It.IsAny<CancellationToken>()))
                             .Returns(SpecializedTasks.True);
 
@@ -349,7 +349,7 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
         installerServiceMock.Setup(i => i.GetProjectsWithInstalledPackage(It.IsAny<Solution>(), "NuGetPackage", "1.0")).Returns([]);
         installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(NugetPackageSources);
         installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
-            .Returns(ImmutableArray.Create("1.0"));
+            .Returns(["1.0"]);
         installerServiceMock.Setup(s => s.TryInstallPackageAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<IProgress<CodeAnalysisProgress>>(), It.IsAny<CancellationToken>()))
                             .Returns(SpecializedTasks.False);
 

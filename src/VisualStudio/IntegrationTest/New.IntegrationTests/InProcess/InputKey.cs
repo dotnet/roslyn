@@ -49,7 +49,7 @@ internal readonly struct InputKey
         => new(virtualKeyCode, []);
 
     public static implicit operator InputKey((VirtualKeyCode virtualKeyCode, VirtualKeyCode modifier) modifiedKey)
-        => new(modifiedKey.virtualKeyCode, ImmutableArray.Create(modifiedKey.modifier));
+        => new(modifiedKey.virtualKeyCode, [modifiedKey.modifier]);
 
     public void Apply(IInputSimulator simulator)
     {

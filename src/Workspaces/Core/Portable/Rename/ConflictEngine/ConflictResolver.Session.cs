@@ -475,8 +475,7 @@ internal static partial class ConflictResolver
                 return null;
 
             var compilation = await currentProject.GetRequiredCompilationAsync(_cancellationToken).ConfigureAwait(false);
-            return ImmutableHashSet.CreateRange(
-                _nonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
+            return [.. _nonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull()];
         }
 
         private static bool IsConflictFreeChange(

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             {
                 var start = allCode.IndexOf(code, StringComparison.Ordinal);
                 var length = code.Length;
-                spans = ImmutableArray.Create(new TextSpan(start, length));
+                spans = [new TextSpan(start, length)];
             }
             else
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 }
                 else
                 {
-                    spans = ImmutableArray.Create(new TextSpan(0, allCode.Length));
+                    spans = [new TextSpan(0, allCode.Length)];
                 }
             }
 

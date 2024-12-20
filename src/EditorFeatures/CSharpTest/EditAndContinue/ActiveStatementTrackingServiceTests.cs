@@ -37,17 +37,21 @@ public class ActiveStatementTrackingServiceTests
 
         var spanProvider = new MockActiveStatementSpanProvider();
 
-        spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
+        spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) =>
+        [
             ImmutableArray.Create(
-                new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
-                new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
-            []);
+                    new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
+                    new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
+            [],
+        ];
 
         spanProvider.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
         {
-            "1.cs" => ImmutableArray.Create(
+            "1.cs" =>
+            [
                 new ActiveStatementSpan(new ActiveStatementId(0), span21, ActiveStatementFlags.NonLeafFrame),
-                new ActiveStatementSpan(new ActiveStatementId(1), span22, ActiveStatementFlags.LeafFrame)),
+                new ActiveStatementSpan(new ActiveStatementId(1), span22, ActiveStatementFlags.LeafFrame),
+            ],
             "2.cs" => [],
             _ => throw ExceptionUtilities.Unreachable()
         };

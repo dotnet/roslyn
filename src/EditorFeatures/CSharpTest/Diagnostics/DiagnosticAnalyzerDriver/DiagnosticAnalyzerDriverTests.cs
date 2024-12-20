@@ -55,7 +55,7 @@ public class DiagnosticAnalyzerDriverTests
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
         using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
-        var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
         var newSolution = workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference])
             .Projects.Single().AddAdditionalDocument(name: "dummy.txt", text: "", filePath: "dummy.txt").Project.Solution;
         workspace.TryApplyChanges(newSolution);
@@ -86,7 +86,7 @@ public class DiagnosticAnalyzerDriverTests
         var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
         using (var ideEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
         {
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(ideEngineAnalyzer));
+            var analyzerReference = new AnalyzerImageReference([ideEngineAnalyzer]);
             ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -122,7 +122,7 @@ public class DiagnosticAnalyzerDriverTests
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+            var analyzerReference = new AnalyzerImageReference([analyzer]);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -163,9 +163,9 @@ public class DiagnosticAnalyzerDriverTests
 
         var additionalDocId = DocumentId.CreateNewId(workspace.CurrentSolution.Projects.Single().Id);
         var additionalText = new TestAdditionalText("add.config", SourceText.From("random text"));
-        var options = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalText));
+        var options = new AnalyzerOptions([additionalText]);
         var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
-        var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
 
         workspace.TryApplyChanges(workspace.CurrentSolution
             .WithAnalyzerReferences([analyzerReference])
@@ -178,7 +178,7 @@ public class DiagnosticAnalyzerDriverTests
 
     private static void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
     {
-        var diagnosticService = new HostDiagnosticAnalyzers([new AnalyzerImageReference(ImmutableArray.Create(analyzer))]);
+        var diagnosticService = new HostDiagnosticAnalyzers([new AnalyzerImageReference([analyzer])]);
         diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
     }
 
@@ -198,7 +198,7 @@ public class DiagnosticAnalyzerDriverTests
         using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
         var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
-        var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var ideEngineDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -220,7 +220,7 @@ public class DiagnosticAnalyzerDriverTests
         {
             get
             {
-                return ImmutableArray.Create(s_syntaxDiagnosticDescriptor);
+                return [s_syntaxDiagnosticDescriptor];
             }
         }
 
@@ -254,7 +254,7 @@ public class DiagnosticAnalyzerDriverTests
         var analyzer = new CodeBlockAnalyzerFactory();
         using (var ideEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
         {
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var analyzerReference = new AnalyzerImageReference([analyzer]);
             ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -291,7 +291,7 @@ public class DiagnosticAnalyzerDriverTests
         {
             get
             {
-                return ImmutableArray.Create(Descriptor);
+                return [Descriptor];
             }
         }
 
@@ -311,7 +311,7 @@ public class DiagnosticAnalyzerDriverTests
             {
                 get
                 {
-                    return ImmutableArray.Create(SyntaxKind.MethodDeclaration, SyntaxKind.ExpressionStatement, SyntaxKind.EqualsValueClause);
+                    return [SyntaxKind.MethodDeclaration, SyntaxKind.ExpressionStatement, SyntaxKind.EqualsValueClause];
                 }
             }
 
@@ -346,7 +346,7 @@ public class DiagnosticAnalyzerDriverTests
         public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(Descriptor);
+            => [Descriptor];
 
         public override void Initialize(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(Analyze);
@@ -535,7 +535,7 @@ public class DiagnosticAnalyzerDriverTests
         //   1) No duplicate diagnostics
         //   2) Only NuGet analyzers execute
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer, secondNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer, secondNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
             vsixAnalyzers: [],
             expectedVsixAnalyzersExecuted: false,
@@ -554,9 +554,9 @@ public class DiagnosticAnalyzerDriverTests
         //   1) No duplicate diagnostics
         //   2) Only NuGet analyzers execute
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer, secondNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer, secondNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: false,
             nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
@@ -574,9 +574,9 @@ public class DiagnosticAnalyzerDriverTests
         //   2) Both NuGet and Vsix analyzers execute
         //   3) Appropriate diagnostic filtering is done - NuGet analyzer reported diagnostic IDs are filtered from Vsix analyzer execution.
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: true,
             nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
@@ -616,11 +616,11 @@ public class DiagnosticAnalyzerDriverTests
         await TestNuGetAndVsixAnalyzerCoreAsync(
             nugetAnalyzers: [],
             expectedNugetAnalyzersExecuted: false,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: true,
             nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
-            vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+            vsixSuppressors: [vsixSuppressor],
             expectedVsixSuppressorsExecuted: true,
             new[]
             {
@@ -634,13 +634,13 @@ public class DiagnosticAnalyzerDriverTests
         //   2) All analyzers execute
         //   3) VSIX diagnostics are suppressed.
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer, secondNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer, secondNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: true,
             nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
-            vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+            vsixSuppressors: [vsixSuppressor],
             expectedVsixSuppressorsExecuted: true,
             new[]
             {
@@ -657,11 +657,11 @@ public class DiagnosticAnalyzerDriverTests
         //   2) Both NuGet and Vsix analyzers execute
         //   3) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: true,
-            nugetSuppressors: ImmutableArray.Create(nugetSuppressor),
+            nugetSuppressors: [nugetSuppressor],
             expectedNugetSuppressorsExecuted: true,
             vsixSuppressors: [],
             expectedVsixSuppressorsExecuted: false,
@@ -679,13 +679,13 @@ public class DiagnosticAnalyzerDriverTests
         //   3) Only Nuget suppressor executes
         //   4) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: true,
-            nugetSuppressors: ImmutableArray.Create(partialNugetSuppressor),
+            nugetSuppressors: [partialNugetSuppressor],
             expectedNugetSuppressorsExecuted: true,
-            vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+            vsixSuppressors: [vsixSuppressor],
             expectedVsixSuppressorsExecuted: false,
             new[]
             {
@@ -701,13 +701,13 @@ public class DiagnosticAnalyzerDriverTests
         //   3) Only Nuget suppressor executes
         //   4) Appropriate diagnostic filtering is done - Nuget suppressor suppresses VSIX analyzer.
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer),
+            nugetAnalyzers: [firstNugetAnalyzer],
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
+            vsixAnalyzers: [vsixAnalyzer],
             expectedVsixAnalyzersExecuted: true,
-            nugetSuppressors: ImmutableArray.Create(nugetSuppressor),
+            nugetSuppressors: [nugetSuppressor],
             expectedNugetSuppressorsExecuted: true,
-            vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
+            vsixSuppressors: [vsixSuppressor],
             expectedVsixSuppressorsExecuted: false,
             new[]
             {
@@ -725,9 +725,9 @@ public class DiagnosticAnalyzerDriverTests
         bool expectedVsixAnalyzerExecuted,
         params (DiagnosticDescription diagnostic, string message)[] expectedDiagnostics)
         => TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzer != null ? ImmutableArray.Create(nugetAnalyzer) : [],
+            nugetAnalyzer != null ? [nugetAnalyzer] : [],
             expectedNugetAnalyzerExecuted,
-            vsixAnalyzer != null ? ImmutableArray.Create(vsixAnalyzer) : [],
+            vsixAnalyzer != null ? [vsixAnalyzer] : [],
             expectedVsixAnalyzerExecuted,
             [],
             false,

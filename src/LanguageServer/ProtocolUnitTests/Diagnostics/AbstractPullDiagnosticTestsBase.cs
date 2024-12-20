@@ -40,15 +40,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         {
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
+            builder.Add(LanguageNames.CSharp,
+            [
                 DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
                 new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
                 new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(),
                 new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(),
                 new CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer(),
-                new CSharpUseImplicitObjectCreationDiagnosticAnalyzer()));
-            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
-            builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
+                new CSharpUseImplicitObjectCreationDiagnosticAnalyzer(),
+            ]);
+            builder.Add(LanguageNames.VisualBasic, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)]);
+            builder.Add(InternalLanguageNames.TypeScript, [new MockTypescriptDiagnosticAnalyzer()]);
             return new(builder.ToImmutableDictionary());
         }
 
@@ -288,11 +290,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 else if (diagnostics.Value.Value is UnchangedDocumentDiagnosticReport)
                 {
                     // The public LSP spec returns different types when unchanged in contrast to VS which just returns null diagnostic array.
-                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.Second.ResultId!, null));
+                    return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.Second.ResultId!, null)];
                 }
                 else
                 {
-                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items));
+                    return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items)];
                 }
             }
 
@@ -374,7 +376,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
             "TS01", "TS error", "TS error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
                 => SpecializedTasks.EmptyImmutableArray<Diagnostic>();

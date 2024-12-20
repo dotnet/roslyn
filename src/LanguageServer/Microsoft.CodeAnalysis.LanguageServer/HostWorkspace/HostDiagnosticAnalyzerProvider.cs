@@ -21,10 +21,10 @@ internal class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
         }
         else
         {
-            _analyzerReferences = ImmutableArray.Create<(AnalyzerFileReference reference, string extensionId)>((
+            _analyzerReferences = [(
                 new AnalyzerFileReference(razorSourceGenerator, new SimpleAnalyzerAssemblyLoader()),
                 ProjectSystemProject.RazorVsixExtensionId
-            ));
+            )];
         }
     }
 

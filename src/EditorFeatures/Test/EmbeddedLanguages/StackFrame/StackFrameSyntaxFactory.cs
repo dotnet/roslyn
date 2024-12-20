@@ -208,7 +208,7 @@ internal static class StackFrameSyntaxFactory
         => CreateToken(StackFrameKind.PathToken, path);
 
     public static StackFrameToken Line(int lineNumber)
-        => CreateToken(StackFrameKind.NumberToken, lineNumber.ToString(), leadingTrivia: ImmutableArray.Create(LineTrivia));
+        => CreateToken(StackFrameKind.NumberToken, lineNumber.ToString(), leadingTrivia: [LineTrivia]);
 
     public static StackFrameLocalMethodNameNode LocalMethod(StackFrameGeneratedMethodNameNode encapsulatingMethod, string identifier, string suffix)
         => new(

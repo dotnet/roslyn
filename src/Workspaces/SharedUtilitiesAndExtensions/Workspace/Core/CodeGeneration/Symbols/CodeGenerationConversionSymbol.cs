@@ -34,7 +34,7 @@ internal sealed class CodeGenerationConversionSymbol(
                   ? WellKnownMemberNames.ImplicitConversionName
                   : WellKnownMemberNames.ExplicitConversionName,
           typeParameters: [],
-          parameters: ImmutableArray.Create(fromType),
+          parameters: [fromType],
           returnTypeAttributes: toTypeAttributes,
           documentationCommentXml)
 {

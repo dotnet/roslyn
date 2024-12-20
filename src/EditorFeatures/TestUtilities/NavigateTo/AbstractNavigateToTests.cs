@@ -224,11 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             => ComparerWithState.CompareTo(a, b, s_comparisonComponents);
 
         private static readonly ImmutableArray<Func<NavigateToItem, IComparable>> s_comparisonComponents =
-            ImmutableArray.Create<Func<NavigateToItem, IComparable>>(
-                item => (int)item.PatternMatch.Kind,
-                item => item.Name,
-                item => item.Kind,
-                item => item.SecondarySort);
+            [item => (int)item.PatternMatch.Kind, item => item.Name, item => item.Kind, item => item.SecondarySort];
 
         private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {
@@ -244,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
                 => null;
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()
-                => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
+                => [_workspace.CurrentSolution.Projects.First().DocumentIds.First()];
 
             [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
             public class Factory : IWorkspaceServiceFactory

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal static ImmutableHashSet<string> GetRoles(Document document)
-            => document.SourceCodeKind == SourceCodeKind.Regular ? [] : ImmutableHashSet.Create(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
+            => document.SourceCodeKind == SourceCodeKind.Regular ? [] : [PredefinedInteractiveTextViewRoles.InteractiveTextViewRole];
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
 

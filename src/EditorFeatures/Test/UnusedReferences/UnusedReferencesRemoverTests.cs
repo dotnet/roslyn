@@ -182,7 +182,7 @@ public class UnusedReferencesRemoverTests
         => new(ReferenceType.Project,
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
-            compilationAssemblies: ImmutableArray.Create(assemblyPath),
+            compilationAssemblies: [assemblyPath],
             dependencies.ToImmutableArray());
 
     private static ReferenceInfo PackageReference(string assemblyPath, params ReferenceInfo[] dependencies)
@@ -191,7 +191,7 @@ public class UnusedReferencesRemoverTests
         => new(ReferenceType.Package,
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
-            compilationAssemblies: ImmutableArray.Create(assemblyPath),
+            compilationAssemblies: [assemblyPath],
             dependencies.ToImmutableArray());
 
     private static ReferenceInfo AssemblyReference(string assemblyPath)
@@ -200,7 +200,7 @@ public class UnusedReferencesRemoverTests
         => new(ReferenceType.Assembly,
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
-            compilationAssemblies: ImmutableArray.Create(assemblyPath),
+            compilationAssemblies: [assemblyPath],
             dependencies: []);
 
     private class TestReferenceCleanupService : IReferenceCleanupService

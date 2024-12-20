@@ -2039,7 +2039,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            MemberNames = ImmutableArray.Create("a", "b"),
+            MemberNames = ["a", "b"],
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -2084,7 +2084,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            MemberNames = ImmutableArray.Create("c", "b"),
+            MemberNames = ["c", "b"],
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -4152,7 +4152,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4210,7 +4210,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4268,7 +4268,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4328,7 +4328,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }

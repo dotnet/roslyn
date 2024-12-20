@@ -177,6 +177,6 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
         var index = 0;
         _fileBannerMatcher.TryMatch([.. leadingTrivia], ref index);
 
-        return ImmutableArray.CreateRange(leadingTrivia.Take(index));
+        return [.. leadingTrivia.Take(index)];
     }
 }

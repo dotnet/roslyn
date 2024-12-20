@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                             workingDirectory: Host._initialWorkingDirectory,
                             initializationResult: new RemoteInitializationResult(
                                 initializationScript: null,
-                                metadataReferencePaths: ImmutableArray.Create(typeof(object).Assembly.Location, typeof(InteractiveScriptGlobals).Assembly.Location),
+                                metadataReferencePaths: [typeof(object).Assembly.Location, typeof(InteractiveScriptGlobals).Assembly.Location],
                                 imports: []));
 
                         Host.ProcessInitialized?.Invoke(remoteService.PlatformInfo, Options, result);
