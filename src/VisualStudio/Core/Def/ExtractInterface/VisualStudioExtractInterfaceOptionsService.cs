@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,22 +27,15 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
 
 [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOptionsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor) : IExtractInterfaceOptionsService
 {
-    private readonly IGlyphService _glyphService;
-    private readonly IThreadingContext _threadingContext;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+    private readonly IGlyphService _glyphService = glyphService;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor)
-    {
-        _glyphService = glyphService;
-        _threadingContext = threadingContext;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-    }
-
-    public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+    public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         ISyntaxFactsService syntaxFactsService,
         INotificationService notificationService,
         List<ISymbol> extractableMembers,
@@ -52,6 +46,8 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
         string languageName,
         CancellationToken cancellationToken)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
+
         using var cancellationTokenSource = new CancellationTokenSource();
 
         var memberViewModels = extractableMembers
@@ -63,8 +59,6 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
                     IsMakeAbstractCheckable = false,
                     IsCheckable = true
                 });
-
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var viewModel = new ExtractInterfaceDialogViewModel(
             syntaxFactsService,

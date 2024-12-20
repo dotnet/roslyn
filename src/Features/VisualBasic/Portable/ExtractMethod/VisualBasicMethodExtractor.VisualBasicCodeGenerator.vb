@@ -21,12 +21,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private ReadOnly _methodName As SyntaxToken
 
-            Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+            Public Shared Async Function GenerateResultAsync(
+                    insertionPoint As InsertionPoint,
+                    selectionResult As VisualBasicSelectionResult,
+                    analyzerResult As AnalyzerResult,
+                    options As ExtractMethodGenerationOptions,
+                    cancellationToken As CancellationToken) As Task(Of GeneratedCode)
                 Dim generator = Create(selectionResult, analyzerResult, options)
                 Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
-            Public Shared Function Create(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerator
+            Public Shared Function Create(
+                    selectionResult As VisualBasicSelectionResult,
+                    analyzerResult As AnalyzerResult,
+                    options As ExtractMethodGenerationOptions) As VisualBasicCodeGenerator
                 If selectionResult.SelectionInExpression Then
                     Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
                 End If
@@ -42,7 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
-            Protected Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+            Protected Sub New(
+                    selectionResult As VisualBasicSelectionResult,
+                    analyzerResult As AnalyzerResult,
+                    options As ExtractMethodGenerationOptions)
                 MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
@@ -113,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return statements
             End Function
 
-            Private Function CreateMethodNameForInvocation() As ExpressionSyntax
+            Private Function CreateMethodNameForInvocation() As SimpleNameSyntax
                 If AnalyzerResult.MethodTypeParametersInDeclaration.Count = 0 Then
                     Return SyntaxFactory.IdentifierName(_methodName)
                 End If
@@ -155,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     isShared = True
                 End If
 
-                Dim isAsync = Me.SelectionResult.ShouldPutAsyncModifier()
+                Dim isAsync = Me.SelectionResult.CreateAsyncMethod()
 
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
@@ -292,15 +303,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function CreateIdentifier(name As String) As SyntaxToken
-                Return SyntaxFactory.Identifier(name)
+                Return name.ToIdentifierToken()
             End Function
 
-            Protected Overrides Function CreateReturnStatement(Optional identifierName As String = Nothing) As StatementSyntax
-                If String.IsNullOrEmpty(identifierName) Then
+            Protected Overrides Function CreateReturnStatement(ParamArray identifierNames As String()) As StatementSyntax
+                Contract.ThrowIfTrue(identifierNames.Length > 1)
+
+                If identifierNames.Length = 0 Then
                     Return SyntaxFactory.ReturnStatement()
                 End If
 
-                Return SyntaxFactory.ReturnStatement(expression:=SyntaxFactory.IdentifierName(identifierName))
+                Return SyntaxFactory.ReturnStatement(identifierNames(0).ToIdentifierName())
             End Function
 
             Protected Overrides Function LastStatementOrHasReturnStatementInReturnableConstruct() As Boolean
@@ -326,17 +339,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function CreateCallSignature() As ExpressionSyntax
-                Dim methodName As ExpressionSyntax = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation)
+                Dim methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation)
+
+                Dim methodExpression =
+                    If(Me.AnalyzerResult.UseInstanceMember AndAlso Me.ExtractMethodGenerationOptions.SimplifierOptions.QualifyMethodAccess.Value,
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.MeExpression(), SyntaxFactory.Token(SyntaxKind.DotToken), methodName),
+                        DirectCast(methodName, ExpressionSyntax))
 
                 Dim arguments = New List(Of ArgumentSyntax)()
                 For Each argument In AnalyzerResult.MethodParameters
-                    arguments.Add(SyntaxFactory.SimpleArgument(expression:=GetIdentifierName(argument.Name)))
+                    arguments.Add(SyntaxFactory.SimpleArgument(GetIdentifierName(argument.Name)))
                 Next argument
 
                 Dim invocation = SyntaxFactory.InvocationExpression(
-                    methodName, SyntaxFactory.ArgumentList(arguments:=SyntaxFactory.SeparatedList(arguments)))
+                    methodExpression, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
 
-                If Me.SelectionResult.ShouldPutAsyncModifier() Then
+                If Me.SelectionResult.CreateAsyncMethod() Then
                     If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
                         If AnalyzerResult.ReturnType.GetMembers().Any(
                         Function(x)
@@ -386,19 +404,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SyntaxFactory.IdentifierName(name)
             End Function
 
-            Protected Overrides Function CreateAssignmentExpressionStatement(identifier As SyntaxToken, rvalue As ExpressionSyntax) As StatementSyntax
+            Protected Overrides Function CreateAssignmentExpressionStatement(
+                    variables As ImmutableArray(Of VariableInfo),
+                    rvalue As ExpressionSyntax) As StatementSyntax
+                Contract.ThrowIfTrue(variables.Length <> 1)
+                Dim identifier = variables(0).Name.ToIdentifierToken()
                 Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)
             End Function
 
             Protected Overrides Function CreateDeclarationStatement(
-                    variable As VariableInfo,
-                    givenInitializer As ExpressionSyntax,
+                    variables As ImmutableArray(Of VariableInfo),
+                    initialValue As ExpressionSyntax,
                     cancellationToken As CancellationToken) As StatementSyntax
+                Contract.ThrowIfTrue(variables.Length <> 1)
 
+                Dim variable = variables(0)
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)
 
-                Dim initializer = If(givenInitializer, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
+                Dim initializer = If(initialValue, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
 
                 Dim variableType = variable.GetVariableType()
                 Dim typeNode = variableType.GenerateTypeSyntax()
@@ -427,17 +451,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 newDocument = Await newDocument.WithSyntaxRootAsync(root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(False)
 
                 Return Await MyBase.CreateGeneratedCodeAsync(newDocument, cancellationToken).ConfigureAwait(False)
-            End Function
-
-            Protected Function GetStatementContainingInvocationToExtractedMethodWorker() As StatementSyntax
-                Dim callSignature = CreateCallSignature()
-
-                If Me.AnalyzerResult.HasReturnType Then
-                    Contract.ThrowIfTrue(Me.AnalyzerResult.HasVariableToUseAsReturnValue)
-                    Return SyntaxFactory.ReturnStatement(expression:=callSignature)
-                End If
-
-                Return SyntaxFactory.ExpressionStatement(expression:=callSignature)
             End Function
         End Class
     End Class

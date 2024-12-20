@@ -8660,9 +8660,14 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         protected int P1 {get;}
                     }
 
-                    class Class : {|CS0535:{|CS0535:IInterface|}|}
+                    class Class : {|CS0535:IInterface|}
                     {
                         public void Method1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    
+                        void IInterface.M1()
                         {
                             throw new System.NotImplementedException();
                         }
@@ -8763,9 +8768,14 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         protected int P1 {get;}
                     }
 
-                    abstract class Class : {|CS0535:{|CS0535:IInterface|}|}
+                    abstract class Class : {|CS0535:IInterface|}
                     {
                         public abstract void Method1();
+
+                        void IInterface.M1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
                     }
                     """,
                 },
@@ -12176,6 +12186,96 @@ interface I
                 public void Reset() => throw new NotImplementedException();
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72380")]
+    public async Task TestImplementProtectedAbstract_CSharp9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+
+                public class CI : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+            
+                public class CI : I
+                {
+                    public void Another()
+                    {
+                        throw new NotImplementedException();
+                    }
+                
+                    void I.Method()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72380")]
+    public async Task TestImplementProtectedAbstract_CSharp10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+
+                public class CI : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+            
+                public class CI : I
+                {
+                    public void Another()
+                    {
+                        throw new NotImplementedException();
+                    }
+                
+                    public void Method()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19721")]

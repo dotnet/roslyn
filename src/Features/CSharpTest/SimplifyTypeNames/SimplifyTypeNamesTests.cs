@@ -7258,13 +7258,13 @@ namespace N
     }
 
     [Fact]
-    public async Task TestNint1_WithNumericIntPtr_CSharp8()
+    public async Task TestNint1_WithNumericIntPtr_CSharp10()
     {
         var featureOptions = PreferIntrinsicTypeEverywhere;
         await TestMissingInRegularAndScriptAsync(
             """
             <Workspace>
-                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="8">
+                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="10">
                     <Document>class A
             {
                 [|System.IntPtr|] i;
@@ -7274,43 +7274,21 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
-    public async Task TestNint1_WithNumericIntPtr_CSharp11_NoRuntimeSupport()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
+    [InlineData(LanguageVersion.CSharp9)]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.CSharp11)]
+    public async Task TestNint1_WithNumericIntPtr_NoRuntimeSupport(LanguageVersion version)
     {
-        await TestInRegularAndScript1Async("""
+        await TestMissingInRegularAndScriptAsync($$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="11">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{version.ToDisplayString()}}">
                     <Document>class A
             {
                 [|System.IntPtr|] i;
             }</Document>
                 </Project>
             </Workspace>
-            """, """
-            class A
-            {
-                nint i;
-            }
-            """, new TestParameters(options: PreferIntrinsicTypeEverywhere));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
-    public async Task TestNint1_WithNumericIntPtr_CSharp9_RuntimeSupport()
-    {
-        await TestInRegularAndScript1Async("""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="9">
-                    <Document>class A
-            {
-                [|System.IntPtr|] i;
-            }</Document>
-                </Project>
-            </Workspace>
-            """, """
-            class A
-            {
-                nint i;
-            }
             """, new TestParameters(options: PreferIntrinsicTypeEverywhere));
     }
 

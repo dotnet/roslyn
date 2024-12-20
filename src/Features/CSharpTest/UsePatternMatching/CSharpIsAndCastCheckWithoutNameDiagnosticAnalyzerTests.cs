@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
-         : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer(), new CSharpIsAndCastCheckWithoutNameCodeFixProvider());
 
@@ -637,6 +633,58 @@ public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : Ab
                 {
                     object? o = null;
                     Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68051")]
+    public async Task TestNotWhenCrossingStaticLambda()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Main(object o)
+                {
+                    if ([||]o is string)
+                    {
+                        M(static (object o) =>
+                        {
+                            var s = (string)o;
+                        });
+                    }
+                }
+                private void M(Action<object> value)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68051")]
+    public async Task TestNotWhenCrossingInstanceLambdaThatReferencesDifferentVariable()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Main(object o)
+                {
+                    if ([||]o is string)
+                    {
+                        M((object o) =>
+                        {
+                            var s = (string)o;
+                        });
+                    }
+                }
+                private void M(Action<object> value)
+                {
                 }
             }
             """);

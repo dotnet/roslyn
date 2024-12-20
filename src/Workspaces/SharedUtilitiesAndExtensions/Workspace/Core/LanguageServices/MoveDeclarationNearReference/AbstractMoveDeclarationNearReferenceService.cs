@@ -34,10 +34,13 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
     protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
-    public async Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    public async Task<(bool canMove, bool mayChangeSemantics)> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var state = await ComputeStateAsync(document, node, cancellationToken).ConfigureAwait(false);
-        return state != null;
+        if (state is null)
+            return default;
+
+        return (canMove: true, CrossesMeaningfulBlock(state));
     }
 
     private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
@@ -75,9 +78,7 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     {
         var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken).ConfigureAwait(false);
         if (state == null)
-        {
             return document;
-        }
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);

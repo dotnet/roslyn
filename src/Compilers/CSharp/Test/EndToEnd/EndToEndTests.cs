@@ -21,6 +21,8 @@ using Roslyn.Test.Utilities.TestGenerators;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -640,7 +642,9 @@ $@"        if (F({i}))
                 builder.AppendLine("C.M();");
             }
 
-            files.Add((builder.ToString(), "Program.cs"));
+            var program = (builder.ToString(), "Program.cs");
+            var locations = getInterceptableLocations(program);
+            files.Add(program);
 
             files.Add(("""
                 class C
@@ -652,20 +656,21 @@ $@"        if (F({i}))
                 {
                     public class InterceptsLocationAttribute : Attribute
                     {
-                        public InterceptsLocationAttribute(string path, int line, int column) { }
+                        public InterceptsLocationAttribute(int version, string data) { }
                     }
                 }
                 """, "C.cs"));
 
             for (int i = 0; i < numberOfInterceptors; i++)
             {
+                var location = locations[i];
                 files.Add(($$"""
                     using System;
                     using System.Runtime.CompilerServices;
 
                     class C{{i}}
                     {
-                        [InterceptsLocation("Program.cs", {{i + 1}}, 3)]
+                        [InterceptsLocation({{location.Version}}, "{{location.Data}}")]
                         public static void M()
                         {
                             Console.WriteLine({{i}});
@@ -685,6 +690,16 @@ $@"        if (F({i}))
                     builder.AppendLine($"{i}");
                 }
                 return builder.ToString();
+            }
+
+            ImmutableArray<InterceptableLocation> getInterceptableLocations(CSharpTestSource source)
+            {
+                var comp = CreateCompilation(source);
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().SelectAsArray(node => model.GetInterceptableLocation(node));
+                return nodes;
             }
         }
 

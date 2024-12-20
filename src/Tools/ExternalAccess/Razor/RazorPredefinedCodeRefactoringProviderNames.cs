@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public static string ExtractInterface => PredefinedCodeRefactoringProviderNames.ExtractInterface;
         public static string ExtractMethod => PredefinedCodeRefactoringProviderNames.ExtractMethod;
         public static string GenerateConstructorFromMembers => PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers;
-        public static string GenerateDefaultConstructors => PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors;
+        public static string GenerateDefaultConstructors => nameof(GenerateDefaultConstructors);
         public static string GenerateEqualsAndGetHashCodeFromMembers => PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers;
         public static string GenerateOverrides => PredefinedCodeRefactoringProviderNames.GenerateOverrides;
         public static string InlineTemporary => PredefinedCodeRefactoringProviderNames.InlineTemporary;

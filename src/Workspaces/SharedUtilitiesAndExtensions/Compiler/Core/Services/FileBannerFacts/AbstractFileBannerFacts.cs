@@ -58,6 +58,8 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract IDocumentationCommentService DocumentationCommentService { get; }
 
+    public abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
     public string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken)
         => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 
@@ -173,7 +175,7 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
 
         var leadingTrivia = firstToken.LeadingTrivia;
         var index = 0;
-        _fileBannerMatcher.TryMatch(leadingTrivia.ToList(), ref index);
+        _fileBannerMatcher.TryMatch([.. leadingTrivia], ref index);
 
         return ImmutableArray.CreateRange(leadingTrivia.Take(index));
     }

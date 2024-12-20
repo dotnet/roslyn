@@ -840,6 +840,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">產生比較運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constructor_from_members">
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">為 '{0}' 產生</target>
@@ -1178,6 +1183,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">將內容移到命名空間...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -4743,11 +4753,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">移除分隔符號</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor">
-        <source>Generate constructor...</source>
-        <target state="translated">產生建構函式...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">

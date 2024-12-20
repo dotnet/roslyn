@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,7 +16,7 @@ public partial class ExtractMethodTests
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-    public class LanguageInteraction : ExtractMethodBase
+    public sealed class LanguageInteraction : ExtractMethodBase
     {
         #region Generics
 
@@ -2303,16 +2301,15 @@ public partial class ExtractMethodTests
             
                 void M()
                 {
-                    using Goo g = NewMethod();
+                    NewMethod();
                 }
 
-                private static Goo NewMethod()
+                private static void NewMethod()
                 {
-                    Goo g = new Goo();
+                    using Goo g = new Goo();
                     var s = g.S;
                     g.M2();
                     g.M3();
-                    return g;
                 }
             
                 public void Dispose()

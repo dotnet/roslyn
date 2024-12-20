@@ -44,25 +44,8 @@ internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
             ProcessMembers(context, option, namespaceDeclaration.Members);
 
         // If we have a class or struct, recurse inwards.
-        if (member is TypeDeclarationSyntax(
-                SyntaxKind.ClassDeclaration or
-                SyntaxKind.StructDeclaration or
-                SyntaxKind.RecordDeclaration or
-                SyntaxKind.RecordStructDeclaration) typeDeclaration)
-        {
+        if (member is TypeDeclarationSyntax typeDeclaration)
             ProcessMembers(context, option, typeDeclaration.Members);
-        }
-
-#if false
-        // Add this once we have the language version for C# that supports accessibility
-        // modifiers on interface methods.
-        if (option.Value == AccessibilityModifiersRequired.Always &&
-            member.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
-        {
-            // Only recurse into an interface if the user wants accessibility modifiers on 
-            ProcessTypeDeclaration(context, generator, option, typeDeclaration);
-        }
-#endif
 
         if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(
                 CSharpAccessibilityFacts.Instance, member, option.Value, out var name, out var modifiersAdded))

@@ -397,11 +397,6 @@
         <target state="new">Editor Help</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
-        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="translated">Les options relatives au modèle de couleurs de l'éditeur sont disponibles uniquement quand vous utilisez un thème de couleur fourni en bundle avec Visual Studio. Vous pouvez configurer le thème de couleur à partir de la page d'options Environnement &gt; Général.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">L'élément n'est pas valide.</target>
@@ -476,6 +471,11 @@
         <source>Extract Base Record</source>
         <target state="translated">Extraire le Record de base</target>
         <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Fade_out_unused_members">
+        <source>Fade out unused members</source>
+        <target state="new">Fade out unused members</target>
+        <note />
       </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
@@ -968,8 +968,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="new">Only add new line on enter after end of fully typed word</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -1372,9 +1372,9 @@
         <target state="translated">Résultats de la recherche sémantique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
-        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="translated">Afficher la commande Supprimer les références inutilisées dans l'Explorateur de solutions (expérimental)</target>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
+        <source>Show "Remove Unused References" command in Solution Explorer</source>
+        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
@@ -1490,11 +1490,6 @@
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="new">Snippets behavior</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
-        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="translated">Certaines couleurs du modèle de couleurs sont substituées à la suite des changements apportés dans la page d'options Environnement &gt; Polices et couleurs. Choisissez Utiliser les valeurs par défaut dans la page Polices et couleurs pour restaurer toutes les personnalisations.</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">
@@ -1860,6 +1855,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}' va être changé en valeur publique.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="new">_Only add new line on enter after end of fully typed word</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">

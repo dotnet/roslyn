@@ -455,9 +455,9 @@ public abstract partial class Workspace
 
             // Fire and forget that the workspace is changing.
             // We raise 2 events for source document opened.
-            var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentOpened));
+            var token = _asyncOperationListener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentOpened));
             _ = RaiseDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
-            token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentOpenedEventName);
+            token = _asyncOperationListener.BeginAsyncOperation(TextDocumentOpenedEventName);
             _ = RaiseTextDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
         }
 
@@ -475,9 +475,9 @@ public abstract partial class Workspace
 
             // Fire and forget that the workspace is changing.
             // We raise 2 events for source document closed.
-            var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentClosed));
+            var token = _asyncOperationListener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentClosed));
             _ = RaiseDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
-            token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentClosedEventName);
+            token = _asyncOperationListener.BeginAsyncOperation(TextDocumentClosedEventName);
             _ = RaiseTextDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
         }
     }

@@ -3402,4 +3402,36 @@ options: ImplicitTypeEverywhere());
             }
             """, new(options: ImplicitTypeEverywhere()));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64902")]
+    public async Task TestNotOnAwaitedTask()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            public class Program
+            {
+                public static async Task Main()
+                {
+                    object test1 = DoSomeWork();
+                    object test2 = await Task.Run(() => DoSomeWork());
+
+                    IEnumerable<object> test3 = DoSomeWorkGeneric();
+                    [|IEnumerable<object>|] test4 = await Task.Run(() => DoSomeWorkGeneric());
+                }
+
+                public static object DoSomeWork()
+                {
+                    return new object();
+                }
+
+                public static IEnumerable<object> DoSomeWorkGeneric()
+                {
+                    return new List<object>();
+                }
+            }
+            """, new(options: ImplicitTypeWhereApparent()));
+    }
 }

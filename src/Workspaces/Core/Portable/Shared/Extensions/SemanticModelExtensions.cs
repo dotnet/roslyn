@@ -77,11 +77,11 @@ internal static partial class SemanticModelExtensions
         var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
         var syntaxKinds = languageServices.GetRequiredService<ISyntaxKindsService>();
 
-        if (!syntaxFacts.IsBindableToken(token))
+        if (!syntaxFacts.IsBindableToken(semanticModel, token))
             return TokenSemanticInfo.Empty;
 
         var semanticFacts = languageServices.GetRequiredService<ISemanticFactsService>();
-        var overriddingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
+        var overridingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
 
         IAliasSymbol? aliasSymbol = null;
         ITypeSymbol? type = null;
@@ -97,11 +97,11 @@ internal static partial class SemanticModelExtensions
             var usingStatement = token.Parent;
             declaredSymbol = semanticFacts.TryGetDisposeMethod(semanticModel, tokenParent, cancellationToken);
         }
-        else if (overriddingIdentifier.HasValue)
+        else if (overridingIdentifier.HasValue)
         {
             // on an "override" token, we'll find the overridden symbol
-            var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
-            var overriddenSymbol = overriddingSymbol.GetOverriddenMember(allowLooseMatch: true);
+            var overridingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overridingIdentifier.Value, cancellationToken);
+            var overriddenSymbol = overridingSymbol.GetOverriddenMember(allowLooseMatch: true);
 
             allSymbols = overriddenSymbol is null ? [] : [overriddenSymbol];
         }

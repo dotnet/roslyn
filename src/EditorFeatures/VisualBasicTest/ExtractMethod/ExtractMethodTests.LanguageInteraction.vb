@@ -3229,7 +3229,7 @@ Imports System
 
 Module M
     Sub Main()
-        Goo(Sub(comment) NewMethod(comment), CObj(Nothing)) ' Extract method
+        Goo(Sub(comment) NewMethod(comment), Nothing) ' Extract method
     End Sub
 
     Private Sub NewMethod(comment As String)

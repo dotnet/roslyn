@@ -2778,6 +2778,108 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
         VerifyTypingCharacter(code, expected);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
+    public void TypingCharacter_ExistingText1()
+    {
+        var code =
+            """
+            /// foo$$
+            class C
+            {
+            }
+            """;
+
+        var expected =
+            """
+            /// foo/$$
+            class C
+            {
+            }
+            """;
+
+        VerifyTypingCharacter(code, expected);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
+    public void TypingCharacter_ExistingText2()
+    {
+        var code =
+            """
+            namespace N
+            {
+                /// foo$$
+                class C
+                {
+                }
+            }
+            """;
+
+        var expected =
+            """
+            namespace N
+            {
+                /// foo/$$
+                class C
+                {
+                }
+            }
+            """;
+
+        VerifyTypingCharacter(code, expected);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
+    public void PressingEnter_ExistingText1()
+    {
+        var code =
+            """
+            /// foo$$
+            class C
+            {
+            }
+            """;
+
+        var expected =
+            """
+            /// foo
+            /// $$
+            class C
+            {
+            }
+            """;
+
+        VerifyPressingEnter(code, expected);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/75838")]
+    public void PressingEnter_ExistingText2()
+    {
+        var code =
+            """
+            namespace N
+            {
+                /// foo$$
+                class C
+                {
+                }
+            }
+            """;
+
+        var expected =
+            """
+            namespace N
+            {
+                /// foo
+                /// $$
+                class C
+                {
+                }
+            }
+            """;
+
+        VerifyPressingEnter(code, expected);
+    }
+
     protected override char DocumentationCommentCharacter
     {
         get { return '/'; }

@@ -20,7 +20,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 {
     private abstract partial class SymbolReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-        SymbolResult<INamespaceOrTypeSymbol> symbolResult) : Reference(provider, new SearchResult(symbolResult))
+        SymbolResult<INamespaceOrTypeSymbol> symbolResult)
+        : Reference(provider, new SearchResult(symbolResult), isWithinImport: false)
     {
         public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult = symbolResult;
 
