@@ -55,19 +55,19 @@ internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
 
             var newSolution = oldSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
             return workspace.TryApplyChanges(newSolution);
+
+            void AddOption<T>(
+                PerLanguageOption2<T> option,
+                T value)
+            {
+                var configName = option.Definition.ConfigName;
+                var configValue = option.Definition.Serializer.Serialize(value);
+                builder[configName] = configValue;
+            }
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
         {
             throw ExceptionUtilities.Unreachable();
-        }
-
-        void AddOption<T>(
-            PerLanguageOption2<T> option,
-            T value)
-        {
-            var configName = option.Definition.ConfigName;
-            var configValue = option.Definition.Serializer.Serialize(value);
-            builder[configName] = configValue;
         }
     }
 }
