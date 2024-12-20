@@ -5,11 +5,13 @@
 #nullable disable
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -6432,14 +6434,12 @@ class C {
             EOF();
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersion.Preview)]
-        public void TestParameterModifierNoType9(LanguageVersion languageVersion)
+        [Fact]
+        public void TestParameterModifierNoType9_CSharp13()
         {
-            // 'scoped' is always a type here as the `= null` is not legal in an implicitly typed lambda.
+            // 'scoped' continues to be a type in C#13 and below.
             string source = "(scoped a = null) => { }";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            UsingExpression(source, TestOptions.Regular13);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -6452,6 +6452,43 @@ class C {
                         {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType9_CSharp14()
+        {
+            // 'scoped' is always a modifier in C# 14 and above.
+            string source = "(scoped a = null) => { }";
+            UsingExpression(source, TestOptions.RegularNext);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierToken, "a");
                         N(SyntaxKind.EqualsValueClause);
                         {

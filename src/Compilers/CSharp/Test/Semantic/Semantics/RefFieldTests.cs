@@ -11250,7 +11250,7 @@ class Program
         }
 
         [Fact]
-        public void ParameterScope_08()
+        public void ParameterScope_08_CSharp13()
         {
             var source =
 @"ref struct R { }
@@ -11263,7 +11263,7 @@ class Program
         var f3 = (scoped scoped ref R r) => { };
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS8917: The delegate type could not be inferred.
                 //         var f1 = (scoped scoped R r) => { };
@@ -11286,6 +11286,53 @@ class Program
                 // (8,19): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 19),
+                // (8,33): error CS1003: Syntax error, ',' expected
+                //         var f3 = (scoped scoped ref R r) => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(8, 33));
+        }
+
+        [Fact]
+        public void ParameterScope_08_CSharp14()
+        {
+            var source =
+                """
+                ref struct R { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var f1 = (scoped scoped R r) => { };
+                        var f2 = (ref scoped scoped R r) => { };
+                        var f3 = (scoped scoped ref R r) => { };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (6,18): error CS8917: The delegate type could not be inferred.
+                //         var f1 = (scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
+                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         var f1 = (scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (6,35): error CS1003: Syntax error, ',' expected
+                //         var f1 = (scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
+                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         var f1 = (scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
+                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
+                // (7,37): error CS1003: Syntax error, ',' expected
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
+                // (8,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         var f3 = (scoped scoped ref R r) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 26),
+                // (8,33): error CS1001: Identifier expected
+                //         var f3 = (scoped scoped ref R r) => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(8, 33),
                 // (8,33): error CS1003: Syntax error, ',' expected
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(8, 33));

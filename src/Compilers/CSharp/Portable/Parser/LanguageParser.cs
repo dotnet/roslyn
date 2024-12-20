@@ -10141,6 +10141,10 @@ done:
             if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
                 return null;
 
+            // In C# 14 we decided that within a lambda 'scoped' would *always* be a keyword.
+            if (isLambdaParameter && IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
+                return this.EatContextualToken(SyntaxKind.ScopedKeyword);
+
             using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
             var scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
@@ -10148,19 +10152,6 @@ done:
             // trivial case.  scoped ref/out/in  is definitely the scoped keyword.
             if (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
                 return scopedKeyword;
-
-            // (scoped a) =>    (scoped a, ...) =>   is legal in a lambda.
-
-            // This is an unusual use of LangVersion. In this case we are effectively making a language breaking change
-            // to consider "scoped" a modifier in all ambiguous cases. To avoid breaking older code that is not
-            // using this version we conditionally parse based on langversion
-            if (isLambdaParameter &&
-                IsTrueIdentifier(this.CurrentToken) &&
-                this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken &&
-                IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
-            {
-                return scopedKeyword;
-            }
 
             // More complex cases.  We have to check for `scoped Type ...` now.
             using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
