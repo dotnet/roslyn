@@ -992,4 +992,62 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type: IErrorTypeSymbol, RefKind: RefKind.Ref, IsParams: false }]);
     }
+
+    [Theory, CombinatorialData]
+    public void TestScopedOnDelegateNotOnLambda(bool includeType)
+    {
+        var compilation = CreateCompilationWithSpan($$"""
+            using System;
+            delegate void D(scoped ReadOnlySpan<int> x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = ({{(includeType ? "ReadOnlySpan<int> " : "")}}x) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(ScopedKind.None, symbol.Parameters.Single().ScopedKind);
+        Assert.Equal("x", symbol.Parameters.Single().Name);
+        Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.Single().Type.OriginalDefinition);
+    }
+
+    [Theory, CombinatorialData]
+    public void TestScopedOnLambdaDelegateNotOnDelegate(bool includeType)
+    {
+        var compilation = CreateCompilationWithSpan($$"""
+            using System;
+            delegate void D(ReadOnlySpan<int> x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (scoped {{(includeType ? "ReadOnlySpan<int> " : "")}}x) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters.Single().ScopedKind);
+        Assert.Equal("x", symbol.Parameters.Single().Name);
+        Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.Single().Type.OriginalDefinition);
+    }
 }
