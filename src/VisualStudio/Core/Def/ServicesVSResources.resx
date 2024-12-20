@@ -1940,7 +1940,7 @@ Additional information: {1}</value>
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>Show completion list after a character is typed</value>
   </data>
-  <data name="Experimental feature" xml:space="preserve">
+  <data name="Experimental_feature" xml:space="preserve">
     <value>Experimental feature</value>
   </data>
 </root>

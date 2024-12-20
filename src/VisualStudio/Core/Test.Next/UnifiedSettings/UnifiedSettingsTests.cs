@@ -129,8 +129,6 @@ public class UnifiedSettingsTests
                 : actualJson.Deserialize<UnifiedSettingsOption<bool>>()!;
             Assert.Equal(expectedSetting, actualSetting);
         }
-
-
         await VerifyTagAsync(jsonDocument.ToString());
     }
 
@@ -228,7 +226,7 @@ public class UnifiedSettingsTests
             EnumIntegerToString = new EnumIntegerToString
             {
                 Input = new Input(onboardedOption, languageName),
-                Map = customMaps ?? [.. expectedEnumValues.Select(value => new Map { Result = value.ToString().ToCamelCase(), Match = Convert.ToInt32(value)}) ]
+                Map = customMaps ?? [.. expectedEnumValues.Select(value => new Map { Result = value.ToString().ToCamelCase(), Match = Convert.ToInt32(value)})]
             }
         };
 

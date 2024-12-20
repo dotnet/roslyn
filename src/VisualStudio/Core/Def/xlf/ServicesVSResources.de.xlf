@@ -462,7 +462,7 @@
         <target state="translated">Fehler bei der Aktualisierung von Unterdrückungen: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Experimental feature">
+      <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
         <target state="new">Experimental feature</target>
         <note />

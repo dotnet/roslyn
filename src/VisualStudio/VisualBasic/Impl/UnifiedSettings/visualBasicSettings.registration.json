@@ -163,6 +163,11 @@
       "type": "boolean",
       "default": false,
       "order": 60,
+      "messages": [
+        {
+          "text": "@Experimental_feature;..\\Microsoft.VisualStudio.LanguageServices.dll"
+        }
+      ],
       "migration": {
         "pass": {
           "input": {
