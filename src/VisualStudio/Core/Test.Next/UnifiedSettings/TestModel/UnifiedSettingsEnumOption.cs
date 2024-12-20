@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Roslyn.Utilities;
 
@@ -25,11 +25,11 @@ internal record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
         if (ReferenceEquals(this, other))
             return true;
 
-        return base.Equals(other) && Enum.Equals(other.Enum) && EnumItemLabels.Equals(other.EnumItemLabels);
+        return base.Equals(other) && @Enum.SequenceEqual(other.@Enum) && EnumItemLabels.SequenceEqual(other.EnumItemLabels);
     }
 
     public override int GetHashCode()
     {
-        return Hash.Combine(base.GetHashCode(), Enum, EnumItemLabels);
+        return Hash.Combine(Hash.Combine(base.GetHashCode(), Hash.CombineValues(@Enum)), Hash.CombineValues(EnumItemLabels));
     }
 }

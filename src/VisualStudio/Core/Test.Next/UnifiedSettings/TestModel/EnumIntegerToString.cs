@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
@@ -30,6 +31,6 @@ internal record EnumIntegerToString
 
     public override int GetHashCode()
     {
-        return Hash.Combine(Input.GetHashCode(), Map.GetHashCode());
+        return Hash.Combine(Input.GetHashCode(), Hash.CombineValues(Map));
     }
 }
