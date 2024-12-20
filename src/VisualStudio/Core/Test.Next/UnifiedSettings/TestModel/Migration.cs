@@ -11,7 +11,7 @@ internal record Migration
     [JsonPropertyName("pass")]
     public Pass? Pass { get; init; }
 
-    [JsonPropertyName("enumToInteger")]
-    public EnumToInteger? EnumToInteger { get; init; }
+    [JsonPropertyName("enumIntegerToString")]
+    public EnumIntegerToString? EnumIntegerToString { get; init; }
 }
 

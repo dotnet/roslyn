@@ -8,14 +8,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
 internal record Map
 {
-    public required EnumToValuePair[] EnumValueMatches { get; init; }
+    [JsonPropertyName("result")]
+    public required string Result { get; init; }
 
-    internal record EnumToValuePair
-    {
-        [JsonPropertyName("result")]
-        public required string Result { get; init; }
-
-        [JsonPropertyName("match")]
-        public required int Match { get; init; }
-    }
+    [JsonPropertyName("match")]
+    public required int Match { get; init; }
 }

@@ -8,12 +8,17 @@ using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel
 {
-    internal class ResourceConverter : JsonConverter<string>
+    internal class ResourceStringConverter : JsonConverter<string>
     {
         public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var locReference = reader.GetString()!;
-            return Utilities.EvalResource(locReference);
+            if (reader.TokenType == JsonTokenType.String)
+            {
+                var locReference = reader.GetString()!;
+                return Utilities.EvalResource(locReference);
+            }
+
+            throw new NotImplementedException();
         }
 
         public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)

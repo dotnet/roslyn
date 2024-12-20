@@ -48,7 +48,7 @@ public class UnifiedSettingsTests
             CompletionOptionsStorage.TriggerOnDeletion,
             title: "Show completion list after a character is deleted",
             order: 1,
-            defaultValue: true,
+            customDefaultValue: true,
             languageName: LanguageNames.VisualBasic)),
         (CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, CreateBooleanOption(
             CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems,
@@ -64,8 +64,10 @@ public class UnifiedSettingsTests
             CompletionOptionsStorage.SnippetsBehavior,
             "Snippets behavior",
             order: 30,
+            customDefaultValue: SnippetsRule.IncludeAfterTypingIdentifierQuestionTab,
             enumLabels: ["Never include snippets", "Always include snippets", "Include snippets when ?-Tab is typed after an identifier"],
             enumValues: [SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab],
+            customMaps: [new Map { Result = "neverInclude", Match = 1}, new Map { Result = "alwaysInclude", Match = 2}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 3}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 0}],
             languageName: LanguageNames.VisualBasic)),
         (CompletionOptionsStorage.EnterKeyBehavior, CreateEnumOption(
             CompletionOptionsStorage.EnterKeyBehavior,
@@ -82,7 +84,7 @@ public class UnifiedSettingsTests
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             title: "Tab twice insert arguments",
-            defaultValue: false,
+            customDefaultValue: false,
             order: 60,
             languageName: LanguageNames.VisualBasic)),
     ];
@@ -113,7 +115,7 @@ public class UnifiedSettingsTests
         IOption2 onboardedOption,
         string title,
         int order,
-        bool? defaultValue = null,
+        bool? customDefaultValue = null,
         (IOption2 featureFlagOption, bool value)? featureFlagAndExperimentValue = null,
         (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
         string? languageName = null)
@@ -132,7 +134,7 @@ public class UnifiedSettingsTests
             ? $"config:{s_visualBasicUnifiedSettingsStorage[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
             : null;
 
-        var expectedDefault = defaultValue ?? onboardedOption.Definition.DefaultValue;
+        var expectedDefault = customDefaultValue ?? onboardedOption.Definition.DefaultValue;
         // If the option default value is null, it means the option is in experiment mode and is hidden by a feature flag.
         // In Unified Settings it is not allowed and should be replaced by using the alternative default.
         // Like:
@@ -164,10 +166,12 @@ public class UnifiedSettingsTests
         string title,
         int order,
         string[] enumLabels,
+        T? customDefaultValue = default,
         T[]? enumValues = null,
+        Map[]? customMaps = null,
         (IOption2 featureFlagOption, T value)? featureFlagAndExperimentValue = null,
         (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
-        string? languageName = null)
+        string? languageName = null) where T : System.Enum
     {
         var type = onboardedOption.Definition.Type;
         // If the option's type is nullable type, we use the original type in the registration file.
@@ -177,13 +181,10 @@ public class UnifiedSettingsTests
         var expectedEnumValues = enumValues ?? [.. Enum.GetValues(nonNullableType).Cast<T>()];
         var migration = new Migration
         {
-            EnumToInteger = new EnumToInteger
+            EnumIntegerToString = new EnumIntegerToString
             {
                 Input = new Input(onboardedOption, languageName),
-                Map = new Map
-                {
-                    EnumValueMatches = [.. expectedEnumValues.Select(value => new Map.EnumToValuePair { Result = value.ToString().ToCamelCase(), Match = Convert.ToInt32(value) })]
-                }
+                Map = customMaps ?? [.. expectedEnumValues.Select(value => new Map { Result = value.ToString().ToCamelCase(), Match = Convert.ToInt32(value)}) ]
             }
         };
 
@@ -195,14 +196,14 @@ public class UnifiedSettingsTests
             ? $"config:{s_visualBasicUnifiedSettingsStorage[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
             : null;
 
-        var expectedDefault = onboardedOption.Definition.DefaultValue;
+        var expectedDefault = customDefaultValue ?? onboardedOption.Definition.DefaultValue;
         Assert.NotNull(expectedDefault);
 
         return new UnifiedSettingsEnumOption
         {
             Title = title,
             Type = "string",
-            Enum = [.. expectedEnumValues.Select(value => value.ToString())],
+            Enum = [.. expectedEnumValues.Select(value => value.ToString().ToCamelCase())],
             EnumItemLabels = enumLabels,
             Order = order,
             EnableWhen = enableWhen,
