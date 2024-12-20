@@ -649,12 +649,12 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
             {
                 void M()
                 {
-                    Expression<D> e = (ref {{(explicitType ? "int" : "")}} x) => 0;
+                    Expression<D> e = (ref {{(explicitType ? "int " : "")}}x) => 0;
                 }
             }
             """).VerifyDiagnostics(
                 // (9,33): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
-                //         Expression<D> e = (ref  x) => 0;
+                //         Expression<D> e = (ref x) => 0;
                 Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x"));
 
         var tree = compilation.SyntaxTrees.Single();
