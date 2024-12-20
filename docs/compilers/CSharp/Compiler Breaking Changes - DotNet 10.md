@@ -169,7 +169,8 @@ would allow user-defined declarations of this attribute, but only when it didn't
 3. It must be sealed
 4. It must be non-static
 5. It must have an internal or public parameterless constructor
-6. It must be attributed with itself
+6. It must inherit from System.Attribute.
+7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
 
 ```cs
 namespace Microsoft.CodeAnalysis;

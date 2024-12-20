@@ -2137,6 +2137,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeSymbol.IsContainedInNamespace(nameof(System), nameof(System.Threading));
         }
 
+        internal static bool IsMicrosoftCodeAnalysisEmbeddedAttribute(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol is NamedTypeSymbol
+            {
+                Name: "EmbeddedAttribute",
+                Arity: 0,
+                ContainingType: null,
+            }
+            && typeSymbol.IsContainedInNamespace("Microsoft", "CodeAnalysis");
+        }
+
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
             if (typeSymbol.Name != name || typeSymbol.ContainingType is object)
