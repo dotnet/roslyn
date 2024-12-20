@@ -6,11 +6,17 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Put repo-specific PackageVersion items in this group. -->
+  </ItemGroup>
+  <ItemGroup Label="Library.Template">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0" />
     <PackageVersion Include="xunit" Version="2.9.2" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Put repo-specific GlobalPackageReference items in this group. -->
+  </ItemGroup>
+  <ItemGroup Label="Library.Template">
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.593" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
     <!-- The condition works around https://github.com/dotnet/sdk/issues/44951 -->
