@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Operations;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics;
@@ -130,10 +131,12 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
             compilation.GetTypeByMetadataName(typeof(CLSCompliantAttribute).FullName).GetPublicSymbol());
     }
 
-    [Fact]
-    public void TestOneParameterWithMultipleAttribute()
+    [Theory]
+    [InlineData("[CLSCompliant(false), My]")]
+    [InlineData("[CLSCompliant(false)][My]")]
+    public void TestOneParameterWithMultipleAttribute(string attributeForm)
     {
-        var compilation = CreateCompilation("""
+        var compilation = CreateCompilation($$"""
             using System;
 
             [AttributeUsage(AttributeTargets.Parameter)]
@@ -144,7 +147,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
             {
                 void M()
                 {
-                    D d = ([CLSCompliant(false), My] ref x) => { };
+                    D d = ({{attributeForm}} ref x) => { };
                 }
             }
             """).VerifyDiagnostics();
