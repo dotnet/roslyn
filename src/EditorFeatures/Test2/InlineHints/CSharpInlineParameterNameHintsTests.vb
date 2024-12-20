@@ -1298,5 +1298,95 @@ class A
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59317")>
+        Public Async Function TestExistingNamedParameter1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo({|a:|}1, 2, b: 0);
+    }
+
+    static void Goo(int a, int b)
+    {
+
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo(a: 1, 2, b: 0);
+    }
+
+    static void Goo(int a, int b)
+    {
+
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59317")>
+        Public Async Function TestExistingNamedParameter2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo({|a:|}1, {|b:|}2, c: 0);
+    }
+
+    static void Goo(int a, int b)
+    {
+
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo(a: 1, b: 2, c: 0);
+    }
+
+    static void Goo(int a, int b)
+    {
+
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace
