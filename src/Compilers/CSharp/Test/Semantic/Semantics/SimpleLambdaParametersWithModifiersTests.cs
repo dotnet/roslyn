@@ -701,4 +701,38 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_String, Type.NullableAnnotation: CodeAnalysis.NullableAnnotation.Annotated, RefKind: RefKind.Ref, IsOptional: false }]);
     }
+
+    [Fact]
+    public void TestNullable2()
+    {
+        var compilation = CreateCompilation($$"""
+            #nullable enable
+
+            delegate void D(ref string x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref x) =>
+                    {
+                        x = null;
+                    };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //             x = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_String, Type.NullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
 }
