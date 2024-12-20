@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(typeError, location, name, tpEnclosing.ContainingSymbol);
                 }
 
-                var typeParameter = new SourceMethodTypeParameterSymbol(
+                var typeParameter = new SourceNotOverridingMethodTypeParameterSymbol(
                         this,
                         name,
                         ordinal,
