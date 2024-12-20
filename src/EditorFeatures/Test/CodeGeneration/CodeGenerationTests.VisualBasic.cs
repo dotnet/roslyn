@@ -421,7 +421,7 @@ End Class";
 
             await TestAddEventAsync(input, expected,
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                    [], Accessibility.NotApplicable, []),
                     getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
                     type: typeof(System.ComponentModel.PropertyChangedEventHandler),
                     context: new CodeGenerationContext(addImports: false));
@@ -445,7 +445,7 @@ Class C
     End Event
 End Class";
             await TestAddEventAsync(input, expected,
-                addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
                 context: new CodeGenerationContext(addImports: false));
         }
 
@@ -474,11 +474,11 @@ End Class";
             var raiseStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)"));
             await TestAddEventAsync(input, expected,
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, addStatements),
+                    [], Accessibility.NotApplicable, addStatements),
                 removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, removeStatements),
+                    [], Accessibility.NotApplicable, removeStatements),
                 raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, raiseStatements),
+                    [], Accessibility.NotApplicable, raiseStatements),
                 context: new CodeGenerationContext(addImports: false));
         }
 

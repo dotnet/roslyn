@@ -161,7 +161,7 @@ public class CodeFixServiceTests
         // We need to ensure that we don't skip these document analyzers
         // when computing the diagnostics/code fixes for "Normal" priority bucket, which
         // normally only execute those analyzers which report at least one fixable supported diagnostic.
-        var documentDiagnosticAnalyzer = new MockAnalyzerReference.MockDocumentDiagnosticAnalyzer(reportedDiagnosticIds: ImmutableArray<string>.Empty);
+        var documentDiagnosticAnalyzer = new MockAnalyzerReference.MockDocumentDiagnosticAnalyzer(reportedDiagnosticIds: []);
         Assert.Empty(documentDiagnosticAnalyzer.SupportedDiagnostics);
 
         var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(documentDiagnosticAnalyzer);
@@ -460,12 +460,12 @@ public class CodeFixServiceTests
         }
 
         public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : this(fixers, analyzers, ImmutableArray<ISourceGenerator>.Empty)
+            : this(fixers, analyzers, [])
         {
         }
 
         public MockAnalyzerReference(CodeFixProvider? fixer, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : this(fixer != null ? ImmutableArray.Create(fixer) : ImmutableArray<CodeFixProvider>.Empty,
+            : this(fixer != null ? ImmutableArray.Create(fixer) : [],
                    analyzers)
         {
         }
@@ -508,7 +508,7 @@ public class CodeFixServiceTests
             => Analyzers;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
             => Generators;
@@ -694,14 +694,14 @@ public class CodeFixServiceTests
             nugetFixer: new NuGetCodeFixProvider(reportedDiagnosticIds),
             expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: reportedDiagnosticIds,
             vsixFixer: null,
-            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: ImmutableArray<string>.Empty,
+            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: [],
             diagnosticAnalyzer);
 
         // Only Vsix code fix provider which fixes both reported diagnostic IDs.
         // Verify only Vsix fixer's code action registered and they fix all IDs.
         await TestNuGetAndVsixCodeFixersCoreAsync(
             nugetFixer: null,
-            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: ImmutableArray<string>.Empty,
+            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: [],
             vsixFixer: new VsixCodeFixProvider(reportedDiagnosticIds),
             expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: reportedDiagnosticIds,
             diagnosticAnalyzer);
@@ -712,7 +712,7 @@ public class CodeFixServiceTests
             nugetFixer: new NuGetCodeFixProvider(reportedDiagnosticIds),
             expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: reportedDiagnosticIds,
             vsixFixer: new VsixCodeFixProvider(reportedDiagnosticIds),
-            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: ImmutableArray<string>.Empty,
+            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: [],
             diagnosticAnalyzer);
 
         // Both NuGet and Vsix code fix provider register different fixable IDs.

@@ -21,14 +21,14 @@ internal static class StackFrameSyntaxFactory
     public static StackFrameToken CreateToken(StackFrameKind kind, string s, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
         => new(
             kind,
-            leadingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : leadingTrivia,
+            leadingTrivia.IsDefaultOrEmpty ? [] : leadingTrivia,
             CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, s),
-            trailingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic>.Empty,
+            trailingTrivia.IsDefaultOrEmpty ? [] : trailingTrivia,
+            [],
             value: null!);
 
     public static StackFrameTrivia CreateTrivia(StackFrameKind kind, string text)
-        => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), ImmutableArray<EmbeddedDiagnostic>.Empty);
+        => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), []);
 
     public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params string[] strings)
         => strings.Select(s => CreateTrivia(StackFrameKind.SkippedTextTrivia, s)).ToImmutableArray();
@@ -113,11 +113,11 @@ internal static class StackFrameSyntaxFactory
 
             if (current is null)
             {
-                current = Identifier(IdentifierToken(identifier, leadingTrivia: leadingTrivia, trailingTrivia: ImmutableArray<StackFrameTrivia>.Empty));
+                current = Identifier(IdentifierToken(identifier, leadingTrivia: leadingTrivia, trailingTrivia: []));
             }
             else if (i == identifiers.Length - 1)
             {
-                var rhs = Identifier(IdentifierToken(identifier, leadingTrivia: ImmutableArray<StackFrameTrivia>.Empty, trailingTrivia: trailingTrivia));
+                var rhs = Identifier(IdentifierToken(identifier, leadingTrivia: [], trailingTrivia: trailingTrivia));
                 current = QualifiedName(current, rhs);
             }
             else

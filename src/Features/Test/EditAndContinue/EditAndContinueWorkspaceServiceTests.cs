@@ -133,7 +133,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             filePath: sourceFileD.Path));
 
         var captureMatchingDocuments = captureAllDocuments
-            ? ImmutableArray<DocumentId>.Empty
+            ? []
             : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
 
         var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
@@ -419,7 +419,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // make sure renames are not supported:
         _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
 
-        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : ImmutableArray<DocumentId>.Empty;
+        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : [];
         var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
@@ -4367,7 +4367,7 @@ class C
                 solution,
                 _debuggerService,
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: true,
                 CancellationToken.None);
@@ -4413,7 +4413,7 @@ class C
         // The following methods can be called at any point in time, so we must handle race with dispose gracefully.
         Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
-        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray<DocumentId>.Empty, CancellationToken.None)).IsDefault);
+        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [], CancellationToken.None)).IsDefault);
     }
 
     [Fact]

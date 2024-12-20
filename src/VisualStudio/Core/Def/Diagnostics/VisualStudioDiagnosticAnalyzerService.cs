@@ -320,7 +320,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
         }
         else
         {
-            otherProjectsForMultiTfmProject = ImmutableArray<Project>.Empty;
+            otherProjectsForMultiTfmProject = [];
         }
 
         // Force complete analyzer execution in background.

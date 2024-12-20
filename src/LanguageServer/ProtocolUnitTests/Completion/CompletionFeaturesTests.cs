@@ -879,7 +879,7 @@ public class A
             return true;
         }
 
-        public ImmutableArray<CodeAnalysis.Completion.CompletionItem> ReturnedItems { get; set; } = ImmutableArray<CodeAnalysis.Completion.CompletionItem>.Empty;
+        public ImmutableArray<CodeAnalysis.Completion.CompletionItem> ReturnedItems { get; set; } = [];
 
         public (int defaultItemCount, int nonDefaultItemCount) ItemCounts { get; set; }
 

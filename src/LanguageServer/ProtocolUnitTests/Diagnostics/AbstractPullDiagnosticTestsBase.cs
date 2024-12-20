@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 if (diagnostics == null)
                 {
                     // The public LSP spec returns null when no diagnostics are available for a document wheres VS returns an empty array.
-                    return ImmutableArray<TestDiagnosticResult>.Empty;
+                    return [];
                 }
                 else if (diagnostics.Value.Value is UnchangedDocumentDiagnosticReport)
                 {

@@ -537,11 +537,11 @@ public class DiagnosticAnalyzerDriverTests
         await TestNuGetAndVsixAnalyzerCoreAsync(
             nugetAnalyzers: ImmutableArray.Create(firstNugetAnalyzer, secondNugetAnalyzer),
             expectedNugetAnalyzersExecuted: true,
-            vsixAnalyzers: ImmutableArray<VsixAnalyzer>.Empty,
+            vsixAnalyzers: [],
             expectedVsixAnalyzersExecuted: false,
-            nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+            nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
-            vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+            vsixSuppressors: [],
             expectedVsixSuppressorsExecuted: false,
             new[]
             {
@@ -558,9 +558,9 @@ public class DiagnosticAnalyzerDriverTests
             expectedNugetAnalyzersExecuted: true,
             vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
             expectedVsixAnalyzersExecuted: false,
-            nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+            nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
-            vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+            vsixSuppressors: [],
             expectedVsixSuppressorsExecuted: false,
             new[]
             {
@@ -578,9 +578,9 @@ public class DiagnosticAnalyzerDriverTests
             expectedNugetAnalyzersExecuted: true,
             vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
             expectedVsixAnalyzersExecuted: true,
-            nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+            nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
-            vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+            vsixSuppressors: [],
             expectedVsixSuppressorsExecuted: false,
             new[]
             {
@@ -614,11 +614,11 @@ public class DiagnosticAnalyzerDriverTests
         //   1) No duplicate diagnostics
         //   2) The VSIX diagnostics are suppressed by the VSIX suppressor
         await TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzers: ImmutableArray<NuGetAnalyzer>.Empty,
+            nugetAnalyzers: [],
             expectedNugetAnalyzersExecuted: false,
             vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
             expectedVsixAnalyzersExecuted: true,
-            nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+            nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
             vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
             expectedVsixSuppressorsExecuted: true,
@@ -638,7 +638,7 @@ public class DiagnosticAnalyzerDriverTests
             expectedNugetAnalyzersExecuted: true,
             vsixAnalyzers: ImmutableArray.Create(vsixAnalyzer),
             expectedVsixAnalyzersExecuted: true,
-            nugetSuppressors: ImmutableArray<NuGetSuppressor>.Empty,
+            nugetSuppressors: [],
             expectedNugetSuppressorsExecuted: false,
             vsixSuppressors: ImmutableArray.Create(vsixSuppressor),
             expectedVsixSuppressorsExecuted: true,
@@ -663,7 +663,7 @@ public class DiagnosticAnalyzerDriverTests
             expectedVsixAnalyzersExecuted: true,
             nugetSuppressors: ImmutableArray.Create(nugetSuppressor),
             expectedNugetSuppressorsExecuted: true,
-            vsixSuppressors: ImmutableArray<VsixSuppressor>.Empty,
+            vsixSuppressors: [],
             expectedVsixSuppressorsExecuted: false,
             new[]
             {
@@ -725,13 +725,13 @@ public class DiagnosticAnalyzerDriverTests
         bool expectedVsixAnalyzerExecuted,
         params (DiagnosticDescription diagnostic, string message)[] expectedDiagnostics)
         => TestNuGetAndVsixAnalyzerCoreAsync(
-            nugetAnalyzer != null ? ImmutableArray.Create(nugetAnalyzer) : ImmutableArray<NuGetAnalyzer>.Empty,
+            nugetAnalyzer != null ? ImmutableArray.Create(nugetAnalyzer) : [],
             expectedNugetAnalyzerExecuted,
-            vsixAnalyzer != null ? ImmutableArray.Create(vsixAnalyzer) : ImmutableArray<VsixAnalyzer>.Empty,
+            vsixAnalyzer != null ? ImmutableArray.Create(vsixAnalyzer) : [],
             expectedVsixAnalyzerExecuted,
-            ImmutableArray<NuGetSuppressor>.Empty,
+            [],
             false,
-            ImmutableArray<VsixSuppressor>.Empty,
+            [],
             false,
             expectedDiagnostics);
 

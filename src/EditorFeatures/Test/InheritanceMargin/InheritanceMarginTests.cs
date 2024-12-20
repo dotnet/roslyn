@@ -266,7 +266,7 @@ public class InheritanceMarginTests
             TargetSymbolDisplayName = targetSymbolDisplayName;
             Relationship = relationship;
             InMetadata = inMetadata;
-            LocationTags = ImmutableArray<string>.Empty;
+            LocationTags = [];
         }
 
         public TargetInfo(
@@ -314,7 +314,7 @@ public class InheritanceMarginTests
                 return new TestInheritanceTargetItem(
                     targetInfo.TargetSymbolDisplayName,
                     targetInfo.Relationship,
-                    ImmutableArray<DocumentSpan>.Empty,
+                    [],
                     isInMetadata: true,
                     targetInfo.LanguageGlyph,
                     targetInfo.ProjectName);

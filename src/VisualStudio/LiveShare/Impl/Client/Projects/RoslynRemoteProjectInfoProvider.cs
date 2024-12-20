@@ -40,13 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         {
             if (!_remoteLanguageServiceWorkspace.IsRemoteSession)
             {
-                return ImmutableArray<ProjectInfo>.Empty;
+                return [];
             }
 
             var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
-                return ImmutableArray<ProjectInfo>.Empty;
+                return [];
             }
 
             CustomProtocol.Project[] projects;
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
 
             if (projects == null)
             {
-                return ImmutableArray<ProjectInfo>.Empty;
+                return [];
             }
 
             var projectInfos = ImmutableArray.CreateBuilder<ProjectInfo>();

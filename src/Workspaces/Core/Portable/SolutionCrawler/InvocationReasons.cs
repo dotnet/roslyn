@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 [DataContract]
 internal partial struct InvocationReasons(ImmutableHashSet<string> reasons) : IEnumerable<string>
 {
-    public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
+    public static readonly InvocationReasons Empty = new([]);
 
     [DataMember(Order = 0)]
     private readonly ImmutableHashSet<string> _reasons = reasons ?? [];

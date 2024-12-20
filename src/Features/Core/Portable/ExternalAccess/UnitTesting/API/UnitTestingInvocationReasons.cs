@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 [DataContract]
 internal partial struct UnitTestingInvocationReasons(ImmutableHashSet<string> reasons) : IEnumerable<string>
 {
-    public static readonly UnitTestingInvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
+    public static readonly UnitTestingInvocationReasons Empty = new([]);
 
     [DataMember(Order = 0)]
     private readonly ImmutableHashSet<string> _reasons = reasons ?? [];

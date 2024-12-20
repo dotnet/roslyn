@@ -558,7 +558,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "Goo.cs");
     }
 
@@ -5355,7 +5355,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            ImmutableArray<string>.Empty,
+            [],
             "Goo.cs");
     }
 
@@ -5555,7 +5555,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
 
         await TestAddDocumentInRegularAndScriptAsync(code,
             expected,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "ClassB.cs");
     }
 
@@ -5586,7 +5586,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
 
         await TestAddDocumentInRegularAndScriptAsync(code,
             expected,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "ClassB.cs",
             new TestParameters(
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
@@ -6060,7 +6060,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "Goo.cs");
     }
 
@@ -6083,7 +6083,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "Goo.cs");
     }
 
@@ -6117,7 +6117,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "Goo.cs");
     }
 
@@ -6141,7 +6141,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """,
-            expectedContainers: ImmutableArray<string>.Empty,
+            expectedContainers: [],
             expectedDocumentName: "Goo.cs",
             new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a banner")));
     }

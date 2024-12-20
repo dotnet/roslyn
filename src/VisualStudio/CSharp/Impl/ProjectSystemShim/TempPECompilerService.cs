@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var metadataResolver = new WorkspaceMetadataFileReferenceResolver(
                 _metadataService,
-                new RelativePathResolver(ImmutableArray<string>.Empty, baseDirectory: null));
+                new RelativePathResolver([], baseDirectory: null));
 
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(pszOutputFileName),

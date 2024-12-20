@@ -47,7 +47,7 @@ public class IDEDiagnosticIDConfigurationTests
 
                     if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                     {
-                        options = ImmutableHashSet<IOption2>.Empty;
+                        options = [];
                     }
 
                     if (uniqueDiagnosticIds.Add(diagnosticId))

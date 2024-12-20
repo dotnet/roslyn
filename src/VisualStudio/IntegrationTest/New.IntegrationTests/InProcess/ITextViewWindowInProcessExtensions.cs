@@ -91,7 +91,7 @@ internal static class ITextViewWindowInProcessExtensions
 
         var view = await textViewWindow.GetActiveTextViewAsync(cancellationToken);
         if (view is null)
-            return ImmutableArray<Completion>.Empty;
+            return [];
 
         var broker = await textViewWindow.TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
         var sessions = broker.GetSessions(view);

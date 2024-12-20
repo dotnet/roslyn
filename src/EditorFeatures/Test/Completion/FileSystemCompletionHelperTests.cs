@@ -126,7 +126,7 @@ public class FileSystemCompletionHelperTests
     public void GetItems_Windows_NoSearchPaths()
     {
         var fsc = new TestFileSystemCompletionHelper(
-            searchPaths: ImmutableArray<string>.Empty,
+            searchPaths: [],
             baseDirectoryOpt: null,
             allowableExtensions: ImmutableArray.Create(".abc", ".def"),
             drives: new[] { @"X:\" },
@@ -158,7 +158,7 @@ public class FileSystemCompletionHelperTests
     public void GetItems_Windows_Network()
     {
         var fsc = new TestFileSystemCompletionHelper(
-            searchPaths: ImmutableArray<string>.Empty,
+            searchPaths: [],
             baseDirectoryOpt: null,
             allowableExtensions: ImmutableArray.Create(".cs"),
             drives: Array.Empty<string>(),

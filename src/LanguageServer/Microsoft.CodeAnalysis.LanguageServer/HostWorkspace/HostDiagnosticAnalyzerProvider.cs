@@ -17,7 +17,7 @@ internal class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
     {
         if (razorSourceGenerator == null || !File.Exists(razorSourceGenerator))
         {
-            _analyzerReferences = ImmutableArray<(AnalyzerFileReference reference, string extensionId)>.Empty;
+            _analyzerReferences = [];
         }
         else
         {

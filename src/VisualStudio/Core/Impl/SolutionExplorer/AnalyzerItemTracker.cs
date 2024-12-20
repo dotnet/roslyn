@@ -47,8 +47,8 @@ internal sealed class AnalyzerItemsTracker(IThreadingContext threadingContext) :
     public IVsHierarchy? SelectedHierarchy { get; private set; }
     public uint SelectedItemId { get; private set; } = VSConstants.VSITEMID_NIL;
     public AnalyzersFolderItem? SelectedFolder { get; private set; }
-    public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = ImmutableArray<AnalyzerItem>.Empty;
-    public ImmutableArray<DiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<DiagnosticItem>.Empty;
+    public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = [];
+    public ImmutableArray<DiagnosticItem> SelectedDiagnosticItems { get; private set; } = [];
 
     int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
     {

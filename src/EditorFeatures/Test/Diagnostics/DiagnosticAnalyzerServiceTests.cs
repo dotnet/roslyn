@@ -986,7 +986,7 @@ class A
             => Priority = priority;
 
         public override int Priority { get; }
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
@@ -999,7 +999,7 @@ class A
             => Priority = priority;
 
         public override int Priority { get; }
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
         public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }

@@ -599,14 +599,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
-                ImmutableArray<(string, SourceText)>.Empty);
+                []);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree12()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray<(string, SourceText)>.Empty,
+                [],
                 ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
         }
 
@@ -653,7 +653,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await TestInProcAndRemoteWorkspace(
                 ImmutableArray.Create(("SG.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))),
-                ImmutableArray<(string, SourceText)>.Empty);
+                []);
         }
 
         [Fact]

@@ -103,7 +103,7 @@ internal abstract class TreeItemViewModel : TreeViewItemBase
     {
         if (ClassifiedSpans.IsDefaultOrEmpty)
         {
-            return ImmutableArray<Inline>.Empty;
+            return [];
         }
 
         var classifiedTexts = ClassifiedSpans.SelectAsArray(

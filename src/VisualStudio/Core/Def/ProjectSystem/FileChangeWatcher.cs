@@ -166,7 +166,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _tokens = tokens;
 
             // Other watching fields are not used for this kind
-            _filters = ImmutableArray<string>.Empty;
+            _filters = [];
             _cookies = null!;
         }
 
@@ -178,7 +178,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _cookies = cookies;
 
             // Other watching fields are not used for this kind
-            _filters = ImmutableArray<string>.Empty;
+            _filters = [];
             _fileChangeFlags = 0;
             _sink = null!;
             _tokens = OneOrMany<Context.RegularWatchedFile>.Empty;
@@ -193,7 +193,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _tokens = tokens;
 
             // Other watching fields are not used for this kind
-            _filters = ImmutableArray<string>.Empty;
+            _filters = [];
             _fileChangeFlags = 0;
             _sink = null!;
             _cookies = null!;

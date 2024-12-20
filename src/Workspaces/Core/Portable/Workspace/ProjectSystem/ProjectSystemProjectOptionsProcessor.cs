@@ -246,7 +246,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
             // includes in the IDE so we can be watching for changes again.
             var commandLine = _commandLineStorageHandle == null
-                ? ImmutableArray<string>.Empty
+                ? []
                 : EnumerateLines(_commandLineStorageHandle).ToImmutableArray();
 
             DisposeOfRuleSetFile_NoLock();

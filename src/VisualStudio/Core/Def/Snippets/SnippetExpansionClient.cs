@@ -552,7 +552,7 @@ internal class SnippetExpansionClient : IVsExpansionClient
         {
             // This is the method name as it appears in source text
             var methodName = dataBufferSpan.GetText();
-            var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
+            var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, [], ImmutableDictionary<string, string>.Empty);
 
             var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
@@ -768,7 +768,7 @@ internal class SnippetExpansionClient : IVsExpansionClient
         if (token.RawKind == 0)
         {
             // There is no touching word, so return empty immediately
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Services, cancellationToken);

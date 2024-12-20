@@ -159,7 +159,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             syntaxGenerator,
             methodParametersInfo.ParametersToGenerateFreshVariablesFor,
             methodParametersInfo.MergeInlineContentAndVariableDeclarationArgument
-                ? ImmutableArray<(IParameterSymbol, string)>.Empty
+                ? []
                 : methodParametersInfo.ParametersWithVariableDeclarationArgument,
             renameTable);
 

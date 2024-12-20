@@ -127,7 +127,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
                     private int _i;
                 }
             }
-            """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
+            """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), []);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
@@ -172,7 +172,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
                     private int _i;
                 }
             }
-            """, description, ImmutableArray<TextSpan>.Empty);
+            """, description, []);
     }
 
     private static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,

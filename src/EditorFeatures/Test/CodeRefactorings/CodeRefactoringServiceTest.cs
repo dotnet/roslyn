@@ -142,10 +142,10 @@ public class CodeRefactoringServiceTest
         public override object Id => nameof(StubAnalyzerReference);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public ImmutableArray<CodeRefactoringProvider> GetRefactorings()
             => _refactorings;

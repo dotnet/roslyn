@@ -111,8 +111,8 @@ public class UnusedReferencesRemoverTests
             ReferenceType.Package,
             itemSpecification: "Analyzer",
             treatAsUsed: false,
-            compilationAssemblies: ImmutableArray<string>.Empty,
-            dependencies: ImmutableArray<ReferenceInfo>.Empty);
+            compilationAssemblies: [],
+            dependencies: []);
 
         var unusedReferences = GetUnusedReferences(usedAssemblies, usedProjectAssemblyNames: Empty, analyzerReference);
 
@@ -201,7 +201,7 @@ public class UnusedReferencesRemoverTests
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
             compilationAssemblies: ImmutableArray.Create(assemblyPath),
-            dependencies: ImmutableArray<ReferenceInfo>.Empty);
+            dependencies: []);
 
     private class TestReferenceCleanupService : IReferenceCleanupService
     {

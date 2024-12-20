@@ -26,8 +26,8 @@ internal partial class MessageBoxInProcess
     private static uint s_hotReloadUIServiceCookie;
 #pragma warning restore IDE0052 // Remove unread private members
 
-    private static ImmutableList<MessageBoxHandler> s_handlers = ImmutableList<MessageBoxHandler>.Empty;
-    private static ImmutableList<HotReloadHandler> s_hotReloadHandlers = ImmutableList<HotReloadHandler>.Empty;
+    private static ImmutableList<MessageBoxHandler> s_handlers = [];
+    private static ImmutableList<HotReloadHandler> s_hotReloadHandlers = [];
 
     protected override async Task InitializeCoreAsync()
     {

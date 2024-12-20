@@ -513,7 +513,7 @@ internal sealed class VisualStudioSuppressionFixService(
                     if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                     {
                         // Ignore stale diagnostics in error list.
-                        latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                        latestDocumentDiagnostics = [];
                     }
 
                     // Filter out stale diagnostics in error list.

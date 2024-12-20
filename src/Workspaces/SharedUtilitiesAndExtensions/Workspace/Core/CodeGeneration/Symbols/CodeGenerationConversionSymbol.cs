@@ -33,7 +33,7 @@ internal sealed class CodeGenerationConversionSymbol(
           name: isImplicit
                   ? WellKnownMemberNames.ImplicitConversionName
                   : WellKnownMemberNames.ExplicitConversionName,
-          typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+          typeParameters: [],
           parameters: ImmutableArray.Create(fromType),
           returnTypeAttributes: toTypeAttributes,
           documentationCommentXml)

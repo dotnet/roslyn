@@ -120,7 +120,7 @@ namespace B
             isEnabledByDefault: false,
             warningLevel: 1,
             projectId: document.Project.Id,
-            customTags: ImmutableArray<string>.Empty,
+            customTags: [],
             properties: ImmutableDictionary<string, string>.Empty,
             location: new DiagnosticDataLocation(new("originalFile1", new(startLine, startColumn), new(endLine, endColumn)), document.Id),
             language: document.Project.Language);
@@ -153,7 +153,7 @@ namespace B
             isEnabledByDefault: true,
             warningLevel: 1,
             projectId: document.Project.Id,
-            customTags: ImmutableArray<string>.Empty,
+            customTags: [],
             properties: ImmutableDictionary<string, string>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id),
             additionalLocations: ImmutableArray.Create(externalAdditionalLocation),
@@ -199,10 +199,10 @@ namespace B
             isEnabledByDefault: true,
             warningLevel: 1,
             projectId: documentId.ProjectId,
-            customTags: ImmutableArray<string>.Empty,
+            customTags: [],
             properties: ImmutableDictionary<string, string>.Empty,
             location: location,
-            additionalLocations: ImmutableArray<DiagnosticDataLocation>.Empty,
+            additionalLocations: [],
             language: project.Language);
 
         var diagnostic = await diagnosticData.ToDiagnosticAsync(project, CancellationToken.None);
@@ -247,7 +247,7 @@ namespace B
             isEnabledByDefault: true,
             warningLevel: 1,
             projectId: firstDocument.Project.Id,
-            customTags: ImmutableArray<string>.Empty,
+            customTags: [],
             properties: ImmutableDictionary<string, string>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(firstDocument.FilePath, span: default), firstDocument.Id),
             additionalLocations: ImmutableArray.Create(additionalLocation),

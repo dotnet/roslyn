@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var workingDirectory = Directory.GetCurrentDirectory();
 
                 var referenceResolver = new RuntimeMetadataReferenceResolver(
-                    searchPaths: ImmutableArray<string>.Empty,
+                    searchPaths: [],
                     baseDirectory: workingDirectory,
                     packageResolver: null,
                     gacFileResolver: s_currentPlatformInfo.HasGlobalAssemblyCache ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var initialState = new EvaluationState(
                     scriptState: null,
                     scriptOptions: ScriptOptions.Default.WithMetadataResolver(new ScriptMetadataResolver(referenceResolver)),
-                    ImmutableArray<string>.Empty,
+                    [],
                     workingDirectory);
 
                 _lastTask = Task.FromResult(initialState);

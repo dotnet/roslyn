@@ -332,7 +332,7 @@ internal abstract partial class AbstractLegacyProject
             }
         }
 
-        return ImmutableArray<string>.Empty;
+        return [];
     }
 
     private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
