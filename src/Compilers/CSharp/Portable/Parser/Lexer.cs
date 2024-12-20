@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class Lexer : AbstractLexer
     {
+        private static readonly ObjectPool<LexerCache> s_lexerCachePool = new ObjectPool<LexerCache>(() => new LexerCache());
+
         private const int TriviaListInitialCapacity = 8;
 
         private readonly CSharpParseOptions _options;
@@ -88,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DocumentationCommentParser? _xmlParser;
         private DirectiveParser? _directiveParser;
+
+        private SyntaxListBuilder _leadingTriviaCache;
+        private SyntaxListBuilder _trailingTriviaCache;
+        private SyntaxListBuilder? _directiveTriviaCache;
 
         internal struct TokenInfo
         {
@@ -116,16 +122,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(options != null);
 
             _options = options;
-            _builder = new StringBuilder();
-            _identBuffer = new char[32];
-            _cache = new LexerCache();
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
             _interpolationFollowedByColon = interpolationFollowedByColon;
+
+            // Obtain pooled items
+            _cache = s_lexerCachePool.Allocate();
+            _builder = _cache.StringBuilder;
+            _identBuffer = _cache.IdentBuffer;
+            _leadingTriviaCache = _cache.LeadingTriviaCache;
+            _trailingTriviaCache = _cache.TrailingTriviaCache;
         }
 
         public override void Dispose()
         {
             _cache.Free();
+            s_lexerCachePool.Free(_cache);
 
             _xmlParser?.Dispose();
             _directiveParser?.Dispose();
@@ -280,10 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     throw ExceptionUtilities.UnexpectedValue(ModeOf(_mode));
             }
         }
-
-        private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder? _directiveTriviaCache;
 
         private static int GetFullWidth(SyntaxListBuilder? builder)
         {
