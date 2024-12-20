@@ -390,4 +390,98 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Type: IErrorTypeSymbol, RefKind: RefKind.None, IsOptional: false }]);
     }
+
+    [Fact]
+    public void TestRefParameterMissingName()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,19): error CS1001: Identifier expected
+                //         D d = (ref) => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(7, 19));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
+
+    [Fact]
+    public void TestAnonymousMethodWithRefParameter()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = delegate (ref x) { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,29): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //         D d = delegate (ref x) { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(7, 29),
+                // (7,30): error CS1001: Identifier expected
+                //         D d = delegate (ref x) { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(7, 30));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "", Type: IErrorTypeSymbol { Name: "x" }, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
+
+    [Fact]
+    public void TestLocalFunctionWithRefParameter()
+    {
+        var compilation = CreateCompilation("""
+            class C
+            {
+                void M()
+                {
+                    void LocalFunc(ref x) { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (5,14): warning CS8321: The local function 'LocalFunc' is declared but never used
+                //         void LocalFunc(ref x) { };
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "LocalFunc").WithArguments("LocalFunc").WithLocation(5, 14),
+                // (5,28): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //         void LocalFunc(ref x) { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(5, 28),
+                // (5,29): error CS1001: Identifier expected
+                //         void LocalFunc(ref x) { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(5, 29));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = semanticModel.GetDeclaredSymbol(lambda)!;
+
+        Assert.Equal(MethodKind.LocalFunction, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "", Type: IErrorTypeSymbol { Name: "x" }, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
 }
