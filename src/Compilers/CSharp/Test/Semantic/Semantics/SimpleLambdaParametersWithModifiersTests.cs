@@ -30,7 +30,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -57,7 +57,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -89,7 +89,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -119,7 +119,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -155,7 +155,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -164,8 +164,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(
             symbol.Parameters.Single().GetAttributes().Single().AttributeClass,
             compilation.GetTypeByMetadataName(typeof(CLSCompliantAttribute).FullName).GetPublicSymbol());
-        Assert.True(symbol.Parameters is [
-            { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+        Assert.True(symbol.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
     }
 
     [Theory]
@@ -191,7 +190,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -223,7 +222,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -257,7 +256,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -286,7 +285,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
@@ -295,5 +294,100 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters.Single().ScopedKind);
         Assert.Equal("scoped", symbol.Parameters.Single().Name);
         Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.Single().Type.OriginalDefinition);
+    }
+
+    [Fact]
+    public void TestInconsistentUseOfTypes()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(string s, ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (string s, ref x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,30): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         D d = (string s, ref x) => { };
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(7, 30));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [
+        { Type.SpecialType: SpecialType.System_String, RefKind: RefKind.None },
+        { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref }]);
+    }
+
+    [Fact]
+    public void TestOneParameterWithNoModifiersAndOptionalValue()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (x = 1) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,16): error CS9098: Implicitly typed lambda parameter 'x' cannot have a default value.
+                //         D d = (x = 1) => { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(7, 16),
+                // (7,16): warning CS9099: Parameter 1 has default value '1' in lambda but '<missing>' in the target delegate type.
+                //         D d = (x = 1) => { };
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "1", "<missing>").WithLocation(7, 16));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None, IsOptional: true }]);
+    }
+
+    [Fact]
+    public void TestNonParenthesizedLambdaPrecededByRef()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = ref x => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,11): error CS8171: Cannot initialize a by-value variable with a reference
+                //         D d = ref x => { };
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "d = ref x => { }").WithLocation(7, 11),
+                // (7,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D d = ref x => { };
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref").WithLocation(7, 19));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Type: IErrorTypeSymbol, RefKind: RefKind.None, IsOptional: false }]);
     }
 }
