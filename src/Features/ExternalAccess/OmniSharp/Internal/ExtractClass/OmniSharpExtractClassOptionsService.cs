@@ -29,7 +29,7 @@ internal sealed class OmniSharpExtractClassOptionsService(
         SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
-        var result = _omniSharpExtractClassOptionsService.GetExtractClassOptionsAsync(document, originalType, selectedMembers).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        var result = _omniSharpExtractClassOptionsService.GetExtractClassOptions(document, originalType, selectedMembers);
         return result == null
             ? null
             : new ExtractClassOptions(

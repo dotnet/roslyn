@@ -34,7 +34,7 @@ internal sealed class OmniSharpExtractInterfaceOptionsService(
         string languageName,
         CancellationToken cancellationToken)
     {
-        var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptionsAsync(extractableMembers, defaultInterfaceName).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptions(extractableMembers, defaultInterfaceName);
         return new(
             result.IsCancelled,
             result.IncludedMembers,
