@@ -484,4 +484,67 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LocalFunction, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "", Type: IErrorTypeSymbol { Name: "x" }, RefKind: RefKind.Ref, IsOptional: false }]);
     }
+
+    [Fact]
+    public void TestOverloadResolution1()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+            delegate void E(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    M1((ref x) => { });
+                }
+
+                void M1(D d) { }
+                void M1(E e) { }
+            }
+            """).VerifyDiagnostics(
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(D)' and 'C.M1(E)'
+                //         M1((ref x) => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(D)", "C.M1(E)").WithLocation(8, 9));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
+
+    [Fact]
+    public void TestOverloadResolution2()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+            delegate void E(int x);
+
+            class C
+            {
+                void M()
+                {
+                    M1((ref x) => { });
+                }
+
+                void M1(D d) { }
+                void M1(E e) { }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
 }
