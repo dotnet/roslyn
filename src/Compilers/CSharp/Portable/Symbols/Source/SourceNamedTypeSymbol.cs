@@ -1217,6 +1217,10 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_InlineArrayAttributeOnRecord, arguments.AttributeSyntaxOpt.Name.Location);
                 }
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.CompilerLoweringPreserveAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasCompilerLoweringPreserveAttribute = true;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1415,6 +1419,15 @@ next:;
             {
                 var data = GetEarlyDecodedWellKnownAttributeData();
                 return data != null && data.HasCodeAnalysisEmbeddedAttribute;
+            }
+        }
+
+        internal override bool HasCompilerLoweringPreserveAttribute
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasCompilerLoweringPreserveAttribute;
             }
         }
 
@@ -1659,7 +1672,7 @@ next:;
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
