@@ -92,7 +92,8 @@ public class UnifiedSettingsTests
             title: "Tab twice to insert arguments",
             customDefaultValue: false,
             order: 60,
-            languageName: LanguageNames.VisualBasic)),
+            languageName: LanguageNames.VisualBasic,
+            message: "Experimental feature")),
     ];
 
     #region VisualBasicTest
@@ -160,7 +161,8 @@ public class UnifiedSettingsTests
         bool? customDefaultValue = null,
         (IOption2 featureFlagOption, bool value)? featureFlagAndExperimentValue = null,
         (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
-        string? languageName = null)
+        string? languageName = null,
+        string? message = null)
     {
         var migration = new Migration { Pass = new Pass { Input = new Input(onboardedOption, languageName) } };
         var type = onboardedOption.Definition.Type;
@@ -199,7 +201,8 @@ public class UnifiedSettingsTests
             EnableWhen = enableWhen,
             Migration = migration,
             AlternativeDefault = alternativeDefault,
-            Default = (bool)expectedDefault
+            Default = (bool)expectedDefault,
+            Messages = message is null ? null : [new Message { Text = message }],
         };
     }
 
