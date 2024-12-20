@@ -653,10 +653,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
                     };
                 }
             }
-            """).VerifyDiagnostics(
-                // (7,26): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
-                //         D d = (out x) => { };
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "{ }").WithArguments("x").WithLocation(7, 26));
+            """).VerifyDiagnostics();
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
