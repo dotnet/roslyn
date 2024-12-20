@@ -503,17 +503,16 @@ start:
                 for (int i = 0; i < casesBuilder.Count; i++)
                 {
                     StateForCase @case = casesBuilder[i];
-                    bool wasReported = false;
-                    if (!dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel))
+                    bool shouldReport = !dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel);
+                    if (shouldReport)
                     {
                         context.RedundantNodes.Add(@case.Syntax);
-                        wasReported = true;
                     }
 
 #if ROSLYN_TEST_REDUNDANT_PATTERN
                     if (i >= context.PatternIndex)
                     {
-                        context.Dump(orCases[i - context.PatternIndex], wasReported);
+                        context.Dump(orCases[i - context.PatternIndex], shouldReport);
                     }
 #endif
                 }
