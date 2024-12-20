@@ -636,4 +636,35 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Out, IsOptional: false }]);
     }
+
+    [Theory, CombinatorialData]
+    public void TestExpressionTree(bool explicitType)
+    {
+        var compilation = CreateCompilation($$"""
+            using System.Linq.Expressions;
+
+            delegate int D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    Expression<D> e = (ref {{(explicitType ? "int" : "")}} x) => 0;
+                }
+            }
+            """).VerifyDiagnostics(
+                // (9,33): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         Expression<D> e = (ref  x) => 0;
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x"));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
 }
