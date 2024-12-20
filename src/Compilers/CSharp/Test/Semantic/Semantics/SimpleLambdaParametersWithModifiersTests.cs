@@ -575,4 +575,65 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_String, RefKind: RefKind.Ref, IsOptional: false }]);
     }
+
+    [Fact]
+    public void TestInModifierWriteWithinLambda()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(in int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (in x) =>
+                    {
+                        x = 1;
+                    };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (9,13): error CS8331: Cannot assign to variable 'x' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //             x = 1;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(9, 13));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.In, IsOptional: false }]);
+    }
+
+    [Fact]
+    public void TestOutModifierMustBeWrittenWithinLambda()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(out int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (out x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,26): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         D d = (out x) => { };
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "{ }").WithArguments("x").WithLocation(7, 26));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Out, IsOptional: false }]);
+    }
 }
