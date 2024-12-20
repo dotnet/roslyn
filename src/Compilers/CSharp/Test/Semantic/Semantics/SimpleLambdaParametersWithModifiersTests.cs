@@ -870,4 +870,126 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Single(operation.Body.Operations);
         Assert.True(operation.Body.Operations.Single() is IReturnOperation { ReturnedValue: null });
     }
+
+    [Fact]
+    public void TestParamsRef()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int[] x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (params ref x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,23): error CS1611: The params parameter cannot be declared as ref
+                //         D d = (params ref x) => { };
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(7, 23),
+                // (7,27): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                //         D d = (params ref x) => { };
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 27));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type: IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.Ref, IsParams: true }]);
+    }
+
+    [Fact]
+    public void TestRefParams()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int[] x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref params x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,20): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
+                //         D d = (ref params x) => { };
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(7, 20),
+                // (7,27): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                //         D d = (ref params x) => { };
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 27));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type: IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.Ref, IsParams: true }]);
+    }
+
+    [Fact]
+    public void TestRefToOut()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (out x) => { x = 1; };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,20): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D d = (out x) => { x = 1; };
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref").WithLocation(7, 20));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type: IErrorTypeSymbol, RefKind: RefKind.Out, IsParams: false }]);
+    }
+
+    [Fact]
+    public void TestOutToRef()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(out int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref x) => { x = 1; };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,20): error CS1676: Parameter 1 must be declared with the 'out' keyword
+                //         D d = (ref x) => { x = 1; };
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(7, 20));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type: IErrorTypeSymbol, RefKind: RefKind.Ref, IsParams: false }]);
+    }
 }
