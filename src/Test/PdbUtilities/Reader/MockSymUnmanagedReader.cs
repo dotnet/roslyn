@@ -320,10 +320,7 @@ namespace Roslyn.Test.Utilities
         {
             if (name != null)
             {
-                var builder = ArrayBuilder<char>.GetInstance();
-                builder.AddRange(name);
-                builder.AddRange('\0');
-                _nameChars = builder.ToImmutableAndFree();
+                _nameChars = [.. name, '\0'];
             }
         }
 
