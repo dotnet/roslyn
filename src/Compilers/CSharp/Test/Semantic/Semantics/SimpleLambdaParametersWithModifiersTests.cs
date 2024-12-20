@@ -267,4 +267,33 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.True(symbol.Parameters.Single().IsOptional);
         Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.Single().Type.OriginalDefinition);
     }
+
+    [Theory, CombinatorialData]
+    public void TestOneParameterWithScopedAsParameterName(bool escaped)
+    {
+        var compilation = CreateCompilationWithSpan($$"""
+            using System;
+            delegate void D(scoped ReadOnlySpan<int> x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (scoped {{(escaped ? "@" : "")}}scoped) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters.Single().ScopedKind);
+        Assert.Equal("scoped", symbol.Parameters.Single().Name);
+        Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.Single().Type.OriginalDefinition);
+    }
 }
