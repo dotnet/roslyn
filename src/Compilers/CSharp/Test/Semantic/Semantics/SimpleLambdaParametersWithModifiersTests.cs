@@ -1050,4 +1050,33 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal("x", symbol.Parameters.Single().Name);
         Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.Single().Type.OriginalDefinition);
     }
+
+    [Fact]
+    public void TestParamsOnNonParamsType()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (params x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,16): error CS0225: The params parameter must have a valid collection type
+                //         D d = (params x) => { };
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(7, 16));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, IsParams: true }]);
+    }
 }
