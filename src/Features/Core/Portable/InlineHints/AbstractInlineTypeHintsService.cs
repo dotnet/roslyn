@@ -78,8 +78,13 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
             using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
             finalParts.AddRange(prefix);
 
-            var parts = type.ToDisplayParts(s_minimalTypeStyle);
-            AddParts(anonymousTypeService, finalParts, parts, semanticModel, spanStart);
+            // Try to get the minimal display string for the type.  Try to use it if it's actually shorter (it may not
+            // be as we've setup ToDisplayParts to only show the type name, while ToMinimalDisplayParts may show the
+            // full name of the type if the short name doesn't bind.  This will also help us use aliases if present.
+            var minimalDisplayParts = type.ToMinimalDisplayParts(semanticModel, spanStart, s_minimalTypeStyle);
+            var displayParts = type.ToDisplayParts(s_minimalTypeStyle);
+            var preferredParts = minimalDisplayParts.Length <= displayParts.Length ? minimalDisplayParts : displayParts;
+            AddParts(anonymousTypeService, finalParts, preferredParts, semanticModel, spanStart);
 
             // If we have nothing to show, then don't bother adding this hint.
             if (finalParts.All(p => string.IsNullOrWhiteSpace(p.ToString())))
