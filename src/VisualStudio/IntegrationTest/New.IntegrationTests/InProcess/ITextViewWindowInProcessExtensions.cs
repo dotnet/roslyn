@@ -101,7 +101,7 @@ internal static class ITextViewWindowInProcessExtensions
         }
 
         var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-        return selectedCompletionSet.Completions.ToImmutableArray();
+        return [.. selectedCompletionSet.Completions];
     }
 
     public static async Task InvokeCodeActionListAsync(this ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)

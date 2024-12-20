@@ -170,7 +170,7 @@ internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
                    contextPosition: token.SpanStart,
                    sortText: p.Name,
                    rules: _spaceItemFilterRule);
-        return q.ToImmutableArray();
+        return [.. q];
     }
 
     private static IEnumerable<CompletionItem> GetNameColonItems(

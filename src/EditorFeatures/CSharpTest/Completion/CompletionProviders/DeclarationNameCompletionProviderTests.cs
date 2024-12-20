@@ -2944,9 +2944,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         };
 
         return new NamingStylePreferences(
-            styles.Select(t => t.specification).ToImmutableArray(),
-            styles.Select(t => t.style).ToImmutableArray(),
-            styles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+            [.. styles.Select(t => t.specification)],
+            [.. styles.Select(t => t.style)],
+            [.. styles.Select(t => CreateRule(t.specification, t.style))]);
 
         // Local functions
 
@@ -2978,9 +2978,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         };
 
         return new NamingStylePreferences(
-            specificationStyles.Select(t => t.specification).ToImmutableArray(),
-            specificationStyles.Select(t => t.style).ToImmutableArray(),
-            specificationStyles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+            [.. specificationStyles.Select(t => t.specification)],
+            [.. specificationStyles.Select(t => t.style)],
+            [.. specificationStyles.Select(t => CreateRule(t.specification, t.style))]);
 
         // Local functions
 

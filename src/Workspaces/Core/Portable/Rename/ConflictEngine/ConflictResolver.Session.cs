@@ -159,10 +159,9 @@ internal static partial class ConflictResolver
                         {
                             Contract.ThrowIfTrue(conflictLocations.Count != 0, "We're the first phase, so we should have no conflict locations yet");
 
-                            conflictLocations = conflictResolution.RelatedLocations
+                            conflictLocations = [.. conflictResolution.RelatedLocations
                                 .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference)
-                                .Select(loc => new ConflictLocationInfo(loc))
-                                .ToImmutableHashSet();
+                                .Select(loc => new ConflictLocationInfo(loc))];
 
                             // If there were no conflicting locations in references, then the first conflict phase has to be skipped.
                             if (conflictLocations.Count == 0)
@@ -193,9 +192,7 @@ internal static partial class ConflictResolver
                                 .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
                                 .Select(l => Tuple.Create(l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                            conflictLocations = conflictLocations
-                                .Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan)))
-                                .ToImmutableHashSet();
+                            conflictLocations = [.. conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan)))];
                         }
 
                         // Clean up side effects from rename before entering the next phase

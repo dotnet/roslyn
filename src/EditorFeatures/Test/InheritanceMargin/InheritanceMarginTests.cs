@@ -275,7 +275,7 @@ public class InheritanceMarginTests
             params string[] locationTags)
         {
             TargetSymbolDisplayName = targetSymbolDisplayName;
-            LocationTags = locationTags.ToImmutableArray();
+            LocationTags = [.. locationTags];
             Relationship = relationship;
         }
     }
@@ -447,11 +447,10 @@ public class {|target2:Bar|} : IBar
         var itemOnLine3 = new TestInheritanceMemberItem(
             lineNumber: 3,
             memberName: "interface IBar2",
-            targets: ImmutableArray<TargetInfo>.Empty
-                .Add(new TargetInfo(
+            targets: [new TargetInfo(
                     targetSymbolDisplayName: "IBar",
                     locationTag: "target1",
-                    relationship: InheritanceRelationship.InheritedInterface))
+                    relationship: InheritanceRelationship.InheritedInterface)]
             );
 
         return VerifyInSingleDocumentAsync(

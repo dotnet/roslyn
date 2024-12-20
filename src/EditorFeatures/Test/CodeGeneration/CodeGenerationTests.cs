@@ -676,10 +676,10 @@ public partial class CodeGenerationTests
     }
 
     internal static ImmutableArray<Func<SemanticModel, IParameterSymbol>> Parameters(params Func<SemanticModel, IParameterSymbol>[] p)
-        => p.ToImmutableArray();
+        => [.. p];
 
     internal static ImmutableArray<Func<SemanticModel, ISymbol>> Members(params Func<SemanticModel, ISymbol>[] m)
-        => m.ToImmutableArray();
+        => [.. m];
 
     internal static Func<SemanticModel, ITypeSymbol> CreateArrayType(Type type, int rank = 1)
         => s => CodeGenerationSymbolFactory.CreateArrayTypeSymbol(GetTypeSymbol(type)(s), rank);

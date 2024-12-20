@@ -313,8 +313,8 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
         ImmutableArray<Project> otherProjectsForMultiTfmProject;
         if (project != null)
         {
-            otherProjectsForMultiTfmProject = solution.Projects.Where(
-                p => p != project && p.FilePath == project.FilePath && p.State.NameAndFlavor.name == project.State.NameAndFlavor.name).ToImmutableArray();
+            otherProjectsForMultiTfmProject = [.. solution.Projects.Where(
+                p => p != project && p.FilePath == project.FilePath && p.State.NameAndFlavor.name == project.State.NameAndFlavor.name)];
             if (!otherProjectsForMultiTfmProject.IsEmpty)
                 projectOrSolutionName = project.State.NameAndFlavor.name;
         }

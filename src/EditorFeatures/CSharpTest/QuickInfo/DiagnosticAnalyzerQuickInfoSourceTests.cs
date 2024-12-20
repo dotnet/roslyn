@@ -183,7 +183,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
         Assert.NotNull(description);
         Assert.Equal(expectedDescription, description.Text);
         Assert.Collection(relatedSpans,
-            info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
+            [.. info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan)))]);
     }
 
     private static async Task<QuickInfoItem> GetQuickinfo(EditorTestWorkspace workspace, Document document, int position)
@@ -242,7 +242,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
             {
             {{code}}
             }
-            """, expectedDescription, relatedSpans.ToImmutableArray());
+            """, expectedDescription, [.. relatedSpans]);
 
     private static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestInClassAsync(

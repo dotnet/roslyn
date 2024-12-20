@@ -35,7 +35,7 @@ internal static class SourceMarkers
         => s_tags.Replace(source, m => new string(' ', m.Length));
 
     internal static string[] Clear(string[] sources)
-        => sources.Select(Clear).ToArray();
+        => [.. sources.Select(Clear)];
 
     private static IEnumerable<(int, int)> ParseIds(Match match)
         => from ids in match.Groups["Id"].Value.Split([','], StringSplitOptions.RemoveEmptyEntries)
@@ -134,7 +134,7 @@ internal static class SourceMarkers
             }
         }
 
-        return result.Select(r => r.AsImmutableOrEmpty()).ToImmutableArray();
+        return [.. result.Select(r => r.AsImmutableOrEmpty())];
     }
 
     public static ImmutableArray<ImmutableArray<TextSpan>> GetNodeSpans(string markedSource)
@@ -151,7 +151,7 @@ internal static class SourceMarkers
             result[i][j] = span;
         }
 
-        return result.Select(r => r.AsImmutableOrEmpty()).ToImmutableArray();
+        return [.. result.Select(r => r.AsImmutableOrEmpty())];
     }
 
     public static ImmutableArray<TextSpan> GetSpans(string markedSource, string tagName)
@@ -165,7 +165,7 @@ internal static class SourceMarkers
             result[major] = span;
         }
 
-        return result.ToImmutableArray();
+        return [.. result];
     }
 
     public static int IndexOfDifferent(ReadOnlySpan<char> span, char c)

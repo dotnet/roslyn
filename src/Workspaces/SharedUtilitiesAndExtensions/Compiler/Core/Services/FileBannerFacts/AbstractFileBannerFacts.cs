@@ -88,7 +88,7 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
         var index = 0;
         _oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index);
 
-        strippedTrivia = leadingTriviaToKeep.Take(index).ToImmutableArray();
+        strippedTrivia = [.. leadingTriviaToKeep.Take(index)];
 
         return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
     }

@@ -159,7 +159,7 @@ internal static class SyntaxTokenExtensions
     }
 
     public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
-        => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
+        => [.. tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token))];
 
     public static SyntaxNode GetRequiredParent(this SyntaxToken token)
         => token.Parent ?? throw new InvalidOperationException("Token's parent was null");

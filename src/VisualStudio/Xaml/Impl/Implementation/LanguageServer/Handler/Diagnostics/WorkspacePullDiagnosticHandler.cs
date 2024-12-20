@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 result.AddRange(project.Documents);
             }
 
-            return result.Distinct().ToImmutableArray();
+            return [.. result.Distinct()];
         }
 
         protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)

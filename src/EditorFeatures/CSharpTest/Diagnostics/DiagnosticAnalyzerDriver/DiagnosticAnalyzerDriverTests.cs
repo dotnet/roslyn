@@ -756,7 +756,7 @@ public class DiagnosticAnalyzerDriverTests
 
         Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(
         [
-            new AnalyzerImageReference(vsixAnalyzerReferences.ToImmutableArray())
+            new AnalyzerImageReference([.. vsixAnalyzerReferences])
         ])));
 
         var project = workspace.CurrentSolution.Projects.Single();
@@ -774,7 +774,7 @@ public class DiagnosticAnalyzerDriverTests
 
         if (nugetAnalyzerReferences.Count > 0)
         {
-            project = project.WithAnalyzerReferences([new AnalyzerImageReference(nugetAnalyzerReferences.ToImmutableArray())]);
+            project = project.WithAnalyzerReferences([new AnalyzerImageReference([.. nugetAnalyzerReferences])]);
         }
 
         var document = project.Documents.Single();
@@ -783,7 +783,7 @@ public class DiagnosticAnalyzerDriverTests
         var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan, includeSuppressedDiagnostics: true))
             .OrderBy(d => d.Id).ToImmutableArray();
 
-        diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
+        diagnostics.Verify([.. expectedDiagnostics.Select(d => d.diagnostic)]);
 
         var index = 0;
         foreach (var (d, expectedMessage) in expectedDiagnostics)

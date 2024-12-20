@@ -663,10 +663,9 @@ class A
 
         var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
-        diagnostics = diagnostics
+        diagnostics = [.. diagnostics
             .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
-            .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text))
-            .ToImmutableArray();
+            .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text))];
 
         var root = await document.GetSyntaxRootAsync();
         text = await document.GetTextAsync();

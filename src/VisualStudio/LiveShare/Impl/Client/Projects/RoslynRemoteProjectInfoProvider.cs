@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray(), _remoteLanguageServiceWorkspace.Services.SolutionServices);
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, [.. files.Select(f => f.LocalPath)], _remoteLanguageServiceWorkspace.Services.SolutionServices);
                 projectInfos.Add(projectInfo);
             }
 

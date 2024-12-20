@@ -381,7 +381,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 {
                     // We have one of our possible n! solutions,
                     // add it to the list.
-                    result.Add(values.ToImmutableArray());
+                    result.Add([.. values]);
                 }
                 else
                 {

@@ -162,7 +162,7 @@ End Class";
             var compilationWithAnalyzers = new CompilationWithAnalyzersPair(
                 projectCompilationWithAnalyzers: null,
                 (await project.GetCompilationAsync()).WithAnalyzers(
-                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
                     project.AnalyzerOptions));
 
             var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -233,7 +233,7 @@ End Class";
             }
 
             var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
                 project.AnalyzerOptions);
             var analyzerDriver = isHostAnalyzer
                 ? new CompilationWithAnalyzersPair(projectCompilationWithAnalyzers: null, compilationWithAnalyzers)

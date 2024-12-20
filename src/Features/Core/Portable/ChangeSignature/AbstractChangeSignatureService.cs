@@ -179,7 +179,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         }
 
         var parameterConfiguration = ParameterConfiguration.Create(
-            GetParameters(symbol).Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
+            [.. GetParameters(symbol).Select(p => new ExistingParameter(p))],
             symbol.IsExtensionMethod(), selectedIndex);
 
         var semanticDocument = await SemanticDocument.CreateAsync(declarationDocument, cancellationToken).ConfigureAwait(false);

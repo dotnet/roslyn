@@ -267,7 +267,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             ? state.TypeToGenerateInOpt.GetAllTypeParameters()
             : [];
 
-        return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
+        return [.. availableOuterTypeParameters, .. availableInnerTypeParameters];
     }
 
     protected static async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)

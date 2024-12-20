@@ -53,7 +53,7 @@ public abstract partial class Workspace
         List<DocumentId> docIds;
         using (_stateLock.DisposableWait())
         {
-            docIds = _projectToOpenDocumentsMap.Values.SelectMany(x => x).ToList();
+            docIds = [.. _projectToOpenDocumentsMap.Values.SelectMany(x => x)];
         }
 
         foreach (var docId in docIds)

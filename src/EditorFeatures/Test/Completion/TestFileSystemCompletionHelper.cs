@@ -39,7 +39,7 @@ internal sealed class TestFileSystemCompletionHelper : FileSystemCompletionHelpe
     }
 
     protected override string[] GetLogicalDrives()
-        => _drives.ToArray();
+        => [.. _drives];
 
     protected override bool IsVisibleFileSystemEntry(string fullPath)
         => !fullPath.Contains("hidden");

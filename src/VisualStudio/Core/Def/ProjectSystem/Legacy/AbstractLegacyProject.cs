@@ -209,7 +209,7 @@ internal abstract partial class AbstractLegacyProject
         if (!string.IsNullOrEmpty(linkMetadata))
         {
             var linkFolderPath = Path.GetDirectoryName(linkMetadata);
-            folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            folders = [.. linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries)];
         }
         else if (!string.IsNullOrEmpty(ProjectSystemProject.FilePath))
         {
@@ -346,7 +346,7 @@ internal abstract partial class AbstractLegacyProject
         if (!_folderNameMap.TryGetValue(folderItemID, out var folderNames))
         {
             ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
-            folderNames = newFolderNames.ToImmutableArray();
+            folderNames = [.. newFolderNames];
             _folderNameMap.Add(folderItemID, folderNames);
         }
         else
@@ -357,7 +357,7 @@ internal abstract partial class AbstractLegacyProject
             ComputeFolderNames(folderItemID, newFolderNames, Hierarchy);
             if (!Enumerable.SequenceEqual(folderNames, newFolderNames))
             {
-                folderNames = newFolderNames.ToImmutableArray();
+                folderNames = [.. newFolderNames];
                 _folderNameMap[folderItemID] = folderNames;
             }
         }

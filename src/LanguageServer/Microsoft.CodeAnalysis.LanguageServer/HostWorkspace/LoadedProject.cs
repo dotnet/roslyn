@@ -221,14 +221,14 @@ internal sealed class LoadedProject : IDisposable
 
         _mostRecentFileMatchers = new Lazy<ImmutableArray<Matcher>>(() =>
         {
-            return newProjectInfo.FileGlobs.Select(glob =>
+            return [.. newProjectInfo.FileGlobs.Select(glob =>
             {
                 var matcher = new Matcher();
                 matcher.AddIncludePatterns(glob.Includes);
                 matcher.AddExcludePatterns(glob.Excludes);
                 matcher.AddExcludePatterns(glob.Removes);
                 return matcher;
-            }).ToImmutableArray();
+            })];
         });
         _mostRecentFileInfo = newProjectInfo;
 

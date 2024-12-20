@@ -543,7 +543,7 @@ internal abstract partial class PatternMatcher : IDisposable
 
                 var matchCount = matchSpans.Count;
                 matchedSpans = _includeMatchedSpans
-                    ? new NormalizedTextSpanCollection(matchSpans.ToImmutableAndClear()).ToImmutableArray()
+                    ? [.. matchSpans.ToImmutableAndClear()]
                     : [];
 
                 var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);

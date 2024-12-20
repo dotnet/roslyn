@@ -259,7 +259,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
                     parameterAndName.parameterSymbol.Type,
                     parameterAndName.identifierName));
 
-        return declarationsQuery.Concat(declarationsForVariableDeclarationArgumentQuery).ToImmutableArray();
+        return [.. declarationsQuery, .. declarationsForVariableDeclarationArgumentQuery];
     }
 
     private bool ContainsAwaitExpression(TExpressionSyntax inlineExpression)

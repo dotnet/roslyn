@@ -63,7 +63,7 @@ public class IDEDiagnosticIDConfigurationTests
         }
 
         diagnosticIdAndOptions.Sort();
-        return diagnosticIdAndOptions.ToImmutableArray();
+        return [.. diagnosticIdAndOptions];
     }
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)

@@ -49,7 +49,7 @@ internal sealed class ExportProviderBuilder
         assemblyPaths = assemblyPaths.Concat(extensionManager.ExtensionAssemblyPaths);
 
         // Get the cached MEF composition or create a new one.
-        var exportProviderFactory = await GetCompositionConfigurationAsync(assemblyPaths.ToImmutableArray(), assemblyLoader, cacheDirectory, logger);
+        var exportProviderFactory = await GetCompositionConfigurationAsync([.. assemblyPaths], assemblyLoader, cacheDirectory, logger);
 
         // Create an export provider, which represents a unique container of values.
         // You can create as many of these as you want, but typically an app needs just one.

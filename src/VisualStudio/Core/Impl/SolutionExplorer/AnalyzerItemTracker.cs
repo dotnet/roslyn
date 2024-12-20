@@ -78,20 +78,18 @@ internal sealed class AnalyzerItemsTracker(IThreadingContext threadingContext) :
 
         var selectedObjects = GetSelectedObjects(pSCNew);
 
-        this.SelectedAnalyzerItems = selectedObjects
+        this.SelectedAnalyzerItems = [.. selectedObjects
             .OfType<AnalyzerItem.BrowseObject>()
-            .Select(b => b.AnalyzerItem)
-            .ToImmutableArray();
+            .Select(b => b.AnalyzerItem)];
 
         this.SelectedFolder = selectedObjects
             .OfType<AnalyzersFolderItem.BrowseObject>()
             .Select(b => b.Folder)
             .FirstOrDefault();
 
-        this.SelectedDiagnosticItems = selectedObjects
+        this.SelectedDiagnosticItems = [.. selectedObjects
             .OfType<DiagnosticItem.BrowseObject>()
-            .Select(b => b.DiagnosticItem)
-            .ToImmutableArray();
+            .Select(b => b.DiagnosticItem)];
 
         if (!object.ReferenceEquals(oldSelectedHierarchy, this.SelectedHierarchy) ||
             oldSelectedItemId != this.SelectedItemId)

@@ -161,7 +161,7 @@ public class UnusedReferencesRemoverTests
     }
 
     private static ImmutableArray<ReferenceInfo> GetUnusedReferences(string[] usedCompilationAssemblies, string[] usedProjectAssemblyNames, params ReferenceInfo[] references)
-        => UnusedReferencesRemover.GetUnusedReferences(new(usedCompilationAssemblies), new(usedProjectAssemblyNames), references.ToImmutableArray());
+        => UnusedReferencesRemover.GetUnusedReferences(new(usedCompilationAssemblies), new(usedProjectAssemblyNames), [.. references]);
 
     private static async Task<ImmutableArray<ReferenceUpdate>> ApplyReferenceUpdatesAsync(params ReferenceUpdate[] referenceUpdates)
     {
@@ -170,10 +170,10 @@ public class UnusedReferencesRemoverTests
         await UnusedReferencesRemover.ApplyReferenceUpdatesAsync(
             referenceCleanupService,
             string.Empty,
-            referenceUpdates.ToImmutableArray(),
+            [.. referenceUpdates],
             CancellationToken.None).ConfigureAwait(false);
 
-        return referenceCleanupService.AppliedUpdates.ToImmutableArray();
+        return [.. referenceCleanupService.AppliedUpdates];
     }
 
     private static ReferenceInfo ProjectReference(string assemblyPath, params ReferenceInfo[] dependencies)
@@ -183,7 +183,7 @@ public class UnusedReferencesRemoverTests
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
             compilationAssemblies: [assemblyPath],
-            dependencies.ToImmutableArray());
+            [.. dependencies]);
 
     private static ReferenceInfo PackageReference(string assemblyPath, params ReferenceInfo[] dependencies)
         => PackageReference(assemblyPath, treatAsUsed: false, dependencies);
@@ -192,7 +192,7 @@ public class UnusedReferencesRemoverTests
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
             compilationAssemblies: [assemblyPath],
-            dependencies.ToImmutableArray());
+            [.. dependencies]);
 
     private static ReferenceInfo AssemblyReference(string assemblyPath)
         => AssemblyReference(assemblyPath, treatAsUsed: false);

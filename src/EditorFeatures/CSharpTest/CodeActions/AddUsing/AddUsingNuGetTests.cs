@@ -387,5 +387,5 @@ public class AddUsingNuGetTests : AbstractAddUsingTests
         => new(ImmutableArray.Create(results));
 
     private static ImmutableArray<string> CreateNameParts(params string[] parts)
-        => parts.ToImmutableArray();
+        => [.. parts];
 }

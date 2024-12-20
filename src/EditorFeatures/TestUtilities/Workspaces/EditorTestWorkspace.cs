@@ -272,7 +272,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
 
             // Order unnamed spans as they would be ordered by the normal span finding 
             // algorithm in MarkupTestFile
-            mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
+            mappedSpans[string.Empty] = [.. mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start)];
 
             foreach (var (key, spans) in document.AnnotatedSpans)
             {

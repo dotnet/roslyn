@@ -418,8 +418,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (compilationOptionsElement != null)
             {
-                globalImports = compilationOptionsElement.Elements(GlobalImportElementName)
-                                                         .Select(x => GlobalImport.Parse(x.Value)).ToList();
+                globalImports = [.. compilationOptionsElement.Elements(GlobalImportElementName).Select(x => GlobalImport.Parse(x.Value))];
                 var rootNamespaceAttribute = compilationOptionsElement.Attribute(RootNamespaceAttributeName);
                 if (rootNamespaceAttribute != null)
                 {
@@ -714,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var folderContainers = folderAttribute.Value.Split([PathUtilities.DirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
-            return new ReadOnlyCollection<string>(folderContainers.ToList());
+            return new ReadOnlyCollection<string>([.. folderContainers]);
         }
 
         /// <summary>

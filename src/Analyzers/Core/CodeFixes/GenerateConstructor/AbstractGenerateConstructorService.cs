@@ -181,8 +181,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
         var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
         var comparer = syntaxFacts.StringComparer;
-        return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse: s => !reservedNames.Any(n => comparer.Equals(s, n)))
+        return [.. NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse: s => !reservedNames.Any(n => comparer.Equals(s, n)))
             .Select((name, index) => new ParameterName(name, isFixed[index], parameterNamingRule))
-            .Skip(reservedNames.Count).ToImmutableArray();
+            .Skip(reservedNames.Count)];
     }
 }

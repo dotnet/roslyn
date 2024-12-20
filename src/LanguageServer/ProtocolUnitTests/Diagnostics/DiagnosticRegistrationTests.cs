@@ -111,7 +111,7 @@ public class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
         /// </summary>
         public ImmutableArray<Registration> GetRegistrations()
         {
-            return _registrations.ToImmutableArray();
+            return [.. _registrations];
         }
     }
 }

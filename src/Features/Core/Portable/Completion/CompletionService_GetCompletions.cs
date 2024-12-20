@@ -86,7 +86,7 @@ public abstract partial class CompletionService
         var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
         var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-        triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+        triggeredProviders = [.. triggeredProviders.Except(additionalAugmentingProviders)];
 
         // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
         // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.

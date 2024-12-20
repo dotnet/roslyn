@@ -4569,7 +4569,7 @@ public class C : A {
             ImmutableArray<DocumentId> GetDocumentIds() => [.. solution.GetProject(pid).DocumentIds];
             ImmutableArray<SyntaxTree> GetSyntaxTrees()
             {
-                return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
+                return [.. solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees];
             }
 
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);

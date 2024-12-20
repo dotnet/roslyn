@@ -447,7 +447,7 @@ internal static partial class ITypeSymbolExtensions
             return [];
         }
 
-        return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
+        return [.. containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within)];
     }
 
     public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
@@ -457,7 +457,7 @@ internal static partial class ITypeSymbolExtensions
             return [];
         }
 
-        return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
+        return [.. containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within)];
     }
 
     public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)

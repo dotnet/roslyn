@@ -630,7 +630,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
         });
 
-        return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
+        return [.. versionsAndSplits.Select(v => v.Version)];
     }
 
     private static int CompareSplit(string[] split1, string[] split2)

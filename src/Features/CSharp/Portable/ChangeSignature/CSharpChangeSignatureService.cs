@@ -716,7 +716,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
         SignatureChange updatedSignature)
     {
-        var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
+        var newArguments = PermuteArguments(declarationSymbol, [.. arguments.Select(a => UnifiedArgumentSyntax.Create(a))],
             updatedSignature);
         var numSeparatorsToSkip = arguments.Count - newArguments.Length;
 
@@ -735,7 +735,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     {
         var newArguments = PermuteArguments(
             declarationSymbol,
-            arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
+            [.. arguments.Select(a => UnifiedArgumentSyntax.Create(a))],
             updatedSignature,
             isReducedExtensionMethod);
 
