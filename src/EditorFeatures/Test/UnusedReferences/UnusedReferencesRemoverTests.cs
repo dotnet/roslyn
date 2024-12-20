@@ -161,7 +161,7 @@ public class UnusedReferencesRemoverTests
     }
 
     private static ImmutableArray<ReferenceInfo> GetUnusedReferences(string[] usedCompilationAssemblies, string[] usedProjectAssemblyNames, params ReferenceInfo[] references)
-        => UnusedReferencesRemover.GetUnusedReferences(new(usedCompilationAssemblies), new(usedProjectAssemblyNames), [.. references]);
+        => UnusedReferencesRemover.GetUnusedReferences([.. usedCompilationAssemblies], [.. usedProjectAssemblyNames], [.. references]);
 
     private static async Task<ImmutableArray<ReferenceUpdate>> ApplyReferenceUpdatesAsync(params ReferenceUpdate[] referenceUpdates)
     {

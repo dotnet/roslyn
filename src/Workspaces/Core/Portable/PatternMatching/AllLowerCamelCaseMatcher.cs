@@ -55,7 +55,7 @@ internal abstract partial class PatternMatcher
             }
 
             matchedSpans = includeMatchedSpans && result.Value.MatchedSpansInReverse != null
-                ? [.. result.Value.MatchedSpansInReverse]
+                ? new NormalizedTextSpanCollection(result.Value.MatchedSpansInReverse).ToImmutableArray()
                 : [];
 
             result?.Free();

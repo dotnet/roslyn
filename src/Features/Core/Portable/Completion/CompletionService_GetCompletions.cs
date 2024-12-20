@@ -356,7 +356,7 @@ public abstract partial class CompletionService
         {
             if (!options.PerformSort)
             {
-                return new(this);
+                return [.. this];
             }
 
             // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
@@ -365,7 +365,7 @@ public abstract partial class CompletionService
             {
                 list.AddRange(this);
                 list.Sort();
-                return new(list);
+                return [.. list];
             }
             finally
             {

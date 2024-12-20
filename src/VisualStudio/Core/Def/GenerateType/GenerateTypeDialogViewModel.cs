@@ -329,7 +329,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
                 if (containers.Length > 1)
                 {
                     _fileName = containers.Last();
-                    Folders = new List<string>(containers);
+                    Folders = [.. containers];
                     Folders.RemoveAt(Folders.Count - 1);
 
                     if (Folders.Any(folder => !(_syntaxFactsService.IsValidIdentifier(folder) || _syntaxFactsService.IsVerbatimIdentifier(folder))))

@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(default));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments([s_unrelatedDocumentId]));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments([(DocumentId)null!]));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
         [Fact]
@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(default));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments([s_unrelatedDocumentId]));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments([(DocumentId)null!]));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
         [Fact]
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(default));
-            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments([s_unrelatedDocumentId]));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments([(DocumentId)null!]));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
         [Fact]
@@ -1923,12 +1923,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 projectRef,
                 allowDuplicates: false);
 
-            var projectRefs = (IEnumerable<ProjectReference>)
-            [
+            var projectRefs = (IEnumerable<ProjectReference>)ImmutableArray.Create(
                 new ProjectReference(projectId2),
-                new ProjectReference(projectId2, ["alias"                                                         ]),
-                new ProjectReference(projectId2, embedInteropTypes: true),
-            ];
+                new ProjectReference(projectId2, ImmutableArray.Create("alias")),
+                new ProjectReference(projectId2, embedInteropTypes: true));
 
             var solution2 = solution.WithProjectReferences(projectId, projectRefs);
             Assert.Same(projectRefs, solution2.GetProject(projectId)!.AllProjectReferences);
@@ -1949,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectId = solution.Projects.Single().Id;
             var externalProjectRef = new ProjectReference(ProjectId.CreateNewId());
 
-            var projectRefs = (IEnumerable<ProjectReference>)[externalProjectRef];
+            var projectRefs = (IEnumerable<ProjectReference>)ImmutableArray.Create(externalProjectRef);
             var newSolution1 = solution.WithProjectReferences(projectId, projectRefs);
             Assert.Same(projectRefs, newSolution1.GetProject(projectId)!.AllProjectReferences);
 
@@ -2616,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution
                             .AddProject(projectId, "goo", "goo.dll", LanguageNames.CSharp)
-                            .AddDocuments([documentInfo1, documentInfo2]);
+                            .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
 
             var project = Assert.Single(solution.Projects);
 
@@ -2641,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = workspace.CurrentSolution
                             .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
                             .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
-                            .AddDocuments([documentInfo1, documentInfo2]);
+                            .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
 
             var project1 = solution.GetProject(projectId1);
             var project2 = solution.GetProject(projectId2);
@@ -2669,7 +2667,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = workspace.CurrentSolution
                             .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp);
 
-            Assert.ThrowsAny<InvalidOperationException>(() => solution.AddDocuments([documentInfo1, documentInfo2]));
+            Assert.ThrowsAny<InvalidOperationException>(() => solution.AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2)));
         }
 
         [Fact]
@@ -2692,9 +2690,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution
                             .AddProject(projectId, "project1", "project1.dll", LanguageNames.CSharp)
-                            .AddDocuments([documentInfo1, documentInfo2]);
+                            .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
 
-            solution = solution.RemoveDocuments([documentInfo1.Id, documentInfo2.Id]);
+            solution = solution.RemoveDocuments(ImmutableArray.Create(documentInfo1.Id, documentInfo2.Id));
 
             var finalProject = solution.Projects.Single();
             Assert.Empty(finalProject.Documents);
@@ -2714,11 +2712,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = workspace.CurrentSolution
                             .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
                             .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
-                            .AddDocuments([documentInfo1, documentInfo2]);
+                            .AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2));
 
             Assert.All(solution.Projects, p => Assert.Single(p.Documents));
 
-            solution = solution.RemoveDocuments([documentInfo1.Id, documentInfo2.Id]);
+            solution = solution.RemoveDocuments(ImmutableArray.Create(documentInfo1.Id, documentInfo2.Id));
 
             Assert.All(solution.Projects, p => Assert.Empty(p.Documents));
         }
@@ -2739,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveDocument
             // API due to https://github.com/dotnet/roslyn/issues/41211.
-            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveDocuments([documentInfo1.Id]));
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveDocuments(ImmutableArray.Create(documentInfo1.Id)));
         }
 
         [Fact]
@@ -2758,7 +2756,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveAdditionalDocument
             // API due to https://github.com/dotnet/roslyn/issues/41211.
-            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAdditionalDocuments([documentInfo1.Id]));
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAdditionalDocuments(ImmutableArray.Create(documentInfo1.Id)));
         }
 
         [Fact]
@@ -2773,11 +2771,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = workspace.CurrentSolution
                             .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
                             .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
-                            .AddAnalyzerConfigDocuments([documentInfo1]);
+                            .AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo1));
 
             // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveAdditionalDocument
             // API due to https://github.com/dotnet/roslyn/issues/41211.
-            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAnalyzerConfigDocuments([documentInfo1.Id]));
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo1.Id)));
         }
 
         [Fact]
@@ -2986,7 +2984,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Empty(solution.Projects.Single().AnalyzerReferences);
 
             DiagnosticAnalyzer analyzer = new MockDiagnosticAnalyzer();
-            var analyzerReference = new AnalyzerImageReference([analyzer]);
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
 
             // Test AddAnalyzer
             var newSolution = solution.AddAnalyzerReference(project1, analyzerReference);
@@ -3011,9 +3009,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Empty(actualAnalyzerReferences);
 
             // Test AddAnalyzers
-            analyzerReference = new AnalyzerImageReference([analyzer]);
+            analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
             DiagnosticAnalyzer secondAnalyzer = new MockDiagnosticAnalyzer();
-            var secondAnalyzerReference = new AnalyzerImageReference([secondAnalyzer]);
+            var secondAnalyzerReference = new AnalyzerImageReference(ImmutableArray.Create(secondAnalyzer));
             var analyzerReferences = new[] { analyzerReference, secondAnalyzerReference };
             solution = solution.AddAnalyzerReferences(project1, analyzerReferences);
             actualAnalyzerReferences = solution.Projects.Single().AnalyzerReferences;
@@ -4569,7 +4567,7 @@ public class C : A {
             ImmutableArray<DocumentId> GetDocumentIds() => [.. solution.GetProject(pid).DocumentIds];
             ImmutableArray<SyntaxTree> GetSyntaxTrees()
             {
-                return [.. solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees];
+                return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
             }
 
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
@@ -4660,7 +4658,7 @@ public class C : A {
 
             solution = solution.RemoveDocument(did5);
 
-            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, []));
+            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.Create<DocumentId>()));
             Assert.Throws<ArgumentNullException>(() => solution = solution.WithProjectDocumentsOrder(pid, null));
             Assert.Throws<InvalidOperationException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange([did5, did3, did2, did1])));
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange([did3, did2, did1])));
@@ -4682,11 +4680,12 @@ public class C : A {
             var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
             var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
-            solution = solution.AddAnalyzerConfigDocuments([DocumentInfo.Create(
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
                     editorConfigDocumentId,
                     ".editorconfig",
                     filePath: @"Z:\.editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))]);
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
             var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
             var project = solution.GetProject(projectId);
@@ -4714,11 +4713,12 @@ public class C : A {
             solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
 
             var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
-            solution = solution.AddAnalyzerConfigDocuments([DocumentInfo.Create(
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
                     editorConfigDocumentId,
                     ".editorconfig",
                     filePath: @"Z:\.editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))]);
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
             var syntaxTreeAfterAddingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
@@ -4754,11 +4754,12 @@ public class C : A {
             solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
 
             var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
-            solution = solution.AddAnalyzerConfigDocuments([DocumentInfo.Create(
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
                     editorConfigDocumentId,
                     ".editorconfig",
                     filePath: @"Z:\.editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))]);
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
             var syntaxTreeBeforeEditorConfigChange = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
@@ -4801,11 +4802,12 @@ public class C : A {
             Assert.False(originalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
 
             var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
-            solution = solution.AddAnalyzerConfigDocuments([DocumentInfo.Create(
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
                     editorConfigDocumentId,
                     ".globalconfig",
                     filePath: @"Z:\.globalconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))]);
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
             var newProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
             Assert.True(newProvider.TryGetGlobalDiagnosticValue("CA1234", default, out var severity));
@@ -4846,11 +4848,12 @@ class C
             Assert.Equal("CS8602", diagnostic.Id);
 
             var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
-            solution = solution.AddAnalyzerConfigDocuments([DocumentInfo.Create(
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
                     editorConfigDocumentId,
                     ".editorconfig",
                     filePath: @"Z:\.editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ngenerated_code = true"), VersionStamp.Default)))]);
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ngenerated_code = true"), VersionStamp.Default)))));
 
             var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
             var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();

@@ -183,7 +183,7 @@ internal static partial class ConflictResolver
 
                         // Set the documents with conflicts that need to be processed in the next phase.
                         // Note that we need to get the conflictLocations here since we're going to remove some locations below if phase == 2
-                        documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(conflictLocations.Select(l => l.DocumentId));
+                        documentIdsThatGetsAnnotatedAndRenamed = [.. conflictLocations.Select(l => l.DocumentId)];
 
                         if (phase == 2)
                         {

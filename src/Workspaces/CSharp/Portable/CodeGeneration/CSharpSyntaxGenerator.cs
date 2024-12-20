@@ -3646,7 +3646,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             .Where(trivia => !trivia.Any(t => t.IsRegularOrDocComment()))
             .SelectMany(t => t);
 
-        return new SyntaxTriviaList(syntaxWithoutComments);
+        return [.. syntaxWithoutComments];
     }
 
     internal override SyntaxNode ParseExpression(string stringToParse)

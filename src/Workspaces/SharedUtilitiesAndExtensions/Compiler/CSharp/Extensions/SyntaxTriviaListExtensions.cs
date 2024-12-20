@@ -69,7 +69,7 @@ internal static class SyntaxTriviaListExtensions
     public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
     {
         var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
-        return new SyntaxTriviaList(triviaList.Skip(triviaInLeadingBlankLines.Count()));
+        return [.. triviaList.Skip(triviaInLeadingBlankLines.Count())];
     }
 
     /// <summary>

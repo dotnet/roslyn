@@ -137,12 +137,12 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
         if (ppIndex != -1)
         {
             // We have a pp directive.  it (and all previous trivia) must be stripped.
-            leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
-            leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
+            leadingTriviaToStrip = [.. leadingTrivia.Take(ppIndex + 1)];
+            leadingTriviaToKeep = [.. leadingTrivia.Skip(ppIndex + 1)];
         }
         else
         {
-            leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia);
+            leadingTriviaToKeep = [.. leadingTrivia];
             leadingTriviaToStrip = [];
         }
 
