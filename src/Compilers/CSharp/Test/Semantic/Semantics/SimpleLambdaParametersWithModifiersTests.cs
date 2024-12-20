@@ -735,4 +735,36 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_String, Type.NullableAnnotation: CodeAnalysis.NullableAnnotation.NotAnnotated, RefKind: RefKind.Ref, IsOptional: false }]);
     }
+
+    [Fact]
+    public void TestDynamic()
+    {
+        var compilation = CreateCompilation($$"""
+            delegate void D(ref dynamic x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref x) =>
+                    {
+                        x = null;
+                        x = 1;
+                        x = "";
+                        x.NonExistent();
+                    };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.TypeKind: TypeKind.Dynamic, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
 }
