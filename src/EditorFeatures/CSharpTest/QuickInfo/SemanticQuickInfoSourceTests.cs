@@ -6480,13 +6480,13 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             </Workspace>
             """;
 
-        await VerifyWithReferenceWorkerAsync(markup, [ MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
+        await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
 
             {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
             {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """, expectsWarningGlyph: true) ]);
+            """, expectsWarningGlyph: true)]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]

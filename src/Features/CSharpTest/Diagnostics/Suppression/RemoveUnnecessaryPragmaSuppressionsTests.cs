@@ -186,8 +186,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncess
             protected override string VariableDeclaredButNotUsedDiagnosticId => UserDiagnosticAnalyzer.Descriptor0168.Id;
             protected override string VariableAssignedButNotUsedDiagnosticId => UserDiagnosticAnalyzer.Descriptor0219.Id;
             protected override ImmutableArray<string> UnsupportedDiagnosticIds
-                =>
-                [
+                => [
                     CompilationEndDiagnosticAnalyzer.Descriptor.Id,
                     IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
                     IDEDiagnosticIds.FormattingDiagnosticId,
