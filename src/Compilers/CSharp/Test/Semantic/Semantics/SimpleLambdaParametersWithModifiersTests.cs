@@ -1079,4 +1079,84 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, IsParams: true }]);
     }
+
+    [Fact]
+    public void TestAccessibilityModifier1()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (public ref x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,16): error CS1525: Invalid expression term 'public'
+                //         D d = (public ref x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(7, 16),
+                // (7,16): error CS1026: ) expected
+                //         D d = (public ref x) => { };
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "public").WithLocation(7, 16),
+                // (7,16): error CS1002: ; expected
+                //         D d = (public ref x) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(7, 16),
+                // (7,16): error CS1513: } expected
+                //         D d = (public ref x) => { };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(7, 16),
+                // (7,28): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
+                //         D d = (public ref x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(7, 28),
+                // (7,28): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
+                //         D d = (public ref x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(7, 28),
+                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+    }
+
+    [Fact]
+    public void TestAccessibilityModifier2()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref public x) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,16): error CS1525: Invalid expression term 'ref'
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(7, 16),
+                // (7,16): error CS1073: Unexpected token 'ref'
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 16),
+                // (7,20): error CS1525: Invalid expression term 'public'
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(7, 20),
+                // (7,20): error CS1026: ) expected
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "public").WithLocation(7, 20),
+                // (7,20): error CS1002: ; expected
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(7, 20),
+                // (7,20): error CS1513: } expected
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(7, 20),
+                // (7,28): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(7, 28),
+                // (7,28): error CS1519: Invalid token ')' in class, record, struct, or interface member declaration
+                //         D d = (ref public x) => { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(7, 28),
+                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+    }
 }
