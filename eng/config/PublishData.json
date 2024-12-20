@@ -220,7 +220,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.12-telmet",
+      "vsBranch": "rel/d17.12telmet",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.12]"
     },
