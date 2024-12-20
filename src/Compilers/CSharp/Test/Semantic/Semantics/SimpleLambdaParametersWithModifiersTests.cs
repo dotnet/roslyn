@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Operations;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics;
@@ -766,5 +767,107 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.True(symbol.Parameters is [{ Name: "x", Type.TypeKind: TypeKind.Dynamic, RefKind: RefKind.Ref, IsOptional: false }]);
+    }
+
+    [Theory, CombinatorialData]
+    public void TestParams1(bool delegateIsParams)
+    {
+        var compilation = CreateCompilation($$"""
+            delegate void D({{(delegateIsParams ? "params" : "")}} int[] x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (params x) =>
+                    {
+                    };
+                }
+            }
+            """);
+
+        if (delegateIsParams)
+        {
+            compilation.VerifyDiagnostics();
+        }
+        else
+        {
+            compilation.VerifyDiagnostics(
+                // (7,23): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                //         D d = (params x) =>
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 23));
+        }
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type: IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Int32 }, IsParams: true }]);
+    }
+
+    [Fact]
+    public void TestParams2()
+    {
+        var compilation = CreateCompilation($$"""
+            delegate void D(params int[] x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (x) =>
+                    {
+                    };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type: IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Int32 }, IsParams: false }]);
+    }
+    [Fact]
+    public void TestIOperation()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref x) => { return; };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var operation = (IAnonymousFunctionOperation)semanticModel.GetOperation(lambda)!;
+
+        Assert.NotNull(operation);
+
+        var symbol = operation.Symbol;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(RefKind.Ref, symbol.Parameters.Single().RefKind);
+        Assert.Equal(SpecialType.System_Int32, symbol.Parameters.Single().Type.SpecialType);
+
+        Assert.NotNull(operation.Body);
+        Assert.Single(operation.Body.Operations);
+        Assert.True(operation.Body.Operations.Single() is IReturnOperation { ReturnedValue: null });
     }
 }
