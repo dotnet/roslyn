@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -103,9 +104,8 @@ internal sealed partial class RenameTrackingTaggerProvider(
 
     public static (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
         Document document, TextSpan textSpan,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            CancellationToken cancellationToken)
+        IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+        ITextUndoHistoryRegistry undoHistoryRegistry)
     {
         try
         {
@@ -113,53 +113,35 @@ internal sealed partial class RenameTrackingTaggerProvider(
             {
                 var textBuffer = text.Container.TryGetTextBuffer();
                 if (textBuffer != null &&
-                    textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                    stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
+                    textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                 {
                     return stateMachine.TryGetCodeAction(
-                        document, text, textSpan, refactorNotifyServices, undoHistoryRegistry, cancellationToken);
+                        document, text, textSpan, refactorNotifyServices, undoHistoryRegistry);
                 }
             }
 
             return default;
         }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
         {
             throw ExceptionUtilities.Unreachable();
         }
     }
 
-    internal static bool IsRenamableIdentifier(Task<TriggerIdentifierKind> isRenamableIdentifierTask, bool waitForResult, CancellationToken cancellationToken)
+    internal static bool IsRenamableIdentifierFastCheck(
+        Task<TriggerIdentifierKind> isRenamableIdentifierTask, out TriggerIdentifierKind identifierKind)
     {
-        if (isRenamableIdentifierTask.Status == TaskStatus.RanToCompletion && isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
+        if (isRenamableIdentifierTask.Status == TaskStatus.RanToCompletion)
         {
-            return true;
+            var kind = isRenamableIdentifierTask.Result;
+            if (kind != TriggerIdentifierKind.NotRenamable)
+            {
+                identifierKind = kind;
+                return true;
+            }
         }
-        else if (isRenamableIdentifierTask.Status == TaskStatus.Canceled)
-        {
-            return false;
-        }
-        else if (waitForResult)
-        {
-            return WaitForIsRenamableIdentifier(isRenamableIdentifierTask, cancellationToken);
-        }
-        else
-        {
-            return false;
-        }
-    }
 
-    internal static bool WaitForIsRenamableIdentifier(Task<TriggerIdentifierKind> isRenamableIdentifierTask, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return isRenamableIdentifierTask.WaitAndGetResult_CanCallOnBackground(cancellationToken) != TriggerIdentifierKind.NotRenamable;
-        }
-        catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
-        {
-            // We passed in a different cancellationToken, so if there's a race and 
-            // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
-            return false;
-        }
+        identifierKind = default;
+        return false;
     }
 }

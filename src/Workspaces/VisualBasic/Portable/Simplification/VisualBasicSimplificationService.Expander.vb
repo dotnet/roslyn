@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     End If
                 End If
 
-                Dim symbol = _semanticModel.GetSymbolInfo(originalSimpleName.Identifier).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(originalSimpleName.Identifier, _cancellationToken).Symbol
                 If symbol Is Nothing Then
                     Return newNode
                 End If

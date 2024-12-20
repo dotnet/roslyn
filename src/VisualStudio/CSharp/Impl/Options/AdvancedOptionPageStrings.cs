@@ -268,6 +268,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Fade_out_unused_usings
             => CSharpVSResources.Fade_out_unused_usings;
 
+        public static string Option_Fade_out_unused_members
+            => ServicesVSResources.Fade_out_unused_members;
+
         public static string Option_Fade_out_unreachable_code
             => ServicesVSResources.Fade_out_unreachable_code;
 

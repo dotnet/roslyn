@@ -7,8 +7,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class WhiteSpacesInsertTests
         <WpfFact>
-        Public Sub VerifyInsertWhiteSpace()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyInsertWhiteSpace() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class X
   Sub y()
 End Class",
@@ -19,11 +19,11 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInsertTabSpace()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyInsertTabSpace() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class X
 		Sub y()
 End Class",
@@ -34,11 +34,11 @@ End Class",
 		End Sub
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInsertDoubleWideWhiteSpace()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyInsertDoubleWideWhiteSpace() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class X
  Sub y()
 End Class",
@@ -50,6 +50,6 @@ End Class",
 End Class",
                 afterCaret:={2, -1})
 
-        End Sub
+        End Function
     End Class
 End Namespace

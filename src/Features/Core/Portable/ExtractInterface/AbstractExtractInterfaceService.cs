@@ -104,21 +104,25 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             return new ExtractInterfaceTypeAnalysisResult(errorMessage);
         }
 
-        return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, formattingOptions);
     }
 
-    public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
+    public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(
+        ExtractInterfaceTypeAnalysisResult refactoringResult,
+        CancellationToken cancellationToken)
     {
         var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
             ? string.Empty
             : refactoringResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-        var extractInterfaceOptions = await GetExtractInterfaceOptionsAsync(
+        var extractInterfaceOptions = GetExtractInterfaceOptions(
             refactoringResult.DocumentToExtractFrom,
             refactoringResult.TypeToExtractFrom,
             refactoringResult.ExtractableMembers,
             containingNamespaceDisplay,
-            cancellationToken).ConfigureAwait(false);
+            refactoringResult.FormattingOptions,
+            cancellationToken);
 
         if (extractInterfaceOptions.IsCancelled)
         {
@@ -249,23 +253,23 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             navigationDocumentId: refactoringResult.DocumentToExtractFrom.Id);
     }
 
-    internal static async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+    internal static ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         Document document,
         INamedTypeSymbol type,
         IEnumerable<ISymbol> extractableMembers,
         string containingNamespace,
+        SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
         var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
         var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
-        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-        var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
         var service = document.Project.Solution.Services.GetRequiredService<IExtractInterfaceOptionsService>();
-        return await service.GetExtractInterfaceOptionsAsync(
+        return service.GetExtractInterfaceOptions(
             syntaxFactsService,
             notificationService,
             extractableMembers.ToList(),
@@ -274,7 +278,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             containingNamespace,
             generatedNameTypeParameterSuffix,
             document.Project.Language,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)

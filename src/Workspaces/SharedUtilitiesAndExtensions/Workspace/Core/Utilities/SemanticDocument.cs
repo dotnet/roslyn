@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,4 +28,7 @@ internal sealed class SemanticDocument(Document document, SourceText text, Synta
         var newDocument = this.Document.WithSyntaxRoot(root);
         return await CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
     }
+
+    public TLanguageService GetRequiredLanguageService<TLanguageService>() where TLanguageService : class, ILanguageService
+        => this.Document.GetRequiredLanguageService<TLanguageService>();
 }

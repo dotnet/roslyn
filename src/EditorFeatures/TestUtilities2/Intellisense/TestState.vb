@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
-        Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
@@ -73,7 +72,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
-            Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
             Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
@@ -171,23 +169,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Overloads Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Me.CurrentSignatureHelpPresenterSession?.Dismiss(), c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendDownKey()
             MyBase.SendDownKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
-                Sub()
-                    EditorOperations.MoveLineDown(extendSelection:=False)
-                End Sub)
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineDown(extendSelection:=False), c),
+                Sub() EditorOperations.MoveLineDown(extendSelection:=False))
         End Sub
 
         Public Overloads Sub SendUpKey()
             MyBase.SendUpKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
-                Sub()
-                    EditorOperations.MoveLineUp(extendSelection:=False)
-                End Sub)
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineUp(extendSelection:=False), c),
+                Sub() EditorOperations.MoveLineUp(extendSelection:=False))
         End Sub
 
         Public Overloads Sub SendPageUp()

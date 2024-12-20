@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
-internal class ModelComputation<TModel> where TModel : class
+internal sealed class ModelComputation<TModel> where TModel : class
 {
     #region Fields that can be accessed from either thread
 
@@ -81,23 +81,10 @@ internal class ModelComputation<TModel> where TModel : class
         }
     }
 
-    public TModel WaitForController()
-    {
-        ThreadingContext.ThrowIfNotOnUIThread();
+    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
+        => ModelTask;
 
-        var model = ModelTask.WaitAndGetResult(CancellationToken.None);
-        if (!_notifyControllerTask.IsCompleted)
-        {
-            OnModelUpdated(model, updateController: true);
-
-            // Reset lastTask so controller.OnModelUpdated is only called once
-            _lastTask = Task.FromResult(model);
-        }
-
-        return model;
-    }
-
-    public virtual void Stop()
+    public void Stop()
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 

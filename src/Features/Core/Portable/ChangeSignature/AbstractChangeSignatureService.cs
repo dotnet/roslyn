@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature;
 
 internal abstract class AbstractChangeSignatureService : ILanguageService
 {
-    protected SyntaxAnnotation changeSignatureFormattingAnnotation = new("ChangeSignatureFormatting");
+    protected readonly SyntaxAnnotation ChangeSignatureFormattingAnnotation = new("ChangeSignatureFormatting");
 
     /// <summary>
     /// Determines the symbol on which we are invoking ReorderParameters
@@ -49,12 +49,13 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
         IMethodSymbol symbol, Document document, CancellationToken cancellationToken);
 
-    public abstract Task<SyntaxNode> ChangeSignatureAsync(
-        Document document,
+    public abstract SyntaxNode ChangeSignature(
+        SemanticDocument document,
         ISymbol declarationSymbol,
         SyntaxNode potentiallyUpdatedNode,
         SyntaxNode originalNode,
         SignatureChange signaturePermutation,
+        LineFormattingOptions lineFormattingOptions,
         CancellationToken cancellationToken);
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -181,8 +182,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             GetParameters(symbol).Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
             symbol.IsExtensionMethod(), selectedIndex);
 
+        var semanticDocument = await SemanticDocument.CreateAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
         return new ChangeSignatureAnalysisSucceededContext(
-            declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
+            semanticDocument, positionForTypeBinding, symbol, parameterConfiguration);
     }
 
     internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -383,24 +385,27 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             }
 
             var nodes = nodesToUpdate[docId];
+            var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
+            var lineFormattingOptions = await doc.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var newRoot = root.ReplaceNodes(nodes, (originalNode, potentiallyUpdatedNode) =>
             {
-                return updater.ChangeSignatureAsync(
-                    doc,
+                return updater.ChangeSignature(
+                    semanticDocument,
                     definitionToUse[originalNode],
                     potentiallyUpdatedNode,
                     originalNode,
                     UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
-                    cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                    lineFormattingOptions,
+                    cancellationToken);
             });
 
-            var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
+            var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: ChangeSignatureFormattingAnnotation);
             var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedRoot = Formatter.Format(
                 newRoot,
-                changeSignatureFormattingAnnotation,
+                ChangeSignatureFormattingAnnotation,
                 doc.Project.Solution.Services,
                 options: formattingOptions,
                 rules: GetFormattingRules(doc),
@@ -756,14 +761,14 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         return separators.MoveToImmutable();
     }
 
-    protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
+    protected virtual SeparatedSyntaxList<TArgumentSyntax> AddNewArgumentsToList<TArgumentSyntax>(
+        SemanticDocument document,
         ISymbol declarationSymbol,
         SeparatedSyntaxList<TArgumentSyntax> newArguments,
         SignatureChange signaturePermutation,
         bool isReducedExtensionMethod,
         bool isParamsArrayExpanded,
         bool generateAttributeArguments,
-        Document document,
         int position,
         CancellationToken cancellationToken)
         where TArgumentSyntax : SyntaxNode
@@ -805,11 +810,8 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                         continue;
                     }
 
-                    var expression = await GenerateInferredCallsiteExpressionAsync(
-                            document,
-                            position,
-                            addedParameter,
-                            cancellationToken).ConfigureAwait(false);
+                    var expression = GenerateInferredCallsiteExpression(
+                        document, position, addedParameter, cancellationToken);
 
                     if (expression == null)
                     {
@@ -910,8 +912,8 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         return Generator.SeparatedList(fullList.ToImmutableAndFree(), separators.ToImmutableAndFree());
     }
 
-    private async Task<SyntaxNode> GenerateInferredCallsiteExpressionAsync(
-        Document document,
+    private SyntaxNode GenerateInferredCallsiteExpression(
+        SemanticDocument document,
         int position,
         AddedParameter addedParameter,
         CancellationToken cancellationToken)
@@ -921,7 +923,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             return null;
         }
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = document.SemanticModel;
         var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
         var recommendationOptions = new RecommendationServiceOptions()
@@ -930,7 +932,8 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             FilterOutOfScopeLocals = true,
         };
 
-        var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+        var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(
+            document.Document, semanticModel, position, cancellationToken);
         var recommendations = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken).NamedSymbols;
 
         var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
