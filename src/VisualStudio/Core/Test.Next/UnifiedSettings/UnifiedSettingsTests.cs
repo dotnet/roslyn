@@ -73,8 +73,10 @@ public class UnifiedSettingsTests
             CompletionOptionsStorage.EnterKeyBehavior,
             "Enter key behavior",
             order: 40,
-            enumLabels: ["Never add new line on enter", "Only add new line on enter after end of fully typed word", "Always add new line on enterA"],
+            customDefaultValue: EnterKeyRule.Always,
+            enumLabels: ["Never add new line on enter", "Only add new line on enter after end of fully typed word", "Always add new line on enter"],
             enumValues: [EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always],
+            customMaps: [new Map { Result = "never", Match = 1}, new Map { Result = "always", Match = 2}, new Map { Result = "always", Match = 0}, new Map { Result = "afterFullyTypedWord", Match = 3}],
             languageName: LanguageNames.VisualBasic)),
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,

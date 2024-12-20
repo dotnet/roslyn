@@ -432,6 +432,11 @@
         <target state="translated">输入调用站点值或选择其他值注入类型</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_key_behavior">
+        <source>Enter key behavior</source>
+        <target state="new">Enter key behavior</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
         <target state="new">Enter key behavior:</target>

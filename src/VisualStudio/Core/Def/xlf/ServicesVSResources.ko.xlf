@@ -432,6 +432,11 @@
         <target state="translated">호출 사이트 값을 입력하거나 다른 값 삽입 종류를 선택하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_key_behavior">
+        <source>Enter key behavior</source>
+        <target state="new">Enter key behavior</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
         <target state="new">Enter key behavior:</target>

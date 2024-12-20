@@ -432,6 +432,11 @@
         <target state="translated">Geben Sie einen Aufrufsitewert ein, oder wählen Sie eine andere Art der Werteingabe aus.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_key_behavior">
+        <source>Enter key behavior</source>
+        <target state="new">Enter key behavior</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
         <target state="new">Enter key behavior:</target>

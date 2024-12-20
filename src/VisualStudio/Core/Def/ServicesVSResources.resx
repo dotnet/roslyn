@@ -1916,6 +1916,9 @@ Additional information: {1}</value>
   <data name="Enter_key_behavior_colon" xml:space="preserve">
     <value>Enter key behavior:</value>
   </data>
+  <data name="Enter_key_behavior" xml:space="preserve">
+    <value>Enter key behavior</value>
+  </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
   </data>
