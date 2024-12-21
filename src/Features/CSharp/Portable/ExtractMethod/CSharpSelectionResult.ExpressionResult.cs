@@ -30,16 +30,16 @@ internal abstract partial class CSharpSelectionResult
         public override bool ContainingScopeHasAsyncKeyword()
             => false;
 
-        public override SyntaxNode? GetContainingScope()
+        public override SyntaxNode GetContainingScope()
         {
             Contract.ThrowIfNull(SemanticDocument);
             Contract.ThrowIfFalse(IsExtractMethodOnExpression);
 
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();
+
             var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
-            if (scope == null)
-                return null;
+            Contract.ThrowIfNull(scope);
 
             return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
         }

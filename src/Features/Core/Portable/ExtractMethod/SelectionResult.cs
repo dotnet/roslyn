@@ -50,7 +50,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
 
     public abstract bool ContainingScopeHasAsyncKeyword();
 
-    public abstract SyntaxNode? GetContainingScope();
+    public abstract SyntaxNode GetContainingScope();
     public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
     public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnType();
