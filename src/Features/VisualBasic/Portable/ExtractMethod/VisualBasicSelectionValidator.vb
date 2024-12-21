@@ -44,11 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Return VisualBasicSelectionResult.CreateResultAsync(
                 Me.SemanticDocument,
-                selectionInfo.GetSelectionType(),
-                selectionInfo.OriginalSpan,
-                selectionInfo.FinalSpan,
-                selectionInfo.FirstTokenInFinalSpan,
-                selectionInfo.LastTokenInFinalSpan,
+                selectionInfo,
                 SelectionChanged(selectionInfo),
                 cancellationToken)
         End Function

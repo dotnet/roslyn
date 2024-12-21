@@ -18,11 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Public Shared Async Function CreateResultAsync(
             document As SemanticDocument,
-            selectionType As SelectionType,
-            originalSpan As TextSpan,
-            finalSpan As TextSpan,
-            firstToken As SyntaxToken,
-            lastToken As SyntaxToken,
+            selectionInfo As SelectionInfo(Of ExecutableStatementSyntax),
             selectionChanged As Boolean,
             cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 
@@ -33,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Dim root = document.Root
             Dim newDocument = Await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
-                root, {(firstToken, firstAnnotation), (lastToken, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
+                root, {(selectionInfo.FirstTokenInFinalSpan, firstAnnotation), (selectionInfo.LastTokenInFinalSpan, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSelectionResult(
                 newDocument,
-                selectionType,
-                originalSpan,
-                finalSpan,
+                selectionInfo.GetSelectionType(),
+                selectionInfo.OriginalSpan,
+                selectionInfo.FinalSpan,
                 firstAnnotation,
                 lastAnnotation,
                 selectionChanged)
