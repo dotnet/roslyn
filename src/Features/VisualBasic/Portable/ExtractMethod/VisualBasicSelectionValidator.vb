@@ -72,10 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return (result, selectionInfo.Status)
         End Function
 
-        Private Shared Function GetControlFlowSpan(selectionInfo As SelectionInfo) As TextSpan
-            Return TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End)
-        End Function
-
         Private Shared Function CheckErrorCasesAndAppendDescriptions(selectionInfo As SelectionInfo, semanticModel As SemanticModel, cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
                 Return selectionInfo

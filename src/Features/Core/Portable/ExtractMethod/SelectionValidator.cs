@@ -46,7 +46,30 @@ internal abstract partial class SelectionValidator<
         if (selectionInfo.Status.Failed)
             return (null, selectionInfo.Status);
 
+        if (!selectionInfo.SelectionInExpression)
+        {
+            var root = SemanticDocument.Root;
+            var model = SemanticDocument.SemanticModel;
+
+            var controlFlowSpan = GetControlFlowSpan(selectionInfo);
+            var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
+            if (statementRange == null)
+                return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
+
+            var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken);
+            if (!isFinalSpanSemanticallyValid)
+            {
+                selectionInfo = selectionInfo with
+                {
+                    Status = selectionInfo.Status.With(succeeded: true, FeaturesResources.Not_all_code_paths_return),
+                };
+            }
+        }
+
         return await GetValidSelectionAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
+
+        static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
+            => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
     }
 
     protected static SelectionType GetSelectionType(SelectionInfo info)

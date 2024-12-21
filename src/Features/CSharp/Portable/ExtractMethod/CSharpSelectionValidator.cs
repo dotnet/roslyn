@@ -167,9 +167,6 @@ internal sealed partial class CSharpSelectionValidator(
         }
     }
 
-    private static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
-        => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
-
     private static SelectionInfo AdjustFinalTokensBasedOnContext(
         SelectionInfo selectionInfo,
         SemanticModel semanticModel,
