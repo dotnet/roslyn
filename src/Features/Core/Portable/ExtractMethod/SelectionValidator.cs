@@ -177,35 +177,25 @@ internal abstract partial class SelectionValidator<
         return (firstStatement, lastStatement);
     }
 
-    protected sealed class SelectionInfo
+    protected sealed record SelectionInfo
     {
-        public OperationStatus Status { get; private set; }
+        public OperationStatus Status { get; init; }
 
-        public TextSpan OriginalSpan { get; private set; }
-        public TextSpan FinalSpan { get; private set; }
+        public TextSpan OriginalSpan { get; init; }
+        public TextSpan FinalSpan { get; init; }
 
-        public SyntaxNode CommonRootFromOriginalSpan { get; private set; }
+        public SyntaxNode CommonRootFromOriginalSpan { get; init; }
 
-        public SyntaxToken FirstTokenInOriginalSpan { get; private set; }
-        public SyntaxToken LastTokenInOriginalSpan { get; private set; }
+        public SyntaxToken FirstTokenInOriginalSpan { get; init; }
+        public SyntaxToken LastTokenInOriginalSpan { get; init; }
 
-        public SyntaxToken FirstTokenInFinalSpan { get; private set; }
-        public SyntaxToken LastTokenInFinalSpan { get; private set; }
+        public SyntaxToken FirstTokenInFinalSpan { get; init; }
+        public SyntaxToken LastTokenInFinalSpan { get; init; }
 
-        public bool SelectionInExpression { get; private set; }
-        public bool SelectionInSingleStatement { get; private set; }
+        public bool SelectionInExpression { get; init; }
+        public bool SelectionInSingleStatement { get; init; }
 
-        public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
-            => With(s => s.Status = statusGetter(s.Status));
-
-        public SelectionInfo With(Action<SelectionInfo> valueSetter)
-        {
-            var newInfo = Clone();
-            valueSetter(newInfo);
-            return newInfo;
-        }
-
-        public SelectionInfo Clone()
-            => (SelectionInfo)MemberwiseClone();
+        //public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
+        //    => With(s => s.Status = statusGetter(s.Status));
     }
 }
