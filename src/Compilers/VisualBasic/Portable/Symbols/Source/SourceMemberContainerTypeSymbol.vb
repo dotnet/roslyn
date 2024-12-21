@@ -60,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ReportedVarianceDiagnostics = &H2    ' Set if variance diagnostics have been reported.
             ReportedBaseClassConstraintsDiagnostics = &H4    ' Set if base class constraints diagnostics have been reported.
             ReportedInterfacesConstraintsDiagnostics = &H8    ' Set if constraints diagnostics for base/implemented interfaces have been reported.
+            ReportedCodeAnalysisEmbeddedAttributeDiagnostics = &H10 ' Set if 
         End Enum
 
         ' Containing symbol

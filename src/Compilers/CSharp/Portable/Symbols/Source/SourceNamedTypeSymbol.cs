@@ -1944,11 +1944,10 @@ next:;
                     || !IsSealed
                     || IsStatic
                     || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
-                    || !HasCodeAnalysisEmbeddedAttribute
                     || !this.DeclaringCompilation.IsAttributeType(this)
                     || (GetAttributeUsageInfo().ValidTargets & ExpectedTargets) != ExpectedTargets)
                 {
-                    // The type '{0}' must be non-generic, internal, sealed, non-static, and have a parameterless constructor.
+                    // The type '{0}' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
                     diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, GetFirstLocation(), AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 }
 
