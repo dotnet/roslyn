@@ -222,11 +222,6 @@
         <target state="translated">Supprimer la qualification 'Me'</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">impossible de déterminer la plage valide d'instructions à extraire</target>
-        <note />
-      </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
         <target state="translated">contient une sélection non valide</target>

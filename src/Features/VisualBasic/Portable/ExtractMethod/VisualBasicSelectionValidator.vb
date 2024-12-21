@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
                 Dim statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken)
                 If statementRange Is Nothing Then
-                    Return (Nothing, selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.can_t_determine_valid_range_of_statements_to_extract_out))
+                    Return (Nothing, selectionInfo.Status.With(succeeded:=False, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract))
                 End If
 
                 Dim isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken)

@@ -335,6 +335,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
         <target state="translated">Невозможно включить класс \{0} в диапазон символов</target>

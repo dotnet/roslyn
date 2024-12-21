@@ -71,7 +71,7 @@ internal sealed partial class CSharpSelectionValidator(
             var controlFlowSpan = GetControlFlowSpan(selectionInfo);
             var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
             if (statementRange == null)
-                return (null, selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
+                return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
 
             var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken);
             if (!isFinalSpanSemanticallyValid)

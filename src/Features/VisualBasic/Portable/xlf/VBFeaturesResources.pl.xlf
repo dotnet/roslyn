@@ -222,11 +222,6 @@
         <target state="translated">Usuń kwalifikację „Me”</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">nie można określić prawidłowego zakresu instrukcji do wyodrębnienia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
         <target state="translated">zawiera nieprawidłowe zaznaczenie</target>
