@@ -5,14 +5,13 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
-    Friend Class VisualBasicSelectionValidator
+    Friend NotInheritable Class VisualBasicSelectionValidator
         Inherits SelectionValidator(Of VisualBasicSelectionResult, ExecutableStatementSyntax)
 
         Public Sub New(document As SemanticDocument,
@@ -26,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             Dim text = Me.SemanticDocument.Text
-            Dim root = SemanticDocument.Root
+            Dim root = Me.SemanticDocument.Root
             Dim model = Me.SemanticDocument.SemanticModel
 
             Dim selectionInfo = GetInitialSelectionInfo(root)
@@ -337,7 +336,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     lastTokenInFinalSpan:=outerNode.GetLastToken(includeZeroWidth:=True))
             End If
 
-            Dim range = GetStatementRangeContainingSpan(Of StatementSyntax)(
+            Dim range = GetStatementRangeContainingSpan(
                 VisualBasicSyntaxFacts.Instance,
                 root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
                 cancellationToken)
@@ -347,8 +346,8 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
             End If
 
-            Dim statement1 = range.Value.Item1
-            Dim statement2 = range.Value.Item2
+            Dim statement1 = range.Value.firstStatement
+            Dim statement2 = range.Value.lastStatement
 
             If statement1 Is statement2 Then
                 ' check one more time to see whether it is an expression case

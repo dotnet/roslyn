@@ -80,64 +80,64 @@ internal abstract partial class SelectionValidator<
         return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
     }
 
-    protected static (T, T)? GetStatementRangeContainingSpan<T>(
+    protected static (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
         ISyntaxFacts syntaxFacts,
-        SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
+        SyntaxNode root,
+        TextSpan textSpan,
+        CancellationToken cancellationToken)
     {
         // use top-down approach to find smallest statement range that contains given span.
         // this approach is more expansive than bottom-up approach I used before but way simpler and easy to understand
         var token1 = root.FindToken(textSpan.Start);
         var token2 = root.FindTokenFromEnd(textSpan.End);
 
-        var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<T>() ?? root;
+        var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<TStatementSyntax>() ?? root;
 
-        var firstStatement = (T)null;
-        var lastStatement = (T)null;
+        TStatementSyntax firstStatement = null;
+        TStatementSyntax lastStatement = null;
 
-        var spine = new List<T>();
+        var spine = new List<TStatementSyntax>();
 
-        foreach (var stmt in commonRoot.DescendantNodesAndSelf().OfType<T>())
+        foreach (var statement in commonRoot.DescendantNodesAndSelf().OfType<TStatementSyntax>())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // quick skip check.
             // - not containing at all
-            if (stmt.Span.End < textSpan.Start)
+            if (statement.Span.End < textSpan.Start)
             {
                 continue;
             }
 
             // quick exit check
             // - passed candidate statements
-            if (textSpan.End < stmt.SpanStart)
+            if (textSpan.End < statement.SpanStart)
             {
                 break;
             }
 
-            if (stmt.SpanStart <= textSpan.Start)
+            if (statement.SpanStart <= textSpan.Start)
             {
                 // keep track spine
-                spine.Add(stmt);
+                spine.Add(statement);
             }
 
-            if (textSpan.End <= stmt.Span.End && spine.Any(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt)))
+            if (textSpan.End <= statement.Span.End && spine.Any(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, statement)))
             {
                 // malformed code or selection can make spine to have more than an elements
-                firstStatement = spine.First(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, stmt));
-                lastStatement = stmt;
+                firstStatement = spine.First(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, statement));
+                lastStatement = statement;
 
                 spine.Clear();
             }
         }
 
         if (firstStatement == null || lastStatement == null)
-        {
             return null;
-        }
 
         return (firstStatement, lastStatement);
 
-        static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, T existing, T current)
+        static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, TStatementSyntax existing, TStatementSyntax current)
             => syntaxFacts.AreStatementsInSameContainer(existing, current);
     }
 

@@ -35,7 +35,6 @@ internal sealed partial class CSharpSelectionValidator(
         var text = SemanticDocument.Text;
         var root = SemanticDocument.Root;
         var model = SemanticDocument.SemanticModel;
-        var doc = SemanticDocument;
 
         // go through pipe line and calculate information about the user selection
         var selectionInfo = GetInitialSelectionInfo(root, text);
@@ -72,7 +71,7 @@ internal sealed partial class CSharpSelectionValidator(
         var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
         var result = await CSharpSelectionResult.CreateAsync(
-            doc,
+            SemanticDocument,
             selectionInfo.OriginalSpan,
             selectionInfo.FinalSpan,
             selectionInfo.SelectionInExpression,
@@ -437,12 +436,12 @@ internal sealed partial class CSharpSelectionValidator(
             };
         }
 
-        var range = GetStatementRangeContainingSpan<StatementSyntax>(
+        var range = GetStatementRangeContainingSpan(
             CSharpSyntaxFacts.Instance,
             root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
             cancellationToken);
 
-        if (range == null)
+        if (range is not var (firstStatement, lastStatement))
         {
             return selectionInfo with
             {
@@ -450,14 +449,11 @@ internal sealed partial class CSharpSelectionValidator(
             };
         }
 
-        var statement1 = range.Value.Item1;
-        var statement2 = range.Value.Item2;
-
-        if (statement1 == statement2)
+        if (firstStatement == lastStatement)
         {
             // check one more time to see whether it is an expression case
             var expression = selectionInfo.CommonRootFromOriginalSpan.GetAncestor<ExpressionSyntax>();
-            if (expression != null && statement1.Span.Contains(expression.Span))
+            if (expression != null && firstStatement.Span.Contains(expression.Span))
             {
                 return selectionInfo with
                 {
@@ -471,16 +467,16 @@ internal sealed partial class CSharpSelectionValidator(
             return selectionInfo with
             {
                 SelectionInSingleStatement = true,
-                FirstTokenInFinalSpan = statement1.GetFirstToken(includeZeroWidth: true),
-                LastTokenInFinalSpan = statement1.GetLastToken(includeZeroWidth: true),
+                FirstTokenInFinalSpan = firstStatement.GetFirstToken(includeZeroWidth: true),
+                LastTokenInFinalSpan = firstStatement.GetLastToken(includeZeroWidth: true),
             };
         }
 
         // move only statements inside of the block
         return selectionInfo with
         {
-            FirstTokenInFinalSpan = statement1.GetFirstToken(includeZeroWidth: true),
-            LastTokenInFinalSpan = statement2.GetLastToken(includeZeroWidth: true),
+            FirstTokenInFinalSpan = firstStatement.GetFirstToken(includeZeroWidth: true),
+            LastTokenInFinalSpan = lastStatement.GetLastToken(includeZeroWidth: true),
         };
     }
 
