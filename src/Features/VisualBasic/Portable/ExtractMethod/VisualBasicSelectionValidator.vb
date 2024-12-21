@@ -516,10 +516,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return returnableConstructPairs.Where(Function(p) p.Item2 Is container).Select(Function(p) p.Item1)
             End Function
 
-            Public Overrides Function IsFinalSpanSemanticallyValidSpan(root As SyntaxNode,
-                                                                       textSpan As TextSpan,
-                                                                       returnStatements As IEnumerable(Of SyntaxNode),
-                                                                       cancellationToken As CancellationToken) As Boolean
+            Public Overrides Function IsFinalSpanSemanticallyValidSpan(
+                    textSpan As TextSpan,
+                    returnStatements As IEnumerable(Of SyntaxNode),
+                    cancellationToken As CancellationToken) As Boolean
 
                 ' do quick check to make sure we are under sub (no return value) container. otherwise, there is no point to anymore checks.
                 If returnStatements.Any(Function(s)
@@ -532,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 ' check whether selection reaches the end of the container
-                Dim lastToken = root.FindToken(textSpan.End)
+                Dim lastToken = Me.SemanticDocument.Root.FindToken(textSpan.End)
                 If lastToken.Kind = SyntaxKind.None Then
                     Return False
                 End If

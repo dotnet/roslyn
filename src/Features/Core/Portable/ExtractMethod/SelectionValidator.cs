@@ -35,7 +35,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract Task<TSelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
 
         public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
-        public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
+        public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
         public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
 
         protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);
@@ -52,14 +52,13 @@ internal abstract partial class AbstractExtractMethodService<
             if (!selectionInfo.SelectionInExpression)
             {
                 var root = SemanticDocument.Root;
-                var model = SemanticDocument.SemanticModel;
 
                 var controlFlowSpan = selectionInfo.GetControlFlowSpan();
                 var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
                 if (statementRange == null)
                     return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
 
-                var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken);
+                var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(controlFlowSpan, statementRange.Value, cancellationToken);
                 if (!isFinalSpanSemanticallyValid)
                 {
                     selectionInfo = selectionInfo with
@@ -74,9 +73,9 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected bool IsFinalSpanSemanticallyValidSpan(
-            SemanticModel semanticModel, TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
+            TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
         {
-            var controlFlowAnalysisData = semanticModel.AnalyzeControlFlow(range.Item1, range.Item2);
+            var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(range.Item1, range.Item2);
 
             // there must be no control in and out of given span
             if (controlFlowAnalysisData.EntryPoints.Any())
@@ -115,7 +114,7 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             // there is a return statement, and current position is reachable. let's check whether this is a case where that is okay
-            return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
+            return IsFinalSpanSemanticallyValidSpan(textSpan, returnStatements, cancellationToken);
         }
 
         protected (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(

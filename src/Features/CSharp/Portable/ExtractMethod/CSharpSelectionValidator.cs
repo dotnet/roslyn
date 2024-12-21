@@ -506,8 +506,7 @@ internal sealed partial class CSharpExtractMethodService
         }
 
         public override bool IsFinalSpanSemanticallyValidSpan(
-            SyntaxNode root, TextSpan textSpan,
-            IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken)
+            TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken)
         {
             // return statement shouldn't contain any return value
             if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))
@@ -515,7 +514,7 @@ internal sealed partial class CSharpExtractMethodService
                 return false;
             }
 
-            var lastToken = root.FindToken(textSpan.End);
+            var lastToken = this.SemanticDocument.Root.FindToken(textSpan.End);
             if (lastToken.Kind() == SyntaxKind.None)
             {
                 return false;
