@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -487,8 +488,8 @@ internal sealed partial class CSharpExtractMethodService
             };
         }
 
-        public override bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion)
-            => jumpsOutOfRegion.Where(n => n is not ReturnStatementSyntax).Any();
+        public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion)
+            => jumpsOutOfRegion.Any(n => n is not ReturnStatementSyntax);
 
         public override IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion)
         {

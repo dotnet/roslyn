@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -479,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                        }
             End Function
 
-            Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As IEnumerable(Of SyntaxNode)) As Boolean
+            Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As ImmutableArray(Of SyntaxNode)) As Boolean
                 Dim returnStatement = False
                 Dim exitStatement = False
 
