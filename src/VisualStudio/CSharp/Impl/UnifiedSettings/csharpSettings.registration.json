@@ -100,7 +100,7 @@
       "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
-      "enumItemLabels": [ "@Never_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
+      "enumItemLabels": [ "@Never_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Always_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Include_snippets_when_Tab_is_typed_after_an_identifier;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
       "default": "alwaysInclude",
       "order": 50,
       "migration": {

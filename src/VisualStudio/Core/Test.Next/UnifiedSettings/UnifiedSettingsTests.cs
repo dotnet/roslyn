@@ -50,10 +50,10 @@ public class UnifiedSettingsTests
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_csharpIntellisenseExpectedSettings =
     [
         (CompletionOptionsStorage.TriggerOnTypingLetters, CreateBooleanOption(
-                CompletionOptionsStorage.TriggerOnTypingLetters,
-                title: "Show completion list after a character is typed",
-                order: 0,
-                languageName: LanguageNames.CSharp)),
+            CompletionOptionsStorage.TriggerOnTypingLetters,
+            title: "Show completion list after a character is typed",
+            order: 0,
+            languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.TriggerOnDeletion, CreateBooleanOption(
             CompletionOptionsStorage.TriggerOnDeletion,
             title: "Show completion list after a character is deleted",
@@ -176,10 +176,10 @@ public class UnifiedSettingsTests
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_visualBasicIntellisenseExpectedSettings =
     [
         (CompletionOptionsStorage.TriggerOnTypingLetters, CreateBooleanOption(
-                CompletionOptionsStorage.TriggerOnTypingLetters,
-                title: "Show completion list after a character is typed",
-                order: 0,
-                languageName: LanguageNames.VisualBasic)),
+            CompletionOptionsStorage.TriggerOnTypingLetters,
+            title: "Show completion list after a character is typed",
+            order: 0,
+            languageName: LanguageNames.VisualBasic)),
         (CompletionOptionsStorage.TriggerOnDeletion, CreateBooleanOption(
             CompletionOptionsStorage.TriggerOnDeletion,
             title: "Show completion list after a character is deleted",
@@ -261,7 +261,7 @@ public class UnifiedSettingsTests
         var properties = jsonDocument!.Root["properties"]!.AsObject()
             .Where(jsonObject => jsonObject.Key.StartsWith(prefix))
             .SelectAsArray(jsonObject => jsonObject.Value);
-        Assert.Equal(s_visualBasicIntellisenseExpectedSettings.Length, properties.Length);
+        Assert.Equal(expectedOptionToSettings.Length, properties.Length);
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(expectedOptionToSettings, (actual, expected) => (actual, expected)))
         {
             // We only have bool and enum option now.
@@ -314,7 +314,7 @@ public class UnifiedSettingsTests
             : null;
 
         var enableWhen = enableWhenOptionAndValue is not null
-            ? $"config:{GetUnifiedSettingsOptionValue(enableWhenOptionAndValue.Value.enableWhenOption, languageName)}='{enableWhenOptionAndValue.Value.whenValue}'"
+            ? $"${{config:{GetUnifiedSettingsOptionValue(enableWhenOptionAndValue.Value.enableWhenOption, languageName)}}}=='{enableWhenOptionAndValue.Value.whenValue.ToString().ToCamelCase()}'"
             : null;
 
         var expectedDefault = customDefaultValue ?? onboardedOption.Definition.DefaultValue;
@@ -377,7 +377,7 @@ public class UnifiedSettingsTests
             : null;
 
         var enableWhen = enableWhenOptionAndValue is not null
-            ? $"config:{GetUnifiedSettingsOptionValue(enableWhenOptionAndValue.Value.enableWhenOption, languageName)}='{enableWhenOptionAndValue.Value.whenValue}'"
+            ? $"${{config:{GetUnifiedSettingsOptionValue(enableWhenOptionAndValue.Value.enableWhenOption, languageName)}}}=='{enableWhenOptionAndValue.Value.whenValue.ToString().ToCamelCase()}'"
             : null;
 
         var expectedDefault = customDefaultValue ?? onboardedOption.Definition.DefaultValue;
