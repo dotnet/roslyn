@@ -35,32 +35,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return selectionInfo
         End Function
 
-        Protected Overrides Async Function GetValidSelectionAsync(
+        Protected Overrides Function CreateSelectionResultAsync(
                 selectionInfo As SelectionInfo,
-                cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
+                cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
+
             Contract.ThrowIfFalse(ContainsValidSelection)
             Contract.ThrowIfFalse(selectionInfo.Status.Succeeded)
 
-            ' Check control flow only if we are extracting statement level, not expression level. There are no
-            ' expression-level constructs that affect control flow.
-            If Not selectionInfo.SelectionInExpression Then
-                Dim root = Me.SemanticDocument.Root
-                Dim model = Me.SemanticDocument.SemanticModel
-
-                Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
-                Dim statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken)
-                If statementRange Is Nothing Then
-                    Return (Nothing, selectionInfo.Status.With(succeeded:=False, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract))
-                End If
-
-                Dim isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken)
-                If Not isFinalSpanSemanticallyValid Then
-                    selectionInfo = selectionInfo.With(
-                        status:=selectionInfo.Status.With(succeeded:=True, FeaturesResources.Not_all_code_paths_return))
-                End If
-            End If
-
-            Dim result = Await VisualBasicSelectionResult.CreateResultAsync(
+            Return VisualBasicSelectionResult.CreateResultAsync(
                 Me.SemanticDocument,
                 GetSelectionType(selectionInfo),
                 selectionInfo.OriginalSpan,
@@ -68,8 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInfo.FirstTokenInFinalSpan,
                 selectionInfo.LastTokenInFinalSpan,
                 SelectionChanged(selectionInfo),
-                cancellationToken).ConfigureAwait(False)
-            Return (result, selectionInfo.Status)
+                cancellationToken)
         End Function
 
         Private Shared Function CheckErrorCasesAndAppendDescriptions(selectionInfo As SelectionInfo, semanticModel As SemanticModel, cancellationToken As CancellationToken) As SelectionInfo
@@ -160,9 +141,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return originalFirstToken <> finalFirstToken OrElse originalLastToken <> finalLastToken
         End Function
 
-        Private Shared Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(selectionInfo As SelectionInfo,
-                                                                               semanticModel As SemanticModel,
-                                                                               cancellationToken As CancellationToken) As Boolean
+        Private Shared Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(
+                selectionInfo As SelectionInfo,
+                semanticModel As SemanticModel,
+                cancellationToken As CancellationToken) As Boolean
             If selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of FieldDeclarationSyntax)() IsNot Nothing OrElse
                selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of PropertyStatementSyntax)() IsNot Nothing Then
                 ' static local can't exist in field initializer

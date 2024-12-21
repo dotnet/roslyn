@@ -29,7 +29,7 @@ internal abstract partial class SelectionValidator<
     public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
     protected abstract SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
-    protected abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(SelectionInfo initialSelectionInfo, CancellationToken cancellationToken);
+    protected abstract Task<TSelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
 
     public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
     public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
@@ -66,11 +66,12 @@ internal abstract partial class SelectionValidator<
             }
         }
 
-        return await GetValidSelectionAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
-
-        static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
-            => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
+        var selectionResult = await CreateSelectionResultAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
+        return (selectionResult, selectionInfo.Status);
     }
+
+    protected static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
+        => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
 
     protected static SelectionType GetSelectionType(SelectionInfo info)
     {

@@ -58,39 +58,15 @@ internal sealed partial class CSharpSelectionValidator(
         return selectionInfo;
     }
 
-    protected override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(
+    protected override Task<CSharpSelectionResult> CreateSelectionResultAsync(
         SelectionInfo selectionInfo, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(ContainsValidSelection);
         Contract.ThrowIfFalse(selectionInfo.Status.Succeeded);
 
-        // Check control flow only if we are extracting statement level, not expression level. There are no
-        // expression-level constructs (outside of a throw-expression) that affect control flow.  And a throw-expression
-        // doesn't matter for our purposes as we don't have to track that information across a method-call boundary as
-        // thrown exceptions already handle that naturally.
-        if (!selectionInfo.SelectionInExpression)
-        {
-            var root = SemanticDocument.Root;
-            var model = SemanticDocument.SemanticModel;
-
-            var controlFlowSpan = GetControlFlowSpan(selectionInfo);
-            var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
-            if (statementRange == null)
-                return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
-
-            var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken);
-            if (!isFinalSpanSemanticallyValid)
-            {
-                selectionInfo = selectionInfo with
-                {
-                    Status = selectionInfo.Status.With(succeeded: true, FeaturesResources.Not_all_code_paths_return),
-                };
-            }
-        }
-
         var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
-        var result = await CSharpSelectionResult.CreateAsync(
+        return CSharpSelectionResult.CreateAsync(
             SemanticDocument,
             GetSelectionType(selectionInfo),
             selectionInfo.OriginalSpan,
@@ -98,8 +74,7 @@ internal sealed partial class CSharpSelectionValidator(
             selectionInfo.FirstTokenInFinalSpan,
             selectionInfo.LastTokenInFinalSpan,
             selectionChanged,
-            cancellationToken).ConfigureAwait(false);
-        return (result, selectionInfo.Status);
+            cancellationToken);
     }
 
     private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
