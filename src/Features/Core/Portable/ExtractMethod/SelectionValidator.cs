@@ -223,8 +223,5 @@ internal abstract partial class SelectionValidator<
                 SelectionInSingleStatement = resultSelectionInSingleStatement,
             };
         }
-
-        //public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
-        //    => With(s => s.Status = statusGetter(s.Status));
     }
 }
