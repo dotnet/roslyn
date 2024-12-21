@@ -7,17 +7,19 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend NotInheritable Class VisualBasicSelectionValidator
         Inherits SelectionValidator(Of VisualBasicSelectionResult, ExecutableStatementSyntax)
 
-        Public Sub New(document As SemanticDocument,
-                       textSpan As TextSpan)
+        Public Sub New(document As SemanticDocument, textSpan As TextSpan)
             MyBase.New(document, textSpan)
         End Sub
+
+        Protected Overrides Function AreStatementsInSameContainer(statement1 As ExecutableStatementSyntax, statement2 As ExecutableStatementSyntax) As Boolean
+            Return statement1.Parent Is statement2.Parent
+        End Function
 
         Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
             If Not ContainsValidSelection Then
@@ -319,7 +321,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 lastTokenInFinalSpan:=firstValidNode.GetLastToken(includeZeroWidth:=True))
         End Function
 
-        Private Shared Function AssignInitialFinalTokens(selectionInfo As SelectionInfo, root As SyntaxNode, cancellationToken As CancellationToken) As SelectionInfo
+        Private Function AssignInitialFinalTokens(selectionInfo As SelectionInfo, root As SyntaxNode, cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
                 Return selectionInfo
             End If
@@ -337,7 +339,6 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             End If
 
             Dim range = GetStatementRangeContainingSpan(
-                VisualBasicSyntaxFacts.Instance,
                 root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
                 cancellationToken)
 

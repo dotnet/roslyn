@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,6 +25,21 @@ internal sealed partial class CSharpSelectionValidator(
     bool localFunction) : SelectionValidator<CSharpSelectionResult, StatementSyntax>(document, textSpan)
 {
     private readonly bool _localFunction = localFunction;
+
+    protected override bool AreStatementsInSameContainer(StatementSyntax statement1, StatementSyntax statement2)
+    {
+        if (statement1.Parent == statement2.Parent)
+            return true;
+
+        if (statement1.Parent is GlobalStatementSyntax
+            && statement2.Parent is GlobalStatementSyntax
+            && statement1.Parent.Parent == statement2.Parent.Parent)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     public override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
     {
@@ -421,7 +435,7 @@ internal sealed partial class CSharpSelectionValidator(
         return selectionInfo;
     }
 
-    private static SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+    private SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
     {
         if (selectionInfo.Status.Failed)
             return selectionInfo;
@@ -437,7 +451,6 @@ internal sealed partial class CSharpSelectionValidator(
         }
 
         var range = GetStatementRangeContainingSpan(
-            CSharpSyntaxFacts.Instance,
             root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
             cancellationToken);
 

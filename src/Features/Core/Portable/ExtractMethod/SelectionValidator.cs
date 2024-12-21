@@ -35,6 +35,8 @@ internal abstract partial class SelectionValidator<
     public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
     public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
 
+    protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);
+
     protected bool IsFinalSpanSemanticallyValidSpan(
         SemanticModel semanticModel, TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
     {
@@ -80,8 +82,7 @@ internal abstract partial class SelectionValidator<
         return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
     }
 
-    protected static (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
-        ISyntaxFacts syntaxFacts,
+    protected (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
         SyntaxNode root,
         TextSpan textSpan,
         CancellationToken cancellationToken)
@@ -118,10 +119,10 @@ internal abstract partial class SelectionValidator<
                 spine.Add(statement);
             }
 
-            if (textSpan.End <= statement.Span.End && spine.Any(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, statement)))
+            if (textSpan.End <= statement.Span.End && spine.Any(s => AreStatementsInSameContainer(s, statement)))
             {
                 // malformed code or selection can make spine to have more than an elements
-                firstStatement = spine.First(s => CanMergeExistingSpineWithCurrent(syntaxFacts, s, statement));
+                firstStatement = spine.First(s => AreStatementsInSameContainer(s, statement));
                 lastStatement = statement;
 
                 spine.Clear();
@@ -132,9 +133,6 @@ internal abstract partial class SelectionValidator<
             return null;
 
         return (firstStatement, lastStatement);
-
-        static bool CanMergeExistingSpineWithCurrent(ISyntaxFacts syntaxFacts, TStatementSyntax existing, TStatementSyntax current)
-            => syntaxFacts.AreStatementsInSameContainer(existing, current);
     }
 
     protected static (TStatementSyntax firstStatement, TStatementSyntax)? GetStatementRangeContainedInSpan(
