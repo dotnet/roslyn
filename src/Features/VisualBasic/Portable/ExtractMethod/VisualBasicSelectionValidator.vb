@@ -41,8 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return (Nothing, selectionInfo.Status)
             End If
 
-            Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
+            ' Check control flow only if we are extracting statement level, not expression level. There are no
+            ' expression-level constructs that affect control flow.
             If Not selectionInfo.SelectionInExpression Then
+                Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
                 Dim statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken)
                 If statementRange Is Nothing Then
                     Return (Nothing, selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.can_t_determine_valid_range_of_statements_to_extract_out))
@@ -50,8 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Dim isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken)
                 If Not isFinalSpanSemanticallyValid Then
-                    ' check control flow only if we are extracting statement level, not expression level. you can't have
-                    ' goto that moves control out of scope in expression level (even in lambda)
                     selectionInfo = selectionInfo.With(
                         status:=selectionInfo.Status.With(succeeded:=True, FeaturesResources.Not_all_code_paths_return))
                 End If

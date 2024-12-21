@@ -62,9 +62,13 @@ internal sealed partial class CSharpSelectionValidator(
         if (selectionInfo.Status.Failed)
             return (null, selectionInfo.Status);
 
-        var controlFlowSpan = GetControlFlowSpan(selectionInfo);
+        // Check control flow only if we are extracting statement level, not expression level. There are no
+        // expression-level constructs (outside of a throw-expression) that affect control flow.  And a throw-expression
+        // doesn't matter for our purposes as we don't have to track that information across a method-call boundary as
+        // thrown exceptions already handle that naturally.
         if (!selectionInfo.SelectionInExpression)
         {
+            var controlFlowSpan = GetControlFlowSpan(selectionInfo);
             var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
             if (statementRange == null)
                 return (null, selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
@@ -72,9 +76,6 @@ internal sealed partial class CSharpSelectionValidator(
             var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(model, controlFlowSpan, statementRange.Value, cancellationToken);
             if (!isFinalSpanSemanticallyValid)
             {
-                // check control flow only if we are extracting statement level, not expression
-                // level. you can not have goto that moves control out of scope in expression level
-                // (even in lambda)
                 selectionInfo = selectionInfo with
                 {
                     Status = selectionInfo.Status.With(succeeded: true, FeaturesResources.Not_all_code_paths_return),
