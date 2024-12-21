@@ -32,11 +32,7 @@ internal abstract partial class CSharpSelectionResult(
 {
     public static async Task<CSharpSelectionResult> CreateAsync(
         SemanticDocument document,
-        SelectionType selectionType,
-        TextSpan originalSpan,
-        TextSpan finalSpan,
-        SyntaxToken firstToken,
-        SyntaxToken lastToken,
+        SelectionInfo<StatementSyntax> selectionInfo,
         bool selectionChanged,
         CancellationToken cancellationToken)
     {
@@ -49,9 +45,13 @@ internal abstract partial class CSharpSelectionResult(
         var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
             root,
             [
-                (firstToken, firstTokenAnnotation),
-                (lastToken, lastTokenAnnotation)
+                (selectionInfo.FirstTokenInFinalSpan, firstTokenAnnotation),
+                (selectionInfo.LastTokenInFinalSpan, lastTokenAnnotation)
             ])), cancellationToken).ConfigureAwait(false);
+
+        var selectionType = selectionInfo.GetSelectionType();
+        var originalSpan = selectionInfo.OriginalSpan;
+        var finalSpan = selectionInfo.FinalSpan;
 
         return selectionType == SelectionType.Expression
             ? new ExpressionResult(newDocument, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)

@@ -39,7 +39,7 @@ internal sealed partial class CSharpSelectionValidator(
         return false;
     }
 
-    protected override SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken)
+    protected override SelectionInfo<StatementSyntax> GetInitialSelectionInfo(CancellationToken cancellationToken)
     {
         var text = SemanticDocument.Text;
         var root = SemanticDocument.Root;
@@ -57,7 +57,7 @@ internal sealed partial class CSharpSelectionValidator(
     }
 
     protected override Task<CSharpSelectionResult> CreateSelectionResultAsync(
-        SelectionInfo selectionInfo, CancellationToken cancellationToken)
+        SelectionInfo<StatementSyntax> selectionInfo, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(ContainsValidSelection);
         Contract.ThrowIfFalse(selectionInfo.Status.Succeeded);
@@ -66,16 +66,12 @@ internal sealed partial class CSharpSelectionValidator(
 
         return CSharpSelectionResult.CreateAsync(
             SemanticDocument,
-            GetSelectionType(selectionInfo),
-            selectionInfo.OriginalSpan,
-            selectionInfo.FinalSpan,
-            selectionInfo.FirstTokenInFinalSpan,
-            selectionInfo.LastTokenInFinalSpan,
+            selectionInfo,
             selectionChanged,
             cancellationToken);
     }
 
-    private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
+    private SelectionInfo<StatementSyntax> ApplySpecialCases(SelectionInfo<StatementSyntax> selectionInfo, SourceText text, ParseOptions options, bool localFunction)
     {
         if (selectionInfo.Status.Failed)
             return selectionInfo;
@@ -140,8 +136,8 @@ internal sealed partial class CSharpSelectionValidator(
         }
     }
 
-    private static SelectionInfo AdjustFinalTokensBasedOnContext(
-        SelectionInfo selectionInfo,
+    private static SelectionInfo<StatementSyntax> AdjustFinalTokensBasedOnContext(
+        SelectionInfo<StatementSyntax> selectionInfo,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
@@ -186,7 +182,7 @@ internal sealed partial class CSharpSelectionValidator(
         };
     }
 
-    private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
+    private SelectionInfo<StatementSyntax> GetInitialSelectionInfo(SyntaxNode root, SourceText text)
     {
         var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
 
@@ -195,12 +191,12 @@ internal sealed partial class CSharpSelectionValidator(
 
         if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
         {
-            return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
+            return new SelectionInfo<StatementSyntax> { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
         }
 
         if (firstTokenInSelection.SpanStart > lastTokenInSelection.Span.End)
         {
-            return new SelectionInfo
+            return new()
             {
                 Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_does_not_contain_a_valid_token),
                 OriginalSpan = adjustedSpan,
@@ -211,7 +207,7 @@ internal sealed partial class CSharpSelectionValidator(
 
         if (!UnderValidContext(firstTokenInSelection) || !UnderValidContext(lastTokenInSelection))
         {
-            return new SelectionInfo
+            return new()
             {
                 Status = new OperationStatus(succeeded: false, FeaturesResources.No_valid_selection_to_perform_extraction),
                 OriginalSpan = adjustedSpan,
@@ -224,7 +220,7 @@ internal sealed partial class CSharpSelectionValidator(
 
         if (commonRoot == null)
         {
-            return new SelectionInfo
+            return new()
             {
                 Status = new OperationStatus(succeeded: false, FeaturesResources.No_common_root_node_for_extraction),
                 OriginalSpan = adjustedSpan,
@@ -235,7 +231,7 @@ internal sealed partial class CSharpSelectionValidator(
 
         if (!commonRoot.ContainedInValidType())
         {
-            return new SelectionInfo
+            return new()
             {
                 Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_not_contained_inside_a_type),
                 OriginalSpan = adjustedSpan,
@@ -247,7 +243,7 @@ internal sealed partial class CSharpSelectionValidator(
         var selectionInExpression = commonRoot is ExpressionSyntax;
         if (!selectionInExpression && !commonRoot.UnderValidContext())
         {
-            return new SelectionInfo
+            return new()
             {
                 Status = new OperationStatus(succeeded: false, FeaturesResources.No_valid_selection_to_perform_extraction),
                 OriginalSpan = adjustedSpan,
@@ -256,7 +252,7 @@ internal sealed partial class CSharpSelectionValidator(
             };
         }
 
-        return new SelectionInfo
+        return new()
         {
             Status = OperationStatus.SucceededStatus,
             OriginalSpan = adjustedSpan,
@@ -328,8 +324,8 @@ internal sealed partial class CSharpSelectionValidator(
         return expressionBodiedMemberBody.Contains(textSpan);
     }
 
-    private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
-        SelectionInfo selectionInfo,
+    private static SelectionInfo<StatementSyntax> CheckErrorCasesAndAppendDescriptions(
+        SelectionInfo<StatementSyntax> selectionInfo,
         SyntaxNode root)
     {
         if (selectionInfo.Status.Failed)
@@ -411,7 +407,7 @@ internal sealed partial class CSharpSelectionValidator(
         return selectionInfo;
     }
 
-    private SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+    private SelectionInfo<StatementSyntax> AssignInitialFinalTokens(SelectionInfo<StatementSyntax> selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
     {
         if (selectionInfo.Status.Failed)
             return selectionInfo;
@@ -469,7 +465,7 @@ internal sealed partial class CSharpSelectionValidator(
         };
     }
 
-    private static SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
+    private static SelectionInfo<StatementSyntax> AssignFinalSpan(SelectionInfo<StatementSyntax> selectionInfo, SourceText text)
     {
         if (selectionInfo.Status.Failed)
             return selectionInfo;
