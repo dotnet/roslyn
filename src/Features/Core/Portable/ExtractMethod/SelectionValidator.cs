@@ -179,21 +179,21 @@ internal abstract partial class SelectionValidator<
 
     protected sealed class SelectionInfo
     {
-        public OperationStatus Status { get; set; }
+        public OperationStatus Status { get; private set; }
 
-        public TextSpan OriginalSpan { get; set; }
-        public TextSpan FinalSpan { get; set; }
+        public TextSpan OriginalSpan { get; private set; }
+        public TextSpan FinalSpan { get; private set; }
 
-        public SyntaxNode CommonRootFromOriginalSpan { get; set; }
+        public SyntaxNode CommonRootFromOriginalSpan { get; private set; }
 
-        public SyntaxToken FirstTokenInOriginalSpan { get; set; }
-        public SyntaxToken LastTokenInOriginalSpan { get; set; }
+        public SyntaxToken FirstTokenInOriginalSpan { get; private set; }
+        public SyntaxToken LastTokenInOriginalSpan { get; private set; }
 
-        public SyntaxToken FirstTokenInFinalSpan { get; set; }
-        public SyntaxToken LastTokenInFinalSpan { get; set; }
+        public SyntaxToken FirstTokenInFinalSpan { get; private set; }
+        public SyntaxToken LastTokenInFinalSpan { get; private set; }
 
-        public bool SelectionInExpression { get; set; }
-        public bool SelectionInSingleStatement { get; set; }
+        public bool SelectionInExpression { get; private set; }
+        public bool SelectionInSingleStatement { get; private set; }
 
         public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
             => With(s => s.Status = statusGetter(s.Status));

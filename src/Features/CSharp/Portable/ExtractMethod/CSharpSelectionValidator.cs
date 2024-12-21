@@ -72,10 +72,10 @@ internal sealed partial class CSharpSelectionValidator(
         var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
         var result = await CSharpSelectionResult.CreateAsync(
+            doc,
             selectionInfo.OriginalSpan,
             selectionInfo.FinalSpan,
             selectionInfo.SelectionInExpression,
-            doc,
             selectionInfo.FirstTokenInFinalSpan,
             selectionInfo.LastTokenInFinalSpan,
             selectionChanged,

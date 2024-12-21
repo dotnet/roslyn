@@ -391,7 +391,11 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
         {
             if (SelectionResult.SelectionInExpression)
-                return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
+            {
+                var containingScope = SelectionResult.GetNodeForDataFlowAnalysis();
+                Contract.ThrowIfNull(containingScope);
+                return model.AnalyzeDataFlow(containingScope);
+            }
 
             var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
             return model.AnalyzeDataFlow(firstStatement, lastStatement);
@@ -537,8 +541,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
             // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
             // have been referenced in.
-            var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, SelectionResult.GetContainingScope().Span.End);
-            var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
+            var containingScope = SelectionResult.GetContainingScope();
+            Contract.ThrowIfNull(containingScope);
+            var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, containingScope.Span.End);
+            var selectionOperation = semanticModel.GetOperation(containingScope);
 
             foreach (var symbol in candidates)
             {

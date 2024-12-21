@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,10 +17,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 /// clean up this code when we do selection validator work.
 /// </summary>
 internal abstract class SelectionResult<TStatementSyntax>(
+    SemanticDocument document,
     TextSpan originalSpan,
     TextSpan finalSpan,
     bool selectionInExpression,
-    SemanticDocument document,
     SyntaxAnnotation firstTokenAnnotation,
     SyntaxAnnotation lastTokenAnnotation,
     bool selectionChanged)
@@ -30,10 +28,10 @@ internal abstract class SelectionResult<TStatementSyntax>(
 {
     private bool? _createAsyncMethod;
 
+    public SemanticDocument SemanticDocument { get; private set; } = document;
     public TextSpan OriginalSpan { get; } = originalSpan;
     public TextSpan FinalSpan { get; } = finalSpan;
     public bool SelectionInExpression { get; } = selectionInExpression;
-    public SemanticDocument SemanticDocument { get; private set; } = document;
     public SyntaxAnnotation FirstTokenAnnotation { get; } = firstTokenAnnotation;
     public SyntaxAnnotation LastTokenAnnotation { get; } = lastTokenAnnotation;
     public bool SelectionChanged { get; } = selectionChanged;
@@ -46,18 +44,18 @@ internal abstract class SelectionResult<TStatementSyntax>(
 
     public abstract bool ContainingScopeHasAsyncKeyword();
 
-    public abstract SyntaxNode GetContainingScope();
+    public abstract SyntaxNode? GetContainingScope();
     public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-    public abstract (ITypeSymbol returnType, bool returnsByRef) GetReturnType();
+    public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnType();
 
-    public ITypeSymbol GetContainingScopeType()
+    public ITypeSymbol? GetContainingScopeType()
     {
         var (typeSymbol, _) = GetReturnType();
         return typeSymbol;
     }
 
-    public virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
+    public virtual SyntaxNode? GetNodeForDataFlowAnalysis() => GetContainingScope();
 
     public SelectionResult<TStatementSyntax> With(SemanticDocument document)
     {
@@ -78,7 +76,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
     public SyntaxToken GetLastTokenInSelection()
         => SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
 
-    public TNode GetContainingScopeOf<TNode>() where TNode : SyntaxNode
+    public TNode? GetContainingScopeOf<TNode>() where TNode : SyntaxNode
     {
         var containingScope = GetContainingScope();
         return containingScope.GetAncestorOrThis<TNode>();
@@ -113,7 +111,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
         Contract.ThrowIfTrue(SelectionInExpression);
 
         var token = GetFirstTokenInSelection();
-        return token.GetAncestor<TStatementSyntax>();
+        return token.GetRequiredAncestor<TStatementSyntax>();
     }
 
     public TStatementSyntax GetLastStatement()
@@ -121,7 +119,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
         Contract.ThrowIfTrue(SelectionInExpression);
 
         var token = GetLastTokenInSelection();
-        return token.GetAncestor<TStatementSyntax>();
+        return token.GetRequiredAncestor<TStatementSyntax>();
     }
 
     public bool CreateAsyncMethod()
@@ -133,7 +131,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
         {
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();
-            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+            var syntaxFacts = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
             for (var currentToken = firstToken;
                 currentToken.Span.End < lastToken.SpanStart;
@@ -158,7 +156,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
 
     public bool ShouldCallConfigureAwaitFalse()
     {
-        var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+        var syntaxFacts = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
         var firstToken = GetFirstTokenInSelection();
         var lastToken = GetLastTokenInSelection();

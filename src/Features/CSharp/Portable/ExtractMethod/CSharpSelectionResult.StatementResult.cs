@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 internal abstract partial class CSharpSelectionResult
 {
     private sealed class StatementResult(
+        SemanticDocument document,
         TextSpan originalSpan,
         TextSpan finalSpan,
         bool selectionInExpression,
-        SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged)
-        : CSharpSelectionResult(originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+        : CSharpSelectionResult(document, originalSpan, finalSpan, selectionInExpression, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
         {

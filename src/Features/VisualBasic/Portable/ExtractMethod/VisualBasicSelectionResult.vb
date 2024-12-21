@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
@@ -14,14 +13,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
-    Friend Class VisualBasicSelectionResult
+    Friend NotInheritable Class VisualBasicSelectionResult
         Inherits SelectionResult(Of ExecutableStatementSyntax)
 
         Public Shared Async Function CreateResultAsync(
+            document As SemanticDocument,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
             selectionInExpression As Boolean,
-            document As SemanticDocument,
             firstToken As SyntaxToken,
             lastToken As SyntaxToken,
             selectionChanged As Boolean,
@@ -37,29 +36,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 root, {(firstToken, firstAnnotation), (lastToken, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSelectionResult(
+                newDocument,
                 originalSpan,
                 finalSpan,
                 selectionInExpression,
-                newDocument,
                 firstAnnotation,
                 lastAnnotation,
                 selectionChanged)
         End Function
 
         Private Sub New(
+            document As SemanticDocument,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
             selectionInExpression As Boolean,
-            document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
             lastTokenAnnotation As SyntaxAnnotation,
             selectionChanged As Boolean)
 
             MyBase.New(
+                document,
                 originalSpan,
                 finalSpan,
                 selectionInExpression,
-                document,
                 firstTokenAnnotation,
                 lastTokenAnnotation,
                 selectionChanged)
