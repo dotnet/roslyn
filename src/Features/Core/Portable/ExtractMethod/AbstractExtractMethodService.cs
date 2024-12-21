@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract class AbstractExtractMethodService<
+internal abstract partial class AbstractExtractMethodService<
     TValidator,
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
     TExpressionSyntax> : IExtractMethodService
-    where TValidator : SelectionValidator<TSelectionResult, TStatementSyntax>
-    where TExtractor : MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
-    where TSelectionResult : SelectionResult<TStatementSyntax>
+    where TValidator : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExpressionSyntax>.SelectionValidator
+    where TExtractor : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExpressionSyntax>.MethodExtractor
+    where TSelectionResult : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExpressionSyntax>.SelectionResult
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {

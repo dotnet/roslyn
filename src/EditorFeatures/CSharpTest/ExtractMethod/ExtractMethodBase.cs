@@ -165,7 +165,7 @@ public abstract class ExtractMethodBase
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
 
-        var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false);
+        var validator = new CSharpExtractMethodService.CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false);
         var (result, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
 
         if (expectedFail)
@@ -194,7 +194,7 @@ public abstract class ExtractMethodBase
 
         foreach (var node in iterator)
         {
-            var validator = new CSharpSelectionValidator(semanticDocument, node.Span, localFunction: false);
+            var validator = new CSharpExtractMethodService.CSharpSelectionValidator(semanticDocument, node.Span, localFunction: false);
             var (_, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
 
             // check the obvious case
