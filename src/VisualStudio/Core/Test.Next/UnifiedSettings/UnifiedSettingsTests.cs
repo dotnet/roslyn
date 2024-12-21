@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.IO.Hashing;
@@ -18,6 +19,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
@@ -50,52 +53,76 @@ public class UnifiedSettingsTests
                 CompletionOptionsStorage.TriggerOnTypingLetters,
                 title: "Show completion list after a character is typed",
                 order: 0,
-                languageName: LanguageNames.VisualBasic)),
+                languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.TriggerOnDeletion, CreateBooleanOption(
             CompletionOptionsStorage.TriggerOnDeletion,
             title: "Show completion list after a character is deleted",
             order: 1,
-            customDefaultValue: true,
-            languageName: LanguageNames.VisualBasic)),
+            customDefaultValue: false,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.TriggerOnTypingLetters, whenValue: true),
+            languageName: LanguageNames.CSharp)),
+        (CompletionOptionsStorage.TriggerInArgumentLists, CreateBooleanOption(
+            CompletionOptionsStorage.TriggerInArgumentLists,
+            title: "Automatically show completion list in argument lists",
+            order: 10,
+            languageName: LanguageNames.CSharp)),
         (CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, CreateBooleanOption(
             CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems,
             "Highlight matching portions of completion list items",
-            order: 10,
-            languageName: LanguageNames.VisualBasic)),
+            order: 20,
+            languageName: LanguageNames.CSharp)),
         (CompletionViewOptionsStorage.ShowCompletionItemFilters, CreateBooleanOption(
             CompletionViewOptionsStorage.ShowCompletionItemFilters,
             title: "Show completion item filters",
-            order: 20,
-            languageName: LanguageNames.VisualBasic)),
+            order: 30,
+            languageName: LanguageNames.CSharp)),
+        (CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, CreateBooleanOption(
+            CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon,
+            title: "Automatically complete statement on semicolon",
+            order: 40,
+            languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.SnippetsBehavior, CreateEnumOption(
             CompletionOptionsStorage.SnippetsBehavior,
             "Snippets behavior",
-            order: 30,
-            customDefaultValue: SnippetsRule.IncludeAfterTypingIdentifierQuestionTab,
+            order: 50,
+            customDefaultValue: SnippetsRule.AlwaysInclude,
             enumLabels: ["Never include snippets", "Always include snippets", "Include snippets when ?-Tab is typed after an identifier"],
             enumValues: [SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab],
-            customMaps: [new Map { Result = "neverInclude", Match = 1}, new Map { Result = "alwaysInclude", Match = 2}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 3}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 0}],
-            languageName: LanguageNames.VisualBasic)),
+            customMaps: [new Map { Result = "neverInclude", Match = 1}, new Map { Result = "alwaysInclude", Match = 2}, new Map { Result = "always", Match = 0}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 3}],
+            languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.EnterKeyBehavior, CreateEnumOption(
             CompletionOptionsStorage.EnterKeyBehavior,
             "Enter key behavior",
-            order: 40,
-            customDefaultValue: EnterKeyRule.Always,
+            order: 60,
+            customDefaultValue: EnterKeyRule.Never,
             enumLabels: ["Never add new line on enter", "Only add new line on enter after end of fully typed word", "Always add new line on enter"],
             enumValues: [EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always],
-            customMaps: [new Map { Result = "never", Match = 1}, new Map { Result = "always", Match = 2}, new Map { Result = "always", Match = 0}, new Map { Result = "afterFullyTypedWord", Match = 3}],
-            languageName: LanguageNames.VisualBasic)),
+            customMaps: [new Map { Result = "never", Match = 1}, new Map { Result = "never", Match = 0}, new Map { Result = "always", Match = 0}, new Map { Result = "afterFullyTypedWord", Match = 3}],
+            languageName: LanguageNames.CSharp)),
+        (CompletionOptionsStorage.ShowNameSuggestions, CreateBooleanOption(
+            CompletionOptionsStorage.ShowNameSuggestions,
+            title: "Show name suggestions",
+            order: 70,
+            languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 50,
-            languageName: LanguageNames.VisualBasic)),
+            order: 80,
+            languageName: LanguageNames.CSharp)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             title: "Tab twice to insert arguments",
             customDefaultValue: false,
-            order: 60,
-            languageName: LanguageNames.VisualBasic,
+            order: 90,
+            languageName: LanguageNames.CSharp,
+            message: "Experimental feature")),
+        (CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, CreateBooleanOption(
+            CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
+            title: "Show new snippet experience",
+            customDefaultValue: false,
+            order: 100,
+            languageName: LanguageNames.CSharp,
+            featureFlagAndExperimentValue: (CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag, true),
             message: "Experimental feature")),
     ];
 
@@ -111,6 +138,20 @@ public class UnifiedSettingsTests
         Assert.Equal("IntelliSense", propertyToCategory["textEditor.csharp.intellisense"]!.Title);
         Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, propertyToCategory["textEditor.csharp.intellisense"]!.LegacyOptionPageId);
         await VerifyTagAsync(jsonDocument.ToString());
+    }
+
+    [Fact]
+    public async Task CSharpIntellisenseTest()
+    {
+        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.csharpSettings.registration.json");
+        var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
+        foreach (var (option, _) in s_csharpIntellisenseExpectedSettings)
+        {
+            Assert.True(s_csharpUnifiedSettingsStorage.ContainsKey(option));
+        }
+
+        VerifyProperties(jsonDocument!, "textEditor.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
+        await VerifyTagAsync(jsonDocument!.ToString());
     }
 
     #endregion
@@ -130,7 +171,7 @@ public class UnifiedSettingsTests
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.basic.intellisense.enableArgumentCompletionSnippets");
 
     /// <summary>
-    /// Dictionary containing the option to expected unified settings for VB intellisense page.
+    /// Array containing the option to expected unified settings for VB intellisense page.
     /// </summary>
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_visualBasicIntellisenseExpectedSettings =
     [
@@ -206,12 +247,22 @@ public class UnifiedSettingsTests
     {
         using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicSettings.registration.json");
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
-        var expectedPrefix = "textEditor.basic.intellisense";
+        foreach (var (option, _) in s_visualBasicIntellisenseExpectedSettings)
+        {
+            Assert.True(s_visualBasicUnifiedSettingsStorage.ContainsKey(option));
+        }
+
+        VerifyProperties(jsonDocument!, "textEditor.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
+        await VerifyTagAsync(jsonDocument!.ToString());
+    }
+
+    private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
+    {
         var properties = jsonDocument!.Root["properties"]!.AsObject()
-            .Where(jsonObject => jsonObject.Key.StartsWith(expectedPrefix))
+            .Where(jsonObject => jsonObject.Key.StartsWith(prefix))
             .SelectAsArray(jsonObject => jsonObject.Value);
         Assert.Equal(s_visualBasicIntellisenseExpectedSettings.Length, properties.Length);
-        foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(s_visualBasicIntellisenseExpectedSettings, (actual, expected) => (actual, expected)))
+        foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(expectedOptionToSettings, (actual, expected) => (actual, expected)))
         {
             // We only have bool and enum option now.
             UnifiedSettingBase actualSetting = expectedOption.Definition.Type.IsEnum
@@ -219,7 +270,6 @@ public class UnifiedSettingsTests
                 : actualJson.Deserialize<UnifiedSettingsOption<bool>>()!;
             Assert.Equal(expectedSetting, actualSetting);
         }
-        await VerifyTagAsync(jsonDocument.ToString());
     }
 
     #endregion
@@ -247,7 +297,7 @@ public class UnifiedSettingsTests
         IOption2 onboardedOption,
         string title,
         int order,
-        string? languageName,
+        string languageName,
         bool? customDefaultValue = null,
         (IOption2 featureFlagOption, bool value)? featureFlagAndExperimentValue = null,
         (IOption2 enableWhenOption, object whenValue)? enableWhenOptionAndValue = null,
@@ -264,7 +314,7 @@ public class UnifiedSettingsTests
             : null;
 
         var enableWhen = enableWhenOptionAndValue is not null
-            ? $"config:{s_visualBasicUnifiedSettingsStorage[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
+            ? $"config:{GetUnifiedSettingsOptionValue(enableWhenOptionAndValue.Value.enableWhenOption, languageName)}='{enableWhenOptionAndValue.Value.whenValue}'"
             : null;
 
         var expectedDefault = customDefaultValue ?? onboardedOption.Definition.DefaultValue;
@@ -300,7 +350,7 @@ public class UnifiedSettingsTests
         string title,
         int order,
         string[] enumLabels,
-        string? languageName,
+        string languageName,
         T? customDefaultValue = default,
         T[]? enumValues = null,
         Map[]? customMaps = null,
@@ -327,7 +377,7 @@ public class UnifiedSettingsTests
             : null;
 
         var enableWhen = enableWhenOptionAndValue is not null
-            ? $"config:{s_visualBasicUnifiedSettingsStorage[enableWhenOptionAndValue.Value.enableWhenOption]}='{enableWhenOptionAndValue.Value.whenValue}'"
+            ? $"config:{GetUnifiedSettingsOptionValue(enableWhenOptionAndValue.Value.enableWhenOption, languageName)}='{enableWhenOptionAndValue.Value.whenValue}'"
             : null;
 
         var expectedDefault = customDefaultValue ?? onboardedOption.Definition.DefaultValue;
@@ -344,6 +394,16 @@ public class UnifiedSettingsTests
             Migration = migration,
             AlternativeDefault = alternativeDefault,
             Default = expectedDefault.ToString().ToCamelCase(),
+        };
+    }
+
+    private static string GetUnifiedSettingsOptionValue(IOption2 option, string languageName)
+    {
+        return languageName switch
+        {
+            LanguageNames.CSharp => s_csharpUnifiedSettingsStorage[option],
+            LanguageNames.VisualBasic => s_visualBasicUnifiedSettingsStorage[option],
+            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
         };
     }
 
