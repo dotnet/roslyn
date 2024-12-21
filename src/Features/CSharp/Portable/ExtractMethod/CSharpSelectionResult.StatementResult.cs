@@ -54,9 +54,7 @@ internal abstract partial class CSharpSelectionResult
                        LocalFunctionStatementSyntax or
                        BaseMethodDeclarationSyntax or
                        AccessorDeclarationSyntax or
-                       ParenthesizedLambdaExpressionSyntax or
-                       SimpleLambdaExpressionSyntax or
-                       AnonymousMethodExpressionSyntax or
+                       AnonymousFunctionExpressionSyntax or
                        CompilationUnitSyntax;
             });
         }
