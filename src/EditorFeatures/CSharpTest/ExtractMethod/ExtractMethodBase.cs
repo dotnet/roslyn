@@ -164,10 +164,9 @@ public abstract class ExtractMethodBase
         Assert.NotNull(document);
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-        var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false);
 
-        var info = validator.ContainsValidSelection ? validator.GetInitialSelectionInfo(CancellationToken.None) : null;
-        var (result, status) = info is { Status.Succeeded: true } ? await validator.GetValidSelectionAsync(info, CancellationToken.None) : default;
+        var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false);
+        var (result, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
 
         if (expectedFail)
         {
