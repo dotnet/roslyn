@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
             If Not selectionInfo.SelectionInExpression Then
-                Dim statementRange = GetStatementRangeContainedInSpan(Of StatementSyntax)(root, controlFlowSpan, cancellationToken)
+                Dim statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken)
                 If statementRange Is Nothing Then
                     Return (Nothing, selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.can_t_determine_valid_range_of_statements_to_extract_out))
                 End If
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim expression = GetFinalTokenCommonRoot(selectionInfo).GetAncestorOrThis(Of ExpressionSyntax)()
                 result = semanticModel.AnalyzeDataFlow(expression)
             Else
-                Dim range = GetStatementRangeContainedInSpan(Of StatementSyntax)(
+                Dim range = GetStatementRangeContainedInSpan(
                     semanticModel.SyntaxTree.GetRoot(cancellationToken), GetControlFlowSpan(selectionInfo), cancellationToken)
 
                 ' we can't determine valid range of statements, don't bother to do the analysis

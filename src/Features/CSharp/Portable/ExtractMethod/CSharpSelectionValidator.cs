@@ -51,7 +51,7 @@ internal sealed partial class CSharpSelectionValidator(
         var controlFlowSpan = GetControlFlowSpan(selectionInfo);
         if (!selectionInfo.SelectionInExpression)
         {
-            var statementRange = GetStatementRangeContainedInSpan<StatementSyntax>(root, controlFlowSpan, cancellationToken);
+            var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
             if (statementRange == null)
                 return (null, selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
 

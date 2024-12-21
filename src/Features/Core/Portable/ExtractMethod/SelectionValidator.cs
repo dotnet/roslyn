@@ -105,16 +105,12 @@ internal abstract partial class SelectionValidator<
             // quick skip check.
             // - not containing at all
             if (statement.Span.End < textSpan.Start)
-            {
                 continue;
-            }
 
             // quick exit check
             // - passed candidate statements
             if (textSpan.End < statement.SpanStart)
-            {
                 break;
-            }
 
             if (statement.SpanStart <= textSpan.Start)
             {
@@ -141,38 +137,32 @@ internal abstract partial class SelectionValidator<
             => syntaxFacts.AreStatementsInSameContainer(existing, current);
     }
 
-    protected static (T, T)? GetStatementRangeContainedInSpan<T>(
-        SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
+    protected static (TStatementSyntax firstStatement, TStatementSyntax)? GetStatementRangeContainedInSpan(
+        SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken)
     {
         // use top-down approach to find largest statement range contained in the given span
         // this method is a bit more expensive than bottom-up approach, but way more simpler than the other approach.
         var token1 = root.FindToken(textSpan.Start);
         var token2 = root.FindTokenFromEnd(textSpan.End);
 
-        var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<T>() ?? root;
+        var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<TStatementSyntax>() ?? root;
 
-        T firstStatement = null;
-        T lastStatement = null;
+        TStatementSyntax firstStatement = null;
+        TStatementSyntax lastStatement = null;
 
-        foreach (var stmt in commonRoot.DescendantNodesAndSelf().OfType<T>())
+        foreach (var statement in commonRoot.DescendantNodesAndSelf().OfType<TStatementSyntax>())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (firstStatement == null && stmt.SpanStart >= textSpan.Start)
-            {
-                firstStatement = stmt;
-            }
+            if (firstStatement == null && statement.SpanStart >= textSpan.Start)
+                firstStatement = statement;
 
-            if (firstStatement != null && stmt.Span.End <= textSpan.End && stmt.Parent == firstStatement.Parent)
-            {
-                lastStatement = stmt;
-            }
+            if (firstStatement != null && statement.Span.End <= textSpan.End && statement.Parent == firstStatement.Parent)
+                lastStatement = statement;
         }
 
         if (firstStatement == null || lastStatement == null)
-        {
             return null;
-        }
 
         return (firstStatement, lastStatement);
     }
