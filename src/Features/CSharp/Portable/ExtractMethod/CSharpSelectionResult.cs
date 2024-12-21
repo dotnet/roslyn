@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 internal abstract partial class CSharpSelectionResult(
     SemanticDocument document,
+    SelectionType selectionType,
     TextSpan originalSpan,
     TextSpan finalSpan,
-    bool selectionInExpression,
     SyntaxAnnotation firstTokenAnnotation,
     SyntaxAnnotation lastTokenAnnotation,
     bool selectionChanged)
     : SelectionResult<StatementSyntax>(
-        document, originalSpan, finalSpan, selectionInExpression, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+        document, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
 {
     public static async Task<CSharpSelectionResult> CreateAsync(
         SemanticDocument document,
+        SelectionType selectionType,
         TextSpan originalSpan,
         TextSpan finalSpan,
-        bool selectionInExpression,
         SyntaxToken firstToken,
         SyntaxToken lastToken,
         bool selectionChanged,
@@ -53,16 +53,9 @@ internal abstract partial class CSharpSelectionResult(
                 (lastToken, lastTokenAnnotation)
             ])), cancellationToken).ConfigureAwait(false);
 
-        if (selectionInExpression)
-        {
-            return new ExpressionResult(
-                newDocument, originalSpan, finalSpan, selectionInExpression, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
-        }
-        else
-        {
-            return new StatementResult(
-                newDocument, originalSpan, finalSpan, selectionInExpression, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
-        }
+        return selectionType == SelectionType.Expression
+            ? new ExpressionResult(newDocument, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+            : new StatementResult(newDocument, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
     }
 
     protected override ISyntaxFacts SyntaxFacts
@@ -101,7 +94,7 @@ internal abstract partial class CSharpSelectionResult(
 
     public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
     {
-        if (this.SelectionInExpression)
+        if (this.IsExtractMethodOnExpression)
         {
             var container = this.GetInnermostStatementContainer();
 
@@ -113,13 +106,13 @@ internal abstract partial class CSharpSelectionResult(
             return container;
         }
 
-        if (this.IsExtractMethodOnSingleStatement())
+        if (this.IsExtractMethodOnSingleStatement)
         {
             var firstStatement = this.GetFirstStatement();
             return firstStatement.Parent;
         }
 
-        if (this.IsExtractMethodOnMultipleStatements())
+        if (this.IsExtractMethodOnMultipleStatements)
         {
             var firstStatement = this.GetFirstStatementUnderContainer();
             var container = firstStatement.Parent;
@@ -134,7 +127,7 @@ internal abstract partial class CSharpSelectionResult(
 
     public override StatementSyntax GetFirstStatementUnderContainer()
     {
-        Contract.ThrowIfTrue(SelectionInExpression);
+        Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
         var firstToken = GetFirstTokenInSelection();
         var statement = firstToken.Parent.GetStatementUnderContainer();
@@ -145,21 +138,17 @@ internal abstract partial class CSharpSelectionResult(
 
     public override StatementSyntax GetLastStatementUnderContainer()
     {
-        Contract.ThrowIfTrue(SelectionInExpression);
+        Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
         var lastToken = GetLastTokenInSelection();
         var statement = lastToken.Parent.GetStatementUnderContainer();
-
-        Contract.ThrowIfNull(statement);
-        var firstStatementUnderContainer = GetFirstStatementUnderContainer();
-        Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(statement, firstStatementUnderContainer));
 
         return statement;
     }
 
     public SyntaxNode GetInnermostStatementContainer()
     {
-        Contract.ThrowIfFalse(SelectionInExpression);
+        Contract.ThrowIfFalse(IsExtractMethodOnExpression);
         var containingScope = GetContainingScope();
         var statements = containingScope.GetAncestorsOrThis<StatementSyntax>();
         StatementSyntax last = null;

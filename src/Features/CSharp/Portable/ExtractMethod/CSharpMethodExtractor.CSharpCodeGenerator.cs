@@ -60,16 +60,13 @@ internal sealed partial class CSharpMethodExtractor
             ExtractMethodGenerationOptions options,
             bool localFunction)
         {
-            if (selectionResult.SelectionInExpression)
-                return new ExpressionCodeGenerator(selectionResult, analyzerResult, options, localFunction);
-
-            if (selectionResult.IsExtractMethodOnSingleStatement())
-                return new SingleStatementCodeGenerator(selectionResult, analyzerResult, options, localFunction);
-
-            if (selectionResult.IsExtractMethodOnMultipleStatements())
-                return new MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, localFunction);
-
-            throw ExceptionUtilities.UnexpectedValue(selectionResult);
+            return selectionResult.SelectionType switch
+            {
+                SelectionType.Expression => new ExpressionCodeGenerator(selectionResult, analyzerResult, options, localFunction),
+                SelectionType.SingleStatement => new SingleStatementCodeGenerator(selectionResult, analyzerResult, options, localFunction),
+                SelectionType.MultipleStatements => new MultipleStatementsCodeGenerator(selectionResult, analyzerResult, options, localFunction),
+                var v => throw ExceptionUtilities.UnexpectedValue(v),
+            };
         }
 
         protected CSharpCodeGenerator(
@@ -124,9 +121,6 @@ internal sealed partial class CSharpMethodExtractor
                 AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken);
             var firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite();
             var lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite();
-
-            Contract.ThrowIfFalse(firstStatementToRemove.Parent == lastStatementToRemove.Parent
-                || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstStatementToRemove, lastStatementToRemove));
 
             var statementsToInsert = await CreateStatementsOrInitializerToInsertAtCallSiteAsync(
                 insertionPointNode, cancellationToken).ConfigureAwait(false);

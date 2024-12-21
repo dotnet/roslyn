@@ -59,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Dim result = Await VisualBasicSelectionResult.CreateResultAsync(
                 Me.SemanticDocument,
+                GetSelectionType(selectionInfo),
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
-                selectionInfo.SelectionInExpression,
                 selectionInfo.FirstTokenInFinalSpan,
                 selectionInfo.LastTokenInFinalSpan,
                 SelectionChanged(selectionInfo),

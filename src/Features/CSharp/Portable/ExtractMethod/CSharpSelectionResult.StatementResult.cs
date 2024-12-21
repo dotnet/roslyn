@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -14,15 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 internal abstract partial class CSharpSelectionResult
 {
+    /// <summary>
+    /// Used when extracting either a single statement, or multiple statements to extract.
+    /// </summary>
     private sealed class StatementResult(
         SemanticDocument document,
+        SelectionType selectionType,
         TextSpan originalSpan,
         TextSpan finalSpan,
-        bool selectionInExpression,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged)
-        : CSharpSelectionResult(document, originalSpan, finalSpan, selectionInExpression, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+        : CSharpSelectionResult(document, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
         {
@@ -42,7 +46,7 @@ internal abstract partial class CSharpSelectionResult
         public override SyntaxNode GetContainingScope()
         {
             Contract.ThrowIfNull(SemanticDocument);
-            Contract.ThrowIfTrue(SelectionInExpression);
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
             // it contains statements
             var firstToken = GetFirstTokenInSelection();
@@ -61,7 +65,7 @@ internal abstract partial class CSharpSelectionResult
 
         public override (ITypeSymbol returnType, bool returnsByRef) GetReturnType()
         {
-            Contract.ThrowIfTrue(SelectionInExpression);
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
             var node = GetContainingScope();
             var semanticModel = SemanticDocument.SemanticModel;

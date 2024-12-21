@@ -46,9 +46,6 @@ internal sealed partial class CSharpMethodExtractor
                 _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                 _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
                 _statementsOrMemberOrAccessorToInsert = statementsOrFieldToInsert;
-
-                Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
-                    || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(_firstStatementOrFieldToReplace, _lastStatementOrFieldToReplace));
             }
 
             public SyntaxNode Generate()

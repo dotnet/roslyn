@@ -86,9 +86,9 @@ internal sealed partial class CSharpSelectionValidator(
 
         var result = await CSharpSelectionResult.CreateAsync(
             SemanticDocument,
+            GetSelectionType(selectionInfo),
             selectionInfo.OriginalSpan,
             selectionInfo.FinalSpan,
-            selectionInfo.SelectionInExpression,
             selectionInfo.FirstTokenInFinalSpan,
             selectionInfo.LastTokenInFinalSpan,
             selectionChanged,

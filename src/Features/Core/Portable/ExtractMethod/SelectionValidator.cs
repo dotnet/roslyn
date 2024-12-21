@@ -37,6 +37,19 @@ internal abstract partial class SelectionValidator<
 
     protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);
 
+    protected static SelectionType GetSelectionType(SelectionInfo info)
+    {
+        if (info.SelectionInExpression)
+            return SelectionType.Expression;
+
+        var firstStatement = info.FirstTokenInFinalSpan.GetRequiredAncestor<TStatementSyntax>();
+        var lastStatement = info.LastTokenInFinalSpan.GetRequiredAncestor<TStatementSyntax>();
+        if (firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span))
+            return SelectionType.SingleStatement;
+
+        return SelectionType.MultipleStatements;
+    }
+
     protected bool IsFinalSpanSemanticallyValidSpan(
         SemanticModel semanticModel, TextSpan textSpan, (SyntaxNode, SyntaxNode) range, CancellationToken cancellationToken)
     {

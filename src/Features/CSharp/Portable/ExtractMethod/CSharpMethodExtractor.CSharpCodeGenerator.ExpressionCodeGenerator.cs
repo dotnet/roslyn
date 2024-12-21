@@ -86,7 +86,7 @@ internal sealed partial class CSharpMethodExtractor
 
             protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
             {
-                Contract.ThrowIfFalse(this.SelectionResult.SelectionInExpression);
+                Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnExpression);
 
                 // special case for array initializer
                 var returnType = AnalyzerResult.ReturnType;

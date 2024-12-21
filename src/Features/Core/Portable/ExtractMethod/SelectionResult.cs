@@ -13,14 +13,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
+internal enum SelectionType
+{
+    Expression,
+    SingleStatement,
+    MultipleStatements,
+}
+
 /// <summary>
 /// clean up this code when we do selection validator work.
 /// </summary>
 internal abstract class SelectionResult<TStatementSyntax>(
     SemanticDocument document,
+    SelectionType selectionType,
     TextSpan originalSpan,
     TextSpan finalSpan,
-    bool selectionInExpression,
     SyntaxAnnotation firstTokenAnnotation,
     SyntaxAnnotation lastTokenAnnotation,
     bool selectionChanged)
@@ -31,7 +38,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
     public SemanticDocument SemanticDocument { get; private set; } = document;
     public TextSpan OriginalSpan { get; } = originalSpan;
     public TextSpan FinalSpan { get; } = finalSpan;
-    public bool SelectionInExpression { get; } = selectionInExpression;
+    public SelectionType SelectionType { get; } = selectionType;
     public SyntaxAnnotation FirstTokenAnnotation { get; } = firstTokenAnnotation;
     public SyntaxAnnotation LastTokenAnnotation { get; } = lastTokenAnnotation;
     public bool SelectionChanged { get; } = selectionChanged;
@@ -54,6 +61,10 @@ internal abstract class SelectionResult<TStatementSyntax>(
         var (typeSymbol, _) = GetReturnType();
         return typeSymbol;
     }
+
+    public bool IsExtractMethodOnExpression => this.SelectionType == SelectionType.Expression;
+    public bool IsExtractMethodOnSingleStatement => this.SelectionType == SelectionType.SingleStatement;
+    public bool IsExtractMethodOnMultipleStatements => this.SelectionType == SelectionType.MultipleStatements;
 
     public virtual SyntaxNode? GetNodeForDataFlowAnalysis() => GetContainingScope();
 
@@ -82,33 +93,9 @@ internal abstract class SelectionResult<TStatementSyntax>(
         return containingScope.GetAncestorOrThis<TNode>();
     }
 
-    public bool IsExtractMethodOnSingleStatement()
-    {
-        var firstStatement = this.GetFirstStatement();
-        var lastStatement = this.GetLastStatement();
-
-        return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
-    }
-
-    public bool IsExtractMethodOnMultipleStatements()
-    {
-        var first = this.GetFirstStatement();
-        var last = this.GetLastStatement();
-
-        if (first != last)
-        {
-            var firstUnderContainer = this.GetFirstStatementUnderContainer();
-            var lastUnderContainer = this.GetLastStatementUnderContainer();
-            Contract.ThrowIfFalse(this.SyntaxFacts.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
-            return true;
-        }
-
-        return false;
-    }
-
     public TStatementSyntax GetFirstStatement()
     {
-        Contract.ThrowIfTrue(SelectionInExpression);
+        Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
         var token = GetFirstTokenInSelection();
         return token.GetRequiredAncestor<TStatementSyntax>();
@@ -116,7 +103,7 @@ internal abstract class SelectionResult<TStatementSyntax>(
 
     public TStatementSyntax GetLastStatement()
     {
-        Contract.ThrowIfTrue(SelectionInExpression);
+        Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
         var token = GetLastTokenInSelection();
         return token.GetRequiredAncestor<TStatementSyntax>();

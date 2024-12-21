@@ -64,7 +64,7 @@ internal sealed partial class CSharpMethodExtractor
             // implicit 'dispose' call that comes after the last statement.  However, as that implicit dispose would
             // move if we move the `using var v` entirely into the new method, then it's still safe to move as there's
             // no actual "explicit user read" that happens in the outer caller at all.
-            if (!this.SelectionResult.SelectionInExpression &&
+            if (!this.SelectionResult.IsExtractMethodOnExpression &&
                 symbol is ILocalSymbol { IsUsing: true, DeclaringSyntaxReferences: [var reference] } &&
                 reference.GetSyntax(this.CancellationToken) is VariableDeclaratorSyntax
                 {

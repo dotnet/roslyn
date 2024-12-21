@@ -23,11 +23,12 @@ internal sealed partial class CSharpMethodExtractor
             ExtractMethodGenerationOptions options,
             bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
         {
-            protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
+            protected override SyntaxToken CreateMethodName()
+                => GenerateMethodNameForStatementGenerators();
 
             protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
             {
-                Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnSingleStatement());
+                Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnSingleStatement);
 
                 return [this.SelectionResult.GetFirstStatement()];
             }

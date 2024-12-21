@@ -240,7 +240,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return;
             }
 
-            if (!SelectionResult.SelectionInExpression && ContainsReturnStatementInSelectedCode(model))
+            if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode(model))
             {
                 // check whether we will use return type as it is or not.
                 awaitTaskReturn = returnType.Equals(taskType);
@@ -302,7 +302,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private bool IsInExpressionOrHasReturnStatement(SemanticModel model)
         {
-            var isInExpressionOrHasReturnStatement = SelectionResult.SelectionInExpression;
+            var isInExpressionOrHasReturnStatement = SelectionResult.IsExtractMethodOnExpression;
             if (!isInExpressionOrHasReturnStatement)
             {
                 var containsReturnStatement = ContainsReturnStatementInSelectedCode(model);
@@ -390,7 +390,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
         {
-            if (SelectionResult.SelectionInExpression)
+            if (SelectionResult.IsExtractMethodOnExpression)
             {
                 var containingScope = SelectionResult.GetNodeForDataFlowAnalysis();
                 Contract.ThrowIfNull(containingScope);
@@ -403,7 +403,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private bool IsEndOfSelectionReachable(SemanticModel model)
         {
-            if (SelectionResult.SelectionInExpression)
+            if (SelectionResult.IsExtractMethodOnExpression)
             {
                 return true;
             }
@@ -736,7 +736,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private bool SelectionContainsOnlyIdentifierWithSameType(ITypeSymbol type)
         {
-            if (!SelectionResult.SelectionInExpression)
+            if (!SelectionResult.IsExtractMethodOnExpression)
             {
                 return false;
             }
@@ -803,7 +803,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private bool ContainsReturnStatementInSelectedCode(SemanticModel model)
         {
-            Contract.ThrowIfTrue(SelectionResult.SelectionInExpression);
+            Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
 
             var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
             var controlFlowAnalysisData = model.AnalyzeControlFlow(firstStatement, lastStatement);

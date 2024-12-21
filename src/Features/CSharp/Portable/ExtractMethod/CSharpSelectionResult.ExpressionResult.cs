@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -15,15 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 internal abstract partial class CSharpSelectionResult
 {
+    /// <summary>
+    /// Used when selecting just an expression to extract.
+    /// </summary>
     private sealed class ExpressionResult(
         SemanticDocument document,
+        SelectionType selectionType,
         TextSpan originalSpan,
         TextSpan finalSpan,
-        bool selectionInExpression,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged) : CSharpSelectionResult(
-            document, originalSpan, finalSpan, selectionInExpression, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+            document, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
             => false;
@@ -31,7 +35,7 @@ internal abstract partial class CSharpSelectionResult
         public override SyntaxNode? GetContainingScope()
         {
             Contract.ThrowIfNull(SemanticDocument);
-            Contract.ThrowIfFalse(SelectionInExpression);
+            Contract.ThrowIfFalse(IsExtractMethodOnExpression);
 
             var firstToken = GetFirstTokenInSelection();
             var lastToken = GetLastTokenInSelection();

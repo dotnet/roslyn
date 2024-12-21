@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Sub
 
                 Public Shared Function IsExtractMethodOnExpression(code As VisualBasicSelectionResult) As Boolean
-                    Return code.SelectionInExpression
+                    Return code.IsExtractMethodOnExpression
                 End Function
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken

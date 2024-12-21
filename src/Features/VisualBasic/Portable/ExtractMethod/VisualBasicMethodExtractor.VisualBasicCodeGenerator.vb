@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     selectionResult As VisualBasicSelectionResult,
                     analyzerResult As AnalyzerResult,
                     options As ExtractMethodGenerationOptions) As VisualBasicCodeGenerator
-                If selectionResult.SelectionInExpression Then
+                If selectionResult.IsExtractMethodOnExpression Then
                     Return New ExpressionCodeGenerator(selectionResult, analyzerResult, options)
                 End If
 
