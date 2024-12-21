@@ -231,12 +231,10 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Dim start = If(selectionInfo.OriginalSpan.Start <= firstToken.SpanStart, selectionInfo.OriginalSpan.Start, firstToken.FullSpan.Start)
             Dim [end] = If(lastToken.Span.End <= selectionInfo.OriginalSpan.End, selectionInfo.OriginalSpan.End, lastToken.Span.End)
 
-            clone = clone.With(
+            Return clone.With(
                 finalSpan:=GetAdjustedSpan(root, TextSpan.FromBounds(start, [end])),
                 firstTokenInFinalSpan:=firstToken,
                 lastTokenInFinalSpan:=lastToken)
-
-            Return clone
         End Function
 
         Private Shared Function AdjustFinalTokensIfNextStatement(
@@ -254,7 +252,6 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 Return selectionInfo
             End If
 
-            Dim clone = selectionInfo
             Dim outmostControlVariable = nextStatement.ControlVariables.Last
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(outmostControlVariable, cancellationToken)
@@ -265,30 +262,24 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                symbol.Locations.Length <> 1 OrElse
                Not symbol.Locations.First().IsInSource OrElse
                symbol.Locations.First().SourceTree IsNot semanticModel.SyntaxTree Then
-                clone = clone.With(
-                    status:=clone.Status.With(succeeded:=False, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement))
-
-                Return clone
+                Return selectionInfo.With(
+                    status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement))
             End If
 
             Dim startPosition = symbol.Locations.First().SourceSpan.Start
             Dim root = semanticModel.SyntaxTree.GetRoot(cancellationToken)
             Dim forBlock = root.FindToken(startPosition).GetAncestor(Of ForOrForEachBlockSyntax)()
             If forBlock Is Nothing Then
-                clone = clone.With(
-                    status:=clone.Status.With(succeeded:=False, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement))
-
-                Return clone
+                Return selectionInfo.With(
+                    status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.next_statement_control_variable_doesn_t_have_matching_declaration_statement))
             End If
 
             Dim firstStatement = forBlock.ForOrForEachStatement
-            clone = clone.With(
+            Return selectionInfo.With(
                 selectionInExpression:=False,
                 selectionInSingleStatement:=forBlock.Span.Contains(nextStatement.Span),
                 firstTokenInFinalSpan:=firstStatement.GetFirstToken(includeZeroWidth:=True),
                 lastTokenInFinalSpan:=nextStatement.GetLastToken(includeZeroWidth:=True))
-
-            Return clone
         End Function
 
         Private Shared Function AdjustFinalTokensBasedOnContext(selectionInfo As SelectionInfo,
@@ -303,8 +294,6 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 Return selectionInfo
             End If
 
-            Dim clone = selectionInfo
-
             ' get the node that covers the selection
             Dim node = GetFinalTokenCommonRoot(selectionInfo)
 
@@ -318,21 +307,17 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
 
             If firstValidNode Is Nothing Then
                 ' couldn't find any valid node
-                clone = clone.With(
+                Return selectionInfo.With(
                     status:=New OperationStatus(succeeded:=False, VBFeaturesResources.Selection_doesn_t_contain_any_valid_node),
                     firstTokenInFinalSpan:=Nothing,
                     lastTokenInFinalSpan:=Nothing)
-
-                Return clone
             End If
 
-            clone = clone.With(
+            Return selectionInfo.With(
                 selectionInExpression:=TypeOf firstValidNode Is ExpressionSyntax,
                 selectionInSingleStatement:=TypeOf firstValidNode Is StatementSyntax,
                 firstTokenInFinalSpan:=firstValidNode.GetFirstToken(includeZeroWidth:=True),
                 lastTokenInFinalSpan:=firstValidNode.GetLastToken(includeZeroWidth:=True))
-
-            Return clone
         End Function
 
         Private Shared Function AssignInitialFinalTokens(selectionInfo As SelectionInfo, root As SyntaxNode, cancellationToken As CancellationToken) As SelectionInfo
@@ -340,20 +325,16 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 Return selectionInfo
             End If
 
-            Dim clone = selectionInfo
-
             If selectionInfo.SelectionInExpression Then
                 ' prefer outer statement or expression if two has same span
                 Dim outerNode = selectionInfo.CommonRootFromOriginalSpan.GetOutermostNodeWithSameSpan(Function(n) TypeOf n Is StatementSyntax OrElse TypeOf n Is ExpressionSyntax)
 
                 ' simple expression case
-                clone = clone.With(
+                Return selectionInfo.With(
                     selectionInExpression:=TypeOf outerNode Is ExpressionSyntax,
                     selectionInSingleStatement:=TypeOf outerNode Is StatementSyntax,
                     firstTokenInFinalSpan:=outerNode.GetFirstToken(includeZeroWidth:=True),
                     lastTokenInFinalSpan:=outerNode.GetLastToken(includeZeroWidth:=True))
-
-                Return clone
             End If
 
             Dim range = GetStatementRangeContainingSpan(Of StatementSyntax)(
@@ -362,10 +343,8 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 cancellationToken)
 
             If range Is Nothing Then
-                clone = clone.With(
-                    status:=clone.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
-
-                Return clone
+                Return selectionInfo.With(
+                    status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
             End If
 
             Dim statement1 = range.Value.Item1
@@ -375,12 +354,10 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 ' check one more time to see whether it is an expression case
                 Dim expression = selectionInfo.CommonRootFromOriginalSpan.GetAncestor(Of ExpressionSyntax)()
                 If expression IsNot Nothing AndAlso statement1.Span.Contains(expression.Span) Then
-                    clone = clone.With(
+                    Return selectionInfo.With(
                         selectionInExpression:=True,
                         firstTokenInFinalSpan:=expression.GetFirstToken(includeZeroWidth:=True),
                         lastTokenInFinalSpan:=expression.GetLastToken(includeZeroWidth:=True))
-
-                    Return clone
                 End If
 
                 ' single statement case
@@ -389,18 +366,14 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     Function(s) s.Parent IsNot Nothing AndAlso s.Parent.IsStatementContainerNode() AndAlso s.Parent.ContainStatement(s))
 
                 If singleStatement Is Nothing Then
-                    clone = clone.With(
-                        status:=clone.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
-
-                    Return clone
+                    Return selectionInfo.With(
+                        status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
                 End If
 
-                clone = clone.With(
+                Return selectionInfo.With(
                     selectionInSingleStatement:=True,
                     firstTokenInFinalSpan:=singleStatement.GetFirstToken(includeZeroWidth:=True),
                     lastTokenInFinalSpan:=singleStatement.GetLastToken(includeZeroWidth:=True))
-
-                Return clone
             End If
 
             ' Special check for vb
@@ -417,21 +390,17 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                                            .First()
 
                     ' single statement case
-                    clone = clone.With(
+                    Return selectionInfo.With(
                         selectionInExpression:=TypeOf parent Is ExpressionSyntax,
                         selectionInSingleStatement:=TypeOf parent Is StatementSyntax,
                         firstTokenInFinalSpan:=parent.GetFirstToken(),
                         lastTokenInFinalSpan:=parent.GetLastToken())
-
-                    Return clone
                 End If
             End If
 
-            clone = clone.With(
+            Return selectionInfo.With(
                 firstTokenInFinalSpan:=statement1.GetFirstToken(includeZeroWidth:=True),
                 lastTokenInFinalSpan:=statement2.GetLastToken(includeZeroWidth:=True))
-
-            Return clone
         End Function
 
         Private Function GetInitialSelectionInfo(root As SyntaxNode) As SelectionInfo
