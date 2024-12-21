@@ -30,7 +30,9 @@ internal abstract partial class SelectionValidator<
 
     public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
-    public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken);
+    public abstract SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
+    public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(SelectionInfo initialSelectionInfo, CancellationToken cancellationToken);
+
     public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
     public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
     public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
@@ -178,7 +180,7 @@ internal abstract partial class SelectionValidator<
         return (firstStatement, lastStatement);
     }
 
-    protected sealed record SelectionInfo
+    public sealed record SelectionInfo
     {
         public OperationStatus Status { get; init; }
 

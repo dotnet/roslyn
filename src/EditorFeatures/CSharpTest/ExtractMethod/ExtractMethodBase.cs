@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -23,7 +24,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod;
 
 [UseExportProvider]
-public class ExtractMethodBase
+public abstract class ExtractMethodBase
 {
     protected static async Task ExpectExtractMethodToFailAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string codeWithMarker, string[] features = null)
@@ -128,19 +129,8 @@ public class ExtractMethodBase
             CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(CancellationToken.None),
         };
 
-        var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-        var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction);
-
-        var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
-        if (!succeed && status.Failed)
-            return null;
-
-        Assert.NotNull(selectedCode);
-
-        // extract method
-        var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction);
-        var result = extractor.ExtractMethod(status, CancellationToken.None);
-        Assert.NotNull(result);
+        var result = await ExtractMethodService.ExtractMethodAsync(
+            document, testDocument.SelectedSpans.Single(), localFunction, options, CancellationToken.None);
 
         // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
         // failed or produced a message the user will have to confirm to continue. 
@@ -175,7 +165,9 @@ public class ExtractMethodBase
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
         var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false);
-        var (result, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
+
+        var info = validator.ContainsValidSelection ? validator.GetInitialSelectionInfo(CancellationToken.None) : null;
+        var (result, status) = info is { Status.Succeeded: true } ? await validator.GetValidSelectionAsync(info, CancellationToken.None) : default;
 
         if (expectedFail)
         {

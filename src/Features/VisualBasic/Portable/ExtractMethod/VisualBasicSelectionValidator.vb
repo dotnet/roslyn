@@ -21,12 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return statement1.Parent Is statement2.Parent
         End Function
 
-        Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
-            If Not ContainsValidSelection Then
-                Return (Nothing, OperationStatus.FailedWithUnknownReason)
-            End If
-
-            Dim text = Me.SemanticDocument.Text
+        Public Overrides Function GetInitialSelectionInfo(cancellationToken As CancellationToken) As SelectionInfo
             Dim root = Me.SemanticDocument.Root
             Dim model = Me.SemanticDocument.SemanticModel
 
@@ -37,13 +32,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             selectionInfo = FixUpFinalTokensAndAssignFinalSpan(selectionInfo, root, cancellationToken)
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, model, cancellationToken)
 
-            If selectionInfo.Status.Failed() Then
-                Return (Nothing, selectionInfo.Status)
-            End If
+            Return selectionInfo
+        End Function
+
+        Public Overrides Async Function GetValidSelectionAsync(
+                selectionInfo As SelectionInfo,
+                cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
+            Contract.ThrowIfFalse(ContainsValidSelection)
+            Contract.ThrowIfFalse(selectionInfo.Status.Succeeded)
 
             ' Check control flow only if we are extracting statement level, not expression level. There are no
             ' expression-level constructs that affect control flow.
             If Not selectionInfo.SelectionInExpression Then
+                Dim root = Me.SemanticDocument.Root
+                Dim model = Me.SemanticDocument.SemanticModel
+
                 Dim controlFlowSpan = GetControlFlowSpan(selectionInfo)
                 Dim statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken)
                 If statementRange Is Nothing Then
@@ -403,7 +406,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 lastTokenInFinalSpan:=statement2.GetLastToken(includeZeroWidth:=True))
         End Function
 
-        Private Function GetInitialSelectionInfo(root As SyntaxNode) As SelectionInfo
+        Private Overloads Function GetInitialSelectionInfo(root As SyntaxNode) As SelectionInfo
             Dim adjustedSpan = GetAdjustedSpan(root, Me.OriginalSpan)
             Dim firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped:=False)
             Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)

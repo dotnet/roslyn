@@ -41,11 +41,8 @@ internal sealed partial class CSharpSelectionValidator(
         return false;
     }
 
-    public override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
+    public override SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken)
     {
-        if (!ContainsValidSelection)
-            return (null, OperationStatus.FailedWithUnknownReason);
-
         var text = SemanticDocument.Text;
         var root = SemanticDocument.Root;
         var model = SemanticDocument.SemanticModel;
@@ -58,9 +55,14 @@ internal sealed partial class CSharpSelectionValidator(
         selectionInfo = ApplySpecialCases(selectionInfo, text, SemanticDocument.SyntaxTree.Options, _localFunction);
         selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
-        // there was a fatal error that we couldn't even do negative preview, return error result
-        if (selectionInfo.Status.Failed)
-            return (null, selectionInfo.Status);
+        return selectionInfo;
+    }
+
+    public override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(
+        SelectionInfo selectionInfo, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(ContainsValidSelection);
+        Contract.ThrowIfFalse(selectionInfo.Status.Succeeded);
 
         // Check control flow only if we are extracting statement level, not expression level. There are no
         // expression-level constructs (outside of a throw-expression) that affect control flow.  And a throw-expression
@@ -68,6 +70,9 @@ internal sealed partial class CSharpSelectionValidator(
         // thrown exceptions already handle that naturally.
         if (!selectionInfo.SelectionInExpression)
         {
+            var root = SemanticDocument.Root;
+            var model = SemanticDocument.SemanticModel;
+
             var controlFlowSpan = GetControlFlowSpan(selectionInfo);
             var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
             if (statementRange == null)
