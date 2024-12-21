@@ -4,13 +4,11 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,14 +28,26 @@ internal abstract partial class SelectionValidator<
 
     public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
-    public abstract SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
-    public abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(SelectionInfo initialSelectionInfo, CancellationToken cancellationToken);
+    protected abstract SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
+    protected abstract Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(SelectionInfo initialSelectionInfo, CancellationToken cancellationToken);
 
     public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
     public abstract bool IsFinalSpanSemanticallyValidSpan(SyntaxNode node, TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
     public abstract bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion);
 
     protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);
+
+    public async Task<(TSelectionResult, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
+    {
+        if (!this.ContainsValidSelection)
+            return (null, OperationStatus.FailedWithUnknownReason);
+
+        var selectionInfo = GetInitialSelectionInfo(cancellationToken);
+        if (selectionInfo.Status.Failed)
+            return (null, selectionInfo.Status);
+
+        return await GetValidSelectionAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
+    }
 
     protected static SelectionType GetSelectionType(SelectionInfo info)
     {
@@ -180,7 +190,7 @@ internal abstract partial class SelectionValidator<
         return (firstStatement, lastStatement);
     }
 
-    public sealed record SelectionInfo
+    protected sealed record SelectionInfo
     {
         public OperationStatus Status { get; init; }
 

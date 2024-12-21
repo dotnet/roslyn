@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return statement1.Parent Is statement2.Parent
         End Function
 
-        Public Overrides Function GetInitialSelectionInfo(cancellationToken As CancellationToken) As SelectionInfo
+        Protected Overrides Function GetInitialSelectionInfo(cancellationToken As CancellationToken) As SelectionInfo
             Dim root = Me.SemanticDocument.Root
             Dim model = Me.SemanticDocument.SemanticModel
 
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return selectionInfo
         End Function
 
-        Public Overrides Async Function GetValidSelectionAsync(
+        Protected Overrides Async Function GetValidSelectionAsync(
                 selectionInfo As SelectionInfo,
                 cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
             Contract.ThrowIfFalse(ContainsValidSelection)
@@ -286,9 +286,10 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 lastTokenInFinalSpan:=nextStatement.GetLastToken(includeZeroWidth:=True))
         End Function
 
-        Private Shared Function AdjustFinalTokensBasedOnContext(selectionInfo As SelectionInfo,
-                                                         semanticModel As SemanticModel,
-                                                         cancellationToken As CancellationToken) As SelectionInfo
+        Private Shared Function AdjustFinalTokensBasedOnContext(
+                selectionInfo As SelectionInfo,
+                semanticModel As SemanticModel,
+                cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
                 Return selectionInfo
             End If

@@ -41,7 +41,7 @@ internal sealed partial class CSharpSelectionValidator(
         return false;
     }
 
-    public override SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken)
+    protected override SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken)
     {
         var text = SemanticDocument.Text;
         var root = SemanticDocument.Root;
@@ -58,7 +58,7 @@ internal sealed partial class CSharpSelectionValidator(
         return selectionInfo;
     }
 
-    public override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(
+    protected override async Task<(CSharpSelectionResult, OperationStatus)> GetValidSelectionAsync(
         SelectionInfo selectionInfo, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(ContainsValidSelection);
