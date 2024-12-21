@@ -20,11 +20,11 @@ internal static class Utilities
 
     private const string LanguageServiceDllName = "Microsoft.VisualStudio.LanguageServices.dll";
 
-    public static string EvalResource(string resourceReference)
+    public static string? EvalResource(string resourceReference)
     {
         // Start with 1 because to skip @ at the beginning, like @Show_completion_item_filters
         var resourcesIdentifier = resourceReference.Substring(1, resourceReference.IndexOf(";") - 1);
-        var resources = resourceReference.Substring(resourceReference.IndexOf(";") + 1);
+        var resources = resourceReference[(resourceReference.IndexOf(";") + 1)..];
         var culture = new CultureInfo("en");
         if (Guid.TryParse(resources, out var packageGuid))
         {
