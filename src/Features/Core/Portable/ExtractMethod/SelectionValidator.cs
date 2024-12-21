@@ -195,6 +195,35 @@ internal abstract partial class SelectionValidator<
         public bool SelectionInExpression { get; init; }
         public bool SelectionInSingleStatement { get; init; }
 
+        /// <summary>
+        /// For VB.  C# should just use standard <c>with</c> operator.
+        /// </summary>
+        public SelectionInfo With(
+            Optional<OperationStatus> status = default,
+            Optional<TextSpan> finalSpan = default,
+            Optional<SyntaxToken> firstTokenInFinalSpan = default,
+            Optional<SyntaxToken> lastTokenInFinalSpan = default,
+            Optional<bool> selectionInExpression = default,
+            Optional<bool> selectionInSingleStatement = default)
+        {
+            var resultStatus = status.HasValue ? status.Value : this.Status;
+            var resultFinalSpan = finalSpan.HasValue ? finalSpan.Value : this.FinalSpan;
+            var resultFirstTokenInFinalSpan = firstTokenInFinalSpan.HasValue ? firstTokenInFinalSpan.Value : this.FirstTokenInFinalSpan;
+            var resultLastTokenInFinalSpan = lastTokenInFinalSpan.HasValue ? lastTokenInFinalSpan.Value : this.LastTokenInFinalSpan;
+            var resultSelectionInExpression = selectionInExpression.HasValue ? selectionInExpression.Value : this.SelectionInExpression;
+            var resultSelectionInSingleStatement = selectionInSingleStatement.HasValue ? selectionInSingleStatement.Value : this.SelectionInSingleStatement;
+
+            return this with
+            {
+                Status = resultStatus,
+                FinalSpan = resultFinalSpan,
+                FirstTokenInFinalSpan = resultFirstTokenInFinalSpan,
+                LastTokenInFinalSpan = resultLastTokenInFinalSpan,
+                SelectionInExpression = resultSelectionInExpression,
+                SelectionInSingleStatement = resultSelectionInSingleStatement,
+            };
+        }
+
         //public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
         //    => With(s => s.Status = statusGetter(s.Status));
     }
