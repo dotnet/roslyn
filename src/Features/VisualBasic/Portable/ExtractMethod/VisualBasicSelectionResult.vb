@@ -24,20 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Contract.ThrowIfNull(document)
 
-            Dim firstAnnotation = New SyntaxAnnotation()
-            Dim lastAnnotation = New SyntaxAnnotation()
-
             Dim root = document.Root
             Dim newDocument = Await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
-                root, {(selectionInfo.FirstTokenInFinalSpan, firstAnnotation), (selectionInfo.LastTokenInFinalSpan, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
+                root, {(selectionInfo.FirstTokenInFinalSpan, s_firstTokenAnnotation), (selectionInfo.LastTokenInFinalSpan, s_lastTokenAnnotation)})), cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSelectionResult(
                 newDocument,
                 selectionInfo.GetSelectionType(),
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
-                firstAnnotation,
-                lastAnnotation,
                 selectionChanged)
         End Function
 
@@ -46,8 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             selectionType As SelectionType,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            firstTokenAnnotation As SyntaxAnnotation,
-            lastTokenAnnotation As SyntaxAnnotation,
             selectionChanged As Boolean)
 
             MyBase.New(
@@ -55,8 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionType,
                 originalSpan,
                 finalSpan,
-                firstTokenAnnotation,
-                lastTokenAnnotation,
                 selectionChanged)
         End Sub
 

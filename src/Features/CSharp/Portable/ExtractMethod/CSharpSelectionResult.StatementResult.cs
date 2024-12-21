@@ -23,10 +23,8 @@ internal abstract partial class CSharpSelectionResult
         SelectionType selectionType,
         TextSpan originalSpan,
         TextSpan finalSpan,
-        SyntaxAnnotation firstTokenAnnotation,
-        SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged)
-        : CSharpSelectionResult(document, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+        : CSharpSelectionResult(document, selectionType, originalSpan, finalSpan, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
         {

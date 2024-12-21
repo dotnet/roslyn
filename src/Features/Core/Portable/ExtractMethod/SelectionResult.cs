@@ -28,19 +28,18 @@ internal abstract class SelectionResult<TStatementSyntax>(
     SelectionType selectionType,
     TextSpan originalSpan,
     TextSpan finalSpan,
-    SyntaxAnnotation firstTokenAnnotation,
-    SyntaxAnnotation lastTokenAnnotation,
     bool selectionChanged)
     where TStatementSyntax : SyntaxNode
 {
+    protected static readonly SyntaxAnnotation s_firstTokenAnnotation = new();
+    protected static readonly SyntaxAnnotation s_lastTokenAnnotation = new();
+
     private bool? _createAsyncMethod;
 
     public SemanticDocument SemanticDocument { get; private set; } = document;
     public TextSpan OriginalSpan { get; } = originalSpan;
     public TextSpan FinalSpan { get; } = finalSpan;
     public SelectionType SelectionType { get; } = selectionType;
-    public SyntaxAnnotation FirstTokenAnnotation { get; } = firstTokenAnnotation;
-    public SyntaxAnnotation LastTokenAnnotation { get; } = lastTokenAnnotation;
     public bool SelectionChanged { get; } = selectionChanged;
 
     protected abstract ISyntaxFacts SyntaxFacts { get; }
@@ -82,10 +81,10 @@ internal abstract class SelectionResult<TStatementSyntax>(
     }
 
     public SyntaxToken GetFirstTokenInSelection()
-        => SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
+        => SemanticDocument.GetTokenWithAnnotation(s_firstTokenAnnotation);
 
     public SyntaxToken GetLastTokenInSelection()
-        => SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
+        => SemanticDocument.GetTokenWithAnnotation(s_lastTokenAnnotation);
 
     public TNode? GetContainingScopeOf<TNode>() where TNode : SyntaxNode
     {

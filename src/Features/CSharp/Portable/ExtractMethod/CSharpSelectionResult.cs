@@ -24,11 +24,9 @@ internal abstract partial class CSharpSelectionResult(
     SelectionType selectionType,
     TextSpan originalSpan,
     TextSpan finalSpan,
-    SyntaxAnnotation firstTokenAnnotation,
-    SyntaxAnnotation lastTokenAnnotation,
     bool selectionChanged)
     : SelectionResult<StatementSyntax>(
-        document, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+        document, selectionType, originalSpan, finalSpan, selectionChanged)
 {
     public static async Task<CSharpSelectionResult> CreateAsync(
         SemanticDocument document,
@@ -38,15 +36,12 @@ internal abstract partial class CSharpSelectionResult(
     {
         Contract.ThrowIfNull(document);
 
-        var firstTokenAnnotation = new SyntaxAnnotation();
-        var lastTokenAnnotation = new SyntaxAnnotation();
-
         var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
             root,
             [
-                (selectionInfo.FirstTokenInFinalSpan, firstTokenAnnotation),
-                (selectionInfo.LastTokenInFinalSpan, lastTokenAnnotation)
+                (selectionInfo.FirstTokenInFinalSpan, s_firstTokenAnnotation),
+                (selectionInfo.LastTokenInFinalSpan, s_lastTokenAnnotation)
             ])), cancellationToken).ConfigureAwait(false);
 
         var selectionType = selectionInfo.GetSelectionType();
@@ -54,8 +49,8 @@ internal abstract partial class CSharpSelectionResult(
         var finalSpan = selectionInfo.FinalSpan;
 
         return selectionType == SelectionType.Expression
-            ? new ExpressionResult(newDocument, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
-            : new StatementResult(newDocument, selectionType, originalSpan, finalSpan, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
+            ? new ExpressionResult(newDocument, selectionType, originalSpan, finalSpan, selectionChanged)
+            : new StatementResult(newDocument, selectionType, originalSpan, finalSpan, selectionChanged);
     }
 
     protected override ISyntaxFacts SyntaxFacts
