@@ -68,7 +68,7 @@ internal abstract partial class AbstractExtractMethodService<
         public bool IsExtractMethodOnSingleStatement => this.SelectionType == SelectionType.SingleStatement;
         public bool IsExtractMethodOnMultipleStatements => this.SelectionType == SelectionType.MultipleStatements;
 
-        public virtual SyntaxNode? GetNodeForDataFlowAnalysis() => GetContainingScope();
+        public virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
 
         public SelectionResult With(SemanticDocument document)
         {

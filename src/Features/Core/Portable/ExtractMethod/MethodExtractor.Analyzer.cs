@@ -398,11 +398,7 @@ internal abstract partial class AbstractExtractMethodService<
             private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
             {
                 if (SelectionResult.IsExtractMethodOnExpression)
-                {
-                    var containingScope = SelectionResult.GetNodeForDataFlowAnalysis();
-                    Contract.ThrowIfNull(containingScope);
-                    return model.AnalyzeDataFlow(containingScope);
-                }
+                    return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
                 var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
                 return model.AnalyzeDataFlow(firstStatement, lastStatement);
