@@ -4284,6 +4284,56 @@ class SampleCollection<T>
     }
 
     [Fact]
+    public async Task TestIntroduceLocalWithTargetTypedNew()
+    {
+        var code =
+"""
+using System;
+class SampleType
+{
+    public SampleType() 
+    {
+        int sum = Sum([|new Numbers()|]);
+    }
+
+    private int Sum(Numbers numbers) 
+    {
+        return 42;
+    }
+
+    private class Numbers {}
+}
+""";
+
+        var expected =
+"""
+using System;
+class SampleType
+{
+    public SampleType() 
+    {
+        Numbers {|Rename:numbers|} = new();
+        int sum = Sum(numbers);
+    }
+
+    private int Sum(Numbers numbers) 
+    {
+        return 42;
+    }
+
+    private class Numbers {}
+}
+""";
+
+        OptionsCollection optionsCollection = new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+        };
+
+        await TestInRegularAndScriptAsync(code, expected, options: optionsCollection);
+    }
+
+    [Fact]
     public async Task TestIntroduceFieldInExpressionBodiedPropertyGetter()
     {
         var code =

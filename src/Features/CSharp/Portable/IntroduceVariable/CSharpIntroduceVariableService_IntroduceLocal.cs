@@ -9,10 +9,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -28,6 +30,7 @@ internal sealed partial class CSharpIntroduceVariableService
 {
     protected override Document IntroduceLocal(
         SemanticDocument document,
+        CodeCleanupOptions options,
         ExpressionSyntax expression,
         bool allOccurrences,
         bool isConstant,
@@ -47,6 +50,15 @@ internal sealed partial class CSharpIntroduceVariableService
             ? TokenList(ConstKeyword)
             : default;
 
+        var updatedExpression = expression.WithoutTrivia();
+
+        if (options.SimplifierOptions is CSharpSimplifierOptions csOptions && csOptions.ImplicitObjectCreationWhenTypeIsApparent.Value
+            && csOptions.GetUseVarPreference() == UseVarPreference.None)
+        {
+            if (expression is ObjectCreationExpressionSyntax oce)
+                updatedExpression = ImplicitObjectCreationExpression(oce.ArgumentList, oce.Initializer);
+        }
+
         var declarationStatement = LocalDeclarationStatement(
             modifiers,
             VariableDeclaration(
@@ -54,7 +66,7 @@ internal sealed partial class CSharpIntroduceVariableService
                 [VariableDeclarator(
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     argumentList: null,
-                    EqualsValueClause(expression.WithoutTrivia()))]));
+                    EqualsValueClause(updatedExpression))]));
 
         switch (containerToGenerateInto)
         {
