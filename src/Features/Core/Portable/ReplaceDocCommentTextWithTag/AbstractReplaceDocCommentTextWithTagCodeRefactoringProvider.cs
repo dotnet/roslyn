@@ -25,7 +25,7 @@ internal abstract class AbstractReplaceDocCommentTextWithTagCodeRefactoringProvi
     {
         var (document, span, cancellationToken) = context;
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var token = root.FindToken(span.Start, findInsideTrivia: true);
+        var token = root.FindTokenFromEnd(span.Start, findInsideTrivia: true);
 
         if (!IsXmlTextToken(token))
             return;

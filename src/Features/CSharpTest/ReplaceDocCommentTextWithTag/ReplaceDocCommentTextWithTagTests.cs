@@ -75,6 +75,25 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76548")]
+    public async Task TestEndOfKeyword_XmlCloseTagFollowing()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            /// <summary>Testing keyword null[||]</summary>
+            class C<TKey>
+            {
+            }
+            """,
+
+            """
+            /// <summary>Testing keyword <see langword="null"/></summary>
+            class C<TKey>
+            {
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestSelectedKeyword()
     {
