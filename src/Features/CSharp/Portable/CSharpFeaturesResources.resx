@@ -178,9 +178,6 @@
   <data name="The_selected_code_is_inside_an_unsafe_context" xml:space="preserve">
     <value>The selected code is inside an unsafe context.</value>
   </data>
-  <data name="No_valid_statement_range_to_extract" xml:space="preserve">
-    <value>No valid statement range to extract</value>
-  </data>
   <data name="deprecated" xml:space="preserve">
     <value>deprecated</value>
   </data>

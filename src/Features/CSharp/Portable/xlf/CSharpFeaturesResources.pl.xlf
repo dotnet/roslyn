@@ -362,11 +362,6 @@
         <target state="translated">Zaznaczony kod znajduje się w niebezpiecznym kontekście.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">Brak prawidłowego zakresu instrukcji do wyodrębnienia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">przestarzałe</target>

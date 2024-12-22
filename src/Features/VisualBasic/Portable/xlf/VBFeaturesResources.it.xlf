@@ -277,11 +277,6 @@
         <target state="translated">La selezione non contiene nodi validi</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">l'intervallo di istruzioni non è valido per l'estrazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Deprecato</target>

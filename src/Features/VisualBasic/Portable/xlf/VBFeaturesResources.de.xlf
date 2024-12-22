@@ -277,11 +277,6 @@
         <target state="translated">Auswahl enthält keinen gültigen Knoten</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">kein gültiger Anweisungsbereich für die Extraktion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Veraltet</target>

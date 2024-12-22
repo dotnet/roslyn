@@ -277,11 +277,6 @@
         <target state="translated">A seleção não contém qualquer nó válido</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">nenhum intervalo de instrução válido para extrair</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Preterido</target>

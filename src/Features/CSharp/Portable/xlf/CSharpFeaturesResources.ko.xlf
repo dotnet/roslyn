@@ -362,11 +362,6 @@
         <target state="translated">선택한 코드가 안전하지 않은 컨텍스트 내에 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">추출하는 데 유효한 문 범위가 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">사용되지 않음</target>

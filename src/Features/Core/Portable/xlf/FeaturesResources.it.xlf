@@ -1265,6 +1265,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">La selezione non è valida per eseguire l'estrazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="new">No valid statement range to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
         <target state="new">Not all code paths return</target>

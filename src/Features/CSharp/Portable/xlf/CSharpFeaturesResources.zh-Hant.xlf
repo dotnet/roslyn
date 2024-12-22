@@ -362,11 +362,6 @@
         <target state="translated">選取的程式碼在不安全的內容中。</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">沒有可擷取的有效陳述式範圍</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">已取代</target>

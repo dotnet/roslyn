@@ -277,11 +277,6 @@
         <target state="translated">선택 영역에 유효한 노드가 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">추출하는 데 유효한 문 범위가 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">사용되지 않음</target>

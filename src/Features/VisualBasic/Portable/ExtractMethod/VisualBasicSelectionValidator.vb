@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 If range Is Nothing Then
                     Return selectionInfo.With(
-                        status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
+                        status:=selectionInfo.Status.With(succeeded:=False, FeaturesResources.No_valid_statement_range_to_extract))
                 End If
 
                 Dim statement1 = range.Value.firstStatement
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     If singleStatement Is Nothing Then
                         Return selectionInfo.With(
-                            status:=selectionInfo.Status.With(succeeded:=False, VBFeaturesResources.no_valid_statement_range_to_extract_out))
+                            status:=selectionInfo.Status.With(succeeded:=False, FeaturesResources.No_valid_statement_range_to_extract))
                     End If
 
                     Return selectionInfo.With(

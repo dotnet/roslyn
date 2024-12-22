@@ -277,11 +277,6 @@
         <target state="translated">La sélection ne contient aucun nœud valide</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">Aucune plage d'instructions valides à extraire</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Déconseillé</target>

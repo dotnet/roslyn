@@ -277,11 +277,6 @@
         <target state="translated">所选内容不包含任何有效的节点</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">没有可供提取的有效语句范围</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">已弃用</target>

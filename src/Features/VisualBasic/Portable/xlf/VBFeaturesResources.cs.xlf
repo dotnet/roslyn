@@ -277,11 +277,6 @@
         <target state="translated">Výběr nemůže obsahovat žádný platný uzel.</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">žádný platný rozsah příkazů pro extrakci ven</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Zastaralé</target>

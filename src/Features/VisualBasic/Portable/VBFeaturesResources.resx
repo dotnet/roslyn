@@ -247,9 +247,6 @@
   <data name="Selection_doesn_t_contain_any_valid_node" xml:space="preserve">
     <value>Selection doesn't contain any valid node</value>
   </data>
-  <data name="no_valid_statement_range_to_extract_out" xml:space="preserve">
-    <value>no valid statement range to extract out</value>
-  </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
   </data>

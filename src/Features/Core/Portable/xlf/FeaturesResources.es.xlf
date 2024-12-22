@@ -1265,6 +1265,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Selección no válida para efectuar extracción.</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="new">No valid statement range to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
         <target state="new">Not all code paths return</target>

@@ -277,11 +277,6 @@
         <target state="translated">Seçim geçerli düğüm içermiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">Dışarıya ayıklanacak geçerli deyim aralığı yok</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">Kullanım Dışı</target>

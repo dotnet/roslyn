@@ -433,7 +433,7 @@ internal sealed partial class CSharpExtractMethodService
             {
                 return selectionInfo with
                 {
-                    Status = selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.No_valid_statement_range_to_extract),
+                    Status = selectionInfo.Status.With(succeeded: false, FeaturesResources.No_valid_statement_range_to_extract),
                 };
             }
 
