@@ -33,6 +33,7 @@ internal abstract partial class AbstractExtractMethodService<
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         var validator = CreateSelectionValidator(semanticDocument, textSpan, localFunction);
+        
         var (selectionResult, status) = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
         if (selectionResult is null)
             return ExtractMethodResult.Fail(status);
