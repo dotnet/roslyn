@@ -545,7 +545,6 @@ internal abstract partial class AbstractExtractMethodService<
                 // Need to analyze from the start of what we're extracting to the end of the scope that this variable could
                 // have been referenced in.
                 var containingScope = SelectionResult.GetContainingScope();
-                Contract.ThrowIfNull(containingScope);
                 var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, containingScope.Span.End);
                 var selectionOperation = semanticModel.GetOperation(containingScope);
 
