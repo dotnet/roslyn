@@ -36,8 +36,8 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
         protected abstract Task<TSelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
 
-        public abstract IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion);
-        public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken);
+        public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
+        public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
         public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion);
 
         protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);

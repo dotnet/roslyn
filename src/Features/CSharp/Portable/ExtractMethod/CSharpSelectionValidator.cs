@@ -491,23 +491,24 @@ internal sealed partial class CSharpExtractMethodService
         public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion)
             => jumpsOutOfRegion.Any(n => n is not ReturnStatementSyntax);
 
-        public override IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion)
+        public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion)
         {
-            var returnStatements = jumpsOutOfRegion.Where(s => s is ReturnStatementSyntax);
+            var returnStatements = jumpsOutOfRegion.OfType<ReturnStatementSyntax>();
 
             var container = commonRoot.GetAncestorsOrThis<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault();
             if (container == null)
                 return [];
 
-            var returnableConstructPairs = returnStatements.Select(r => (r, r.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
-                                                           .Where(p => p.Item2 != null);
-
             // now filter return statements to only include the one under outmost container
-            return returnableConstructPairs.Where(p => p.Item2 == container).Select(p => p.Item1);
+            return returnStatements
+                .Select(returnStatement => (returnStatement, container: returnStatement.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
+                .Where(p => p.container == container)
+                .SelectAsArray(p => p.returnStatement)
+                .CastArray<StatementSyntax>();
         }
 
         public override bool IsFinalSpanSemanticallyValidSpan(
-            TextSpan textSpan, IEnumerable<SyntaxNode> returnStatements, CancellationToken cancellationToken)
+            TextSpan textSpan, ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
             // return statement shouldn't contain any return value
             if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))

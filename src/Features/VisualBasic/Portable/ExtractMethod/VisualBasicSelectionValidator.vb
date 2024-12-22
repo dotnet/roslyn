@@ -501,25 +501,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
 
-            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
+            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
                 Dim returnStatements = jumpsOutOfRegionStatements.Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax)
 
                 Dim container = commonRoot.GetAncestorsOrThis(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault()
                 If container Is Nothing Then
-                    Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
+                    Return ImmutableArray(Of ExecutableStatementSyntax).Empty
                 End If
 
-                Dim returnableConstructPairs = returnStatements.
-                                                    Select(Function(r) (r, r.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
-                                                    Where(Function(p) p.Item2 IsNot Nothing)
-
                 ' now filter return statements to only include the one under outmost container
-                Return returnableConstructPairs.Where(Function(p) p.Item2 Is container).Select(Function(p) p.Item1)
+                Return returnStatements.
+                    Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
+                    Where(Function(p) p.container Is container).
+                    SelectAsArray(Function(p) p.returnStatement).
+                    CastArray(Of ExecutableStatementSyntax)
             End Function
 
             Public Overrides Function IsFinalSpanSemanticallyValidSpan(
                     textSpan As TextSpan,
-                    returnStatements As IEnumerable(Of SyntaxNode),
+                    returnStatements As ImmutableArray(Of ExecutableStatementSyntax),
                     cancellationToken As CancellationToken) As Boolean
 
                 ' do quick check to make sure we are under sub (no return value) container. otherwise, there is no point to anymore checks.
@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                             Return s.TypeSwitch(
                                                 Function(e As ExitStatementSyntax) e.BlockKeyword.Kind <> SyntaxKind.SubKeyword,
                                                 Function(r As ReturnStatementSyntax) r.Expression IsNot Nothing,
-                                                Function(n As SyntaxNode) True)
+                                                Function(n As ExecutableStatementSyntax) True)
                                         End Function) Then
                     Return False
                 End If
