@@ -493,14 +493,13 @@ internal sealed partial class CSharpExtractMethodService
 
         public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion)
         {
-            var returnStatements = jumpsOutOfRegion.OfType<ReturnStatementSyntax>();
-
             var container = commonRoot.GetAncestorsOrThis<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault();
             if (container == null)
                 return [];
 
             // now filter return statements to only include the one under outmost container
-            return returnStatements
+            return jumpsOutOfRegion
+                .OfType<ReturnStatementSyntax>()
                 .Select(returnStatement => (returnStatement, container: returnStatement.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
                 .Where(p => p.container == container)
                 .SelectAsArray(p => p.returnStatement)

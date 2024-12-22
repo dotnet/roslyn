@@ -502,15 +502,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
-                Dim returnStatements = jumpsOutOfRegionStatements.Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax)
-
                 Dim container = commonRoot.GetAncestorsOrThis(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault()
                 If container Is Nothing Then
                     Return ImmutableArray(Of ExecutableStatementSyntax).Empty
                 End If
 
                 ' now filter return statements to only include the one under outmost container
-                Return returnStatements.
+                Return jumpsOutOfRegionStatements.
+                    OfType(Of ExecutableStatementSyntax).
+                    Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).
                     Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
                     Where(Function(p) p.container Is container).
                     SelectAsArray(Function(p) p.returnStatement).
