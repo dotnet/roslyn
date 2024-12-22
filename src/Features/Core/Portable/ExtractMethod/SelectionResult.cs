@@ -13,13 +13,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal enum SelectionType
-{
-    Expression,
-    SingleStatement,
-    MultipleStatements,
-}
-
 internal abstract partial class AbstractExtractMethodService<
     TValidator,
     TExtractor,
