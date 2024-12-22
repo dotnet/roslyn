@@ -18,6 +18,7 @@ internal abstract partial class AbstractExtractMethodService<
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     internal abstract class SelectionResult(
@@ -41,8 +42,8 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
 
-        public abstract TStatementSyntax GetFirstStatementUnderContainer();
-        public abstract TStatementSyntax GetLastStatementUnderContainer();
+        public abstract TExecutableStatementSyntax GetFirstStatementUnderContainer();
+        public abstract TExecutableStatementSyntax GetLastStatementUnderContainer();
 
         public abstract bool ContainingScopeHasAsyncKeyword();
 
@@ -88,20 +89,20 @@ internal abstract partial class AbstractExtractMethodService<
             return containingScope.GetAncestorOrThis<TNode>();
         }
 
-        public TStatementSyntax GetFirstStatement()
+        public TExecutableStatementSyntax GetFirstStatement()
         {
             Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
             var token = GetFirstTokenInSelection();
-            return token.GetRequiredAncestor<TStatementSyntax>();
+            return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
-        public TStatementSyntax GetLastStatement()
+        public TExecutableStatementSyntax GetLastStatement()
         {
             Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
             var token = GetLastTokenInSelection();
-            return token.GetRequiredAncestor<TStatementSyntax>();
+            return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
         public bool CreateAsyncMethod()

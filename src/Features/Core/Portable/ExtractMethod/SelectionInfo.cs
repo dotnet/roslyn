@@ -14,6 +14,7 @@ internal abstract partial class AbstractExtractMethodService<
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     internal sealed record SelectionInfo
@@ -68,8 +69,8 @@ internal abstract partial class AbstractExtractMethodService<
             if (this.SelectionInExpression)
                 return SelectionType.Expression;
 
-            var firstStatement = this.FirstTokenInFinalSpan.GetRequiredAncestor<TStatementSyntax>();
-            var lastStatement = this.LastTokenInFinalSpan.GetRequiredAncestor<TStatementSyntax>();
+            var firstStatement = this.FirstTokenInFinalSpan.GetRequiredAncestor<TExecutableStatementSyntax>();
+            var lastStatement = this.LastTokenInFinalSpan.GetRequiredAncestor<TExecutableStatementSyntax>();
             if (firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span))
                 return SelectionType.SingleStatement;
 

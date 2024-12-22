@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(document, textSpan)
             End Sub
 
-            Protected Overrides Function AreStatementsInSameContainer(statement1 As ExecutableStatementSyntax, statement2 As ExecutableStatementSyntax) As Boolean
+            Protected Overrides Function AreStatementsInSameContainer(statement1 As StatementSyntax, statement2 As StatementSyntax) As Boolean
                 Return statement1.Parent Is statement2.Parent
             End Function
 

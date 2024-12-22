@@ -20,6 +20,7 @@ internal sealed partial class CSharpExtractMethodService() : AbstractExtractMeth
     CSharpExtractMethodService.CSharpMethodExtractor,
     CSharpExtractMethodService.CSharpSelectionResult,
     StatementSyntax,
+    StatementSyntax,
     ExpressionSyntax>
 {
     protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction)

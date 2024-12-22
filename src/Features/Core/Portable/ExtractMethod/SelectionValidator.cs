@@ -21,6 +21,7 @@ internal abstract partial class AbstractExtractMethodService<
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     public abstract partial class SelectionValidator(

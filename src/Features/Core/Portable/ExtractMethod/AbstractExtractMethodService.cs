@@ -13,11 +13,13 @@ internal abstract partial class AbstractExtractMethodService<
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax> : IExtractMethodService
-    where TValidator : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExpressionSyntax>.SelectionValidator
-    where TExtractor : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExpressionSyntax>.MethodExtractor
-    where TSelectionResult : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExpressionSyntax>.SelectionResult
+    where TValidator : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.SelectionValidator
+    where TExtractor : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.MethodExtractor
+    where TSelectionResult : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.SelectionResult
     where TStatementSyntax : SyntaxNode
+    where TExecutableStatementSyntax : TStatementSyntax
     where TExpressionSyntax : SyntaxNode
 {
     protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction);
@@ -33,7 +35,7 @@ internal abstract partial class AbstractExtractMethodService<
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         var validator = CreateSelectionValidator(semanticDocument, textSpan, localFunction);
-        
+
         var (selectionResult, status) = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
         if (selectionResult is null)
             return ExtractMethodResult.Fail(status);

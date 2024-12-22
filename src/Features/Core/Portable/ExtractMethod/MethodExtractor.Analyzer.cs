@@ -22,6 +22,7 @@ internal abstract partial class AbstractExtractMethodService<
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     internal abstract partial class MethodExtractor
@@ -50,7 +51,7 @@ internal abstract partial class AbstractExtractMethodService<
             /// <summary>
             /// convert text span to node range for the flow analysis API
             /// </summary>
-            private (TStatementSyntax firstStatement, TStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
+            private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
             {
                 var first = this.SelectionResult.GetFirstStatement();
                 var last = this.SelectionResult.GetLastStatement();

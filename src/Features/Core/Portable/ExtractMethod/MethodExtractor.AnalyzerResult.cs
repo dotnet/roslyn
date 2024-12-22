@@ -19,6 +19,7 @@ internal abstract partial class AbstractExtractMethodService<
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     internal abstract partial class MethodExtractor
