@@ -513,8 +513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).
                     Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
                     Where(Function(p) p.container Is container).
-                    SelectAsArray(Function(p) p.returnStatement).
-                    CastArray(Of ExecutableStatementSyntax)
+                    SelectAsArray(Function(p) p.returnStatement)
             End Function
 
             Public Overrides Function IsFinalSpanSemanticallyValidSpan(
