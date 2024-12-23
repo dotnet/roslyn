@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly ILEmitStyle _ilEmitStyle;
         private readonly bool _emitPdbSequencePoints;
-        private readonly int? _utf8StringEncodingThreshold;
+        private readonly int? _dataSectionStringLiteralThreshold;
 
         private readonly HashSet<LocalSymbol> _stackLocals;
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder = builder;
             _module = moduleBuilder;
             _diagnostics = diagnostics;
-            _utf8StringEncodingThreshold = compilation.Utf8StringEncodingThreshold;
+            _dataSectionStringLiteralThreshold = compilation.DataSectionStringLiteralThreshold;
 
             if (!method.GenerateDebugInfo)
             {

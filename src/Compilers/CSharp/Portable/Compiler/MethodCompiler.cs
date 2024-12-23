@@ -183,8 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 methodCompiler.WaitForWorkers();
 
-                moduleBeingBuiltOpt.FreezeDataStringHolders(diagnostics.DiagnosticBag);
-
                 // all threads that were adding methods must be finished now, we can freeze the class:
                 var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
                 if (privateImplClass != null)

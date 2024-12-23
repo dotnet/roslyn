@@ -341,23 +341,23 @@ public class A
 
             var expectedDiagnostics = new[]
             {
-                // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Consider using feature flag 'utf8-string-encoding'.
+                // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.
                 Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
             };
 
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
 
             CreateCompilation(source,
-                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "1000000"))
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1000000"))
                 .VerifyEmitDiagnostics(expectedDiagnostics);
 
             CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding"),
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"),
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
         }

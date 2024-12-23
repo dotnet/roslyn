@@ -2938,51 +2938,154 @@ public class Child : Parent, IParent
         }
 
         [Fact]
-        public void Utf8StringEncoding_MissingMembers()
+        public void DataSectionStringLiterals_MissingMembers()
         {
             var source = """
-                System.Console.WriteLine("Hello");
+                System.Console.Write("a");
+                System.Console.Write("bb");
+                System.Console.Write("ccc");
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.VerifyEmitDiagnostics(
-                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.WriteLine("Hello");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 26));
+                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                // System.Console.Write("a");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 22));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
             comp.VerifyEmitDiagnostics(
-                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.WriteLine("Hello");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 26));
+                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                // System.Console.Write("a");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 22));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
             comp.VerifyEmitDiagnostics(
-                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.WriteLine("Hello");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 26),
-                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.WriteLine("Hello");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 26));
+                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                // System.Console.Write("a");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 22),
+                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                // System.Console.Write("a");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 22));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "20"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            CompileAndVerify(comp, expectedOutput: "Hello").VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (2,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                // System.Console.Write("bb");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
+                // (2,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                // System.Console.Write("bb");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            CompileAndVerify(comp, expectedOutput: "abbccc").VerifyDiagnostics();
         }
 
         [Fact]
-        public void Utf8StringEncoding_InvalidUtf8()
+        public void DataSectionStringLiterals_Threshold()
+        {
+            var source = """
+                System.Console.Write("a");
+                System.Console.Write("bb");
+                System.Console.Write("ccc");
+                """;
+
+            var expectedOutput = "abbccc";
+
+            foreach (var feature in new[] { "3", "1000", "off" })
+            {
+                CompileAndVerify(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
+                    expectedOutput: expectedOutput)
+                    .VerifyDiagnostics()
+                    .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       31 (0x1f)
+                      .maxstack  1
+                      IL_0000:  ldstr      "a"
+                      IL_0005:  call       "void System.Console.Write(string)"
+                      IL_000a:  ldstr      "bb"
+                      IL_000f:  call       "void System.Console.Write(string)"
+                      IL_0014:  ldstr      "ccc"
+                      IL_0019:  call       "void System.Console.Write(string)"
+                      IL_001e:  ret
+                    }
+                    """);
+            }
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "2"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldstr      "bb"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """);
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldsfld     "string <PrivateImplementationDetails>.<S>DB1DE4B3DA6C7871B776D5CB968AA5A4.s"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """);
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "string <PrivateImplementationDetails>.<S>A96FAF705AF16834E6C632B61E964E1F.s"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldsfld     "string <PrivateImplementationDetails>.<S>DB1DE4B3DA6C7871B776D5CB968AA5A4.s"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_InvalidUtf8()
         {
             var source = """
                 System.Console.WriteLine("Hello \uD801\uD802");
                 """;
             CompileAndVerify(source,
-                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"),
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
                 expectedOutput: "Hello \uD801\uD802",
                 symbolValidator: static (ModuleSymbol module) =>
                 {
@@ -3007,14 +3110,14 @@ public class Child : Parent, IParent
         }
 
         [Fact]
-        public void Utf8StringEncoding_SynthesizedTypes()
+        public void DataSectionStringLiterals_SynthesizedTypes()
         {
             var source = """
                 System.Console.WriteLine("Hello");
                 """;
             var verifier = CompileAndVerify(source,
                 targetFramework: TargetFramework.Mscorlib46,
-                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"),
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
                 verify: Verification.Fails,
                 expectedOutput: "Hello",
                 symbolValidator: static (ModuleSymbol module) =>
@@ -3025,8 +3128,8 @@ public class Child : Parent, IParent
                         RefSafetyRulesAttribute
                         Program
                         <PrivateImplementationDetails>
-                        <S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969
                         __StaticArrayInitTypeSize=5
+                        <S>1BFD09D1A433FB78117B4C7B1583D16D
                         """, module.TypeNames.Join("\n"));
                 });
             verifier.VerifyDiagnostics();
@@ -3035,13 +3138,14 @@ public class Child : Parent, IParent
                 {
                   // Code size       11 (0xb)
                   .maxstack  1
-                  IL_0000:  ldsfld     "string DataStringHolder: <S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969.s"
+                  IL_0000:  ldsfld     "string <PrivateImplementationDetails>.<S>1BFD09D1A433FB78117B4C7B1583D16D.s"
                   IL_0005:  call       "void System.Console.WriteLine(string)"
                   IL_000a:  ret
                 }
                 """);
 
-            verifier.VerifyTypeIL("<PrivateImplementationDetails>", """
+            var offset = ExecutionConditionUtil.IsUnix ? "00002890" : "00002850";
+            verifier.VerifyTypeIL("<PrivateImplementationDetails>", $$"""
                 .class private auto ansi sealed '<PrivateImplementationDetails>'
                 	extends [mscorlib]System.Object
                 {
@@ -3055,8 +3159,32 @@ public class Child : Parent, IParent
                 		.pack 1
                 		.size 5
                 	} // end of class __StaticArrayInitTypeSize=5
+                	.class nested assembly auto ansi sealed beforefieldinit '<S>1BFD09D1A433FB78117B4C7B1583D16D'
+                		extends [mscorlib]System.Object
+                	{
+                		// Fields
+                		.field assembly static initonly string s
+                		// Methods
+                		.method private hidebysig specialname rtspecialname static 
+                			void .cctor () cil managed 
+                		{
+                			// Method begins at RVA 0x2089
+                			// Code size 17 (0x11)
+                			.maxstack 8
+                			IL_0000: ldsflda valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '<PrivateImplementationDetails>'::'185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'
+                			IL_0005: ldc.i4.5
+                			IL_0006: call string '<PrivateImplementationDetails>'::BytesToString(uint8*, int32)
+                			IL_000b: stsfld string '<PrivateImplementationDetails>'/'<S>1BFD09D1A433FB78117B4C7B1583D16D'::s
+                			IL_0010: ret
+                		} // end of method '<S>1BFD09D1A433FB78117B4C7B1583D16D'::.cctor
+                	} // end of class <S>1BFD09D1A433FB78117B4C7B1583D16D
+                	// Fields
+                	.field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969' at I_{{offset}}
+                    .data cil I_{{offset}} = bytearray (
+                		48 65 6c 6c 6f
+                	)
                 	// Methods
-                	.method assembly hidebysig static 
+                	.method private hidebysig static 
                 		string BytesToString (
                 			uint8* bytes,
                 			int32 length
@@ -3073,36 +3201,34 @@ public class Child : Parent, IParent
                 	} // end of method '<PrivateImplementationDetails>'::BytesToString
                 } // end of class <PrivateImplementationDetails>
                 """);
+        }
 
-            var offset = ExecutionConditionUtil.IsLinux ? "00002878" : "00002830";
-            verifier.VerifyTypeIL("<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969", $$"""
-                .class private auto ansi sealed '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'
-                	extends [mscorlib]System.Object
+        [Theory, CombinatorialData]
+        public void DataSectionStringLiterals_MetadataOnly(
+            [CombinatorialValues("0", "off")] string feature)
+        {
+            var source = """
+                System.Console.WriteLine("Hello");
+                """;
+            CompileAndVerify(source,
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
+                verify: Verification.FailsPEVerify with
                 {
-                	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                		01 00 00 00
-                	)
-                	// Fields
-                	.field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' f at I_{{offset}}
-                    .data cil I_{{offset}} = bytearray (
-                		48 65 6c 6c 6f
-                	)
-                	.field assembly static initonly string s
-                	// Methods
-                	.method private hidebysig specialname rtspecialname static 
-                		void .cctor () cil managed 
-                	{
-                		// Method begins at RVA 0x2089
-                		// Code size 17 (0x11)
-                		.maxstack 8
-                		IL_0000: ldsflda valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'::f
-                		IL_0005: ldc.i4.5
-                		IL_0006: call string '<PrivateImplementationDetails>'::BytesToString(uint8*, int32)
-                		IL_000b: stsfld string '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'::s
-                		IL_0010: ret
-                	} // end of method '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'::.cctor
-                } // end of class <S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969
-                """);
+                    PEVerifyMessage = """
+                        Bad token as entry point in CLR header.
+                        """,
+                },
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        EmbeddedAttribute
+                        RefSafetyRulesAttribute
+                        Program
+                        """, module.TypeNames.Join("\n"));
+                })
+                .VerifyDiagnostics();
         }
     }
 }
