@@ -935,7 +935,7 @@ options: ImplicitTypingEverywhere());
             {
                 static void Main()
                 {
-                    G<int>.@class {|Rename:@class|} = new G<int>.@class();
+                    G<int>.@class {|Rename:@class|} = new();
                     G<int>.Add(@class);
                 }
             }
@@ -1018,7 +1018,7 @@ options: ImplicitTypingEverywhere());
 
                 static void Main()
                 {
-                    G<int>.@class {|Rename:@class|} = new G<int>.@class();
+                    G<int>.@class {|Rename:@class|} = new();
                     G<int>.Add(@class);
                 }
             }
@@ -3001,7 +3001,7 @@ options: ImplicitTypingEverywhere());
             {
                 static void Main()
                 {
-                    Nullable<int*> {|Rename:v|} = new Nullable<int*>();
+                    Nullable<int*> {|Rename:v|} = new();
                     v.GetValueOrDefault();
                 }
             }
@@ -4287,43 +4287,43 @@ class SampleCollection<T>
     public async Task TestIntroduceLocalWithTargetTypedNew()
     {
         var code =
-"""
-using System;
-class SampleType
-{
-    public SampleType() 
-    {
-        int sum = Sum([|new Numbers()|]);
-    }
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    int sum = Sum([|new Numbers()|]);
+                }
 
-    private int Sum(Numbers numbers) 
-    {
-        return 42;
-    }
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
 
-    private class Numbers {}
-}
-""";
+                private class Numbers {}
+            }
+            """;
 
         var expected =
-"""
-using System;
-class SampleType
-{
-    public SampleType() 
-    {
-        Numbers {|Rename:numbers|} = new();
-        int sum = Sum(numbers);
-    }
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    Numbers {|Rename:numbers|} = new();
+                    int sum = Sum(numbers);
+                }
 
-    private int Sum(Numbers numbers) 
-    {
-        return 42;
-    }
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
 
-    private class Numbers {}
-}
-""";
+                private class Numbers {}
+            }
+            """;
 
         OptionsCollection optionsCollection = new(GetLanguage())
         {
