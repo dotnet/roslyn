@@ -3339,6 +3339,12 @@ static class C {
                 // (9,5): error CS0518: Predefined type 'System.Int64' is not defined or imported
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Int64").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.String' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.String").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.String' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.String").WithLocation(9, 5),
                 // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),

@@ -270,8 +270,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compiler.ProcessEmbeddedMethods()
                 End If
 
-                moduleBeingBuiltOpt.FreezeDataStringHolders(compiler._diagnostics.DiagnosticBag)
-
                 ' all threads that were adding methods must be finished now, we can freeze the class:
                 Dim privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails()
                 If privateImplClass IsNot Nothing Then

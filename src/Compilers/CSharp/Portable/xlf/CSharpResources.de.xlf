@@ -12710,7 +12710,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Consider using feature flag 'utf8-string-encoding'.</source>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
         <target state="needs-review-translation">Die kombinierte Länge der vom Programm verwendeten Benutzerzeichenfolgen überschreitet den zulässigen Grenzwert. Versuchen Sie, die Verwendung von Zeichenfolgenliteralen zu verringern.</target>
         <note />
       </trans-unit>

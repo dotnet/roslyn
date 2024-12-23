@@ -12710,7 +12710,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Consider using feature flag 'utf8-string-encoding'.</source>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
         <target state="needs-review-translation">Całkowita długość ciągów użytkownika używanych przez program przekracza dozwolony limit. Spróbuj ograniczyć użycie literałów ciągów.</target>
         <note />
       </trans-unit>

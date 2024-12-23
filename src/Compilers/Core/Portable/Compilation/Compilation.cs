@@ -3519,11 +3519,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
-        internal int? Utf8StringEncodingThreshold
+        internal int? DataSectionStringLiteralThreshold
         {
             get
             {
-                if (Feature("utf8-string-encoding") is { } s)
+                if (Feature("experimental-data-section-string-literals") is { } s)
                 {
                     if (s == "off")
                     {
