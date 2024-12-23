@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - 'v*.*'
     - validate/*
   pull_request:
   workflow_dispatch:
