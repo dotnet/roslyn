@@ -71,7 +71,7 @@ if (!$NoPrerequisites) {
     # The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.
     # But it only works on Windows.
     if ($env:OS -eq 'Windows_NT') {
-        $EnvVars['PROCDUMP_PATH'] = & "$PSScriptRoot\azure-pipelines\Get-ProcDump.ps1"
+        $EnvVars['PROCDUMP_PATH'] = & "$PSScriptRoot\tools\Get-ProcDump.ps1"
     }
 }
 

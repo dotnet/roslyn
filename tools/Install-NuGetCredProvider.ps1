@@ -21,7 +21,7 @@ Param (
 
 $envVars = @{}
 
-$toolsPath = & "$PSScriptRoot\..\azure-pipelines\Get-TempToolsPath.ps1"
+$toolsPath = & "$PSScriptRoot\Get-TempToolsPath.ps1"
 
 if ($IsMacOS -or $IsLinux) {
     $installerScript = "installcredprovider.sh"

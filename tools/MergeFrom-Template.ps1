@@ -36,7 +36,7 @@ Function Spawn-Tool($command, $commandArgs, $workingDirectory, $allowFailures) {
     }
 }
 
-$remoteBranch = & $PSScriptRoot\..\azure-pipelines\Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
+$remoteBranch = & $PSScriptRoot\Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

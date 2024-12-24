@@ -48,7 +48,7 @@ jobs:
     - name: 🛠 build
       run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
     - name: 🧪 test
-      run: azure-pipelines/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
       shell: pwsh
     - name: 💅🏻 Verify formatted code
       run: dotnet format --verify-no-changes --no-restore
@@ -64,7 +64,7 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       if: cancelled() == false
     - name: 📢 Publish code coverage results to codecov.io
-      run: ./azure-pipelines/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}"
+      run: ./tools/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}"
       shell: pwsh
       timeout-minutes: 3
       continue-on-error: true

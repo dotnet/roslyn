@@ -6,7 +6,7 @@ steps:
 - script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠 dotnet build
 
-- powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
+- powershell: tools/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test
   condition: and(succeeded(), ${{ parameters.RunTests }})
 
@@ -22,9 +22,9 @@ steps:
 
 - ${{ if and(ne(variables['codecov_token'], ''), parameters.RunTests) }}:
   - powershell: |
-      $ArtifactStagingFolder = & "azure-pipelines/Get-ArtifactsStagingDirectory.ps1"
+      $ArtifactStagingFolder = & "tools/Get-ArtifactsStagingDirectory.ps1"
       $CoverageResultsFolder = Join-Path $ArtifactStagingFolder "coverageResults-$(Agent.JobName)"
-      azure-pipelines/publish-CodeCov.ps1 -CodeCovToken "$(codecov_token)" -PathToCodeCoverage "$CoverageResultsFolder" -Name "$(Agent.JobName) Coverage Results" -Flags "$(Agent.JobName)"
+      tools/publish-CodeCov.ps1 -CodeCovToken "$(codecov_token)" -PathToCodeCoverage "$CoverageResultsFolder" -Name "$(Agent.JobName) Coverage Results" -Flags "$(Agent.JobName)"
     displayName: 📢 Publish code coverage results to codecov.io
     timeoutInMinutes: 3
     continueOnError: true
