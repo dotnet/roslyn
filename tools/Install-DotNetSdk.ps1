@@ -36,7 +36,7 @@ if (!(Test-Path $DotNetInstallScriptRoot)) { New-Item -ItemType Directory -Path 
 $DotNetInstallScriptRoot = Resolve-Path $DotNetInstallScriptRoot
 
 # Look up actual required .NET SDK version from global.json
-$sdkVersion = & "$PSScriptRoot/../azure-pipelines/variables/DotNetSdkVersion.ps1"
+$sdkVersion = & "$PSScriptRoot/variables/DotNetSdkVersion.ps1"
 
 If ($IncludeX86 -and ($IsMacOS -or $IsLinux)) {
     Write-Verbose "Ignoring -IncludeX86 switch because 32-bit runtimes are only supported on Windows."
