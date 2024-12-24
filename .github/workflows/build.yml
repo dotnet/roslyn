@@ -43,7 +43,7 @@ jobs:
         }
       shell: pwsh
     - name: ⚙️ Set pipeline variables based on source
-      run: azure-pipelines/define_variables.ps1
+      run: tools/variables/_define.ps1
       shell: pwsh
     - name: 🛠 build
       run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
@@ -58,7 +58,7 @@ jobs:
       run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
       if: runner.os == 'Linux'
     - name: ⚙ Update pipeline variables based on build outputs
-      run: azure-pipelines/define_variables.ps1
+      run: tools/variables/_define.ps1
       shell: pwsh
     - name: 📢 Publish artifacts
       uses: ./.github/actions/publish-artifacts
