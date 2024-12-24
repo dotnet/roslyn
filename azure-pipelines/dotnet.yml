@@ -10,7 +10,7 @@ steps:
   displayName: 🧪 dotnet test
   condition: and(succeeded(), ${{ parameters.RunTests }})
 
-- powershell: azure-pipelines/define_variables.ps1
+- powershell: tools/variables/_define.ps1
   failOnStderr: true
   displayName: ⚙ Update pipeline variables based on build outputs
   condition: succeededOrFailed()
