@@ -10,12 +10,12 @@ steps:
   displayName: 🧪 dotnet test
   condition: and(succeeded(), ${{ parameters.RunTests }})
 
-- powershell: azure-pipelines/variables/_pipelines.ps1
+- powershell: azure-pipelines/define_variables.ps1
   failOnStderr: true
   displayName: ⚙ Update pipeline variables based on build outputs
   condition: succeededOrFailed()
 
-- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
+- powershell: azure-pipelines/publish_artifacts.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
   failOnStderr: true
   displayName: 📢 Publish artifacts
   condition: succeededOrFailed()

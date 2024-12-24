@@ -19,7 +19,7 @@ steps:
     }
   displayName: ⚙ Install prerequisites
 
-- powershell: azure-pipelines/variables/_pipelines.ps1
+- powershell: azure-pipelines/define_variables.ps1
   failOnStderr: true
   displayName: ⚙ Set pipeline variables based on source
   name: SetPipelineVariables
