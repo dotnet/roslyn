@@ -815,7 +815,7 @@ internal sealed partial class CSharpExtractMethodService
                     var newType = methodSymbol.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
 
                     var oldRoot = await originalDocument.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var newRoot = oldRoot.ReplaceNode(returnType, newType.GenerateTypeSyntax());
+                    var newRoot = oldRoot.ReplaceNode(returnType, newType.GenerateTypeSyntax(allowVar: false));
 
                     return originalDocument.Document.WithSyntaxRoot(newRoot);
                 }

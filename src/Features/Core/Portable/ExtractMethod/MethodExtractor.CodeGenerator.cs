@@ -366,13 +366,12 @@ internal abstract partial class AbstractExtractMethodService<
                         var refKind = GetRefKind(parameter.ParameterModifier);
                         var type = parameter.GetVariableType();
 
-                        parameters.Add(
-                            CodeGenerationSymbolFactory.CreateParameterSymbol(
-                                attributes: [],
-                                refKind: refKind,
-                                isParams: false,
-                                type: type,
-                                name: parameter.Name));
+                        parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                            attributes: [],
+                            refKind: refKind,
+                            isParams: false,
+                            type: type,
+                            name: parameter.Name));
                     }
                 }
 

@@ -1113,7 +1113,7 @@ public partial class ExtractMethodTests
                         p1 = NewMethod(p2);
                     }
 
-                    private static object NewMethod(object p2)
+                    private static object NewMethod(global::System.Object p2)
                     {
                         return p2;
                     }

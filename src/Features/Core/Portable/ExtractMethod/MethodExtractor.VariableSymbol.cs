@@ -44,7 +44,7 @@ internal abstract partial class AbstractExtractMethodService<
             protected VariableSymbol(Compilation compilation, ITypeSymbol type)
             {
                 OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
-                OriginalType = OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
+                OriginalType = type;// OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
                 _isCancellationToken = IsCancellationToken(OriginalType);
 
                 static bool IsCancellationToken(ITypeSymbol originalType)
