@@ -79,7 +79,7 @@ internal abstract partial class AbstractExtractMethodService<
             /// <summary>
             /// check whether selection contains return statement or not
             /// </summary>
-            protected abstract bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements);
+            protected abstract bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints);
 
             /// <summary>
             /// create VariableInfo type

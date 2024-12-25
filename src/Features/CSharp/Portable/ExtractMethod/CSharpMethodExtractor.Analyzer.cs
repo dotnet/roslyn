@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -45,8 +46,8 @@ internal sealed partial class CSharpExtractMethodService
                     : info.ConvertedType;
             }
 
-            protected override bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements)
-                => jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
+            protected override bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints)
+                => exitPoints.Any(n => n is ReturnStatementSyntax);
 
             protected override bool ReadOnlyFieldAllowed()
             {

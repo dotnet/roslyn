@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -51,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return If(info.ConvertedType.IsObjectType(), info.ConvertedType, info.Type)
                 End Function
 
-                Protected Overrides Function ContainsReturnStatementInSelectedCode(jumpOutOfRegionStatements As IEnumerable(Of SyntaxNode)) As Boolean
-                    Return jumpOutOfRegionStatements.Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).Any()
+                Protected Overrides Function ContainsReturnStatementInSelectedCode(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
+                    Return exitPoints.Any(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax)
                 End Function
 
                 Protected Overrides Function ReadOnlyFieldAllowed() As Boolean
