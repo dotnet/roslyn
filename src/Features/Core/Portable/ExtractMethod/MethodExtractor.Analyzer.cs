@@ -194,10 +194,7 @@ internal abstract partial class AbstractExtractMethodService<
                 // change return type to be wrapped in Task
                 var shouldPutAsyncModifier = SelectionResult.CreateAsyncMethod();
                 if (shouldPutAsyncModifier)
-                {
-                    WrapReturnTypeInTask(ref returnType, out var awaitTaskReturn);
-                    return (returnType, awaitTaskReturn);
-                }
+                    return WrapReturnTypeInTask(returnType);
 
                 // unwrap task if needed
                 return (UnwrapTaskIfNeeded(returnType), awaitTaskReturn: false);
@@ -226,35 +223,25 @@ internal abstract partial class AbstractExtractMethodService<
                 return returnType;
             }
 
-            private void WrapReturnTypeInTask(ref ITypeSymbol returnType, out bool awaitTaskReturn)
+            private (ITypeSymbol returnType, bool awaitTaskReturn) WrapReturnTypeInTask(ITypeSymbol returnType)
             {
-                awaitTaskReturn = false;
-
                 var compilation = this.SemanticModel.Compilation;
                 var taskType = compilation.TaskType();
 
+                // convert void to Task type
                 if (taskType is object && returnType.Equals(compilation.GetSpecialType(SpecialType.System_Void)))
-                {
-                    // convert void to Task type
-                    awaitTaskReturn = true;
-                    returnType = taskType;
-                    return;
-                }
+                    return (taskType, awaitTaskReturn: true);
 
                 if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode())
-                {
-                    // check whether we will use return type as it is or not.
-                    awaitTaskReturn = returnType.Equals(taskType);
-                    return;
-                }
+                    return (returnType, awaitTaskReturn: false);
 
                 var genericTaskType = compilation.TaskOfTType();
 
+                // okay, wrap the return type in Task<T>
                 if (genericTaskType is object)
-                {
-                    // okay, wrap the return type in Task<T>
                     returnType = genericTaskType.Construct(returnType);
-                }
+
+                return (returnType, awaitTaskReturn: false);
             }
 
             private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue, bool unsafeAddressTakenUsed)
