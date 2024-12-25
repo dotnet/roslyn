@@ -8,110 +8,102 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
+
+/// <summary>
+/// Holds onto a managed object as well as the CCW for that object if there is one.
+/// </summary>
+/// <typeparam name="THandle">The COM interface type to keep a reference to</typeparam>
+/// <typeparam name="TObject">The managed object type to keep a reference to</typeparam>
+internal readonly struct ComHandle<THandle, TObject>
+    where THandle : class
+    where TObject : class, THandle
 {
+    private readonly THandle _handle;
+
     /// <summary>
-    /// Holds onto a managed object as well as the CCW for that object if there is one.
+    /// Create an instance from a "ComObject" or from a managed object.
     /// </summary>
-    /// <typeparam name="THandle">The COM interface type to keep a reference to</typeparam>
-    /// <typeparam name="TObject">The managed object type to keep a reference to</typeparam>
-    internal readonly struct ComHandle<THandle, TObject>
-        where THandle : class
-        where TObject : class, THandle
+    public ComHandle(THandle handleOrManagedObject)
     {
-        private readonly THandle _handle;
-        private readonly TObject _managedObject;
-
-        /// <summary>
-        /// Create an instance from a "ComObject" or from a managed object.
-        /// </summary>
-        public ComHandle(THandle handleOrManagedObject)
+        if (handleOrManagedObject == null)
         {
-            if (handleOrManagedObject == null)
+            _handle = null;
+            Object = null;
+        }
+        else if (Marshal.IsComObject(handleOrManagedObject))
+        {
+            _handle = handleOrManagedObject;
+            Object = ComAggregate.GetManagedObject<TObject>(handleOrManagedObject);
+        }
+        else
+        {
+            _handle = (THandle)ComAggregate.TryGetWrapper(handleOrManagedObject);
+            Object = (TObject)handleOrManagedObject;
+        }
+    }
+
+    public ComHandle(THandle handle, TObject managedObject)
+    {
+        if (handle == null && managedObject == null)
+        {
+            _handle = null;
+            Object = null;
+        }
+        else
+        {
+            // NOTE: This might get triggered if you do testing with the "NoWrap"
+            // ComAggregatePolicy, since both handle will not be a ComObject in that
+            // case.
+            if (handle != null && !Marshal.IsComObject(handle))
             {
-                _handle = null;
-                _managedObject = null;
+                throw new ArgumentException("must be null or a Com object", nameof(handle));
             }
-            else if (Marshal.IsComObject(handleOrManagedObject))
+
+            _handle = handle;
+            Object = managedObject;
+        }
+    }
+
+    /// <summary>
+    /// Return the IComWrapperFixed object (as T) or the managed object (as T) if the managed object is not wrapped.
+    /// </summary>
+    public THandle Handle
+    {
+        get
+        {
+            Debug.Assert(_handle == null || Marshal.IsComObject(_handle), "Invariant broken!");
+
+            if (_handle == null)
             {
-                _handle = handleOrManagedObject;
-                _managedObject = ComAggregate.GetManagedObject<TObject>(handleOrManagedObject);
+                return Object;
             }
             else
             {
-                _handle = (THandle)ComAggregate.TryGetWrapper(handleOrManagedObject);
-                _managedObject = (TObject)handleOrManagedObject;
+                return _handle;
             }
         }
+    }
 
-        public ComHandle(THandle handle, TObject managedObject)
+    /// <summary>
+    /// Return the managed object
+    /// </summary>
+    public TObject Object { get; }
+
+    public ComHandle<TNewHandle, TNewObject> Cast<TNewHandle, TNewObject>()
+        where TNewHandle : class
+        where TNewObject : class, TNewHandle
+    {
+        if (Handle is not TNewHandle newHandle)
         {
-            if (handle == null && managedObject == null)
-            {
-                _handle = null;
-                _managedObject = null;
-            }
-            else
-            {
-                // NOTE: This might get triggered if you do testing with the "NoWrap"
-                // ComAggregatePolicy, since both handle will not be a ComObject in that
-                // case.
-                if (handle != null && !Marshal.IsComObject(handle))
-                {
-                    throw new ArgumentException("must be null or a Com object", nameof(handle));
-                }
-
-                _handle = handle;
-                _managedObject = managedObject;
-            }
+            throw new InvalidOperationException("Invalid cast.");
         }
 
-        /// <summary>
-        /// Return the IComWrapperFixed object (as T) or the managed object (as T) if the managed object is not wrapped.
-        /// </summary>
-        public THandle Handle
+        if (Object is not TNewObject newObject)
         {
-            get
-            {
-                Debug.Assert(_handle == null || Marshal.IsComObject(_handle), "Invariant broken!");
-
-                if (_handle == null)
-                {
-                    return _managedObject;
-                }
-                else
-                {
-                    return _handle;
-                }
-            }
+            throw new InvalidOperationException("Invalid cast.");
         }
 
-        /// <summary>
-        /// Return the managed object
-        /// </summary>
-        public TObject Object
-        {
-            get
-            {
-                return _managedObject;
-            }
-        }
-
-        public ComHandle<TNewHandle, TNewObject> Cast<TNewHandle, TNewObject>()
-            where TNewHandle : class
-            where TNewObject : class, TNewHandle
-        {
-            if (Handle is not TNewHandle newHandle)
-            {
-                throw new InvalidOperationException("Invalid cast.");
-            }
-
-            if (Object is not TNewObject newObject)
-            {
-                throw new InvalidOperationException("Invalid cast.");
-            }
-
-            return new ComHandle<TNewHandle, TNewObject>(newHandle, newObject);
-        }
+        return new ComHandle<TNewHandle, TNewObject>(newHandle, newObject);
     }
 }

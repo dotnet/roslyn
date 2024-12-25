@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullabilityRewriter : BoundTreeRewriter
     {
-        protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)Visit(node);
+            return Visit(node);
         }
 
         public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
@@ -25,6 +25,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
             return VisitBinaryOperatorBase(node);
+        }
+
+        public override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            var stack = ArrayBuilder<(BoundIfStatement, BoundExpression, BoundStatement)>.GetInstance();
+
+            BoundStatement? rewrittenAlternative;
+            while (true)
+            {
+                var rewrittenCondition = (BoundExpression)Visit(node.Condition);
+                var rewrittenConsequence = (BoundStatement)Visit(node.Consequence);
+                Debug.Assert(rewrittenConsequence is { });
+                stack.Push((node, rewrittenCondition, rewrittenConsequence));
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    rewrittenAlternative = null;
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    rewrittenAlternative = (BoundStatement)Visit(alternative);
+                    break;
+                }
+            }
+
+            BoundStatement result;
+            do
+            {
+                var (ifStatement, rewrittenCondition, rewrittenConsequence) = stack.Pop();
+                result = ifStatement.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative);
+                rewrittenAlternative = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+            return result;
         }
 
         private BoundNode VisitBinaryOperatorBase(BoundBinaryOperatorBase binaryOperator)

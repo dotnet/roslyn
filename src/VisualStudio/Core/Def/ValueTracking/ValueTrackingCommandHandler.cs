@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ValueTracking;
@@ -30,177 +29,176 @@ using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.ShowValueTracking)]
+internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.ShowValueTracking)]
-    internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
+    private readonly IAsyncServiceProvider _serviceProvider;
+    private readonly IThreadingContext _threadingContext;
+    private readonly ClassificationTypeMap _typeMap;
+    private readonly IClassificationFormatMapService _classificationFormatMapService;
+    private readonly IGlyphService _glyphService;
+    private readonly IEditorFormatMapService _formatMapService;
+    private readonly IGlobalOptionService _globalOptions;
+    private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+    private readonly IAsynchronousOperationListener _listener;
+    private readonly Workspace _workspace;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ValueTrackingCommandHandler(
+        SVsServiceProvider serviceProvider,
+        IThreadingContext threadingContext,
+        ClassificationTypeMap typeMap,
+        IClassificationFormatMapService classificationFormatMapService,
+        IGlyphService glyphService,
+        IEditorFormatMapService formatMapService,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IUIThreadOperationExecutor threadOperationExecutor,
+        VisualStudioWorkspace workspace)
     {
-        private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly IThreadingContext _threadingContext;
-        private readonly ClassificationTypeMap _typeMap;
-        private readonly IClassificationFormatMapService _classificationFormatMapService;
-        private readonly IGlyphService _glyphService;
-        private readonly IEditorFormatMapService _formatMapService;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly Workspace _workspace;
+        _serviceProvider = (IAsyncServiceProvider)serviceProvider;
+        _threadingContext = threadingContext;
+        _typeMap = typeMap;
+        _classificationFormatMapService = classificationFormatMapService;
+        _glyphService = glyphService;
+        _formatMapService = formatMapService;
+        _globalOptions = globalOptions;
+        _threadOperationExecutor = threadOperationExecutor;
+        _listener = listenerProvider.GetListener(FeatureAttribute.ValueTracking);
+        _workspace = workspace;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ValueTrackingCommandHandler(
-            SVsServiceProvider serviceProvider,
-            IThreadingContext threadingContext,
-            ClassificationTypeMap typeMap,
-            IClassificationFormatMapService classificationFormatMapService,
-            IGlyphService glyphService,
-            IEditorFormatMapService formatMapService,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IUIThreadOperationExecutor threadOperationExecutor,
-            VisualStudioWorkspace workspace)
+    public string DisplayName => "Go to value tracking";
+
+    public CommandState GetCommandState(ValueTrackingEditorCommandArgs args)
+        => CommandState.Available;
+
+    public bool ExecuteCommand(ValueTrackingEditorCommandArgs args, CommandExecutionContext executionContext)
+    {
+        using var logger = Logger.LogBlock(FunctionId.ValueTracking_Command, CancellationToken.None, LogLevel.Information);
+
+        var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+        var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
+        if (!caretPosition.HasValue)
         {
-            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
-            _threadingContext = threadingContext;
-            _typeMap = typeMap;
-            _classificationFormatMapService = classificationFormatMapService;
-            _glyphService = glyphService;
-            _formatMapService = formatMapService;
-            _globalOptions = globalOptions;
-            _threadOperationExecutor = threadOperationExecutor;
-            _listener = listenerProvider.GetListener(FeatureAttribute.ValueTracking);
-            _workspace = workspace;
+            return false;
         }
 
-        public string DisplayName => "Go to value tracking";
-
-        public CommandState GetCommandState(ValueTrackingEditorCommandArgs args)
-            => CommandState.Available;
-
-        public bool ExecuteCommand(ValueTrackingEditorCommandArgs args, CommandExecutionContext executionContext)
+        var textSpan = new TextSpan(caretPosition.Value.Position, 0);
+        var sourceTextContainer = args.SubjectBuffer.AsTextContainer();
+        var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
+        if (document is null)
         {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_Command, CancellationToken.None, LogLevel.Information);
-
-            var cancellationToken = executionContext.OperationContext.UserCancellationToken;
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!caretPosition.HasValue)
-            {
-                return false;
-            }
-
-            var textSpan = new TextSpan(caretPosition.Value.Position, 0);
-            var sourceTextContainer = args.SubjectBuffer.AsTextContainer();
-            var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
-            if (document is null)
-            {
-                return false;
-            }
-
-            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
-                {
-                    var service = document.Project.Solution.Services.GetRequiredService<IValueTrackingService>();
-                    var items = await service.TrackValueSourceAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
-                    if (items.Length == 0)
-                    {
-                        return;
-                    }
-
-                    await ShowToolWindowAsync(args.TextView, document, items, cancellationToken).ConfigureAwait(false);
-                });
-
-            return true;
+            return false;
         }
 
-        private async Task ShowToolWindowAsync(ITextView textView, Document document, ImmutableArray<ValueTrackedItem> items, CancellationToken cancellationToken)
-        {
-            var toolWindow = await GetOrCreateToolWindowAsync(textView, cancellationToken).ConfigureAwait(false);
-            if (toolWindow?.ViewModel is null)
+        _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                return;
-            }
-
-            var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
-            var solution = document.Project.Solution;
-            var valueTrackingService = solution.Services.GetRequiredService<IValueTrackingService>();
-            var rootItemMap = items.GroupBy(i => i.Parent, resultSelector: (key, items) => (parent: key, children: items));
-
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var rootItems);
-
-            foreach (var (parent, children) in rootItemMap)
-            {
-                if (parent is null)
+                var service = document.Project.Solution.Services.GetRequiredService<IValueTrackingService>();
+                var items = await service.TrackValueSourceAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
+                if (items.Length == 0)
                 {
-                    foreach (var child in children)
-                    {
-                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(
-                            solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
-                        rootItems.Add(root);
-                    }
+                    return;
                 }
-                else
-                {
-                    using var _1 = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var childItems);
-                    foreach (var child in children)
-                    {
-                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(
-                            solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
-                        childItems.Add(childViewModel);
-                    }
 
+                await ShowToolWindowAsync(args.TextView, document, items, cancellationToken).ConfigureAwait(false);
+            });
+
+        return true;
+    }
+
+    private async Task ShowToolWindowAsync(ITextView textView, Document document, ImmutableArray<ValueTrackedItem> items, CancellationToken cancellationToken)
+    {
+        var toolWindow = await GetOrCreateToolWindowAsync(textView, cancellationToken).ConfigureAwait(false);
+        if (toolWindow?.ViewModel is null)
+        {
+            return;
+        }
+
+        var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
+        var solution = document.Project.Solution;
+        var valueTrackingService = solution.Services.GetRequiredService<IValueTrackingService>();
+        var rootItemMap = items.GroupBy(i => i.Parent, resultSelector: (key, items) => (parent: key, children: items));
+
+        using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var rootItems);
+
+        foreach (var (parent, children) in rootItemMap)
+        {
+            if (parent is null)
+            {
+                foreach (var child in children)
+                {
                     var root = await ValueTrackedTreeItemViewModel.CreateAsync(
-                        solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
+                        solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
                     rootItems.Add(root);
                 }
             }
-
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            toolWindow.ViewModel.Roots.Clear();
-            foreach (var root in rootItems)
+            else
             {
-                toolWindow.ViewModel.Roots.Add(root);
-            }
+                using var _1 = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var childItems);
+                foreach (var child in children)
+                {
+                    var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(
+                        solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
+                    childItems.Add(childViewModel);
+                }
 
-            await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
+                var root = await ValueTrackedTreeItemViewModel.CreateAsync(
+                    solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
+                rootItems.Add(root);
+            }
         }
 
-        private async Task ShowToolWindowAsync(CancellationToken cancellationToken)
-        {
-            var roslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(roslynPackage);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await roslynPackage.ShowToolWindowAsync(
-                    typeof(ValueTrackingToolWindow),
-                    0,
-                    true,
-                    roslynPackage.DisposalToken).ConfigureAwait(false);
+        toolWindow.ViewModel.Roots.Clear();
+        foreach (var root in rootItems)
+        {
+            toolWindow.ViewModel.Roots.Add(root);
         }
 
-        private async Task<ValueTrackingToolWindow?> GetOrCreateToolWindowAsync(ITextView textView, CancellationToken cancellationToken)
-        {
-            var roslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
-            if (roslynPackage is null)
-            {
-                return null;
-            }
+        await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
+    }
 
-            var window = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
+    private async Task ShowToolWindowAsync(CancellationToken cancellationToken)
+    {
+        var roslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(roslynPackage);
+
+        await roslynPackage.ShowToolWindowAsync(
                 typeof(ValueTrackingToolWindow),
                 0,
-                create: true,
+                true,
                 roslynPackage.DisposalToken).ConfigureAwait(false);
+    }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            if (!window.Initialized)
-            {
-                var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
-                window.Initialize(viewModel, _workspace, _threadingContext);
-            }
-
-            return window;
+    private async Task<ValueTrackingToolWindow?> GetOrCreateToolWindowAsync(ITextView textView, CancellationToken cancellationToken)
+    {
+        var roslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
+        if (roslynPackage is null)
+        {
+            return null;
         }
+
+        var window = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
+            typeof(ValueTrackingToolWindow),
+            0,
+            create: true,
+            roslynPackage.DisposalToken).ConfigureAwait(false);
+
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        if (!window.Initialized)
+        {
+            var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
+            window.Initialize(viewModel, _workspace, _threadingContext);
+        }
+
+        return window;
     }
 }

@@ -111,8 +111,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
         {
-            Visit(node.Left);
-            Visit(node.Right);
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern current = node;
+            do
+            {
+                stack.Push(current);
+                current = current.Left as BoundBinaryPattern;
+            } while (current != null);
+
+            current = stack.Pop();
+            // We don't need to snapshot on the way down because the left spine of the tree will always have the same span start, and each
+            // call to TakeIncrementalSnapshot would overwrite the previous one with the new state. This can be a _significant_ performance
+            // improvement for deeply nested binary patterns; over 10x faster in some pathological cases.
+            TakeIncrementalSnapshot(current);
+            Debug.Assert(current.Left is not BoundBinaryPattern);
+            Visit(current.Left);
+
+            do
+            {
+                Visit(current.Right);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
             return null;
         }
 
@@ -199,8 +221,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
                     break;
                 case BoundBinaryPattern p:
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
+                    // Do not use left recursion because we can have many nested binary patterns.
+                    var current = p;
+                    while (true)
+                    {
+                        // We don't need to visit in order here because we're only moving analysis in one direction:
+                        // towards MaybeNull. Visiting the right or left first has no impact on the final state.
+                        LearnFromAnyNullPatterns(inputSlot, inputType, current.Right);
+                        if (current.Left is BoundBinaryPattern left)
+                        {
+                            current = left;
+                            VisitForRewriting(current);
+                        }
+                        else
+                        {
+                            LearnFromAnyNullPatterns(inputSlot, inputType, current.Left);
+                            break;
+                        }
+                    }
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);
@@ -337,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             BoundDecisionDag decisionDag,
             BoundExpression expression,
-            TypeWithState expressionType,
+            TypeWithState expressionTypeWithState,
             PossiblyConditionalState? stateWhenNotNullOpt)
         {
             // We reuse the slot at the beginning of a switch (or is-pattern expression), pretending that we are
@@ -346,9 +384,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of analysis based on this choice.
             var rootTemp = BoundDagTemp.ForOriginalInput(expression);
             int originalInputSlot = MakeSlot(expression);
+            var expressionTypeWithAnnotations = expressionTypeWithState.ToTypeWithAnnotations(compilation);
             if (originalInputSlot <= 0)
             {
-                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(compilation), rootTemp);
+                originalInputSlot = makeDagTempSlot(expressionTypeWithAnnotations, rootTemp);
+                if (!IsConditionalState)
+                {
+                    TrackNullableStateForAssignment(valueOpt: null, expressionTypeWithAnnotations, originalInputSlot, expressionTypeWithState);
+                }
             }
             Debug.Assert(originalInputSlot > 0);
 
@@ -364,8 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note we customize equality in BoundDagTemp
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
-            Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
-            tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
+            Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionTypeWithState.Type));
+            tempMap.Add(rootTemp, (originalInputSlot, expressionTypeWithState.Type));
 
             var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (PossiblyConditionalState state, bool believedReachable)>.GetInstance();
             nodeStateMap.Add(decisionDag.RootNode, (state: PossiblyConditionalState.Create(this), believedReachable: true));
@@ -463,7 +506,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 // The expression in the tuple could not be assigned a slot (for example, `a?.b`),
                                                 // so we had to create a slot for the tuple element instead.
                                                 // We'll remember that so that we can apply any learnings to the expression.
+#pragma warning disable CA1854 //Prefer a 'TryGetValue' call over a Dictionary indexer access guarded by a 'ContainsKey' check to avoid double lookup
                                                 if (!originalInputMap.ContainsKey(outputSlot))
+#pragma warning restore CA1854
                                                 {
                                                     originalInputMap.Add(outputSlot,
                                                         ((BoundTupleExpression)expression).Arguments[originalTupleElement.TupleElementIndex]);
@@ -510,16 +555,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagIndexerEvaluation e:
                                     {
+                                        // tDest = tSource[index]
                                         Debug.Assert(inputSlot > 0);
                                         TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: false);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
+                                        TrackNullableStateForAssignment(valueOpt: null, type, outputSlot, type.ToTypeWithState());
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
                                 case BoundDagSliceEvaluation e:
                                     {
+                                        // tDest = tSource[range]
                                         Debug.Assert(inputSlot > 0);
                                         TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: true);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
@@ -888,8 +936,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultTypes.Add(armType);
                 Join(ref endState, ref this.State);
 
-                // Build placeholders for inference in order to preserve annotations.
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
+                if (!IsTargetTypedExpression(expression))
+                {
+                    // Build placeholders for inference in order to preserve annotations.
+                    placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
+                }
             }
 
             SetState(endState);
@@ -907,10 +958,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferType && inferredType is null)
             {
-                // This can happen when we're inferring the return type of a lambda, or when there are no arms (an error case).
-                // For this case, we don't need to do any work, as the unconverted switch expression can't contribute info, and
-                // there is nothing that is being publicly exposed to the semantic model.
-                Debug.Assert((node is BoundUnconvertedSwitchExpression && _returnTypesOpt is not null)
+                // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
+                // BoundConvertedTupleLiteral.SourceTuple. For these cases, we don't need to do any work,
+                // the unconverted switch expression can't contribute info. The conversion that should be on top of this
+                // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
+                // See also NullableWalker.VisitConditionalOperatorCore for a similar check for conditional operators.
+                Debug.Assert((node is BoundUnconvertedSwitchExpression && (_returnTypesOpt is not null || _disableDiagnostics))
                                 || node is BoundSwitchExpression { SwitchArms: { Length: 0 } });
                 inferredState = default;
 

@@ -5,21 +5,20 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class SwitchKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public SwitchKeywordRecommender()
-            : base(SyntaxKind.SwitchKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return
-                context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                context.IsIsOrAsOrSwitchOrWithExpressionContext;
-        }
+internal class SwitchKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+{
+    public SwitchKeywordRecommender()
+        : base(SyntaxKind.SwitchKeyword)
+    {
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return
+            context.IsStatementContext ||
+            context.IsGlobalStatementContext ||
+            context.IsIsOrAsOrSwitchOrWithExpressionContext;
     }
 }

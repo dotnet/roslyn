@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Class VisualBasicTriviaResult
             Inherits TriviaResult
 
-            Public Shared Async Function ProcessAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of VisualBasicTriviaResult)
+            Public Shared Async Function ProcessAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of VisualBasicTriviaResult)
                 Dim preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService(Of ISyntaxTriviaService)()
                 Dim root = selectionResult.SemanticDocument.Root
                 Dim result = preservationService.SaveTriviaAroundSelection(root, selectionResult.FinalSpan)
@@ -88,11 +88,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                               SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
                 End If
 
-                Dim previousTriviaPair = If(triviaMap.ContainsKey(tokenPair.PreviousToken), triviaMap(tokenPair.PreviousToken), Nothing)
-                Dim nextTriviaPair = If(triviaMap.ContainsKey(tokenPair.NextToken), triviaMap(tokenPair.NextToken), Nothing)
+                Dim previousTriviaPair As LeadingTrailingTriviaPair = Nothing
+                Dim trailingTrivia = If(triviaMap.TryGetValue(tokenPair.PreviousToken, previousTriviaPair),
+                                        previousTriviaPair.TrailingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
 
-                Dim trailingTrivia = If(previousTriviaPair.TrailingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
-                Dim leadingTrivia = If(nextTriviaPair.LeadingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
+                Dim nextTriviaPair As LeadingTrailingTriviaPair = Nothing
+                Dim leadingTrivia = If(triviaMap.TryGetValue(tokenPair.NextToken, nextTriviaPair),
+                                       nextTriviaPair.LeadingTrivia, SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)())
 
                 Dim list = trailingTrivia.Concat(leadingTrivia)
 

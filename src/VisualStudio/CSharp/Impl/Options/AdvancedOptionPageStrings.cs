@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Run_background_code_analysis_for_colon;
 
         public static string Option_Background_Analysis_Scope_None
-            => ServicesVSResources.None;
+            => WorkspacesResources.None;
 
         public static string Option_Background_Analysis_Scope_Active_File
             => ServicesVSResources.Current_document;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => BackgroundAnalysisScope.None;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
-            => BackgroundAnalysisScope.ActiveFile;
+            => BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
             => BackgroundAnalysisScope.OpenFiles;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Show_compiler_errors_and_warnings_for_colon;
 
         public static string Option_Compiler_Diagnostics_Scope_None
-            => ServicesVSResources.None;
+            => WorkspacesResources.None;
 
         public static string Option_Compiler_Diagnostics_Scope_Visible_Files
             => ServicesVSResources.Current_document; // We show "Current document" to users for consistency with term used elsewhere.
@@ -58,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CompilerDiagnosticsScope.None;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
-            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+            => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
             => CompilerDiagnosticsScope.OpenFiles;
@@ -75,12 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_Enable_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
-
-        public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
-
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
@@ -88,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.Analyze_source_generated_files;
 
         public static string Option_Inline_Hints
-            => ServicesVSResources.Inline_Hints;
+            => EditorFeaturesResources.Inline_Hints;
 
         public static string Option_Display_all_hints_while_pressing_Alt_F1
             => ServicesVSResources.Display_all_hints_while_pressing_Alt_F1;
@@ -132,6 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_implicit_object_creation
             => ServicesVSResources.Show_hints_for_implicit_object_creation;
 
+        public static string Option_Show_hints_for_collection_expressions
+            => ServicesVSResources.Show_hints_for_collection_expressions;
+
         public static string Option_Display_diagnostics_inline_experimental
             => ServicesVSResources.Display_diagnostics_inline_experimental;
 
@@ -142,34 +140,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.on_the_right_edge_of_the_editor_window;
 
         public static string Option_RenameTrackingPreview
-            => CSharpVSResources.Show_preview_for_rename_tracking;
+            => ServicesVSResources.Show_preview_for_rename_tracking;
 
         public static string Option_Split_string_literals_on_enter
             => CSharpVSResources.Split_string_literals_on_enter;
 
         public static string Option_DisplayLineSeparators
-            => CSharpVSResources.Show_procedure_line_separators;
+            => ServicesVSResources.Show_procedure_line_separators;
 
         public static string Option_Underline_reassigned_variables
             => ServicesVSResources.Underline_reassigned_variables;
 
-        public static string Option_DontPutOutOrRefOnStruct
-            => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;
+        public static string Option_Strike_out_obsolete_symbols
+            => ServicesVSResources.Strike_out_obsolete_symbols;
 
         public static string Option_EditorHelp
-            => CSharpVSResources.Editor_Help;
+            => ServicesVSResources.Editor_Help;
 
         public static string Option_EnableHighlightKeywords
-            => CSharpVSResources.Highlight_related_keywords_under_cursor;
+            => ServicesVSResources.Highlight_related_keywords_under_cursor;
 
         public static string Option_EnableHighlightReferences
-            => CSharpVSResources.Highlight_references_to_symbol_under_cursor;
+            => ServicesVSResources.Highlight_references_to_symbol_under_cursor;
 
         public static string Option_EnterOutliningMode
             => CSharpVSResources.Enter_outlining_mode_when_files_open;
-
-        public static string Option_ExtractMethod
-            => CSharpVSResources.Extract_Method;
 
         public static string Option_Implement_Interface_or_Abstract_Class
             => ServicesVSResources.Implement_Interface_or_Abstract_Class;
@@ -205,31 +200,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CSharpVSResources.Insert_at_the_start_of_new_lines_when_writing_comments;
 
         public static string Option_ShowRemarksInQuickInfo
-            => CSharpVSResources.Show_remarks_in_Quick_Info;
+            => ServicesVSResources.Show_remarks_in_Quick_Info;
 
         public static string Option_Highlighting
-            => CSharpVSResources.Highlighting;
+            => ServicesVSResources.Highlighting;
 
         public static string Option_OptimizeForSolutionSize
-            => CSharpVSResources.Optimize_for_solution_size;
+            => ServicesVSResources.Optimize_for_solution_size;
 
         public static string Option_OptimizeForSolutionSize_Large
-            => CSharpVSResources.Large;
+            => ServicesVSResources.Large;
 
         public static string Option_OptimizeForSolutionSize_Regular
-            => CSharpVSResources.Regular;
+            => ServicesVSResources.Regular;
 
         public static string Option_OptimizeForSolutionSize_Small
-            => CSharpVSResources.Small;
+            => ServicesVSResources.Small;
 
         public static string Option_Quick_Actions
             => ServicesVSResources.Quick_Actions;
 
-        public static string Option_Compute_Quick_Actions_asynchronously_experimental
-            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
-
         public static string Option_Outlining
-            => ServicesVSResources.Outlining;
+            => EditorFeaturesResources.Outlining;
 
         public static string Option_Collapse_regions_on_file_open
             => ServicesVSResources.Collapse_regions_on_file_open;
@@ -255,6 +247,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Collapse_regions_when_collapsing_to_definitions
             => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
 
+        public static string Option_Collapse_local_functions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_local_functions_when_collapsing_to_definitions;
+
         public static string Option_Block_Structure_Guides
             => ServicesVSResources.Block_Structure_Guides;
 
@@ -264,17 +259,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
 
+        public static string Option_Show_guides_for_comments_and_preprocessor_regions
+            => ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions;
+
         public static string Option_Fading
             => ServicesVSResources.Fading;
 
         public static string Option_Fade_out_unused_usings
             => CSharpVSResources.Fade_out_unused_usings;
 
+        public static string Option_Fade_out_unused_members
+            => ServicesVSResources.Fade_out_unused_members;
+
         public static string Option_Fade_out_unreachable_code
             => ServicesVSResources.Fade_out_unreachable_code;
 
         public static string Option_Performance
-            => CSharpVSResources.Performance;
+            => ServicesVSResources.Performance;
 
         public static string Option_PlaceSystemNamespaceFirst
             => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
@@ -315,12 +316,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Editor_Color_Scheme
             => ServicesVSResources.Editor_Color_Scheme;
 
-        public static string Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page
-            => ServicesVSResources.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page;
-
-        public static string Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations
-            => ServicesVSResources.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations;
-
         public static string Edit_color_scheme
             => ServicesVSResources.Editor_Color_Scheme;
 
@@ -336,11 +331,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static ColorSchemeName Color_Scheme_VisualStudio2017_Tag
             => ColorSchemeName.VisualStudio2017;
 
-        public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
-            => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
-
-        public static string Enable_all_features_in_opened_files_from_source_generators_experimental
-            => ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental;
+        public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer
+            => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer;
 
         public static string Option_Enable_file_logging_for_diagnostics
             => ServicesVSResources.Enable_file_logging_for_diagnostics;
@@ -381,11 +373,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Go_To_Definition
             => ServicesVSResources.Go_To_Definition;
 
-        public static string Option_Navigate_asynchronously_exerimental
-            => ServicesVSResources.Navigate_asynchronously_exerimental;
-
         public static string Option_Rename
-            => ServicesVSResources.Rename;
+            => EditorFeaturesResources.Rename;
 
         public static string Option_Rename_asynchronously_experimental
             => ServicesVSResources.Rename_asynchronously_experimental;
@@ -398,5 +387,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_UI_as_dashboard_in_top_right
             => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
+
+        public static string Document_Outline
+            => ServicesVSResources.Document_Outline;
+
+        public static string Option_Enable_document_outline_experimental_requires_restart
+            => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
+
+        public static string Option_Source_Generators
+            => ServicesVSResources.Source_Generators;
+
+        public static string Option_Source_generator_execution_requires_restart
+            => ServicesVSResources.Source_generator_execution_requires_restart;
+
+        public static string Option_Automatic_Run_generators_after_any_change
+            => ServicesVSResources.Automatic_Run_generators_after_any_change;
+
+        public static string Option_Balanced_Run_generators_after_saving_or_building
+            => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
+
+        public static string Option_Automatically_reload_updated_analyzers_and_generators
+            => ServicesVSResources.Automatically_reload_updated_analyzers_and_generators;
     }
 }

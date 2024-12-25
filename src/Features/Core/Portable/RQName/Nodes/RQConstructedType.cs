@@ -7,24 +7,17 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal sealed class RQConstructedType(RQUnconstructedType definingType, IList<RQType> typeArguments) : RQType
 {
-    internal class RQConstructedType : RQType
+    public readonly RQUnconstructedType DefiningType = definingType;
+    public readonly ReadOnlyCollection<RQType> TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
+
+    public override SimpleTreeNode ToSimpleTree()
     {
-        public readonly RQUnconstructedType DefiningType;
-        public readonly ReadOnlyCollection<RQType> TypeArguments;
-
-        public RQConstructedType(RQUnconstructedType definingType, IList<RQType> typeArguments)
-        {
-            DefiningType = definingType;
-            TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
-        }
-
-        public override SimpleTreeNode ToSimpleTree()
-        {
-            var typeArgumentNodes = TypeArguments.Select(node => node.ToSimpleTree()).ToList();
-            var typeParamsNode = new SimpleGroupNode(RQNameStrings.TypeParams, typeArgumentNodes);
-            return new SimpleGroupNode(RQNameStrings.AggType, DefiningType.ToSimpleTree(), typeParamsNode);
-        }
+        var typeArgumentNodes = TypeArguments.Select(node => node.ToSimpleTree()).ToList();
+        var typeParamsNode = new SimpleGroupNode(RQNameStrings.TypeParams, typeArgumentNodes);
+        return new SimpleGroupNode(RQNameStrings.AggType, DefiningType.ToSimpleTree(), typeParamsNode);
     }
 }

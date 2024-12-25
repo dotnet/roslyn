@@ -16,14 +16,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int HighlightMatchingPortionsOfCompletionListItems
         {
-            get { return GetBooleanOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems); }
-            set { SetBooleanOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, value); }
+            get { return GetBooleanOption(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems); }
+            set { SetBooleanOption(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, value); }
         }
 
         public int ShowCompletionItemFilters
         {
-            get { return GetBooleanOption(CompletionViewOptions.ShowCompletionItemFilters); }
-            set { SetBooleanOption(CompletionViewOptions.ShowCompletionItemFilters, value); }
+            get { return GetBooleanOption(CompletionViewOptionsStorage.ShowCompletionItemFilters); }
+            set { SetBooleanOption(CompletionViewOptionsStorage.ShowCompletionItemFilters, value); }
         }
 
         public int ShowItemsFromUnimportedNamespaces
@@ -58,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int EnableArgumentCompletionSnippets
         {
-            get { return GetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets); }
-            set { SetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets, value); }
+            get { return GetBooleanOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets); }
+            set { SetBooleanOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, value); }
         }
     }
 }

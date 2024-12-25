@@ -4,15 +4,14 @@
 
 using System;
 
-namespace Xunit
+namespace Xunit;
+
+internal class CriticalIdeTheoryAttribute : IdeTheoryAttribute
 {
-    internal class CriticalIdeTheoryAttribute : IdeTheoryAttribute
+    [Obsolete("Critical tests cannot be skipped.", error: true)]
+    public new string Skip
     {
-        [Obsolete("Critical tests cannot be skipped.", error: true)]
-        public new string Skip
-        {
-            get { return base.Skip; }
-            set { base.Skip = value; }
-        }
+        get { return base.Skip; }
+        set { base.Skip = value; }
     }
 }

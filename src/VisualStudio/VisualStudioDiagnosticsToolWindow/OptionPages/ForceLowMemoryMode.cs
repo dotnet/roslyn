@@ -22,14 +22,14 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             _globalOptions = globalOptions;
 
-            globalOptions.OptionChanged += Options_OptionChanged;
+            globalOptions.AddOptionChangedHandler(this, Options_OptionChanged);
 
             RefreshFromSettings();
         }
 
-        private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
+        private void Options_OptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
-            if (e.Option == Enabled || e.Option == SizeInMegabytes)
+            if (e.HasOption(static option => option.Equals(Enabled) || option.Equals(SizeInMegabytes)))
             {
                 RefreshFromSettings();
             }
@@ -57,7 +57,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             private const int BlockSize = 1024 * 1024; // megabyte blocks
             private const int MonitorDelay = 10000; // 10 seconds
 
-            private readonly List<byte[]> _blocks = new List<byte[]>();
+            private readonly List<byte[]> _blocks = [];
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
             public MemoryHogger()

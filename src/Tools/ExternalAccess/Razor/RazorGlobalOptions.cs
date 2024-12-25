@@ -11,6 +11,7 @@ using System.Linq;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -51,10 +52,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         private sealed class TestGlobalOptionService : IGlobalOptionService
         {
-#pragma warning disable CS0067 // Remove unused event
-            public event EventHandler<OptionChangedEventArgs>? OptionChanged;
-#pragma warning restore
-
             public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
                 => default!;
 
@@ -67,6 +64,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public void SetGlobalOption<T>(PerLanguageOption2<T> option, string language, T value) => throw new NotImplementedException();
             public void SetGlobalOption(OptionKey2 optionKey, object? value) => throw new NotImplementedException();
             public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options) => throw new NotImplementedException();
+            public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler) => throw new NotImplementedException();
+            public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler) => throw new NotImplementedException();
 
             bool IOptionsReader.TryGetOption<T>(OptionKey2 optionKey, out T value)
             {

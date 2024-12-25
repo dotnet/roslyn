@@ -241,6 +241,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _underlyingMethod.GetOverloadResolutionPriority()
+        End Function
+
         Friend Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
                 Return _underlyingMethod.IsHiddenBySignature
@@ -518,5 +522,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ' retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return _underlyingMethod.HasSetsRequiredMembers
+            End Get
+        End Property
     End Class
 End Namespace

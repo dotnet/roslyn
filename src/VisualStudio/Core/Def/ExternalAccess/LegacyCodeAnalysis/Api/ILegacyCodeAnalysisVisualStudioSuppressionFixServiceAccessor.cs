@@ -6,12 +6,11 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api;
+
+internal interface ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
 {
-    internal interface ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor
-    {
-        bool AddSuppressions(IVsHierarchy projectHierarchyOpt);
-        bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt);
-        bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt);
-    }
+    bool AddSuppressions(IVsHierarchy projectHierarchyOpt);
+    bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt);
+    bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt);
 }

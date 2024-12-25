@@ -9,29 +9,28 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
-{
-    [Export(typeof(IInlineRenameColorUpdater))]
-    internal class DashboardColorUpdater : IInlineRenameColorUpdater
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DashboardColorUpdater()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename;
 
-        public void UpdateColors()
-        {
-            InlineRenameColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
-            InlineRenameColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            InlineRenameColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            InlineRenameColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
-            InlineRenameColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
-            InlineRenameColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
-            InlineRenameColors.GrayTextKey = VsBrushes.GrayTextKey;
-            InlineRenameColors.TextBoxBackgroundBrushKey = EnvironmentColors.SearchBoxBackgroundBrushKey;
-            InlineRenameColors.TextBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            InlineRenameColors.TextBoxBorderBrushKey = EnvironmentColors.SearchBoxBorderBrushKey;
-        }
+[Export(typeof(IInlineRenameColorUpdater))]
+internal class DashboardColorUpdater : IInlineRenameColorUpdater
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DashboardColorUpdater()
+    {
+    }
+
+    public void UpdateColors()
+    {
+        InlineRenameColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
+        InlineRenameColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
+        InlineRenameColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
+        InlineRenameColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
+        InlineRenameColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
+        InlineRenameColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
+        InlineRenameColors.GrayTextKey = VsBrushes.GrayTextKey;
+        InlineRenameColors.TextBoxBackgroundBrushKey = EnvironmentColors.SearchBoxBackgroundBrushKey;
+        InlineRenameColors.TextBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
+        InlineRenameColors.TextBoxBorderBrushKey = EnvironmentColors.SearchBoxBorderBrushKey;
     }
 }

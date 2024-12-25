@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kickoffMethod = StateMachineType.KickoffMethod;
                 foreach (var attribute in kickoffMethod.GetAttributes())
                 {
-                    if (attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerHiddenAttribute) ||
-                        attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerNonUserCodeAttribute) ||
-                        attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepperBoundaryAttribute) ||
-                        attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepThroughAttribute))
+                    if (attribute.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepperBoundaryAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute))
                     {
                         if (builder == null)
                         {

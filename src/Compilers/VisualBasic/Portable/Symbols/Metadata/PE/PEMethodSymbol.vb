@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Structure PackedFlags
             ' Flags are packed into a 32-bit int with the following layout:
-            ' |              |j|i|h|g|f|e|d|c|b|aaaaa|
+            ' |           m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             '
             ' a = method kind. 5 bits
             ' b = method kind populated. 1 bit
@@ -63,6 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' h = conditional attributes populated. 1 bit
             ' i = is init-only. 1 bit.
             ' j = is init-only populated. 1 bit.
+            ' k = has SetsRequiredMembers. 1 bit.
+            ' l = has SetsRequiredMembers populated. 1 bit.
+            ' m = OverloadResolutionPriority populated. 1 bit.
 
             Private _bits As Integer
 
@@ -77,6 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Private Const s_isConditionalAttributePopulatedBit As Integer = 1 << 11
             Private Const s_isInitOnlyBit = 1 << 12
             Private Const s_isInitOnlyPopulatedBit = 1 << 13
+            Private Const s_hasSetsRequiredMembersBit = 1 << 14
+            Private Const s_hasSetsRequiredMembersPopulatedBit = 1 << 15
+            Private Const s_OverloadResolutionPriorityIsPopulatedBit As Integer = 1 << 16
 
             Public Property MethodKind As MethodKind
                 Get
@@ -108,25 +115,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Public ReadOnly Property IsObsoleteAttributePopulated As Boolean
                 Get
-                    Return (_bits And s_isObsoleteAttributePopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isObsoleteAttributePopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsCustomAttributesPopulated As Boolean
                 Get
-                    Return (_bits And s_isCustomAttributesPopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isCustomAttributesPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsUseSiteDiagnosticPopulated As Boolean
                 Get
-                    Return (_bits And s_isUseSiteDiagnosticPopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isUseSiteDiagnosticPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsConditionalPopulated As Boolean
                 Get
-                    Return (_bits And s_isConditionalAttributePopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isConditionalAttributePopulatedBit) <> 0
                 End Get
             End Property
 
@@ -141,6 +148,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Return (_bits And s_isInitOnlyPopulatedBit) <> 0
                 End Get
             End Property
+
+            Public Function TryGetHasSetsRequiredMembers(ByRef hasSetsRequiredMembers As Boolean) As Boolean
+                Dim bits = _bits
+                hasSetsRequiredMembers = (bits And s_hasSetsRequiredMembersBit) <> 0
+                Return (bits And s_hasSetsRequiredMembersPopulatedBit) <> 0
+            End Function
 
             Private Shared Function BitsAreUnsetOrSame(bits As Integer, mask As Integer) As Boolean
                 Return (bits And mask) = 0 OrElse (bits And mask) = mask
@@ -180,6 +193,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
                 ThreadSafeFlagOperations.Set(_bits, bitsToSet)
             End Sub
+
+            Public Sub InitializeSetsRequiredMembers(hasSetsRequiredMembers As Boolean)
+                Dim bitsToSet = If(hasSetsRequiredMembers, s_hasSetsRequiredMembersBit, 0) Or s_hasSetsRequiredMembersPopulatedBit
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
+                ThreadSafeFlagOperations.Set(_bits, bitsToSet)
+            End Sub
+
+            Public ReadOnly Property OverloadResolutionPriorityPopulated As Boolean
+                Get
+                    Return (Volatile.Read(_bits) And s_OverloadResolutionPriorityIsPopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public Sub SetOverloadResolutionPriorityPopulated()
+                ThreadSafeFlagOperations.Set(_bits, s_OverloadResolutionPriorityIsPopulatedBit)
+            End Sub
         End Structure
 
         ''' <summary>
@@ -192,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
             Public _lazyObsoleteAttributeData As ObsoleteAttributeData
             Public _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol)
+            Public _lazyOverloadResolutionPriority As Integer
         End Class
 
         Private Function CreateUncommonFields() As UncommonFields
@@ -720,7 +750,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return (_flags And MethodAttributes.HasSecurity) <> 0
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property RequiresSecurityObject As Boolean
+            Get
+                Return (_flags And MethodAttributes.RequireSecObject) <> 0
             End Get
         End Property
 
@@ -799,6 +835,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' aren't marked explicitly with Overrides modifier.
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            If Not _packedFlags.OverloadResolutionPriorityPopulated Then
+
+                Dim priority As Integer
+                If _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) AndAlso
+                   priority <> 0 Then
+                    Interlocked.CompareExchange(AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0)
+#If DEBUG Then
+                Else
+                    ' 0 is the default if nothing is present in metadata, and we don't care about preserving the difference between "not present" and "set to the default value".
+                    Debug.Assert(_uncommonFields Is Nothing OrElse _uncommonFields._lazyOverloadResolutionPriority = 0)
+#End If
+                End If
+
+                _packedFlags.SetOverloadResolutionPriorityPopulated()
+            End If
+
+            Return If(_uncommonFields?._lazyOverloadResolutionPriority, 0)
+        End Function
 
         Friend Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
@@ -1021,6 +1077,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return InterlockedOperations.Initialize(_lazySignature, signature)
         End Function
 
+        Friend Overrides ReadOnly Property MetadataSignatureHandle As BlobHandle
+            Get
+                Try
+                    Return _containingType.ContainingPEModule.Module.GetMethodSignatureOrThrow(_handle)
+                Catch ex As BadImageFormatException
+                    Return Nothing
+                End Try
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
                 Dim errorInfo As DiagnosticInfo = Nothing
@@ -1144,6 +1210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 DeriveCompilerFeatureRequiredUseSiteInfo(errorInfo)
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)
+                CheckRequiredMembersError(errorInfo)
                 Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
@@ -1173,7 +1240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim containingModule = _containingType.ContainingPEModule
             Dim decoder As New MetadataDecoder(containingModule, Me)
 
-            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(containingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(containingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.RequiredMembers, decoder)
             If errorInfo IsNot Nothing Then
                 Return
             End If
@@ -1200,13 +1267,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
         End Sub
 
+        Private Sub CheckRequiredMembersError(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo Is Nothing AndAlso
+               MethodKind = MethodKind.Constructor AndAlso
+               (Not HasSetsRequiredMembers) AndAlso
+               ContainingType.HasRequiredMembersError Then
+
+                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_RequiredMembersInvalid, ContainingType)
+            End If
+
+        End Sub
+
         Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
             If _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Return GetCachedUseSiteInfo()
             End If
 
             If useSiteInfo.DiagnosticInfo IsNot Nothing OrElse Not useSiteInfo.SecondaryDependencies.IsNullOrEmpty() Then
-                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo)
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitializeFromDefault(PrimaryDependency, useSiteInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()
@@ -1231,7 +1309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Else
                     Dim result = uncommonFields._lazyObsoleteAttributeData
                     Return If(result Is ObsoleteAttributeData.Uninitialized,
-                              InterlockedOperations.Initialize(uncommonFields._lazyObsoleteAttributeData, Nothing, ObsoleteAttributeData.Uninitialized),
+                              InterlockedOperations.Initialize(uncommonFields._lazyObsoleteAttributeData, initializedValue:=Nothing, ObsoleteAttributeData.Uninitialized),
                               result)
                 End If
             End Get
@@ -1288,6 +1366,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                If MethodKind <> MethodKind.Constructor Then
+                    Return False
+                End If
+
+                Dim hasSetsRequiredMembersValue As Boolean = False
+                If _packedFlags.TryGetHasSetsRequiredMembers(hasSetsRequiredMembersValue) Then
+                    Return hasSetsRequiredMembersValue
+                End If
+
+                hasSetsRequiredMembersValue = DirectCast(ContainingModule, PEModuleSymbol).Module.HasAttribute(Handle, AttributeDescription.SetsRequiredMembersAttribute)
+                _packedFlags.InitializeSetsRequiredMembers(hasSetsRequiredMembersValue)
+
+                Return hasSetsRequiredMembersValue
+            End Get
+        End Property
     End Class
 
 End Namespace

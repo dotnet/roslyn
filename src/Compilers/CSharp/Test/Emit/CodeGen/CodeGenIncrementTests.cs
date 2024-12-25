@@ -19,29 +19,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         //{1} is some value
         //{2} is one greater than {1}
         private const string NUMERIC_INCREMENT_TEMPLATE = @"
+using System.Globalization;
+
 class C
 {{
     static void Main()
     {{
         {0} x = {1};
         {0} y = x++;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
         
         x = {1};
         y = ++x;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
 
         x = {2};
         y = x--;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
 
         x = {2};
         y = --x;
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
+        System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(y.ToString(CultureInfo.InvariantCulture));
     }}
 }}
 ";

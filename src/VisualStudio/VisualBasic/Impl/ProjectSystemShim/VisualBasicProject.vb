@@ -210,7 +210,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
 
-            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace, findFormsOnly:=findFormsOnly)
+            Dim entryPoints = VisualBasicEntryPointFinder.FindEntryPoints(compilation, findFormsOnly:=findFormsOnly)
 
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
             If cItems = 0 AndAlso pcActualItems <> Nothing Then
@@ -338,9 +338,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     ' To keep things simple, we'll just remove everything and add everything back in
                     For Each oldRuntimeLibrary In oldRuntimeLibraries
                         ' If this one was added explicitly in addition to our computation, we don't have to remove it 
-                        If _explicitlyAddedRuntimeLibraries.Contains(oldRuntimeLibrary) Then
-                            _explicitlyAddedRuntimeLibraries.Remove(oldRuntimeLibrary)
-                        Else
+                        If Not _explicitlyAddedRuntimeLibraries.Remove(oldRuntimeLibrary) Then
                             ProjectSystemProject.RemoveMetadataReference(oldRuntimeLibrary, MetadataReferenceProperties.Assembly)
                         End If
                     Next

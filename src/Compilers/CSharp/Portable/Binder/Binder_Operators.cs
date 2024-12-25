@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
-                ReportAssignmentOperatorError(node, diagnostics, left, right, resultKind);
+                ReportAssignmentOperatorError(node, kind, diagnostics, left, right, resultKind);
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
             var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-            var leftConversion = CreateConversion(node, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
+            var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
@@ -637,8 +637,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)signature.LeftType != null);
                 Debug.Assert((object)signature.RightType != null);
 
-                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
-                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
+                // If this is an object equality operator, we will suppress Lock conversion warnings.
+                var needsFilterDiagnostics =
+                    resultOperatorKind is BinaryOperatorKind.ObjectEqual or BinaryOperatorKind.ObjectNotEqual &&
+                    diagnostics.AccumulatesDiagnostics;
+                var conversionDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
+
+                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
+                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, conversionDiagnostics);
+
+                if (needsFilterDiagnostics)
+                {
+                    Debug.Assert(conversionDiagnostics != diagnostics);
+                    diagnostics.AddDependencies(conversionDiagnostics);
+
+                    var sourceBag = conversionDiagnostics.DiagnosticBag;
+                    Debug.Assert(sourceBag is not null);
+
+                    if (!sourceBag.IsEmptyWithoutResolution)
+                    {
+                        foreach (var diagnostic in sourceBag.AsEnumerableWithoutResolution())
+                        {
+                            var code = diagnostic is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : diagnostic.Code;
+                            if ((ErrorCode)code is not ErrorCode.WRN_ConvertingLock)
+                            {
+                                diagnostics.Add(diagnostic);
+                            }
+                        }
+                    }
+
+                    conversionDiagnostics.Free();
+                }
+
                 resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
             }
             else
@@ -779,9 +809,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, node, operatorName, operand.Display);
         }
 
-        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BinaryOperatorKind kind, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            if (((SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.PlusEqualsToken || (SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.MinusEqualsToken) &&
+            if (IsTypelessExpressionAllowedInBinaryOperator(kind, left, right) &&
+                node.OperatorToken.RawKind is (int)SyntaxKind.PlusEqualsToken or (int)SyntaxKind.MinusEqualsToken &&
                 (object)left.Type != null && left.Type.TypeKind == TypeKind.Delegate)
             {
                 // Special diagnostic for delegate += and -= about wrong right-hand-side
@@ -1234,10 +1265,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out MethodSymbol @operator)
         {
+            var operators = ArrayBuilder<MethodSymbol>.GetInstance();
             for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
-                var operators = type.GetOperators(name);
-                for (var i = 0; i < operators.Length; i++)
+                operators.Clear();
+                type.AddOperators(name, operators);
+
+                for (var i = 0; i < operators.Count; i++)
                 {
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
@@ -1246,12 +1280,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
+                            operators.Free();
                             return true;
                         }
                     }
                 }
             }
 
+            operators.Free();
             @operator = null;
             return false;
         }
@@ -2407,7 +2443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureNullableReferenceTypes.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             var expr = BindExpression(node.Operand, diagnostics);
             switch (expr.Kind)
@@ -2502,7 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
-            diagnostics.Add(node.Location, useSiteInfo);
+            diagnostics.Add(node, useSiteInfo);
 
             if (!hasErrors)
             {
@@ -2528,7 +2564,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// variables have underlying memory which may be moved by the runtime. The spec defines anything
         /// not fixed as moveable and specifies the expressions which are fixed.
         /// </summary>
-
         internal bool IsMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
@@ -2585,6 +2620,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expr = receiver;
                             continue;
                         }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expr;
+
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expr = elementAccess.Expression;
+                                continue;
+                            }
+
+                            goto default;
+                        }
                     case BoundKind.RangeVariable:
                         {
                             // NOTE: there are cases where you can take the address of a range variable.
@@ -2598,7 +2645,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundParameter parameterAccess = (BoundParameter)expr;
                             ParameterSymbol parameterSymbol = parameterAccess.ParameterSymbol;
                             accessedLocalOrParameterOpt = parameterSymbol;
-                            return parameterSymbol.RefKind != RefKind.None;
+
+                            if (parameterSymbol.RefKind != RefKind.None)
+                            {
+                                return true;
+                            }
+
+                            if (parameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryConstructor &&
+                                primaryConstructor.GetCapturedParameters().ContainsKey(parameterSymbol))
+                            {
+                                // See 'case BoundKind.FieldAccess' above. Receiver in our case is 'this' parameter.
+                                // If we are in a class, its type is reference type.
+                                // If we are in a struct, 'this' RefKind is not None.
+                                // Therefore, movable in either case. 
+                                return true;
+                            }
+
+                            return false;
                         }
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
@@ -3381,6 +3444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (conversionKind)
             {
+                case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
                 case ConversionKind.NoConversion:
                     // Oddly enough, "x is T" can be true even if there is no conversion from x to T!
                     //
@@ -3453,10 +3518,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * If either type is a restricted type, the type check isn't supported because
+                    // * If either type is a restricted type, the type check isn't supported for some scenarios because
                     //   a restricted type cannot be boxed or unboxed into.
                     if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
+                        if (targetType is TypeParameterSymbol { AllowsRefLikeType: true })
+                        {
+                            if (!operandType.IsErrorOrRefLikeOrAllowsRefLikeType())
+                            {
+                                return null;
+                            }
+                        }
+                        else if (operandType is not TypeParameterSymbol { AllowsRefLikeType: true })
+                        {
+                            if (targetType.IsRefLikeType)
+                            {
+                                if (operandType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(operandType is TypeParameterSymbol { AllowsRefLikeType: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                            else if (operandType.IsRefLikeType)
+                            {
+                                if (targetType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(targetType is TypeParameterSymbol { AllowsRefLikeType: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                        }
+
                         return ConstantValue.Bad;
                     }
 
@@ -3868,6 +3960,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isOperatorConstantResult.BooleanValue)
                 {
+                    if (operandType?.IsRefLikeType == true)
+                    {
+                        return ConstantValue.Bad;
+                    }
+
                     return ConstantValue.Null;
                 }
             }
@@ -4074,7 +4171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node, node.OperatorToken.GetLocation());
+            MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
@@ -4219,13 +4316,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
             }
 
-            TypeSymbol type;
             bool hasErrors;
             if (bestType.IsErrorType())
             {
                 trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
                 falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
-                type = bestType;
                 hasErrors = true;
             }
             else
@@ -4233,9 +4328,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
                 falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
                 hasErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
-                // If one of the conversions went wrong (e.g. return type of method group being converted
-                // didn't match), then we don't want to use bestType because it's not accurate.
-                type = hasErrors ? CreateErrorType() : bestType;
             }
 
             if (!hasErrors)
@@ -4244,7 +4336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
-            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: type, wasTargetTyped: false, type, hasErrors);
+            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: bestType, wasTargetTyped: false, bestType, hasErrors);
         }
 #nullable disable
 
@@ -4290,13 +4382,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentScope = _localScopeDepth;
 
             // val-escape must agree on both branches.
-            uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
-            uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
+            SafeContext whenTrueEscape = GetValEscape(trueExpr, currentScope);
+            SafeContext whenFalseEscape = GetValEscape(falseExpr, currentScope);
 
             if (whenTrueEscape != whenFalseEscape)
             {
                 // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
-                if (whenTrueEscape < whenFalseEscape)
+                if (!whenFalseEscape.IsConvertibleTo(whenTrueEscape))
                     CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
                 else
                     CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);

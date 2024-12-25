@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     End If
                 End If
 
-                Dim symbol = _semanticModel.GetSymbolInfo(originalSimpleName.Identifier).Symbol
+                Dim symbol = _semanticModel.GetSymbolInfo(originalSimpleName.Identifier, _cancellationToken).Symbol
                 If symbol Is Nothing Then
                     Return newNode
                 End If
@@ -588,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                             ' if the user already used the Attribute suffix in the attribute, we'll maintain it.
                             If identifier.ValueText = name Then
-                                identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                                identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                             End If
                         End If
                     End If
@@ -689,7 +689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Dim genericName = SyntaxFactory.GenericName(
                                         DirectCast(newNode, IdentifierNameSyntax).Identifier,
                                         SyntaxFactory.TypeArgumentList(
-                                            SyntaxFactory.SeparatedList(typeArguments.Select(Function(p) SyntaxFactory.ParseTypeName(p.ToDisplayParts(typeNameFormatWithGenerics).ToDisplayString()))))) _
+                                            SyntaxFactory.SeparatedList(typeArguments.Select(Function(p) SyntaxFactory.ParseTypeName(p.ToDisplayString(typeNameFormatWithGenerics)))))) _
                             .WithLeadingTrivia(newNode.GetLeadingTrivia()) _
                             .WithTrailingTrivia(newNode.GetTrailingTrivia()) _
                             .WithAdditionalAnnotations(Simplifier.Annotation)

@@ -554,7 +554,7 @@ class B : A<int> { }
                 EvalResult("b", "Type={B}", "B", "b", DkmEvaluationResultFlags.None));
         }
 
-        [Fact, WorkItem(1016895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
         public void RootVersusInternal()
         {
             var source = @"

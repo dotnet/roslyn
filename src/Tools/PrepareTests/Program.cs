@@ -42,8 +42,7 @@ internal static class Program
 
         if (dotnetPath is null)
         {
-            Console.Error.WriteLine("--dotnetPath argument must be provided");
-            return ExitFailure;
+            dotnetPath = "dotnet";
         }
 
         var success = TestDiscovery.RunDiscovery(source, dotnetPath, isUnix);

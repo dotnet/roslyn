@@ -6,10 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Now, skip past it.
                 _changeDelta += node.FullWidth;
                 _oldDirectives = node.ApplyDirectives(_oldDirectives);
-                _oldTreeCursor = _oldTreeCursor.MoveToNextSibling();
+                _oldTreeCursor = Cursor.MoveToNextSibling(_oldTreeCursor);
 
                 // If our cursor is now after any changes, then just skip past them while upping
                 // the changeDelta length.  This will let us know that we need to read tokens
@@ -204,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // We can reuse this node or token.  Move us forward in the new text, and move to the
                 // next sibling.
                 _newPosition += currentNodeOrToken.FullWidth;
-                _oldTreeCursor = _oldTreeCursor.MoveToNextSibling();
+                _oldTreeCursor = Cursor.MoveToNextSibling(_oldTreeCursor);
 
                 _newDirectives = currentNodeOrToken.ApplyDirectives(_newDirectives);
                 _oldDirectives = currentNodeOrToken.ApplyDirectives(_oldDirectives);
@@ -307,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.DotDotToken:
                         return true;
                     default:
                         return SyntaxFacts.IsContextualKeyword(kind);

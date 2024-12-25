@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging;
@@ -65,22 +66,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private static List<NotificationOptionViewModel> GetDefaultNotifications()
         {
-            return new List<NotificationOptionViewModel>
-            {
+            return
+            [
                 new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
                 new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
                 new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
                 new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
-            };
+            ];
         }
 
         private static List<CodeStylePreference> GetDefaultPreferences()
         {
-            return new List<CodeStylePreference>
-            {
-                new CodeStylePreference(ServicesVSResources.Yes, isChecked: true),
-                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
-            };
+            return
+            [
+                new CodeStylePreference(EditorFeaturesResources.Yes, isChecked: true),
+                new CodeStylePreference(EditorFeaturesResources.No, isChecked: false),
+            ];
         }
     }
 }

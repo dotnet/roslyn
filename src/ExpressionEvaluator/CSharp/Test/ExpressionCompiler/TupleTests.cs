@@ -288,7 +288,7 @@ class C
             });
         }
 
-        [Fact, WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13803")]
         public void LongTupleLocalElement_NoNames()
         {
             var source =
@@ -423,7 +423,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13589")]
         public void AliasElement()
         {
             var source =
@@ -434,8 +434,8 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleLegacyRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, new[] { ValueTupleLegacyRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(
                     runtime,
@@ -488,7 +488,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13803")]
         public void AliasElement_NoNames()
         {
             var source =
@@ -499,8 +499,8 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleLegacyRef }, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleLegacyRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var alias = new Alias(

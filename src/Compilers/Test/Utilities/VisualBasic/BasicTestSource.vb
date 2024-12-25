@@ -23,20 +23,8 @@ Public Structure BasicTestSource
 
         Dim sourceTest = SourceText.From(text, If(encoding, Encoding.UTF8), checksumAlgorithm)
         Dim tree = SyntaxFactory.ParseSyntaxTree(sourceTest, If(options, TestOptions.RegularLatest), path)
-        CheckSerializable(tree)
         Return tree
     End Function
-
-    Private Shared Sub CheckSerializable(tree As SyntaxTree)
-        Using stream = New MemoryStream()
-            Dim root = tree.GetRoot()
-            root.SerializeTo(stream)
-            stream.Position = 0
-
-            ' verify absence of exception
-            VisualBasicSyntaxNode.DeserializeFrom(stream)
-        End Using
-    End Sub
 
     Public Function GetSyntaxTrees(
         Optional parseOptions As VisualBasicParseOptions = Nothing,
@@ -55,12 +43,17 @@ Public Structure BasicTestSource
 
         Dim source = TryCast(Value, String)
         If source IsNot Nothing Then
-            Return New SyntaxTree() {VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions)}
+            Return New SyntaxTree() _
+            {
+                VisualBasicSyntaxTree.ParseText(
+                    SourceText.From(source, encoding:=Nothing, SourceHashAlgorithms.Default),
+                    If(parseOptions, TestOptions.RegularLatest))
+            }
         End If
 
         Dim sources = TryCast(Value, String())
         If sources IsNot Nothing Then
-            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions)).ToArray()
+            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), If(parseOptions, TestOptions.RegularLatest))).ToArray()
         End If
 
         Dim tree = TryCast(Value, SyntaxTree)

@@ -5,11 +5,11 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeStyle;
+
+internal static class FadingOptions
 {
-    internal static class FadingOptions
-    {
-        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new("FadingOptions_FadeOutUnusedImports", defaultValue: true);
-        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("FadingOptions_FadeOutUnreachableCode", defaultValue: true);
-    }
+    public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new("dotnet_fade_out_unused_imports", defaultValue: true);
+    public static readonly PerLanguageOption2<bool> FadeOutUnusedMembers = new("dotnet_fade_out_unused_members", defaultValue: true);
+    public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new("dotnet_fade_out_unreachable_code", defaultValue: true);
 }

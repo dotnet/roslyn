@@ -10,30 +10,29 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+
+internal class Model
 {
-    internal class Model
+    public ITextVersion TextVersion { get; }
+    public QuickInfoItem Item { get; }
+    public bool TrackMouse { get; }
+
+    public Model(
+        ITextVersion textVersion,
+        QuickInfoItem item,
+        bool trackMouse)
     {
-        public ITextVersion TextVersion { get; }
-        public QuickInfoItem Item { get; }
-        public bool TrackMouse { get; }
+        Contract.ThrowIfNull(item);
 
-        public Model(
-            ITextVersion textVersion,
-            QuickInfoItem item,
-            bool trackMouse)
-        {
-            Contract.ThrowIfNull(item);
+        this.TextVersion = textVersion;
+        this.Item = item;
+        this.TrackMouse = trackMouse;
+    }
 
-            this.TextVersion = textVersion;
-            this.Item = item;
-            this.TrackMouse = trackMouse;
-        }
-
-        internal SnapshotSpan GetCurrentSpanInSnapshot(TextSpan originalSpan, ITextSnapshot textSnapshot)
-        {
-            var trackingSpan = this.TextVersion.CreateTrackingSpan(originalSpan.ToSpan(), SpanTrackingMode.EdgeInclusive);
-            return trackingSpan.GetSpan(textSnapshot);
-        }
+    internal SnapshotSpan GetCurrentSpanInSnapshot(TextSpan originalSpan, ITextSnapshot textSnapshot)
+    {
+        var trackingSpan = this.TextVersion.CreateTrackingSpan(originalSpan.ToSpan(), SpanTrackingMode.EdgeInclusive);
+        return trackingSpan.GetSpan(textSnapshot);
     }
 }

@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class RefSafetyAnalysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        internal static void Analyze(CSharpCompilation compilation, Symbol symbol, BoundNode node, BindingDiagnosticBag diagnostics)
+        internal static void Analyze(CSharpCompilation compilation, MethodSymbol symbol, BoundNode node, BindingDiagnosticBag diagnostics)
         {
             var visitor = new RefSafetyAnalysis(
                 compilation,
@@ -28,27 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (CancelledByStackGuardException e)
             {
                 e.AddAnError(diagnostics);
-            }
-        }
-
-        internal static void Analyze(CSharpCompilation compilation, Symbol symbol, ImmutableArray<BoundInitializer> fieldAndPropertyInitializers, BindingDiagnosticBag diagnostics)
-        {
-            var visitor = new RefSafetyAnalysis(
-                compilation,
-                symbol,
-                inUnsafeRegion: InUnsafeMethod(symbol),
-                useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
-                diagnostics);
-            foreach (var initializer in fieldAndPropertyInitializers)
-            {
-                try
-                {
-                    visitor.VisitFieldOrPropertyInitializer(initializer);
-                }
-                catch (CancelledByStackGuardException e)
-                {
-                    e.AddAnError(diagnostics);
-                }
             }
         }
 
@@ -74,22 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private readonly CSharpCompilation _compilation;
-        private readonly Symbol _symbol;
+        private readonly MethodSymbol _symbol;
         private readonly bool _useUpdatedEscapeRules;
         private readonly BindingDiagnosticBag _diagnostics;
         private bool _inUnsafeRegion;
-        private uint _localScopeDepth;
-        private Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? _localEscapeScopes;
-        private Dictionary<BoundValuePlaceholderBase, uint>? _placeholderScopes;
-        private uint _patternInputValEscape;
+        private SafeContext _localScopeDepth;
+        private Dictionary<LocalSymbol, (SafeContext RefEscapeScope, SafeContext ValEscapeScope)>? _localEscapeScopes;
+        private Dictionary<BoundValuePlaceholderBase, SafeContext>? _placeholderScopes;
+        private SafeContext _patternInputValEscape;
+#if DEBUG
+        private const int MaxTrackVisited = 100; // Avoid tracking if too many expressions.
+        private HashSet<BoundExpression>? _visited = new HashSet<BoundExpression>();
+#endif
 
         private RefSafetyAnalysis(
             CSharpCompilation compilation,
-            Symbol symbol,
+            MethodSymbol symbol,
             bool inUnsafeRegion,
             bool useUpdatedEscapeRules,
-            BindingDiagnosticBag diagnostics,
-            Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? localEscapeScopes = null)
+            BindingDiagnosticBag diagnostics)
         {
             _compilation = compilation;
             _symbol = symbol;
@@ -99,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // _localScopeDepth is incremented at each block in the method, including the
             // outermost. To ensure that locals in the outermost block are considered at
             // the same depth as parameters, _localScopeDepth is initialized to one less.
-            _localScopeDepth = CurrentMethodScope - 1;
-            _localEscapeScopes = localEscapeScopes;
+            _localScopeDepth = SafeContext.CurrentMethod.Wider();
         }
 
         private ref struct LocalScope
@@ -112,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _analysis = analysis;
                 _locals = locals;
-                _analysis._localScopeDepth++;
+                _analysis._localScopeDepth = _analysis._localScopeDepth.Narrower();
                 foreach (var local in locals)
                 {
-                    _analysis.AddLocalScopes(local, refEscapeScope: _analysis._localScopeDepth, valEscapeScope: CallingMethodScope);
+                    _analysis.AddLocalScopes(local, refEscapeScope: _analysis._localScopeDepth, valEscapeScope: SafeContext.CallingMethod);
                 }
             }
 
@@ -125,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _analysis.RemoveLocalScopes(local);
                 }
-                _analysis._localScopeDepth--;
+                _analysis._localScopeDepth = _analysis._localScopeDepth.Wider();
             }
         }
 
@@ -150,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ref struct PatternInput
         {
             private readonly RefSafetyAnalysis _analysis;
-            private readonly uint _previousInputValEscape;
+            private readonly SafeContext _previousInputValEscape;
 
-            public PatternInput(RefSafetyAnalysis analysis, uint patternInputValEscape)
+            public PatternInput(RefSafetyAnalysis analysis, SafeContext patternInputValEscape)
             {
                 _analysis = analysis;
                 _previousInputValEscape = analysis._patternInputValEscape;
@@ -168,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ref struct PlaceholderRegion
         {
             private readonly RefSafetyAnalysis _analysis;
-            private readonly ArrayBuilder<(BoundValuePlaceholderBase, uint)> _placeholders;
+            private readonly ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> _placeholders;
 
-            public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders)
+            public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> placeholders)
             {
                 _analysis = analysis;
                 _placeholders = placeholders;
@@ -190,39 +173,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private (uint RefEscapeScope, uint ValEscapeScope) GetLocalScopes(LocalSymbol local)
+        private (SafeContext RefEscapeScope, SafeContext ValEscapeScope) GetLocalScopes(LocalSymbol local)
         {
-            Debug.Assert(_localEscapeScopes is { });
-            return _localEscapeScopes[local];
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true || _symbol != local.ContainingSymbol);
+
+            return _localEscapeScopes?.TryGetValue(local, out var scopes) == true
+                ? scopes
+                : (SafeContext.CurrentMethod, SafeContext.CallingMethod);
         }
 
-        private void SetLocalScopes(LocalSymbol local, uint refEscapeScope, uint valEscapeScope)
+        private void SetLocalScopes(LocalSymbol local, SafeContext refEscapeScope, SafeContext valEscapeScope)
         {
-            Debug.Assert(_localEscapeScopes is { });
-            _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true);
+
+            AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
         }
 
-        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, uint valEscapeScope)
+        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, SafeContext valEscapeScope)
         {
-            _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, uint>();
-            _placeholderScopes.Add(placeholder, valEscapeScope);
+            Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) != true);
+
+            // Consider not adding the placeholder to the dictionary if the escape scope is
+            // CallingMethod, and simply fallback to that value in GetPlaceholderScope().
+
+            _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, SafeContext>();
+            _placeholderScopes[placeholder] = valEscapeScope;
         }
 
 #pragma warning disable IDE0060
         private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
-            Debug.Assert(_placeholderScopes is { });
+            Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
+
             // https://github.com/dotnet/roslyn/issues/65961: Currently, analysis may require subsequent calls
             // to GetRefEscape(), etc. for the same expression so we cannot remove placeholders eagerly.
             //_placeholderScopes.Remove(placeholder);
         }
 #pragma warning restore IDE0060
 
-        private uint GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
+        private SafeContext GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
-            Debug.Assert(_placeholderScopes is { });
-            return _placeholderScopes[placeholder];
+            Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
+
+            return _placeholderScopes?.TryGetValue(placeholder, out var scope) == true
+                ? scope
+                : SafeContext.CallingMethod;
         }
+
+#if DEBUG
+        private bool ContainsPlaceholderScope(BoundValuePlaceholderBase placeholder)
+        {
+            if (_placeholderScopes?.ContainsKey(placeholder) == true)
+            {
+                return true;
+            }
+
+            // _placeholderScopes should contain all placeholders that may be used by GetValEscape() or CheckValEscape().
+            // The following placeholders are not needed by those methods and can be ignored, however.
+            switch (placeholder)
+            {
+                case BoundObjectOrCollectionValuePlaceholder:
+                    return true; // CheckValEscapeOfObjectInitializer() does not use BoundObjectOrCollectionValuePlaceholder.
+                case BoundInterpolatedStringHandlerPlaceholder:
+                    return true; // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
+                case BoundImplicitIndexerValuePlaceholder:
+                    return placeholder.Type?.SpecialType == SpecialType.System_Int32;
+                case BoundCapturedReceiverPlaceholder:
+                    return true; // BoundCapturedReceiverPlaceholder is created in GetInvocationArgumentsForEscape(), and was not part of the BoundNode tree.
+                default:
+                    return false;
+            }
+        }
+#endif
 
         public override BoundNode? VisitBlock(BoundBlock node)
         {
@@ -234,37 +256,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
-            if (node is BoundValuePlaceholderBase placeholder
-                // CheckValEscapeOfObjectInitializer() does not use BoundObjectOrCollectionValuePlaceholder.
-                // CheckInterpolatedStringHandlerConversionEscape() does not use BoundInterpolatedStringHandlerPlaceholder.
-                && node is not (BoundObjectOrCollectionValuePlaceholder or BoundInterpolatedStringHandlerPlaceholder))
-            {
-                Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
-            }
+            TrackVisit(node);
 #endif
             return base.Visit(node);
         }
 
-        private void VisitFieldOrPropertyInitializer(BoundInitializer initializer)
+#if DEBUG
+        protected override void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
         {
-            var fieldEqualsValue = (BoundFieldEqualsValue)initializer;
-            var field = fieldEqualsValue.Field;
-            var value = fieldEqualsValue.Value;
+            TrackVisit(node);
+        }
 
-            using var _ = new LocalScope(this, fieldEqualsValue.Locals);
+        protected override void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+        {
+            TrackVisit(node);
+        }
 
-            base.Visit(value);
+        private void TrackVisit(BoundNode? node)
+        {
+            if (node is BoundValuePlaceholderBase placeholder)
+            {
+                Debug.Assert(ContainsPlaceholderScope(placeholder));
+            }
+            else if (node is BoundExpression expr)
+            {
+                if (_visited is { } && _visited.Count <= MaxTrackVisited)
+                {
+                    bool added = _visited.Add(expr);
+                    RoslynDebug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
+                }
+            }
+        }
 
-            ValidateEscape(value, CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
+        private void AssertVisited(BoundExpression expr)
+        {
+            if (expr is BoundValuePlaceholderBase placeholder)
+            {
+                Debug.Assert(ContainsPlaceholderScope(placeholder));
+            }
+            else if (_visited is { } && _visited.Count <= MaxTrackVisited)
+            {
+                RoslynDebug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
+            }
+        }
+#endif
+
+        public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunction = node.Symbol;
-            // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
-            // across nested local functions or lambdas because _localScopeDepth is reset when entering
-            // the function or lambda so the scopes across the methods are unrelated.
-            var analysis = new RefSafetyAnalysis(_compilation, localFunction, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
+            var analysis = new RefSafetyAnalysis(_compilation, localFunction, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
             return null;
@@ -273,10 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             var lambda = node.Symbol;
-            // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
-            // across nested local functions or lambdas because _localScopeDepth is reset when entering
-            // the function or lambda so the scopes across the methods are unrelated.
-            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
+            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.Body);
             return null;
         }
@@ -298,22 +340,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             using var _ = new LocalScope(this, node.Locals);
 
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            this.Visit(node.DeclarationsOpt);
+            this.Visit(node.ExpressionOpt);
+
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
             if (node.AwaitOpt is { } awaitableInfo)
             {
-                uint valEscapeScope = node.ExpressionOpt is { } expr
+                SafeContext valEscapeScope = node.ExpressionOpt is { } expr
                     ? GetValEscape(expr, _localScopeDepth)
                     : _localScopeDepth;
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, valEscapeScope);
             }
 
             using var region = new PlaceholderRegion(this, placeholders);
-            return base.VisitUsingStatement(node);
+            this.Visit(node.AwaitOpt);
+            this.Visit(node.Body);
+            return null;
         }
 
         public override BoundNode? VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
             if (node.AwaitOpt is { } awaitableInfo)
             {
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, _localScopeDepth);
@@ -343,16 +390,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
+            this.Visit(node.Expression);
             using var _1 = new LocalScope(this, node.InnerLocals);
             using var _2 = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
-            base.VisitSwitchStatement(node);
+            this.VisitList(node.SwitchSections);
+            this.Visit(node.DefaultLabel);
             return null;
         }
 
         public override BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
+            this.Visit(node.Expression);
             using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
-            base.VisitConvertedSwitchExpression(node);
+            this.VisitList(node.SwitchArms);
             return null;
         }
 
@@ -376,14 +426,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocal(BoundLocal node)
         {
-            // _localEscapeScopes may be null for locals in top-level statements.
             Debug.Assert(_localEscapeScopes?.ContainsKey(node.LocalSymbol) == true ||
-                (node.LocalSymbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _symbol != entryPoint));
+                _symbol != node.LocalSymbol.ContainingSymbol);
 
             return base.VisitLocal(node);
         }
 
-        private void AddLocalScopes(LocalSymbol local, uint refEscapeScope, uint valEscapeScope)
+        private void AddLocalScopes(LocalSymbol local, SafeContext refEscapeScope, SafeContext valEscapeScope)
         {
             // From https://github.com/dotnet/csharplang/blob/main/csharp-11.0/proposals/low-level-struct-improvements.md:
             //
@@ -399,14 +448,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refEscapeScope = scopedModifier == ScopedKind.ScopedRef ?
                     _localScopeDepth :
-                    CurrentMethodScope;
+                    SafeContext.CurrentMethod;
                 valEscapeScope = scopedModifier == ScopedKind.ScopedValue ?
                     _localScopeDepth :
-                    CallingMethodScope;
+                    SafeContext.CallingMethod;
             }
 
-            _localEscapeScopes ??= new Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>();
-            _localEscapeScopes.Add(local, (refEscapeScope, valEscapeScope));
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) != true);
+
+            AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
+        }
+
+        private void AddOrSetLocalScopes(LocalSymbol local, SafeContext refEscapeScope, SafeContext valEscapeScope)
+        {
+            _localEscapeScopes ??= new Dictionary<LocalSymbol, (SafeContext RefEscapeScope, SafeContext ValEscapeScope)>();
+            _localEscapeScopes[local] = (refEscapeScope, valEscapeScope);
         }
 
 #pragma warning disable IDE0060
@@ -426,17 +482,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InitializerOpt is { } initializer)
             {
                 var localSymbol = (SourceLocalSymbol)node.LocalSymbol;
-                (uint refEscapeScope, uint valEscapeScope) = GetLocalScopes(localSymbol);
+                (SafeContext refEscapeScope, SafeContext valEscapeScope) = GetLocalScopes(localSymbol);
 
                 if (_useUpdatedEscapeRules && localSymbol.Scope != ScopedKind.None)
                 {
-                    // If the local has a scoped modifier, then the lifetime is not inferred from
+                    // If the local has a scoped modifier, then the SafeContext is not inferred from
                     // the initializer. Validate the escape values for the initializer instead.
 
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
-                        refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
+                        GetRefEscape(initializer, _localScopeDepth).IsConvertibleTo(refEscapeScope));
 
-                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
+                    if (node.DeclaredTypeOpt?.Type.IsRefLikeOrAllowsRefLikeType() == true)
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
@@ -464,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitReturnStatement(node);
             if (node.ExpressionOpt is { Type: { } } expr)
             {
-                ValidateEscape(expr, ReturnOnlyScope, node.RefKind != RefKind.None, _diagnostics);
+                ValidateEscape(expr, SafeContext.ReturnOnly, node.RefKind != RefKind.None, _diagnostics);
             }
             return null;
         }
@@ -474,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitYieldReturnStatement(node);
             if (node.Expression is { Type: { } } expr)
             {
-                ValidateEscape(expr, ReturnOnlyScope, isByRef: false, _diagnostics);
+                ValidateEscape(expr, SafeContext.ReturnOnly, isByRef: false, _diagnostics);
             }
             return null;
         }
@@ -489,10 +545,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            base.VisitCompoundAssignmentOperator(node);
+            ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
+            return null;
+        }
+
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
+            this.Visit(node.Expression);
             using var _ = new PatternInput(this, GetValEscape(node.Expression, _localScopeDepth));
-            return base.VisitIsPatternExpression(node);
+            this.Visit(node.Pattern);
+            return null;
         }
 
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
@@ -502,9 +567,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             using var _ = new PatternInput(this, getDeclarationValEscape(node.DeclaredType, _patternInputValEscape));
             return base.VisitDeclarationPattern(node);
 
-            static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
+            static SafeContext getDeclarationValEscape(BoundTypeExpression typeExpression, SafeContext valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                // https://github.com/dotnet/roslyn/issues/73551:
+                // We do not have a test that demonstrates the statement below makes a difference
+                // for ref like types. If 'SafeContext.CallingMethod' is always returned, not a single test fails.
+                return typeExpression.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : SafeContext.CallingMethod;
             }
         }
 
@@ -517,7 +585,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
         {
             SetPatternLocalScopes(node);
+
+            // If the equivalent `Deconstruct` call has unscoped receiver,
+            // we narrow the escape scope of the pattern input
+            // which flows as the escape scope of all ref-struct declaration subpatterns
+            // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
+            // where "safe-context inference of declaration expressions" would have the same effect.
+            if (node.DeconstructMethod is { } m &&
+                tryGetThisParameter(m)?.EffectiveScope == ScopedKind.None)
+            {
+                using (new PatternInput(this, _localScopeDepth))
+                {
+                    return base.VisitRecursivePattern(node);
+                }
+            }
+
             return base.VisitRecursivePattern(node);
+
+            static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
+            {
+                if (method.IsExtensionMethod)
+                {
+                    return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
+                }
+
+                return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;
+            }
         }
 
         public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
@@ -525,11 +618,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             using var _ = new PatternInput(this, getPositionalValEscape(node.Symbol, _patternInputValEscape));
             return base.VisitPositionalSubpattern(node);
 
-            static uint getPositionalValEscape(Symbol? symbol, uint valEscape)
+            static SafeContext getPositionalValEscape(Symbol? symbol, SafeContext valEscape)
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope;
+                    : symbol.GetTypeOrReturnType().IsRefLikeOrAllowsRefLikeType() ? valEscape : SafeContext.CallingMethod;
             }
         }
 
@@ -538,11 +631,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             using var _ = new PatternInput(this, getMemberValEscape(node.Member, _patternInputValEscape));
             return base.VisitPropertySubpattern(node);
 
-            static uint getMemberValEscape(BoundPropertySubpatternMember? member, uint valEscape)
+            static SafeContext getMemberValEscape(BoundPropertySubpatternMember? member, SafeContext valEscape)
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                return member.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : SafeContext.CallingMethod;
             }
         }
 
@@ -564,32 +657,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private PlaceholderRegion GetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
+        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments)
         {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-            foreach (var arg in arguments)
+            for (int i = 0; i < arguments.Length; i++)
             {
+                var arg = arguments[i];
                 if (arg is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
                 {
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
-                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, arguments);
+                    var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
+                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments);
+                    _ = new PlaceholderRegion(this, placeholders);
                 }
+                Visit(arg);
             }
-            return new PlaceholderRegion(this, placeholders);
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
+        protected override void VisitArguments(BoundCall node)
         {
-            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
-            base.VisitCall(node);
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
             {
                 var method = node.Method;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    method,
+                    MethodInfo.Create(method),
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -597,33 +693,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _localScopeDepth,
                     _diagnostics);
             }
-
-            return null;
         }
 
         private void GetInterpolatedStringPlaceholders(
-            ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders,
+            ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> placeholders,
             in InterpolatedStringHandlerData interpolationData,
             BoundExpression? receiver,
+            int nArgumentsVisited,
             ImmutableArray<BoundExpression> arguments)
         {
+            Debug.Assert(interpolationData.ReceiverPlaceholder is not null);
             placeholders.Add((interpolationData.ReceiverPlaceholder, _localScopeDepth));
 
             foreach (var placeholder in interpolationData.ArgumentPlaceholders)
             {
-                uint valEscapeScope;
+                SafeContext valEscapeScope;
                 int argIndex = placeholder.ArgumentIndex;
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiver != null);
-                        valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
+                        if (receiver is null)
+                        {
+                            valEscapeScope = SafeContext.CallingMethod;
+                        }
+                        else
+                        {
+                            valEscapeScope = receiver.GetRefKind().IsWritableReference() ? GetRefEscape(receiver, _localScopeDepth) : GetValEscape(receiver, _localScopeDepth);
+                        }
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
+                        Debug.Assert(placeholder.Type.SpecialType == SpecialType.System_Boolean);
+                        // Escape scope of bool parameter is CallingMethod, which is the default for placeholders.
+                        continue;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
+                        // Error condition, no need for additional ref safety errors.
                         continue;
                     case >= 0:
-                        valEscapeScope = GetValEscape(arguments[argIndex], _localScopeDepth);
+                        if (argIndex < nArgumentsVisited)
+                        {
+                            valEscapeScope = GetValEscape(arguments[argIndex], _localScopeDepth);
+                        }
+                        else
+                        {
+                            // Error condition, see ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString.
+                            valEscapeScope = SafeContext.CallingMethod; // Consider skipping this placeholder entirely since SafeContext.CallingMethod is the fallback in GetPlaceholderScope().
+                        }
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
@@ -634,39 +749,126 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
-            base.VisitObjectCreationExpression(node);
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
+        {
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        public override BoundNode? VisitNewT(BoundNewT node)
+        {
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+        {
+            VisitObjectCreationExpressionBase(node);
+            return null;
+        }
+
+        private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
+        {
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments);
+            Visit(node.InitializerExpressionOpt);
 
             if (!node.HasErrors)
             {
                 var constructor = node.Constructor;
-                CheckInvocationArgMixing(
-                    node.Syntax,
-                    constructor,
-                    receiverOpt: null,
-                    constructor.Parameters,
-                    node.Arguments,
-                    node.ArgumentRefKindsOpt,
-                    node.ArgsToParamsOpt,
-                    _localScopeDepth,
-                    _diagnostics);
-            }
+                if (constructor is { })
+                {
+                    var methodInfo = MethodInfo.Create(constructor);
+                    CheckInvocationArgMixing(
+                        node.Syntax,
+                        in methodInfo,
+                        receiverOpt: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
+                        constructor.Parameters,
+                        node.Arguments,
+                        node.ArgumentRefKindsOpt,
+                        node.ArgsToParamsOpt,
+                        _localScopeDepth,
+                        _diagnostics);
 
-            return null;
+                    if (node.InitializerExpressionOpt is { })
+                    {
+                        // Object initializers are different than a normal constructor in that the 
+                        // scope of the receiver is determined by evaluating the inputs to the constructor
+                        // *and* all of the initializers. Another way of thinking about this is that
+                        // every argument in an initializer that can escape to the receiver is 
+                        // effectively an argument to the constructor. That means we need to do
+                        // a second mixing pass here where we consider the receiver escaping 
+                        // back into the ref parameters of the constructor.
+                        //
+                        // At the moment this is only a hypothetical problem. Because the language 
+                        // doesn't support ref field of ref struct mixing like this could not actually
+                        // happen in practice. At the same time we want to error on this now so that 
+                        // in a future when we do have ref field to ref struct this is not a breaking 
+                        // change. Customers can respond to failures like this by putting scoped on
+                        // such parameters in the constructor.
+                        var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
+                        var escapeFrom = GetValEscape(node.InitializerExpressionOpt, _localScopeDepth);
+                        GetEscapeValues(
+                            in methodInfo,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            constructor.Parameters,
+                            node.Arguments,
+                            node.ArgumentRefKindsOpt,
+                            node.ArgsToParamsOpt,
+                            ignoreArglistRefKinds: false,
+                            mixableArguments: null,
+                            escapeValues);
+
+                        foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+                        {
+                            if (!isRefEscape)
+                            {
+                                continue;
+                            }
+
+                            if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
+                                !parameter.RefKind.IsWritableReference())
+                            {
+                                continue;
+                            }
+
+                            if (!escapeFrom.IsConvertibleTo(GetValEscape(argument, _localScopeDepth)))
+                            {
+                                Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, constructor, parameter.Name);
+                            }
+                        }
+
+                        escapeValues.Free();
+                    }
+                }
+            }
+        }
+
+        public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            return base.VisitPropertyAccess(node);
         }
 
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
-            using var _ = GetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
-            base.VisitIndexerAccess(node);
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            Visit(node.ReceiverOpt);
+            VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
             {
                 var indexer = node.Indexer;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    indexer,
+                    MethodInfo.Create(node),
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     indexer.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -680,16 +882,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            using var _ = GetArgumentPlaceholders(receiverOpt: null, node.Arguments);
-            base.VisitFunctionPointerInvocation(node);
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments);
 
             if (!node.HasErrors)
             {
                 var method = node.FunctionPointer.Signature;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    method,
+                    MethodInfo.Create(method),
                     receiverOpt: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -703,19 +905,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            this.Visit(node.Expression);
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
             GetAwaitableInstancePlaceholders(placeholders, node.AwaitableInfo, GetValEscape(node.Expression, _localScopeDepth));
             using var _ = new PlaceholderRegion(this, placeholders);
-            base.VisitAwaitExpression(node);
+            this.Visit(node.AwaitableInfo);
             return null;
         }
 
-        private void GetAwaitableInstancePlaceholders(ArrayBuilder<(BoundValuePlaceholderBase, uint)> placeholders, BoundAwaitableInfo awaitableInfo, uint valEscapeScope)
+        private void GetAwaitableInstancePlaceholders(ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> placeholders, BoundAwaitableInfo awaitableInfo, SafeContext valEscapeScope)
         {
             if (awaitableInfo.AwaitableInstancePlaceholder is { } placeholder)
             {
                 placeholders.Add((placeholder, valEscapeScope));
             }
+        }
+
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            // Verify we're only skipping placeholders for int values, where the escape scope is always CallingMethod.
+            Debug.Assert(node.ArgumentPlaceholders.All(p => p is BoundImplicitIndexerValuePlaceholder { Type.SpecialType: SpecialType.System_Int32 }));
+
+            base.VisitImplicitIndexerAccess(node);
+            return null;
         }
 
         // Based on NullableWalker.VisitDeconstructionAssignmentOperator().
@@ -755,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
             placeholders.Add((conversion.DeconstructionInfo.InputPlaceholder, GetValEscape(right, _localScopeDepth)));
 
             var parameters = deconstructMethod.Parameters;
@@ -768,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 var nestedVariables = variable.NestedVariables;
                 var arg = (BoundDeconstructValuePlaceholder)invocation.Arguments[i + offset];
-                uint valEscape = nestedVariables is null
+                SafeContext valEscape = nestedVariables is null
                     ? GetValEscape(variable.Expression, _localScopeDepth)
                     : _localScopeDepth;
                 placeholders.Add((arg, valEscape));
@@ -778,8 +990,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckInvocationArgMixing(
                 syntax,
-                deconstructMethod,
+                MethodInfo.Create(deconstructMethod),
                 invocation.ReceiverOpt,
+                invocation.InitialBindingReceiverIsSubjectToCloning,
                 parameters,
                 invocation.Arguments,
                 invocation.ArgumentRefKindsOpt,
@@ -803,10 +1016,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly struct DeconstructionVariable
         {
             internal readonly BoundExpression Expression;
-            internal readonly uint ValEscape;
+            internal readonly SafeContext ValEscape;
             internal readonly ArrayBuilder<DeconstructionVariable>? NestedVariables;
 
-            internal DeconstructionVariable(BoundExpression expression, uint valEscape, ArrayBuilder<DeconstructionVariable>? nestedVariables)
+            internal DeconstructionVariable(BoundExpression expression, SafeContext valEscape, ArrayBuilder<DeconstructionVariable>? nestedVariables)
             {
                 Expression = expression;
                 ValEscape = valEscape;
@@ -827,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeconstructionVariable getDeconstructionAssignmentVariable(BoundExpression expr)
             {
                 return expr is BoundTupleExpression tuple
-                    ? new DeconstructionVariable(expr, valEscape: uint.MaxValue, GetDeconstructionAssignmentVariables(tuple))
+                    ? new DeconstructionVariable(expr, valEscape: SafeContext.Empty, GetDeconstructionAssignmentVariables(tuple))
                     : new DeconstructionVariable(expr, GetValEscape(expr, _localScopeDepth), null);
             }
         }
@@ -853,7 +1066,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
-            uint collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+            this.Visit(node.Expression);
+            SafeContext collectionEscape;
+
+            if (node.EnumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var spanType, InlineArrayUsedAsValue: false })
+            {
+                ImmutableArray<BoundExpression> arguments;
+                ImmutableArray<RefKind> refKinds;
+
+                SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(
+                    // Strip identity conversion added by compiler on top of inline array.
+                    inlineArray: node.Expression is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ? node.Expression : operand,
+                    resultType: node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.ContainingType,
+                    out arguments, out refKinds);
+
+                collectionEscape = GetInvocationEscapeScope(
+                    MethodInfo.Create(equivalentSignatureMethod),
+                    receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
+                    equivalentSignatureMethod.Parameters,
+                    arguments,
+                    refKinds,
+                    argsToParamsOpt: default,
+                    _localScopeDepth,
+                    isRefEscape: false);
+            }
+            else
+            {
+                collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+            }
+
             using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty);
 
             foreach (var local in node.IterationVariables)
@@ -861,18 +1103,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddLocalScopes(local, refEscapeScope: local.RefKind == RefKind.None ? _localScopeDepth : collectionEscape, valEscapeScope: collectionEscape);
             }
 
-            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+            var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
             if (node.DeconstructionOpt?.TargetPlaceholder is { } targetPlaceholder)
             {
                 placeholders.Add((targetPlaceholder, collectionEscape));
             }
+
             if (node.AwaitOpt is { } awaitableInfo)
             {
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, collectionEscape);
             }
 
             using var region = new PlaceholderRegion(this, placeholders);
-            base.VisitForEachStatement(node);
+            this.Visit(node.IterationVariableType);
+            this.Visit(node.IterationErrorExpressionOpt);
+            this.Visit(node.DeconstructionOpt);
+            this.Visit(node.AwaitOpt);
+            this.Visit(node.Body);
 
             foreach (var local in node.IterationVariables)
             {

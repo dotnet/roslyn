@@ -7,22 +7,21 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Differencing
+namespace Microsoft.CodeAnalysis.Differencing;
+
+/// <summary>
+/// Calculates Longest Common Subsequence for immutable arrays.
+/// </summary>
+internal abstract class LongestCommonImmutableArraySubsequence<TElement> : LongestCommonSubsequence<ImmutableArray<TElement>>
 {
-    /// <summary>
-    /// Calculates Longest Common Subsequence for immutable arrays.
-    /// </summary>
-    internal abstract class LongestCommonImmutableArraySubsequence<TElement> : LongestCommonSubsequence<ImmutableArray<TElement>>
-    {
-        protected abstract bool Equals(TElement oldElement, TElement newElement);
+    protected abstract bool Equals(TElement oldElement, TElement newElement);
 
-        protected sealed override bool ItemsEqual(ImmutableArray<TElement> oldSequence, int oldIndex, ImmutableArray<TElement> newSequence, int newIndex)
-            => Equals(oldSequence[oldIndex], newSequence[newIndex]);
+    protected sealed override bool ItemsEqual(ImmutableArray<TElement> oldSequence, int oldIndex, ImmutableArray<TElement> newSequence, int newIndex)
+        => Equals(oldSequence[oldIndex], newSequence[newIndex]);
 
-        public IEnumerable<SequenceEdit> GetEdits(ImmutableArray<TElement> oldSequence, ImmutableArray<TElement> newSequence)
-            => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
+    public IEnumerable<SequenceEdit> GetEdits(ImmutableArray<TElement> oldSequence, ImmutableArray<TElement> newSequence)
+        => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
-        public double ComputeDistance(ImmutableArray<TElement> oldSequence, ImmutableArray<TElement> newSequence)
-            => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-    }
+    public double ComputeDistance(ImmutableArray<TElement> oldSequence, ImmutableArray<TElement> newSequence)
+        => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 }

@@ -4,16 +4,12 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Formatting
-{
-    /// <summary>
-    /// data that will be used in an interval tree related to suppressing spacing operations.
-    /// </summary>
-    internal class SuppressSpacingData
-    {
-        public SuppressSpacingData(TextSpan textSpan)
-            => this.TextSpan = textSpan;
+namespace Microsoft.CodeAnalysis.Formatting;
 
-        public TextSpan TextSpan { get; }
-    }
+/// <summary>
+/// data that will be used in an interval tree related to suppressing spacing operations.
+/// </summary>
+internal sealed class SuppressSpacingData(TextSpan textSpan)
+{
+    public TextSpan TextSpan { get; } = textSpan;
 }

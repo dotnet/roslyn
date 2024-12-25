@@ -4266,22 +4266,13 @@ public class C
 ");
             compVerifier.VerifyIL("C.M2(int?)", @"
 {
-  // Code size       23 (0x17)
+  // Code size       11 (0xb)
   .maxstack  2
-  .locals init (int? V_0,
-                int V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_0
-  IL_0006:  call       ""int int?.GetValueOrDefault()""
-  IL_000b:  ldloc.1
-  IL_000c:  ceq
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  call       ""bool int?.HasValue.get""
-  IL_0015:  and
-  IL_0016:  ret
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int int?.GetValueOrDefault()""
+  IL_0007:  ldc.i4.1
+  IL_0008:  ceq
+  IL_000a:  ret
 }
 ");
         }
@@ -5949,7 +5940,7 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       35 (0x23)
+      // Code size       33 (0x21)
       .maxstack  2
       .locals init (bool V_0)
       IL_0000:  ldarg.0
@@ -5971,11 +5962,9 @@ class C
       IL_001a:  ldc.i4.0
       IL_001b:  stloc.0
       IL_001c:  ldloc.0
-      IL_001d:  brtrue.s   IL_0021
-      IL_001f:  ldc.i4.0
+      IL_001d:  ldc.i4.0
+      IL_001e:  cgt.un
       IL_0020:  ret
-      IL_0021:  ldc.i4.1
-      IL_0022:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"

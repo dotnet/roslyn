@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCollectionInitializer
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
     Public Class UseCollectionInitializerTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
@@ -34,6 +34,19 @@ Class C
         Dim c = New List(Of Integer) From {
             1
         }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70015")>
+        Public Async Function TestNotParenthesized() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||](New List(Of Integer)())
+        c.Add(1)
     End Sub
 End Class")
         End Function
@@ -208,7 +221,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -294,7 +307,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/15528")>
         Public Async Function TestTrivia2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -322,7 +335,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(23672, "https://github.com/dotnet/roslyn/pull/23672")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/pull/23672")>
         Public Async Function TestMissingWithExplicitImplementedAddMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -333,6 +346,18 @@ Class C
         Dim obj As IDictionary(Of String, Object) = [||]New ExpandoObject()
         obj.Add(""string"", ""v"")
         obj.Add(""int"", 1)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69106")>
+        Public Async Function TestNotWithCollectionInitializerArgument() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim Data As [||]New List(Of IEnumerable(Of String))
+        Data.Add({""Goo"", ""Bar"", ""Baz"", ""Buzz""})
     End Sub
 End Class")
         End Function

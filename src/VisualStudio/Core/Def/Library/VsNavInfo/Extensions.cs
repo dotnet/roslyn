@@ -7,50 +7,49 @@
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
+
+internal static class Extensions
 {
-    internal static class Extensions
+    public static void Add(this ImmutableArray<NavInfoNode>.Builder builder, string name, _LIB_LISTTYPE type, bool expandDottedNames)
     {
-        public static void Add(this ImmutableArray<NavInfoNode>.Builder builder, string name, _LIB_LISTTYPE type, bool expandDottedNames)
+        if (name == null)
         {
-            if (name == null)
-            {
-                return;
-            }
-
-            if (expandDottedNames)
-            {
-                const char separator = '.';
-
-                var start = 0;
-                var separatorPos = name.IndexOf(separator, start);
-
-                while (separatorPos >= 0)
-                {
-                    builder.Add(name[start..separatorPos], type);
-                    start = separatorPos + 1;
-                    separatorPos = name.IndexOf(separator, start);
-                }
-
-                if (start < name.Length)
-                {
-                    builder.Add(name[start..], type);
-                }
-            }
-            else
-            {
-                builder.Add(name, type);
-            }
+            return;
         }
 
-        public static void Add(this ImmutableArray<NavInfoNode>.Builder builder, string name, _LIB_LISTTYPE type)
+        if (expandDottedNames)
         {
-            if (string.IsNullOrEmpty(name))
+            const char separator = '.';
+
+            var start = 0;
+            var separatorPos = name.IndexOf(separator, start);
+
+            while (separatorPos >= 0)
             {
-                return;
+                builder.Add(name[start..separatorPos], type);
+                start = separatorPos + 1;
+                separatorPos = name.IndexOf(separator, start);
             }
 
-            builder.Add(new NavInfoNode(name, type));
+            if (start < name.Length)
+            {
+                builder.Add(name[start..], type);
+            }
         }
+        else
+        {
+            builder.Add(name, type);
+        }
+    }
+
+    public static void Add(this ImmutableArray<NavInfoNode>.Builder builder, string name, _LIB_LISTTYPE type)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        builder.Add(new NavInfoNode(name, type));
     }
 }

@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo;
+
+internal interface INavigateToSearchCallback
 {
-    internal interface INavigateToSearchCallback
-    {
-        void Done(bool isFullyLoaded);
-        void ReportIncomplete();
+    void Done(bool isFullyLoaded);
+    void ReportIncomplete();
 
-        Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken);
+    Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken);
 
-        void ReportProgress(int current, int maximum);
-    }
+    void ReportProgress(int current, int maximum);
 }

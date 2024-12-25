@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CodeRefactorings;
+
+internal interface ICodeRefactoringHelpersService : IWorkspaceService
 {
-    internal interface ICodeRefactoringHelpersService : IWorkspaceService
-    {
-        bool ActiveInlineRenameSession { get; }
-    }
+    bool ActiveInlineRenameSession { get; }
 }

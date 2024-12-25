@@ -1,7 +1,9 @@
 # Source Generators
 
-
 ## Summary
+
+> **Warning**: Source generators implementing `ISourceGenerator` have been deprecated
+> in favor of [incremental generators](incremental-generators.md).
 
 Source generators aim to enable _compile time metaprogramming_, that is, code that can be created
 at compile time and added to the compilation. Source generators will be able to read the contents of 

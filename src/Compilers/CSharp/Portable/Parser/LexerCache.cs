@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 // #define COLLECT_STATS
 
 using System;
@@ -63,18 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia LookupTrivia(
+        internal SyntaxTrivia LookupTrivia<TArg>(
             char[] textBuffer,
             int keyStart,
             int keyLength,
             int hashCode,
-            Func<SyntaxTrivia> createTriviaFunction)
+            Func<TArg, SyntaxTrivia> createTriviaFunction,
+            TArg data)
         {
             var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {
-                value = createTriviaFunction();
+                value = createTriviaFunction(data);
                 _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
 
@@ -102,12 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 #endif
 
-        internal SyntaxToken LookupToken(
+        internal SyntaxToken LookupToken<TArg>(
             char[] textBuffer,
             int keyStart,
             int keyLength,
             int hashCode,
-            Func<SyntaxToken> createTokenFunction)
+            Func<TArg, SyntaxToken> createTokenFunction,
+            TArg data)
         {
             var value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #if COLLECT_STATS
                     Miss();
 #endif
-                value = createTokenFunction();
+                value = createTokenFunction(data);
                 _tokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
             else

@@ -37,6 +37,35 @@
         <target state="translated">Добавить модификатор только для чтения</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Add the following PropertyGroup to your MSBuild project file to enable IDE0005 (Remove unnecessary usings/imports) on build:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
+      not report warnings for missing comments.
+      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
+      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </source>
+        <target state="translated">Добавьте следующую группу свойств в файл проекта MSBuild, чтобы включить IDE0005 (удалить ненужное использование или импорт) при сборке:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Убедитесь, что любые комментарии к документации, включенные в код, проверяются на синтаксис во время сборки, но
+      не сообщайте о предупреждениях об отсутствующих комментариях.
+      CS1573: у параметра 'parameter' нет соответствующего тега param в комментарии XML для 'parameter' (но у других параметров есть)
+      CS1591: отсутствует комментарий XML для общедоступного типа или члена 'Type_or_Member'
+      CS1712: у параметра типа 'type_parameter' нет соответствующего тега typeparam в комментарии XML для 'type_or_member' (но у других параметров типа есть)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification</source>
         <target state="translated">Добавьте квалификацию \"this\" или \"Me\"</target>
@@ -65,6 +94,11 @@
       <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">Избегайте неиспользуемых параметров в коде. Если удалить параметр невозможно, измените его имя так, чтобы оно начиналось с символа подчеркивания, за которым при необходимости следует целое число, например, "_", "_1", "_2" и т. д. Эти имена считаются особыми пустыми именами символов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="translated">Базовые классы содержат недоступные нереализованные члены</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
@@ -115,6 +149,16 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">Реализацию GetHashCode можно упростить.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="translated">Реализовать абстрактный класс</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="translated">Реализовать через "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
@@ -310,6 +354,16 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Удалите неиспользуемые закрытые члены</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true'</source>
+        <target state="translated">Установите для свойства MSBuild "GenerateDocumentationFile" значение "ИСТИНА"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</source>
+        <target state="translated">Установите для свойства MSBuild "GenerateDocumentationFile" значение "ИСТИНА" в файле проекта, чтобы включить IDE0005 (удалить ненужное использование или импорт) при сборке.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">

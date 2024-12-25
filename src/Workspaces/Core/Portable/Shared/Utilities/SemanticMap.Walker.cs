@@ -2,53 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal sealed partial class SemanticMap
 {
-    internal partial class SemanticMap
+    private sealed class Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
     {
-        private class Walker : SyntaxWalker
+        public void Visit(SyntaxNode node)
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly SemanticMap _map;
-            private readonly CancellationToken _cancellationToken;
-
-            public Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
-                : base(SyntaxWalkerDepth.Token)
+            foreach (var child in node.DescendantNodesAndTokensAndSelf())
             {
-                _semanticModel = semanticModel;
-                _map = map;
-                _cancellationToken = cancellationToken;
-            }
-
-            public override void Visit(SyntaxNode node)
-            {
-                var info = _semanticModel.GetSymbolInfo(node);
-                if (!IsNone(info))
+                if (child.AsNode(out var childNode))
                 {
-                    _map._expressionToInfoMap.Add(node, info);
+                    var info = semanticModel.GetSymbolInfo(childNode);
+                    if (!IsNone(info))
+                    {
+                        map._expressionToInfoMap.Add(childNode, info);
+                    }
                 }
-
-                base.Visit(node);
-            }
-
-            protected override void VisitToken(SyntaxToken token)
-            {
-                var info = _semanticModel.GetSymbolInfo(token, _cancellationToken);
-                if (!IsNone(info))
+                else if (child.IsToken)
                 {
-                    _map._tokenToInfoMap.Add(token, info);
+                    var childToken = child.AsToken();
+                    var info = semanticModel.GetSymbolInfo(childToken, cancellationToken);
+                    if (!IsNone(info))
+                    {
+                        map._tokenToInfoMap.Add(childToken, info);
+                    }
                 }
-
-                base.VisitToken(token);
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
-
-            private static bool IsNone(SymbolInfo info)
-                => info.Symbol == null && info.CandidateSymbols.Length == 0;
         }
+
+        private static bool IsNone(SymbolInfo info)
+            => info.Symbol == null && info.CandidateSymbols.Length == 0;
     }
 }

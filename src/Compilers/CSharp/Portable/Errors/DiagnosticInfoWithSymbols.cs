@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Symbols = original.Symbols;
         }
 
-        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
         {
             return new DiagnosticInfoWithSymbols(this, severity);
         }

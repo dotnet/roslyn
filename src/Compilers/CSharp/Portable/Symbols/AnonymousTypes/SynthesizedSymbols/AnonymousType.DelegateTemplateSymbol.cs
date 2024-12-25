@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
 
                 HasIndexedName = false;
-                TypeParameters = CreateTypeParameters(this, parameterCount, returnsVoid: voidReturnTypeOpt is { });
+                TypeParameters = CreateTypeParameters(this, parameterCount, returnsVoid: voidReturnTypeOpt is { }, hasParamsArray: false);
                 NameAndIndex = new NameAndIndex(name, index: 0);
 
                 var constructor = new SynthesizedDelegateConstructor(this, objectType, intPtrType);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 var invokeMethod = createInvokeMethod(this, refKinds, voidReturnTypeOpt);
-                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+                _members = CreateMembers(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(AnonymousDelegateTemplateSymbol containingType, RefKindVector refKinds, TypeSymbol? voidReturnTypeOpt)
                 {
@@ -70,17 +70,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            private static ImmutableArray<TypeParameterSymbol> CreateTypeParameters(AnonymousDelegateTemplateSymbol containingType, int parameterCount, bool returnsVoid)
+            private static ImmutableArray<TypeParameterSymbol> CreateTypeParameters(AnonymousDelegateTemplateSymbol containingType, int parameterCount, bool returnsVoid, bool hasParamsArray)
             {
+                var allowRefLikeTypes = containingType.ContainingAssembly.RuntimeSupportsByRefLikeGenerics;
+
                 var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
                 for (int i = 0; i < parameterCount; i++)
                 {
-                    typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, i, "T" + (i + 1)));
+                    typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, i, "T" + (i + 1),
+                        allowsRefLikeType: allowRefLikeTypes && (!hasParamsArray || i != parameterCount - 1)));
                 }
 
                 if (!returnsVoid)
                 {
-                    typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, parameterCount, "TResult"));
+                    typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(containingType, parameterCount, "TResult", allowsRefLikeType: allowRefLikeTypes));
                 }
 
                 return typeParameters.ToImmutableAndFree();
@@ -103,12 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeParameters = CreateTypeParameters(
                     this,
                     parameterCount: typeDescr.Fields.Length - 1,
-                    returnsVoid: typeDescr.Fields[^1].Type.IsVoidType());
+                    returnsVoid: typeDescr.Fields[^1].Type.IsVoidType(),
+                    hasParamsArray: typeDescr.Fields is [.., { IsParams: true }, _]);
 
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 var invokeMethod = createInvokeMethod(this, typeDescr.Fields);
-                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+                _members = CreateMembers(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(
                     AnonymousDelegateTemplateSymbol containingType,
@@ -128,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Replace `T` with `T[]` for params array.
                         if (field.IsParams)
                         {
+                            Debug.Assert(field.Type.IsSZArray());
+                            Debug.Assert(i == parameterCount - 1);
                             type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateSZArray(containingType.ContainingAssembly, type));
                         }
 
@@ -170,7 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(typeParameterCount);
                     for (int i = 0; i < typeParameterCount; i++)
                     {
-                        typeParameters.Add(new AnonymousTypeParameterSymbol(this, i, "T" + (i + 1)));
+                        typeParameters.Add(new AnonymousTypeParameterSymbol(this, i, "T" + (i + 1),
+                            allowsRefLikeType: typeParametersToSubstitute[i].AllowsRefLikeType));
                     }
                     TypeParameters = typeParameters.ToImmutableAndFree();
                     typeMap = new TypeMap(typeParametersToSubstitute, TypeParameters, allowAlpha: true);
@@ -179,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 var invokeMethod = createInvokeMethod(this, typeDescr.Fields, typeMap);
-                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+                _members = CreateMembers(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(
                     AnonymousDelegateTemplateSymbol containingType,
@@ -204,6 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return method;
                 }
             }
+
+            private static ImmutableArray<Symbol> CreateMembers(MethodSymbol constructor, MethodSymbol invokeMethod)
+                => ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+
+            public new MethodSymbol DelegateInvokeMethod
+                => (MethodSymbol)_members[1];
 
             // AnonymousTypeOrDelegateComparer should not be calling this property for delegate
             // types since AnonymousTypeOrDelegateComparer is only used during emit and we

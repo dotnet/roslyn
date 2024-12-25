@@ -4,20 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Debugging
-{
-    internal partial class AbstractBreakpointResolver
-    {
-        protected struct NameAndArity
-        {
-            public string Name;
-            public int Arity;
+namespace Microsoft.CodeAnalysis.Debugging;
 
-            public NameAndArity(string name, int arity)
-            {
-                Name = name;
-                Arity = arity;
-            }
-        }
+internal abstract partial class AbstractBreakpointResolver
+{
+    protected struct NameAndArity(string name, int arity)
+    {
+        public string Name = name;
+        public int Arity = arity;
     }
 }

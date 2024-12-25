@@ -90,22 +90,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsMissing(<ClassDeclaration>Shared Widening |</ClassDeclaration>, "Protected", "Friend", "Protected Friend", "Private")
         End Sub
 
-        <Fact, WorkItem(545037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545037")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545037")>
         Public Sub PrivateNotAfterDefaultTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Private")
         End Sub
 
-        <Fact, WorkItem(545037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545037")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545037")>
         Public Sub DefaultNotAfterPrivateTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Private |</ClassDeclaration>, "Default")
         End Sub
 
-        <Fact, WorkItem(530330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530330")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530330")>
         Public Sub AfterDefaultTest()
             VerifyRecommendationsContain(<ClassDeclaration>Default |</ClassDeclaration>, "Protected", "Protected Friend")
         End Sub
 
-        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub AfterAsyncTest()
             VerifyRecommendationsContain(<ClassDeclaration>Async |</ClassDeclaration>, "Public", "Protected", "Protected Friend", "Friend", "Private")
         End Sub
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>Iterator |</ClassDeclaration>, "Public", "Protected", "Protected Friend", "Friend", "Private")
         End Sub
 
-        <Fact, WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterExtensionAttribute()
             VerifyRecommendationsContain(<ClassDeclaration>&lt;Extension&gt; |</ClassDeclaration>, "Public", "Protected", "Protected Friend", "Friend", "Private")
         End Sub
@@ -555,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Overloads")
         End Sub
 
-        <Fact, WorkItem(530330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530330")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530330")>
         Public Sub OverridableAfterDefaultTest()
             VerifyRecommendationsContain(<ClassDeclaration>Default |</ClassDeclaration>, "Overridable", "NotOverridable", "MustOverride")
         End Sub
@@ -855,17 +855,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Shared")
         End Sub
 
-        <Fact, WorkItem(545039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
         Public Sub SharedAfterShadowsTest()
             VerifyRecommendationsContain(<ClassDeclaration>Shadows |</ClassDeclaration>, "Shared")
         End Sub
 
-        <Fact, WorkItem(545039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
         Public Sub OverridesDoesNotExistAfterSharedTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Overrides")
         End Sub
 
-        <Fact, WorkItem(545039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545039")>
         Public Sub ShadowsAfterSharedTest()
             VerifyRecommendationsContain(<ClassDeclaration>Shared |</ClassDeclaration>, "Shadows")
         End Sub

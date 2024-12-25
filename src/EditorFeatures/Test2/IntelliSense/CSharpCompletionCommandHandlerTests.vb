@@ -6,17 +6,21 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Tagging
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
@@ -24,11 +28,12 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
+Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Class CSharpCompletionCommandHandlerTests
+    Public NotInheritable Class CSharpCompletionCommandHandlerTests
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_SameFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -46,7 +51,7 @@ namespace NS
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
@@ -74,7 +79,7 @@ namespace NS
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
@@ -88,7 +93,7 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_DifferentFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using State = New TestState(<Workspace>
-                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
                                                 <Document FilePath="a.cs">
 namespace NS
 {
@@ -122,7 +127,7 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_DifferentFile_NamespaceQualified(showCompletionInArgumentLists As Boolean) As Task
             Using State = New TestState(<Workspace>
-                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
                                                 <Document FilePath="a.cs">
 namespace NS
 {
@@ -170,7 +175,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
@@ -202,7 +207,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 ' This is the expected behavior until we implement support for list-patterns.
                 state.SendTypeChars("CP")
@@ -275,7 +280,7 @@ public class C3
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
@@ -311,7 +316,7 @@ public class C3
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertSelectedCompletionItem(displayText:="C3Field", isHardSelected:=False)
@@ -345,7 +350,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
@@ -372,7 +377,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("{ ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -411,7 +416,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 ' No second completion since already tested at top-level
                 state.SendTypeChars(", ")
@@ -440,7 +445,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(", ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -481,7 +486,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(", ")
                 Await state.AssertNoCompletionSession()
@@ -522,7 +527,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
@@ -561,7 +566,7 @@ public class C2
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=False)
@@ -610,7 +615,41 @@ record Derived(int Other) : [|Base$$|]
             End Using
         End Function
 
-        <WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnClassBaseType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class Base(int Alice, int Bob);
+class Derived(int Other) : [|Base$$|]
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
+
+                state.SendTypeChars("(")
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=False)
+                End If
+
+                state.SendTypeChars("A")
+
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                End If
+
+                state.SendTypeChars(": 1, B")
+
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSelectedCompletionItem(displayText:="Bob:", isHardSelected:=True)
+                End If
+
+                state.SendTab()
+                state.SendTypeChars(": 2)")
+
+                Await state.AssertNoCompletionSession()
+                Assert.Contains(": Base(Alice: 1, Bob: 2)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/46397")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnImplicitObjectCreationExpressionInitializer(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -641,7 +680,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnWithExpressionInitializer(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -669,7 +708,7 @@ record Base(int Alice, int Bob)
             End Using
         End Function
 
-        <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnWithExpressionInitializer_AfterComma(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -696,7 +735,7 @@ record Base(int Alice, int Bob)
             End Using
         End Function
 
-        <WorkItem(47430, "https://github.com/dotnet/roslyn/issues/47430")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47430")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnWithExpressionForTypeParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -739,7 +778,7 @@ class C
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=True)
@@ -754,7 +793,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnObjectCreation(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -778,7 +817,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
         <WpfTheory, CombinatorialData>
         Public Async Function TabCommitsWithoutAUniqueMatch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -797,7 +836,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35236")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBetweenTwoDotsInNamespaceName(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -831,7 +870,7 @@ namespace N$$.P
             End Using
         End Function
 
-        <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44459")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestSelectUsingOverUshort(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -853,7 +892,7 @@ $$
             End Using
         End Function
 
-        <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44459")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestSelectUshortOverUsingOnceInMRU(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -875,7 +914,7 @@ $$
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/71851"), CombinatorialData>
         Public Async Function TestDeletingWholeWordResetCompletionToTheDefaultItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -1055,7 +1094,6 @@ class c { void M() { 3.$$ } }
         End Function
 
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TestTypingDotBeforeExistingDot(showCompletionInArgumentLists As Boolean) As Task
             ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
             ' However, typing dot before a single dot (and adding the second one) should lead to a completion
@@ -1089,7 +1127,6 @@ class c { void M() { this.$$ToString() } }
         End Function
 
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TestInvokingCompletionBetweenTwoDots(showCompletionInArgumentLists As Boolean) As Task
             ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
             ' However, we may want to have a completion when invoking it aqfter the first dot.
@@ -1101,6 +1138,69 @@ class c { void M() { this.$$.ToString() } }
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("ToString")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/37315")>
+        Public Async Function TestTypingDotBeforeExistingDot2(showCompletionInArgumentLists As Boolean) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' However, typing dot before a single dot (and adding the second one) should lead to a completion
+            ' in the context of the previous token if this completion exists.
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    public List&lt;int&gt; X;
+}
+
+class D
+{
+    public List&lt;int&gt; X;
+}
+
+class E
+{
+    public static bool F(object obj) => obj switch
+    {
+        C c => c.X,
+        D d => d.X,
+        _ => throw null
+    }$$.Any(i => i == 0);
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(".")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/37315")>
+        Public Async Function TestTypingDotBeforeExistingDot3(showCompletionInArgumentLists As Boolean) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' However, typing dot before a single dot (and adding the second one) should lead to a completion
+            ' in the context of the previous token if this completion exists.
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+
+class E
+{
+    public void F(object o)
+    {
+        var v = (int)o$$.AddDays(1);
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionItemsContain("ToString", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("CompareTo")
             End Using
         End Function
 
@@ -1563,7 +1663,7 @@ class Variable
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(17256, "https://github.com/dotnet/roslyn/issues/17256")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17256")>
         Public Async Function TestThrowExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1583,7 +1683,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(17256, "https://github.com/dotnet/roslyn/issues/17256")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17256")>
         Public Async Function TestThrowStatement(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1659,7 +1759,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4677")>
         Public Async Function TestDefaultSwitchLabel(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1684,7 +1784,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4677")>
         Public Async Function TestGotoOrdinaryLabel(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1706,7 +1806,7 @@ label1:
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4677")>
         Public Async Function TestEscapedDefaultLabel(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1728,7 +1828,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4677")>
         Public Async Function TestEscapedDefaultLabel2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1754,7 +1854,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4677")>
         Public Async Function TestEscapedDefaultLabelWithoutSwitch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1776,7 +1876,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestArrayInitialization(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1801,7 +1901,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestImplicitArrayInitialization(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1828,7 +1928,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestImplicitArrayInitialization2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1849,7 +1949,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestImplicitArrayInitialization3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1873,7 +1973,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestImplicitArrayInitialization4(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1894,7 +1994,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestImplicitArrayInitialization_WithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1918,7 +2018,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestTypelessImplicitArrayInitialization(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1943,7 +2043,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestTypelessImplicitArrayInitialization2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -1964,7 +2064,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestTypelessImplicitArrayInitialization3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2055,7 +2155,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2076,7 +2176,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteralAfterComma(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2097,7 +2197,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function ColonInTupleNameInTupleLiteral(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2119,7 +2219,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function ColonInExactTupleNameInTupleLiteral(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2141,7 +2241,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function ColonInTupleNameInTupleLiteralAfterComma(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2163,7 +2263,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function TabInTupleNameInTupleLiteral(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2187,7 +2287,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function TabInExactTupleNameInTupleLiteral(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2211,7 +2311,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function TabInTupleNameInTupleLiteralAfterComma(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2235,7 +2335,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestKeywordInTupleLiteral(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2256,7 +2356,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestTupleType(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2277,7 +2377,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestDefaultKeyword(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2301,7 +2401,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestInvocationExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2322,7 +2422,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestImplicitObjectCreationExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2345,7 +2445,7 @@ public class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestImplicitObjectCreationExpression_WithSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2377,7 +2477,7 @@ public class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestInvocationExpressionAfterComma(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2398,7 +2498,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestCaseLabel(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2422,7 +2522,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(543268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543268")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543268")>
         Public Async Function TestTypePreselection1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2442,7 +2542,7 @@ partial class C
             End Using
         End Function
 
-        <WorkItem(543519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543519")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543519")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNewPreselectionAfterVar(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2461,8 +2561,8 @@ class C
             End Using
         End Function
 
-        <WorkItem(543559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543559")>
-        <WorkItem(543561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543561")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543559")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543561")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEscapedIdentifiers(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2486,7 +2586,7 @@ class @return
             End Using
         End Function
 
-        <WorkItem(543771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543771")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543771")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCommitUniqueItem1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2508,7 +2608,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(543771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543771")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543771")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCommitUniqueItem2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2614,7 +2714,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
         <WpfTheory, CombinatorialData>
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2664,7 +2764,7 @@ class Goo
             End Using
         End Function
 
-        <WorkItem(544017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544017")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544017")>
         <WpfTheory, CombinatorialData>
         Public Async Function EnumCompletionTriggeredOnSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2687,7 +2787,7 @@ class Goo
             End Using
         End Function
 
-        <WorkItem(479078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/479078")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/479078")>
         <WpfTheory, CombinatorialData>
         Public Async Function EnumCompletionTriggeredOnSpaceForNullables(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2727,6 +2827,27 @@ class Goo
 
                 state.SendTypeChars("Nu.")
                 Assert.Contains("Numeros num = Numeros.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Sub
+
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/8320")>
+        Public Sub EnumParamsCompletion(showCompletionInArgumentLists As Boolean)
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System;
+
+class C
+{
+    void X(params DayOfWeek[] x)
+    {
+        X($$);
+    }
+}
+                </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.AssertSelectedCompletionItem("DayOfWeek", isHardSelected:=True)
             End Using
         End Sub
 
@@ -2772,7 +2893,7 @@ class Goo
             End Using
         End Function
 
-        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValues() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2806,7 +2927,7 @@ namespace B
             End Using
         End Function
 
-        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeSelectionSequenceTest() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2951,7 +3072,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValuesWithAlias() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2974,7 +3095,7 @@ public class Program
             End Using
         End Function
 
-        <WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVerbatimNamedIdentifierFiltering(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -2999,7 +3120,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(543687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543687")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543687")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNoPreselectInInvalidObjectCreationLocation(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3031,7 +3152,7 @@ interface IGoo<T>
             End Using
         End Function
 
-        <WorkItem(544925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544925")>
         <WpfTheory, CombinatorialData>
         Public Sub TestQualifiedEnumSelection(showCompletionInArgumentLists As Boolean)
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3054,7 +3175,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem(545070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545070")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545070")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestTextChangeSpanWithAtCharacter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3126,7 +3247,7 @@ class Program
     </Scenario>
 #End If
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeNamedPropertyCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3149,7 +3270,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3176,7 +3297,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeOnLocalFunctionCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3205,7 +3326,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeOnMissingStatementCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3231,7 +3352,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function TypeAfterAttributeListOnStatement(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3257,7 +3378,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeNamedPropertyCompletionCommitWithEquals(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3279,7 +3400,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeNamedPropertyCompletionCommitWithSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3301,7 +3422,7 @@ public class Goo
             End Using
         End Function
 
-        <WorkItem(545590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545590")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545590")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestOverrideDefaultParameter_CSharp7(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3323,6 +3444,39 @@ class D : C
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69153")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestOverrideWithClassWithTrailingSemicolon(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[class Class1
+{
+    override tostring$$
+};
+
+class Class2
+{
+
+};]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("class Class1
+{
+    public override string ToString()
+    {
+        return base.ToString();
+    }
+};
+
+class Class2
+{
+
+};", state.SubjectBuffer.CurrentSnapshot.GetText())
             End Using
         End Function
 
@@ -3350,7 +3504,7 @@ class D : C
             End Using
         End Function
 
-        <WorkItem(545664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545664")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545664")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestArrayAfterOptionalParameter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3378,7 +3532,7 @@ class C : B
             End Using
         End Function
 
-        <WorkItem(545967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545967")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545967")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestVirtualSpaces(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3412,7 +3566,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(546561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546561")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546561")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamedParameterAgainstMRU(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3449,7 +3603,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMissingOnObjectCreationAfterVar1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3468,7 +3622,7 @@ class A
             End Using
         End Function
 
-        <WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMissingOnObjectCreationAfterVar2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3487,7 +3641,7 @@ class A
             End Using
         End Function
 
-        <WorkItem(546917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546917")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546917")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEnumInSwitch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3513,7 +3667,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(547016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547016")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547016")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAmbiguityInLocalDeclaration(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3535,7 +3689,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(530835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530835")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530835")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCompletionFilterSpanCaretBoundary(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3559,7 +3713,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5487")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3587,7 +3741,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBangFiltersInDocComment(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3688,7 +3842,7 @@ class C
             End Using
         End Sub
 
-        <WorkItem(657658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657658")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657658")>
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectionIgnoresBrackets(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3720,7 +3874,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(672474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestInvokeSnippetCommandDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3734,7 +3888,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(672474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672474")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestSurroundWithCommandDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3748,7 +3902,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(737239, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737239")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737239")>
         <WpfTheory, CombinatorialData>
         Public Async Function LetEditorHandleOpenParen(showCompletionInArgumentLists As Boolean) As Task
             Dim expected = <Document><![CDATA[
@@ -3788,7 +3942,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(785637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785637")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785637")>
         <WpfTheory, CombinatorialData>
         Public Async Function CommitMovesCaretToWordEnd(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3809,7 +3963,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(775370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775370")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775370")>
         <WpfTheory, CombinatorialData>
         Public Async Function MatchingConsidersAtSign(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3834,7 +3988,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(865089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865089")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865089")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeFilterTextRemovesAttributeSuffix(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3848,7 +4002,7 @@ class AtAttribute : System.Attribute { }]]></Document>,
             End Using
         End Function
 
-        <WorkItem(852578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/852578")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/852578")>
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectExceptionOverSnippet(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3866,7 +4020,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(868286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868286")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868286")>
         <WpfTheory, CombinatorialData>
         Public Sub CommitNameAfterAlias(showCompletionInArgumentLists As Boolean)
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3914,6 +4068,7 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+                Await state.AssertCompletionSession()
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendTypeChars("Thing1")
@@ -3925,13 +4080,14 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+                Await state.AssertCompletionSession()
                 state.SendTypeChars("M")
                 Await state.AssertSelectedCompletionItem("M")
                 Assert.False(state.GetSelectedItem().Tags.Contains(WellKnownTags.Warning))
             End Using
         End Function
 
-        <WorkItem(951726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951726")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951726")>
         <WpfTheory, CombinatorialData>
         Public Async Function DismissUponSave(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3949,7 +4105,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(930254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930254")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930254")>
         <WpfTheory, CombinatorialData>
         Public Async Function NoCompletionWithBoxSelection(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3967,7 +4123,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(839555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")>
         <WpfTheory, CombinatorialData>
         Public Async Function TriggeredOnHash(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3979,7 +4135,7 @@ $$]]></Document>,
             End Using
         End Function
 
-        <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
         <WpfTheory, CombinatorialData>
         Public Async Function RegionCompletionCommitTriggersFormatting_1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3996,7 +4152,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
         <WpfTheory, CombinatorialData>
         Public Async Function RegionCompletionCommitTriggersFormatting_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4013,7 +4169,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
         <WpfTheory, CombinatorialData>
         Public Async Function EndRegionCompletionCommitTriggersFormatting_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4059,7 +4215,7 @@ class C
             End Property
         End Class
 
-        <WorkItem(1015893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015893")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015893")>
         <WpfTheory, CombinatorialData>
         Public Async Function BackspaceDismissesIfComputationIsIncomplete(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4089,7 +4245,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(31135, "https://github.com/dotnet/roslyn/issues/31135")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31135")>
         <WpfTheory, CombinatorialData>
         Public Async Function TypingWithoutMatchAfterBackspaceDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4138,7 +4294,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1594")>
         <WpfTheory, CombinatorialData>
         Public Async Function NoPreselectionOnSpaceWhenAbuttingWord(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4156,7 +4312,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1594")>
         <WpfTheory, CombinatorialData>
         Public Async Function SpacePreselectionAtEndOfFile(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4172,7 +4328,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1659")>
         <WpfTheory, CombinatorialData>
         Public Async Function DismissOnSelectAllCommand(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4193,7 +4349,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/588")>
         <WpfTheory, CombinatorialData>
         Public Sub CompletionCommitAndFormatAreSeparateUndoTransactions(showCompletionInArgumentLists As Boolean)
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4213,7 +4369,7 @@ $$]]></Document>,
             End Using
         End Sub
 
-        <WorkItem(4978, "https://github.com/dotnet/roslyn/issues/4978")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4978")>
         <WpfTheory, CombinatorialData>
         Public Async Function SessionNotStartedWhenCaretNotMappableIntoSubjectBuffer(showCompletionInArgumentLists As Boolean) As Task
             ' In inline diff view, typing delete next to a "deletion",
@@ -4267,7 +4423,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/588")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround1(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4287,7 +4443,7 @@ class C
 
         End Function
 
-        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/588")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround2(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4307,7 +4463,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround3(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4329,7 +4485,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround4(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4353,7 +4509,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround5(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4377,7 +4533,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround6(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4399,7 +4555,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround7(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4422,7 +4578,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround8(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4445,7 +4601,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround9(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4469,7 +4625,7 @@ class C
 
         End Function
 
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMatchWithTurkishIWorkaround10(showCompletionInArgumentLists As Boolean) As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
@@ -4687,7 +4843,7 @@ class Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(12254, "https://github.com/dotnet/roslyn/issues/12254")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/12254")>
         Public Sub TestGenericCallOnTypeContainingAnonymousType(showCompletionInArgumentLists As Boolean)
             Using state = TestStateFactory.CreateCSharpTestState(
                            <Document><![CDATA[
@@ -4732,7 +4888,7 @@ class Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/12530")>
         Public Async Function TestAnonymousTypeDescription(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                            <Document><![CDATA[
@@ -4804,7 +4960,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13481")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBackspaceSelection1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4832,7 +4988,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/13481")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestBackspaceSelection2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4860,7 +5016,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(14465, "https://github.com/dotnet/roslyn/issues/14465")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14465")>
         <WpfTheory, CombinatorialData>
         Public Async Function TypingNumberShouldNotDismiss1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4882,7 +5038,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(14085, "https://github.com/dotnet/roslyn/issues/14085")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14085")>
         <WpfTheory, CombinatorialData>
         Public Async Function TargetTypingDoesNotOverrideExactMatch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4904,7 +5060,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(14085, "https://github.com/dotnet/roslyn/issues/14085")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14085")>
         <WpfTheory, CombinatorialData>
         Public Async Function MRUOverTargetTyping(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -4974,7 +5130,7 @@ class C
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
@@ -4993,7 +5149,7 @@ class C
                               extraExportedTypes:={GetType(CompletedTaskControlledCompletionProvider)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Await state.AssertSelectedCompletionItem(displayText:="System")
@@ -5025,9 +5181,7 @@ class C
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
-
-                state.SendTypeChars("Sys")
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
@@ -5059,6 +5213,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is a asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -5102,9 +5258,8 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5134,6 +5289,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is an asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -5193,7 +5350,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the non-blocking mode
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
@@ -5213,7 +5370,7 @@ class C
                 provider.Reset()
 
                 ' Switch to the blocking mode
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
@@ -5419,7 +5576,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(15881, "https://github.com/dotnet/roslyn/issues/15881")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15881")>
         Public Async Function CompletionAfterDotBeforeAwaitTask(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -5441,7 +5598,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(14704, "https://github.com/dotnet/roslyn/issues/14704")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14704")>
         <WpfTheory, CombinatorialData>
         Public Async Function BackspaceTriggerSubstringMatching(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -5464,7 +5621,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16236")>
         <WpfTheory, CombinatorialData>
         Public Async Function AttributeNamedParameterEqualsItemCommittedOnSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -5483,7 +5640,7 @@ class AAttribute: Attribute
             End Using
         End Function
 
-        <WorkItem(362890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestFilteringAfterSimpleInvokeShowsAllItemsMatchingFilter(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -5639,7 +5796,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/16236")>
         <WpfTheory, CombinatorialData>
         Public Async Function NameCompletionSorting(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -5805,7 +5962,7 @@ class C
             End Using
         End Sub
 
-        <WorkItem(296512, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296512")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=296512")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestRegionDirectiveIndentation(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -5849,7 +6006,7 @@ class C
         <WpfTheory>
         <InlineData("r")>
         <InlineData("load")>
-        <WorkItem(49861, "https://github.com/dotnet/roslyn/issues/49861")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49861")>
         Public Async Function PathDirective(directive As String) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -6035,7 +6192,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11959")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestGenericAsyncTaskDeclaration(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6061,7 +6218,7 @@ namespace A
             End Using
         End Function
 
-        <WorkItem(15348, "https://github.com/dotnet/roslyn/issues/15348")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/15348")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestAfterCasePatternSwitchLabel(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6139,7 +6296,7 @@ public class Program
             End Using
         End Function
 
-        <WorkItem(30097, "https://github.com/dotnet/roslyn/issues/30097")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30097")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMRUKeepsTwoRecentlyUsedItems(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6162,7 +6319,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36546")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestDoNotDismissIfEmptyOnBackspaceIfStartedWithBackspace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6185,7 +6342,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(36546, "https://github.com/dotnet/roslyn/issues/36546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36546")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestDoNotDismissIfEmptyOnMultipleBackspaceIfStartedInvoke(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6209,7 +6366,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(30097, "https://github.com/dotnet/roslyn/issues/30097")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/30097")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNamedParameterDoesNotAddExtraColon(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6441,7 +6598,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(37231, "https://github.com/dotnet/roslyn/issues/37231")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/37231")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestSendCommitIfUniqueInDeletionSession2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -6744,7 +6901,7 @@ namespace NS1
     {
         void M()
         {
-            $$
+            Un$$
         }
     }
 }
@@ -6995,7 +7152,6 @@ public class AA
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
-                ' import completion is disabled, so we shouldn't have expander selected by default
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
                 Await state.AssertCompletionItemsContain("DDProp1", "")
                 Await state.AssertCompletionItemsDoNotContainAny("DD")
@@ -7053,9 +7209,8 @@ public class AA
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterInt(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7079,9 +7234,8 @@ class C
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterClassAndAfterIntProperty(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7112,9 +7266,8 @@ class D
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterClassAndAfterIntMethod(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7145,9 +7298,8 @@ class D
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterClassAndAfterDecimalProperty(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7178,9 +7330,8 @@ class D
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterClassAndAfterDoubleMethod(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7211,9 +7362,8 @@ class D
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterIntWithinArrayDeclaration(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7236,9 +7386,8 @@ class C
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingDotsAfterIntInVariableDeclaration(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7261,9 +7410,8 @@ class C
             End Using
         End Function
 
-        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/34943")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TypingToStringAfterIntInVariableDeclaration(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7286,9 +7434,8 @@ class C
             End Using
         End Function
 
-        <WorkItem(36187, "https://github.com/dotnet/roslyn/issues/36187")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/36187")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function CompletionWithTwoOverloadsOneOfThemIsEmpty(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -7317,7 +7464,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24960")>
         Public Async Function TypeParameterTOnType(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -7334,7 +7481,7 @@ class C<T>
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/24960")>
         Public Async Function TypeParameterTOnMethod(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -7417,7 +7564,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35163")>
         <WpfTheory, CombinatorialData>
         Public Async Function NonExpandedItemShouldBePreferred_SameDisplayText(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7483,7 +7630,7 @@ namespace NS2
             End Using
         End Function
 
-        <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35163")>
         <WpfTheory, CombinatorialData>
         Public Async Function NonExpandedItemShouldBePreferred_SameFullDisplayText(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7549,7 +7696,7 @@ namespace NS2
             End Using
         End Function
 
-        <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35163")>
         <WpfTheory, CombinatorialData>
         Public Async Function NonExpandedItemShouldBePreferred_ExpandedItemHasBetterButNotCompleteMatch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7615,7 +7762,7 @@ namespace NS2
             End Using
         End Function
 
-        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38253")>
         <WpfTheory, CombinatorialData>
         Public Async Function NonExpandedItemShouldBePreferred_BothExpandedAndNonExpandedItemsHaveCompleteMatch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7680,7 +7827,7 @@ namespace NS2
             End Using
         End Function
 
-        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38253")>
         <WpfTheory, CombinatorialData>
         Public Async Function CompletelyMatchedExpandedItemAndWorseThanPrefixMatchedNonExpandedItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7781,7 +7928,7 @@ namespace OtherNS
             End Using
         End Function
 
-        <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38253")>
         <WpfTheory, CombinatorialData>
         Public Async Function SortItemsByPatternMatch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7831,7 +7978,69 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem(41601, "https://github.com/dotnet/roslyn/issues/41601")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
+        <InlineData("System", True)>
+        <InlineData("System.Collections", True)>
+        <InlineData("SystemNamespace", False)>
+        <InlineData("MyNamespace1", True)>
+        <InlineData("MyNamespace3", False)>
+        Public Async Function SortUnimportedItemFromSystemNamespacesFirst(containingNamespace As String, sortedAhead As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace NS1
+{
+    class C
+    {
+        void M()
+        {
+            unimportedtype$$
+        }
+    }
+}
+
+namespace MyNamespace2
+{
+    public class UnimportedType { }
+}
+
+namespace  <%= containingNamespace %>
+{
+    public class UnimportedType { }
+}
+</Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                Await state.SendCommitUniqueCompletionListItemAsync()
+
+                ' make sure expander is selected
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                Dim expectedOrder As (String, String)()
+
+                If sortedAhead Then
+                    Await state.AssertSelectedCompletionItem(displayText:="UnimportedType", inlineDescription:=containingNamespace)
+                    expectedOrder =
+                    {
+                        ("UnimportedType", containingNamespace),
+                        ("UnimportedType", "MyNamespace2")
+                    }
+                Else
+                    Await state.AssertSelectedCompletionItem(displayText:="UnimportedType", inlineDescription:="MyNamespace2")
+                    expectedOrder =
+                    {
+                        ("UnimportedType", "MyNamespace2"),
+                        ("UnimportedType", containingNamespace)
+                    }
+                End If
+
+                state.AssertItemsInOrder(expectedOrder)
+
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/41601")>
         <WpfTheory, CombinatorialData>
         Public Async Function SortItemsByExpandedFlag(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7842,7 +8051,7 @@ namespace NS1
     {
         void M()
         {
-            $$
+            mytask$$
         }
     }
 
@@ -7863,16 +8072,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
-                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
-
-                ' make sure expander is selected
-                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
-
-                state.SendEscape()
-                Await state.AssertNoCompletionSession()
-
-                state.SendTypeChars("mytask")
-                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.SendCommitUniqueCompletionListItemAsync()
 
                 ' make sure expander is selected
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
@@ -7891,9 +8091,9 @@ namespace NS2
             End Using
         End Function
 
-        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39519")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestSuggestedNamesDoNotStartWithDigit_DigitsInTheMiddle(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -7920,9 +8120,9 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem(39519, "https://github.com/dotnet/roslyn/issues/39519")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/39519")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsOnTheRight(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestSuggestedNamesDoNotStartWithDigit_DigitsOnTheRight(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -7949,7 +8149,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem(38289, "https://github.com/dotnet/roslyn/issues/38289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38289")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestShowCompletionsWhenTypingCompilerDirective_SingleDirectiveWord(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7965,7 +8165,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem(38289, "https://github.com/dotnet/roslyn/issues/38289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38289")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestShowCompletionsWhenTypingCompilerDirective_MultipleDirectiveWords(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -7981,7 +8181,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem(38289, "https://github.com/dotnet/roslyn/issues/38289")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38289")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCompletionsWhenTypingCompilerDirective_DoNotCrashOnDocumentStart(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8018,7 +8218,7 @@ namespace NS
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(
                     "CustomItem",
-                    rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
+                    rules:=CompletionItemRules.Default.WithMatchPriority(1000), isComplexTextEdit:=True))
                 Return Task.CompletedTask
             End Function
 
@@ -8082,7 +8282,7 @@ class C
             End Function
         End Class
 
-        <WorkItem(43439, "https://github.com/dotnet/roslyn/issues/43439")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43439")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestSelectNullOverNuint(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8109,7 +8309,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(43439, "https://github.com/dotnet/roslyn/issues/43439")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43439")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestSelectNuintOverNullOnceInMRU(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8136,7 +8336,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterInferenceInJoin1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8178,7 +8378,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterInferenceInJoin2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8220,7 +8420,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterInferenceInGroupJoin1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8262,7 +8462,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterInferenceInGroupJoin2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8304,7 +8504,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestLambdaParameterInferenceInGroupJoin3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8346,7 +8546,7 @@ class Program
             End Using
         End Function
 
-        <WorkItem(1128749, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1128749")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1128749")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestFallingBackToItemWithLongestCommonPrefixWhenNoMatch(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -8375,7 +8575,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(47511, "https://github.com/dotnet/roslyn/pull/47511")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/47511")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConversionsOperatorsAndIndexerAreShownBelowMethodsAndPropertiesAndBeforeUnimportedItems()
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -9290,8 +9490,8 @@ public unsafe class AA
         End Function
 
         <WpfFact>
-        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
-        <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/63922")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55546")>
         Public Async Function DoNotSelectMatchPriorityDeprioritizeAndBetterCaseSensitiveWithOnlyLowercaseTyped() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -9320,8 +9520,8 @@ public class AA
         End Function
 
         <WpfFact>
-        <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/63922")>
         Public Async Function PreferBestMatchPriorityAndCaseSensitiveOverPreselect() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -9352,8 +9552,8 @@ public class AA
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/55546")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/63922")>
         Public Async Function PreferBestCaseSensitiveWithUppercaseTyped(uppercaseItemIsDeprioritize As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -9415,7 +9615,7 @@ public class AA
         End Class
 
         <WpfFact>
-        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/63922")>
         Public Async Function DoNotSelectItemWithHigherMatchPriorityButWorseCaseSensitivity() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
@@ -9487,7 +9687,7 @@ class C
             End Function
         End Class
 
-        <WorkItem(49813, "https://github.com/dotnet/roslyn/issues/49813")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/49813")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCaseSensitiveMatchWithLowerMatchPriority(showCompletionInArgumentLists As Boolean) As Task
             ' PreselectionProvider will provide an item "★ length" with filter text "length",
@@ -9541,7 +9741,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" [ Co")
                 Await state.AssertSelectedCompletionItem(displayText:="Constant", isHardSelected:=True)
@@ -9589,9 +9789,12 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("{ ")
@@ -9623,7 +9826,7 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(".. va")
                 Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
@@ -9654,9 +9857,12 @@ public class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("..")
+                Await state.AssertNoCompletionSession()
+
+                state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("nu")
@@ -9680,7 +9886,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9699,7 +9905,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9718,7 +9924,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9739,7 +9945,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9760,7 +9966,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9780,7 +9986,7 @@ class C
     }        
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("ne")
                 Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
@@ -9800,7 +10006,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -9820,7 +10026,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -9840,7 +10046,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("int.M")
                 Await state.AssertSelectedCompletionItem(displayText:="MaxValue")
@@ -9861,7 +10067,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -9881,7 +10087,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -9901,7 +10107,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -9921,7 +10127,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -9941,7 +10147,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
                 state.SendTypeChars("my")
                 Await state.AssertCompletionItemsContain("myConst", "")
             End Using
@@ -9962,7 +10168,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -9985,7 +10191,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10008,7 +10214,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10031,7 +10237,7 @@ class C
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars("p")
                 Await state.AssertSelectedCompletionItem(displayText:="params")
@@ -10069,7 +10275,7 @@ class C
             End Function
         End Class
 
-        <WorkItem(53712, "https://github.com/dotnet/roslyn/issues/53712")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/53712")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestNotifyCommittingItemCompletionProvider(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -10163,7 +10369,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
@@ -10218,7 +10424,7 @@ class C
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
 
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
@@ -10264,14 +10470,14 @@ class C
         Public Async Function TestNonBlockingExpandCompletionDoesNotChangeItemOrder() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
-                                  $$
+                                  Test$$
                               </Document>,
                               extraExportedTypes:={GetType(TestProvider)}.ToList())
 
                 Dim workspace = state.Workspace
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp, True)
+                globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
 
@@ -10297,7 +10503,7 @@ class C
 
                 ' Now delayed expand item task is completed, following up by typing and delete a character to trigger
                 ' update so the list would contains all items
-                Await state.SendTypeCharsAndWaitForUiRenderAsync("t")
+                Await state.SendTypeCharsAndWaitForUiRenderAsync("U")
                 Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
@@ -10311,7 +10517,7 @@ class C
                 state.SendEscape()
                 Await state.AssertNoCompletionSession()
 
-                ' Now disable expand item delay, so intial trigger should contain full list
+                ' Now disable expand item delay, so initial trigger should contain full list
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
 
                 state.SendInvokeCompletionList()
@@ -10332,7 +10538,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(58890, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
         Public Async Function TestComparisionOperatorsInPatternMatchingCompletion(
             showCompletionInArgumentLists As Boolean,
             <CombinatorialValues("", ">", ">=", "<", "<=")> comparisonOperator As String) As Task
@@ -10356,7 +10562,7 @@ class Class
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(58890, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
+        <WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
         Public Async Function TestComparisionOperatorsInPatternMatchingCompletion_01(
             showCompletionInArgumentLists As Boolean,
             <CombinatorialValues("", ">", ">=", "<", "<=")> comparisonOperator As String) As Task
@@ -10715,7 +10921,7 @@ class MyClass
             End Function
         End Class
 
-        <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10736,7 +10942,7 @@ namespace NS
             End Using
         End Function
 
-        <WpfFact, WorkItem(40393, "https://github.com/dotnet/roslyn/issues/40393")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40393")>
         Public Async Function TestAfterUsingStatement2() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10757,7 +10963,7 @@ namespace NS
             End Using
         End Function
 
-        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64531")>
         Public Async Function AttributeCompletionNoColonsIfAlreadyPresent() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10782,7 +10988,7 @@ class Goo
             End Using
         End Function
 
-        <WpfFact, WorkItem(64531, "https://github.com/dotnet/roslyn/issues/64531")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64531")>
         Public Async Function AttributeCompletionNoEqualsIfAlreadyPresent() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10806,7 +11012,7 @@ class Goo
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10838,7 +11044,7 @@ public class Bar
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints2() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10870,7 +11076,7 @@ public class Bar : ISomeInterface&lt;int&gt;
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints3() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10902,7 +11108,7 @@ public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints4() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10934,7 +11140,7 @@ public class Bar&lt;T&gt;
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints5() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10966,7 +11172,7 @@ public class Bar&lt;T&gt;
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints6() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -10998,7 +11204,7 @@ public class Bar&lt;T&gt;
             End Using
         End Function
 
-        <WpfFact, WorkItem(39689, "https://github.com/dotnet/roslyn/issues/39689")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39689")>
         Public Async Function TestFilteringOfExtensionMethodsWithConstraints7() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -11030,7 +11236,7 @@ public class Bar&lt;T&gt; : ISomeInterface&lt;T&gt;
             End Using
         End Function
 
-        <WpfFact, WorkItem(64862, "https://github.com/dotnet/roslyn/issues/64862")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64862")>
         Public Async Function TestAsyncMethodReturningValueTask() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
@@ -11047,6 +11253,1504 @@ class Program
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("string", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/21055")>
+        Public Async Function CompletionInOutParamWithVariableDirectlyAfter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        if (TryParse("", out $$
+
+        Program p = null;
+    }
+
+    static bool TryParse(string s, out Program p) { }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("P")
+                Await state.AssertSelectedCompletionItem(displayText:="Program", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/42910")>
+        Public Async Function CompletionOffOfNullableLambdaParameter(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+struct TestStruct
+{
+    public int TestField;
+}
+
+class Program
+{
+    void Main() => TestMethod1(x => { return x?.$$ });
+
+    void TestMethod1(Predicate<TestStruct?> predicate) => default;
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="TestField", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux(a =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a) =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b) =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("second")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount4(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b) =>
+        {
+            b.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount5(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            a.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="first", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount6(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            b.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="second", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("first")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, WorkItem(21055, "https://github.com/dotnet/roslyn/issues/43966")>
+        Public Async Function CompletionOnLambaParameter_MatchDelegateParameterCount7(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Goo { public string first; }
+class Bar { public string second; }
+
+class Program
+{
+    static void Quux(Action<Bar> x) { }
+    static void Quux(Action<Goo, Bar> x) { }
+
+    static void Main(string[] args)
+    {
+        Quux((a, b, c) =>
+        {
+            c.$$
+        });
+    }
+}
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("first", "second")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")>
+        Public Async Function NameOf_Flat() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C
+{
+    public C1 Property0 { get; }
+    public C1 Field0;
+    public event System.Action Event0;
+                
+    public static string StaticField =
+        nameof($$);
+}
+                
+public class C1
+{
+    public int Property1 { get; }
+    public int Field1;
+    public event System.Action Event1;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Property0", "Field0", "Event0")
+                Await state.AssertCompletionItemsDoNotContainAny("Property1", "Field1", "Event1")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")>
+        Public Async Function NameOf_Nested() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C
+{
+    public C1 Property0 { get; }
+    public C1 Field0;
+    public event System.Action Event0;
+                
+    public static string StaticField =
+        nameof(Property0.$$);
+}
+                
+public class C1
+{
+    public int Property1 { get; }
+    public int Field1;
+    public event System.Action Event1;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")
+                Await state.AssertCompletionItemsDoNotContainAny("Property0", "Field0", "Event0")
+            End Using
+        End Function
+
+        <InlineData("""text""u8")>
+        <InlineData("""""""text""""""u8")>
+        <InlineData("""""""
+        text
+        """"""u8")>
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68704")>
+        Public Async Function TriggerCompletionAtEndOfUtf8StringLiteral(stringText As String) As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="C#" AssemblyName="TestAssembly" CommonReferencesPortable="true" LanguageVersion=<%= LanguageVersion.CSharp12.ToDisplayString() %>>
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        var channel = <%= stringText %>$$
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+                Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
+                                                                   Return d.CursorPosition.HasValue
+                                                               End Function)
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Dim completionService = document.GetRequiredLanguageService(Of CompletionService)()
+
+                ' This should not throw
+                Dim list = Await completionService.GetCompletionsAsync(
+                    document, caretPosition:=cursorPosition, CompletionOptions.Default, OptionSet.Empty, CompletionTrigger.Invoke)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = $$;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "_x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("_x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public partial class C(int x)
+{
+    private int _x = x;
+}
+
+public partial class C
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("_x", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int _x = x + 1;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "_x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters1_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = $$;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters2_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters3_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = x;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("X", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters4_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public partial class C(int x)
+{
+    private int X { get; } = x;
+}
+
+public partial class C
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("X", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters5_Property() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C(int x)
+{
+    private int X { get; } = x + 1;
+
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+}
+
+public class C(int x) : Base
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+
+    public Base(int x)
+    {
+        X = x;
+    }
+}
+
+public class C(int x) : Base(x + 1)
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("x", "X")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69300")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType3() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base
+{
+    protected int X;
+
+    public Base(int x)
+    {
+        X = x;
+    }
+}
+
+public class C(int x) : Base(x)
+{
+    void M()
+    {
+        $$
+    }
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("x")
+                Await state.AssertCompletionItemsContainAll("X")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestItemsSorted() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Program
+{
+    public static void Main()
+    {
+        $$
+    }
+}
+             ]]></Document>)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+
+                ' trigger completion with import completion enabled
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' make sure expander is selected
+                Await state.SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected:=True)
+
+                Dim completionItems = state.GetCompletionItems()
+                Dim manuallySortedItems = completionItems.ToList()
+                manuallySortedItems.Sort()
+
+                Assert.True(manuallySortedItems.SequenceEqual(completionItems))
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType4() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")>
+        Public Async Function FilterPrimaryConstructorParameters_BaseType5() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public abstract class Base(int x)
+{
+}
+
+public class C() : Base($$)
+{
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("x", ":")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66305")>
+        Public Async Function TestScopedKeywordRecommender() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.CSharp11)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("scoped", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/razor/issues/9377")>
+        Public Async Function TriggerOnTypingShouldNotAffectExplicitInvoke() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+void M()
+{
+    $$
+}
+]]>
+                </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.CSharp, False)
+
+                ' TriggerOnTyping should not block explicit trigger
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("M", "")
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("M")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+        Object o = new Object();
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70403")>
+        Public Async Function AccessStaticMembersOffOfColorColor2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+struct Cursor
+{
+    public static int StaticMember;
+    public int InstanceMember;
+}
+
+class BaseClass
+{
+    public Cursor Cursor { get; set; }
+}
+
+class Derived : BaseClass
+{
+    void Method()
+    {
+        Cursor.$$
+    }
+}
+
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70732")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingCommitCharWhichIsAlsoFilterCharOfAnotherNoMatchingItemShouldCommit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{  
+    public struct PointF
+    {
+
+        public float Y { get; set; }
+        
+        public float X { get; set; }
+        
+        public static int operator +(PointF pt, PointF sz) => 0;
+        
+        public static int operator -(PointF ptA, PointF ptB) => 0;
+
+        public static bool operator ==(PointF ptA, PointF ptB) => true;
+        
+        public static bool operator !=(PointF ptA, PointF ptB) => true;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            PointF point;
+            point$$
+        }
+    }
+}                              </Document>)
+
+                state.SendTypeChars(".x")
+                Await state.AssertSelectedCompletionItem(displayText:="X", isHardSelected:=True)
+                state.SendTypeChars("+")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("point.X+", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70732")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingCommitCharWhichIsAlsoFilterCharOfAnotherPotentiallyMatchingItemShouldNotCommit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{  
+    public struct PointF
+    {
+
+        public float Y { get; set; }
+        
+        public float X { get; set; }
+        
+        public static int operator +(PointF pt, PointF sz) => 0;
+        
+        public static int operator -(PointF ptA, PointF ptB) => 0;
+
+        public static bool operator ==(PointF ptA, PointF ptB) => true;
+        
+        public static bool operator !=(PointF ptA, PointF ptB) => true;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            PointF point;
+            point$$
+        }
+    }
+}                              </Document>)
+
+                state.SendTypeChars(".+")
+                Await state.AssertSelectedCompletionItem(displayText:="+", inlineDescription:="x + y")
+                state.SendTab()
+                Assert.Contains("point +", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForRegularMethod_NoOverLoad(hasParameter As Boolean)
+            Dim parameter As String
+            If (hasParameter) Then
+                parameter = "int x"
+            Else
+                parameter = ""
+            End If
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        Bar$$
+    }
+
+    private bool Bar(<%= parameter %>) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                If (hasParameter) Then
+                    Assert.NotEmpty(state.GetCompletionItems())
+                Else
+                    state.AssertCompletionSession()
+                End If
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForRegularMethod_HasOverLoad()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        Bar$$
+    }
+
+    private bool Bar() => true;
+    private bool Bar(int x) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_NoOverLoad(hasParameter As Boolean)
+            Dim parameter As String
+            If (hasParameter) Then
+                parameter = ", int x"
+            Else
+                parameter = ""
+            End If
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        x.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string <%= parameter %>) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                If (hasParameter) Then
+                    Assert.NotEmpty(state.GetCompletionItems())
+                Else
+                    state.AssertCompletionSession()
+                End If
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_HasOverLoad()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        x.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string) => true;
+    public static bool Bar(this string, int x) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_DirectInvoke()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        Ext.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <InlineData("task$$", True)>
+        <InlineData("task$$", False)>
+        <InlineData("class C { void M() { c$$ } }", True)>
+        <InlineData("class C { void M() { c$$ } }", False)>
+        <InlineData("class C { void M() { System.Threading.CancellationToken $$ } }", True)>
+        <InlineData("class C { void M() { System.Threading.CancellationToken $$ } }", False)>
+        <InlineData("class C { void M(string x) { x.$$ } }", True)>
+        <InlineData("class C { void M(string x) { x.$$ } }", False)>
+        <InlineData("class C
+        {
+            override $$
+        }", True)>
+        <InlineData("class C
+        {
+            override $$
+        }", False)>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1884712")>
+        Public Async Function TestCalculatingCompletionDoNotRunSourceGenerator(code As String, hasCompilationAvailable As Boolean) As Task
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+                        <%= code %>
+                    </Document>)
+
+                ' Disable features that would try to get full compilation outside of completion code path under test
+
+                CompilationAvailableHelpers.TestAccessor.SkipComputation = True
+                state.Workspace.GlobalOptions.SetGlobalOption(EditorComponentOnOffOptions.Tagger, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(SemanticColorizerOptionsStorage.SemanticColorizer, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(SyntacticColorizerOptionsStorage.SyntacticColorizer, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                Dim partialSolutionsTestHook = state.Workspace.CurrentSolution.Services.GetRequiredService(Of IWorkspacePartialSolutionsTestHook)()
+                partialSolutionsTestHook.IsPartialSolutionDisabled = False
+
+                ' this will be set to true when the generator ran
+                Dim generatorRan = False
+                Dim analyzerReference = New TestGeneratorReference(New CallbackGenerator(onInit:=Sub(x)
+                                                                                                 End Sub,
+                                                                                         onExecute:=Sub(y)
+                                                                                                        generatorRan = True
+                                                                                                    End Sub))
+
+                ' Add the generator reference to the project
+                Dim projectWithGenerator = state.Workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(analyzerReference)
+                Dim document = projectWithGenerator.Documents.Single()
+                Await state.Workspace.ChangeProjectAsync(projectWithGenerator.Id, projectWithGenerator.Solution)
+
+                Dim completionService = document.GetRequiredLanguageService(Of CompletionService)()
+
+                Assert.False(generatorRan)
+
+                Dim compilation As Compilation = Nothing
+                If (hasCompilationAvailable) Then
+                    ' Ensure the compilation is created therefore a non-frozen document would be used for completion
+                    ' See CompletionService.GetDocumentWithFrozenPartialSemanticsAsync for how it is implemented
+                    compilation = Await projectWithGenerator.GetCompilationAsync()
+
+                    ' We should have ran the generator
+                    Assert.True(generatorRan)
+
+                    ' Reset
+                    generatorRan = False
+                End If
+
+                state.SendInvokeCompletionList()
+                Dim list = state.GetCompletionItems()
+
+                Assert.NotEmpty(list)
+
+                ' We should not have ran the generator as part of the calculating completion list
+                Assert.False(generatorRan)
+
+                ' Go through items from each provider and make sure getting change won't run generator
+                Dim seenProvider = New HashSet(Of String)
+                For Each item In list
+                    If (seenProvider.Add(item.ProviderName)) Then
+                        Dim change = Await completionService.GetChangeAsync(document, item)
+
+                        ' We should not have ran the generator as part of the GetChangeAsync
+                        Assert.False(generatorRan, item.ProviderName)
+                    End If
+                Next
+
+                Assert.NotEmpty(seenProvider)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
+        Public Async Function TestGenerics1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+        <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="$$"/>
+    /// </summary>
+    public void M() { }
+}
+
+class Ddd { }
+class Ddd<T1> { }
+class Ddd<T1, T2> { }
+                    ]]></Document>,
+    showCompletionInArgumentLists:=True)
+                state.SendTypeChars("ddd")
+
+                Await state.AssertCompletionSession()
+                state.AssertItemsInOrder({"Ddd", "Ddd{T1}", "Ddd{T1, T2}"})
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
+        Public Async Function TestGenerics2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+        <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="$$"/>
+    /// </summary>
+    public void M() { }
+
+    void Ddd() { }
+    void Ddd<T1>() { }
+    void Ddd<T1, T2>() { }
+}
+                    ]]></Document>,
+    showCompletionInArgumentLists:=True)
+                state.SendTypeChars("ddd")
+
+                Await state.AssertCompletionSession()
+                state.AssertItemsInOrder({"Ddd()", "Ddd{T1}()", "Ddd{T1, T2}()"})
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21418")>
+        Public Async Function TestOverrideFiltering1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class A
+{
+    public sealed override bool Equals(object obj) => throw null;
+    public sealed override int GetHashCode() => throw null;
+    public sealed override string ToString() => throw null;
+
+    public virtual void Moo() { }
+}
+
+public class B : A
+{
+    public new virtual void Moo() { }
+}
+
+public class C : B
+{
+   override$$
+}
+
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars(" ")
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Moo()", "")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21418")>
+        Public Async Function TestOverrideFiltering2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class A
+{
+    public sealed override bool Equals(object obj) => throw null;
+    public sealed override int GetHashCode() => throw null;
+    public sealed override string ToString() => throw null;
+
+    public virtual void Moo() { }
+}
+
+public class B : A
+{
+    public new virtual void Moo() { }
+}
+
+public class C : B
+{
+    public override void Moo() { }
+    override$$
+}
+
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars(" ")
+
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/discussions/71432")>
+        Public Async Function TestAccessibilityChecksInPatterns1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+object x = null;
+bool b = x is N.$$;
+
+namespace N
+{
+    public class C
+    {
+        private class B1 { }
+        public class B2 { }
+    }
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/discussions/71432")>
+        Public Async Function TestAccessibilityChecksInPatterns2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+object x = null;
+bool b = x is N.C.$$;
+
+namespace N
+{
+    public class C
+    {
+        private class B1 { }
+        public class B2 { }
+    }
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("B2", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("B1")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72392")>
+        Public Async Function AliasToDynamicType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System = dynamic;
+$$
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/74484")>
+        Public Async Function ReferenceToMethodThatFollow(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                            this.Sw$$
+
+                    private void SwitchColor() { }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("SwitchColor", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73120")>
+        Public Async Function TestAfterPrimaryConstructorAttribute(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C([X] $$ client)
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("int", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+public record Parent
+{
+    public List<Child>? Children { get; init; }
+}
+
+public record Child
+{
+    public string? Id { get; init; }
+}
+
+
+internal class Program
+{
+    public string ProgramProp { get; set; }
+
+    public void Main(string[] args)
+    {
+        var V1 = new Parent()
+        {
+            Children = [
+                new()
+                {
+                    $$
+                },
+            ],
+        };
+
+    }
+}]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Id", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("CR")
+                Await state.AssertSelectedCompletionItem("CreateRange")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("cr")
+                Await state.AssertSelectedCompletionItem("Create")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("Cr")
+                Await state.AssertSelectedCompletionItem("Create")
             End Using
         End Function
     End Class

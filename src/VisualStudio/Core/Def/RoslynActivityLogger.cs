@@ -4,76 +4,72 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices
+namespace Microsoft.VisualStudio.LanguageServices;
+
+/// <summary>
+/// Let people to inject <see cref="TraceSource"/> to monitor Roslyn activity
+/// 
+/// Here, we don't technically use TraceSource as it is meant to be used. but just as an easy 
+/// way to log data to listeners.
+/// 
+/// this also involves creating string, boxing and etc. so, perf wise, it will impact VS quite a bit.
+/// this also won't collect trace from Roslyn OOP for now. only in proc activity
+/// </summary>
+internal static class RoslynActivityLogger
 {
-    /// <summary>
-    /// Let people to inject <see cref="TraceSource"/> to monitor Roslyn activity
-    /// 
-    /// Here, we don't technically use TraceSource as it is meant to be used. but just as an easy 
-    /// way to log data to listeners.
-    /// 
-    /// this also involves creating string, boxing and etc. so, perf wise, it will impact VS quite a bit.
-    /// this also won't collect trace from Roslyn OOP for now. only in proc activity
-    /// </summary>
-    internal static class RoslynActivityLogger
+    private static readonly object s_gate = new();
+
+    public static void SetLogger(TraceSource traceSource)
     {
-        private static readonly object s_gate = new();
+        Contract.ThrowIfNull(traceSource);
 
-        public static void SetLogger(TraceSource traceSource)
+        lock (s_gate)
         {
-            Contract.ThrowIfNull(traceSource);
+            // internally, it just uses our existing ILogger
+            Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceSourceLogger(traceSource), Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
+        }
+    }
 
-            lock (s_gate)
-            {
-                // internally, it just uses our existing ILogger
-                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceSourceLogger(traceSource), Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
-            }
+    public static void RemoveLogger(TraceSource traceSource)
+    {
+        Contract.ThrowIfNull(traceSource);
+
+        lock (s_gate)
+        {
+            // internally, it just uses our existing ILogger
+            Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
+        }
+    }
+
+    private class TraceSourceLogger : ILogger
+    {
+        private const int LogEventId = 0;
+        private const int StartEventId = 1;
+        private const int EndEventId = 2;
+
+        public readonly TraceSource TraceSource;
+
+        public TraceSourceLogger(TraceSource traceSource)
+            => TraceSource = traceSource;
+
+        public bool IsEnabled(FunctionId functionId)
+        {
+            // we log every roslyn activity
+            return true;
         }
 
-        public static void RemoveLogger(TraceSource traceSource)
-        {
-            Contract.ThrowIfNull(traceSource);
+        public void Log(FunctionId functionId, LogMessage logMessage)
+            => TraceSource.TraceData(TraceEventType.Verbose, LogEventId, functionId.Convert(), logMessage.GetMessage());
 
-            lock (s_gate)
-            {
-                // internally, it just uses our existing ILogger
-                Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => (l as TraceSourceLogger)?.TraceSource == traceSource));
-            }
-        }
+        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
+            => TraceSource.TraceData(TraceEventType.Verbose, StartEventId, functionId.Convert(), uniquePairId);
 
-        private class TraceSourceLogger : ILogger
-        {
-            private const int LogEventId = 0;
-            private const int StartEventId = 1;
-            private const int EndEventId = 2;
-
-            public readonly TraceSource TraceSource;
-
-            public TraceSourceLogger(TraceSource traceSource)
-                => TraceSource = traceSource;
-
-            public bool IsEnabled(FunctionId functionId)
-            {
-                // we log every roslyn activity
-                return true;
-            }
-
-            public void Log(FunctionId functionId, LogMessage logMessage)
-                => TraceSource.TraceData(TraceEventType.Verbose, LogEventId, functionId.Convert(), logMessage.GetMessage());
-
-            public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-                => TraceSource.TraceData(TraceEventType.Verbose, StartEventId, functionId.Convert(), uniquePairId);
-
-            public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-                => TraceSource.TraceData(TraceEventType.Verbose, EndEventId, functionId.Convert(), uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
-        }
+        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
+            => TraceSource.TraceData(TraceEventType.Verbose, EndEventId, functionId.Convert(), uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
     }
 }

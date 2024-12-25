@@ -3,226 +3,256 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
+/// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
+/// </summary>
+internal sealed class SolutionChecksumUpdater
 {
+    private readonly Workspace _workspace;
+
     /// <summary>
-    /// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
-    /// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
+    /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
+    /// it being null.
     /// </summary>
-    internal sealed class SolutionChecksumUpdater
+    private readonly IGlobalOperationNotificationService? _globalOperationService;
+
+    private readonly IDocumentTrackingService _documentTrackingService;
+
+    /// <summary>
+    /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
+    /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
+    /// start queuing more requests into this until we become unpaused.
+    /// </summary>
+    private readonly AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)> _textChangeQueue;
+
+    /// <summary>
+    /// Queue for kicking off the work to synchronize the primary workspace's solution.
+    /// </summary>
+    private readonly AsyncBatchingWorkQueue _synchronizeWorkspaceQueue;
+
+    /// <summary>
+    /// Queue for kicking off the work to synchronize the active document to the remote process.
+    /// </summary>
+    private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
+
+    private readonly object _gate = new();
+    private bool _isSynchronizeWorkspacePaused;
+
+    public SolutionChecksumUpdater(
+        Workspace workspace,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        CancellationToken shutdownToken)
     {
-        private readonly Workspace _workspace;
+        var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
 
-        /// <summary>
-        /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
-        /// it being null.
-        /// </summary>
-        private readonly IGlobalOperationNotificationService? _globalOperationService;
+        _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
-        /// <summary>
-        /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
-        /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
-        /// start queuing more requests into this until we become unpaused.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)> _textChangeQueue;
+        _workspace = workspace;
+        _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-        /// <summary>
-        /// Queue for kicking off the work to synchronize the primary workspace's solution.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue _synchronizeWorkspaceQueue;
+        _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.NearImmediate,
+            SynchronizePrimaryWorkspaceAsync,
+            listener,
+            shutdownToken);
 
-        private readonly object _gate = new();
-        private bool _isPaused;
+        // Text changes and active doc info are tiny messages.  So attempt to send them immediately.  Just batching
+        // things up if we get a flurry of notifications.
+        _textChangeQueue = new AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)>(
+            TimeSpan.Zero,
+            SynchronizeTextChangesAsync,
+            listener,
+            shutdownToken);
 
-        public SolutionChecksumUpdater(
-            Workspace workspace,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            CancellationToken shutdownToken)
+        _synchronizeActiveDocumentQueue = new AsyncBatchingWorkQueue(
+            TimeSpan.Zero,
+            SynchronizeActiveDocumentAsync,
+            listener,
+            shutdownToken);
+
+        // start listening workspace change event
+        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
+
+        if (_globalOperationService != null)
         {
-            var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
-
-            _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
-
-            _workspace = workspace;
-
-            _textChangeQueue = new AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)>(
-                DelayTimeSpan.NearImmediate,
-                SynchronizeTextChangesAsync,
-                listener,
-                shutdownToken);
-
-            // Use an equality comparer here as we will commonly get lots of change notifications that will all be
-            // associated with the same cancellation token controlling that batch of work.  No need to enqueue the same
-            // token a huge number of times when we only need the single value of it when doing the work.
-            _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
-                DelayTimeSpan.NearImmediate,
-                SynchronizePrimaryWorkspaceAsync,
-                listener,
-                shutdownToken);
-
-            // start listening workspace change event
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
-
-            if (_globalOperationService != null)
-            {
-                _globalOperationService.Started += OnGlobalOperationStarted;
-                _globalOperationService.Stopped += OnGlobalOperationStopped;
-            }
-
-            // Enqueue the work to sync the initial solution.
-            ResumeWork();
+            _globalOperationService.Started += OnGlobalOperationStarted;
+            _globalOperationService.Stopped += OnGlobalOperationStopped;
         }
 
-        public void Shutdown()
+        // Enqueue the work to sync the initial data over.
+        _synchronizeActiveDocumentQueue.AddWork();
+        _synchronizeWorkspaceQueue.AddWork();
+    }
+
+    public void Shutdown()
+    {
+        // Try to stop any work that is in progress.
+        PauseSynchronizingPrimaryWorkspace();
+
+        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+
+        if (_globalOperationService != null)
         {
-            // Try to stop any work that is in progress.
-            PauseWork();
-
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-
-            if (_globalOperationService != null)
-            {
-                _globalOperationService.Started -= OnGlobalOperationStarted;
-                _globalOperationService.Stopped -= OnGlobalOperationStopped;
-            }
+            _globalOperationService.Started -= OnGlobalOperationStarted;
+            _globalOperationService.Stopped -= OnGlobalOperationStopped;
         }
+    }
 
-        private void OnGlobalOperationStarted(object? sender, EventArgs e)
-            => PauseWork();
+    private void OnGlobalOperationStarted(object? sender, EventArgs e)
+        => PauseSynchronizingPrimaryWorkspace();
 
-        private void OnGlobalOperationStopped(object? sender, EventArgs e)
-            => ResumeWork();
+    private void OnGlobalOperationStopped(object? sender, EventArgs e)
+        => ResumeSynchronizingPrimaryWorkspace();
 
-        private void PauseWork()
+    private void PauseSynchronizingPrimaryWorkspace()
+    {
+        // An expensive global operation started (like a build).  Pause ourselves and cancel any outstanding work in
+        // progress to synchronize the solution.
+        lock (_gate)
         {
-            // An expensive global operation started (like a build).  Pause ourselves and cancel any outstanding work in
-            // progress to synchronize the solution.
-            lock (_gate)
-            {
-                _synchronizeWorkspaceQueue.CancelExistingWork();
-                _isPaused = true;
-            }
+            _synchronizeWorkspaceQueue.CancelExistingWork();
+            _isSynchronizeWorkspacePaused = true;
         }
+    }
 
-        private void ResumeWork()
+    private void ResumeSynchronizingPrimaryWorkspace()
+    {
+        lock (_gate)
         {
-            lock (_gate)
-            {
-                _isPaused = false;
-                _synchronizeWorkspaceQueue.AddWork();
-            }
-        }
-
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-        {
-            // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
-            // to whatever the workspace is doing.
-            lock (_gate)
-            {
-                if (_isPaused)
-                    return;
-            }
-
-            if (e.Kind == WorkspaceChangeKind.DocumentChanged)
-            {
-                _textChangeQueue.AddWork((e.OldSolution.GetDocument(e.DocumentId), e.NewSolution.GetDocument(e.DocumentId)));
-            }
-
+            _isSynchronizeWorkspacePaused = false;
             _synchronizeWorkspaceQueue.AddWork();
         }
+    }
 
-        private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
+    private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    {
+        if (e.Kind == WorkspaceChangeKind.DocumentChanged)
         {
-            var solution = _workspace.CurrentSolution;
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return;
-
-            using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
-            {
-                var workspaceVersion = solution.WorkspaceVersion;
-                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                    solution,
-                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, workspaceVersion, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
+            var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
+            var newDocument = e.NewSolution.GetDocument(e.DocumentId);
+            if (oldDocument != null && newDocument != null)
+                _textChangeQueue.AddWork((oldDocument, newDocument));
         }
 
-        private async ValueTask SynchronizeTextChangesAsync(
-            ImmutableSegmentedList<(Document? oldDocument, Document? newDocument)> values,
-            CancellationToken cancellationToken)
+        // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
+        // to whatever the workspace is doing.
+        lock (_gate)
         {
-            foreach (var (oldDocument, newDocument) in values)
-            {
-                if (oldDocument is null || newDocument is null)
-                    continue;
+            if (!_isSynchronizeWorkspacePaused)
+                _synchronizeWorkspaceQueue.AddWork();
+        }
+    }
 
-                cancellationToken.ThrowIfCancellationRequested();
-                await SynchronizeTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-            }
+    private void OnActiveDocumentChanged(object? sender, DocumentId? e)
+        => _synchronizeActiveDocumentQueue.AddWork();
 
+    private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
+    {
+        var solution = _workspace.CurrentSolution;
+
+        // Wait for the remote side to actually become available (without being the cause of its creation ourselves). We
+        // want to wait for some feature to kick this off, then we'll start syncing this data once that has happened.
+        await RemoteHostClient.WaitForClientCreationAsync(_workspace, cancellationToken).ConfigureAwait(false);
+
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
             return;
 
-            async ValueTask SynchronizeTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-            {
-                // this pushes text changes to the remote side if it can.
-                // this is purely perf optimization. whether this pushing text change
-                // worked or not doesn't affect feature's functionality.
-                //
-                // this basically see whether it can cheaply find out text changes
-                // between 2 snapshots, if it can, it will send out that text changes to
-                // remote side.
-                //
-                // the remote side, once got the text change, will again see whether
-                // it can use that text change information without any high cost and
-                // create new snapshot from it.
-                //
-                // otherwise, it will do the normal behavior of getting full text from
-                // VS side. this optimization saves times we need to do full text
-                // synchronization for typing scenario.
-
-                if ((oldDocument.TryGetText(out var oldText) == false) ||
-                    (newDocument.TryGetText(out var newText) == false))
-                {
-                    // we only support case where text already exist
-                    return;
-                }
-
-                // get text changes
-                var textChanges = newText.GetTextChanges(oldText);
-                if (textChanges.Count == 0)
-                {
-                    // no changes
-                    return;
-                }
-
-                // whole document case
-                if (textChanges.Count == 1 && textChanges[0].Span.Length == oldText.Length)
-                {
-                    // no benefit here. pulling from remote host is more efficient
-                    return;
-                }
-
-                // only cancelled when remote host gets shutdown
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                    return;
-
-                var state = await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                    (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, state.Text, textChanges, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
+        using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
+        {
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                solution,
+                (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private async ValueTask SynchronizeActiveDocumentAsync(CancellationToken cancellationToken)
+    {
+        var activeDocument = _documentTrackingService.TryGetActiveDocument();
+
+        // Wait for the remote side to actually become available (without being the cause of its creation ourselves). We
+        // want to wait for some feature to kick this off, then we'll start syncing this data once that has happened.
+        await RemoteHostClient.WaitForClientCreationAsync(_workspace, cancellationToken).ConfigureAwait(false);
+
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+            return;
+
+        var solution = _workspace.CurrentSolution;
+        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+            (service, cancellationToken) => service.SynchronizeActiveDocumentAsync(activeDocument, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask SynchronizeTextChangesAsync(
+        ImmutableSegmentedList<(Document oldDocument, Document newDocument)> values,
+        CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+            return;
+
+        // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
+        // pushing text change worked or not doesn't affect feature's functionality.
+        //
+        // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
+        // send out that text changes to remote side.
+        //
+        // the remote side, once got the text change, will again see whether it can use that text change information
+        // without any high cost and create new snapshot from it.
+        //
+        // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
+        // times we need to do full text synchronization for typing scenario.
+        using var _ = ArrayBuilder<(DocumentId id, Checksum textChecksum, ImmutableArray<TextChange> changes, Checksum newTextChecksum)>.GetInstance(out var builder);
+
+        foreach (var (oldDocument, newDocument) in values)
+        {
+            if (!oldDocument.TryGetText(out var oldText) ||
+                !newDocument.TryGetText(out var newText))
+            {
+                // we only support case where text already exist
+                continue;
+            }
+
+            // Avoid allocating text before seeing if we can bail out.
+            var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
+            if (changeRanges.Length == 0)
+                continue;
+
+            // no benefit here. pulling from remote host is more efficient
+            if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
+                continue;
+
+            var state = await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var newState = await newDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+            var textChanges = newText.GetTextChanges(oldText).AsImmutable();
+            builder.Add((oldDocument.Id, state.Text, textChanges, newState.Text));
+        }
+
+        if (builder.Count == 0)
+            return;
+
+        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+            (service, cancellationToken) => service.SynchronizeTextChangesAsync(builder.ToImmutableAndClear(), cancellationToken),
+            cancellationToken).ConfigureAwait(false);
     }
 }

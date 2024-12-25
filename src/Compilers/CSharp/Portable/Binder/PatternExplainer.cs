@@ -304,8 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryHandleUnboxNullableValueType(ref unnamedEnumValue) ??
                 tryHandleTuplePattern(ref unnamedEnumValue) ??
                 tryHandleNumericLimits(ref unnamedEnumValue) ??
-                tryHandleListPattern(ref unnamedEnumValue) ??
                 tryHandleRecursivePattern(ref unnamedEnumValue) ??
+                tryHandleListPattern(ref unnamedEnumValue) ??
                 produceFallbackPattern();
 
             static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     subpatternBuilder.Append(", ");
                                 subpatternBuilder.Append(newPattern);
                             }
-                            subpatternBuilder.Append(")");
+                            subpatternBuilder.Append(')');
                             var result = subpatternBuilder.ToString();
                             if (deconstruction != null && needsPropertyString)
                             {

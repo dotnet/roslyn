@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis
             // registration of the input is deferred until we know the node is used
             return new IncrementalValuesProvider<T>(
                 new SyntaxInputNode<T>(
-                    new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), _syntaxHelper),
-                    RegisterOutputAndDeferredInput));
+                    new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(_context.CatchAnalyzerExceptions), transform.WrapUserFunction(_context.CatchAnalyzerExceptions), _syntaxHelper),
+                    RegisterOutputAndDeferredInput),
+                _context.CatchAnalyzerExceptions);
         }
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             var node = new SyntaxInputNode<ISyntaxContextReceiver?>(
                 new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput, _syntaxHelper), RegisterOutputAndDeferredInput);
             _inputNodes.Add(node);
-            return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
+            return new IncrementalValueProvider<ISyntaxContextReceiver?>(node, _context.CatchAnalyzerExceptions);
         }
 
         private void RegisterOutputAndDeferredInput(SyntaxInputNode node, IIncrementalGeneratorOutputNode output)

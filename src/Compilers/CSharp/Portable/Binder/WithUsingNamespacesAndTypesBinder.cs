@@ -52,8 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var typeOrNamespace in GetUsings(basesBeingResolved: null))
             {
-                var fullName = typeOrNamespace.NamespaceOrType + "." + name;
-                var result = GetForwardedToAssembly(fullName, diagnostics, location);
+                var result = GetForwardedToAssembly(
+                    MetadataTypeName.FromNamespaceAndTypeName(typeOrNamespace.NamespaceOrType.ToString(), name),
+                    diagnostics,
+                    location);
                 if (result != null)
                 {
                     qualifierOpt = typeOrNamespace.NamespaceOrType;

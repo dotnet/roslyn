@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
@@ -240,7 +239,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
                 // close button.
                 _toolTipPresenter.StartOrUpdate(
-                    _trackingSpan, new[] { string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description) });
+                    _trackingSpan, [string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description)]);
             }
         }
 

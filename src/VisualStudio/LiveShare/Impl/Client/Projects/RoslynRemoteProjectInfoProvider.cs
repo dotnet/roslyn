@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
-        private readonly string[] _secondaryBufferFileExtensions = new string[] { ".cshtml", ".razor", ".html", ".aspx", ".vue" };
+        private readonly string[] _secondaryBufferFileExtensions = [".cshtml", ".razor", ".html", ".aspx", ".vue"];
         private readonly CSharpLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     name: projectName,
                     assemblyName: projectName,
                     language,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm),
                 documents: docInfos);
         }

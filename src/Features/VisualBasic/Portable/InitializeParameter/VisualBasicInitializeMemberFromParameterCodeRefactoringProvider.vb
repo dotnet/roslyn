@@ -6,18 +6,14 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
-Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter), [Shared]>
     <ExtensionOrder(Before:=NameOf(VisualBasicAddParameterCheckCodeRefactoringProvider))>
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.Wrapping)>
-    Friend Class VisualBasicInitializeMemberFromParameterCodeRefactoringProvider
+    Friend NotInheritable Class VisualBasicInitializeMemberFromParameterCodeRefactoringProvider
         Inherits AbstractInitializeMemberFromParameterCodeRefactoringProvider(Of
             TypeBlockSyntax,
             ParameterSyntax,
@@ -33,17 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
 
-        Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
-            Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
-        End Function
-
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
-
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, returnsVoid As Boolean, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
-            InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
-        End Sub
 
         ' Fields are public by default in VB, except in the case of classes and modules.
         Protected Overrides Function DetermineDefaultFieldAccessibility(containingType As INamedTypeSymbol) As Accessibility
@@ -57,15 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
-        End Function
-
-        Protected Overrides Function GetAccessorBody(accessor As IMethodSymbol, cancellationToken As CancellationToken) As SyntaxNode
-            If accessor.DeclaringSyntaxReferences.Length = 0 Then
-                Return Nothing
-            End If
-
-            Dim reference = accessor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken)
-            Return TryCast(TryCast(reference, AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
         End Function
 
         Protected Overrides Function RemoveThrowNotImplemented(propertySyntax As SyntaxNode) As SyntaxNode

@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks
+namespace Microsoft.CodeAnalysis.Shared.TestHooks;
+
+/// <summary>
+/// Return <see cref="IAsynchronousOperationListener"/> for the given featureName
+/// 
+/// We have this abstraction so that we can have isolated listener/waiter in unit tests
+/// </summary>
+internal interface IAsynchronousOperationListenerProvider
 {
     /// <summary>
-    /// Return <see cref="IAsynchronousOperationListener"/> for the given featureName
-    /// 
-    /// We have this abstraction so that we can have isolated listener/waiter in unit tests
+    /// Get <see cref="IAsynchronousOperationListener"/> for given feature.
+    /// same provider will return a singleton listener for same feature
     /// </summary>
-    internal interface IAsynchronousOperationListenerProvider
-    {
-        /// <summary>
-        /// Get <see cref="IAsynchronousOperationListener"/> for given feature.
-        /// same provider will return a singleton listener for same feature
-        /// </summary>
-        IAsynchronousOperationListener GetListener(string featureName);
-    }
+    IAsynchronousOperationListener GetListener(string featureName);
 }

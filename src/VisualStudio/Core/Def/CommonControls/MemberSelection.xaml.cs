@@ -7,57 +7,56 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
+
+/// <summary>
+/// Interaction logic for MemberSelection.xaml
+/// </summary>
+internal partial class MemberSelection : UserControl
 {
-    /// <summary>
-    /// Interaction logic for MemberSelection.xaml
-    /// </summary>
-    internal partial class MemberSelection : UserControl
+    public string SelectDependents => ServicesVSResources.Select_Dependents;
+    public string SelectPublic => ServicesVSResources.Select_Public;
+    public string MembersHeader => ServicesVSResources.Members;
+    public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
+    public string SelectAll => ServicesVSResources.Select_All;
+    public string DeselectAll => ServicesVSResources.Deselect_All;
+
+    public MemberSelectionViewModel ViewModel { get; }
+
+    public MemberSelection(MemberSelectionViewModel viewModel)
     {
-        public string SelectDependents => ServicesVSResources.Select_Dependents;
-        public string SelectPublic => ServicesVSResources.Select_Public;
-        public string MembersHeader => ServicesVSResources.Members;
-        public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
-        public string SelectAll => ServicesVSResources.Select_All;
-        public string DeselectAll => ServicesVSResources.Deselect_All;
+        ViewModel = viewModel;
+        DataContext = ViewModel;
 
-        public MemberSelectionViewModel ViewModel { get; }
+        ViewModel.PropertyChanged += ViewModel_PropertyChanged;
 
-        public MemberSelection(MemberSelectionViewModel viewModel)
+        InitializeComponent();
+
+        UpdateAbstractColumnVisibility();
+    }
+
+    private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MemberSelectionViewModel.ShowMakeAbstract))
         {
-            ViewModel = viewModel;
-            DataContext = ViewModel;
-
-            ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-
-            InitializeComponent();
-
             UpdateAbstractColumnVisibility();
         }
-
-        private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(MemberSelectionViewModel.ShowMakeAbstract))
-            {
-                UpdateAbstractColumnVisibility();
-            }
-        }
-
-        private void UpdateAbstractColumnVisibility()
-        {
-            AbstractColumn.Visibility = ViewModel.ShowMakeAbstract ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void SelectDependentsButton_Click(object sender, RoutedEventArgs e)
-            => ViewModel.SelectDependents();
-
-        private void SelectPublic_Click(object sender, RoutedEventArgs e)
-            => ViewModel.SelectPublic();
-
-        private void SelectAllButton_Click(object sender, RoutedEventArgs e)
-            => ViewModel.SelectAll();
-
-        private void DeselectAllButton_Click(object sender, RoutedEventArgs e)
-            => ViewModel.DeselectAll();
     }
+
+    private void UpdateAbstractColumnVisibility()
+    {
+        AbstractColumn.Visibility = ViewModel.ShowMakeAbstract ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void SelectDependentsButton_Click(object sender, RoutedEventArgs e)
+        => ViewModel.SelectDependents();
+
+    private void SelectPublic_Click(object sender, RoutedEventArgs e)
+        => ViewModel.SelectPublic();
+
+    private void SelectAllButton_Click(object sender, RoutedEventArgs e)
+        => ViewModel.SelectAll();
+
+    private void DeselectAllButton_Click(object sender, RoutedEventArgs e)
+        => ViewModel.DeselectAll();
 }

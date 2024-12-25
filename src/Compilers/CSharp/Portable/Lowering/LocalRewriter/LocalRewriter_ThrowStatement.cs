@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = (BoundStatement)base.VisitThrowStatement(node)!;
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentThrowStatement(node, result);
+                result = Instrumenter.InstrumentThrowStatement(node, result);
             }
 
             return result;

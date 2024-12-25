@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
-Imports IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx
+Imports IVsAsyncFileChangeEx2 = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx2
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
@@ -43,12 +43,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
   </Rules>
 </RuleSet>"
 
-            Using workspace = New TestWorkspace()
+            Using workspace = New EditorTestWorkspace()
                 Dim ruleSetPath As String = Path.Combine(_tempPath, "a.ruleset")
                 File.WriteAllText(ruleSetPath, ruleSetSource)
 
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using visualStudioRuleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
@@ -90,9 +90,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim includePath As String = Path.Combine(_tempPath, "file1.ruleset")
             File.WriteAllText(includePath, includeSource)
 
-            Using workspace = New TestWorkspace()
+            Using workspace = New EditorTestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using visualStudioRuleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
@@ -134,9 +134,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim includePath As String = Path.Combine(_tempPath, "file1.ruleset")
             File.WriteAllText(includePath, includeSource)
 
-            Using workspace = New TestWorkspace()
+            Using workspace = New EditorTestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
@@ -175,9 +175,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim ruleSetPath As String = Path.Combine(_tempPath, "a.ruleset")
             File.WriteAllText(ruleSetPath, ruleSetSource)
 
-            Using workspace = New TestWorkspace()
+            Using workspace = New EditorTestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
@@ -224,9 +224,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim ruleSetPath As String = Path.Combine(_tempPath, "a.ruleset")
             File.WriteAllText(ruleSetPath, ruleSetSource)
 
-            Using workspace = New TestWorkspace()
+            Using workspace = New EditorTestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using ruleSet1 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
@@ -262,9 +262,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim ruleSetPath As String = Path.Combine(_tempPath, "a.ruleset")
             File.WriteAllText(ruleSetPath, ruleSetSource)
 
-            Using workspace = New TestWorkspace()
+            Using workspace = New EditorTestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
-                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
+                Dim fileChangeWatcher = New FileChangeWatcher(workspace.GetService(Of IAsynchronousOperationListenerProvider)(), Task.FromResult(Of IVsAsyncFileChangeEx2)(fileChangeService))
                 Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using ruleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 

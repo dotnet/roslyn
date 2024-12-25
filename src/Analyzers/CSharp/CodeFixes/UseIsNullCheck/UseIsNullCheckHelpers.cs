@@ -4,25 +4,24 @@
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
-{
-    internal static class UseIsNullCheckHelpers
-    {
-        public static string GetTitle(bool negated, ParseOptions options)
-        {
-            if (negated)
-            {
-                return SupportsIsNotPattern(options)
-                    ? CSharpAnalyzersResources.Use_is_not_null_check
-                    : CSharpAnalyzersResources.Use_is_object_check;
-            }
-            else
-            {
-                return CSharpAnalyzersResources.Use_is_null_check;
-            }
-        }
+namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 
-        public static bool SupportsIsNotPattern(ParseOptions options)
-            => options.LanguageVersion() >= LanguageVersion.CSharp9;
+internal static class UseIsNullCheckHelpers
+{
+    public static string GetTitle(bool negated, ParseOptions options)
+    {
+        if (negated)
+        {
+            return SupportsIsNotPattern(options)
+                ? CSharpAnalyzersResources.Use_is_not_null_check
+                : CSharpAnalyzersResources.Use_is_object_check;
+        }
+        else
+        {
+            return CSharpAnalyzersResources.Use_is_null_check;
+        }
     }
+
+    public static bool SupportsIsNotPattern(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersion.CSharp9;
 }

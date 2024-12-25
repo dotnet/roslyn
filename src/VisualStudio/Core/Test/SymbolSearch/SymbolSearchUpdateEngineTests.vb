@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 fileDownloaderFactory.Verify()
             End Using
@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 fileDownloaderFactory.Verify()
             End Using
@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 downloaderMock.Verify()
@@ -129,7 +129,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim downloaderMock = CreatedownloaderMock(CreateStream(New XElement("Database",
+                Dim downloaderMock = CreateDownloaderMock(CreateStream(New XElement("Database",
                     New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, ""),
                     New XAttribute(SymbolSearchUpdateEngine.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
 
@@ -153,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 downloaderMock.Verify()
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 downloaderMock.Verify()
@@ -234,7 +234,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -258,7 +258,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 ' Simulate Elfie throwing when trying to make a database from the contents of that response
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Throws(New NotImplementedException())
 
                 ' Because the parsing failed we will expect to call into the 'UpdateFailedDelay' to
@@ -276,7 +276,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -303,7 +303,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Successfully create a database from that response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Expect that we'll write the database to disk successfully.
@@ -324,7 +324,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -352,13 +352,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Create a database from the client response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Write the temp file out to disk.
-                ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of Byte())))
+                ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of ArraySegment(Of Byte))))
 
                 ' Simulate a failure doing the first 'replace' of the database file.
                 ioMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean))).
@@ -383,7 +383,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -405,7 +405,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are up to date.
@@ -427,7 +427,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -450,7 +450,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are too old.
@@ -480,7 +480,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -504,7 +504,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
@@ -539,7 +539,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -564,7 +564,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
-                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
+                databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()), It.IsAny(Of Boolean))).
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
@@ -594,7 +594,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -606,10 +606,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
         Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioMock As Mock(Of IIOService))
             ' Expect that we'll write out the temp file.
-            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
+            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of ArraySegment(Of Byte))))
 
             ' Expect that we'll replace the existing file with the temp file.
-            ioMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), Nothing, It.IsAny(Of Boolean)))
+            ioMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*(txt|bin)"), Nothing, It.IsAny(Of Boolean)))
         End Sub
 
         Private Shared Function CreatefileDownloaderFactoryMock(
@@ -725,23 +725,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Return TimeSpan.Zero
                 End Get
             End Property
-        End Class
-
-        Private Class TestLogService
-            Implements ISymbolSearchLogService
-
-            Public Shared ReadOnly Instance As TestLogService = New TestLogService()
-
-            Private Sub New()
-            End Sub
-
-            Public Function LogExceptionAsync(exception As String, text As String, cancellationToken As CancellationToken) As ValueTask Implements ISymbolSearchLogService.LogExceptionAsync
-                Return Nothing
-            End Function
-
-            Public Function LogInfoAsync(text As String, cancellationToken As CancellationToken) As ValueTask Implements ISymbolSearchLogService.LogInfoAsync
-                Return Nothing
-            End Function
         End Class
     End Class
 End Namespace

@@ -34,17 +34,27 @@ This document provides guidance for thinking about language interactions and tes
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
+- LangVersion
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- type declarations
+  - class with or without primary constructor
+  - record class/struct with or without positional members
+  - struct with or without primary constructor
+  - interface
+  - type parameter
 - file-local types
 - methods
+  - Primary constructors
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
-- Parameter modifiers (ref, out, in, params)
+- Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
 - Attributes (including generic attributes and security attributes)
+  - Compiler-recognized attributes should not have any effect in earlier LangVersions,
+    except a LangVersion error should be reported when functionality depending on the attribute is used
+    (for example, InlineArray conversion to Span).
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
@@ -79,6 +89,7 @@ This document provides guidance for thinking about language interactions and tes
 - Conversions (boxing/unboxing)
 - Nullable (wrapping, unwrapping)
 - Overload resolution, override/hide/implement (OHI)
+  - OverloadResolutionPriorityAttribute
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
@@ -105,8 +116,11 @@ This document provides guidance for thinking about language interactions and tes
 - Definite assignment analysis and auto-default struct fields
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
+- If you add a new expression that can be nested inside itself, test deeply nesting it. Potentially cut off direct nesting.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
+- Inline array element access and slicing.
+- Collection expressions and spread elements
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -175,7 +189,7 @@ return … ;
 try  { … } catch (…) when (…) { … } finally { … } 
 checked { … } 
 unchecked { … } 
-lock(…) … 
+lock(…) … // including variant on an instance of the `System.Threading.Lock` type
 using (…) … // including `await` variant
 yield return …; 
 yield break; 
@@ -218,7 +232,8 @@ A variable is a storage location. These are all the different ways to refer to a
 - Formal param, out 
 - Local variable 
 - Pointer dereference 
-- __refvalue 
+- __refvalue
+- Inline array access
 
 ## Operators 
 
@@ -334,6 +349,9 @@ __makeref( x )
 - Implicit object creation (target-typed new)
 - Function type (in type inference comparing function types of lambdas or method groups)
 - UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
+- Inline arrays (conversions to Span and ReadOnlySpan)
+- Collection expression conversions
+- Span conversions (from array to (ReadOnly)Span, or from string or (ReadOnly)Span to ReadOnlySpan)
 
 ## Types 
 

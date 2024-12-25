@@ -32,12 +32,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var serviceType = typeof(TService);
             if (serviceType == typeof(ISpanMappingService))
             {
-                var spanMappingService = LazyInitialization.EnsureInitialized(
+                var spanMappingService = InterlockedOperations.Initialize(
                     ref _lazySpanMappingService,
                     static documentServiceProvider =>
                     {
-                        var razorMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
-                        return razorMappingService != null ? new RazorSpanMappingServiceWrapper(razorMappingService) : null;
+                        // Razor is transitioning implementations from IRazorSpanMappingService to IRazorMappingService.
+                        // While this is happening the service may not be available. If it is, use the newer implementation,
+                        // otherwise fallback to IRazorSpanMappingService
+                        var razorMappingService = documentServiceProvider.GetService<IRazorMappingService>();
+                        if (razorMappingService is not null)
+                        {
+                            return new RazorMappingServiceWrapper(razorMappingService);
+                        }
+
+                        var razorSpanMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
+                        return razorSpanMappingService != null ? new RazorSpanMappingServiceWrapper(razorSpanMappingService) : null;
                     },
                     _innerDocumentServiceProvider);
 
@@ -46,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             if (serviceType == typeof(IDocumentExcerptService))
             {
-                var excerptService = LazyInitialization.EnsureInitialized(
+                var excerptService = InterlockedOperations.Initialize(
                     ref _lazyExcerptService,
                     static documentServiceProvider =>
                     {
@@ -60,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             if (serviceType == typeof(DocumentPropertiesService))
             {
-                var documentPropertiesService = LazyInitialization.EnsureInitialized(
+                var documentPropertiesService = InterlockedOperations.Initialize(
                     ref _lazyDocumentPropertiesService,
                     static documentServiceProvider =>
                     {

@@ -83,7 +83,7 @@ namespace Microsoft.Cci
                     var messageProvider = context.Module.CommonCompilation.MessageProvider;
                     context.Diagnostics.Add(messageProvider.CreateDiagnostic(
                         messageProvider.ERR_FunctionPointerTypesInAttributeNotSupported,
-                        context.SyntaxNode?.Location ?? Location.None));
+                        context.Location ?? Location.None));
                     sb.Append("(fnptr)");
                     goto done;
                 }

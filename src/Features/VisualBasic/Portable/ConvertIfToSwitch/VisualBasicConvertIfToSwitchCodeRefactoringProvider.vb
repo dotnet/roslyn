@@ -27,6 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFacts, options As ParseOptions) As Analyzer
             Return New VisualBasicAnalyzer(syntaxFacts, Feature.RangePattern Or Feature.RelationalPattern Or Feature.InequalityPattern)
         End Function
+
+        Protected Overrides Function GetLeadingTriviaToTransfer(syntaxToRemove As SyntaxNode) As SyntaxTriviaList
+            ' Add cases here if we find there are vb cases with trivia to preserve
+            Return Nothing
+        End Function
     End Class
 End Namespace
 

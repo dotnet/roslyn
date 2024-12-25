@@ -3,14 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -74,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     renameOverloads:=True)
         End Function
 
-        <WpfTheory, WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <CombinatorialData>
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
             Await VerifyViewModels(
@@ -105,7 +106,7 @@ class Program
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -125,7 +126,7 @@ class AttributeAttribute : System.Attribute { }
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameWithOverloadAndInStringsAndComments(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -162,7 +163,7 @@ class AttributeAttribute : System.Attribute { }
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInComments(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -200,7 +201,7 @@ class $$Program
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInStrings(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -238,7 +239,7 @@ class $$Program
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInCommentsAndStrings(host As RenameTestHost) As Task
             Await VerifyViewModels(
                     (<Workspace>
@@ -547,8 +548,8 @@ class D : B
             Optional renameFile As Boolean = False,
             Optional resolvableConflictText As String = Nothing,
             Optional unresolvableConflictText As String = Nothing,
-            Optional severity As RenameDashboardSeverity = RenameDashboardSeverity.None
-        ) As Tasks.Task
+            Optional severity As RenameDashboardSeverity = RenameDashboardSeverity.None,
+            Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Automatic) As Task
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
@@ -556,6 +557,11 @@ class D : B
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
+
+                Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+                configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=executionPreference)
+
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -581,8 +587,11 @@ class D : B
                     edit.Apply()
                 End Using
 
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
+
+                Dim textView = cursorDocument.GetTextView()
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), threadingContext, textView),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
@@ -618,13 +627,15 @@ class D : B
                 End Using
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
-                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
+                    editorFormatMapService,
+                    threadingContext,
                     listenerProvider)
 
                     Await WaitForRename(workspace)
@@ -694,7 +705,7 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(InlineRenameUIOptions.CollapseUI, False)
+                globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseUI, False)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
@@ -706,12 +717,15 @@ class D : B
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
-                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
+
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
                 Assert.True(vm.IsExpanded)
                 vm.IsCollapsed = True
 
-                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.True(vm.IsCollapsed)
                 Assert.False(vm.IsExpanded)
 

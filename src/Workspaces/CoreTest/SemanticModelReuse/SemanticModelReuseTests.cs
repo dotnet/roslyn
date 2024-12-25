@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestMetadata.Net40.mscorlib)
+            return project.AddMetadataReference(Net40.References.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
 
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
         public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Property_CSharp()
         {
             var source = "class C { int M { get { return 0; } } }";
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
         public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Event_CSharp()
         {
             var source = "class C { event System.Action E { add { return 0; } } }";
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
         public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Indexer_CSharp()
         {
             var source = "class C { int this[int i] { get { return 0; } } }";
@@ -208,9 +209,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact]
-        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
-        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext1_CSharp()
         {
             var source = "class C { void M() { return; } }";
@@ -230,9 +230,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             CSharpSyntaxContext.CreateContext(document2, model2, source.IndexOf("void"), CancellationToken.None);
         }
 
-        [Fact]
-        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
-        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext2_CSharp()
         {
             // These two tree are considered equavilent at top level, but the change in trivia around the method
@@ -509,9 +508,8 @@ end class"));
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact]
-        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
-        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext1_VisualBasic()
         {
             var source = @"
@@ -541,9 +539,8 @@ end class"));
             VisualBasicSyntaxContext.CreateContext(document2, model2, source.IndexOf("sub"), CancellationToken.None);
         }
 
-        [Fact]
-        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
-        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext2_VisualBasic()
         {
             var source = @"

@@ -86,27 +86,27 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce1(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q = If([|Goo()|], 1)", "System.Int32?", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce2(mode As TestMode) As Task
             Await TestInMethodAsync(<text>Dim b as Boolean?
     Dim q = If(b, [|Goo()|])</text>.Value, "System.Boolean", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce3(mode As TestMode) As Task
             Await TestInMethodAsync(<text>Dim s As String
     Dim q = If(s, [|Goo()|])</text>.Value, "System.String", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542834")>
         Public Async Function TestCoalesce4(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q = If([|Goo()|], String.Empty)", "System.String", mode)
         End Function
@@ -140,33 +140,33 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
         Public Async Function TestBinaryOperator3(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q : q <<= [|Goo()|]", "System.Int32", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
         Public Async Function TestBinaryOperator4(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q : q >>= [|Goo()|]", "System.Int32", mode)
         End Function
 
-        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
         Public Async Function TestBinaryOperator5() As Task
             Await TestInMethodAsync("Dim q : [|somefield|] <<= q", "System.Int32", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
         Public Async Function TestBinaryOperator6() As Task
             Await TestInMethodAsync("Dim q : [|somefield|] >>= q", "System.Int32", TestMode.Node)
         End Function
 
-        <Theory, CombinatorialData, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
+        <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
         Public Async Function TestBinaryOperator7(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q As String : q >>= [|Goo()|]", "System.Int32", mode)
         End Function
 
-        <Fact, WorkItem(817192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/817192")>
         Public Async Function TestBinaryOperator8() As Task
             Await TestInMethodAsync("Dim q As String : [|somefield|] >>= q", "System.Int32", TestMode.Node)
         End Function
@@ -187,13 +187,13 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestYieldReturn(mode As TestMode) As Task
             Await TestInClassAsync("Iterator Function M() As System.Collections.Generic.IEnumerable(Of Integer) : Yield [|abc|] : End Function", "System.Int32", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestReturnInLambda(mode As TestMode) As Task
             Await TestInMethodAsync(<Code>Dim F As System.Func(Of String, Integer) = Function (s)
                                                                        Return [|Goo()|]
@@ -201,7 +201,7 @@ End Class</text>.Value.Replace("$", text)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestInsideLambda2(mode As TestMode) As Task
             Dim text = <text>Imports System
 Class A
@@ -213,7 +213,7 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(529479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529479")>
         Public Async Function TestLambda(mode As TestMode) As Task
             Await TestInMethodAsync("Dim f As System.Func(Of String, Integer) = Function (s) [|Goo()|]", "System.Int32", mode)
         End Function
@@ -244,7 +244,7 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542835")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542835")>
         Public Async Function TestFor2(mode As TestMode) As Task
             Await TestInMethodAsync("For i As Integer = 1 To 2 Step [|Goo|]", "System.Int32", mode)
         End Function
@@ -260,13 +260,13 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(544611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544611")>
         Public Async Function TestUsing3(mode As TestMode) As Task
             Await TestInMethodAsync("Using v = [|Goo()|] : End Using", "Global.System.IDisposable", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542838")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542838")>
         Public Async Function TestForEach(mode As TestMode) As Task
             Await TestInMethodAsync("For Each v As Integer in [|Goo()|] : Next", "Global.System.Collections.Generic.IEnumerable(Of System.Int32)", mode)
         End Function
@@ -282,7 +282,7 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542839")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542839")>
         Public Async Function TestPrefixExpression3(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q = Not [|Goo()|] And 5", "System.Int32", mode)
         End Function
@@ -293,13 +293,13 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestArrayRankSpecifier1(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q As String() = New String([|Goo()|])", "System.Char()", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestArrayRankSpecifier2(mode As TestMode) As Task
             Await TestInMethodAsync("Dim q As String() = New String([|Goo()|]) { }", "System.Int32", mode)
         End Function
@@ -370,12 +370,12 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542837")>
         Public Async Function TestIndexAccess1(mode As TestMode) As Task
             Await TestInMethodAsync("Dim i As String() : Dim j = i([|Goo()|])", "System.Int32", mode)
         End Function
 
-        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestCollectionInitializer1() As Task
             Dim text = <text>Imports System.Collections.Generic
 
@@ -387,7 +387,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.Int32", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestCollectionInitializer2() As Task
             Dim text = <text>
 Imports System.Collections.Generic
@@ -400,7 +400,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.Int32", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestCollectionInitializer3() As Task
             Dim text = <text>
 Imports System.Collections.Generic
@@ -413,7 +413,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.String", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestCustomCollectionInitializerAddMethod1() As Task
             Dim text = <text>
 Class C
@@ -437,7 +437,7 @@ End Class
             Await TestAsync(text, "System.Int32", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestCustomCollectionInitializerAddMethod2() As Task
             Dim text = <text>
 Class C
@@ -460,7 +460,7 @@ End Class</text>.Value
             Await TestAsync(text, "System.Boolean", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")>
         Public Async Function TestCustomCollectionInitializerAddMethod3() As Task
             Dim text = <text>
 Class C
@@ -531,7 +531,7 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
         Public Async Function TestAwaitTaskOfT(mode As TestMode) As Task
             Dim text = <text>
 Imports System.Threading.Tasks
@@ -545,7 +545,7 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
         Public Async Function TestAwaitTaskOfTaskOfT(mode As TestMode) As Task
             Dim text = <text>
 Imports System.Threading.Tasks
@@ -559,7 +559,7 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(553584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")>
         Public Async Function TestAwaitTask(mode As TestMode) As Task
             Dim text = <text>
 Imports System.Threading.Tasks
@@ -573,13 +573,13 @@ End Class</text>.Value
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")>
         Public Async Function TestReturnFromAsyncTaskOfT(mode As TestMode) As Task
             Await TestInClassAsync("Async Function M() As System.Threading.Tasks.Task(Of Integer) : Return [|abc|] : End Function", "System.Int32", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(530816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530816")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530816")>
         Public Async Function TestNamedFieldInitializer(mode As TestMode) As Task
             Dim text = <text>
 Imports System.Linq
@@ -601,7 +601,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
         Public Async Function TestAttributeArguments1(mode As TestMode) As Task
             Dim text = <text>
 &lt;AAttribute([|dd|], ee, Y:=ff)&gt;
@@ -619,7 +619,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
         Public Async Function TestAttributeArguments2(mode As TestMode) As Task
             Dim text = <text>
 &lt;AAttribute(dd, [|ee|], Y:=ff)&gt;
@@ -637,7 +637,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(853840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")>
         Public Async Function TestAttributeArguments3(mode As TestMode) As Task
             Dim text = <text>
 &lt;AAttribute(dd, ee, Y:=[|ff|])&gt;
@@ -655,47 +655,47 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause(mode As TestMode) As Task
             Dim text = "Try : Catch ex As Exception When [|goo()|]"
             Await TestInMethodAsync(text, "System.Boolean", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause1(mode As TestMode) As Task
             Dim text = "Try : Catch ex As Exception When [|goo|]"
             Await TestInMethodAsync(text, "System.Boolean", mode)
         End Function
 
-        <Fact, WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause2() As Task
             Dim text = "Try : Catch ex As Exception When [|goo|].N"
             Await TestInMethodAsync(text, "System.Object", TestMode.Node)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(1041260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041260")>
         Public Async Function ConditionalInvocation(mode As TestMode) As Task
             Dim text = "Dim args As String() : args?([|goo|])"
             Await TestInMethodAsync(text, "System.Int32", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14277")>
         Public Async Function TestValueInNestedTuple1(mode As TestMode) As Task
             Await TestInMethodAsync(
 "dim x as (integer, (string, boolean)) = ([|Goo()|], ("""", true));", "System.Int32", mode)
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14277")>
         Public Async Function TestValueInNestedTuple2(mode As TestMode) As Task
             Await TestInMethodAsync(
 "dim x as (integer, (string, boolean)) = (1, ("""", [|Goo()|]))", "System.Boolean", mode)
         End Function
 
-        <Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestAwaitExpressionWithChainingMethod() As Task
             Dim text = "Imports System
 Imports System.Linq
@@ -708,7 +708,7 @@ End Module"
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Object)", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestAwaitExpressionWithChainingMethod2() As Task
             Dim text = "Imports System
 Imports System.Threading.Tasks
@@ -721,7 +721,7 @@ End Module"
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", TestMode.Node)
         End Function
 
-        <Fact, WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3518")>
         Public Async Function NoTypeAfterInvocationWithCompletionListTagTypeAsFirstParameter() As Task
             Dim text = "Class C
     Sub Test()
@@ -773,7 +773,7 @@ end class"
             Await TestAsync(text, "System.Boolean", TestMode.Position)
         End Function
 
-        <Fact, WorkItem(431509, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=431509&_a=edit&triage=true")>
         Public Async Function InvocationWithNoArguments() As Task
             Dim text =
 "Module Program
@@ -785,7 +785,7 @@ End Module"
             Await TestAsync(text, "System.Object", TestMode.Position)
         End Function
 
-        <Fact, WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39333")>
         Public Async Function TestInferringAfterAwaitInAsync() As Task
             Dim text =
 "Imports System.Threading.Tasks

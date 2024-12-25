@@ -6,17 +6,16 @@
 
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+
+internal partial class AbstractLegacyProject : ICompilerOptionsHostObject
 {
-    internal partial class AbstractLegacyProject : ICompilerOptionsHostObject
+    int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
     {
-        int ICompilerOptionsHostObject.SetCompilerOptions(string compilerOptions, out bool supported)
-        {
 #pragma warning disable CS0618 // Type or member is obsolete (Legacy API that cannot be changed)
-            ProjectSystemProjectOptionsProcessor.SetCommandLine(compilerOptions);
+        ProjectSystemProjectOptionsProcessor.SetCommandLine(compilerOptions);
 #pragma warning restore CS0618
-            supported = true;
-            return VSConstants.S_OK;
-        }
+        supported = true;
+        return VSConstants.S_OK;
     }
 }

@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
     Friend Module Helpers
@@ -14,11 +15,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
         Public Class TestState
             Implements IDisposable
 
-            Private ReadOnly _workspace As TestWorkspace
+            Private ReadOnly _workspace As EditorTestWorkspace
             Private ReadOnly _visualStudioWorkspace As VisualStudioWorkspace
             Private ReadOnly _libraryManager As AbstractObjectBrowserLibraryManager
 
-            Public Sub New(workspace As TestWorkspace, visualStudioWorkspace As VisualStudioWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
+            Public Sub New(workspace As EditorTestWorkspace, visualStudioWorkspace As VisualStudioWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
                 _workspace = workspace
                 _visualStudioWorkspace = visualStudioWorkspace
                 _libraryManager = libraryManager

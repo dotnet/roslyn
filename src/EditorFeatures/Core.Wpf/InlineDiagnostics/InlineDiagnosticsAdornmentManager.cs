@@ -4,10 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Shapes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -69,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return;
             }
 
-            var option = _globalOptions.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            var option = _globalOptions.GetOption(InlineDiagnosticsOptionsStorage.Location, document.Project.Language);
             if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
             {
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
@@ -128,10 +125,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out var viewLine))
-                    {
+                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out var mappedPoint))
                         continue;
-                    }
+
+                    if (!TryGetViewLine(mappedPoint, out var viewLine))
+                        continue;
+
+                    if (!ShouldDrawTag(tagMappingSpan))
+                        continue;
 
                     // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
                     if (!map.TryGetValue(viewLine, out var value))

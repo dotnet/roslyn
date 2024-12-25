@@ -12,20 +12,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class EnableKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestAfterNullable()
             => await VerifyKeywordAsync(@"#nullable $$");
 
-        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestNotAfterNullableAndNewline()
         {
-            await VerifyAbsenceAsync(@"
-#nullable 
-$$
-");
+            await VerifyAbsenceAsync("""
+                #nullable 
+                $$
+
+                """);
         }
 
-        [Fact, WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestNotAfterHash()
             => await VerifyAbsenceAsync(@"#$$");
 
@@ -37,24 +38,30 @@ $$
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]

@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Indentation
+namespace Microsoft.CodeAnalysis.Indentation;
+
+internal interface ISmartTokenFormatter
 {
-    internal interface ISmartTokenFormatter
-    {
-        IList<TextChange> FormatToken(SyntaxToken token, CancellationToken cancellationToken);
-    }
+    IList<TextChange> FormatToken(SyntaxToken token, CancellationToken cancellationToken);
 }

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -61,9 +62,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
-                anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
-                anonymousDelegates: MapAnonymousDelegates(baseline.AnonymousDelegates),
-                anonymousDelegatesWithIndexedNames: MapAnonymousDelegatesWithIndexedNames(baseline.AnonymousDelegatesWithIndexedNames),
+                synthesizedTypes: new SynthesizedTypeMaps(
+                    MapAnonymousTypes(baseline.SynthesizedTypes.AnonymousTypes),
+                    MapAnonymousDelegates(baseline.SynthesizedTypes.AnonymousDelegates),
+                    MapAnonymousDelegatesWithIndexedNames(baseline.SynthesizedTypes.AnonymousDelegatesWithIndexedNames)),
                 synthesizedMembers: mappedSynthesizedMembers,
                 deletedMembers: mappedDeletedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
@@ -103,46 +105,46 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
+        private ImmutableSegmentedDictionary<AnonymousTypeKey, AnonymousTypeValue> MapAnonymousTypes(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
         {
-            var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
 
             foreach (var (key, value) in anonymousTypeMap)
             {
                 var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
-                RoslynDebug.Assert(type != null);
-                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+                Debug.Assert(type != null);
+                builder.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
-        private IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
+        private ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> MapAnonymousDelegates(IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates)
         {
-            var result = new Dictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var (key, value) in anonymousDelegates)
             {
                 var delegateTypeDef = (Cci.ITypeDefinition?)MapDefinition(value.Delegate);
-                RoslynDebug.Assert(delegateTypeDef != null);
-                result.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
+                Debug.Assert(delegateTypeDef != null);
+                builder.Add(key, new SynthesizedDelegateValue(delegateTypeDef));
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
-        private IReadOnlyDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        private ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> MapAnonymousDelegatesWithIndexedNames(
+            IReadOnlyDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> anonymousDelegates)
         {
-            var result = new Dictionary<string, AnonymousTypeValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>>();
 
-            foreach (var (key, value) in anonymousDelegates)
+            foreach (var (key, values) in anonymousDelegates)
             {
-                var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
-                RoslynDebug.Assert(type != null);
-                result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+                builder.Add(key, values.SelectAsArray(value => new AnonymousTypeValue(
+                    value.Name, value.UniqueIndex, (Cci.ITypeDefinition?)MapDefinition(value.Type) ?? throw ExceptionUtilities.UnexpectedValue(value.Type))));
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -159,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
         /// </remarks>
-        internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
+        internal IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
             bool isDeletedMemberMapping)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return newMembers;
             }
 
-            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
+            var synthesizedMembersBuilder = ImmutableSegmentedDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 

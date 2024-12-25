@@ -415,7 +415,7 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, composition:=GetComposition())
                 Dim called = False
 
                 Dim hostDocument = workspace.DocumentWithCursor
@@ -450,6 +450,32 @@ End Class
 "
 
             Await VerifyNoItemsExistAsync(text)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")>
+        Public Async Function ValueTuple1() As Task
+            Dim text = "
+Class C
+    ''' <see cref=""Goo$$""/>
+    Sub Goo(stringAndInt as (string, integer))
+    End Sub
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "Goo(ValueTuple(Of String, Integer))")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")>
+        Public Async Function ValueTuple2() As Task
+            Dim text = "
+Class C
+    ''' <see cref=""Goo$$""/>
+    Sub Goo(stringAndInt as (s as string, i as integer))
+    End Sub
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "Goo(ValueTuple(Of String, Integer))")
         End Function
     End Class
 End Namespace

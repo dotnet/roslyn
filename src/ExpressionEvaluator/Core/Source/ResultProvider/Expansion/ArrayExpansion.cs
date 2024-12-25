@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // _lowerBounds need not necessarily be so.
                 Debug.Assert(_lowerBounds == null || _lowerBounds.Count == 1);
                 int lowerBound = _lowerBounds != null && _lowerBounds.Count == 1 ? _lowerBounds[0] : 0;
-                return new[] { lowerBound + index };
+                return [lowerBound + index];
             }
 
             var n = _divisors.Count;

@@ -91,7 +91,8 @@ namespace AnalyzerRunner
 
                     foreach (var codeAction in codeActions)
                     {
-                        var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                        var operations = await codeAction.GetOperationsAsync(
+                            document.Project.Solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                         foreach (var operation in operations)
                         {
                             if (operation is not ApplyChangesOperation applyChangesOperation)
@@ -244,7 +245,7 @@ namespace AnalyzerRunner
                 Languages = languages switch
                 {
                     IEnumerable<string> values => values,
-                    string value => new[] { value },
+                    string value => [value],
                     _ => Array.Empty<string>(),
                 };
             }

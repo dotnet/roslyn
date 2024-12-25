@@ -12,24 +12,23 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+
+internal class BaseMemberFinder : AbstractCallFinder
 {
-    internal class BaseMemberFinder : AbstractCallFinder
+    private readonly string _text;
+
+    public BaseMemberFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        : base(symbol, projectId, asyncListener, provider)
     {
-        private readonly string _text;
+        _text = string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, symbol.ToDisplayString());
+    }
 
-        public BaseMemberFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
-            : base(symbol, projectId, asyncListener, provider)
-        {
-            _text = string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, symbol.ToDisplayString());
-        }
+    public override string DisplayName => _text;
 
-        public override string DisplayName => _text;
-
-        protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
-        {
-            var calls = await SymbolFinder.FindCallersAsync(symbol, project.Solution, documents, cancellationToken).ConfigureAwait(false);
-            return calls.Where(c => c.IsDirect);
-        }
+    protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+    {
+        var calls = await SymbolFinder.FindCallersAsync(symbol, project.Solution, documents, cancellationToken).ConfigureAwait(false);
+        return calls.Where(c => c.IsDirect);
     }
 }

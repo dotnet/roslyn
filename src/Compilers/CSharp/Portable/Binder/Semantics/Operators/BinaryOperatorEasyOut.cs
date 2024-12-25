@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            BinaryOperatorSignature signature = this.Compilation.builtInOperators.GetSignature(easyOut);
+            BinaryOperatorSignature signature = this.Compilation.BuiltInOperators.GetSignature(easyOut);
 
             Conversion leftConversion = Conversions.FastClassifyConversion(leftType, signature.LeftType);
             Conversion rightConversion = Conversions.FastClassifyConversion(rightType, signature.RightType);

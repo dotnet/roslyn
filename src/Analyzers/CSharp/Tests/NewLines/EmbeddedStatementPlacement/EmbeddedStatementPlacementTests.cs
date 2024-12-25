@@ -7,304 +7,369 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatementPlacement
-{
-    using VerifyCS = CSharpCodeFixVerifier<
-        EmbeddedStatementPlacementDiagnosticAnalyzer,
-        EmbeddedStatementPlacementCodeFixProvider>;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatementPlacement;
 
-    public class EmbeddedStatementPlacementTests
-    {
-        [Fact]
-        public async Task NoErrorOnWrappedStatement()
-        {
-            var source = @"class TestClass
+using VerifyCS = CSharpCodeFixVerifier<
+    EmbeddedStatementPlacementDiagnosticAnalyzer,
+    EmbeddedStatementPlacementCodeFixProvider>;
+
+public sealed class EmbeddedStatementPlacementTests
 {
-    void M()
+    [Fact]
+    public async Task NoErrorOnWrappedStatement()
     {
-        if (true)
-            return;
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = source,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task ErrorOnNonWrappedIfStatement()
+                void M()
+                {
+                    if (true)
+                        return;
+                }
+            }
+            """;
+        await new VerifyCS.Test
         {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true) [|return|];
+            TestCode = source,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
     }
-}";
-            var fixedCode = @"class TestClass
-{
-    void M()
+
+    [Fact]
+    public async Task ErrorOnNonWrappedIfStatement()
     {
-        if (true)
-            return;
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NoErrorOnNonWrappedIfStatement_WhenOptionDisabled()
-        {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true) return;
-    }
-}";
-            await new VerifyCS.Test
+                void M()
+                {
+                    if (true) [|return|];
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
             {
-                TestCode = source,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Suggestion } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnElseIf()
+                void M()
+                {
+                    if (true)
+                        return;
+                }
+            }
+            """;
+        await new VerifyCS.Test
         {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true)
-            return;
-        else if (true)
-            return;
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
     }
-}";
 
-            await new VerifyCS.Test
+    [Fact]
+    public async Task NoErrorOnNonWrappedIfStatement_WhenOptionDisabled()
+    {
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = source,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task ErrorOnElseWithNonIfStatementOnSameLine()
+                void M()
+                {
+                    if (true) return;
+                }
+            }
+            """;
+        await new VerifyCS.Test
         {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true)
-            return;
-        else [|return|];
+            TestCode = source,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Suggestion } }
+        }.RunAsync();
     }
-}";
-            var fixedCode = @"class TestClass
-{
-    void M()
+
+    [Fact]
+    public async Task NotOnElseIf()
     {
-        if (true)
-            return;
-        else
-            return;
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
+                void M()
+                {
+                    if (true)
+                        return;
+                    else if (true)
+                        return;
+                }
+            }
+            """;
 
-        [Fact]
-        public async Task ErrorOnIfWithSingleLineBlock()
+        await new VerifyCS.Test
         {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true) [|{|] return; }
+            TestCode = source,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
     }
-}";
-            var fixedCode = @"class TestClass
-{
-    void M()
+
+    [Fact]
+    public async Task ErrorOnElseWithNonIfStatementOnSameLine()
     {
-        if (true)
-        {
-            return;
-        }
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NoWrappingForMemberOrLambdaBlock()
-        {
-            var source = @"
-using System;
-
-class TestClass
-{
-    void M() { return; }
-    void N()
-    {
-        Action a1 = () => { return; };
-        Action a2 = delegate () { return; };
-    }
-
-    int Prop1 { get { return 1; } }
-    int Prop2
-    {
-        get { return 1; }
-    }
-}";
-            await new VerifyCS.Test
+                void M()
+                {
+                    if (true)
+                        return;
+                    else [|return|];
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = source,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
+                void M()
+                {
+                    if (true)
+                        return;
+                    else
+                        return;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task WrappingForLocalFunction()
-        {
-            var source = @"class TestClass
-{
-    void N()
+    [Fact]
+    public async Task ErrorOnIfWithSingleLineBlock()
     {
-        void Local() [|{|] return; }
-    }
-}";
-            var fixedCode = @"class TestClass
-{
-    void N()
-    {
-        void Local()
-        {
-            return;
-        }
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task ErrorOnNonWrappedIfStatementWithEmptyBlock()
-        {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true) [|{|] }
-    }
-}";
-            var fixedCode = @"class TestClass
-{
-    void M()
-    {
-        if (true)
-        {
-        }
-    }
-}";
-            await new VerifyCS.Test
+                void M()
+                {
+                    if (true) [|{|] return; }
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task WrapLambdaWithNestedStatement()
+                void M()
+                {
+                    if (true)
+                    {
+                        return;
+                    }
+                }
+            }
+            """;
+        await new VerifyCS.Test
         {
-            var source = @"
-using System;
-
-class TestClass
-{
-    void N()
-    {
-        Action a1 = () => { [|if|] (true) return; };
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
     }
-}";
-            var fixedCode = @"
-using System;
 
-class TestClass
-{
-    void N()
+    [Fact]
+    public async Task NoWrappingForMemberOrLambdaBlock()
     {
-        Action a1 = () =>
-        {
-            if (true)
-                return;
-        };
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            using System;
+
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
+                void M() { return; }
+                void N()
+                {
+                    Action a1 = () => { return; };
+                    Action a2 = delegate () { return; };
+                }
 
-        [Fact]
-        public async Task FixAll1()
+                int Prop1 { get { return 1; } }
+                int Prop2
+                {
+                    get { return 1; }
+                }
+            }
+            """;
+        await new VerifyCS.Test
         {
-            var source = @"class TestClass
-{
-    void M()
-    {
-        if (true) [|return|];
-        if (true) [|return|];
+            TestCode = source,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
     }
-}";
-            var fixedCode = @"class TestClass
-{
-    void M()
+
+    [Fact]
+    public async Task WrappingForLocalFunction()
     {
-        if (true)
-            return;
-        if (true)
-            return;
-    }
-}";
-            await new VerifyCS.Test
+        var source = """
+            class TestClass
             {
-                TestCode = source,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOptions2.FalseWithSuggestionEnforcement } }
-            }.RunAsync();
-        }
+                void N()
+                {
+                    void Local() [|{|] return; }
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
+            {
+                void N()
+                {
+                    void Local()
+                    {
+                        return;
+                    }
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ErrorOnNonWrappedIfStatementWithEmptyBlock()
+    {
+        var source = """
+            class TestClass
+            {
+                void M()
+                {
+                    if (true) [|{|] }
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
+            {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task WrapLambdaWithNestedStatement()
+    {
+        var source = """
+            using System;
+
+            class TestClass
+            {
+                void N()
+                {
+                    Action a1 = () => { [|if|] (true) return; };
+                }
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class TestClass
+            {
+                void N()
+                {
+                    Action a1 = () =>
+                    {
+                        if (true)
+                            return;
+                    };
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task FixAll1()
+    {
+        var source = """
+            class TestClass
+            {
+                void M()
+                {
+                    if (true) [|return|];
+                    if (true) [|return|];
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
+            {
+                void M()
+                {
+                    if (true)
+                        return;
+                    if (true)
+                        return;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66017")]
+    public async Task SwitchFollowedByEmptyStatement()
+    {
+        var source = """
+            class TestClass
+            {
+                void M()
+                {
+                    switch (0)
+                    {
+                    }[|;|]
+                }
+            }
+            """;
+        var fixedCode = """
+            class TestClass
+            {
+                void M()
+                {
+                    switch (0)
+                    {
+                    }
+
+                    ;
+                }
+            }
+            """;
+        await new VerifyCS.Test
+        {
+            TestCode = source,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
+        }.RunAsync();
     }
 }

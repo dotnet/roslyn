@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
-internal delegate Optional<object?> TryReadValueDelegate(string storageKey, Type storageType);
+internal delegate Optional<object?> TryReadValueDelegate(string storageKey, Type storageType, object? defaultValue);
 
 /// <summary>
 /// Export an implementation of this interface to instruct <see cref="VisualStudioOptionPersister"/> to read option value

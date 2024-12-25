@@ -8,10 +8,13 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -28,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _containingSymbol;
 
         private readonly SyntaxToken _identifierToken;
-        private readonly ImmutableArray<Location> _locations;
         private readonly TypeSyntax _typeSyntax;
         private readonly RefKind _refKind;
         private readonly LocalDeclarationKind _declarationKind;
@@ -69,9 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : isScoped ? ScopedKind.ScopedValue : ScopedKind.None;
 
             this._declarationKind = declarationKind;
-
-            // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            _locations = ImmutableArray.Create(identifierToken.GetLocation());
         }
 
         /// <summary>
@@ -404,23 +403,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Location TryGetFirstLocation()
+            => _identifierToken.GetLocation();
+
         /// <summary>
         /// Gets the locations where the local symbol was originally defined in source.
         /// There should not be local symbols from metadata, and there should be only one local variable declared.
         /// TODO: check if there are multiple same name local variables - error symbol or local symbol?
         /// </summary>
         public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _locations;
-            }
-        }
+            => ImmutableArray.Create(GetFirstLocation());
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {
             return _identifierToken.Parent;
         }
+
+        internal override bool HasSourceLocation => true;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -473,9 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
         public override RefKind RefKind
@@ -538,6 +537,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 _initializer = initializer;
                 _initializerBinder = initializerBinder;
+                if (this.IsConst)
+                {
+                    _initializerBinder = _initializerBinder.GetBinder(initializer) ?? new LocalInProgressBinder(_initializer, initializerBinder); // for error scenarios
+                    recordConstInBinderChain();
+                }
+
+                void recordConstInBinderChain()
+                {
+                    for (var binder = _initializerBinder; binder != null; binder = binder.Next)
+                    {
+                        if (binder is LocalInProgressBinder localInProgressBinder && localInProgressBinder.InitializerSyntax == _initializer)
+                        {
+                            localInProgressBinder.SetLocalSymbol(this);
+                            return;
+                        }
+                    }
+
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
 
             protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
@@ -559,17 +577,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsConst && _constantTuple == null)
                 {
                     var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    Location initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = BindingDiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
                     var type = this.Type;
                     if (boundInitValue == null)
                     {
-                        var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
+                        boundInitValue = this._initializerBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
                     }
 
-                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, _initializer.Value, diagnostics);
                     Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
                 }
             }
@@ -590,11 +606,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _constantTuple == null ? null : _constantTuple.Value;
             }
 
-            internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+            internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
             {
                 Debug.Assert(boundInitValue != null);
                 MakeConstantTuple(inProgress: null, boundInitValue: boundInitValue);
-                return _constantTuple == null ? ImmutableBindingDiagnostic<AssemblySymbol>.Empty : _constantTuple.Diagnostics;
+                return _constantTuple == null ? ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty : _constantTuple.Diagnostics;
             }
         }
 

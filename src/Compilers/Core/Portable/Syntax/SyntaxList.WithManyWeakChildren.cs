@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal partial class SyntaxList
     {
-        internal class WithManyWeakChildren : SyntaxList
+        internal sealed class WithManyWeakChildren : SyntaxList
         {
             private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
 

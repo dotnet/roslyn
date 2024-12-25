@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -156,9 +157,9 @@ class C
                 // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         static partial void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),
-                // (5,29): error CS0751: A partial method must be declared within a partial type
+                // (5,29): error CS0751: A partial member must be declared within a partial type
                 //         static partial void local() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "local").WithLocation(5, 29),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 29),
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
@@ -182,9 +183,9 @@ class C
                 // (5,22): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 22),
-                // (5,22): error CS0751: A partial method must be declared within a partial type
+                // (5,22): error CS0751: A partial member must be declared within a partial type
                 //         partial void local() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "local").WithLocation(5, 22),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 22),
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
@@ -422,6 +423,106 @@ class C
                         => string.Empty;
                 }
                 """).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ContainingSymbol_LocalFunction()
+        {
+            var source = """
+public class C
+{
+    public void M()
+    {
+        local();
+        void local() { }
+    }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "local()");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void local()", symbol.ToTestDisplayString());
+            Assert.Equal("void C.M()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75543")]
+        public void ContainingSymbol_ConstructedLocalFunction()
+        {
+            var source = """
+public class C
+{
+    public void M()
+    {
+        local(new C());
+        void local<T>(T t) { }
+    }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "local(new C())");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void local<C>(C t)", symbol.ToTestDisplayString());
+            Assert.Equal("void C.M()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75543")]
+        public void ContainingSymbol_ConstructedLocalFunction_Nested()
+        {
+            var source = """
+public class C<T1>
+{
+    public void M<T2>()
+    {
+        outer<int>();
+
+        void outer<T3>()
+        {
+            local(42);
+            void local<T4>(T4 t) { }
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "local(42)");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void local<System.Int32>(System.Int32 t)", symbol.ToTestDisplayString());
+            Assert.Equal("void outer<T3>()", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("void C<T1>.M<T2>()", symbol.ContainingSymbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ContainingSymbol_ConstructedMethod()
+        {
+            var source = """
+C<int>.M<string>();
+
+public class C<T1>
+{
+    public static void M<T2>() { }
+}
+""";
+            var comp = CreateCompilation([source]);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "C<int>.M<string>()");
+            var symbol = model.GetSymbolInfo(invocation).Symbol;
+            Assert.Equal("void C<System.Int32>.M<System.String>()", symbol.ToTestDisplayString());
+            Assert.Equal("C<System.Int32>", symbol.ContainingSymbol.ToTestDisplayString());
         }
     }
 }

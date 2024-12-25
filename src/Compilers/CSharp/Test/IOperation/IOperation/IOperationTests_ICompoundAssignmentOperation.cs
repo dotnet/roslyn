@@ -41,7 +41,7 @@ class C
 ";
 
             var syntaxTree = Parse(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
             (IOperation operation, _) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
             var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
@@ -77,7 +77,7 @@ class C
 ";
 
             var syntaxTree = Parse(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
             (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
             var compoundAssignment = (ICompoundAssignmentOperation)operation;
 

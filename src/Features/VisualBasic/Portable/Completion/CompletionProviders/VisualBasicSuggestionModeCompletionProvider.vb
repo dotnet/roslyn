@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Property
 
         Protected Overrides Async Function GetSuggestionModeItemAsync(document As Document, position As Integer, itemSpan As TextSpan, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of CompletionItem)
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 description = VBFeaturesResources.Type_a_name_here_to_declare_a_namespace & vbCrLf &
                               VBFeaturesResources.Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab
 
-                Return CreateSuggestionModeItem(VBFeaturesResources.namespace_name, description)
+                Return CreateSuggestionModeItem(FeaturesResources.namespace_name, description)
             End If
 
             Dim statementSyntax As TypeStatementSyntax = Nothing
@@ -127,13 +127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Select Case statementSyntax.DeclarationKeyword.Kind()
                     Case SyntaxKind.ClassKeyword
                         Return CreateSuggestionModeItem(
-                            VBFeaturesResources.class_name,
+                            FeaturesResources.class_name,
                             VBFeaturesResources.Type_a_name_here_to_declare_a_partial_class & vbCrLf &
                             VBFeaturesResources.Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab)
 
                     Case SyntaxKind.InterfaceKeyword
                         Return CreateSuggestionModeItem(
-                            VBFeaturesResources.interface_name,
+                            FeaturesResources.interface_name,
                             VBFeaturesResources.Type_a_name_here_to_declare_a_partial_interface & vbCrLf &
                             VBFeaturesResources.Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab)
 

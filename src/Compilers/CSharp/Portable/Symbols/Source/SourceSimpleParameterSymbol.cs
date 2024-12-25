@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,17 +15,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
+        private readonly TypeWithAnnotations _parameterType;
+
         public SourceSimpleParameterSymbol(
             Symbol owner,
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            ScopedKind scope,
             string name,
             ImmutableArray<Location> locations)
-            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
+            : this(owner, parameterType, ordinal, refKind, name, locations.FirstOrDefault())
         {
+            Debug.Assert(locations.Length <= 1);
         }
+
+        public SourceSimpleParameterSymbol(
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            string name,
+            Location? location)
+            : base(owner, ordinal, refKind, ScopedKind.None, name, location)
+        {
+            _parameterType = parameterType;
+        }
+
+        public override TypeWithAnnotations TypeWithAnnotations => _parameterType;
 
         public override bool IsDiscard => false;
 
@@ -37,7 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsParams
+        protected override bool HasParamsModifier
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsCollection
         {
             get { return false; }
         }

@@ -341,8 +341,8 @@ namespace Roslyn.Test.Utilities.Desktop
                 if (expectedMessage != null && !IsEnglishLocal.Instance.ShouldSkip)
                 {
                     var actualMessage = ex.Output;
-                    
-                    if (!verification.IncludeTokens)
+
+                    if (!verification.IncludeTokensAndModuleIds)
                     {
                         actualMessage = Regex.Replace(ex.Output, @"\[mdToken=0x[0-9a-fA-F]+\]", "");
                     }

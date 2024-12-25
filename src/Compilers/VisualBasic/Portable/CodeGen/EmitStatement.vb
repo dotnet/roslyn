@@ -1084,11 +1084,10 @@ OtherExpressions:
         End Sub
 
         Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
-            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
+            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
             If genHashTableSwitch Then
-                Debug.Assert(_module.SupportsPrivateImplClass)
                 Dim privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics)
                 Dim stringHashMethodRef As Microsoft.Cci.IReference = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName)
                 Debug.Assert(stringHashMethodRef IsNot Nothing)

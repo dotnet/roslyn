@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' A mapping from each state of the state machine to the new state that will be used to execute
-            ''' finally blocks in case the state machine is disposed.  The Dispose method computes the new 
+            ''' finally blocks in case the state machine is disposed.  The Dispose method computes the new
             ''' state and then runs MoveNext.
             ''' </summary>
             Protected ReadOnly FinalizerStateMap As New Dictionary(Of Integer, Integer)()
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected MustOverride ReadOnly Property FirstIncreasingResumableState As StateMachineState
-            Protected MustOverride ReadOnly Property EncMissingStateMessage As String
+            Protected MustOverride ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode
 
             ''' <summary>
             ''' Implementation-specific name for labels to mark state machine resume points.
@@ -161,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If _tryBlockSyntaxForNextFinalizerState IsNot Nothing Then
                     If SlotAllocatorOpt Is Nothing OrElse
-                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState) Then
+                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, awaitId:=Nothing, _currentFinalizerState) Then
                         _currentFinalizerState = _nextFinalizerState
                         _nextFinalizerState = CType(_nextFinalizerState - 1, StateMachineState)
                     End If
@@ -179,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}")
 
                 Dim syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree)
-                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, state))
+                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, awaitId:=Nothing, state))
             End Sub
 
             Protected Sub AddState(stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
@@ -222,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function GenerateMissingStateDispatch() As BoundStatement
-                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateMessage)
+                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateErrorCode)
             End Function
 
 #Region "Visitors"
@@ -262,8 +263,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(local.SynthesizedKind.IsLongLived())
 
-                    ' We need to produce hoisted local scope debug information for user locals as well as 
-                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                    ' We need to produce hoisted local scope debug information for user locals as well as
+                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed
                     ' in Locals window.
                     If local.SynthesizedKind = SynthesizedLocalKind.UserDefined OrElse local.SynthesizedKind = SynthesizedLocalKind.LambdaDisplayClass Then
                         Dim proxy As TProxy = Nothing

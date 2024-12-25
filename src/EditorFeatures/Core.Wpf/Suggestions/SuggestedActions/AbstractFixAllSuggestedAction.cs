@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         protected override async Task InnerInvokeAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
-                await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+                await base.InnerInvokeAsync(progress, cancellationToken).ConfigureAwait(false);
             }
         }
     }

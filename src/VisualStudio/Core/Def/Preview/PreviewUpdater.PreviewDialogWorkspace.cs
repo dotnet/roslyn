@@ -11,51 +11,50 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
+
+internal partial class PreviewUpdater
 {
-    internal partial class PreviewUpdater
+    // internal for testing
+    internal class PreviewDialogWorkspace : PreviewWorkspace
     {
-        // internal for testing
-        internal class PreviewDialogWorkspace : PreviewWorkspace
+        public PreviewDialogWorkspace(Solution solution) : base(solution)
         {
-            public PreviewDialogWorkspace(Solution solution) : base(solution)
+        }
+
+        public void CloseDocument(TextDocument document, SourceText text)
+        {
+            switch (document.Kind)
             {
+                case TextDocumentKind.Document:
+                    OnDocumentClosed(document.Id, new PreviewTextLoader(text));
+                    break;
+
+                case TextDocumentKind.AnalyzerConfigDocument:
+                    OnAnalyzerConfigDocumentClosed(document.Id, new PreviewTextLoader(text));
+                    break;
+
+                case TextDocumentKind.AdditionalDocument:
+                    OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(document.Kind);
             }
+        }
 
-            public void CloseDocument(TextDocument document, SourceText text)
-            {
-                switch (document.Kind)
-                {
-                    case TextDocumentKind.Document:
-                        OnDocumentClosed(document.Id, new PreviewTextLoader(text));
-                        break;
+        private sealed class PreviewTextLoader : TextLoader
+        {
+            private readonly SourceText _text;
 
-                    case TextDocumentKind.AnalyzerConfigDocument:
-                        OnAnalyzerConfigDocumentClosed(document.Id, new PreviewTextLoader(text));
-                        break;
+            internal PreviewTextLoader(SourceText documentText)
+                => _text = documentText;
 
-                    case TextDocumentKind.AdditionalDocument:
-                        OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
-                        break;
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
-                }
-            }
-
-            private sealed class PreviewTextLoader : TextLoader
-            {
-                private readonly SourceText _text;
-
-                internal PreviewTextLoader(SourceText documentText)
-                    => _text = documentText;
-
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                    => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
-
-                internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
-                    => TextAndVersion.Create(_text, VersionStamp.Create());
-            }
+            internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
+                => TextAndVersion.Create(_text, VersionStamp.Create());
         }
     }
 }

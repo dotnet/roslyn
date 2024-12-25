@@ -9,10 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
-
     Partial Friend Class VisualBasicSimplificationService
-        Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
-
         Private Class NodesAndTokensToReduceComputer
             Inherits VisualBasicSyntaxRewriter
 
@@ -47,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 If Me._isNodeOrTokenOutsideSimplifySpans(node) Then
                     If Me._simplifyAllDescendants Then
                         ' One of the ancestor nodes is within a simplification span, but this node Is outside all simplification spans.
-                        ' Add DontSimplifyAnnotation to node to ensure it doesn't get simplified.
-                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                        ' Add DoNotSimplifyAnnotation to node to ensure it doesn't get simplified.
+                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                     Else
                         Return node
                     End If
@@ -87,8 +84,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 If Me._isNodeOrTokenOutsideSimplifySpans(token) Then
                     If Me._simplifyAllDescendants Then
                         ' One of the ancestor nodes is within a simplification span, but this token Is outside all simplification spans.
-                        ' Add DontSimplifyAnnotation to token to ensure it doesn't get simplified.
-                        Return token.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                        ' Add DoNotSimplifyAnnotation to token to ensure it doesn't get simplified.
+                        Return token.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                     Else
                         Return token
                     End If
@@ -98,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse token.HasAnnotation(Simplifier.Annotation)
 
                 If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.Kind <> SyntaxKind.None Then
-                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, simplifyAllDescendants:=True, originalNodeOrToken:=token))
+                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, SimplifyAllDescendants:=True, OriginalNodeOrToken:=token))
                 End If
 
                 If token.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
@@ -152,8 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 If Me._isNodeOrTokenOutsideSimplifySpans(node) Then
                     If Me._simplifyAllDescendants Then
                         ' One of the ancestor nodes Is within a simplification span, but this node Is outside all simplification spans.
-                        ' Add DontSimplifyAnnotation to node to ensure it doesn't get simplified.
-                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation)
+                        ' Add DoNotSimplifyAnnotation to node to ensure it doesn't get simplified.
+                        Return node.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation)
                     Else
                         Return node
                     End If
