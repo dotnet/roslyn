@@ -29,10 +29,40 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         protected abstract class VariableSymbol
         {
+            /// <summary>
+            /// return true if original type had anonymous type or delegate somewhere in the type
+            /// </summary>
+            public bool OriginalTypeHadAnonymousTypeOrDelegate { get; }
+
+            /// <summary>
+            /// get the original type with anonymous type removed
+            /// </summary>
+            public ITypeSymbol OriginalType { get; }
+
+            private readonly bool _isCancellationToken;
+
             protected VariableSymbol(Compilation compilation, ITypeSymbol type)
             {
                 OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
                 OriginalType = OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
+                _isCancellationToken = IsCancellationToken(OriginalType);
+
+                static bool IsCancellationToken(ITypeSymbol originalType)
+                {
+                    return originalType is
+                    {
+                        Name: nameof(CancellationToken),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System.Threading),
+                            ContainingNamespace:
+                            {
+                                Name: nameof(System),
+                                ContainingNamespace.IsGlobalNamespace: true,
+                            }
+                        }
+                    };
+                }
             }
 
             public abstract int DisplayOrder { get; }
@@ -48,21 +78,11 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected abstract int CompareTo(VariableSymbol right);
 
-            /// <summary>
-            /// return true if original type had anonymous type or delegate somewhere in the type
-            /// </summary>
-            public bool OriginalTypeHadAnonymousTypeOrDelegate { get; }
-
-            /// <summary>
-            /// get the original type with anonymous type removed
-            /// </summary>
-            public ITypeSymbol OriginalType { get; }
-
             public static int Compare(VariableSymbol left, VariableSymbol right)
             {
                 // CancellationTokens always go at the end of method signature.
-                var leftIsCancellationToken = IsCancellationToken(left.OriginalType);
-                var rightIsCancellationToken = IsCancellationToken(right.OriginalType);
+                var leftIsCancellationToken = left._isCancellationToken;
+                var rightIsCancellationToken = right._isCancellationToken;
 
                 if (leftIsCancellationToken && !rightIsCancellationToken)
                 {
@@ -79,23 +99,6 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 return left.DisplayOrder - right.DisplayOrder;
-            }
-
-            private static bool IsCancellationToken(ITypeSymbol originalType)
-            {
-                return originalType is
-                {
-                    Name: nameof(CancellationToken),
-                    ContainingNamespace:
-                    {
-                        Name: nameof(System.Threading),
-                        ContainingNamespace:
-                        {
-                            Name: nameof(System),
-                            ContainingNamespace.IsGlobalNamespace: true,
-                        }
-                    }
-                };
             }
         }
 
