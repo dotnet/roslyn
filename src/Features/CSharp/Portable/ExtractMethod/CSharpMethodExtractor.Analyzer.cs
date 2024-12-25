@@ -35,9 +35,9 @@ internal sealed partial class CSharpExtractMethodService
                 return CreateFromSymbolCommon(symbol, type, style);
             }
 
-            protected override ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
+            protected override ITypeSymbol? GetRangeVariableType(IRangeVariableSymbol symbol)
             {
-                var info = model.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
+                var info = this.SemanticModel.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
                 if (info.Type is IErrorTypeSymbol)
                     return null;
 

@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return CreateFromSymbolCommon(symbol, type, style)
                 End Function
 
-                Protected Overrides Function GetRangeVariableType(semanticModel As SemanticModel, symbol As IRangeVariableSymbol) As ITypeSymbol
-                    Dim info = semanticModel.GetSpeculativeTypeInfo(Me.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression)
+                Protected Overrides Function GetRangeVariableType(symbol As IRangeVariableSymbol) As ITypeSymbol
+                    Dim info = Me.SemanticModel.GetSpeculativeTypeInfo(Me.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression)
                     If info.Type.IsErrorType() Then
                         Return Nothing
                     End If

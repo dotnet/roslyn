@@ -36,6 +36,7 @@ internal abstract partial class AbstractExtractMethodService<
             private readonly HashSet<int> _nonNoisySyntaxKindSet;
 
             private SemanticDocument SemanticDocument => SelectionResult.SemanticDocument;
+            protected SemanticModel SemanticModel => SemanticDocument.SemanticModel;
 
             protected ISemanticFactsService SemanticFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
             protected ISyntaxFactsService SyntaxFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -53,7 +54,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             }
 
-            /// <summary>
+            /// <summary>f
             /// convert text span to node range for the flow analysis API
             /// </summary>
             private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
@@ -94,7 +95,7 @@ internal abstract partial class AbstractExtractMethodService<
             /// <summary>
             /// get type of the range variable symbol
             /// </summary>
-            protected abstract ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol);
+            protected abstract ITypeSymbol? GetRangeVariableType(IRangeVariableSymbol symbol);
 
             /// <summary>
             /// check whether the selection is at the placed where read-only field is allowed to be extracted out
@@ -106,16 +107,16 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 // do data flow analysis
                 var model = this.SemanticDocument.SemanticModel;
-                var dataFlowAnalysisData = GetDataFlowAnalysisData(model);
+                var dataFlowAnalysisData = GetDataFlowAnalysisData();
 
                 // build symbol map for the identifiers used inside of the selection
-                var symbolMap = GetSymbolMap(model);
+                var symbolMap = GetSymbolMap();
 
                 var isInPrimaryConstructorBaseType = this.IsInPrimaryConstructorBaseType();
 
                 // gather initial local or parameter variable info
                 GenerateVariableInfoMap(
-                    bestEffort: false, model, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out var variableInfoMap, out var failedVariables);
+                    bestEffort: false, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out var variableInfoMap, out var failedVariables);
                 if (failedVariables.Count > 0)
                 {
                     // If we weren't able to figure something out, go back and regenerate the map
@@ -123,7 +124,7 @@ internal abstract partial class AbstractExtractMethodService<
                     // was a problem, but we allow them to proceed so they're not unnecessarily
                     // blocked just because we didn't understand something.
                     GenerateVariableInfoMap(
-                        bestEffort: true, model, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out variableInfoMap, out var unused);
+                        bestEffort: true, dataFlowAnalysisData, symbolMap, isInPrimaryConstructorBaseType, out variableInfoMap, out var unused);
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
@@ -154,7 +155,7 @@ internal abstract partial class AbstractExtractMethodService<
                     && thisParameterBeingRead is { Type: { TypeKind: TypeKind.Struct, IsReadOnly: false } };
 
                 // check whether end of selection is reachable
-                var endOfSelectionReachable = IsEndOfSelectionReachable(model);
+                var endOfSelectionReachable = IsEndOfSelectionReachable();
 
                 // collects various variable informations
                 // extracted code contains return value
@@ -166,12 +167,12 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
-                var typeParametersInConstraintList = GetMethodTypeParametersInConstraintList(model, variableInfoMap, symbolMap, sortedMap);
+                var typeParametersInConstraintList = GetMethodTypeParametersInConstraintList(variableInfoMap, symbolMap, sortedMap);
                 var typeParametersInDeclaration = GetMethodTypeParametersInDeclaration(returnType, sortedMap);
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
+                    symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
 
                 return new AnalyzerResult(
                     typeParametersInDeclaration,
@@ -189,16 +190,12 @@ internal abstract partial class AbstractExtractMethodService<
 
             private (ITypeSymbol typeSymbol, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
             {
-                // check whether return type contains anonymous type and if it does, fix it up by making it object
-                var model = this.SemanticDocument.SemanticModel;
-
                 // if selection contains await which is not under async lambda or anonymous delegate,
                 // change return type to be wrapped in Task
                 var shouldPutAsyncModifier = SelectionResult.CreateAsyncMethod();
                 if (shouldPutAsyncModifier)
                 {
-                    WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
-
+                    WrapReturnTypeInTask(ref returnType, out var awaitTaskReturn);
                     return (returnType, awaitTaskReturn);
                 }
 
@@ -238,13 +235,14 @@ internal abstract partial class AbstractExtractMethodService<
                 return;
             }
 
-            private void WrapReturnTypeInTask(SemanticModel model, ref ITypeSymbol returnType, out bool awaitTaskReturn)
+            private void WrapReturnTypeInTask(ref ITypeSymbol returnType, out bool awaitTaskReturn)
             {
                 awaitTaskReturn = false;
 
-                var taskType = model.Compilation.TaskType();
+                var compilation = this.SemanticModel.Compilation;
+                var taskType = compilation.TaskType();
 
-                if (taskType is object && returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
+                if (taskType is object && returnType.Equals(compilation.GetSpecialType(SpecialType.System_Void)))
                 {
                     // convert void to Task type
                     awaitTaskReturn = true;
@@ -259,7 +257,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return;
                 }
 
-                var genericTaskType = model.Compilation.TaskOfTType();
+                var genericTaskType = compilation.TaskOfTType();
 
                 if (genericTaskType is object)
                 {
@@ -325,7 +323,6 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private OperationStatus GetOperationStatus(
-                SemanticModel model,
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 IList<VariableInfo> parameters,
                 IList<ISymbol> failedVariables,
@@ -333,7 +330,7 @@ internal abstract partial class AbstractExtractMethodService<
                 bool returnTypeHasAnonymousType,
                 bool containsAnyLocalFunctionCallNotWithinSpan)
             {
-                var readonlyFieldStatus = CheckReadOnlyFields(model, symbolMap);
+                var readonlyFieldStatus = CheckReadOnlyFields(symbolMap);
 
                 var namesWithAnonymousTypes = parameters.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
                 if (returnTypeHasAnonymousType)
@@ -386,10 +383,10 @@ internal abstract partial class AbstractExtractMethodService<
                 return OperationStatus.SucceededStatus;
             }
 
-            private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap(SemanticModel model)
+            private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap()
             {
                 var context = SelectionResult.GetContainingScope();
-                var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, model, context, SelectionResult.FinalSpan, CancellationToken);
+                var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
                 return symbolMap;
             }
 
@@ -400,16 +397,16 @@ internal abstract partial class AbstractExtractMethodService<
                 return symbols.Any(map.Contains);
             }
 
-            private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
+            private DataFlowAnalysis GetDataFlowAnalysisData()
             {
                 if (SelectionResult.IsExtractMethodOnExpression)
-                    return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
+                    return this.SemanticModel.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
                 var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
-                return model.AnalyzeDataFlow(firstStatement, lastStatement);
+                return this.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
             }
 
-            private bool IsEndOfSelectionReachable(SemanticModel model)
+            private bool IsEndOfSelectionReachable()
             {
                 if (SelectionResult.IsExtractMethodOnExpression)
                 {
@@ -417,7 +414,7 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
-                var analysis = model.AnalyzeControlFlow(firstStatement, lastStatement);
+                var analysis = this.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
                 return analysis.EndPointIsReachable;
             }
 
@@ -517,14 +514,12 @@ internal abstract partial class AbstractExtractMethodService<
             /// variable we don't understand has <see cref="VariableStyle.None"/></param>
             private void GenerateVariableInfoMap(
                 bool bestEffort,
-                SemanticModel semanticModel,
                 DataFlowAnalysis dataFlowAnalysisData,
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 bool isInPrimaryConstructorBaseType,
                 out Dictionary<ISymbol, VariableInfo> variableInfoMap,
                 out List<ISymbol> failedVariables)
             {
-                Contract.ThrowIfNull(semanticModel);
                 Contract.ThrowIfNull(dataFlowAnalysisData);
 
                 variableInfoMap = [];
@@ -551,7 +546,7 @@ internal abstract partial class AbstractExtractMethodService<
                 // have been referenced in.
                 var containingScope = SelectionResult.GetContainingScope();
                 var analysisRange = TextSpan.FromBounds(SelectionResult.FinalSpan.Start, containingScope.Span.End);
-                var selectionOperation = semanticModel.GetOperation(containingScope);
+                var selectionOperation = this.SemanticModel.GetOperation(containingScope);
 
                 foreach (var symbol in candidates)
                 {
@@ -611,7 +606,7 @@ internal abstract partial class AbstractExtractMethodService<
                         continue;
 
                     if (!TryGetVariableStyle(
-                            bestEffort, symbolMap, symbol, semanticModel, type,
+                            bestEffort, symbolMap, symbol, type,
                             captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
                             readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken,
                             out var variableStyle))
@@ -642,7 +637,7 @@ internal abstract partial class AbstractExtractMethodService<
                     {
                         ILocalSymbol local => local.Type,
                         IParameterSymbol parameter => parameter.Type,
-                        IRangeVariableSymbol rangeVariable => GetRangeVariableType(semanticModel, rangeVariable),
+                        IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
                         _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                     };
 
@@ -661,7 +656,7 @@ internal abstract partial class AbstractExtractMethodService<
                     // example, we want to treat it as non-null.
                     if (selectionOperation is not null &&
                         NullableHelpers.IsSymbolAssignedPossiblyNullValue(
-                            this.SemanticFacts, semanticModel, selectionOperation, symbol, analysisRange, includeDeclaration: false, this.CancellationToken) == false)
+                            this.SemanticFacts, this.SemanticModel, selectionOperation, symbol, analysisRange, includeDeclaration: false, this.CancellationToken) == false)
                     {
                         return type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
                     }
@@ -677,7 +672,6 @@ internal abstract partial class AbstractExtractMethodService<
                 bool bestEffort,
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 ISymbol symbol,
-                SemanticModel model,
                 ITypeSymbol type,
                 bool captured,
                 bool dataFlowIn,
@@ -691,7 +685,6 @@ internal abstract partial class AbstractExtractMethodService<
                 bool unsafeAddressTaken,
                 out VariableStyle variableStyle)
             {
-                Contract.ThrowIfNull(model);
                 Contract.ThrowIfNull(type);
 
                 if (!ExtractMethodMatrix.TryGetVariableStyle(
@@ -716,7 +709,7 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 // check special value type cases
-                if (type.IsValueType && !IsWrittenInsideForFrameworkValueType(symbolMap, model, symbol, writtenInside))
+                if (type.IsValueType && !IsWrittenInsideForFrameworkValueType(symbolMap, symbol, writtenInside))
                 {
                     return true;
                 }
@@ -732,13 +725,13 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private bool IsWrittenInsideForFrameworkValueType(
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap, SemanticModel model, ISymbol symbol, bool writtenInside)
+                Dictionary<ISymbol, List<SyntaxToken>> symbolMap, ISymbol symbol, bool writtenInside)
             {
                 if (!symbolMap.TryGetValue(symbol, out var tokens))
                     return writtenInside;
 
                 var semanticFacts = this.SemanticFacts;
-                return tokens.Any(t => semanticFacts.IsWrittenTo(model, t.Parent, this.CancellationToken));
+                return tokens.Any(t => semanticFacts.IsWrittenTo(this.SemanticModel, t.Parent, this.CancellationToken));
             }
 
             private bool SelectionContainsOnlyIdentifierWithSameType(ITypeSymbol type)
@@ -839,7 +832,6 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private void AppendMethodTypeVariableFromDataFlowAnalysis(
-                SemanticModel model,
                 IDictionary<ISymbol, VariableInfo> variableInfoMap,
                 IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
@@ -856,7 +848,7 @@ internal abstract partial class AbstractExtractMethodService<
                             continue;
 
                         case IRangeVariableSymbol rangeVariable:
-                            var type = GetRangeVariableType(model, rangeVariable);
+                            var type = GetRangeVariableType(rangeVariable);
                             AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
                             continue;
 
@@ -909,13 +901,12 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
-                SemanticModel model,
                 IDictionary<ISymbol, VariableInfo> variableInfoMap,
                 IDictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // find starting points
-                AppendMethodTypeVariableFromDataFlowAnalysis(model, variableInfoMap, sortedMap);
+                AppendMethodTypeVariableFromDataFlowAnalysis(variableInfoMap, sortedMap);
                 AppendMethodTypeParameterUsedDirectly(symbolMap, sortedMap);
 
                 // recursively dive into constraints to find all constraints needed
@@ -1012,7 +1003,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return [.. sortedMap.Values];
             }
 
-            private OperationStatus CheckReadOnlyFields(SemanticModel semanticModel, Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
+            private OperationStatus CheckReadOnlyFields(Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
             {
                 if (ReadOnlyFieldAllowed())
                     return OperationStatus.SucceededStatus;
@@ -1026,7 +1017,7 @@ internal abstract partial class AbstractExtractMethodService<
                         continue;
 
                     var tokens = pair.Value;
-                    if (tokens.All(t => !semanticFacts.IsWrittenTo(semanticModel, t.Parent, CancellationToken)))
+                    if (tokens.All(t => !semanticFacts.IsWrittenTo(this.SemanticModel, t.Parent, CancellationToken)))
                         continue;
 
                     names.Add(field.Name ?? string.Empty);
