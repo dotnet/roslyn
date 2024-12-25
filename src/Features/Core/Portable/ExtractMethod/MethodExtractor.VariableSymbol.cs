@@ -41,10 +41,10 @@ internal abstract partial class AbstractExtractMethodService<
 
             private readonly bool _isCancellationToken;
 
-            protected VariableSymbol(Compilation compilation, ITypeSymbol type)
+            protected VariableSymbol(ITypeSymbol type)
             {
                 OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
-                OriginalType = type;// OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
+                OriginalType = type;
                 _isCancellationToken = IsCancellationToken(OriginalType);
 
                 static bool IsCancellationToken(ITypeSymbol originalType)
@@ -102,7 +102,7 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        protected abstract class NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type) : VariableSymbol(compilation, type)
+        protected abstract class NotMovableVariableSymbol(ITypeSymbol type) : VariableSymbol(type)
         {
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
             {
@@ -122,12 +122,12 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        protected class ParameterVariableSymbol : NotMovableVariableSymbol, IComparable<ParameterVariableSymbol>
+        protected sealed class ParameterVariableSymbol : NotMovableVariableSymbol, IComparable<ParameterVariableSymbol>
         {
             private readonly IParameterSymbol _parameterSymbol;
 
-            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type)
-                : base(compilation, type)
+            public ParameterVariableSymbol(IParameterSymbol parameterSymbol, ITypeSymbol type)
+                : base(type)
             {
                 Contract.ThrowIfNull(parameterSymbol);
                 _parameterSymbol = parameterSymbol;
@@ -199,14 +199,14 @@ internal abstract partial class AbstractExtractMethodService<
             public override bool CanBeCapturedByLocalFunction => true;
         }
 
-        protected class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
+        protected sealed class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
         {
             private readonly SyntaxAnnotation _annotation = new();
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
-            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet)
-                : base(compilation, type)
+            public LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet)
+                : base(type)
             {
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
@@ -315,12 +315,12 @@ internal abstract partial class AbstractExtractMethodService<
                 => list.Any(t => !_nonNoisySet.Contains(t.RawKind));
         }
 
-        protected class QueryVariableSymbol : NotMovableVariableSymbol, IComparable<QueryVariableSymbol>
+        protected sealed class QueryVariableSymbol : NotMovableVariableSymbol, IComparable<QueryVariableSymbol>
         {
             private readonly IRangeVariableSymbol _symbol;
 
-            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type)
-                : base(compilation, type)
+            public QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol type)
+                : base(type)
             {
                 Contract.ThrowIfNull(symbol);
                 _symbol = symbol;

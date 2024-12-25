@@ -1034,23 +1034,20 @@ internal abstract partial class AbstractExtractMethodService<
                 return OperationStatus.SucceededStatus;
             }
 
-            protected VariableInfo CreateFromSymbolCommon<T>(
+            protected static VariableInfo CreateFromSymbolCommon<T>(
                 ISymbol symbol,
                 ITypeSymbol type,
                 VariableStyle style,
                 HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
             {
-                var semanticModel = _semanticDocument.SemanticModel;
-                var compilation = semanticModel.Compilation;
-
                 return symbol switch
                 {
                     ILocalSymbol local => new VariableInfo(
-                        new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                        new LocalVariableSymbol<T>(local, type, nonNoisySyntaxKindSet),
                         style,
                         useAsReturnValue: false),
-                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style, useAsReturnValue: false),
-                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style, useAsReturnValue: false),
+                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
+                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(rangeVariable, type), style, useAsReturnValue: false),
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
             }
