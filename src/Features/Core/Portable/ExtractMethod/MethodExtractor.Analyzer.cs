@@ -159,11 +159,11 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // collects various variable informations
                 // extracted code contains return value
-                var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement(model);
+                var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
                 var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue, unsafeAddressTakenUsed) =
                     GetSignatureInformation(dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
 
-                (returnType, var returnTypeHasAnonymousType, var awaitTaskReturn) = AdjustReturnType(model, returnType);
+                (returnType, var returnTypeHasAnonymousType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
@@ -188,9 +188,10 @@ internal abstract partial class AbstractExtractMethodService<
                     operationStatus);
             }
 
-            private (ITypeSymbol typeSymbol, bool hasAnonymousType, bool awaitTaskReturn) AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
+            private (ITypeSymbol typeSymbol, bool hasAnonymousType, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
             {
                 // check whether return type contains anonymous type and if it does, fix it up by making it object
+                var model = this.SemanticDocument.SemanticModel;
                 var returnTypeHasAnonymousType = returnType.ContainsAnonymousType();
                 returnType = returnTypeHasAnonymousType ? returnType.RemoveAnonymousTypes(model.Compilation) : returnType;
 
@@ -205,15 +206,15 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 // unwrap task if needed
-                UnwrapTaskIfNeeded(model, ref returnType);
+                UnwrapTaskIfNeeded(ref returnType);
                 return (returnType, returnTypeHasAnonymousType, false);
             }
 
-            private void UnwrapTaskIfNeeded(SemanticModel model, ref ITypeSymbol returnType)
+            private void UnwrapTaskIfNeeded(ref ITypeSymbol returnType)
             {
                 // nothing to unwrap
                 if (!SelectionResult.ContainingScopeHasAsyncKeyword() ||
-                    !ContainsReturnStatementInSelectedCode(model))
+                    !ContainsReturnStatementInSelectedCode())
                 {
                     return;
                 }
@@ -221,6 +222,7 @@ internal abstract partial class AbstractExtractMethodService<
                 var originalDefinition = returnType.OriginalDefinition;
 
                 // see whether it needs to be unwrapped
+                var model = this.SemanticDocument.SemanticModel;
                 var taskType = model.Compilation.TaskType();
                 if (originalDefinition.Equals(taskType))
                 {
@@ -253,7 +255,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return;
                 }
 
-                if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode(model))
+                if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode())
                 {
                     // check whether we will use return type as it is or not.
                     awaitTaskReturn = returnType.Equals(taskType);
@@ -313,12 +315,12 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private bool IsInExpressionOrHasReturnStatement(SemanticModel model)
+            private bool IsInExpressionOrHasReturnStatement()
             {
                 var isInExpressionOrHasReturnStatement = SelectionResult.IsExtractMethodOnExpression;
                 if (!isInExpressionOrHasReturnStatement)
                 {
-                    var containsReturnStatement = ContainsReturnStatementInSelectedCode(model);
+                    var containsReturnStatement = ContainsReturnStatementInSelectedCode();
                     isInExpressionOrHasReturnStatement |= containsReturnStatement;
                 }
 
@@ -809,12 +811,12 @@ internal abstract partial class AbstractExtractMethodService<
                        parameter.ContainingSymbol.ContainingType.IsScriptClass;
             }
 
-            private bool ContainsReturnStatementInSelectedCode(SemanticModel model)
+            private bool ContainsReturnStatementInSelectedCode()
             {
                 Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
 
                 var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
-                var controlFlowAnalysisData = model.AnalyzeControlFlow(firstStatement, lastStatement);
+                var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
 
                 return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
             }
