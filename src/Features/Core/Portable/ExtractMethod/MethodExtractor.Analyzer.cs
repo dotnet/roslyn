@@ -200,39 +200,30 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 // unwrap task if needed
-                UnwrapTaskIfNeeded(ref returnType);
-                return (returnType, false);
+                return (UnwrapTaskIfNeeded(returnType), awaitTaskReturn: false);
             }
 
-            private void UnwrapTaskIfNeeded(ref ITypeSymbol returnType)
+            private ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
             {
                 // nothing to unwrap
-                if (!SelectionResult.ContainingScopeHasAsyncKeyword() ||
-                    !ContainsReturnStatementInSelectedCode())
+                if (SelectionResult.ContainingScopeHasAsyncKeyword() &&
+                    ContainsReturnStatementInSelectedCode())
                 {
-                    return;
-                }
+                    var originalDefinition = returnType.OriginalDefinition;
 
-                var originalDefinition = returnType.OriginalDefinition;
+                    // see whether it needs to be unwrapped
+                    var model = this.SemanticDocument.SemanticModel;
+                    var taskType = model.Compilation.TaskType();
+                    if (originalDefinition.Equals(taskType))
+                        return model.Compilation.GetSpecialType(SpecialType.System_Void);
 
-                // see whether it needs to be unwrapped
-                var model = this.SemanticDocument.SemanticModel;
-                var taskType = model.Compilation.TaskType();
-                if (originalDefinition.Equals(taskType))
-                {
-                    returnType = model.Compilation.GetSpecialType(SpecialType.System_Void);
-                    return;
-                }
-
-                var genericTaskType = model.Compilation.TaskOfTType();
-                if (originalDefinition.Equals(genericTaskType))
-                {
-                    returnType = ((INamedTypeSymbol)returnType).TypeArguments[0];
-                    return;
+                    var genericTaskType = model.Compilation.TaskOfTType();
+                    if (originalDefinition.Equals(genericTaskType))
+                        return ((INamedTypeSymbol)returnType).TypeArguments[0];
                 }
 
                 // nothing to unwrap
-                return;
+                return returnType;
             }
 
             private void WrapReturnTypeInTask(ref ITypeSymbol returnType, out bool awaitTaskReturn)
