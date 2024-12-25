@@ -10,9 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -27,12 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
             this SolutionServices workspaceServices, IContentType contentType)
         {
-            foreach (var language in workspaceServices.SupportedLanguages)
+            foreach (var language in workspaceServices.SupportedLanguagesArray)
             {
                 if (LanguageMatches(language, contentType, workspaceServices))
-                {
                     return workspaceServices.GetLanguageServices(language);
-                }
             }
 
             return null;
@@ -48,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// A cache of host services -> (language name -> content type name).
         /// </summary>
-        private static readonly ConditionalWeakTable<SolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
-            = new();
+        private static readonly ConditionalWeakTable<SolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap = new();
 
         private static string? GetDefaultContentTypeName(SolutionServices workspaceServices, string language)
         {
@@ -79,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                         .Where(lz => !string.IsNullOrEmpty(lz.Metadata.DefaultContentType))
                         .Select(lz => (lz.Metadata.Language, lz.Metadata.DefaultContentType))
                         .Distinct()
-                        .ToDictionary(lz => lz.Language, lz => lz.DefaultContentType);
+                        .ToDictionary(lz => lz.Language, lz => lz.DefaultContentType)!;
             }
 
             // We can't do anything special, so fall back to the expensive path
@@ -95,31 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             where TMetadata : ILanguageMetadata
         {
             if (items == null)
-            {
-                return SpecializedCollections.EmptyList<T>();
-            }
+                return [];
 
             return items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).
-                Select(lazy => lazy.Value).ToList();
-        }
-
-        internal static IList<T> SelectMatchingExtensionValues<T>(
-            this SolutionServices workspaceServices,
-            IEnumerable<Lazy<T, OrderableLanguageAndRoleMetadata>> items,
-            IContentType contentType,
-            ITextViewRoleSet roleSet)
-        {
-            if (items == null)
-            {
-                return SpecializedCollections.EmptyList<T>();
-            }
-
-            return items.Where(lazy =>
-                {
-                    var metadata = lazy.Metadata;
-                    return LanguageMatches(metadata.Language, contentType, workspaceServices) &&
-                        RolesMatch(metadata.Roles, roleSet);
-                }).
                 Select(lazy => lazy.Value).ToList();
         }
 
@@ -130,13 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             var defaultContentType = GetDefaultContentTypeName(workspaceServices, language);
             return (defaultContentType != null) ? contentType.IsOfType(defaultContentType) : false;
-        }
-
-        private static bool RolesMatch(
-            IEnumerable<string> roles,
-            ITextViewRoleSet roleSet)
-        {
-            return (roles == null) || (roleSet == null) || roleSet.ContainsAll(roles);
         }
     }
 }

@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
@@ -81,7 +80,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             var hierarchy = environment.CreateHierarchy(projectName, binOutputPath, projectRefPath: null, "CSharp");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-            var data = new TestEvaluationData(projectFilePath, binOutputPath, assemblyName: "");
+            var data = new TestEvaluationData(projectFilePath, binOutputPath, assemblyName: "", binOutputPath, checksumAlgorithm: "SHA256");
 
             var cpsProject = (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
                 projectGuid,
@@ -101,7 +100,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, projectCapabilities: "");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-            var data = new TestEvaluationData(projectFilePath, targetPath, assemblyName: "");
+            var data = new TestEvaluationData(projectFilePath, targetPath, assemblyName: "", targetPath, checksumAlgorithm: "SHA256");
 
             return (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
                 Guid.NewGuid(),

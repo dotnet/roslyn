@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -12,26 +12,33 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 {
     public class BKTreeTests
     {
+        private static ImmutableArray<string> Find(BKTree tree, string value, int? threshold)
+        {
+            using var results = TemporaryArray<string>.Empty;
+            tree.Find(ref results.AsRef(), value, threshold);
+            return results.ToImmutableAndClear();
+        }
+
         [Fact]
         public void SimpleTests()
         {
-            string[] testValues = { "cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart" };
+            string[] testValues = ["cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart"];
             var tree = BKTree.Create(testValues);
 
-            var results1 = tree.Find("wat", threshold: 1);
+            var results1 = Find(tree, "wat", threshold: 1);
             Assert.Single(results1, "what");
 
-            var results2 = tree.Find("wat", threshold: 2);
+            var results2 = Find(tree, "wat", threshold: 2);
             Assert.True(results2.SetEquals(Expected("cart", "what", "water")));
 
-            var results3 = tree.Find("caqe", threshold: 1);
+            var results3 = Find(tree, "caqe", threshold: 1);
             Assert.True(results3.SetEquals(Expected("cake", "cape")));
         }
 
         [Fact]
         public void PermutationTests()
         {
-            string[] testValues = { "cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart" };
+            string[] testValues = ["cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart"];
             TestTreeInvariants(testValues);
         }
 
@@ -42,18 +49,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             foreach (var value in testValues)
             {
                 // With a threshold of 0, we should only find exactly the item we're searching for.
-                Assert.Single(tree.Find(value, threshold: 0), value.ToLower());
+                Assert.Single(Find(tree, value, threshold: 0), value.ToLower());
             }
 
             foreach (var value in testValues)
             {
                 // With a threshold of 1, we should always at least find the item we're looking for.
                 // But we may also find additional items along with it.
-                var items = tree.Find(value, threshold: 1);
+                var items = Find(tree, value, threshold: 1);
                 Assert.Contains(value.ToLower(), items);
 
                 // We better not be finding all items.
-                Assert.NotEqual(testValues.Length, items.Count);
+                Assert.NotEqual(testValues.Length, items.Length);
             }
 
             foreach (var value in testValues)
@@ -62,11 +69,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 // find the value in the tree.
                 for (var i = 0; i < value.Length; i++)
                 {
-                    var items = tree.Find(Delete(value, i), threshold: null);
+                    var items = Find(tree, Delete(value, i), threshold: null);
                     Assert.Contains(value.ToLower(), items);
 
                     // We better not be finding all items.
-                    Assert.NotEqual(testValues.Length, items.Count);
+                    Assert.NotEqual(testValues.Length, items.Length);
                 }
             }
 
@@ -76,11 +83,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 // be able to find it.
                 for (var i = 0; i <= value.Length; i++)
                 {
-                    var items = tree.Find(Insert(value, i, 'Z'), threshold: null);
+                    var items = Find(tree, Insert(value, i, 'Z'), threshold: null);
                     Assert.Contains(value.ToLower(), items);
 
                     // We better not be finding all items.
-                    Assert.NotEqual(testValues.Length, items.Count);
+                    Assert.NotEqual(testValues.Length, items.Length);
                 }
             }
 
@@ -90,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 // be able to find it.
                 for (var i = 0; i < value.Length - 1; i++)
                 {
-                    var items = tree.Find(Transpose(value, i), threshold: null);
+                    var items = Find(tree, Transpose(value, i), threshold: null);
                     Assert.Contains(value.ToLower(), items);
                 }
             }
@@ -108,31 +115,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact]
         public void Test2()
         {
-            string[] testValues = { "Leeds", "York", "Bristol", "Leicester", "Hull", "Durham" };
+            string[] testValues = ["Leeds", "York", "Bristol", "Leicester", "Hull", "Durham"];
             var tree = BKTree.Create(testValues);
 
-            var results = tree.Find("hill", threshold: null);
+            var results = Find(tree, "hill", threshold: null);
             Assert.True(results.SetEquals(Expected("hull")));
 
-            results = tree.Find("liecester", threshold: null);
+            results = Find(tree, "liecester", threshold: null);
             Assert.True(results.SetEquals(Expected("leicester")));
 
-            results = tree.Find("leicestre", threshold: null);
+            results = Find(tree, "leicestre", threshold: null);
             Assert.True(results.SetEquals(Expected("leicester")));
 
-            results = tree.Find("lecester", threshold: null);
+            results = Find(tree, "lecester", threshold: null);
             Assert.True(results.SetEquals(Expected("leicester")));
         }
 
         [Fact]
         public void TestSpillover()
         {
-            string[] testValues = {
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+            string[] testValues = [
                 /*root:*/ "Four",
                 /*d=1*/ "Fou", "For", "Fur", "Our", "FourA", "FouAr", "FoAur", "FAour", "AFour", "Tour",
                 /*d=2*/ "Fo", "Fu", "Fr", "or", "ur", "ou", "FourAb", "FouAbr", "FoAbur", "FAbour", "AbFour", "oFour", "Fuor", "Foru", "ours",
                 /*d=3*/ "F", "o", "u", "r", "Fob", "Fox", "bur", "urn", "hur", "foraa", "found"
-            };
+            ];
+#pragma warning restore format
+
             TestTreeInvariants(testValues);
         }
 

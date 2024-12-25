@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             public string Text { get; set; }
             public string DocumentName { get; set; }
             public string DocumentFilePath { get; set; }
-            public string[] DocumentFolders => GetDocumentFolders(DocumentFilePath);
+            public readonly string[] DocumentFolders => GetDocumentFolders(DocumentFilePath);
         }
 
         protected async Task TestRenameDocument(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             solution = solution
                     .AddProject(projectInfo);
 
-            var remainingErrors = new HashSet<string>(expectedErrors ?? new string[0]);
+            var remainingErrors = new HashSet<string>(expectedErrors ?? []);
 
             for (var i = 0; i < startDocuments.Length; i++)
             {

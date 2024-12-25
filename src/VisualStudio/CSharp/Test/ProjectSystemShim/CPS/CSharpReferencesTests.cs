@@ -108,8 +108,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project2.Dispose();
         }
 
-        [WpfFact, WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
-        [WorkItem(727173, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/727173")]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/727173")]
         public async Task AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
         {
             using var environment = new TestEnvironment(typeof(NoCompilationLanguageService));

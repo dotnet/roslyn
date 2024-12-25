@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             _indentStyle = indentStyle
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(list As ArrayBuilder(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
             ' don't suppress anything
         End Sub
 
@@ -169,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             MyBase.AddAlignTokensOperationsSlow(operations, node, nextAction)
 
             ' Smart token formatting off: No token alignment
-            If _indentStyle <> FormattingOptions.IndentStyle.Smart Then
+            If _indentStyle <> FormattingOptions2.IndentStyle.Smart Then
                 Return
             End If
 

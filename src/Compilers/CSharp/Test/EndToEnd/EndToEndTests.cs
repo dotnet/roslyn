@@ -12,6 +12,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Diagnostics;
+using Roslyn.Test.Utilities.TestGenerators;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -23,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         /// is a consistent stack size for them to execute in. 
         /// </summary>
         /// <param name="action"></param>
-        private static void RunInThread(Action action)
+        private static void RunInThread(Action action, TimeSpan? timeout = null)
         {
             Exception exception = null;
             var thread = new System.Threading.Thread(() =>
@@ -39,11 +50,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             }, 0);
 
             thread.Start();
-            thread.Join();
+            if (timeout is { } t && !Debugger.IsAttached)
+            {
+                if (!thread.Join(t))
+                {
+                    throw new TimeoutException(t.ToString());
+                }
+            }
+            else
+            {
+                thread.Join();
+            }
 
             if (exception is object)
             {
-                throw exception;
+                Assert.False(true, exception.ToString());
             }
         }
 
@@ -103,10 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
-                (4, ExecutionConfiguration.Debug) => 520, // 510
-                (4, ExecutionConfiguration.Release) => 1400, // 1310
-                (8, ExecutionConfiguration.Debug) => 250, // 225,
-                (8, ExecutionConfiguration.Release) => 700, // 620
+                (4, ExecutionConfiguration.Debug) => 4000,
+                (4, ExecutionConfiguration.Release) => 4000,
+                (8, ExecutionConfiguration.Debug) => 4000,
+                (8, ExecutionConfiguration.Release) => 4000,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -128,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         @"class C {
     C M(string x) { return this; }
     void M2() {
-        new C()
+        global::C.GetC()
 ");
                 for (int i = 0; i < depth; i++)
                 {
@@ -137,7 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
                 builder.AppendLine(
                    @"            .M(""test"");
     }
-}");
+
+    static C GetC() => new C();
+}
+");
 
                 var source = builder.ToString();
                 RunInThread(() =>
@@ -146,6 +170,86 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();
+                });
+            }
+        }
+
+        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
+        // the compiler can handle. 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72678"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
+        public void OverflowOnFluentCall_ExtensionMethods()
+        {
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime, RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch
+            {
+                (8, ExecutionConfiguration.Debug, false, false) => 750,
+                (8, ExecutionConfiguration.Release, false, false) => 750, // Should be ~3_400, but is flaky.
+                (4, ExecutionConfiguration.Debug, true, false) => 450,
+                (4, ExecutionConfiguration.Release, true, false) => 1_600,
+                (8, ExecutionConfiguration.Debug, true, false) => 1_100,
+                (8, ExecutionConfiguration.Release, true, false) => 3_300,
+                (_, _, _, true) => 200,
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}")
+            };
+
+            // Un-comment the call below to figure out the new limits.
+            //testLimits();
+
+            try
+            {
+                tryCompileDeepFluentCalls(numberFluentCalls);
+            }
+            catch (Exception e)
+            {
+                testLimits(e);
+            }
+
+            void testLimits(Exception innerException = null)
+            {
+                for (int i = 0; i < int.MaxValue; i += 10)
+                {
+                    try
+                    {
+                        tryCompileDeepFluentCalls(i);
+                    }
+                    catch (Exception e)
+                    {
+                        if (innerException != null)
+                        {
+                            e = new AggregateException(e, innerException);
+                        }
+
+                        throw new Exception($"Depth: {i}, Bytes: {IntPtr.Size}, Config: {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}", e);
+                    }
+                }
+            }
+
+            void tryCompileDeepFluentCalls(int depth)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("""
+                    static class E
+                    {
+                        public static C M(this C c, string x) { return c; }
+                    }
+                    class C
+                    {
+                        static C GetC() => new C();
+                        void M2()
+                        {
+                            GetC()
+                    """);
+                for (int i = 0; i < depth; i++)
+                {
+                    builder.AppendLine(""".M("test")""");
+                }
+                builder.AppendLine("""; } }""");
+
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
+                    var compilation = CreateCompilation(source, options: options);
+                    compilation.VerifyEmitDiagnostics();
                 });
             }
         }
@@ -228,15 +332,92 @@ public class Test
             }
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69515")]
+        public void GenericInheritanceCascade_CSharp(bool reverse, bool concurrent)
+        {
+            const int number = 17;
+
+            /*
+                class C0<T>;
+                class C1<T> : C0<T>;
+                class C2<T> : C1<T>;
+                ...
+            */
+            var declarations = new string[number];
+            declarations[0] = "class C0<T0> { }";
+            for (int i = 1; i < number; i++)
+            {
+                declarations[i] = $$"""class C{{i}}<T{{i}}> : C{{i - 1}}<T{{i}}> { }""";
+            }
+
+            if (reverse)
+            {
+                Array.Reverse(declarations);
+            }
+
+            var source = string.Join(Environment.NewLine, declarations);
+            var options = TestOptions.DebugDll.WithConcurrentBuild(concurrent);
+
+            RunInThread(() =>
+            {
+                CompileAndVerify(source, options: options).VerifyDiagnostics();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69515")]
+        public void GenericInheritanceCascade_VisualBasic(bool reverse, bool concurrent)
+        {
+            const int number = 17;
+
+            /*
+                Class C0(Of T)
+                End Class
+                Class C1(Of T)
+                    Inherits C0(Of T)
+                End Class
+                Class C2(Of T)
+                    Inherits C1(Of T)
+                End Class
+                ...
+            */
+            var declarations = new string[number];
+            declarations[0] = """
+                Class C0(Of T0)
+                End Class
+                """;
+            for (int i = 1; i < number; i++)
+            {
+                declarations[i] = $"""
+                    Class C{i}(Of T{i})
+                        Inherits C{i - 1}(Of T{i})
+                    End Class
+                    """;
+            }
+
+            if (reverse)
+            {
+                Array.Reverse(declarations);
+            }
+
+            var source = string.Join(Environment.NewLine, declarations);
+            var options = new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithConcurrentBuild(concurrent);
+
+            RunInThread(() =>
+            {
+                CreateVisualBasicCompilation(source, compilationOptions: options).VerifyDiagnostics();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
         [ConditionalFact(typeof(WindowsOrLinuxOnly), typeof(NoIOperationValidation))]
         public void NestedIfStatements()
         {
             int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
                 (4, ExecutionConfiguration.Debug) => 310,
-                (4, ExecutionConfiguration.Release) => 1650,
+                (4, ExecutionConfiguration.Release) => 1400,
                 (8, ExecutionConfiguration.Debug) => 200,
-                (8, ExecutionConfiguration.Release) => 780,
+                (8, ExecutionConfiguration.Release) => 474,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -270,6 +451,95 @@ $@"        if (F({i}))
                     var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
                 });
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [InlineData(2)]
+#if DEBUG
+        [InlineData(2000)]
+#else
+        [InlineData(5000)]
+#endif
+        public void NestedIfElse(int n)
+        {
+            var builder = new System.Text.StringBuilder();
+            builder.AppendLine("""
+                #nullable enable
+                class Program
+                {
+                    static void F(int i)
+                    {
+                        if (i == 0) { }
+                """);
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($$"""
+                            else if (i == {{i}}) { }
+                    """);
+            }
+            builder.AppendLine("""
+                    }
+                }
+                """);
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            // Avoid using ControlFlowGraphVerifier.GetControlFlowGraph() since that calls
+            // TestOperationVisitor.VerifySubTree() which has quadratic behavior using
+            // MemberSemanticModel.GetEnclosingBinderInternalWithinRoot().
+            var operation = (Microsoft.CodeAnalysis.Operations.IMethodBodyOperation)model.GetOperation(node);
+            var graph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(operation);
+
+            if (n == 2)
+            {
+                var symbol = model.GetDeclaredSymbol(node);
+                ControlFlowGraphVerifier.VerifyGraph(comp, """
+                    Block[B0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B2]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B3] - Block
+                        Predecessors: [B2]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B4]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 1')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Exit
+                        Predecessors: [B1] [B2] [B3*2]
+                        Statements (0)
+                    """,
+                    graph, symbol);
             }
         }
 
@@ -314,6 +584,308 @@ $@"        if (F({i}))
                     comp.VerifyDiagnostics(diagnostics);
                 });
             }
+        }
+
+        [ConditionalFact(typeof(WindowsOrMacOSOnly), Reason = "https://github.com/dotnet/roslyn/issues/69210"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819416")]
+        public void LongInitializerList()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("""
+                    _ = new System.Collections.Generic.Dictionary<string, string>
+                    {
+                    """);
+
+            for (int i = 0; i < 100; i++)
+            {
+                sb.AppendLine("""    { "a", "b" },""");
+            }
+
+            sb.AppendLine("};");
+
+            var comp = CreateCompilation(sb.ToString());
+            var counter = new MemberSemanticModel.MemberSemanticBindingCounter();
+            comp.TestOnlyCompilationData = counter;
+            comp.VerifyEmitDiagnostics();
+            Assert.Equal(0, counter.BindCount);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var literals = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(200, literals.Length);
+            foreach (var literal in literals)
+            {
+                var type = model.GetTypeInfo(literal).Type;
+                Assert.Equal(SpecialType.System_String, type.SpecialType);
+            }
+
+            Assert.Equal(1, counter.BindCount);
+        }
+
+        [Fact]
+        public void Interceptors()
+        {
+            const int numberOfInterceptors = 10000;
+
+            // write a program which has many intercepted calls.
+            // each interceptor is in a different file.
+            var files = ArrayBuilder<(string source, string path)>.GetInstance();
+
+            // Build a top-level-statements main like:
+            //    C.M();
+            //    C.M();
+            //    C.M();
+            //    ...
+            var builder = new StringBuilder();
+            for (int i = 0; i < numberOfInterceptors; i++)
+            {
+                builder.AppendLine("C.M();");
+            }
+
+            var program = (builder.ToString(), "Program.cs");
+            var locations = getInterceptableLocations(program);
+            files.Add(program);
+
+            files.Add(("""
+                class C
+                {
+                    public static void M() => throw null!;
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(int version, string data) { }
+                    }
+                }
+                """, "C.cs"));
+
+            for (int i = 0; i < numberOfInterceptors; i++)
+            {
+                var location = locations[i];
+                files.Add(($$"""
+                    using System;
+                    using System.Runtime.CompilerServices;
+
+                    class C{{i}}
+                    {
+                        [InterceptsLocation({{location.Version}}, "{{location.Data}}")]
+                        public static void M()
+                        {
+                            Console.WriteLine({{i}});
+                        }
+                    }
+                    """, $"C{i}.cs"));
+            }
+
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: makeExpectedOutput());
+            verifier.VerifyDiagnostics();
+
+            string makeExpectedOutput()
+            {
+                builder.Clear();
+                for (int i = 0; i < numberOfInterceptors; i++)
+                {
+                    builder.AppendLine($"{i}");
+                }
+                return builder.ToString();
+            }
+
+            ImmutableArray<InterceptableLocation> getInterceptableLocations(CSharpTestSource source)
+            {
+                var comp = CreateCompilation(source);
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().SelectAsArray(node => model.GetInterceptableLocation(node));
+                return nodes;
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
+        public void NestedLambdas(bool localFunctions)
+        {
+            const int overloads1Number = 20;
+            const int overloads2Number = 10;
+
+            /*
+                interface I0 { }
+                // ...
+                interface I9 { }
+            */
+            var builder1 = new StringBuilder();
+            var interfacesNumber = Math.Max(overloads1Number, overloads2Number);
+            for (int i = 0; i < interfacesNumber; i++)
+            {
+                builder1.AppendLine($$"""interface I{{i}} { }""");
+            }
+
+            /*
+                void M1(System.Action<I0> a) { }
+                // ...
+                void M1(System.Action<I9> a) { }
+            */
+            var builder2 = new StringBuilder();
+            for (int i = 0; i < overloads1Number; i++)
+            {
+                builder2.AppendLine($$"""void M1(System.Action<I{{i}}> a) { }""");
+            }
+
+            /*
+                void M2(I0 x, System.Func<string, I0> f) { }
+                // ...
+                void M2(I9 x, System.Func<string, I9> f) { }
+            */
+            for (int i = 0; i < overloads2Number; i++)
+            {
+                builder2.AppendLine($$"""void M2(I{{i}} x, System.Func<string, I{{i}}> f) { }""");
+            }
+
+            // Local functions should be similarly fast as lambdas.
+            var inner = localFunctions ? """
+                M2(x, L0);
+                static I0 L0(string arg) {
+                    arg = arg + "0";
+                    return default;
+                }
+                """ : """
+                M2(x, static I0 (string arg) => {
+                    arg = arg + "0";
+                    return default;
+                });
+                """;
+
+            var source = $$"""
+                {{builder1}}
+                class C
+                {
+                    {{builder2}}
+                    void Main()
+                    {
+                        M1(x =>
+                        {
+                            {{inner}}
+                        });
+                    }
+                }
+                """;
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                var data = new LambdaBindingData();
+                comp.TestOnlyCompilationData = data;
+                comp.VerifyDiagnostics();
+                Assert.Equal(localFunctions ? 20 : 40, data.LambdaBindingCount);
+            }, timeout: TimeSpan.FromSeconds(5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/70791")]
+        public void ForAttributeWithMetadataName_DeepRecursion()
+        {
+            var deeplyRecursive = string.Join("+", Enumerable.Repeat(""" "a" """, 20_000));
+            var source = $$"""
+                class Ex
+                {
+                    void M()
+                    {
+                        var v ={{deeplyRecursive}};
+                    }
+                }
+
+                [N1.X]
+                class C1 { }
+                [N2.X]
+                class C2 { }
+
+                namespace N1
+                {
+                    class XAttribute : System.Attribute { }
+                }
+
+                namespace N2
+                {
+                    class XAttribute : System.Attribute { }
+                }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.ForAttributeWithMetadataName(
+                    "N1.XAttribute",
+                    (node, _) => node is ClassDeclarationSyntax,
+                    (context, _) => (ClassDeclarationSyntax)context.TargetNode);
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator],
+                parseOptions: parseOptions,
+                driverOptions: TestOptions.GeneratorDriverOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+        }
+
+        [Theory]
+        [InlineData("or", "1")]
+        [InlineData("and not", "0")]
+        public void ManyBinaryPatterns(string pattern, string expectedOutput)
+        {
+            const string preamble = $"""
+                int i = 2;
+
+                System.Console.Write(i is
+                """;
+            string append = $"""
+
+                {pattern} 
+                """;
+            const string postscript = """
+
+                ? 1 : 0);
+                """;
+
+            const int numBinaryExpressions = 5_000;
+
+            var builder = new StringBuilder(preamble.Length + postscript.Length + append.Length * numBinaryExpressions + 5 /* Max num digit characters */ * numBinaryExpressions);
+
+            builder.AppendLine(preamble);
+
+            builder.Append(0);
+
+            for (int i = 1; i < numBinaryExpressions; i++)
+            {
+                builder.Append(append);
+                // Make sure the emitter has to handle lots of nodes
+                builder.Append(i * 2);
+            }
+
+            builder.AppendLine(postscript);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
+                CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+                var tree = comp.SyntaxTrees[0];
+                var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+                var model = comp.GetSemanticModel(tree);
+                var operation = model.GetOperation(isPattern);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+            });
         }
     }
 }

@@ -3,12 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -236,12 +231,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
             If rewrittenLeft.Type.IsNullableType() AndAlso
-               rewrittenRight.IsDefaultValue() AndAlso
                rewrittenRight.Type.IsSameTypeIgnoringAll(rewrittenLeft.Type.GetNullableUnderlyingType()) _
             Then
-                Return NullableValueOrDefault(rewrittenLeft)
+                ' Optimize If(left, right) to left.GetValueOrDefault() when left is T? and right is the default value of T
+                If rewrittenRight.IsDefaultValue() Then
+                    Dim optimized = NullableValueOrDefault(rewrittenLeft, isOptional:=True)
+                    If optimized IsNot Nothing Then
+                        Return optimized
+                    End If
+                End If
+
+                ' Optimize If(left, right) to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T
+                If rewrittenRight.ConstantValueOpt IsNot Nothing OrElse
+                   Not If(TryCast(rewrittenRight, BoundLocal)?.LocalSymbol.IsRef, True) OrElse
+                   Not If(TryCast(rewrittenRight, BoundParameter)?.ParameterSymbol.IsByRef, True) Then
+                    Dim optimized = NullableValueOrDefaultOpt(rewrittenLeft, rewrittenRight)
+                    If optimized IsNot Nothing Then
+                        Return optimized
+                    End If
+                End If
             End If
 
             '=== Rewrite binary conditional expression using ternary conditional expression

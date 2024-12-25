@@ -5,48 +5,32 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PullMemberUp;
 
-namespace Microsoft.CodeAnalysis.ExtractClass
+namespace Microsoft.CodeAnalysis.ExtractClass;
+
+internal sealed class ExtractClassOptions(
+    string fileName,
+    string typeName,
+    bool sameFile,
+    ImmutableArray<ExtractClassMemberAnalysisResult> memberAnalysisResults)
 {
-    internal class ExtractClassOptions
-    {
-        public string FileName { get; }
-        public string TypeName { get; }
-        public bool SameFile { get; }
-        public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; }
+    public string FileName { get; } = fileName;
+    public string TypeName { get; } = typeName;
+    public bool SameFile { get; } = sameFile;
+    public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; } = memberAnalysisResults;
+}
 
-        public ExtractClassOptions(
-            string fileName,
-            string typeName,
-            bool sameFile,
-            ImmutableArray<ExtractClassMemberAnalysisResult> memberAnalysisResults)
-        {
-            FileName = fileName;
-            TypeName = typeName;
-            MemberAnalysisResults = memberAnalysisResults;
-            SameFile = sameFile;
-        }
-    }
+internal sealed class ExtractClassMemberAnalysisResult(
+    ISymbol member,
+    bool makeAbstract)
+{
+    /// <summary>
+    /// The member needs to be pulled up.
+    /// </summary>
+    public ISymbol Member { get; } = member;
 
-    internal class ExtractClassMemberAnalysisResult
-    {
-        /// <summary>
-        /// The member needs to be pulled up.
-        /// </summary>
-        public ISymbol Member { get; }
-
-        /// <summary>
-        /// Whether to make the member abstract when added to the new class
-        /// </summary>
-        public bool MakeAbstract { get; }
-
-        public ExtractClassMemberAnalysisResult(
-            ISymbol member,
-            bool makeAbstract)
-        {
-            Member = member;
-            MakeAbstract = makeAbstract;
-        }
-    }
+    /// <summary>
+    /// Whether to make the member abstract when added to the new class
+    /// </summary>
+    public bool MakeAbstract { get; } = makeAbstract;
 }

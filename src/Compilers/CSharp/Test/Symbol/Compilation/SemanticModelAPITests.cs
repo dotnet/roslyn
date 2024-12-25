@@ -4632,6 +4632,137 @@ public partial class C
             Assert.True(alias1.Equals(alias2));
         }
 
+        [Fact]
+        public void OutVarInRankSpecifier_LocalDeclaration()
+        {
+            var text = @"
+int[M(out var x)] i = null;
+";
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Theory]
+        [InlineData("out")]
+        [InlineData("ref")]
+        public void OutVarInRankSpecifier_LocalFunctionParameter(string modifier)
+        {
+            var text = $$"""
+void M({{modifier}} Type[M2(out object y)])
+{
+}
+""";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M2");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Fact]
+        public void OutVarInRankSpecifier_LocalFunctionReturn()
+        {
+            var text = @"
+Type[M2(out object y)] M()
+{
+}
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M2");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66806")]
+        public void OutVarInRankSpecifier()
+        {
+            var text = @"
+bool TryGet(out [NotNullWhen( object x, out object y, out object z)
+{
+    return true;
+}
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "NotNullWhen");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Fact]
+        public void OutVarInRankSpecifier_TypeConstraint()
+        {
+            var text = @"
+void M<T>() where T : int[M2(out var x)]
+{
+}
+";
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M2");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Fact]
+        public void OutVarInRankSpecifier_MethodParameter()
+        {
+            var text = @"
+class C
+{
+    void M(out Type[M2(out object y)])
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M2");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Fact]
+        public void OutVarInRankSpecifier_PrimaryConstructorParameter()
+        {
+            var text = @"
+class C(out Type[M2(out object y)])
+{
+}
+";
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(i => i.Identifier.Text == "M2");
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Null(model.GetAliasInfo(identifier));
+        }
+
+        [Fact]
+        public void CommonPreprocessingSymbolProperties()
+        {
+            var text = """
+                #if NET5_0_OR_GREATER
+                #endif
+                """;
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<IdentifierNameSyntax>().First();
+            var model = compilation.GetSemanticModel(tree);
+            var preprocessingSymbol = model.GetPreprocessingSymbolInfo(identifier).Symbol;
+            Assert.NotNull(preprocessingSymbol);
+            Assert.Equal("NET5_0_OR_GREATER", preprocessingSymbol.Name);
+            Assert.True(preprocessingSymbol.CanBeReferencedByName);
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

@@ -258,7 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                if (symbol is MethodSymbol { PartialImplementationPart: MethodSymbol implementationPart })
+                Symbol? implementationPart = symbol switch
+                {
+                    MethodSymbol method => method.PartialImplementationPart,
+                    SourcePropertySymbol property => property.PartialImplementationPart,
+                    _ => null
+                };
+
+                if (implementationPart is not null)
                 {
                     Visit(implementationPart);
 
@@ -375,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!documentedParameters.Contains(parameter))
                         {
-                            Location location = parameter.Locations[0];
+                            Location location = parameter.GetFirstLocation();
                             Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             // NOTE: parameter name, since the parameter would be displayed as just its type.
@@ -390,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!documentedTypeParameters.Contains(typeParameter))
                         {
-                            Location location = typeParameter.Locations[0];
+                            Location location = typeParameter.GetFirstLocation();
                             Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             _diagnostics.Add(ErrorCode.WRN_MissingTypeParamTag, location, typeParameter, symbol);
@@ -1231,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetAndEndTemporaryString()
         {
             TemporaryStringBuilder t = _temporaryStringBuilders.Pop();
-            Debug.Assert(_indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {_indentDepth})");
+            RoslynDebug.Assert(_indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {_indentDepth})");
             _indentDepth = t.InitialIndentDepth;
             return t.Pooled.ToStringAndFree();
         }

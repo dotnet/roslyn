@@ -5,43 +5,42 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class ThrowKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class ThrowKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    public ThrowKeywordRecommender()
+        : base(SyntaxKind.ThrowKeyword)
     {
-        public ThrowKeywordRecommender()
-            : base(SyntaxKind.ThrowKeyword)
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        if (context.IsStatementContext || context.IsGlobalStatementContext)
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        // void M() => throw
+        if (context.TargetToken.IsKind(SyntaxKind.EqualsGreaterThanToken))
         {
-            if (context.IsStatementContext || context.IsGlobalStatementContext)
-            {
-                return true;
-            }
-
-            // void M() => throw
-            if (context.TargetToken.IsKind(SyntaxKind.EqualsGreaterThanToken))
-            {
-                return true;
-            }
-
-            // val ?? throw
-            if (context.TargetToken.IsKind(SyntaxKind.QuestionQuestionToken))
-            {
-                return true;
-            }
-
-            //  expr ? throw : ...
-            //  expr ? ... : throw
-            if (context.TargetToken.Kind() is SyntaxKind.QuestionToken or
-                SyntaxKind.ColonToken)
-            {
-                return context.TargetToken.Parent.IsKind(SyntaxKind.ConditionalExpression);
-            }
-
-            return false;
+            return true;
         }
+
+        // val ?? throw
+        if (context.TargetToken.IsKind(SyntaxKind.QuestionQuestionToken))
+        {
+            return true;
+        }
+
+        //  expr ? throw : ...
+        //  expr ? ... : throw
+        if (context.TargetToken.Kind() is SyntaxKind.QuestionToken or
+            SyntaxKind.ColonToken)
+        {
+            return context.TargetToken.Parent.IsKind(SyntaxKind.ConditionalExpression);
+        }
+
+        return false;
     }
 }

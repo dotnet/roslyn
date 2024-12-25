@@ -5,23 +5,22 @@
 using System.Windows.Controls;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View;
+
+/// <summary>
+/// Interaction logic for SeverityControl.xaml
+/// </summary>
+internal partial class SeverityControl : UserControl
 {
-    /// <summary>
-    /// Interaction logic for SeverityControl.xaml
-    /// </summary>
-    internal partial class SeverityControl : UserControl
+    private readonly SeverityViewModel _viewModel;
+
+    public SeverityControl(SeverityViewModel viewModel)
     {
-        private readonly SeverityViewModel _viewModel;
-
-        public SeverityControl(SeverityViewModel viewModel)
-        {
-            InitializeComponent();
-            DataContext = viewModel;
-            _viewModel = viewModel;
-        }
-
-        private void SeverityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => _viewModel.SelectionChanged(SeverityComboBox.SelectedIndex);
+        InitializeComponent();
+        DataContext = viewModel;
+        _viewModel = viewModel;
     }
+
+    private void SeverityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => _viewModel.SelectionChanged(SeverityComboBox.SelectedIndex);
 }

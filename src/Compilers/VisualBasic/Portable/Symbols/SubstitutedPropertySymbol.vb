@@ -181,6 +181,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _originalDefinition.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return _originalDefinition.IsImplicitlyDeclared
@@ -297,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return _originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _originalDefinition.IsRequired
+            End Get
+        End Property
     End Class
 
 End Namespace

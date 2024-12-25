@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (hasNext)
                 {
                     DumpAndCleanup();
-                    Assert.False(hasNext, "Test contains unconsumed syntax left over from UsingNode()");
+                    Assert.False(hasNext, $"Test contains unconsumed syntax left over from UsingNode()\r\n{(this._output as TestOutputHelper)?.Output}");
                 }
             }
         }
@@ -148,8 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
+            return UsingTree(ParseTree(text, options), expectedErrors);
+        }
+
+        protected SyntaxTree UsingTree(SyntaxTree tree, params DiagnosticDescription[] expectedErrors)
+        {
             VerifyEnumeratorConsumed();
-            var tree = ParseTree(text, options);
             _node = tree.GetCompilationUnitRoot();
             var actualErrors = _node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);

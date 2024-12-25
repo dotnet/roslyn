@@ -7,8 +7,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
@@ -51,9 +49,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact]
         public void TestCheckBox()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-            var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
+            var optionStore = new OptionStore(workspace.GlobalOptions);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
             // Use the first item's preview.
             var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().First();
@@ -74,30 +72,30 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact]
         public void TestOptionLoading()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
-            var optionSet = workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
-            var optionStore = new OptionStore(optionSet, Enumerable.Empty<IOption>());
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
+            var optionStore = new OptionStore(workspace.GlobalOptions);
+            workspace.GlobalOptions.SetGlobalOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, true);
 
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
             // Use the first item's preview.
-            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions.SpacingAfterMethodDeclarationName).First();
+            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions2.SpacingAfterMethodDeclarationName).First();
             Assert.True(checkbox.IsChecked);
         }
 
         [WpfFact]
         public void TestOptionSaving()
         {
-            using var workspace = TestWorkspace.CreateCSharp("");
+            using var workspace = EditorTestWorkspace.CreateCSharp("");
             var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
-            var optionStore = new OptionStore(workspace.Options, Enumerable.Empty<IOption>());
+            var optionStore = new OptionStore(workspace.GlobalOptions);
             using var viewModel = new SpacingViewModel(optionStore, serviceProvider);
             // Use the first item's preview.
-            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions.SpacingAfterMethodDeclarationName).First();
+            var checkbox = viewModel.Items.OfType<CheckBoxOptionViewModel>().Where(c => c.Option == CSharpFormattingOptions2.SpacingAfterMethodDeclarationName).First();
             var initial = checkbox.IsChecked;
             checkbox.IsChecked = !checkbox.IsChecked;
 
-            Assert.NotEqual(optionStore.GetOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName), initial);
+            Assert.NotEqual(optionStore.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName), initial);
         }
     }
 }

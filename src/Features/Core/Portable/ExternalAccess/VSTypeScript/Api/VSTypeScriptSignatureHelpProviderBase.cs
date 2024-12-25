@@ -4,22 +4,22 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+/// <summary>
+/// TODO: Ideally, we would export TypeScript service and delegate to an imported TypeScript service implementation.
+/// However, TypeScript already exports the service so we would need to coordinate the change.
+/// </summary>
+internal abstract class VSTypeScriptSignatureHelpProviderBase : ISignatureHelpProvider
 {
-    /// <summary>
-    /// TODO: Ideally, we would export TypeScript service and delegate to an imported TypeScript service implementation.
-    /// However, TypeScript already exports the service so we would need to coordinate the change.
-    /// </summary>
-    internal abstract class VSTypeScriptSignatureHelpProviderBase : ISignatureHelpProvider
-    {
-        Task<SignatureHelpItems?> ISignatureHelpProvider.GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
-            => GetItemsAsync(document, position, triggerInfo, cancellationToken);
+    Task<SignatureHelpItems?> ISignatureHelpProvider.GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
+        => GetItemsAsync(document, position, triggerInfo, cancellationToken);
 
-        public abstract bool IsTriggerCharacter(char ch);
-        public abstract bool IsRetriggerCharacter(char ch);
+    public abstract bool IsTriggerCharacter(char ch);
+    public abstract bool IsRetriggerCharacter(char ch);
 
-        protected abstract Task<SignatureHelpItems?> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
-    }
+    protected abstract Task<SignatureHelpItems?> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 }

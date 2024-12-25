@@ -7,23 +7,22 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+[Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+[Trait(Traits.Feature, Traits.Features.NetCore)]
+public class BasicSquigglesNetCore : BasicSquigglesCommon
 {
-    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-    [Trait(Traits.Feature, Traits.Features.NetCore)]
-    public class BasicSquigglesNetCore : BasicSquigglesCommon
+    public BasicSquigglesNetCore()
+        : base(WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
     {
-        public BasicSquigglesNetCore()
-            : base(WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
-        {
-        }
+    }
 
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(false);
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync().ConfigureAwait(false);
 
-            // The VisualBasicNetCoreClassLibrary template does not open a file automatically.
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, WellKnownProjectTemplates.VisualBasicNetCoreClassLibraryClassFileName, HangMitigatingCancellationToken);
-        }
+        // The VisualBasicNetCoreClassLibrary template does not open a file automatically.
+        await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, WellKnownProjectTemplates.VisualBasicNetCoreClassLibraryClassFileName, HangMitigatingCancellationToken);
     }
 }

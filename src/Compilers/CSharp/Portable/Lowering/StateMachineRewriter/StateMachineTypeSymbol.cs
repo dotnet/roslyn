@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kickoffType = KickoffMethod.ContainingType;
                 foreach (var attribute in kickoffType.GetAttributes())
                 {
-                    if (attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerNonUserCodeAttribute) ||
-                        attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerStepThroughAttribute))
+                    if (attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute))
                     {
                         if (builder == null)
                         {

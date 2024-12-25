@@ -13,7 +13,10 @@ parameters:
     default: ''
   - name: queueSpeedometerValidation
     type: string
-    default: 'false'
+    default: 'true'
+  - name: retainInsertedBuild
+    type: string
+    default: 'true'
 
   - name: buildUserName
     type: string
@@ -49,7 +52,7 @@ parameters:
 
 steps:
   - checkout: none
-
+  
   - task: NuGetCommand@2
     displayName: 'Install RIT from Azure Artifacts'
     inputs:
@@ -177,7 +180,7 @@ steps:
   # Now that everything is set, actually perform the insertion.
   - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
-      .\RIT\tools\net46\OneOffInsertion.ps1 `
+      .\RIT\tools\net472\OneOffInsertion.ps1 `
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
@@ -207,7 +210,8 @@ steps:
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
-        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}" `
+        -retaininsertedbuild "${{ parameters.retainInsertedBuild }}" 
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'

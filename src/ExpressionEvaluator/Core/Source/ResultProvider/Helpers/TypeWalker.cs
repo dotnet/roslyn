@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _stack.Push(type);
             }
 
-            public Type Current => _stack.Peek();
+            public readonly Type Current => _stack.Peek();
 
             public bool MoveNext()
             {

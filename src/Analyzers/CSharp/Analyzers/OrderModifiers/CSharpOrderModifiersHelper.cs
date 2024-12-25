@@ -6,30 +6,29 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.OrderModifiers;
 
-namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
+namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers;
+
+internal class CSharpOrderModifiersHelper : AbstractOrderModifiersHelpers
 {
-    internal class CSharpOrderModifiersHelper : AbstractOrderModifiersHelpers
+    public static readonly CSharpOrderModifiersHelper Instance = new();
+
+    private CSharpOrderModifiersHelper()
     {
-        public static readonly CSharpOrderModifiersHelper Instance = new();
+    }
 
-        private CSharpOrderModifiersHelper()
-        {
-        }
+    protected override int GetKeywordKind(string trimmed)
+    {
+        var kind = SyntaxFacts.GetKeywordKind(trimmed);
+        return (int)(kind == SyntaxKind.None ? SyntaxFacts.GetContextualKeywordKind(trimmed) : kind);
+    }
 
-        protected override int GetKeywordKind(string trimmed)
-        {
-            var kind = SyntaxFacts.GetKeywordKind(trimmed);
-            return (int)(kind == SyntaxKind.None ? SyntaxFacts.GetContextualKeywordKind(trimmed) : kind);
-        }
+    protected override bool TryParse(string value, [NotNullWhen(true)] out Dictionary<int, int>? parsed)
+    {
+        if (!base.TryParse(value, out parsed))
+            return false;
 
-        protected override bool TryParse(string value, [NotNullWhen(true)] out Dictionary<int, int>? parsed)
-        {
-            if (!base.TryParse(value, out parsed))
-                return false;
-
-            // 'partial' must always go at the end in C#.
-            parsed[(int)SyntaxKind.PartialKeyword] = int.MaxValue;
-            return true;
-        }
+        // 'partial' must always go at the end in C#.
+        parsed[(int)SyntaxKind.PartialKeyword] = int.MaxValue;
+        return true;
     }
 }

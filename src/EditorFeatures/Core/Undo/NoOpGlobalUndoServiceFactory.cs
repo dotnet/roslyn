@@ -9,61 +9,60 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Undo
+namespace Microsoft.CodeAnalysis.Editor.Undo;
+
+/// <summary>
+/// This factory will create a service that provides workspace global undo service.
+/// </summary>
+[ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), ServiceLayer.Default), Shared]
+internal class NoOpGlobalUndoServiceFactory : IWorkspaceServiceFactory
 {
-    /// <summary>
-    /// This factory will create a service that provides workspace global undo service.
-    /// </summary>
-    [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), ServiceLayer.Default), Shared]
-    internal class NoOpGlobalUndoServiceFactory : IWorkspaceServiceFactory
+    public static readonly IWorkspaceGlobalUndoTransaction Transaction = new NoOpUndoTransaction();
+
+    private readonly NoOpGlobalUndoService _singleton = new();
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NoOpGlobalUndoServiceFactory()
     {
-        public static readonly IWorkspaceGlobalUndoTransaction Transaction = new NoOpUndoTransaction();
+    }
 
-        private readonly NoOpGlobalUndoService _singleton = new();
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _singleton;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NoOpGlobalUndoServiceFactory()
+    private class NoOpGlobalUndoService : IGlobalUndoService
+    {
+        public bool IsGlobalTransactionOpen(Workspace workspace)
+        {
+            // TODO: this is technically wrong -- Transaction shouldn't be a singleton.
+            return false;
+        }
+
+        public bool CanUndo(Workspace workspace)
+        {
+            // by default, undo is not supported
+            return false;
+        }
+
+        public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
+            => Transaction;
+    }
+
+    /// <summary>
+    /// null object that doesn't do anything
+    /// </summary>
+    private class NoOpUndoTransaction : IWorkspaceGlobalUndoTransaction
+    {
+        public void Commit()
         {
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _singleton;
-
-        private class NoOpGlobalUndoService : IGlobalUndoService
+        public void Dispose()
         {
-            public bool IsGlobalTransactionOpen(Workspace workspace)
-            {
-                // TODO: this is technically wrong -- Transaction shouldn't be a singleton.
-                return false;
-            }
-
-            public bool CanUndo(Workspace workspace)
-            {
-                // by default, undo is not supported
-                return false;
-            }
-
-            public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
-                => Transaction;
         }
 
-        /// <summary>
-        /// null object that doesn't do anything
-        /// </summary>
-        private class NoOpUndoTransaction : IWorkspaceGlobalUndoTransaction
+        public void AddDocument(DocumentId id)
         {
-            public void Commit()
-            {
-            }
-
-            public void Dispose()
-            {
-            }
-
-            public void AddDocument(DocumentId id)
-            {
-            }
         }
     }
 }

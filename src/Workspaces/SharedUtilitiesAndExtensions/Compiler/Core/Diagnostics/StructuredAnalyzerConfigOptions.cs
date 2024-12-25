@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -17,56 +17,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <see cref="AnalyzerConfigOptions"/> that memoize structured (parsed) form of certain complex options to avoid parsing them multiple times.
 /// Storages of these complex options may directly call the specialized getters to reuse the cached values.
 /// </summary>
-internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
+internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions, IOptionsReader
 {
     internal sealed class Implementation : StructuredAnalyzerConfigOptions
     {
         private readonly AnalyzerConfigOptions _options;
         private readonly Lazy<NamingStylePreferences> _lazyNamingStylePreferences;
+        private readonly StructuredAnalyzerConfigOptions? _fallback;
 
-        public Implementation(AnalyzerConfigOptions options)
+        public Implementation(AnalyzerConfigOptions options, StructuredAnalyzerConfigOptions? fallback)
         {
             _options = options;
             _lazyNamingStylePreferences = new Lazy<NamingStylePreferences>(() => EditorConfigNamingStyleParser.ParseDictionary(_options));
+            _fallback = fallback;
         }
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => _options.TryGetValue(key, out value);
+            => _options.TryGetValue(key, out value) || _fallback?.TryGetValue(key, out value) == true;
 
         public override IEnumerable<string> Keys
-            => _options.Keys;
+            => _fallback == null ? _options.Keys : _options.Keys.Union(_fallback.Keys);
 
         public override NamingStylePreferences GetNamingStylePreferences()
-            => _lazyNamingStylePreferences.Value;
+            // Note: this is not equivallent to constructing NamingStylePreferences from merged key-value pair sets.
+            // We look up the fallback naming style preferences only if there is no naming style preference in this set.
+            // We do not mix the preferences from the two key-value pair sets.
+            => _lazyNamingStylePreferences.Value is { IsEmpty: false } nonEmpty ? nonEmpty : _fallback?.GetNamingStylePreferences() ?? NamingStylePreferences.Empty;
     }
 
-    private sealed class EmptyImplementation : StructuredAnalyzerConfigOptions
-    {
-        public override NamingStylePreferences GetNamingStylePreferences()
-            => NamingStylePreferences.Empty;
-
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-        {
-            value = null;
-            return false;
-        }
-
-        public override IEnumerable<string> Keys
-            => SpecializedCollections.EmptyEnumerable<string>();
-    }
-
-    public static readonly StructuredAnalyzerConfigOptions Empty = new EmptyImplementation();
+    public static readonly StructuredAnalyzerConfigOptions Empty = Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty));
 
     public abstract NamingStylePreferences GetNamingStylePreferences();
 
-    public static StructuredAnalyzerConfigOptions Create(ImmutableDictionary<string, string> options)
-    {
-        Contract.ThrowIfFalse(options.KeyComparer == KeyComparer);
-        return new Implementation(new DictionaryAnalyzerConfigOptions(options));
-    }
+    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options, StructuredAnalyzerConfigOptions? fallback = null)
+        => new Implementation(options, fallback);
 
-    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options)
-        => new Implementation(options);
+    public bool TryGetOption<T>(OptionKey2 optionKey, out T value)
+        => this.TryGetEditorConfigOption(optionKey.Option, out value);
 
     public static bool TryGetStructuredOptions(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
     {
@@ -88,7 +75,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
     }
 
 #if CODE_STYLE
-    // StructuredAnalyzerConfigOptions is defined in both Worksapce and Code Style layers. It is not public and thus can't be shared between these two.
+    // StructuredAnalyzerConfigOptions is defined in both Workspace and Code Style layers. It is not public and thus can't be shared between these two.
     // However, Code Style layer is compiled against the shared Workspace APIs. The ProjectState creates and holds onto an instance
     // of Workspace layer's version of StructuredAnalyzerConfigOptions. This version of the type is not directly usable by Code Style code.
     // We create a clone of this instance typed to the Code Style's version of StructuredAnalyzerConfigOptions.
@@ -111,7 +98,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
         {
             if (!s_codeStyleStructuredOptions.TryGetValue(configOptions, out options))
             {
-                options = new Implementation(configOptions);
+                options = new Implementation(configOptions, fallback: Empty);
                 s_codeStyleStructuredOptions.Add(configOptions, options);
             }
         }

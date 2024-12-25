@@ -5,11 +5,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class SyntaxTokenListExtensions
 {
-    internal static class SyntaxTokenListExtensions
-    {
-        public static IEnumerable<SyntaxToken> SkipKinds(this SyntaxTokenList tokenList, params SyntaxKind[] kinds)
-            => tokenList.SkipWhile(t => kinds.Contains(t.Kind()));
-    }
+    public static IEnumerable<SyntaxToken> SkipKinds(this SyntaxTokenList tokenList, params SyntaxKind[] kinds)
+        => tokenList.SkipWhile(t => kinds.Contains(t.Kind()));
 }

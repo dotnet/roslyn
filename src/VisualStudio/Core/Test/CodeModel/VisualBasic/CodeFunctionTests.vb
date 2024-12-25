@@ -80,7 +80,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=31)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_DeclareFunction_WithoutAttribute()
             Dim code =
@@ -113,7 +113,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_DeclareFunction_WithAttribute()
             Dim code =
@@ -147,7 +147,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_DeclareSub_WithoutAttribute()
             Dim code =
@@ -180,7 +180,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_DeclareSub_WithAttribute()
             Dim code =
@@ -283,7 +283,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_DeclareFunction_WithoutAttribute()
             Dim code =
@@ -316,7 +316,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_DeclareFunction_WithAttribute()
             Dim code =
@@ -350,7 +350,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_DeclareSub_WithoutAttribute()
             Dim code =
@@ -383,7 +383,7 @@ End Class
                      TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)))
         End Sub
 
-        <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1839")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_DeclareSub_WithAttribute()
             Dim code =
@@ -520,7 +520,7 @@ End Interface
 #End Region
 
 #Region "Attribute Tests"
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertyGetAttribute_WithNoSet()
             Dim code =
@@ -538,7 +538,7 @@ End Class
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertySetAttribute_WithNoGet()
             Dim code =
@@ -556,7 +556,7 @@ End Class
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertySetAttribute_WithGet()
             Dim code =
@@ -578,7 +578,7 @@ End Class
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertyGetAttribute_WithSet()
             Dim code =
@@ -600,7 +600,7 @@ End Class
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAttribute_1()
             Dim code =
@@ -719,7 +719,7 @@ End Class
 
 #Region "FunctionKind tests"
 
-        <WorkItem(1843, "https://github.com/dotnet/roslyn/issues/1843")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1843")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFunctionKind_Constructor()
             Dim code =
@@ -1034,7 +1034,7 @@ End Class
 
 #Region "Kind tests"
 
-        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2355")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestDeclareSubKind()
             Dim code =
@@ -1047,7 +1047,7 @@ End Class
             TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
         End Sub
 
-        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2355")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestDeclareFunctionKind()
             Dim code =
@@ -1060,7 +1060,7 @@ End Class
             TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
         End Sub
 
-        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2355")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestSubKind()
             Dim code =
@@ -1532,7 +1532,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Sub_BelowDocComment() As Task
             Dim code =
@@ -1560,7 +1560,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Function_BelowDocComment() As Task
             Dim code =
@@ -1588,7 +1588,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Sub_MustOverride_BelowDocComment() As Task
             Dim code =
@@ -1614,7 +1614,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Function_MustOverride_BelowDocComment() As Task
             Dim code =
@@ -1640,7 +1640,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_DeclareSub_BelowDocComment() As Task
             Dim code =
@@ -1666,7 +1666,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_DeclareFunction_BelowDocComment() As Task
             Dim code =
@@ -1692,7 +1692,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Constructor_BelowDocComment() As Task
             Dim code =
@@ -1720,7 +1720,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Operator_BelowDocComment() As Task
             Dim code =
@@ -1748,7 +1748,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_Conversion_BelowDocComment() As Task
             Dim code =
@@ -1864,7 +1864,7 @@ End Class
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Function
 
-        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1873")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddParameter_DeclareFunction() As Task
             Dim code =
@@ -1882,7 +1882,7 @@ End Class
             Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Function
 
-        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1873")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddParameter_DeclareSub() As Task
             Dim code =
@@ -2603,7 +2603,7 @@ End Class
             Await TestSetTypeProp(code, expected, "System.Int32")
         End Function
 
-        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1873")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetType_DeclareFunction() As Task
             Dim code =
@@ -2621,7 +2621,7 @@ End Class
             Await TestSetTypeProp(code, expected, "System.Int32")
         End Function
 
-        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1873")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetType_DeclareFunctionToSub() As Task
             Dim code =
@@ -2640,7 +2640,7 @@ End Class
             Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
-        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1873")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetType_DeclareSubToFunction() As Task
             Dim code =
@@ -2853,7 +2853,7 @@ End Class
 
 #Region "Parameter name tests"
 
-        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
@@ -2866,7 +2866,7 @@ End Class
             TestAllParameterNames(code, "[integer]")
         End Sub
 
-        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =

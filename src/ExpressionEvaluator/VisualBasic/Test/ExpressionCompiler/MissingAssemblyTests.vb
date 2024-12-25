@@ -16,6 +16,7 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class MissingAssemblyTests
@@ -249,7 +250,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub ERR_UndefinedType1()
             Dim source = "
@@ -290,7 +291,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
         Public Sub ERR_NameNotMember2()
             Const source = "
 Imports System.Linq
@@ -341,7 +342,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(597, "GitHub")>
-        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         Public Sub PseudoVariableType()
             Const source = "
 Public Class C
@@ -381,7 +382,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds()
             Dim source = "
@@ -423,7 +424,7 @@ End Class
         ''' <remarks>
         ''' Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         ''' </remarks>
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_MultipleParts()
             Dim source = "
@@ -462,7 +463,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_GetType()
             Dim source = "
@@ -502,7 +503,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact, WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
         Public Sub CompileWithRetrySameErrorReported()
             Dim source = " 
 Class C 
@@ -610,7 +611,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
@@ -635,13 +636,13 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }", LanguageVersion.VisualBasic15_3)
         End Sub
 
-        <Fact, WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")>
         Public Sub NonTupleNoSystemRuntime()
             Const source =
 "Class C
@@ -660,7 +661,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
@@ -668,10 +669,10 @@ End Class"
 
         Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
                                                        Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
-            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
+            Dim comp = CreateEmptyCompilation({source}, references:={Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLegacyRef}, options:=TestOptions.DebugDll,
                                                      parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
-            Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()
-                WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef},
+            Using systemRuntime = Net461.References.SystemRuntime.ToModuleInstance()
+                WithRuntimeInstance(comp, {Net461.References.mscorlib, ValueTupleLegacyRef},
                     Sub(runtime)
                         Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
                         Dim moduleVersionId As Guid = Nothing

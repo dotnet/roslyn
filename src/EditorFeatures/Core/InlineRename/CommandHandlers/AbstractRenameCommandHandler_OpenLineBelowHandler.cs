@@ -6,20 +6,20 @@ using System;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
-{
-    internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHandler<OpenLineBelowCommandArgs>
-    {
-        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(nextHandler);
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
+internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHandler<OpenLineBelowCommandArgs>
+{
+    public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
+        => GetCommandState(nextHandler);
+
+    public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
+    {
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, operationContext, span) =>
         {
-            HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
-            {
-                activeSession.Commit();
-                nextHandler();
-            });
-        }
+            // Caret would be moved to the new line when editor command is handled, so we don't need to move it.
+            CommitIfSynchronousOrCancelIfAsynchronous(args, operationContext, placeCaretAtTheEndOfIdentifier: false);
+            nextHandler();
+        });
     }
 }

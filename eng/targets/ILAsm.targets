@@ -6,27 +6,34 @@
     exe.
   -->
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.microsoft.netcore.ilasm\$(runtimeWinX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.microsoft.netcore.ilasm\$(runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(Pkgruntime_linux-arm64_Microsoft_NETCore_ILAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.microsoft.netcore.ilasm\$(runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion)\runtimes\**\*.*">
+    <Content Include="$(Pkgruntime_linux-x64_Microsoft_NETCore_ILAsm)\runtimes\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LinkBase>runtimes</LinkBase>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
+    <Content Include="$(Pkgruntime_osx-x64_Microsoft_NETCore_ILAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
 
-    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.ILAsm" Version="$(runtimeWinX64MicrosoftNETCoreILAsmPackageVersion)" ExcludeAssets="all" />
-    <PackageReference Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion)" ExcludeAssets="all" />
-    <PackageReference Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion)" ExcludeAssets="all" />
+    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.ILAsm" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" GeneratePathProperty="true" ExcludeAssets="all" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 Imports VB = Microsoft.CodeAnalysis.VisualBasic
 
@@ -515,7 +515,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             Dim symbol = LookUpSymbolTest(comp, "Sum", expectedCount:=1, expectedString:="Function C1.Sum() As System.Int32")
             GetSymbolInfoTest(comp, "MyClass.Sum", symbol)
             GetTypeInfoTest(comp, "MyClass.Sum", "Integer")

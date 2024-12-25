@@ -12,6 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -33,6 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 #End Region
 
         Private _lazyConstraintTypes As ImmutableArray(Of TypeSymbol)
+
+        ''' <summary>
+        ''' Actually stores <see cref="ThreeState"/>
+        ''' </summary>
+        Private _lazyHasIsUnmanagedConstraint As Byte
 
         ''' <summary>
         ''' First error calculating bounds.
@@ -149,8 +156,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Private Function GetDeclaredConstraints() As ImmutableArray(Of TypeParameterConstraint)
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                EnsureAllConstraintsAreResolved()
+                Return CType(Volatile.Read(_lazyHasIsUnmanagedConstraint), ThreeState).Value()
+            End Get
+        End Property
+
+        Private Function GetDeclaredConstraints(<Out> ByRef hasUnmanagedModreqPattern As Boolean) As ImmutableArray(Of TypeParameterConstraint)
             Dim constraintsBuilder = ArrayBuilder(Of TypeParameterConstraint).GetInstance()
+
+            hasUnmanagedModreqPattern = False
 
             If HasConstructorConstraint Then
                 constraintsBuilder.Add(New TypeParameterConstraint(TypeParameterConstraintKind.Constructor, Nothing))
@@ -182,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 constraints = metadataReader.GetGenericParameter(_handle).GetConstraints()
             Catch mrEx As BadImageFormatException
                 constraints = Nothing
-                _lazyCachedBoundsUseSiteInfo.InterlockedCompareExchange(primaryDependency:=Nothing, New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
+                _lazyCachedBoundsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency:=Nothing, New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
             End Try
 
             If constraints.Count > 0 Then
@@ -194,9 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 For Each constraintHandle In constraints
-                    Dim constraint = metadataReader.GetGenericParameterConstraint(constraintHandle)
-                    Dim constraintTypeHandle = constraint.Type
-                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle)
+                    Dim typeSymbol As TypeSymbol = GetConstraintType(metadataReader, tokenDecoder, constraintHandle, hasUnmanagedModreqPattern)
 
                     ' Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
                     If ((_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0) AndAlso
@@ -212,7 +226,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Next
             End If
 
+            ' - presence of unmanaged pattern has to be matched with `valuetype`
+            ' - IsUnmanagedAttribute is allowed if there is an unmanaged pattern
+            If (hasUnmanagedModreqPattern AndAlso (_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) = 0) OrElse
+               hasUnmanagedModreqPattern <> moduleSymbol.Module.HasIsUnmanagedAttribute(_handle) Then
+                ' we do not recognize these combinations as "unmanaged"
+                hasUnmanagedModreqPattern = False
+                _lazyCachedBoundsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency:=Nothing, New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
+            End If
+
             Return constraintsBuilder.ToImmutableAndFree()
+        End Function
+
+        Private Shared Function GetConstraintType(
+            metadataReader As MetadataReader,
+            tokenDecoder As MetadataDecoder,
+            constraintHandle As GenericParameterConstraintHandle,
+            ByRef hasUnmanagedModreqPattern As Boolean
+        ) As TypeSymbol
+
+            Dim constraint = metadataReader.GetGenericParameterConstraint(constraintHandle)
+            Dim modifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
+            Dim typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, modifiers)
+
+            If Not modifiers.IsDefaultOrEmpty AndAlso modifiers.Length > 1 Then
+                typeSymbol = New UnsupportedMetadataTypeSymbol()
+            ElseIf typeSymbol.SpecialType = SpecialType.System_ValueType Then
+                ' recognize "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
+                If Not modifiers.IsDefaultOrEmpty Then
+                    Dim m As ModifierInfo(Of TypeSymbol) = modifiers.Single()
+                    If Not m.IsOptional AndAlso m.Modifier.IsWellKnownTypeUnmanagedType() Then
+                        hasUnmanagedModreqPattern = True
+                    Else
+                        ' Any other modifiers, optional or not, are not allowed
+                        typeSymbol = New UnsupportedMetadataTypeSymbol()
+                    End If
+                End If
+            ElseIf Not modifiers.IsDefaultOrEmpty Then
+                ' Any other modifiers, optional or not, are not allowed
+                typeSymbol = New UnsupportedMetadataTypeSymbol()
+            End If
+
+            Return typeSymbol
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -245,6 +300,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return (_flags And MetadataHelpers.GenericParameterAttributesAllowByRefLike) <> 0
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 Return CType((_flags And GenericParameterAttributes.VarianceMask), VarianceKind)
@@ -252,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Sub EnsureAllConstraintsAreResolved()
-            If _lazyConstraintTypes.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyConstraintTypes).IsDefault Then
                 Dim typeParameters = If(_containingSymbol.Kind = SymbolKind.Method,
                                         DirectCast(_containingSymbol, PEMethodSymbol).TypeParameters,
                                         DirectCast(_containingSymbol, PENamedTypeSymbol).TypeParameters)
@@ -264,9 +325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Debug.Assert(Not inProgress.Contains(Me))
             Debug.Assert(Not inProgress.Any() OrElse inProgress.Head.ContainingSymbol Is ContainingSymbol)
 
-            If _lazyConstraintTypes.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyConstraintTypes).IsDefault Then
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                 Dim inherited = (_containingSymbol.Kind = SymbolKind.Method) AndAlso DirectCast(_containingSymbol, MethodSymbol).IsOverrides
+                Dim hasUnmanagedModreqPattern As Boolean = False
 
                 ' Check direct constraints on the type parameter to generate any use-site errors
                 ' (for example, the cycle in ".class public A<(!T)T>"). It's necessary to check for such
@@ -278,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' which cannot be satisfied if A and B are from different hierarchies.) It also isn't
                 ' necessary to report redundant constraints since redundant constraints are still
                 ' valid. Redundant constraints are dropped silently.
-                Dim constraints = Me.RemoveDirectConstraintConflicts(GetDeclaredConstraints(), inProgress.Prepend(Me), DirectConstraintConflictKind.None, diagnosticsBuilder)
+                Dim constraints = Me.RemoveDirectConstraintConflicts(GetDeclaredConstraints(hasUnmanagedModreqPattern), inProgress.Prepend(Me), DirectConstraintConflictKind.None, diagnosticsBuilder)
                 Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
                 Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
@@ -292,7 +354,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 diagnosticsBuilder.Free()
 
-                _lazyCachedBoundsUseSiteInfo.InterlockedCompareExchange(primaryDependency, useSiteInfo)
+                _lazyCachedBoundsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, useSiteInfo)
+                _lazyHasIsUnmanagedConstraint = hasUnmanagedModreqPattern.ToThreeState()
+
+                ' Note, we are relying on the fact that _lazyConstraintTypes is initialized last, and
+                ' we depend on the memory barrier from this interlocked operation to prevent write reordering
                 ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints))
             End If
 

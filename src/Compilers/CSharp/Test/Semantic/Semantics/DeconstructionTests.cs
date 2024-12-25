@@ -4123,9 +4123,6 @@ unsafe class C
                 // (9,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('var')
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "var*").WithArguments("var").WithLocation(9, 10),
-                // (9,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'var*[]'. An explicit conversion exists (are you missing a cast?)
-                //         (var*[] x4, int y4) = c;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "var*[] x4").WithArguments("dynamic", "var*[]").WithLocation(9, 10),
                 // (9,21): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (var*[] x4, int y4) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y4").WithArguments("dynamic", "int").WithLocation(9, 21)
@@ -6559,6 +6556,60 @@ class C
             var nestedConversions = deconstructionInfo.Nested;
             Assert.Equal(2, nestedConversions.Length);
             Assert.All(nestedConversions, n => Assert.Empty(n.Nested));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68026")]
+        public void ErrorForeachVariable_01()
+        {
+            var source = @"
+foreach
+Console.Write($""{1 switch { _ => 1 }}"");
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,8): error CS1003: Syntax error, '(' expected
+                // foreach
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(2, 8),
+                // (3,40): error CS1515: 'in' expected
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(3, 40),
+                // (3,40): error CS0230: Type and identifier are both required in a foreach statement
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(3, 40),
+                // (3,40): error CS1525: Invalid expression term ';'
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 40),
+                // (3,40): error CS1026: ) expected
+                // Console.Write($"{1 switch { _ => 1 }}");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 40)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68026")]
+        public void ErrorForeachVariable_02()
+        {
+            var source = @"
+foreach (m(out var x) in new[]{1,2})
+{ 
+    x++; // 1
+}
+
+x++; // 2
+
+void m(out int x) => x = 0;
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,23): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (m(out var x) in new[]{1,2})
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(2, 23),
+                // (7,1): error CS0103: The name 'x' does not exist in the current context
+                // x++; // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 1),
+                // (9,6): warning CS8321: The local function 'm' is declared but never used
+                // void m(out int x) => x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "m").WithArguments("m").WithLocation(9, 6)
+                );
         }
     }
 }

@@ -184,60 +184,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        // See ManagedCompiler.cs on the logic of this property
-        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
-
-        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
-
-        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
-
-        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
-
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
             {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands).Select(arg => new TaskItem(arg)).ToArray();
+                CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
             return (SkipInteractiveExecution) ? 0 : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
         }
 
-        public string GenerateCommandLineContents() => GenerateCommandLineCommands();
-
-        protected sealed override string ToolArguments
-        {
-            get
-            {
-                var builder = new CommandLineBuilderExtension();
-                AddCommandLineCommands(builder);
-                return builder.ToString();
-            }
-        }
-
-        public string GenerateResponseFileContents() => GenerateResponseFileCommands();
-
-        protected sealed override string GenerateResponseFileCommands()
-        {
-            var commandLineBuilder = new CommandLineBuilderExtension();
-            AddResponseFileCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
-        }
-
         #endregion
-
-        /// <summary>
-        /// Fills the provided CommandLineBuilderExtension with those switches and other information that can't go into a response file and
-        /// must go directly onto the command line.
-        /// </summary>
-        protected virtual void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
-        {
-        }
 
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected virtual void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitch("/i-");
 
@@ -268,16 +230,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     commandLine.AppendSwitchIfNotNull("@", scriptResponse.ItemSpec);
                 }
             }
-        }
-
-        /// <summary>
-        /// Get the command line arguments to pass to the compiler.
-        /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
-        {
-            var commandLineArguments = CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments = CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
-            return commandLineArguments.Concat(responseFileArguments).ToArray();
         }
     }
 }

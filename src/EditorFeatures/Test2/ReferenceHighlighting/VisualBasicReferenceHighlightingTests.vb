@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(539121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539121")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539121")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithConstructor(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(539121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539121")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539121")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithSynthesizedConstructor(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange1(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -87,7 +87,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange2(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -110,7 +110,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(540670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
         Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange3(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -123,7 +123,32 @@ End Interface
 Class C
     Implements I
 
+    ' This method itself is not found as nothing references it.
+    Public Sub Goo() Implements I.{|Reference:$$Goo|}
+    End Sub
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540670")>
+        Public Async Function TestVerifyHighlightsForVisualBasicClassWithMethodNameChange4(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Interface I
+    Sub {|Definition:Goo|}()
+End Interface
+
+Class C
+    Implements I
+
     Public Sub {|Definition:Goo|}() Implements I.{|Reference:$$Goo|}
+        ' Presence of this reference means we find the containing definition.
+        {|Reference:Goo|}()
     End Sub
 End Class
                         </Document>
@@ -133,7 +158,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(543816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543816")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543816")>
         Public Async Function TestVerifyNoHighlightsForLiteral(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -149,7 +174,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(545531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545531")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545531")>
         Public Async Function TestVerifyHighlightsForGlobal(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -166,8 +191,7 @@ End Module
                 </Workspace>, testHost)
         End Function
 
-        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         <CombinatorialData>
         Public Async Function TestAccessor1(testHost As TestHost) As Task
             Dim input =
@@ -191,8 +215,7 @@ End Class
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         <CombinatorialData>
         Public Async Function TestAccessor2(testHost As TestHost) As Task
             Dim input =
@@ -216,8 +239,7 @@ End Class
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(531624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
         <CombinatorialData>
         Public Async Function TestHighlightParameterizedPropertyParameter(testHost As TestHost) As Task
             Dim input =
@@ -286,8 +308,8 @@ End Class
 
         <WpfTheory>
         <CombinatorialData>
-        <WorkItem(1904, "https://github.com/dotnet/roslyn/issues/1904")>
-        <WorkItem(2079, "https://github.com/dotnet/roslyn/issues/2079")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1904")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2079")>
         Public Async Function TestVerifyHighlightsForVisualBasicGlobalImportAliasedNamespace(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -305,6 +327,27 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1820930")>
+        <CombinatorialData>
+        Public Async Function TestIncompleteProperty1(testHost As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class C
+    $$Public ReadOnly Property As String
+        Get
+            Return ""
+        End Get
+    End Property
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
         End Function
     End Class
 End Namespace

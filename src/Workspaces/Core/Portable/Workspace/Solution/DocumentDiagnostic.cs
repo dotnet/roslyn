@@ -4,16 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis
-{
-    public class DocumentDiagnostic : WorkspaceDiagnostic
-    {
-        public DocumentId DocumentId { get; }
+namespace Microsoft.CodeAnalysis;
 
-        public DocumentDiagnostic(WorkspaceDiagnosticKind kind, string message, DocumentId documentId)
-            : base(kind, message)
-        {
-            this.DocumentId = documentId;
-        }
-    }
+public class DocumentDiagnostic(WorkspaceDiagnosticKind kind, string message, DocumentId documentId) : WorkspaceDiagnostic(kind, message)
+{
+    public DocumentId DocumentId { get; } = documentId;
 }

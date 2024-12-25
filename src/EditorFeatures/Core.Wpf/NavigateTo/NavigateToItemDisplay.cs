@@ -8,18 +8,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -64,9 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return new List<DescriptionItem>().AsReadOnly();
             }
 
-            var sourceText = document.GetTextSynchronously(CancellationToken.None);
-            var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
-
             var items = new List<DescriptionItem>
                     {
                         new DescriptionItem(
@@ -79,12 +75,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                                 new[] { new DescriptionRun("File:", bold: true) }),
                             new ReadOnlyCollection<DescriptionRun>(
                                 new[] { new DescriptionRun(document.FilePath ?? document.Name) })),
-                        new DescriptionItem(
-                            new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun("Line:", bold: true) }),
-                            new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(span.Start) + 1).ToString()) }))
                     };
+
+            if (document.TryGetTextSynchronously(document.Workspace.CurrentSolution, CancellationToken.None) is { } sourceText)
+            {
+                var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
+                items.Add(
+                    new DescriptionItem(
+                        new ReadOnlyCollection<DescriptionRun>(
+                            new[] { new DescriptionRun("Line:", bold: true) }),
+                        new ReadOnlyCollection<DescriptionRun>(
+                            new[] { new DescriptionRun((sourceText.Lines.IndexOf(span.Start) + 1).ToString()) })));
+            }
 
             var summary = _searchResult.Summary;
             if (!string.IsNullOrWhiteSpace(summary))
@@ -105,50 +107,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
         public void NavigateTo()
-        {
-            var token = _asyncListener.BeginAsyncOperation(nameof(NavigateTo));
-            NavigateToAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
-        }
-
-        private async Task NavigateToAsync()
-        {
-            var document = _searchResult.NavigableItem.Document;
-            if (document == null)
-                return;
-
-            var workspace = document.Project.Solution.Workspace;
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-
-            // Document tabs opened by NavigateTo are carefully created as preview or regular tabs
-            // by them; trying to specifically open them in a particular kind of tab here has no
-            // effect.
-            //
-            // In the case of a stale item, don't require that the span be in bounds of the document
-            // as it exists right now.
-            using var context = _threadOperationExecutor.BeginExecute(
-                EditorFeaturesResources.Navigating_to_definition, EditorFeaturesResources.Navigating_to_definition, allowCancellation: true, showProgress: false);
-            await navigationService.TryNavigateToSpanAsync(
-                _threadingContext,
-                workspace,
-                document.Id,
-                _searchResult.NavigableItem.SourceSpan,
-                NavigationOptions.Default,
-                allowInvalidSpan: _searchResult.NavigableItem.IsStale,
-                context.UserCancellationToken).ConfigureAwait(false);
-        }
+            => NavigateToHelpers.NavigateTo(_searchResult, _threadingContext, _threadOperationExecutor, _asyncListener);
 
         public int GetProvisionalViewingStatus()
         {
             var document = _searchResult.NavigableItem.Document;
             if (document == null)
             {
-                return 0;
+                return (int)__VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
             }
 
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = document.Workspace;
             var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 
-            return previewService.GetProvisionalViewingStatus(document);
+            return (int)previewService.GetProvisionalViewingStatus(document);
         }
 
         public void PreviewItem()
@@ -159,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = document.Workspace;
             var previewService = workspace.Services.GetService<INavigateToPreviewService>();
 
             previewService.PreviewItem(this);
@@ -171,6 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             => _searchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
 
         public IReadOnlyList<Span> GetAdditionalInformationMatchRuns(string searchValue)
-            => SpecializedCollections.EmptyReadOnlyList<Span>();
+            => [];
     }
 }

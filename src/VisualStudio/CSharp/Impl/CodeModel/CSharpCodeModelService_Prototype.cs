@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -462,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     {
                         builder.Append("this[");
                         AppendParametersPrototype(builder, symbol.Parameters, PrototypeFlags.ParameterTypes | PrototypeFlags.ParameterNames);
-                        builder.Append("]");
+                        builder.Append(']');
                     }
                     else
                     {
@@ -554,7 +555,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static void AppendTypeNamePrototype(StringBuilder builder, bool includeNamespaces, bool includeGenerics, ISymbol symbol)
         {
-            var symbols = new Stack<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             while (symbol != null)
             {
@@ -572,10 +573,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             var first = true;
-            while (symbols.Count > 0)
+            while (symbols.TryPop(out var current))
             {
-                var current = symbols.Pop();
-
                 if (!first)
                 {
                     builder.Append('.');

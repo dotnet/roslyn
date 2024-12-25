@@ -10,25 +10,24 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
+
+/// <summary>   
+/// Custom column to display the containing type for the Find All References window.
+/// </summary>
+[Export(typeof(ITableColumnDefinition))]
+[Name(ColumnName)]
+internal class ContainingTypeColumnDefinition : TableColumnDefinitionBase
 {
-    /// <summary>   
-    /// Custom column to display the containing type for the Find All References window.
-    /// </summary>
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(ColumnName)]
-    internal class ContainingTypeColumnDefinition : TableColumnDefinitionBase
+    public const string ColumnName = AbstractReferenceFinder.ContainingTypeInfoPropertyName;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ContainingTypeColumnDefinition()
     {
-        public const string ColumnName = AbstractReferenceFinder.ContainingTypeInfoPropertyName;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ContainingTypeColumnDefinition()
-        {
-        }
-
-        public override bool IsFilterable => true;
-        public override string Name => ColumnName;
-        public override string DisplayName => ServicesVSResources.Containing_type;
     }
+
+    public override bool IsFilterable => true;
+    public override string Name => ColumnName;
+    public override string DisplayName => ServicesVSResources.Containing_type;
 }

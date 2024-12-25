@@ -7,7 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -18,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     public partial class AbstractCodeModelObject
     {
-        private static CodeGenerationContextInfo GetCodeGenerationContextInfo(
+        private CodeGenerationContextInfo GetCodeGenerationContextInfo(
             SyntaxNode containerNode,
             CodeGenerationOptions options,
             EnvDTE.vsCMAccess access = EnvDTE.vsCMAccess.vsCMAccessDefault,
@@ -26,10 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var generateDefaultAccessibility = (access & EnvDTE.vsCMAccess.vsCMAccessDefault) == 0;
 
-            return options.GetInfo(
+            return CodeGenerationService.GetInfo(
                 new CodeGenerationContext(
                     generateDefaultAccessibility: generateDefaultAccessibility,
                     generateMethodBodies: generateMethodBodies),
+                options,
                 containerNode.SyntaxTree.Options);
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     name: "get_" + name,
                     typeParameters: default,
                     parameters: default,
-                    statements: ImmutableArray.Create(CodeModelService.CreateReturnDefaultValueStatement(type)));
+                    statements: [CodeModelService.CreateReturnDefaultValueStatement(type)]);
             }
 
             IMethodSymbol? setMethod = null;

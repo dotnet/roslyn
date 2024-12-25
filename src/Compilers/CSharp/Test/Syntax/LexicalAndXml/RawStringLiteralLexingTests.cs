@@ -275,6 +275,7 @@ System.Console.WriteLine(
             new object[] { "\\0" },
             new object[] { "\\a" },
             new object[] { "\\b" },
+            new object[] { "\\e" },
             new object[] { "\\f" },
             new object[] { "\\n" },
             new object[] { "\\r" },

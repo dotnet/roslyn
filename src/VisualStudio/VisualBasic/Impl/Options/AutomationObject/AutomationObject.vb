@@ -9,11 +9,11 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
-    Partial Public Class AutomationObject
+    Partial Public NotInheritable Class AutomationObject
         Inherits AbstractAutomationObject
 
-        Friend Sub New(workspace As Workspace)
-            MyBase.New(workspace, LanguageNames.VisualBasic)
+        Friend Sub New(legacyGlobalOptions As ILegacyGlobalOptionService)
+            MyBase.New(legacyGlobalOptions, LanguageNames.VisualBasic)
         End Sub
 
         Private Overloads Function GetBooleanOption(key As PerLanguageOption2(Of Boolean)) As Boolean

@@ -5,11 +5,10 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
-    Public Class CSharpReferenceHighlightingTests
+    Public NotInheritable Class CSharpReferenceHighlightingTests
         Inherits AbstractReferenceHighlightingTests
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVerifyNoHighlightsWhenOptionDisabled(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -26,8 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 optionIsEnabled:=False)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVerifyHighlightsForClass(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -41,8 +39,79 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestMethodInheritance1(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class Goo
+                            {
+                                public virtual void {|Definition:$$M|}()
+                                {
+                                }
+
+                                void X()
+                                {
+                                    this.{|Reference:M|}();
+                                    new Derived().{|Reference:M|}();
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class Derived : Goo
+                            {
+                                public overriide void M()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestMethodInheritance2(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class Goo : Base
+                            {
+                                public override void {|Definition:$$M|}()
+                                {
+                                }
+
+                                void X()
+                                {
+                                    this.{|Reference:M|}();
+
+                                    // This result is not found, because it could never be a reference to Goo.M.
+                                    new Derived().M();
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class Base
+                            {
+                                public virtual void M()
+                                {
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class Derived : Base
+                            {
+                                public override void M()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVerifyHighlightsForScriptReference(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -60,8 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestVerifyHighlightsForCSharpClassWithConstructor(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -79,9 +147,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>, testHost)
         End Function
 
-        <WorkItem(538721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538721")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538721")>
         Public Async Function TestVerifyHighlightsForCSharpClassWithSynthesizedConstructor(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -99,9 +166,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
-        <WorkItem(528436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528436")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528436")>
         Public Async Function TestVerifyHighlightsOnCloseAngleOfGeneric(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -123,9 +189,8 @@ class {|Definition:Program|}
                 </Workspace>, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
-        <WorkItem(570809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570809")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570809")>
         Public Async Function TestVerifyNoHighlightsOnAsyncLambda(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -149,9 +214,8 @@ class Program
                 </Workspace>, testHost)
         End Function
 
-        <WorkItem(543768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
         Public Async Function TestAlias1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -175,9 +239,8 @@ namespace X
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(543768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
         Public Async Function TestAlias2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -201,9 +264,8 @@ namespace X
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(543768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543768")>
         Public Async Function TestAlias3(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -227,9 +289,8 @@ namespace X
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(552000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552000")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552000")>
         Public Async Function TestAlias4(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -250,9 +311,8 @@ namespace N
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(542830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
         Public Async Function TestHighlightThroughVar1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -275,9 +335,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(542830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
         Public Async Function TestHighlightThroughVar2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -300,9 +359,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(542830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542830")>
         Public Async Function TestHighlightThroughVar3(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -327,9 +385,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
         Public Async Function TestUsingAliasAndTypeWithSameName1(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -344,9 +401,8 @@ class X { }
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")>
         Public Async Function TestUsingAliasAndTypeWithSameName2(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -361,9 +417,8 @@ class {|Definition:$$X|} { }
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         Public Async Function TestAccessor1(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -390,9 +445,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(567959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         Public Async Function TestAccessor2(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -420,7 +474,7 @@ class C
         End Function
 
         <WpfTheory(Skip:="604466"), CombinatorialData>
-        <WorkItem(604466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604466")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604466")>
         Public Async Function TestThisShouldNotHighlightTypeName(testHost As TestHost) As Task
             Dim input =
 <Workspace>
@@ -440,9 +494,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(531620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531620")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531620")>
         Public Async Function TestHighlightDynamicallyBoundMethod(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -472,9 +525,8 @@ class A
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem(531624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
         Public Async Function TestHighlightParameterizedPropertyParameter(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -497,8 +549,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInterpolatedString1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -520,8 +571,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestInterpolatedString2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -543,8 +593,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWrittenReference(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -565,8 +614,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestWrittenReference2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -587,8 +635,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPatternMatchingType1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -612,8 +659,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPatternMatchingType2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -637,8 +683,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPatternMatchingTypeScoping1(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -669,8 +714,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPatternMatchingTypeScoping2(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -701,10 +745,8 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexReference1(testHost As TestHost) As Task
-
             Dim input =
            <Workspace>
                <Project Language="C#" CommonReferences="true">
@@ -725,8 +767,57 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65836")>
+        Public Async Function TestRegexReference_RawStringInBounds(testHost As TestHost) As Task
+            Dim input =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex("""
+           {|Reference:(a)|}\0{|Reference:\$$1|}
+           """);
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/65836")>
+        Public Async Function TestRegexReference_RawStringOutOfBounds(testHost As TestHost) As Task
+            Dim input =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex("""
+    $$       (a)\0\1
+           """);
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestHighlightParamAndCommentsCursorOnDefinition(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -753,8 +844,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestHighlightParamAndCommentsCursorOnReference(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -781,8 +871,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestHighlightParamAndCommentsDefinitionNestedBetweenReferences(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -809,8 +898,7 @@ class C
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNotOnNewInObjectCreation(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -834,8 +922,7 @@ namespace X
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnTypeInObjectCreation(testHost As TestHost) As Task
             Dim input =
             <Workspace>
@@ -857,6 +944,286 @@ namespace X
             </Workspace>
 
             Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint1(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        $${|Reference:nint|} n1 = 1;
+        nuint n2 = 1;
+        {|Reference:nint|} n3 = 1;
+        nuint n4 = 1;
+        IntPtr n5 = 1;
+        UIntPtr n6 = 1;
+        IntPtr n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint2(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        nuint n2 = 1;
+        nint n3 = 1;
+        nuint n4 = 1;
+        $${|Reference:IntPtr|} n5 = 1;
+        UIntPtr n6 = 1;
+        {|Reference:IntPtr|} n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint3(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        $${|Reference:nuint|} n2 = 1;
+        nint n3 = 1;
+        {|Reference:nuint|} n4 = 1;
+        IntPtr n5 = 1;
+        UIntPtr n6 = 1;
+        IntPtr n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint4(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        nuint n2 = 1;
+        nint n3 = 1;
+        nuint n4 = 1;
+        IntPtr n5 = 1;
+        $${|Reference:UIntPtr|} n6 = 1;
+        IntPtr n7 = 1;
+        {|Reference:UIntPtr|} n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint1_Net7(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet7="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        $${|Reference:nint|} n1 = 1;
+        nuint n2 = 1;
+        {|Reference:nint|} n3 = 1;
+        nuint n4 = 1;
+        {|Reference:IntPtr|} n5 = 1;
+        UIntPtr n6 = 1;
+        {|Reference:IntPtr|} n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint2_Net7(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet7="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        {|Reference:nint|} n1 = 1;
+        nuint n2 = 1;
+        {|Reference:nint|} n3 = 1;
+        nuint n4 = 1;
+        $${|Reference:IntPtr|} n5 = 1;
+        UIntPtr n6 = 1;
+        {|Reference:IntPtr|} n7 = 1;
+        UIntPtr n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint3_Net7(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet7="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        $${|Reference:nuint|} n2 = 1;
+        nint n3 = 1;
+        {|Reference:nuint|} n4 = 1;
+        IntPtr n5 = 1;
+        {|Reference:UIntPtr|} n6 = 1;
+        IntPtr n7 = 1;
+        {|Reference:UIntPtr|} n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint4_Net7(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet7="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        nint n1 = 1;
+        {|Reference:nuint|} n2 = 1;
+        nint n3 = 1;
+        {|Reference:nuint|} n4 = 1;
+        IntPtr n5 = 1;
+        $${|Reference:UIntPtr|} n6 = 1;
+        IntPtr n7 = 1;
+        {|Reference:UIntPtr|} n8 = 1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42988")>
+        Public Async Function TestNintNUint(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System;
+class Test
+{
+    void M()
+    {
+        $${|Reference:nint|} n1 = 1;
+        int nint;
+    }
+
+    void nint() { }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/2239702")>
+        Public Async Function TestVerifyHighlightsForLinqQueryOrdering(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Linq;
+
+                            class C
+                            {
+                                void M(int[] values)
+                                {
+                                    var v = from x in values
+                                            $$orderby x.ToString() ascending
+                                            select x;
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
         End Function
     End Class
 End Namespace

@@ -6,57 +6,38 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal sealed partial class FormattingContext
 {
-    internal partial class FormattingContext
+    /// <summary>
+    /// data that will be used in an interval tree related to Anchor.
+    /// </summary>
+    private sealed class AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
     {
-        /// <summary>
-        /// data that will be used in an interval tree related to Anchor.
-        /// </summary>
-        private class AnchorData
-        {
-            private readonly AnchorIndentationOperation _operation;
+        public TextSpan TextSpan => operation.TextSpan;
 
-            public AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
-            {
-                _operation = operation;
-                this.AnchorToken = anchorToken;
-                this.OriginalColumn = originalColumn;
-            }
+        public SyntaxToken StartToken => operation.StartToken;
 
-            public TextSpan TextSpan => _operation.TextSpan;
+        public SyntaxToken EndToken => operation.EndToken;
 
-            public SyntaxToken StartToken => _operation.StartToken;
+        public SyntaxToken AnchorToken { get; } = anchorToken;
 
-            public SyntaxToken EndToken => _operation.EndToken;
+        public int OriginalColumn { get; } = originalColumn;
+    }
 
-            public SyntaxToken AnchorToken { get; }
+    private readonly struct FormattingContextIntervalIntrospector :
+        IIntervalIntrospector<AnchorData>,
+        IIntervalIntrospector<IndentationData>,
+        IIntervalIntrospector<RelativeIndentationData>
+    {
+        TextSpan IIntervalIntrospector<AnchorData>.GetSpan(AnchorData value)
+            => value.TextSpan;
 
-            public int OriginalColumn { get; }
-        }
+        TextSpan IIntervalIntrospector<IndentationData>.GetSpan(IndentationData value)
+            => value.TextSpan;
 
-        private readonly struct FormattingContextIntervalIntrospector
-            : IIntervalIntrospector<AnchorData>,
-            IIntervalIntrospector<IndentationData>,
-            IIntervalIntrospector<RelativeIndentationData>
-        {
-            int IIntervalIntrospector<AnchorData>.GetStart(AnchorData value)
-                => value.TextSpan.Start;
-
-            int IIntervalIntrospector<AnchorData>.GetLength(AnchorData value)
-                => value.TextSpan.Length;
-
-            int IIntervalIntrospector<IndentationData>.GetStart(IndentationData value)
-                => value.TextSpan.Start;
-
-            int IIntervalIntrospector<IndentationData>.GetLength(IndentationData value)
-                => value.TextSpan.Length;
-
-            int IIntervalIntrospector<RelativeIndentationData>.GetStart(RelativeIndentationData value)
-                => value.InseparableRegionSpan.Start;
-
-            int IIntervalIntrospector<RelativeIndentationData>.GetLength(RelativeIndentationData value)
-                => value.InseparableRegionSpan.Length;
-        }
+        TextSpan IIntervalIntrospector<RelativeIndentationData>.GetSpan(RelativeIndentationData value)
+            => value.InseparableRegionSpan;
     }
 }

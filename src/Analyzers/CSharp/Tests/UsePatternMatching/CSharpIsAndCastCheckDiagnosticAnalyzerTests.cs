@@ -17,706 +17,777 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
-{
-    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-    public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-    {
-        public CSharpIsAndCastCheckDiagnosticAnalyzerTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpIsAndCastCheckDiagnosticAnalyzer(), new CSharpIsAndCastCheckCodeFixProvider());
+[Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+{
+    public CSharpIsAndCastCheckDiagnosticAnalyzerTests(ITestOutputHelper logger)
+      : base(logger)
+    {
+    }
 
-        [Fact]
-        public async Task InlineTypeCheck1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)x;
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (x is string v)
-        {
-        }
-    }
-}");
-        }
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpIsAndCastCheckDiagnosticAnalyzer(), new CSharpIsAndCastCheckCodeFixProvider());
 
-        [Fact]
-        public async Task TestMissingInCSharp6()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task InlineTypeCheck1()
     {
-        if (x is string)
-        {
-            [|var|] v = (string)x;
-        }
-    }
-}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-        }
-
-        [Fact]
-        public async Task TestMissingInWrongName()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)y;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestMissingInWrongType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (bool)x;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestMissingOnMultiVar()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            var [|v|] = (string)x, v1 = "";
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestMissingOnNonDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|v|] = (string)x;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestMissingOnAsExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x as string)
-        {
-            [|var|] v = (string)x;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckComplexExpression1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if ((x ? y : z) is string)
-        {
-            [|var|] v = (string)(x ? y : z);
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if ((x ? y : z) is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestInlineTypeCheckWithElse()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)x;
-        }
-        else
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (x is string v)
-        {
-        }
-        else
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestComments1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            // prefix comment
-            [|var|] v = (string)x;
-        } 
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        // prefix comment
-        if (x is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestComments2()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)x; // suffix comment
-        } 
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        // suffix comment
-        if (x is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestComments3()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            // prefix comment
-            [|var|] v = (string)x; // suffix comment
-        } 
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        // prefix comment
-        // suffix comment
-        if (x is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact, WorkItem(17126, "https://github.com/dotnet/roslyn/issues/17126")]
-        public async Task TestComments4()
-        {
-            await TestInRegularAndScript1Async(
-@"using System;
-namespace N {
-    class Program {
-        public static void Main()
-        {
-            object o = null;
-            if (o is int)
-                Console.WriteLine();
-            else if (o is string)
+        await TestInRegularAndScript1Async(
+            """
+            class C
             {
-                // some comment
-                [|var|] s = (string)o;
-                Console.WriteLine(s);
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+                }
             }
-        }
-    }
-}",
-@"using System;
-namespace N {
-    class Program {
-        public static void Main()
-        {
-            object o = null;
-            if (o is int)
-                Console.WriteLine();
-            else if (o is string s) // some comment
+            """,
+            """
+            class C
             {
-                Console.WriteLine(s);
+                void M()
+                {
+                    if (x is string v)
+                    {
+                    }
+                }
             }
-        }
+            """);
     }
-}");
-        }
 
-        [Fact]
-        public async Task InlineTypeCheckParenthesized1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestMissingInCSharp6()
     {
-        if ((x) is string)
-        {
-            [|var|] v = (string)x;
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if ((x) is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckParenthesized2()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)(x);
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (x is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckParenthesized3()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = ((string)x);
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (x is string v)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckScopeConflict1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)x;
-        }
-        else
-        {
-            var v = 1;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckScopeConflict2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)x;
-        }
-
-        if (true)
-        {
-            var v = 1;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckScopeConflict3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            var v = (string)x;
-        }
-
-        if (x is bool)
-        {
-            [|var|] v = (bool)x;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task InlineTypeCheckScopeNonConflict1()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        {
-            if (x is string)
+        await TestMissingAsync(
+            """
+            class C
             {
-                [|var|] v = ((string)x);
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+                }
             }
-        }
-
-        {
-            var v = 1;
-        }
+            """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
     }
-}",
-@"class C
-{
-    void M()
+
+    [Fact]
+    public async Task TestMissingInWrongName()
     {
-        {
-            if (x is string v)
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)y;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingInWrongType()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (bool)x;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingOnMultiVar()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        var [|v|] = (string)x, v1 = ";
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingOnNonDeclaration()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|v|] = (string)x;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingOnAsExpression()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x as string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckComplexExpression1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if ((x ? y : z) is string)
+                    {
+                        [|var|] v = (string)(x ? y : z);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if ((x ? y : z) is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInlineTypeCheckWithElse()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string v)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestComments1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        // prefix comment
+                        [|var|] v = (string)x;
+                    } 
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    // prefix comment
+                    if (x is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestComments2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x; // suffix comment
+                    } 
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    // suffix comment
+                    if (x is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestComments3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        // prefix comment
+                        [|var|] v = (string)x; // suffix comment
+                    } 
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    // prefix comment
+                    // suffix comment
+                    if (x is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17126")]
+    public async Task TestComments4()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            namespace N {
+                class Program {
+                    public static void Main()
+                    {
+                        object o = null;
+                        if (o is int)
+                            Console.WriteLine();
+                        else if (o is string)
+                        {
+                            // some comment
+                            [|var|] s = (string)o;
+                            Console.WriteLine(s);
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            namespace N {
+                class Program {
+                    public static void Main()
+                    {
+                        object o = null;
+                        if (o is int)
+                            Console.WriteLine();
+                        else if (o is string s) // some comment
+                        {
+                            Console.WriteLine(s);
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckParenthesized1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if ((x) is string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if ((x) is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckParenthesized2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)(x);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckParenthesized3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = ((string)x);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string v)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckScopeConflict1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+                    else
+                    {
+                        var v = 1;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckScopeConflict2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x;
+                    }
+
+                    if (true)
+                    {
+                        var v = 1;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckScopeConflict3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        var v = (string)x;
+                    }
+
+                    if (x is bool)
+                    {
+                        [|var|] v = (bool)x;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineTypeCheckScopeNonConflict1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    {
+                        if (x is string)
+                        {
+                            [|var|] v = ((string)x);
+                        }
+                    }
+
+                    {
+                        var v = 1;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    {
+                        if (x is string v)
+                        {
+                        }
+                    }
+
+                    {
+                        var v = 1;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18053")]
+    public async Task TestMissingWhenTypesDoNotMatch()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class SyntaxNode
+            {
+                public SyntaxNode Parent;
+            }
+
+            class BaseParameterListSyntax : SyntaxNode
             {
             }
-        }
 
-        {
-            var v = 1;
-        }
-    }
-}");
-        }
-
-        [Fact, WorkItem(18053, "https://github.com/dotnet/roslyn/issues/18053")]
-        public async Task TestMissingWhenTypesDoNotMatch()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class SyntaxNode
-{
-    public SyntaxNode Parent;
-}
-
-class BaseParameterListSyntax : SyntaxNode
-{
-}
-
-class ParameterSyntax : SyntaxNode
-{
-
-}
-
-public static class C
-{
-    static void N(ParameterSyntax parameter)
-    {
-        if (parameter.Parent is BaseParameterListSyntax)
-        {
-            [|SyntaxNode|] parent = (BaseParameterListSyntax)parameter.Parent;
-            parent = parent.Parent;
-        }
-    }
-}");
-        }
-
-        [Fact, WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
-        public async Task TestMissingWithNullableType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    public object Convert(object value)
-    {
-        if (value is bool?)
-        {
-            [|bool?|] tmp = (bool?)value;
-        }
-
-        return null;
-    }
-}");
-        }
-
-        [Fact, WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
-        public async Task TestMissingWithDynamic()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    public object Convert(object value)
-    {
-        if (value is dynamic)
-        {
-            [|dynamic|] tmp = (dynamic)value;
-        }
-
-        return null;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task TestSeverity()
-        {
-            var source =
-
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            [|var|] v = (string)x;
-        } 
-    }
-}";
-            var warningOption = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
-            var options = Option(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, warningOption);
-            var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
-
-            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
-            var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
-            Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
-            Assert.Equal(IDEDiagnosticIds.InlineIsTypeCheckId, diag.Id);
-        }
-
-        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
-        public async Task TestWithVariableDesignation1()
-        {
-            await TestInRegularAndScriptAsync(
-@"
-public class Test
-{
-    public void TestIt(object o)
-    {
-        if (o is int)
-        {
-            [|var|] value = (int)o;
-        }
-        else if (o is Guid value1)
-        {
-        }
-    }
-}",
-@"
-public class Test
-{
-    public void TestIt(object o)
-    {
-        if (o is int value)
-        {
-        }
-        else if (o is Guid value1)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
-        public async Task TestWithVariableDesignation2()
-        {
-            await TestMissingAsync(
-@"
-public class Test
-{
-    public void TestIt(object o)
-    {
-        if (o is int)
-        {
-            [|var|] value = (int)o;
-        }
-        else if (o is Guid value)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact, WorkItem(24287, "https://github.com/dotnet/roslyn/issues/24287")]
-        public async Task TestWithVariableDesignation3()
-        {
-            await TestMissingAsync(
-@"
-public class Test
-{
-    public void TestIt(object o)
-    {
-        if (o is int)
-        {
-            [|var|] value = (int)o;
-        }
-        else if (TryGetValue(o, out var value))
-        }
-    }
-
-    private bool TryGetValue(object o, out string result)
-    {
-        result = """";
-        return true;
-    }
-}");
-        }
-
-        [Fact, WorkItem(42462, "https://github.com/dotnet/roslyn/issues/42462")]
-        public async Task TestWithLocalInsideTryBlock()
-        {
-            await TestInRegularAndScript1Async(
-@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        object value = null;
-
-        if (value is string)
-        {
-            try
-            {
-                [|var|] stringValue = (string)value;
-            }
-            finally
+            class ParameterSyntax : SyntaxNode
             {
 
             }
-        }
+
+            public static class C
+            {
+                static void N(ParameterSyntax parameter)
+                {
+                    if (parameter.Parent is BaseParameterListSyntax)
+                    {
+                        [|SyntaxNode|] parent = (BaseParameterListSyntax)parameter.Parent;
+                        parent = parent.Parent;
+                    }
+                }
+            }
+            """);
     }
-}
-",
-@"
-class Program
-{
-    static void Main(string[] args)
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
+    public async Task TestMissingWithNullableType()
     {
-        object value = null;
-
-        if (value is string stringValue)
-        {
-            try
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
             {
-            }
-            finally
-            {
+                public object Convert(object value)
+                {
+                    if (value is bool?)
+                    {
+                        [|bool?|] tmp = (bool?)value;
+                    }
 
+                    return null;
+                }
             }
-        }
+            """);
     }
-}
-");
-        }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21172")]
+    public async Task TestMissingWithDynamic()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public object Convert(object value)
+                {
+                    if (value is dynamic)
+                    {
+                        [|dynamic|] tmp = (dynamic)value;
+                    }
+
+                    return null;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestSeverity()
+    {
+        var source =
+
+            """
+            class C
+            {
+                void M()
+                {
+                    if (x is string)
+                    {
+                        [|var|] v = (string)x;
+                    } 
+                }
+            }
+            """;
+        var warningOption = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
+        var options = Option(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, warningOption);
+        var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
+
+        using var workspace = CreateWorkspaceFromOptions(source, testParameters);
+        var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
+        Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
+        Assert.Equal(IDEDiagnosticIds.InlineIsTypeCheckId, diag.Id);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24287")]
+    public async Task TestWithVariableDesignation1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            public class Test
+            {
+                public void TestIt(object o)
+                {
+                    if (o is int)
+                    {
+                        [|var|] value = (int)o;
+                    }
+                    else if (o is Guid value1)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            public class Test
+            {
+                public void TestIt(object o)
+                {
+                    if (o is int value)
+                    {
+                    }
+                    else if (o is Guid value1)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24287")]
+    public async Task TestWithVariableDesignation2()
+    {
+        await TestMissingAsync(
+            """
+            public class Test
+            {
+                public void TestIt(object o)
+                {
+                    if (o is int)
+                    {
+                        [|var|] value = (int)o;
+                    }
+                    else if (o is Guid value)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24287")]
+    public async Task TestWithVariableDesignation3()
+    {
+        await TestMissingAsync(
+            """
+            public class Test
+            {
+                public void TestIt(object o)
+                {
+                    if (o is int)
+                    {
+                        [|var|] value = (int)o;
+                    }
+                    else if (TryGetValue(o, out var value))
+                    }
+                }
+
+                private bool TryGetValue(object o, out string result)
+                {
+                    result = "";
+                    return true;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42462")]
+    public async Task TestWithLocalInsideTryBlock()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    object value = null;
+
+                    if (value is string)
+                    {
+                        try
+                        {
+                            [|var|] stringValue = (string)value;
+                        }
+                        finally
+                        {
+
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    object value = null;
+
+                    if (value is string stringValue)
+                    {
+                        try
+                        {
+                        }
+                        finally
+                        {
+
+                        }
+                    }
+                }
+            }
+            """);
     }
 }

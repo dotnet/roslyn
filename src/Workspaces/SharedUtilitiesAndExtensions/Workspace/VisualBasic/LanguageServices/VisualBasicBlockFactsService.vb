@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(IBlockFactsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicBlockFactsService
+    Friend NotInheritable Class VisualBasicBlockFactsService
         Inherits VisualBasicBlockFacts
         Implements IBlockFactsService
 

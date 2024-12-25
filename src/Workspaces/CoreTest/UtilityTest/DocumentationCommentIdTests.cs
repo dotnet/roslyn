@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static CSharpCompilation CreateCSharpCompilation(string sourceText)
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
-            return CSharpCompilation.Create("goo.exe").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(syntaxTree);
+            return CSharpCompilation.Create("goo.exe").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(syntaxTree);
         }
 
         private static void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
@@ -213,8 +213,8 @@ namespace Acme
 }
 ");
 
-            CheckDeclarationId<IMethodSymbol>("M:Acme.ValueType.M(System.Int32)", compilation, s => s.Name == "M" && s.Parameters.Length == 1 && s.Parameters[0].Type.Name == "Int32");
-            CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.NestedClass.M(System.Int32)", compilation, s => s.Name == "M" && s.Parameters.Length == 1 && s.Parameters[0].Type.Name == "Int32");
+            CheckDeclarationId<IMethodSymbol>("M:Acme.ValueType.M(System.Int32)", compilation, s => s.Name == "M" && s.Parameters is [{ Type.Name: "Int32" }]);
+            CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.NestedClass.M(System.Int32)", compilation, s => s.Name == "M" && s.Parameters is [{ Type.Name: "Int32" }]);
             CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.M0", compilation, s => s.Name == "M0" && s.Parameters.Length == 0);
             CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.M1(System.Char,System.Single@,Acme.ValueType@)", compilation, s => s.Name == "M1");
             CheckDeclarationId<IMethodSymbol>("M:Acme.Widget.M2(System.Int16[],System.Int32[0:,0:],System.Int64[][])", compilation, s => s.Name == "M2");

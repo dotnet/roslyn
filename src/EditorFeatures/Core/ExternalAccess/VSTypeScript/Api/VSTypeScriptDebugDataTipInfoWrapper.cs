@@ -5,17 +5,13 @@
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptDebugDataTipInfoWrapper(TextSpan span, string text)
 {
-    internal readonly struct VSTypeScriptDebugDataTipInfoWrapper
-    {
-        internal readonly DebugDataTipInfo UnderlyingObject;
+    internal readonly DebugDataTipInfo UnderlyingObject = new(span, text);
 
-        public VSTypeScriptDebugDataTipInfoWrapper(TextSpan span, string text)
-            => UnderlyingObject = new DebugDataTipInfo(span, text);
-
-        public readonly TextSpan Span => UnderlyingObject.Span;
-        public readonly string Text => UnderlyingObject.Text;
-        public bool IsDefault => UnderlyingObject.IsDefault;
-    }
+    public readonly TextSpan Span => UnderlyingObject.Span;
+    public readonly string Text => UnderlyingObject.Text!;
+    public bool IsDefault => UnderlyingObject.IsDefault;
 }

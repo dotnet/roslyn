@@ -3,24 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Globalization;
-using System.IO;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -35,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
         public readonly RemoteProcessConfiguration Configuration;
+
+        private Process? _remoteProcess;
 
         private ServiceHubRemoteHostClient(
             SolutionServices services,
@@ -76,26 +70,32 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
 
-                var workspaceConfigurationService = services.GetService<IWorkspaceConfigurationService>();
-                if (workspaceConfigurationService != null)
-                {
-                    await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                        (service, cancellationToken) => service.InitializeWorkspaceConfigurationOptionsAsync(workspaceConfigurationService.Options, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
-                if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
+                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+                    (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (remoteProcessId.HasValue)
                 {
-                    await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
-                        (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
+                    }
+                    catch (Exception e)
+                    {
+                        hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
+                    }
+                }
+                else
+                {
+                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
                 }
 
                 await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                     (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                client.Started();
                 return client;
             }
         }
@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 _serviceBrokerClient,
                 _assetStorage,
                 _errorReportingService,
-                _shutdownCancellationService);
+                _shutdownCancellationService,
+                _remoteProcess);
         }
 
         public override void Dispose()
@@ -130,8 +131,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _hubClient.Dispose();
 
             _serviceBrokerClient.Dispose();
-
-            base.Dispose();
         }
     }
 }

@@ -108,7 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         indentationWhitespace, content, isFirst: i == 0, isLast: false,
                         originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start]));
 
-                    builder.Add(ParseInterpolation(this.Options, originalText, interpolation, kind));
+                    // Now parse the interpolation itself.
+                    var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInFieldKeywordContext);
+
+                    // Make sure the interpolation starts at the right location.
+                    var indentationError = getInterpolationIndentationError(indentationWhitespace, interpolation);
+                    if (indentationError != null)
+                        interpolationNode = interpolationNode.WithDiagnosticsGreen(new[] { indentationError });
+
+                    builder.Add(interpolationNode);
                     currentContentStart = interpolation.CloseBraceRange.End;
                 }
 
@@ -243,6 +251,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     originalText[closeQuoteRange],
                     originalToken.GetTrailingTrivia());
             }
+
+            // if the interpolation starts on its own line, then it has to have correct indentation whitespace
+            // before it.  e.g.:
+            //
+            //      var x = """
+            //          {1 + 1}
+            //          """
+            //
+            // Not:
+            //
+            //      var x = """
+            // {1 + 1}
+            //          """
+            //
+            // Note: We don't need to check
+            //
+            //      var x = """
+            // <space>{1 + 1}
+            //          """
+            //
+            // as initial whitespace in text will already be checked in makeContent.  This is only for the case where
+            // the interpolation is at the start of a line.
+
+            SyntaxDiagnosticInfo? getInterpolationIndentationError(
+                ReadOnlySpan<char> indentationWhitespace,
+                Lexer.Interpolation interpolation)
+            {
+                if (needsDedentation && !indentationWhitespace.IsEmpty)
+                {
+                    var openBracePosition = interpolation.OpenBraceRange.Start.Value;
+                    if (openBracePosition > 0 && SyntaxFacts.IsNewLine(originalText[openBracePosition - 1]))
+                        // Pass 0 as the offset to give the error on the interpolation brace.
+                        return MakeError(offset: 0, width: 1, ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                }
+
+                return null;
+            }
         }
 
         private static bool CheckForSpaceDifference(
@@ -300,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var slice = text[start..currentIndex];
-#if NETCOREAPP
+#if NET
             content.Append(slice);
 #else
             unsafe
@@ -316,7 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             CSharpParseOptions options,
             string text,
             Lexer.Interpolation interpolation,
-            Lexer.InterpolatedStringKind kind)
+            Lexer.InterpolatedStringKind kind,
+            bool isInFieldKeywordContext)
         {
             // Grab the text from after the { all the way to the start of the } (or the start of the : if present). This
             // will be used to parse out the expression of the interpolation.
@@ -332,6 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
+            using var _ = new FieldKeywordContext(tempParser, isInFieldKeywordContext);
 
             var result = tempParser.ParseInterpolation(
                 text, interpolation, kind,

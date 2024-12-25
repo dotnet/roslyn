@@ -5,32 +5,31 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal static class IVsRunningDocumentTableExtensions
 {
-    internal static class IVsRunningDocumentTableExtensions
+    public static bool IsDocumentInitialized(this IVsRunningDocumentTable4 runningDocTable, uint docCookie)
     {
-        public static bool IsDocumentInitialized(this IVsRunningDocumentTable4 runningDocTable, uint docCookie)
+        var flags = runningDocTable.GetDocumentFlags(docCookie);
+
+        return (flags & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0;
+    }
+
+    public static IEnumerable<uint> GetRunningDocuments(this IVsRunningDocumentTable3 runningDocumentTable)
+        => GetRunningDocuments((IVsRunningDocumentTable)runningDocumentTable);
+
+    public static IEnumerable<uint> GetRunningDocuments(this IVsRunningDocumentTable runningDocumentTable)
+    {
+        ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
+        var cookies = new uint[16];
+
+        while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
+            && cookiesFetched > 0)
         {
-            var flags = runningDocTable.GetDocumentFlags(docCookie);
-
-            return (flags & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0;
-        }
-
-        public static IEnumerable<uint> GetRunningDocuments(this IVsRunningDocumentTable3 runningDocumentTable)
-            => GetRunningDocuments((IVsRunningDocumentTable)runningDocumentTable);
-
-        public static IEnumerable<uint> GetRunningDocuments(this IVsRunningDocumentTable runningDocumentTable)
-        {
-            ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-            var cookies = new uint[16];
-
-            while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
-                && cookiesFetched > 0)
+            for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
             {
-                for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
-                {
-                    yield return cookies[cookieIndex];
-                }
+                yield return cookies[cookieIndex];
             }
         }
     }

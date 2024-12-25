@@ -4,13 +4,10 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal class RQPointerType : RQArrayOrPointerType
-    {
-        public RQPointerType(RQType elementType) : base(elementType) { }
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        public override SimpleTreeNode ToSimpleTree()
-            => new SimpleGroupNode(RQNameStrings.Pointer, ElementType.ToSimpleTree());
-    }
+internal sealed class RQPointerType(RQType elementType) : RQArrayOrPointerType(elementType)
+{
+    public override SimpleTreeNode ToSimpleTree()
+        => new SimpleGroupNode(RQNameStrings.Pointer, ElementType.ToSimpleTree());
 }

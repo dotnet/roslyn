@@ -29,8 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
         }
 
         <Fact>
-        Public Sub NumericTypesAfterEnumAs()
-            VerifyRecommendationsAreExactly(<File>Enum Goo As |</File>, "Byte",
+        Public Sub NumericTypesAndGlobalAfterEnumAs()
+            VerifyRecommendationsAreExactly(<File>Enum Goo As |</File>, "Global",
+                                                                        "Byte",
                                                                         "SByte",
                                                                         "Short",
                                                                         "UShort",
@@ -55,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
             VerifyRecommendationsMissing(<File>Imports |</File>, _keywordList)
         End Sub
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub NoTypesInDelegateCreation()
             Dim code =
 <File>

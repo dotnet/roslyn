@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 
@@ -46,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             private EnvDTE.ProjectItem GetProjectItem(string filePath)
             {
-                var dteProject = _project._visualStudioWorkspace.TryGetDTEProject(_project._visualStudioProject.Id);
+                var dteProject = _project._visualStudioWorkspace.TryGetDTEProject(_project._projectSystemProject.Id);
                 if (dteProject == null)
                 {
                     return null;

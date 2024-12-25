@@ -2,18 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ExpressionLambdaRewriter
@@ -32,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      BinaryOperatorKind.Divide,
                      BinaryOperatorKind.Modulo,
                      BinaryOperatorKind.IntegerDivide,
-                     BinaryOperatorKind.Concatenate,
                      BinaryOperatorKind.LeftShift,
                      BinaryOperatorKind.RightShift
                     Return ConvertBinaryOperator(node)
@@ -51,8 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      BinaryOperatorKind.AndAlso
                     Return ConvertShortCircuitedBooleanOperator(node)
 
-                Case BinaryOperatorKind.Like
-                    ' Like operator should already be rewritten by this time
+                Case BinaryOperatorKind.Like,
+                     BinaryOperatorKind.Concatenate
+                    ' Should already be rewritten by this time
                     Throw ExceptionUtilities.UnexpectedValue(node.OperatorKind)
 
                 Case Else
@@ -83,19 +73,93 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       DiagnosticsPass.VisitUserDefinedBinaryOperator
                     Debug.Assert(Not isLifted OrElse Not node.Call.Method.ReturnType.IsNullableType)
 
-                    Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, isChecked),
+                    Return ConvertRuntimeHelperToExpressionTree(GetComparisonBinaryOperatorFactoryWithMethodInfo(opKind),
                                                                 Visit(node.Left), Visit(node.Right),
                                                                 Me._factory.Literal(isLifted),
-                                                                _factory.MethodInfo(node.Call.Method))
+                                                                _factory.MethodInfo(node.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
 
                 Case Else
                     ' Error should have been reported by DiagnosticsPass, see 
                     '       DiagnosticsPass.VisitUserDefinedBinaryOperator
                     Debug.Assert(Not isLifted OrElse Not node.Call.Method.ReturnType.IsNullableType)
 
-                    Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, isChecked),
+                    Return ConvertRuntimeHelperToExpressionTree(GetNonComparisonBinaryOperatorFactoryWithMethodInfo(opKind, isChecked),
                                                                 Visit(node.Left), Visit(node.Right),
-                                                                _factory.MethodInfo(node.Call.Method))
+                                                                _factory.MethodInfo(node.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
+            End Select
+        End Function
+
+        Private Shared Function GetComparisonBinaryOperatorFactoryWithMethodInfo(opKind As BinaryOperatorKind) As WellKnownMember
+            Select Case opKind And BinaryOperatorKind.OpMask
+                Case BinaryOperatorKind.Is,
+                     BinaryOperatorKind.Equals
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Equal_MethodInfo
+
+                Case BinaryOperatorKind.IsNot,
+                     BinaryOperatorKind.NotEquals
+                    Return WellKnownMember.System_Linq_Expressions_Expression__NotEqual_MethodInfo
+
+                Case BinaryOperatorKind.LessThanOrEqual
+                    Return WellKnownMember.System_Linq_Expressions_Expression__LessThanOrEqual_MethodInfo
+
+                Case BinaryOperatorKind.GreaterThanOrEqual
+                    Return WellKnownMember.System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo
+
+                Case BinaryOperatorKind.LessThan
+                    Return WellKnownMember.System_Linq_Expressions_Expression__LessThan_MethodInfo
+
+                Case BinaryOperatorKind.GreaterThan
+                    Return WellKnownMember.System_Linq_Expressions_Expression__GreaterThan_MethodInfo
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(opKind)
+            End Select
+        End Function
+
+        Private Shared Function GetNonComparisonBinaryOperatorFactoryWithMethodInfo(opKind As BinaryOperatorKind, isChecked As Boolean) As WellKnownMember
+            Select Case opKind And BinaryOperatorKind.OpMask
+                Case BinaryOperatorKind.Add
+                    Return If(isChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__AddChecked_MethodInfo,
+                              WellKnownMember.System_Linq_Expressions_Expression__Add_MethodInfo)
+
+                Case BinaryOperatorKind.Subtract
+                    Return If(isChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__SubtractChecked_MethodInfo,
+                              WellKnownMember.System_Linq_Expressions_Expression__Subtract_MethodInfo)
+
+                Case BinaryOperatorKind.Multiply
+                    Return If(isChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__MultiplyChecked_MethodInfo,
+                              WellKnownMember.System_Linq_Expressions_Expression__Multiply_MethodInfo)
+
+                Case BinaryOperatorKind.IntegerDivide,
+                     BinaryOperatorKind.Divide
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Divide_MethodInfo
+
+                Case BinaryOperatorKind.Modulo
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Modulo_MethodInfo
+
+                Case BinaryOperatorKind.Power
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Power_MethodInfo
+
+                Case BinaryOperatorKind.And
+                    Return WellKnownMember.System_Linq_Expressions_Expression__And_MethodInfo
+
+                Case BinaryOperatorKind.Or
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Or_MethodInfo
+
+                Case BinaryOperatorKind.Xor
+                    Return WellKnownMember.System_Linq_Expressions_Expression__ExclusiveOr_MethodInfo
+
+                Case BinaryOperatorKind.LeftShift
+                    Return WellKnownMember.System_Linq_Expressions_Expression__LeftShift_MethodInfo
+
+                Case BinaryOperatorKind.RightShift
+                    Return WellKnownMember.System_Linq_Expressions_Expression__RightShift_MethodInfo
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
         End Function
 
@@ -107,11 +171,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(0).Type) AndAlso
                          operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(1).Type))
 
-            opKind = If(opKind = BinaryOperatorKind.And, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse)
-
-            Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, False),
+            Return ConvertRuntimeHelperToExpressionTree(If(opKind = BinaryOperatorKind.And,
+                                                           WellKnownMember.System_Linq_Expressions_Expression__AndAlso_MethodInfo,
+                                                           WellKnownMember.System_Linq_Expressions_Expression__OrElse_MethodInfo),
                                                         Visit(operand.Left), Visit(operand.Right),
-                                                        _factory.MethodInfo(operand.Call.Method))
+                                                        _factory.MethodInfo(operand.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
         End Function
 
 #Region "User Defined Like"
@@ -202,12 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 helper = GetHelperForDateTimeBinaryOperation(opKind)
             End If
 
-            Dim isChecked As Boolean = node.Checked AndAlso IsIntegralType(resultUnderlyingType)
-            Dim opMethod As String = GetBinaryOperatorMethodName(opKind, isChecked)
-
             If helper IsNot Nothing Then
                 Debug.Assert(helper.MethodKind = MethodKind.Ordinary OrElse helper.MethodKind = MethodKind.UserDefinedOperator)
-                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper))
+
+                Return ConvertRuntimeHelperToExpressionTree(GetComparisonBinaryOperatorFactoryWithMethodInfo(opKind),
+                                                            left, right, Me._factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
             End If
 
             ' No helpers starting from here
@@ -220,19 +283,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Because True is -1, we need to switch the comparisons in these cases.
                 Select Case opKind
                     Case BinaryOperatorKind.LessThan
-                        opMethod = GetBinaryOperatorMethodName(BinaryOperatorKind.GreaterThan, isChecked)
+                        opKind = BinaryOperatorKind.GreaterThan
                         convertOperandsToInteger = True
 
                     Case BinaryOperatorKind.LessThanOrEqual
-                        opMethod = GetBinaryOperatorMethodName(BinaryOperatorKind.GreaterThanOrEqual, isChecked)
+                        opKind = BinaryOperatorKind.GreaterThanOrEqual
                         convertOperandsToInteger = True
 
                     Case BinaryOperatorKind.GreaterThan
-                        opMethod = GetBinaryOperatorMethodName(BinaryOperatorKind.LessThan, isChecked)
+                        opKind = BinaryOperatorKind.LessThan
                         convertOperandsToInteger = True
 
                     Case BinaryOperatorKind.GreaterThanOrEqual
-                        opMethod = GetBinaryOperatorMethodName(BinaryOperatorKind.LessThanOrEqual, isChecked)
+                        opKind = BinaryOperatorKind.LessThanOrEqual
                         convertOperandsToInteger = True
                 End Select
             End If
@@ -258,7 +321,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 operandActiveType = newType
             End If
 
-            Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), Me._factory.Null)
+            Return ConvertRuntimeHelperToExpressionTree(GetComparisonBinaryOperatorFactoryWithMethodInfo(opKind),
+                                                        left, right, Me._factory.Literal(resultType.IsNullableType),
+                                                        Me._factory.Null(_factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
         End Function
 
 #End Region
@@ -290,9 +355,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim isChecked As Boolean = node.Checked AndAlso IsIntegralType(resultUnderlyingType)
-            Dim opMethod As String = GetBinaryOperatorMethodName(opKind, isChecked)
+            Dim opFactory As WellKnownMember
 
-            Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(opMethod, left, right)
+            Select Case opKind
+                Case BinaryOperatorKind.AndAlso
+                    opFactory = WellKnownMember.System_Linq_Expressions_Expression__AndAlso
+                Case BinaryOperatorKind.OrElse
+                    opFactory = WellKnownMember.System_Linq_Expressions_Expression__OrElse
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(opKind)
+            End Select
+
+            Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(opFactory, left, right)
 
             If resultUnderlyingType.IsObjectType Then
                 result = Convert(result, resultType, isChecked)
@@ -303,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
-#Region "And, Or, Xor, ^, *, +, -, /, \, Mod, &, <<, >>"
+#Region "And, Or, Xor, ^, *, +, -, /, \, Mod, <<, >>"
 
         Private Function ConvertBinaryOperator(node As BoundBinaryOperator) As BoundExpression
             Dim resultType As TypeSymbol = node.Type
@@ -317,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          opKind = BinaryOperatorKind.Power OrElse opKind = BinaryOperatorKind.Multiply OrElse
                          opKind = BinaryOperatorKind.Add OrElse opKind = BinaryOperatorKind.Subtract OrElse
                          opKind = BinaryOperatorKind.Divide OrElse opKind = BinaryOperatorKind.IntegerDivide OrElse
-                         opKind = BinaryOperatorKind.Modulo OrElse opKind = BinaryOperatorKind.Concatenate OrElse
+                         opKind = BinaryOperatorKind.Modulo OrElse
                          opKind = BinaryOperatorKind.LeftShift OrElse opKind = BinaryOperatorKind.RightShift)
             Debug.Assert((node.OperatorKind And BinaryOperatorKind.UserDefined) = 0)
 
@@ -325,26 +399,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim helper As MethodSymbol = Nothing
             If resultUnderlyingSpecialType = SpecialType.System_Object Then
                 helper = GetHelperForObjectBinaryOperation(opKind)
-
+                If helper Is Nothing Then ' Don't know how to do 'BinaryOperatorKind.Power' without the method
+                    Return _factory.BadExpression(Visit(node.Left), Visit(node.Right))
+                End If
             ElseIf resultUnderlyingSpecialType = SpecialType.System_Decimal Then
                 helper = GetHelperForDecimalBinaryOperation(opKind)
-
-            ElseIf opKind = BinaryOperatorKind.Concatenate Then
-                helper = DirectCast(_factory.SpecialMember(SpecialMember.System_String__ConcatStringString), MethodSymbol)
-
+                If helper Is Nothing Then ' Don't know how to do 'BinaryOperatorKind.Power' without the method
+                    Return _factory.BadExpression(Visit(node.Left), Visit(node.Right))
+                End If
             ElseIf opKind = BinaryOperatorKind.Power Then
                 helper = Me._factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Math__PowDoubleDouble)
+                If helper Is Nothing Then ' Don't know how to do 'BinaryOperatorKind.Power' without the method
+                    Return _factory.BadExpression(Visit(node.Left), Visit(node.Right))
+                End If
             End If
 
+            Debug.Assert(opKind <> BinaryOperatorKind.Power OrElse helper IsNot Nothing)
+
             Dim isChecked As Boolean = node.Checked AndAlso IsIntegralType(resultUnderlyingType)
-            Dim opMethod As String = GetBinaryOperatorMethodName(opKind, isChecked)
 
             Dim left As BoundExpression = Visit(node.Left)
             Dim right As BoundExpression
 
             If helper IsNot Nothing Then
                 right = Visit(node.Right)
-                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, _factory.MethodInfo(helper))
+                Return ConvertRuntimeHelperToExpressionTree(GetNonComparisonBinaryOperatorFactoryWithMethodInfo(opKind, isChecked),
+                                                           left, right, _factory.MethodInfo(helper, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
             End If
 
             ' No special helper
@@ -372,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                needToCastBackToByteOrSByte)
             End If
 
-            Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(opMethod, left, right)
+            Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(GetNonComparisonBinaryOperatorFactoryWithoutMethodInfo(opKind, isChecked), left, right)
 
             If needToCastBackToByteOrSByte Then
                 Debug.Assert(resultUnderlyingSpecialType = SpecialType.System_Byte OrElse resultUnderlyingSpecialType = SpecialType.System_SByte)
@@ -384,6 +464,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return result
+        End Function
+
+        Private Shared Function GetNonComparisonBinaryOperatorFactoryWithoutMethodInfo(opKind As BinaryOperatorKind, isChecked As Boolean) As WellKnownMember
+            Select Case opKind And BinaryOperatorKind.OpMask
+                Case BinaryOperatorKind.Add
+                    Return If(isChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__AddChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__Add)
+
+                Case BinaryOperatorKind.Subtract
+                    Return If(isChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__SubtractChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__Subtract)
+
+                Case BinaryOperatorKind.Multiply
+                    Return If(isChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__MultiplyChecked,
+                              WellKnownMember.System_Linq_Expressions_Expression__Multiply)
+
+                Case BinaryOperatorKind.IntegerDivide,
+                     BinaryOperatorKind.Divide
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Divide
+
+                Case BinaryOperatorKind.Modulo
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Modulo
+
+                Case BinaryOperatorKind.And
+                    Return WellKnownMember.System_Linq_Expressions_Expression__And
+
+                Case BinaryOperatorKind.Or
+                    Return WellKnownMember.System_Linq_Expressions_Expression__Or
+
+                Case BinaryOperatorKind.Xor
+                    Return WellKnownMember.System_Linq_Expressions_Expression__ExclusiveOr
+
+                Case BinaryOperatorKind.LeftShift
+                    Return WellKnownMember.System_Linq_Expressions_Expression__LeftShift
+
+                Case BinaryOperatorKind.RightShift
+                    Return WellKnownMember.System_Linq_Expressions_Expression__RightShift
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(opKind)
+            End Select
         End Function
 
         Private Function GenerateCastsForBinaryAndUnaryOperator(loweredOperand As BoundExpression,
@@ -463,9 +587,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function MaskShiftCountOperand(loweredOperand As BoundExpression, shiftedType As TypeSymbol, shiftMask As Integer, shiftConst As ConstantValue, isChecked As Boolean) As BoundExpression
             If shiftConst Is Nothing OrElse shiftConst.UInt32Value > shiftMask Then
                 Dim constantOperand As BoundExpression =
-                    ConvertRuntimeHelperToExpressionTree("Constant",
-                                                         Me._factory.Convert(Me.ObjectType, Me._factory.Literal(shiftMask)),
-                                                         Me._factory.Typeof(Me.Int32Type))
+                    _factory.Convert(_expressionType,
+                                     ConvertRuntimeHelperToExpressionTree(
+                                        WellKnownMember.System_Linq_Expressions_Expression__Constant,
+                                        Me._factory.Convert(Me.ObjectType, Me._factory.Literal(shiftMask)),
+                                        Me._factory.Typeof(Me.Int32Type, _factory.WellKnownType(WellKnownType.System_Type))))
 
                 Dim isNullable As Boolean = shiftedType.IsNullableType
                 Dim isInt32 As Boolean = shiftedType.GetNullableUnderlyingTypeOrSelf.SpecialType = SpecialType.System_Int32
@@ -476,7 +602,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     constantOperand = Convert(constantOperand, int32Nullable, isChecked)
                 End If
 
-                loweredOperand = ConvertRuntimeHelperToExpressionTree("And", loweredOperand, constantOperand)
+                loweredOperand = _factory.Convert(_expressionType,
+                                                  ConvertRuntimeHelperToExpressionTree(
+                                                      WellKnownMember.System_Linq_Expressions_Expression__And,
+                                                      loweredOperand,
+                                                      constantOperand))
             End If
 
             Return loweredOperand
@@ -587,54 +717,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             Return Me._factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
-        End Function
-
-        Private Shared Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
-            Select Case (opKind And BinaryOperatorKind.OpMask)
-                Case BinaryOperatorKind.Add
-                    Return If(isChecked, "AddChecked", "Add")
-                Case BinaryOperatorKind.Subtract
-                    Return If(isChecked, "SubtractChecked", "Subtract")
-                Case BinaryOperatorKind.Multiply
-                    Return If(isChecked, "MultiplyChecked", "Multiply")
-                Case BinaryOperatorKind.IntegerDivide,
-                     BinaryOperatorKind.Divide
-                    Return "Divide"
-                Case BinaryOperatorKind.Modulo
-                    Return "Modulo"
-                Case BinaryOperatorKind.Power
-                    Return "Power"
-                Case BinaryOperatorKind.And
-                    Return "And"
-                Case BinaryOperatorKind.Or
-                    Return "Or"
-                Case BinaryOperatorKind.Xor
-                    Return "ExclusiveOr"
-                Case BinaryOperatorKind.LeftShift
-                    Return "LeftShift"
-                Case BinaryOperatorKind.RightShift
-                    Return "RightShift"
-                Case BinaryOperatorKind.Is,
-                     BinaryOperatorKind.Equals
-                    Return "Equal"
-                Case BinaryOperatorKind.IsNot,
-                     BinaryOperatorKind.NotEquals
-                    Return "NotEqual"
-                Case BinaryOperatorKind.LessThan
-                    Return "LessThan"
-                Case BinaryOperatorKind.LessThanOrEqual
-                    Return "LessThanOrEqual"
-                Case BinaryOperatorKind.GreaterThan
-                    Return "GreaterThan"
-                Case BinaryOperatorKind.GreaterThanOrEqual
-                    Return "GreaterThanOrEqual"
-                Case BinaryOperatorKind.AndAlso
-                    Return "AndAlso"
-                Case BinaryOperatorKind.OrElse
-                    Return "OrElse"
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(opKind)
-            End Select
         End Function
 
         Private Shared Function AdjustCallArgumentForLiftedOperator(oldArg As BoundExpression, parameterType As TypeSymbol) As BoundExpression

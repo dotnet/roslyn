@@ -8,28 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal sealed class ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
 {
-    internal sealed class ActiveStatementSpanProviderCallback
+    private readonly ActiveStatementSpanProvider _provider = provider;
+
+    /// <summary>
+    /// Remote API.
+    /// </summary>
+    public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(DocumentId? documentId, string filePath, CancellationToken cancellationToken)
     {
-        private readonly ActiveStatementSpanProvider _provider;
-
-        public ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
-            => _provider = provider;
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(DocumentId? documentId, string filePath, CancellationToken cancellationToken)
+        try
         {
-            try
-            {
-                return await _provider(documentId, filePath, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return ImmutableArray<ActiveStatementSpan>.Empty;
-            }
+            return await _provider(documentId, filePath, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            return [];
         }
     }
 }

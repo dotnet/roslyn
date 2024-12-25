@@ -4,20 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis
-{
-    internal partial class DocumentState
-    {
-        internal class EquivalenceResult
-        {
-            public readonly bool TopLevelEquivalent;
-            public readonly bool InteriorEquivalent;
+namespace Microsoft.CodeAnalysis;
 
-            public EquivalenceResult(bool topLevelEquivalent, bool interiorEquivalent)
-            {
-                this.TopLevelEquivalent = topLevelEquivalent;
-                this.InteriorEquivalent = interiorEquivalent;
-            }
-        }
+internal partial class DocumentState
+{
+    internal sealed class EquivalenceResult(bool topLevelEquivalent, bool interiorEquivalent)
+    {
+        public readonly bool TopLevelEquivalent = topLevelEquivalent;
+        public readonly bool InteriorEquivalent = interiorEquivalent;
     }
 }

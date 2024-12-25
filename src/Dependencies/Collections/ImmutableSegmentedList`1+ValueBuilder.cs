@@ -30,38 +30,38 @@ namespace Microsoft.CodeAnalysis.Collections
                 _mutableList = null;
             }
 
-            public int Count => ReadOnlyList.Count;
+            public readonly int Count => ReadOnlyList.Count;
 
-            private SegmentedList<T> ReadOnlyList => _mutableList ?? _list._list;
+            private readonly SegmentedList<T> ReadOnlyList => _mutableList ?? _list._list;
 
-            bool ICollection<T>.IsReadOnly => false;
+            readonly bool ICollection<T>.IsReadOnly => false;
 
-            bool IList.IsFixedSize => false;
+            readonly bool IList.IsFixedSize => false;
 
-            bool IList.IsReadOnly => false;
+            readonly bool IList.IsReadOnly => false;
 
-            bool ICollection.IsSynchronized => false;
+            readonly bool ICollection.IsSynchronized => false;
 
-            object ICollection.SyncRoot => throw new NotSupportedException();
+            readonly object ICollection.SyncRoot => throw new NotSupportedException();
 
             public T this[int index]
             {
-                get => ReadOnlyList[index];
+                readonly get => ReadOnlyList[index];
                 set => GetOrCreateMutableList()[index] = value;
             }
 
             object? IList.this[int index]
             {
-                get => ((IList)ReadOnlyList)[index];
+                readonly get => ((IList)ReadOnlyList)[index];
                 set => ((IList)GetOrCreateMutableList())[index] = value;
             }
 
-            public ref readonly T ItemRef(int index)
+            public readonly ref readonly T ItemRef(int index)
             {
                 // Following trick can reduce the range check by one
                 if ((uint)index >= (uint)ReadOnlyList.Count)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                    ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
                 }
 
                 return ref ReadOnlyList._items[index];
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.Collections
                 GetOrCreateMutableList().AddRange(items);
             }
 
-            public int BinarySearch(T item)
+            public readonly int BinarySearch(T item)
                 => ReadOnlyList.BinarySearch(item);
 
-            public int BinarySearch(T item, IComparer<T>? comparer)
+            public readonly int BinarySearch(T item, IComparer<T>? comparer)
                 => ReadOnlyList.BinarySearch(item, comparer);
 
-            public int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
+            public readonly int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
                 => ReadOnlyList.BinarySearch(index, count, item, comparer);
 
             public void Clear()
@@ -117,46 +117,46 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
             }
 
-            public bool Contains(T item)
+            public readonly bool Contains(T item)
                 => ReadOnlyList.Contains(item);
 
-            public ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
+            public readonly ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
                 => new ImmutableSegmentedList<TOutput>(ReadOnlyList.ConvertAll(converter));
 
-            public void CopyTo(T[] array)
+            public readonly void CopyTo(T[] array)
                 => ReadOnlyList.CopyTo(array);
 
-            public void CopyTo(T[] array, int arrayIndex)
+            public readonly void CopyTo(T[] array, int arrayIndex)
                 => ReadOnlyList.CopyTo(array, arrayIndex);
 
-            public void CopyTo(int index, T[] array, int arrayIndex, int count)
+            public readonly void CopyTo(int index, T[] array, int arrayIndex, int count)
                 => ReadOnlyList.CopyTo(index, array, arrayIndex, count);
 
-            public bool Exists(Predicate<T> match)
+            public readonly bool Exists(Predicate<T> match)
                 => ReadOnlyList.Exists(match);
 
-            public T? Find(Predicate<T> match)
+            public readonly T? Find(Predicate<T> match)
                 => ReadOnlyList.Find(match);
 
-            public ImmutableSegmentedList<T> FindAll(Predicate<T> match)
+            public readonly ImmutableSegmentedList<T> FindAll(Predicate<T> match)
                 => new ImmutableSegmentedList<T>(ReadOnlyList.FindAll(match));
 
-            public int FindIndex(Predicate<T> match)
+            public readonly int FindIndex(Predicate<T> match)
                 => ReadOnlyList.FindIndex(match);
 
-            public int FindIndex(int startIndex, Predicate<T> match)
+            public readonly int FindIndex(int startIndex, Predicate<T> match)
                 => ReadOnlyList.FindIndex(startIndex, match);
 
-            public int FindIndex(int startIndex, int count, Predicate<T> match)
+            public readonly int FindIndex(int startIndex, int count, Predicate<T> match)
                 => ReadOnlyList.FindIndex(startIndex, count, match);
 
-            public T? FindLast(Predicate<T> match)
+            public readonly T? FindLast(Predicate<T> match)
                 => ReadOnlyList.FindLast(match);
 
-            public int FindLastIndex(Predicate<T> match)
+            public readonly int FindLastIndex(Predicate<T> match)
                 => ReadOnlyList.FindLastIndex(match);
 
-            public int FindLastIndex(int startIndex, Predicate<T> match)
+            public readonly int FindLastIndex(int startIndex, Predicate<T> match)
             {
                 if (startIndex == 0 && Count == 0)
                 {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return ReadOnlyList.FindLastIndex(startIndex, match);
             }
 
-            public int FindLastIndex(int startIndex, int count, Predicate<T> match)
+            public readonly int FindLastIndex(int startIndex, int count, Predicate<T> match)
             {
                 if (count == 0 && startIndex == 0 && Count == 0)
                 {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return ReadOnlyList.FindLastIndex(startIndex, count, match);
             }
 
-            public void ForEach(Action<T> action)
+            public readonly void ForEach(Action<T> action)
                 => ReadOnlyList.ForEach(action);
 
             public Enumerator GetEnumerator()
@@ -194,16 +194,16 @@ namespace Microsoft.CodeAnalysis.Collections
                 return new ImmutableSegmentedList<T>(ReadOnlyList.GetRange(index, count));
             }
 
-            public int IndexOf(T item)
+            public readonly int IndexOf(T item)
                 => ReadOnlyList.IndexOf(item);
 
-            public int IndexOf(T item, int index)
+            public readonly int IndexOf(T item, int index)
                 => ReadOnlyList.IndexOf(item, index);
 
-            public int IndexOf(T item, int index, int count)
+            public readonly int IndexOf(T item, int index, int count)
                 => ReadOnlyList.IndexOf(item, index, count);
 
-            public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
+            public readonly int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
                 => ReadOnlyList.IndexOf(item, index, count, equalityComparer);
 
             public void Insert(int index, T item)
@@ -212,10 +212,10 @@ namespace Microsoft.CodeAnalysis.Collections
             public void InsertRange(int index, IEnumerable<T> items)
                 => GetOrCreateMutableList().InsertRange(index, items);
 
-            public int LastIndexOf(T item)
+            public readonly int LastIndexOf(T item)
                 => ReadOnlyList.LastIndexOf(item);
 
-            public int LastIndexOf(T item, int startIndex)
+            public readonly int LastIndexOf(T item, int startIndex)
             {
                 if (startIndex == 0 && Count == 0)
                 {
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return ReadOnlyList.LastIndexOf(item, startIndex);
             }
 
-            public int LastIndexOf(T item, int startIndex, int count)
+            public readonly int LastIndexOf(T item, int startIndex, int count)
             {
                 if (count == 0 && startIndex == 0 && Count == 0)
                 {
@@ -239,10 +239,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 return ReadOnlyList.LastIndexOf(item, startIndex, count);
             }
 
-            public int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T>? equalityComparer)
+            public readonly int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T>? equalityComparer)
             {
                 if (startIndex < 0)
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                    ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
                 if (count < 0 || count > Count)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count);
                 if (startIndex - count + 1 < 0)
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return _list;
             }
 
-            public bool TrueForAll(Predicate<T> match)
+            public readonly bool TrueForAll(Predicate<T> match)
                 => ReadOnlyList.TrueForAll(match);
 
             IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -339,10 +339,10 @@ namespace Microsoft.CodeAnalysis.Collections
             int IList.Add(object? value)
                 => ((IList)GetOrCreateMutableList()).Add(value);
 
-            bool IList.Contains(object? value)
+            readonly bool IList.Contains(object? value)
                 => ((IList)ReadOnlyList).Contains(value);
 
-            int IList.IndexOf(object? value)
+            readonly int IList.IndexOf(object? value)
                 => ((IList)ReadOnlyList).IndexOf(value);
 
             void IList.Insert(int index, object? value)
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Collections
             void IList.Remove(object? value)
                 => ((IList)GetOrCreateMutableList()).Remove(value);
 
-            void ICollection.CopyTo(Array array, int index)
+            readonly void ICollection.CopyTo(Array array, int index)
                 => ((ICollection)ReadOnlyList).CopyTo(array, index);
         }
     }

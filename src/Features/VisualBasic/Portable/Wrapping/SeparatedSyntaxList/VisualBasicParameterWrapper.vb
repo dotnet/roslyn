@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
                 Return False
             End If
 
-            If containsSyntaxError AndAlso ContainsOverlappingSyntaxErrror(declaration, headerSpan) Then
+            If containsSyntaxError AndAlso ContainsOverlappingSyntaxError(declaration, headerSpan) Then
                 Return False
             End If
 

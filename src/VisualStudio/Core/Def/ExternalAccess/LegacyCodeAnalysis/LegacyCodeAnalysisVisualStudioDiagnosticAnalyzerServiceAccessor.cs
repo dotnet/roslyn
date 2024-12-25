@@ -12,24 +12,23 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
+namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis;
+
+[Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor))]
+[Shared]
+internal sealed class LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
+    : ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
 {
-    [Export(typeof(ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor))]
-    [Shared]
-    internal sealed class LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
-        : ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
-    {
-        private readonly IVisualStudioDiagnosticAnalyzerService _implementation;
+    private readonly IVisualStudioDiagnosticAnalyzerService _implementation;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor(IVisualStudioDiagnosticAnalyzerService implementation)
-            => _implementation = implementation;
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor(IVisualStudioDiagnosticAnalyzerService implementation)
+        => _implementation = implementation;
 
-        public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy hierarchyOpt)
-            => _implementation.GetAllDiagnosticDescriptors(hierarchyOpt);
+    public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy hierarchyOpt)
+        => _implementation.GetAllDiagnosticDescriptors(hierarchyOpt);
 
-        public void RunAnalyzers(IVsHierarchy hierarchyOpt)
-            => _implementation.RunAnalyzers(hierarchyOpt);
-    }
+    public void RunAnalyzers(IVsHierarchy hierarchyOpt)
+        => _implementation.RunAnalyzers(hierarchyOpt);
 }

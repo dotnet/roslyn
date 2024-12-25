@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.NewLines.MultipleBlankLines;
 
-namespace Microsoft.CodeAnalysis.CSharp.NewLines.MultipleBlankLines
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.MultipleBlankLines;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpMultipleBlankLinesDiagnosticAnalyzer : AbstractMultipleBlankLinesDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpMultipleBlankLinesDiagnosticAnalyzer : AbstractMultipleBlankLinesDiagnosticAnalyzer
+    public CSharpMultipleBlankLinesDiagnosticAnalyzer()
+        : base(CSharpSyntaxFacts.Instance)
     {
-        public CSharpMultipleBlankLinesDiagnosticAnalyzer()
-            : base(CSharpSyntaxFacts.Instance)
-        {
-        }
     }
 }

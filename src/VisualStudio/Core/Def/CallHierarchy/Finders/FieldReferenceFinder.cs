@@ -12,27 +12,26 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+
+internal class FieldReferenceFinder : AbstractCallFinder
 {
-    internal class FieldReferenceFinder : AbstractCallFinder
+    public FieldReferenceFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        : base(symbol, projectId, asyncListener, provider)
     {
-        public FieldReferenceFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
-            : base(symbol, projectId, asyncListener, provider)
-        {
-        }
+    }
 
-        public override string DisplayName
+    public override string DisplayName
+    {
+        get
         {
-            get
-            {
-                return string.Format(EditorFeaturesResources.References_To_Field_0, SymbolName);
-            }
+            return string.Format(EditorFeaturesResources.References_To_Field_0, SymbolName);
         }
+    }
 
-        protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
-        {
-            var callers = await SymbolFinder.FindCallersAsync(symbol, project.Solution, documents, cancellationToken).ConfigureAwait(false);
-            return callers.Where(c => c.IsDirect);
-        }
+    protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+    {
+        var callers = await SymbolFinder.FindCallersAsync(symbol, project.Solution, documents, cancellationToken).ConfigureAwait(false);
+        return callers.Where(c => c.IsDirect);
     }
 }

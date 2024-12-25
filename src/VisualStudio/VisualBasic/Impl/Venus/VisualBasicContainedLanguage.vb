@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
@@ -26,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         <Obsolete("Use the constructor that omits the IVsHierarchy and UInteger parameters instead.", True)>
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As VisualStudioProject,
+                project As ProjectSystemProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
                 languageServiceGuid As Guid)
@@ -40,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As VisualStudioProject,
+                project As ProjectSystemProject,
                 languageServiceGuid As Guid)
 
             MyBase.New(
@@ -58,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=False,
@@ -99,7 +100,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemidInsertionPoint,
                 useHandlesClause:=True,
                 additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
-                GlobalOptions,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1
@@ -116,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=Nothing,
@@ -139,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=Nothing,

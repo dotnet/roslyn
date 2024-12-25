@@ -7,14 +7,13 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
+
+[ComImport]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("F304ABA7-2448-4EE9-A706-D1838F200398")]
+internal interface IIntellisenseBuildTarget
 {
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("F304ABA7-2448-4EE9-A706-D1838F200398")]
-    internal interface IIntellisenseBuildTarget
-    {
-        // currently, reason is not being used.
-        void SetIntellisenseBuildResult(bool succeeded, [MarshalAs(UnmanagedType.LPWStr)] string reason);
-    }
+    // currently, reason is not being used.
+    void SetIntellisenseBuildResult(bool succeeded, [MarshalAs(UnmanagedType.LPWStr)] string reason);
 }

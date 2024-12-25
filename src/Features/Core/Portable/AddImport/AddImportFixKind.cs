@@ -2,15 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.AddImport;
 
-namespace Microsoft.CodeAnalysis.AddImport
+internal enum AddImportFixKind
 {
-    internal enum AddImportFixKind
-    {
-        ProjectSymbol,
-        MetadataSymbol,
-        PackageSymbol,
-        ReferenceAssemblySymbol,
-    }
+    /// <summary>
+    /// Adding a project reference.
+    /// </summary>
+    ProjectSymbol,
+
+    /// <summary>
+    /// Adding an assembly reference.
+    /// </summary>
+    MetadataSymbol,
+
+    /// <summary>
+    /// Adding a package reference.
+    /// </summary>
+    PackageSymbol,
+
+    /// <summary>
+    /// Adding a framework reference assembly reference.
+    /// </summary>
+    ReferenceAssemblySymbol,
 }

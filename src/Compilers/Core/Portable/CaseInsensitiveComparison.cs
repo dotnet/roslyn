@@ -15,7 +15,12 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Case-insensitive operations (mostly comparison) on unicode strings.
     /// </summary>
-    public static class CaseInsensitiveComparison
+#if COMPILERCORE
+    public
+#else
+    internal
+#endif
+    static class CaseInsensitiveComparison
     {
         // PERF: Cache a TextInfo for Unicode ToLower since this will be accessed very frequently
         private static readonly TextInfo s_unicodeCultureTextInfo = GetUnicodeCulture().TextInfo;
@@ -361,7 +366,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        [return: NotNullIfNotNull(parameterName: "value")]
+        [return: NotNullIfNotNull(parameterName: nameof(value))]
         public static string? ToLower(string? value)
         {
             if (value is null)

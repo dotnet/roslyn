@@ -9,8 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Inherits GoToDefinitionTestsBase
 #Region "Normal Visual Basic Tests"
 
-        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3589")>
         Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
             Dim workspace =
 <Workspace>
@@ -51,7 +50,7 @@ end class
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVisualBasicLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -65,7 +64,7 @@ end class
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23030")>
         Public Async Function TestVisualBasicStringLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
@@ -79,8 +78,7 @@ end class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(541105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541105")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541105")>
         Public Async Function TestVisualBasicPropertyBackingField() As Task
             Dim workspace =
 <Workspace>
@@ -211,8 +209,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(900438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
         Public Async Function TestVisualBasicGotoDefinitionPartialMethod() As Task
             Dim workspace =
 <Workspace>
@@ -287,8 +284,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         Public Async Function TestVisualBasicMe() As Task
             Dim workspace =
 <Workspace>
@@ -321,8 +317,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         Public Async Function TestVisualBasicMyClass() As Task
             Dim workspace =
 <Workspace>
@@ -355,8 +350,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         Public Async Function TestVisualBasicMyBase() As Task
             Dim workspace =
 <Workspace>
@@ -481,8 +475,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         Public Async Function TestVisualBasicFilterGotoDefResultsFromHiddenCodeForUIPresenters() As Task
             Dim workspace =
 <Workspace>
@@ -502,8 +495,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         Public Async Function TestVisualBasicDoNotFilterGotoDefResultsFromHiddenCodeForApis() As Task
             Dim workspace =
 <Workspace>
@@ -576,8 +568,7 @@ End Module]]>]
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(543218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543218")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543218")>
         Public Async Function TestVisualBasicQueryRangeVariable() As Task
             Dim workspace =
 <Workspace>
@@ -600,8 +591,7 @@ End Module
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
         Public Async Function TestVisualBasicGotoConstant() As Task
             Dim workspace =
 <Workspace>
@@ -620,9 +610,8 @@ End Module
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(10132, "https://github.com/dotnet/roslyn/issues/10132")>
-        <WorkItem(545661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
-        <WpfFact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10132")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
         Public Async Function TestCrossLanguageParameterizedPropertyOverride() As Task
             Dim workspace =
 <Workspace>
@@ -653,8 +642,7 @@ class B : A
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(866094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
         Public Async Function TestCrossLanguageNavigationToVBModuleMember() As Task
             Dim workspace =
 <Workspace>
@@ -703,8 +691,7 @@ class C
             Await TestAsync(workspace, expectedResult:=False)
         End Function
 
-        <WorkItem(902119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902119")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902119")>
         Public Async Function TestGoToDefinitionOnInferredFieldInitializer() As Task
             Dim workspace =
 <Workspace>
@@ -730,8 +717,7 @@ End Class
             Await TestAsync(workspace)
         End Function
 
-        <WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
         Public Async Function TestGoToDefinitionGlobalImportAlias() As Task
             Dim workspace =
 <Workspace>
@@ -1502,6 +1488,150 @@ Class C
             Return$$
         End RaiseEvent
     End Event
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestVisualBasicGoToDefOnUsing1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+using System
+
+class Program
+    sub Goo()
+        $$using disposableObject = new DisposableObject()
+        end using
+    end sub
+end class
+
+class DisposableObject
+    implements IDisposable
+
+    public sub [|Dispose|]() implements IDisposable.Dispose
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/37842")>
+        Public Async Function TestVisualBasicGoToDefOnUsing2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+using System
+
+class Program
+    sub Goo()
+        $$using new DisposableObject()
+        end using
+    end sub
+end class
+
+class DisposableObject
+    implements IDisposable
+
+    public sub [|Dispose|]() implements IDisposable.Dispose
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestVisualBasicGoToDefinition_GoToLabel01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Using System
+
+Public Class C
+    Public Sub Method(parameter As Integer)
+
+        If parameter = 1 Then
+            $$GoTo label
+        End If
+
+        Console.WriteLine(parameter)
+
+[||]label:
+        Return
+
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestVisualBasicGoToDefinition_GoToLabel02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Using System
+
+Public Class C
+    Public Sub Method(parameter As Integer)
+
+        If parameter = 1 Then
+            $$GoTo 150
+        End If
+
+        Console.WriteLine(parameter)
+
+[||]150:
+        Return
+
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestVisualBasicGoToDefinition_GoToLabel03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Using System
+
+Public Class C
+    Public Sub Method(parameter As Integer)
+
+        If parameter = 1 Then
+            $$GoTo 150
+        End If
+
+        Console.WriteLine(parameter)
+
+label:
+[||]150:
+        Return
+
+    End Sub
 End Class
         </Document>
     </Project>

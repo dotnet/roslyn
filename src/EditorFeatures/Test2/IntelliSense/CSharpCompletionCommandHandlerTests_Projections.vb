@@ -107,7 +107,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestRegionCompletionCommitFormatting(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(

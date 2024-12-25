@@ -529,7 +529,7 @@ End Class"
             Return VisualBasicSyntaxFacts.Instance.IsQueryKeyword(token)
         End Function
 
-        <Fact, WorkItem(40917, "https://github.com/dotnet/roslyn/issues/40917")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40917")>
         Public Sub IsLeftSideOfCompoundAssignment()
             Assert.True(IsLeftSideOfCompoundAssignment(WrapInMethod("
 Dim index As Integer = 0

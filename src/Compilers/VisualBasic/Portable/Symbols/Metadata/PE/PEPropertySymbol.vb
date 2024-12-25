@@ -11,6 +11,7 @@ Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -43,6 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Const s_unsetAccessibility As Integer = -1
         Private _lazyDeclaredAccessibility As Integer = s_unsetAccessibility
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
+        Private _lazyIsRequired As ThreeState = ThreeState.Unknown
+        Private _lazyOverloadResolutionPriority As StrongBox(Of Integer)
 
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
@@ -217,6 +221,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                        (Me._setMethod IsNot Nothing AndAlso Me._setMethod.IsOverloads)
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            If _lazyOverloadResolutionPriority Is Nothing Then
+
+                Dim priority As Integer
+                If Not _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) Then
+                    priority = 0
+                End If
+
+                Interlocked.CompareExchange(_lazyOverloadResolutionPriority, New StrongBox(Of Integer)(priority), Nothing)
+            End If
+
+            Return _lazyOverloadResolutionPriority.Value
+        End Function
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
@@ -607,6 +625,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                If Not _lazyIsRequired.HasValue() Then
+                    _lazyIsRequired = _containingType.ContainingPEModule.Module.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute).ToThreeState()
+                End If
+
+                Return _lazyIsRequired.Value()
             End Get
         End Property
 

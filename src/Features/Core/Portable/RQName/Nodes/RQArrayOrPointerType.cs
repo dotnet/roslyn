@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal abstract class RQArrayOrPointerType : RQType
-    {
-        public readonly RQType ElementType;
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        public RQArrayOrPointerType(RQType elementType)
-            => ElementType = elementType;
-    }
+internal abstract class RQArrayOrPointerType(RQType elementType) : RQType
+{
+    public readonly RQType ElementType = elementType;
 }
