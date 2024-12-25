@@ -67,11 +67,6 @@
         <target state="translated">누락된 '{0}'을(를) 삽입합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">충돌이 감지되었습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">'Using' 문 지정</target>
@@ -222,16 +217,6 @@
         <target state="translated">잘못된 함수 반환 형식 수정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">'{0}' 이름 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">멤버 액세스 '{0}' 단순화</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Me' 한정자 제거</target>
@@ -240,11 +225,6 @@
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
         <source>can't determine valid range of statements to extract out</source>
         <target state="translated">추출할 문에 유효한 범위를 결정할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">일부 코드 경로가 반환됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -1452,11 +1432,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">현재 줄 아래의 소스 파일 부분에서 지정한 경고를 보고합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">{0}을(를) 비동기 함수로 설정합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">올바른 제어 변수 사용</target>
@@ -1465,16 +1440,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="NameOf_function">
         <source>NameOf function</source>
         <target state="translated">함수 이름</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">'{0}'에서 축소 변환 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">'{0}'에서 확대 변환 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1662,16 +1627,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">지정한 어셈블리 및 모든 해당 종속성에 대한 메타데이터 참조를 추가합니다(예: #r "myLib.dll").</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">속성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;네임스페이스 이름&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">네임스페이스를 선언하려면 여기에 이름을 입력하세요.</target>
@@ -1680,16 +1635,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">Partial 클래스를 선언하려면 여기에 이름을 입력하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;클래스 이름&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;인터페이스 이름&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">
@@ -1736,16 +1681,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <source>{0}.set</source>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
-      </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">비동기 함수로 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">비동기 Sub로 설정</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>

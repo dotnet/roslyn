@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NET
+
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
@@ -16,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()
         {
+            using var testFixture = new AssemblyLoadTestFixture();
             var remoteAssemblyInCurrentAlc = typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly;
             var remoteAssemblyLocation = remoteAssemblyInCurrentAlc.Location;
 
@@ -24,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             // Try to load MS.CA.Remote.ServiceHub.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
             // since it's not one of the special assemblies listed in RemoteAnalyzerAssemblyLoader,
             // RemoteAnalyzerAssemblyLoader should loaded in a spearate DirectoryLoadContext. 
-            loader.AddDependencyLocation(remoteAssemblyLocation);
-            var remoteAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(remoteAssemblyLocation);
+            loader.AddDependencyLocation(testFixture.Delta1);
+            var remoteAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(testFixture.Delta1);
 
             var alc1 = AssemblyLoadContext.GetLoadContext(remoteAssemblyInCurrentAlc);
             var alc2 = AssemblyLoadContext.GetLoadContext(remoteAssemblyLoadedViaRemoteLoader);
@@ -68,3 +72,4 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
     }
 }
+#endif

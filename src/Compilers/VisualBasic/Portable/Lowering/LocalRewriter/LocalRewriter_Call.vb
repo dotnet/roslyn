@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim firstUse As BoundExpression
             Dim secondUse As BoundExpression
 
-            Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, originalArgument, tempsArray)
+            Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, originalArgument, isForRegularCompoundAssignment:=False, tempsArray)
 
             If originalArgument.IsPropertyOrXmlPropertyAccess Then
                 firstUse = useTwice.First.SetAccessKind(PropertyAccessKind.Get).MakeRValue()

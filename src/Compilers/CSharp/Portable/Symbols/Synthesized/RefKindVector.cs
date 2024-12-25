@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal struct RefKindVector : IEquatable<RefKindVector>
     {
+        private const int BitsPerRefKind = 3;
         private BitVector _bits;
 
         internal static RefKindVector Create(int capacity)
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private RefKindVector(int capacity)
         {
-            _bits = BitVector.Create(capacity * 2);
+            _bits = BitVector.Create(capacity * BitsPerRefKind);
         }
 
         private RefKindVector(BitVector bits)
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsNull => _bits.IsNull;
 
-        internal int Capacity => _bits.Capacity / 2;
+        internal int Capacity => _bits.Capacity / BitsPerRefKind;
 
         internal IEnumerable<ulong> Words() => _bits.Words();
 
@@ -39,24 +40,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                index *= 2;
-                return (_bits[index + 1], _bits[index]) switch
+                index *= BitsPerRefKind;
+                return (_bits[index + 2], _bits[index + 1], _bits[index]) switch
                 {
-                    (false, false) => RefKind.None,
-                    (false, true) => RefKind.Ref,
-                    (true, false) => RefKind.Out,
-                    (true, true) => RefKind.RefReadOnly,
+                    (false, false, false) => RefKind.None,
+                    (false, false, true) => RefKind.Ref,
+                    (false, true, false) => RefKind.Out,
+                    (false, true, true) => RefKind.RefReadOnly,
+                    (true, false, false) => RefKind.RefReadOnlyParameter,
+                    var bits => throw ExceptionUtilities.UnexpectedValue(bits)
                 };
             }
             set
             {
-                index *= 2;
-                (_bits[index + 1], _bits[index]) = value switch
+                index *= BitsPerRefKind;
+                (_bits[index + 2], _bits[index + 1], _bits[index]) = value switch
                 {
-                    RefKind.None => (false, false),
-                    RefKind.Ref => (false, true),
-                    RefKind.Out => (true, false),
-                    RefKind.RefReadOnly => (true, true),
+                    RefKind.None => (false, false, false),
+                    RefKind.Ref => (false, false, true),
+                    RefKind.Out => (false, true, false),
+                    RefKind.RefReadOnly => (false, true, true),
+                    RefKind.RefReadOnlyParameter => (true, false, false),
                     _ => throw ExceptionUtilities.UnexpectedValue(value)
                 };
             }
@@ -82,21 +86,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
-            builder.Append("{");
+            builder.Append('{');
 
             int i = 0;
             foreach (var word in this.Words())
             {
                 if (i > 0)
                 {
-                    builder.Append(",");
+                    builder.Append(',');
                 }
 
                 builder.AppendFormat("{0:x8}", word);
                 i++;
             }
 
-            builder.Append("}");
+            builder.Append('}');
             Debug.Assert(i > 0);
 
             return pooledBuilder.ToStringAndFree();
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(firstWord is not null);
 
-            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? Array.Empty<ulong>(), capacity * 2);
+            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? Array.Empty<ulong>(), capacity * BitsPerRefKind);
             result = new RefKindVector(bitVector);
             return true;
         }

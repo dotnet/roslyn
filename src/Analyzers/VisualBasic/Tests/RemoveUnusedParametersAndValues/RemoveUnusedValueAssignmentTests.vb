@@ -98,7 +98,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48070")>
         Public Async Function Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives() As Task
             Await TestInRegularAndScriptAsync(
 "class C

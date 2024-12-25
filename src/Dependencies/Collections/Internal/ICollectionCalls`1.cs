@@ -20,5 +20,13 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         public static bool IsReadOnly<TCollection>(ref TCollection collection)
             where TCollection : ICollection<T>
             => collection.IsReadOnly;
+
+        public static void Add<TCollection>(ref TCollection collection, T item)
+            where TCollection : ICollection<T>
+            => collection.Add(item);
+
+        public static void CopyTo<TCollection>(ref TCollection collection, T[] array, int arrayIndex)
+            where TCollection : ICollection<T>
+            => collection.CopyTo(array, arrayIndex);
     }
 }

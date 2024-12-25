@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free();
         }
 
-        internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator)
+        internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator, DebugInformationFormat targetDebugFormat = 0)
         {
-            WithRuntimeInstance(compilation, null, validator: validator);
+            WithRuntimeInstance(compilation, null, validator: validator, targetDebugFormat);
         }
 
-        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator)
+        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator, DebugInformationFormat targetDebugFormat = 0)
         {
-            WithRuntimeInstance(compilation, references, includeLocalSignatures: true, includeIntrinsicAssembly: true, validator: validator);
+            WithRuntimeInstance(compilation, references, includeLocalSignatures: true, includeIntrinsicAssembly: true, validator: validator, targetDebugFormat);
         }
 
         internal static void WithRuntimeInstance(
@@ -69,10 +69,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             IEnumerable<MetadataReference> references,
             bool includeLocalSignatures,
             bool includeIntrinsicAssembly,
-            Action<RuntimeInstance> validator)
+            Action<RuntimeInstance> validator,
+            DebugInformationFormat targetDebugFormat = 0)
         {
             foreach (var debugFormat in new[] { DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb })
             {
+                if (targetDebugFormat != 0 && debugFormat != targetDebugFormat)
+                {
+                    continue;
+                }
+
                 using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly))
                 {
                     validator(instance);
@@ -309,9 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             string expr,
             int atLineNumber = -1,
             bool includeSymbols = true,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            TargetFramework targetFramework = TargetFramework.Standard,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
         {
-            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, targetFramework: targetFramework);
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, targetFramework: targetFramework, debugFormat: debugFormat);
             Assert.Null(error);
             return result;
         }
@@ -337,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             out string error,
             int atLineNumber = -1,
             bool includeSymbols = true,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            TargetFramework targetFramework = TargetFramework.Standard,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
         {
             var compilation = CreateCompilation(
                 source,
@@ -345,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe,
                 targetFramework: targetFramework);
 
-            return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
+            return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols, debugFormat);
         }
 
         internal CompilationTestData Evaluate(
@@ -355,9 +363,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             out ResultProperties resultProperties,
             out string error,
             int atLineNumber = -1,
-            bool includeSymbols = true)
+            bool includeSymbols = true,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
         {
-            var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? DebugInformationFormat.Pdb : 0);
+            var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? debugFormat : 0);
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;

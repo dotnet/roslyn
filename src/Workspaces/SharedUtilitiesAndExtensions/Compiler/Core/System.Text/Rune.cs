@@ -26,7 +26,7 @@ namespace System.Text
     /// assuming that the underlying <see cref="Rune"/> instance is well-formed.
     /// </remarks>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    internal readonly struct Rune : IComparable<Rune>, IEquatable<Rune>
+    internal readonly record struct Rune : IComparable<Rune>
     {
         private const char HighSurrogateStart = '\ud800';
         private const char LowSurrogateStart = '\udc00';
@@ -116,10 +116,6 @@ namespace System.Text
             UnicodeDebug.AssertIsValidScalar(scalarValue);
             _value = scalarValue;
         }
-
-        public static bool operator ==(Rune left, Rune right) => left._value == right._value;
-
-        public static bool operator !=(Rune left, Rune right) => left._value != right._value;
 
         public static bool operator <(Rune left, Rune right) => left._value < right._value;
 
@@ -747,12 +743,6 @@ ForwardDecode:
 
             return bytesWritten;
         }
-
-        public override bool Equals(object obj) => (obj is Rune other) && Equals(other);
-
-        public bool Equals(Rune other) => this == other;
-
-        public override int GetHashCode() => Value;
 
         /// <summary>
         /// Gets the <see cref="Rune"/> which begins at index <paramref name="index"/> in

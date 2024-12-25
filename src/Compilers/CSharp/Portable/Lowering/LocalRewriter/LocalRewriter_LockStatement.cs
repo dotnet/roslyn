@@ -13,8 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Lowers a lock statement to a try-finally block that calls Monitor.Enter and Monitor.Exit
-        /// before and after the body, respectively.
+        /// Lowers a lock statement to a try-finally block that calls (before and after the body, respectively):
+        /// <list type="bullet">
+        /// <item>Lock.EnterScope and Lock+Scope.Dispose if the argument is of type Lock, or</item>
+        /// <item>Monitor.Enter and Monitor.Exit.</item>
+        /// </list>
         /// </summary>
         public override BoundNode VisitLockStatement(BoundLockStatement node)
         {
@@ -29,12 +32,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This isn't particularly elegant, but hopefully locking on null is
                 // not very common.
-                Debug.Assert(rewrittenArgument.ConstantValue == ConstantValue.Null);
+                Debug.Assert(rewrittenArgument.ConstantValueOpt == ConstantValue.Null);
                 argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
                 rewrittenArgument = MakeLiteral(
                     rewrittenArgument.Syntax,
-                    rewrittenArgument.ConstantValue,
+                    rewrittenArgument.ConstantValueOpt,
                     argumentType); //need to have a non-null type here for TempHelpers.StoreToTemp.
+            }
+
+            if (argumentType.IsWellKnownTypeLock())
+            {
+                if (LockBinder.TryFindLockTypeInfo(argumentType, _diagnostics, rewrittenArgument.Syntax) is not { } lockTypeInfo)
+                {
+                    Debug.Fail("We should have reported an error during binding if lock type info cannot be found.");
+                    return node.Update(rewrittenArgument, rewrittenBody).WithHasErrors();
+                }
+
+                // lock (x) { body } -> using (x.EnterScope()) { body }
+
+                var tryBlock = rewrittenBody is BoundBlock block ? block : BoundBlock.SynthesizedNoLocals(lockSyntax, rewrittenBody);
+
+                var enterScopeCall = BoundCall.Synthesized(
+                    rewrittenArgument.Syntax,
+                    rewrittenArgument,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    lockTypeInfo.EnterScopeMethod);
+
+                // the temp must be associated with the lock statement to support EnC slot mapping:
+                BoundLocal boundTemp = _factory.StoreToTemp(enterScopeCall,
+                    out BoundAssignmentOperator tempAssignment,
+                    syntaxOpt: lockSyntax,
+                    kind: SynthesizedLocalKind.Using);
+
+                var expressionStatement = new BoundExpressionStatement(rewrittenArgument.Syntax, tempAssignment);
+
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(
+                    rewrittenArgument.Syntax,
+                    rewrittenArgument.Syntax,
+                    tryBlock,
+                    boundTemp,
+                    awaitKeywordOpt: default,
+                    awaitOpt: null,
+                    patternDisposeInfo: MethodArgumentInfo.CreateParameterlessMethod(lockTypeInfo.ScopeDisposeMethod));
+
+                return new BoundBlock(
+                    lockSyntax,
+                    locals: ImmutableArray.Create(boundTemp.LocalSymbol),
+                    statements: ImmutableArray.Create(expressionStatement, tryFinally));
             }
 
             if (argumentType.Kind == SymbolKind.TypeParameter)
@@ -49,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.Boxing,
                     argumentType,
                     @checked: false,
-                    constantValueOpt: rewrittenArgument.ConstantValue);
+                    constantValueOpt: rewrittenArgument.ConstantValueOpt);
             }
 
             BoundAssignmentOperator assignmentToLockTemp;
@@ -58,12 +102,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundLockTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTemp);
             BoundExpression exitCallExpr;
 
-            MethodSymbol exitMethod;
+            MethodSymbol? exitMethod;
             if (TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Exit, out exitMethod))
             {
                 exitCallExpr = BoundCall.Synthesized(
                     lockSyntax,
                     receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     exitMethod,
                     boundLockTemp);
             }
@@ -74,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement exitCall = new BoundExpressionStatement(lockSyntax, exitCallExpr);
 
-            MethodSymbol enterMethod;
+            MethodSymbol? enterMethod;
 
             if ((TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter2, out enterMethod, isOptional: true) ||
                  TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter, out enterMethod)) && // If we didn't find the overload introduced in .NET 4.0, then use the older one. 
@@ -109,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundCall.Synthesized(
                         lockSyntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
                         boundLockTemp,
                         boundLockTakenTemp));
@@ -117,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     boundLockTakenTemp,
                     exitCall,
-                    null,
                     node.HasErrors);
 
                 return new BoundBlock(
@@ -151,13 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression enterCallExpr;
 
-                if ((object)enterMethod != null)
+                if ((object?)enterMethod != null)
                 {
                     Debug.Assert(enterMethod.ParameterCount == 1);
 
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
                         boundLockTemp);
                 }
@@ -187,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
         {
             return this.Instrument ?
-                _instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
+                Instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
                 lockTargetCapture;
         }
     }

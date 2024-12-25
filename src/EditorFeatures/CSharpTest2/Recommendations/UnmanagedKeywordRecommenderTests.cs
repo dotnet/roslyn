@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -80,48 +78,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterName_Method()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void M $$");
+                """
+                class Test {
+                    void M $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterWhereClause_Method()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void M<T> where $$");
+                """
+                class Test {
+                    void M<T> where $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterWhereClauseType_Method()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void M<T> where T $$");
+                """
+                class Test {
+                    void M<T> where T $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterWhereClauseColon_Method()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    void M<T> where T : $$");
+                """
+                class Test {
+                    void M<T> where T : $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterTypeConstraint_Method()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void M<T> where T : I $$");
+                """
+                class Test {
+                    void M<T> where T : I $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterTypeConstraintComma_Method()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    void M<T> where T : I, $$");
+                """
+                class Test {
+                    void M<T> where T : I, $$
+                """);
         }
 
         [Fact]
@@ -170,72 +180,88 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterName_LocalFunction()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void N() {
-        void M $$");
+                """
+                class Test {
+                    void N() {
+                        void M $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterWhereClause_LocalFunction()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void N() {
-        void M<T> where $$");
+                """
+                class Test {
+                    void N() {
+                        void M<T> where $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterWhereClauseType_LocalFunction()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void N() {
-        void M<T> where T $$");
+                """
+                class Test {
+                    void N() {
+                        void M<T> where T $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterWhereClauseColon_LocalFunction()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    void N() {
-        void M<T> where T : $$");
+                """
+                class Test {
+                    void N() {
+                        void M<T> where T : $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterTypeConstraint_LocalFunction()
         {
             await VerifyAbsenceAsync(
-@"class Test {
-    void N() {
-        void M<T> where T : I $$");
+                """
+                class Test {
+                    void N() {
+                        void M<T> where T : I $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterTypeConstraintComma_LocalFunction()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    void N() {
-        void M<T> where T : I, $$");
+                """
+                class Test {
+                    void N() {
+                        void M<T> where T : I, $$
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerDeclaration()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    unsafe void N() {
-        delegate* $$");
+                """
+                class Test {
+                    unsafe void N() {
+                        delegate* $$
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerDeclarationTouchingAsterisk()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    unsafe void N() {
-        delegate*$$");
+                """
+                class Test {
+                    unsafe void N() {
+                        delegate*$$
+                """);
         }
     }
 }

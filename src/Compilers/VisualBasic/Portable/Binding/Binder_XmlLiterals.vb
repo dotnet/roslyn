@@ -1048,7 +1048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateStringLiteral(
-                                            syntax As VisualBasicSyntaxNode,
+                                            syntax As SyntaxNode,
                                             str As String,
                                             compilerGenerated As Boolean,
                                             diagnostics As BindingDiagnosticBag,
@@ -1636,6 +1636,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _originalDefinition.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
                 Return False
@@ -1709,6 +1713,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
             Get
                 Debug.Assert(Not _originalDefinition.IsMyGroupCollectionProperty)
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
                 Return False
             End Get
         End Property
@@ -1846,6 +1856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End Get
             End Property
+
+            Public Overrides Function GetOverloadResolutionPriority() As Integer
+                Return _originalDefinition.GetOverloadResolutionPriority()
+            End Function
 
             Public Overrides ReadOnly Property IsOverridable As Boolean
                 Get
@@ -1987,6 +2001,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
                 Throw ExceptionUtilities.Unreachable
             End Function
+
+            Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
         End Class
 
         Private NotInheritable Class ReducedAccessorParameterSymbol

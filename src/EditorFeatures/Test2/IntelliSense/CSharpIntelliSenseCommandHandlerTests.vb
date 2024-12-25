@@ -31,7 +31,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEscapeDismissesCompletionFirst(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -57,7 +57,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCutDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -79,7 +79,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestPasteDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(

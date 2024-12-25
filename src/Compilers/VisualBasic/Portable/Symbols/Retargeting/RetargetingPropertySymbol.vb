@@ -154,6 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _underlyingProperty.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return _underlyingProperty.IsShared
@@ -329,5 +333,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Debug.Assert(Not _underlyingProperty.IsRequired)
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace

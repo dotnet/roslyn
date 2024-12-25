@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal IReadOnlyDictionary<string, Cci.DebugSourceDocument> DebugDocuments
             => _debugDocuments;
 
-        internal Cci.DebugSourceDocument? TryGetDebugDocument(string path, string basePath)
+        internal Cci.DebugSourceDocument? TryGetDebugDocument(string path, string? basePath)
         {
             return TryGetDebugDocumentForNormalizedPath(NormalizeDebugDocumentPath(path, basePath));
         }

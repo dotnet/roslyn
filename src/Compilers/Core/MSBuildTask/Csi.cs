@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #endregion
 
         #region Interactive Compiler Members
+
+        protected override void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
+        {
+            // Nothing to add
+        }
+
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");

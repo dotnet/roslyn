@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Roslyn.Test.Utilities
@@ -15,14 +15,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class AddParameterViewModelTests
 
         <WpfFact>
-        Public Sub AddParameter_SubmittingRequiresTypeAndNameAndCallsiteValue()
+        Public Async Function AddParameter_SubmittingRequiresTypeAndNameAndCallsiteValue() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
 {
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -43,17 +43,17 @@ class MyClass
 
             viewModel.CallSiteValue = "7"
             Assert.True(viewModel.TrySubmit())
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddParameter_TypeNameTextBoxInteractions()
+        Public Async Function AddParameter_TypeNameTextBoxInteractions() As Task
             Dim markup = <Text><![CDATA[
 class MyClass<T>
 {
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -61,7 +61,7 @@ class MyClass<T>
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -75,7 +75,7 @@ class MyClass<T>
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -89,7 +89,7 @@ class MyClass<T>
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -98,12 +98,12 @@ class MyClass<T>
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotParseImage), ServicesVSResources.Type_name_has_a_syntax_error)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotParseOrInvalidTypeImage), ServicesVSResources.Type_name_has_a_syntax_error)
 
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -117,7 +117,7 @@ class MyClass<T>
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -127,13 +127,13 @@ class MyClass<T>
             monitor.Detach()
 
             AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeIsEmptyImage), ServicesVSResources.Please_enter_a_type_name)
-        End Sub
+        End Function
 
         <WpfTheory>
         <InlineData("int")>
         <InlineData("MyClass")>
         <InlineData("NS1.NS2.DifferentClass")>
-        Public Sub AddParameter_NoExistingParameters_TypeBinds(typeName As String)
+        Public Async Function AddParameter_NoExistingParameters_TypeBinds(typeName As String) As Task
             Dim markup = <Text><![CDATA[
 namespace NS1
 {
@@ -151,7 +151,7 @@ class MyClass
     }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -159,7 +159,7 @@ class MyClass
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -174,17 +174,17 @@ class MyClass
             viewModel.CallSiteValue = "0"
 
             Assert.True(viewModel.TrySubmit())
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddParameter_CannotBeBothRequiredAndOmit()
+        Public Async Function AddParameter_CannotBeBothRequiredAndOmit() As Task
             Dim markup = <Text><![CDATA[
 class MyClass<T>
 {
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -204,13 +204,13 @@ class MyClass<T>
 
             Assert.True(viewModel.IsCallsiteRegularValue)
             Assert.False(viewModel.IsCallsiteOmitted)
-        End Sub
+        End Function
 
         <WpfTheory>
         <InlineData("int")>
         <InlineData("MyClass")>
         <InlineData("NS1.NS2.DifferentClass")>
-        Public Sub AddParameter_ExistingParameters_TypeBinds(typeName As String)
+        Public Async Function AddParameter_ExistingParameters_TypeBinds(typeName As String) As Task
             Dim markup = <Text><![CDATA[
 namespace NS1
 {
@@ -228,7 +228,7 @@ class MyClass
     }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -236,7 +236,7 @@ class MyClass
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
             monitor.AddExpectation(Function() viewModel.TypeIsEmptyImage)
-            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseImage)
+            monitor.AddExpectation(Function() viewModel.TypeDoesNotParseOrInvalidTypeImage)
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
@@ -251,11 +251,11 @@ class MyClass
             viewModel.CallSiteValue = "0"
 
             Assert.True(viewModel.TrySubmit())
-        End Sub
+        End Function
 
         Private Shared Sub AssertTypeBindingIconAndTextIs(viewModel As AddParameterDialogViewModel, currentIcon As String, expectedMessage As String)
             Assert.True(viewModel.TypeIsEmptyImage = If(NameOf(viewModel.TypeIsEmptyImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
-            Assert.True(viewModel.TypeDoesNotParseImage = If(NameOf(viewModel.TypeDoesNotParseImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
+            Assert.True(viewModel.TypeDoesNotParseOrInvalidTypeImage = If(NameOf(viewModel.TypeDoesNotParseOrInvalidTypeImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
             Assert.True(viewModel.TypeDoesNotBindImage = If(NameOf(viewModel.TypeDoesNotBindImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
             Assert.True(viewModel.TypeBindsImage = If(NameOf(viewModel.TypeBindsImage) = currentIcon, Visibility.Visible, Visibility.Collapsed))
 
@@ -266,7 +266,7 @@ class MyClass
             Assert.True(viewModel.TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name)
 
             Assert.True(viewModel.TypeIsEmptyImage = Visibility.Visible)
-            Assert.True(viewModel.TypeDoesNotParseImage = Visibility.Collapsed)
+            Assert.True(viewModel.TypeDoesNotParseOrInvalidTypeImage = Visibility.Collapsed)
             Assert.True(viewModel.TypeDoesNotBindImage = Visibility.Collapsed)
             Assert.True(viewModel.TypeBindsImage = Visibility.Collapsed)
 
@@ -285,9 +285,9 @@ class MyClass
             Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
         End Sub
 
-        Private Shared Function GetViewModelTestStateAsync(
+        Private Shared Async Function GetViewModelTestStateAsync(
             markup As XElement,
-            languageName As String) As AddParameterViewModelTestState
+            languageName As String) As Task(Of AddParameterViewModelTestState)
 
             Dim workspaceXml =
             <Workspace>
@@ -296,28 +296,28 @@ class MyClass
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
                     Assert.True(False, "Missing caret location in document.")
                 End If
 
-                Dim viewModel = New AddParameterDialogViewModel(workspaceDoc, doc.CursorPosition.Value)
+                Dim document = Await SemanticDocument.CreateAsync(workspaceDoc, CancellationToken.None)
+                Dim viewModel = New AddParameterDialogViewModel(document, doc.CursorPosition.Value)
                 Return New AddParameterViewModelTestState(viewModel)
             End Using
         End Function
 
-        <WorkItem(44958, "https://github.com/dotnet/roslyn/issues/44958")>
-        <WpfFact>
-        Public Sub AddParameter_SubmittingTypeWithModifiersIsInvalid()
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44958")>
+        Public Async Function AddParameter_SubmittingTypeWithModifiersIsInvalid() As Task
             Dim markup = <Text><![CDATA[
 class MyClass
 {
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -347,6 +347,31 @@ class MyClass
             viewModel.VerbatimTypeName = "params int[]"
             Assert.False(viewModel.CanSubmit(message))
             Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
-        End Sub
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44959")>
+        Public Async Function AddParameter_CannotSubmitVoidParameterType() As Task
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public void M($$) { }
+}"]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+
+            VerifyOpeningState(viewModel)
+
+            viewModel.ParameterName = "test"
+            Dim message As String = Nothing
+
+            viewModel.VerbatimTypeName = "void"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter, message)
+
+            viewModel.VerbatimTypeName = "System.Void"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter, message)
+        End Function
     End Class
 End Namespace

@@ -5,16 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,6 +20,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class SolutionAssetCacheTests
     {
+        private static void ForceGC()
+        {
+            for (var i = 0; i < 3; i++)
+                GC.Collect();
+        }
+
         [Fact]
         public void TestGetAssets()
         {
@@ -41,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task TestCleanup()
         {
             var storage = new SolutionAssetCache(
-                remoteWorkspace: null, cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
+                remoteWorkspace: null, cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2));
 
             var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
@@ -57,6 +59,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     // asset is deleted
                     return;
                 }
+
+                ForceGC();
             }
 
             // it should not reach here
@@ -68,11 +72,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var workspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
             var solution = workspace.CurrentSolution;
-            var checksums = await solution.State.GetStateChecksumsAsync(CancellationToken.None);
+            var checksums = await solution.CompilationState.GetStateChecksumsAsync(CancellationToken.None);
 
             // Ensure the lazy has computed its value.
             var storage = new SolutionAssetCache(
-                workspace, cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
+                workspace, cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2));
 
             var checksum1 = checksums.Checksum;
             var data1 = new object();
@@ -94,6 +98,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(data1, current1);
 
                 gotChecksum2 = storage.TryGetAsset(checksum2, out object _);
+                ForceGC();
             }
 
             // By the end, checksum2/data2 should be gone.
@@ -109,6 +114,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // Eventually, this asset should go away.
                 if (!storage.TryGetAsset(checksum1, out object _))
                     return;
+
+                ForceGC();
             }
 
             // it should not reach here

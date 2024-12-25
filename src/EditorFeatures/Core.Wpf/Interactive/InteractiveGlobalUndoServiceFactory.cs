@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), WorkspaceKind.Interactive), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), [WorkspaceKind.Interactive]), Shared]
     internal sealed class InteractiveGlobalUndoServiceFactory : IWorkspaceServiceFactory
     {
         private readonly GlobalUndoService _singleton;

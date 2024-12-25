@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly NamedTypeSymbol _baseType;
         private readonly string _name;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly ImmutableArray<MethodSymbol> _methods;
 
         internal EENamedTypeSymbol(
             NamespaceSymbol container,
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.SourceTypeParameters = sourceTypeParameters;
             _typeParameters = getTypeParameters(currentFrame.ContainingType, this);
             VerifyTypeParameters(this, _typeParameters);
-            _methods = getMethods(currentFrame, this);
+            Methods = getMethods(currentFrame, this);
         }
 
         internal EENamedTypeSymbol(
@@ -91,16 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.SubstitutedSourceType = typeMap.SubstituteNamedType(sourceType);
             TypeParameterChecker.Check(this.SubstitutedSourceType, _typeParameters);
 
-            _methods = getMethods(currentFrame, this);
+            Methods = getMethods(currentFrame, this);
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             => throw ExceptionUtilities.Unreachable();
 
-        internal ImmutableArray<MethodSymbol> Methods
-        {
-            get { return _methods; }
-        }
+        internal ImmutableArray<MethodSymbol> Methods { get; }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
@@ -109,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
-            return _methods;
+            return Methods;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
@@ -159,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal override bool IsFileLocal => false;
+        internal override FileIdentifier AssociatedFileIdentifier => null;
 
         public override IEnumerable<string> MemberNames
         {
@@ -170,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return _methods.Cast<MethodSymbol, Symbol>();
+            return Methods.Cast<MethodSymbol, Symbol>();
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
@@ -186,12 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -371,6 +368,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
     }
 }

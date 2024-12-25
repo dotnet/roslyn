@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AnonymousType = 'f',
         TransparentIdentifier = 'h',
         AnonymousTypeField = 'i',
+        StateMachineStateIdField = 'I',
         AnonymousTypeTypeParameter = 'j',
         AutoPropertyBackingField = 'k',
         IteratorCurrentThreadIdField = 'l',
@@ -42,10 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AsyncBuilderField = 't',
         DelegateCacheContainerType = 'O',
         DynamicCallSiteContainerType = 'o',
+        PrimaryConstructorParameter = 'P',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
         DisposeModeField = 'w',
-        CombinedTokensField = 'x', // last
+        CombinedTokensField = 'x',
+        InlineArrayType = 'y',
+        ReadOnlyListType = 'z', // last
 
         // Deprecated - emitted by Dev12, but not by Roslyn.
         // Don't reuse the values because the debugger might encounter them when consuming old binaries.

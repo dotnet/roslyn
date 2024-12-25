@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
+
+internal class HighlightTag : TextMarkerTag
 {
-    internal class HighlightTag : TextMarkerTag
+    public HighlightTag() : base("blue")
     {
-        public HighlightTag() : base("blue")
-        {
-        }
     }
 }

@@ -42,7 +42,7 @@ End Namespace
             Assert.False(implicitClass.IsSubmissionClass)
             Assert.False(implicitClass.IsScriptClass)
 
-            Dim c2 = CreateCompilationWithMscorlib45(source:=Nothing, {c.ToMetadataReference()})
+            Dim c2 = CreateCompilationWithMscorlib461(source:=Nothing, {c.ToMetadataReference()})
 
             n = DirectCast(c2.GlobalNamespace.GetMembers("N").Single(), NamespaceSymbol)
             implicitClass = DirectCast(n.GetMembers().Single(), NamedTypeSymbol)

@@ -5,17 +5,16 @@
 using System.Windows.Controls;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
+
+/// <summary>
+/// Interaction logic for NamingStylesTypeControl.xaml
+/// </summary>
+internal partial class NamingStylesTypeControl : UserControl
 {
-    /// <summary>
-    /// Interaction logic for NamingStylesTypeControl.xaml
-    /// </summary>
-    internal partial class NamingStylesTypeControl : UserControl
+    public NamingStylesTypeControl(NamingStylesTypeViewModel viewModel)
     {
-        public NamingStylesTypeControl(NamingStylesTypeViewModel viewModel)
-        {
-            InitializeComponent();
-            DataContext = viewModel;
-        }
+        InitializeComponent();
+        DataContext = viewModel;
     }
 }

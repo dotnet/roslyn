@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// Adds cached retargeting symbols into the given list.
         /// <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/> must be locked while calling this method.
         /// </summary>
-        internal void AddRetargetingAssemblySymbolsNoLock<T>(List<T> result) where T : IAssemblySymbolInternal
+        internal void AddRetargetingAssemblySymbolsNoLock<T>(ArrayBuilder<T> result) where T : IAssemblySymbolInternal
         {
             foreach (var symbol in _retargetingAssemblySymbols)
             {

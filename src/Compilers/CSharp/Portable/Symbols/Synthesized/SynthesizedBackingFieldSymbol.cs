@@ -14,14 +14,71 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
+    /// Represents a compiler generated backing field for an automatically implemented property or
+    /// a Primary Constructor parameter.
+    /// </summary>
+    internal abstract class SynthesizedBackingFieldSymbolBase : FieldSymbolWithAttributesAndModifiers
+    {
+        private readonly string _name;
+        internal abstract bool HasInitializer { get; }
+        protected override DeclarationModifiers Modifiers { get; }
+
+        public SynthesizedBackingFieldSymbolBase(
+            string name,
+            bool isReadOnly,
+            bool isStatic)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(name));
+
+            _name = name;
+
+            Modifiers = DeclarationModifiers.Private |
+                (isReadOnly ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None) |
+                (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            var compilation = this.DeclaringCompilation;
+
+            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            if (!this.ContainingType.IsImplicitlyDeclared)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
+
+            // Dev11 doesn't synthesize this attribute, the debugger has a knowledge
+            // of special name C# compiler uses for backing fields, which is not desirable.
+            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
+        }
+
+        public override string Name
+            => _name;
+
+        internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+            => null;
+
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            => ImmutableArray<SyntaxReference>.Empty;
+
+        internal override bool HasRuntimeSpecialName
+            => false;
+
+        public override bool IsImplicitlyDeclared
+            => true;
+
+        internal override bool IsRequired => false;
+    }
+
+    /// <summary>
     /// Represents a compiler generated backing field for an automatically implemented property.
     /// </summary>
-    internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
+    internal sealed class SynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
     {
         private readonly SourcePropertySymbolBase _property;
-        private readonly string _name;
-        internal bool HasInitializer { get; }
-        protected override DeclarationModifiers Modifiers { get; }
+        internal override bool HasInitializer { get; }
 
         public SynthesizedBackingFieldSymbol(
             SourcePropertySymbolBase property,
@@ -29,16 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isReadOnly,
             bool isStatic,
             bool hasInitializer)
+            : base(name, isReadOnly, isStatic)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(property.RefKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
-
-            _name = name;
-
-            Modifiers = DeclarationModifiers.Private |
-                (isReadOnly ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None) |
-                (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
-
             _property = property;
             HasInitializer = hasInitializer;
         }
@@ -49,8 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Location ErrorLocation
             => _property.Location;
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => _property.AttributeDeclarationSyntaxList;
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // The backing field for a partial property may have been calculated for either
+            // the definition part or the implementation part. Regardless, we should use
+            // the attributes from the definition part.
+            var property = (_property as SourcePropertySymbol)?.SourcePartialDefinitionPart ?? _property;
+            return property.GetAttributeDeclarations();
+        }
 
         public override Symbol AssociatedSymbol
             => _property;
@@ -77,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.FixedBufferAttribute))
             {
                 // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
                 ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
@@ -88,49 +145,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-
-            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
-            if (!this.ContainingType.IsImplicitlyDeclared)
-            {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
-
-            // Dev11 doesn't synthesize this attribute, the debugger has a knowledge
-            // of special name C# compiler uses for backing fields, which is not desirable.
-            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
-        }
-
-        public override string Name
-            => _name;
-
-        internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
-            => null;
-
         public override Symbol ContainingSymbol
             => _property.ContainingSymbol;
 
         public override NamedTypeSymbol ContainingType
             => _property.ContainingType;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-            => ImmutableArray<SyntaxReference>.Empty;
-
-        internal override bool HasRuntimeSpecialName
-            => false;
-
-        public override bool IsImplicitlyDeclared
-            => true;
-
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
-            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyOrUsesFieldKeyword)
             {
                 CheckForFieldTargetedAttribute(diagnostics);
             }
@@ -144,19 +169,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            foreach (var attribute in AttributeDeclarationSyntaxList)
+            foreach (var attributeList in GetAttributeDeclarations())
             {
-                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                foreach (var attribute in attributeList)
                 {
-                    diagnostics.Add(
-                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
-                            languageVersion.ToDisplayString(),
-                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
-                        attribute.Target.Location);
+                    if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                    {
+                        diagnostics.Add(
+                            new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                                languageVersion.ToDisplayString(),
+                                new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                            attribute.Target.Location);
+                    }
                 }
             }
         }
-
-        internal override bool IsRequired => false;
     }
 }

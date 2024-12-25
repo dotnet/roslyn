@@ -6,29 +6,28 @@
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Log
-{
-    internal static class DiagnosticLogger
-    {
-        private const string From = nameof(From);
-        private const string Id = nameof(Id);
-        private const string HasDescription = nameof(HasDescription);
-        private const string Uri = nameof(Uri);
+namespace Microsoft.CodeAnalysis.Diagnostics.Log;
 
-        public static void LogHyperlink(
-            string from,
-            string id,
-            bool description,
-            bool telemetry,
-            string uri)
+internal static class DiagnosticLogger
+{
+    private const string From = nameof(From);
+    private const string Id = nameof(Id);
+    private const string HasDescription = nameof(HasDescription);
+    private const string Uri = nameof(Uri);
+
+    public static void LogHyperlink(
+        string from,
+        string id,
+        bool description,
+        bool telemetry,
+        string uri)
+    {
+        Logger.Log(FunctionId.Diagnostics_HyperLink, KeyValueLogMessage.Create(m =>
         {
-            Logger.Log(FunctionId.Diagnostics_HyperLink, KeyValueLogMessage.Create(m =>
-            {
-                m[From] = from;
-                m[Id] = telemetry ? id : id.GetHashCode().ToString();
-                m[HasDescription] = description;
-                m[Uri] = telemetry ? uri : uri.GetHashCode().ToString();
-            }));
-        }
+            m[From] = from;
+            m[Id] = telemetry ? id : id.GetHashCode().ToString();
+            m[HasDescription] = description;
+            m[Uri] = telemetry ? uri : uri.GetHashCode().ToString();
+        }));
     }
 }

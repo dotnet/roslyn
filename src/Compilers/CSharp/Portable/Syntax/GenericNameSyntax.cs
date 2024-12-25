@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override string ErrorDisplayName()
         {
             var pb = PooledStringBuilder.GetInstance();
-            pb.Builder.Append(Identifier.ValueText).Append("<").Append(',', Arity - 1).Append(">");
+            pb.Builder.Append(Identifier.ValueText).Append('<').Append(',', Arity - 1).Append('>');
             return pb.ToStringAndFree();
         }
     }

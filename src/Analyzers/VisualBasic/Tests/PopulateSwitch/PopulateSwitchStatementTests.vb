@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.PopulateSwitch
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
     <Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
     Partial Public Class PopulateSwitchStatementTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicPopulateSwitchStatementDiagnosticAnalyzer(), New VisualBasicPopulateSwitchStatementCodeFixProvider())
@@ -690,7 +690,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")>
         Public Async Function TestAddMissingCasesForNullableEnum As Task
             Dim markup =
 <File>

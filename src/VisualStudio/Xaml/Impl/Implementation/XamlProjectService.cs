@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private readonly VisualStudioProjectFactory _visualStudioProjectFactory;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IThreadingContext _threadingContext;
-        private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new();
+        private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
         private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
 
         private RunningDocumentTable? _rdt;

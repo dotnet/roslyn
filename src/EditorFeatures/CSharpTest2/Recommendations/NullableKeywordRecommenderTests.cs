@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -93,15 +99,15 @@ $$");
         public async Task TestNotAfterPragmaWarning()
             => await VerifyAbsenceAsync(@"#pragma warning $$");
 
-        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63594")]
         public async Task TestNotAfterPragmaWarningDisable()
             => await VerifyAbsenceAsync(@"#pragma warning disable $$");
 
-        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63594")]
         public async Task TestNotAfterPragmaWarningEnable()
             => await VerifyAbsenceAsync(@"#pragma warning enable $$");
 
-        [Fact, WorkItem(63594, "https://github.com/dotnet/roslyn/issues/63594")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63594")]
         public async Task TestNotAfterPragmaWarningRestore()
             => await VerifyAbsenceAsync(@"#pragma warning restore $$");
 

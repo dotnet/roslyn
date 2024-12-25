@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNullCheck
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
     Partial Public Class UseIsNullCheckForReferenceEqualsTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), New VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider())
@@ -181,7 +181,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")>
         Public Async Function TestValueParameterTypeIsValueConstraintGeneric() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System

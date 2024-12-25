@@ -12,14 +12,19 @@
         <target state="translated">Aggiunge le parentesi graffe all'istruzione '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="translated">La funzione anonima può essere resa statica</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
-        <target state="new">Blank line not allowed after arrow expression clause token</target>
+        <target state="translated">Riga vuota non consentita dopo il token della clausola dell'espressione arrow</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_conditional_expression_token">
         <source>Blank line not allowed after conditional expression token</source>
-        <target state="new">Blank line not allowed after conditional expression token</target>
+        <target state="translated">Riga vuota non consentita dopo il token di espressione condizionale</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
@@ -92,10 +97,25 @@
         <target state="translated">L'espressione lambda può essere rimossa</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="translated">Rendere statica la funzione anonima</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_readonly">
+        <source>Make member 'readonly'</source>
+        <target state="translated">Rendi il membro 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_struct_readonly">
         <source>Make struct 'readonly'</source>
         <target state="translated">Rendere struct 'readonly'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Member_can_be_made_readonly">
+        <source>Member can be made 'readonly'</source>
+        <target state="translated">Il membro può essere impostato come 'readonly'</target>
+        <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
@@ -162,11 +182,6 @@
         <target state="translated">Rimuovi direttiva che ammette i valori Null ridondante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Rimuovi gli operatori di eliminazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Rimuovi espressione lambda non necessaria</target>
@@ -222,6 +237,11 @@
         <target state="translated">È stato rilevato codice non raggiungibile</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="translated">Usare 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">Usa valore letterale stringa UTF-8</target>
@@ -229,47 +249,47 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessor">
         <source>Use block body for accessor</source>
-        <target state="new">Use block body for accessor</target>
+        <target state="translated">Usare il corpo del blocco per la funzione di accesso</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_constructor">
         <source>Use block body for constructor</source>
-        <target state="new">Use block body for constructor</target>
+        <target state="translated">Usare il corpo del blocco per il costruttore</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_conversion_operator">
         <source>Use block body for conversion operator</source>
-        <target state="new">Use block body for conversion operator</target>
+        <target state="translated">Usare il corpo del blocco per l'operatore di conversione</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexer">
         <source>Use block body for indexer</source>
-        <target state="new">Use block body for indexer</target>
+        <target state="translated">Usare il corpo del blocco per l'indicizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expression">
         <source>Use block body for lambda expression</source>
-        <target state="new">Use block body for lambda expression</target>
+        <target state="translated">Usare il corpo del blocco per l'espressione lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_function">
         <source>Use block body for local function</source>
-        <target state="new">Use block body for local function</target>
+        <target state="translated">Usare il corpo del blocco per la funzione locale</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_method">
         <source>Use block body for method</source>
-        <target state="new">Use block body for method</target>
+        <target state="translated">Usare il corpo del blocco per il metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_operator">
         <source>Use block body for operator</source>
-        <target state="new">Use block body for operator</target>
+        <target state="translated">Usare il corpo del blocco per l'operatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_property">
         <source>Use block body for property</source>
-        <target state="new">Use block body for property</target>
+        <target state="translated">Usare il corpo del blocco per la proprietà</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicit_type">
@@ -284,47 +304,47 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_accessor">
         <source>Use expression body for accessor</source>
-        <target state="new">Use expression body for accessor</target>
+        <target state="translated">Usare il corpo dell'espressione per la funzione di accesso</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_constructor">
         <source>Use expression body for constructor</source>
-        <target state="new">Use expression body for constructor</target>
+        <target state="translated">Usare il corpo dell'espressione per il costruttore</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_conversion_operator">
         <source>Use expression body for conversion operator</source>
-        <target state="new">Use expression body for conversion operator</target>
+        <target state="translated">Usare il corpo dell'espressione per l'operatore di conversione</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexer">
         <source>Use expression body for indexer</source>
-        <target state="new">Use expression body for indexer</target>
+        <target state="translated">Usare il corpo dell'espressione per l'indicizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expression">
         <source>Use expression body for lambda expression</source>
-        <target state="new">Use expression body for lambda expression</target>
+        <target state="translated">Usare il corpo dell'espressione per l'espressione lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_function">
         <source>Use expression body for local function</source>
-        <target state="new">Use expression body for local function</target>
+        <target state="translated">Usare il corpo dell'espressione per la funzione locale</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_method">
         <source>Use expression body for method</source>
-        <target state="new">Use expression body for method</target>
+        <target state="translated">Usare il corpo dell'espressione per il metodo</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_operator">
         <source>Use expression body for operator</source>
-        <target state="new">Use expression body for operator</target>
+        <target state="translated">Usare il corpo dell'espressione per l'operatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_property">
         <source>Use expression body for property</source>
-        <target state="new">Use expression body for property</target>
+        <target state="translated">Usare il corpo dell'espressione per la proprietà</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_implicit_type">
@@ -359,7 +379,7 @@
       </trans-unit>
       <trans-unit id="Use_nameof">
         <source>Use 'nameof'</source>
-        <target state="new">Use 'nameof'</target>
+        <target state="translated">Usare 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_new">
@@ -375,6 +395,11 @@
       <trans-unit id="Use_pattern_matching_may_change_code_meaning">
         <source>Use pattern matching (may change code meaning)</source>
         <target state="translated">Usa i criteri di ricerca (può cambiare il significato del codice)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="translated">Usa costruttore primario</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
@@ -395,6 +420,11 @@
       <trans-unit id="Use_tuple_to_swap_values">
         <source>Use tuple to swap values</source>
         <target state="translated">Usa la tupla per scambiare i valori</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_unbound_generic_type">
+        <source>Use unbound generic type</source>
+        <target state="new">Use unbound generic type</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
@@ -442,8 +472,8 @@
         <target state="translated">L'espressione 'new' può essere semplificata</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">'typeof' può essere convertito in 'nameof'</target>
         <note />
       </trans-unit>

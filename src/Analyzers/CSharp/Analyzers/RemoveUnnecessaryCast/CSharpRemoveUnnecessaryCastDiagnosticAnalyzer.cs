@@ -11,23 +11,26 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryCast;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
+
+/// <summary>
+/// Supports simplifying cast expressions like <c>(T)x</c> as well as try-cast expressions like <c>x as T</c>
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpRemoveUnnecessaryCastDiagnosticAnalyzer
+    : AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax>
 {
-    /// <summary>
-    /// Supports simplifying cast expressions like <c>(T)x</c> as well as try-cast expressions like <c>x as T</c>
-    /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryCastDiagnosticAnalyzer
-        : AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax>
-    {
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
-            ImmutableArray.Create(SyntaxKind.CastExpression, SyntaxKind.AsExpression);
+    protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
+        [SyntaxKind.CastExpression, SyntaxKind.AsExpression];
 
-        protected override bool IsUnnecessaryCast(SemanticModel model, ExpressionSyntax cast, CancellationToken cancellationToken)
-            => CastSimplifier.IsUnnecessaryCast(cast, model, cancellationToken);
+    protected override bool IsUnnecessaryCast(SemanticModel model, ExpressionSyntax cast, CancellationToken cancellationToken)
+        => CastSimplifier.IsUnnecessaryCast(cast, model, cancellationToken);
 
-        protected override TextSpan GetFadeSpan(ExpressionSyntax node)
-            => node is CastExpressionSyntax cast ? TextSpan.FromBounds(cast.OpenParenToken.SpanStart, cast.CloseParenToken.Span.End) :
-               node is BinaryExpressionSyntax binary ? TextSpan.FromBounds(binary.OperatorToken.SpanStart, node.Span.End) : throw ExceptionUtilities.Unreachable();
-    }
+    protected override TextSpan GetFadeSpan(ExpressionSyntax node)
+        => node switch
+        {
+            CastExpressionSyntax cast => TextSpan.FromBounds(cast.OpenParenToken.SpanStart, cast.CloseParenToken.Span.End),
+            BinaryExpressionSyntax binary => TextSpan.FromBounds(binary.OperatorToken.SpanStart, node.Span.End),
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
 }

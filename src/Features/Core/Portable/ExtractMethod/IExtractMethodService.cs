@@ -5,13 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal interface IExtractMethodService : ILanguageService
 {
-    internal interface IExtractMethodService : ILanguageService
-    {
-        Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool localFunction, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
-    }
+    Task<ExtractMethodResult> ExtractMethodAsync(Document document, TextSpan textSpan, bool localFunction, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
 }

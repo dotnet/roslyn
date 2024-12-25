@@ -8,19 +8,17 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Snippets;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
+
+[ExportCompletionProvider(nameof(CSharpSnippetCompletionProvider), LanguageNames.CSharp)]
+[ExtensionOrder(After = nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider))]
+[Shared]
+internal class CSharpSnippetCompletionProvider : AbstractSnippetCompletionProvider
 {
-    [ExportCompletionProvider(nameof(CSharpSnippetCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider))]
-    [Shared]
-    internal class CSharpSnippetCompletionProvider : AbstractSnippetCompletionProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSnippetCompletionProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSnippetCompletionProvider()
-        {
-        }
     }
 }

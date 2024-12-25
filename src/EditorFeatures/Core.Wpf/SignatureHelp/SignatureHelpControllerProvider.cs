@@ -8,8 +8,8 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -20,39 +20,29 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
-    [Export]
-    [Shared]
-    internal class SignatureHelpControllerProvider : ForegroundThreadAffinitizedObject
+    [Export, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SignatureHelpControllerProvider(
+        IGlobalOptionService globalOptions,
+        IThreadingContext threadingContext,
+        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
+        [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
+        IAsyncCompletionBroker completionBroker,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         private static readonly object s_controllerPropertyKey = new();
 
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IAsyncCompletionBroker _completionBroker;
-        private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpControllerProvider(
-            IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext,
-            [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
-            IAsyncCompletionBroker completionBroker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext)
-        {
-            _globalOptions = globalOptions;
-            _signatureHelpPresenter = ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault();
-            _listener = listenerProvider.GetListener(FeatureAttribute.SignatureHelp);
-            _completionBroker = completionBroker;
-            _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
-        }
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter = ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault();
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SignatureHelp);
+        private readonly IAsyncCompletionBroker _completionBroker = completionBroker;
+        private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
 
         public Controller? GetController(ITextView textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // If we don't have a presenter, then there's no point in us even being involved.
             if (_signatureHelpPresenter == null)
@@ -68,19 +58,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private Controller GetControllerSlow(ITextView textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             return textView.GetOrCreatePerSubjectBufferProperty(
                 subjectBuffer,
                 s_controllerPropertyKey,
                 (textView, subjectBuffer) => new Controller(
                     _globalOptions,
-                    ThreadingContext,
+                    _threadingContext,
                     textView,
                     subjectBuffer,
                     _signatureHelpPresenter,
                     _listener,
-                    new DocumentProvider(ThreadingContext),
+                    new DocumentProvider(_threadingContext),
                     _signatureHelpProviders,
                     _completionBroker));
         }

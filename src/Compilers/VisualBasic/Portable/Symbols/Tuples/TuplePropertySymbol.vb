@@ -95,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return Me._underlyingProperty.GetOverloadResolutionPriority()
+        End Function
+
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
             Get
                 Return Me._underlyingProperty.IsMyGroupCollectionProperty
@@ -132,5 +136,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return Me._underlyingProperty.GetAttributes()
         End Function
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return _underlyingProperty.IsRequired
+            End Get
+        End Property
     End Class
 End Namespace

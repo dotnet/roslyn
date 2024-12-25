@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestNoCycle1()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b" });
-            var b = CreateExtension(name: "b", before: new[] { "c" });
-            var c = CreateExtension(name: "c", before: new[] { "d" });
-            var d = CreateExtension(name: "d", before: new[] { "e" });
+            var a = CreateExtension(name: "a", before: ["b"]);
+            var b = CreateExtension(name: "b", before: ["c"]);
+            var c = CreateExtension(name: "c", before: ["d"]);
+            var d = CreateExtension(name: "d", before: ["e"]);
             var e = CreateExtension(name: "e");
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { d, b, a, c, e };
@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestNoCycle2()
         {
-            var a = CreateExtension(name: "a", after: new[] { "b" });
-            var b = CreateExtension(name: "b", after: new[] { "c" });
-            var c = CreateExtension(name: "c", after: new[] { "d" });
-            var d = CreateExtension(name: "d", after: new[] { "e" });
+            var a = CreateExtension(name: "a", after: ["b"]);
+            var b = CreateExtension(name: "b", after: ["c"]);
+            var c = CreateExtension(name: "c", after: ["d"]);
+            var d = CreateExtension(name: "d", after: ["e"]);
             var e = CreateExtension(name: "e");
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { d, b, a, c, e };
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestNoCycle3()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b", "c", "d", "e" });
-            var b = CreateExtension(name: "b", before: new[] { "c", "d", "e" }, after: new[] { "a" });
-            var c = CreateExtension(name: "c", before: new[] { "d", "e" }, after: new[] { "b", "a" });
-            var d = CreateExtension(name: "d", before: new[] { "e" }, after: new[] { "c", "b", "a" });
-            var e = CreateExtension(name: "e", after: new[] { "d", "c", "b", "a" });
+            var a = CreateExtension(name: "a", before: ["b", "c", "d", "e"]);
+            var b = CreateExtension(name: "b", before: ["c", "d", "e"], after: ["a"]);
+            var c = CreateExtension(name: "c", before: ["d", "e"], after: ["b", "a"]);
+            var d = CreateExtension(name: "d", before: ["e"], after: ["c", "b", "a"]);
+            var e = CreateExtension(name: "e", after: ["d", "c", "b", "a"]);
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { d, b, a, c, e };
 
@@ -68,11 +68,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCycle1()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b" });
-            var b = CreateExtension(name: "b", before: new[] { "c" });
-            var c = CreateExtension(name: "c", before: new[] { "d" });
-            var d = CreateExtension(name: "d", before: new[] { "e" });
-            var e = CreateExtension(name: "e", before: new[] { "a" });
+            var a = CreateExtension(name: "a", before: ["b"]);
+            var b = CreateExtension(name: "b", before: ["c"]);
+            var c = CreateExtension(name: "c", before: ["d"]);
+            var d = CreateExtension(name: "d", before: ["e"]);
+            var e = CreateExtension(name: "e", before: ["a"]);
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e };
 
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCycle2()
         {
-            var a = CreateExtension(name: "a", after: new[] { "b" });
-            var b = CreateExtension(name: "b", after: new[] { "c" });
-            var c = CreateExtension(name: "c", after: new[] { "d" });
-            var d = CreateExtension(name: "d", after: new[] { "e" });
-            var e = CreateExtension(name: "e", after: new[] { "a" });
+            var a = CreateExtension(name: "a", after: ["b"]);
+            var b = CreateExtension(name: "b", after: ["c"]);
+            var c = CreateExtension(name: "c", after: ["d"]);
+            var d = CreateExtension(name: "d", after: ["e"]);
+            var e = CreateExtension(name: "e", after: ["a"]);
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e };
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestCycle3()
         {
             var a = CreateExtension(name: "a");
-            var b = CreateExtension(name: "b", before: new[] { "a" }, after: new[] { "a" });
+            var b = CreateExtension(name: "b", before: ["a"], after: ["a"]);
             var c = CreateExtension(name: "c");
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c };
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestCycle4()
         {
             var a = CreateExtension(name: "a");
-            var b = CreateExtension(name: "b", before: new[] { "b" }, after: new[] { "b" });
+            var b = CreateExtension(name: "b", before: ["b"], after: ["b"]);
             var c = CreateExtension(name: "c");
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c };
@@ -132,12 +132,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCycle5()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b" });
-            var b = CreateExtension(name: "b", before: new[] { "c" });
-            var c = CreateExtension(name: "c", before: new[] { "d" });
-            var d = CreateExtension(name: "d", before: new[] { "e" });
-            var e = CreateExtension(name: "e", before: new[] { "c" });
-            var f = CreateExtension(name: "f", before: new[] { "g" });
+            var a = CreateExtension(name: "a", before: ["b"]);
+            var b = CreateExtension(name: "b", before: ["c"]);
+            var c = CreateExtension(name: "c", before: ["d"]);
+            var d = CreateExtension(name: "d", before: ["e"]);
+            var e = CreateExtension(name: "e", before: ["c"]);
+            var f = CreateExtension(name: "f", before: ["g"]);
             var g = CreateExtension(name: "g");
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f, g };
@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCycle6()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b" });
-            var b = CreateExtension(name: "b", before: new[] { "c" });
-            var c = CreateExtension(name: "c", before: new[] { "d" });
-            var d = CreateExtension(name: "d", before: new[] { "e" });
-            var e = CreateExtension(name: "e", before: new[] { "a" });
-            var f = CreateExtension(name: "f", before: new[] { "g" });
+            var a = CreateExtension(name: "a", before: ["b"]);
+            var b = CreateExtension(name: "b", before: ["c"]);
+            var c = CreateExtension(name: "c", before: ["d"]);
+            var d = CreateExtension(name: "d", before: ["e"]);
+            var e = CreateExtension(name: "e", before: ["a"]);
+            var f = CreateExtension(name: "f", before: ["g"]);
             var g = CreateExtension(name: "g");
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f, g };
@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCycle7()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b" });
-            var b = CreateExtension(name: "b", before: new[] { "c" });
-            var c = CreateExtension(name: "c", before: new[] { "a" });
-            var d = CreateExtension(name: "d", before: new[] { "e" });
-            var e = CreateExtension(name: "e", before: new[] { "f" });
-            var f = CreateExtension(name: "f", before: new[] { "d" });
+            var a = CreateExtension(name: "a", before: ["b"]);
+            var b = CreateExtension(name: "b", before: ["c"]);
+            var c = CreateExtension(name: "c", before: ["a"]);
+            var d = CreateExtension(name: "d", before: ["e"]);
+            var e = CreateExtension(name: "e", before: ["f"]);
+            var f = CreateExtension(name: "f", before: ["d"]);
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f };
 
@@ -188,12 +188,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCycle8()
         {
-            var a = CreateExtension(name: "a", before: new[] { "b" });
-            var b = CreateExtension(name: "b", before: new[] { "c" });
-            var c = CreateExtension(name: "c", before: new[] { "d" });
-            var d = CreateExtension(name: "d", before: new[] { "e", "c" });
-            var e = CreateExtension(name: "e", before: new[] { "f" });
-            var f = CreateExtension(name: "f", before: new[] { "a" });
+            var a = CreateExtension(name: "a", before: ["b"]);
+            var b = CreateExtension(name: "b", before: ["c"]);
+            var c = CreateExtension(name: "c", before: ["d"]);
+            var d = CreateExtension(name: "d", before: ["e", "c"]);
+            var e = CreateExtension(name: "e", before: ["f"]);
+            var f = CreateExtension(name: "f", before: ["a"]);
 
             var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f };
 

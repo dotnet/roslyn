@@ -8,58 +8,56 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests
+namespace Roslyn.VisualStudio.NewIntegrationTests;
+
+public class InfrastructureTests : AbstractEditorTest
 {
-    public class InfrastructureTests : AbstractEditorTest
+    public InfrastructureTests()
+        : base(nameof(InfrastructureTests), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
     {
-        public InfrastructureTests()
-            : base(nameof(InfrastructureTests))
-        {
-        }
+    }
 
-        protected override string LanguageName => LanguageNames.CSharp;
+    protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
-        public async Task CanCloseSaveDialog()
-        {
-            await SetUpEditorAsync(
-                @"
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/73099")]
+    public async Task CanCloseSaveDialog()
+    {
+        await SetUpEditorAsync(
+            @"
 namespace MyNamespace
 {
 $$
 }",
-                HangMitigatingCancellationToken);
+            HangMitigatingCancellationToken);
 
-            // Trigger a call to File.Close to ensure we can recover from it
-            await TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_F, VirtualKeyCode.MENU), VirtualKeyCode.VK_C }, HangMitigatingCancellationToken);
+        // Trigger a call to File.Close to ensure we can recover from it
+        await TestServices.Input.SendAsync([(VirtualKeyCode.VK_F, VirtualKeyCode.MENU), VirtualKeyCode.VK_C], HangMitigatingCancellationToken);
 
-            var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
-            Assert.NotEqual(IntPtr.Zero, modalWindow);
+        var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
+        Assert.NotEqual(IntPtr.Zero, modalWindow);
 
-            Assert.Equal("Microsoft Visual Studio", IntegrationHelper.GetTitleForWindow(modalWindow));
+        Assert.Equal("Microsoft Visual Studio", IntegrationHelper.GetTitleForWindow(modalWindow));
 
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
 
-            modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
-            if (modalWindow != IntPtr.Zero)
+        modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
+        if (modalWindow != IntPtr.Zero)
+        {
+            switch (IntegrationHelper.GetTitleForWindow(modalWindow))
             {
-                switch (IntegrationHelper.GetTitleForWindow(modalWindow))
-                {
-                    case "Default IME":
-                        // "Default IME" was seen in local testing of this method
-                        break;
+                case "Default IME":
+                    // "Default IME" was seen in local testing of this method
+                    break;
 
-                    case "":
-                        // Empty string was seen in CI for a case where no dialog was visible
-                        break;
+                case "":
+                    // Empty string was seen in CI for a case where no dialog was visible
+                    break;
 
-                    case var title:
-                        throw ExceptionUtilities.UnexpectedValue(title);
-                }
+                case var title:
+                    throw ExceptionUtilities.UnexpectedValue(title);
             }
         }
     }

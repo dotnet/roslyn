@@ -2,8 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -146,7 +149,7 @@ End Namespace
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
             Dim eventQueue = New AsyncQueue(Of CompilationEvent)()
-            Dim compilation = CreateCompilationWithMscorlib45({tree1, tree2}).WithEventQueue(eventQueue)
+            Dim compilation = CreateCompilationWithMscorlib461({tree1, tree2}).WithEventQueue(eventQueue)
 
             ' Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             Dim tree = compilation.SyntaxTrees.[Single](Function(t) t Is tree1)
@@ -201,7 +204,7 @@ End Namespace
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
             Dim eventQueue = New AsyncQueue(Of CompilationEvent)()
-            Dim compilation = CreateCompilationWithMscorlib45({tree1, tree2}).WithEventQueue(eventQueue)
+            Dim compilation = CreateCompilationWithMscorlib461({tree1, tree2}).WithEventQueue(eventQueue)
 
             ' Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             Dim tree = compilation.SyntaxTrees.[Single](Function(t) t Is tree1)
@@ -241,7 +244,7 @@ BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
         <Fact>
         Public Sub CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
 #Disable Warning BC40000 ' Type or member is obsolete
-            Dim compilation = CreateCompilationWithMscorlib45(String.Empty, parseOptions:=New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive))
+            Dim compilation = CreateCompilationWithMscorlib461(String.Empty, parseOptions:=New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive))
 #Enable Warning BC40000 ' Type or member is obsolete
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
@@ -448,12 +451,283 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 
         <Fact>
         Public Sub TestEventQueueCompletionForEmptyCompilation()
-            Dim compilation = CreateCompilationWithMscorlib45(source:=Nothing).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
+            Dim compilation = CreateCompilationWithMscorlib461(source:=Nothing).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
 
             ' Force complete compilation event queue
             Dim unused = compilation.GetDiagnostics()
 
             Assert.True(compilation.EventQueue.IsCompleted)
         End Sub
+
+        <Theory, CombinatorialData, WorkItem(67310, "https://github.com/dotnet/roslyn/issues/67310")>
+        Public Async Function TestBlockStartAnalyzer(testCodeBlockStart As Boolean) As Task
+            Dim source = "
+Imports System
+
+Class D
+    Private _field As Integer
+
+    Private Property P As Integer
+        Get
+            Return 0
+        End Get
+
+        Set(value As Integer)
+            value = 0
+        End Set
+    End Property
+
+    Private Property Item(i As Char) As Integer
+        Get
+            Return 0
+        End Get
+
+        Set(value As Integer)
+            value = 0
+        End Set
+    End Property
+
+    Public Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+            Dim x = 0
+        End AddHandler
+
+        RemoveHandler(value As EventHandler)
+            Dim x = 0
+        End RemoveHandler
+
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            Dim x = 0
+        End RaiseEvent
+    End Event
+
+    Private Function M() As Integer
+        Return 0
+    End Function
+
+    Private Sub New()
+        _field = 0
+    End Sub
+
+    Protected Overrides Sub Finalize()
+        _field = 0
+    End Sub
+
+    Public Shared Operator +(value As D) As Integer
+        Return 0
+    End Operator
+End Class"
+            Dim compilation = CreateCompilation(source)
+            Dim syntaxTree = compilation.SyntaxTrees(0)
+
+            Dim analyzer = New BlockStartAnalyzer(testCodeBlockStart)
+            Dim compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer), AnalyzerOptions.Empty)
+            Dim result = Await compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None)
+
+            Dim semanticDiagnostics = result.SemanticDiagnostics(syntaxTree)(analyzer)
+            Dim group1 = semanticDiagnostics.Where(Function(d) d.Id = "ID0001")
+            Dim group2 = semanticDiagnostics.Except(group1).ToImmutableArray()
+
+            group1.Verify(
+                Diagnostic("ID0001", "Private Function M() As Integer").WithArguments("M").WithLocation(41, 5),
+                Diagnostic("ID0001", "Private Sub New()").WithArguments(".ctor").WithLocation(45, 5),
+                Diagnostic("ID0001", "Protected Overrides Sub Finalize()").WithArguments("Finalize").WithLocation(49, 5),
+                Diagnostic("ID0001", "Public Shared Operator +(value As D) As Integer").WithArguments("op_UnaryPlus").WithLocation(53, 5))
+            group2.Verify(
+                Diagnostic("ID0002", "Get
+            Return 0
+        End Get").WithLocation(8, 9),
+                Diagnostic("ID0002", "Set(value As Integer)
+            value = 0
+        End Set").WithLocation(12, 9),
+                Diagnostic("ID0002", "Get
+            Return 0
+        End Get").WithLocation(18, 9),
+                Diagnostic("ID0002", "Set(value As Integer)
+            value = 0
+        End Set").WithLocation(22, 9),
+                Diagnostic("ID0002", "AddHandler(value As EventHandler)
+            Dim x = 0
+        End AddHandler").WithLocation(28, 9),
+                Diagnostic("ID0002", "RemoveHandler(value As EventHandler)
+            Dim x = 0
+        End RemoveHandler").WithLocation(32, 9),
+                Diagnostic("ID0002", "RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            Dim x = 0
+        End RaiseEvent").WithLocation(36, 9),
+                Diagnostic("ID0002", "Private Function M() As Integer
+        Return 0
+    End Function").WithLocation(41, 5),
+                Diagnostic("ID0002", "Private Sub New()
+        _field = 0
+    End Sub").WithLocation(45, 5),
+                Diagnostic("ID0002", "Protected Overrides Sub Finalize()
+        _field = 0
+    End Sub").WithLocation(49, 5),
+                Diagnostic("ID0002", "Public Shared Operator +(value As D) As Integer
+        Return 0
+    End Operator").WithLocation(53, 5))
+
+            result.CompilationDiagnostics(analyzer).Verify(
+                Diagnostic("ID0001", "Private Property P As Integer").WithArguments("set_P").WithLocation(7, 5),
+                Diagnostic("ID0001", "Private Property P As Integer").WithArguments("get_P").WithLocation(7, 5),
+                Diagnostic("ID0001", "Private Property Item(i As Char) As Integer").WithArguments("set_Item").WithLocation(17, 5),
+                Diagnostic("ID0001", "Private Property Item(i As Char) As Integer").WithArguments("get_Item").WithLocation(17, 5),
+                Diagnostic("ID0001", "Public Custom Event E As EventHandler").WithArguments("add_E").WithLocation(27, 5),
+                Diagnostic("ID0001", "Public Custom Event E As EventHandler").WithArguments("raise_E").WithLocation(27, 5),
+                Diagnostic("ID0001", "Public Custom Event E As EventHandler").WithArguments("remove_E").WithLocation(27, 5))
+
+            Assert.Empty(result.SyntaxDiagnostics)
+        End Function
+
+        <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+        Private Class BlockStartAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly Descriptor As DiagnosticDescriptor = New DiagnosticDescriptor("ID0001", "Title", "{0}", "Category", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Public Shared ReadOnly DescriptorForBlockEnd As DiagnosticDescriptor = New DiagnosticDescriptor("ID0002", "Title", "Message", "Category", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Private ReadOnly _testCodeBlockStart As Boolean
+
+            Public Sub New(ByVal testCodeBlockStart As Boolean)
+                _testCodeBlockStart = testCodeBlockStart
+            End Sub
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor, DescriptorForBlockEnd)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+                context.RegisterCompilationStartAction(AddressOf OnCompilationStart)
+            End Sub
+
+            Private Sub OnCompilationStart(context As CompilationStartAnalysisContext)
+                If (_testCodeBlockStart) Then
+                    context.RegisterCodeBlockStartAction(Sub(blockStartContext As CodeBlockStartAnalysisContext(Of SyntaxKind))
+                                                             blockStartContext.RegisterSyntaxNodeAction(AddressOf AnalyzeNumericalLiteralExpressionNode, SyntaxKind.NumericLiteralExpression)
+                                                             blockStartContext.RegisterCodeBlockEndAction(AddressOf AnalyzeCodeBlockEnd)
+                                                         End Sub)
+                Else
+                    context.RegisterOperationBlockStartAction(Sub(blockStartContext As OperationBlockStartAnalysisContext)
+                                                                  blockStartContext.RegisterOperationAction(AddressOf AnalyzeOperationContext, OperationKind.Literal)
+                                                                  blockStartContext.RegisterOperationBlockEndAction(AddressOf AnalyzeOperationBlockEnd)
+                                                              End Sub)
+                End If
+
+                Dim uniqueCallbacks As New HashSet(Of SyntaxNode)
+                context.RegisterSyntaxNodeAction(Sub(nodeContext As SyntaxNodeAnalysisContext)
+                                                     If Not uniqueCallbacks.Add(nodeContext.Node) Then
+                                                         Throw New Exception($"Multiple callbacks for {nodeContext.Node}")
+                                                     End If
+                                                 End Sub,
+                                                 SyntaxKind.PropertyBlock, SyntaxKind.EventBlock, SyntaxKind.FunctionBlock)
+            End Sub
+
+            Private Sub AnalyzeNumericalLiteralExpressionNode(context As SyntaxNodeAnalysisContext)
+                AnalyzeNode(context.Node, context.ContainingSymbol, AddressOf context.ReportDiagnostic)
+            End Sub
+
+            Private Sub AnalyzeCodeBlockEnd(context As CodeBlockAnalysisContext)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(DescriptorForBlockEnd, context.CodeBlock.GetLocation()))
+
+                If TryCast(context.CodeBlock, PropertyBlockSyntax) IsNot Nothing OrElse
+                   TryCast(context.CodeBlock, EventBlockSyntax) IsNot Nothing Then
+                    Throw New Exception($"Unexpected topmost node for code block '{context.CodeBlock.Kind()}'")
+                End If
+            End Sub
+
+            Private Sub AnalyzeOperationContext(context As OperationAnalysisContext)
+                AnalyzeNode(context.Operation.Syntax, context.ContainingSymbol, AddressOf context.ReportDiagnostic)
+            End Sub
+
+            Private Sub AnalyzeOperationBlockEnd(context As OperationBlockAnalysisContext)
+                For Each operationBlock In context.OperationBlocks
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(DescriptorForBlockEnd, operationBlock.Syntax.GetLocation()))
+
+                    If TryCast(operationBlock.Syntax, PropertyBlockSyntax) IsNot Nothing OrElse
+                        TryCast(operationBlock.Syntax, EventBlockSyntax) IsNot Nothing Then
+                        Throw New Exception($"Unexpected topmost node for operation block '{operationBlock.Syntax.Kind()}'")
+                    End If
+                Next
+            End Sub
+
+            Private Sub AnalyzeNode(node As SyntaxNode, containingSymbol As ISymbol, reportDiagnostic As Action(Of Diagnostic))
+                Dim location As Location
+                Dim propertyBlock = node.FirstAncestorOrSelf(Of PropertyBlockSyntax)
+                If propertyBlock IsNot Nothing Then
+                    location = propertyBlock.PropertyStatement.GetLocation()
+                Else
+                    Dim eventBlock = node.FirstAncestorOrSelf(Of EventBlockSyntax)
+                    If eventBlock IsNot Nothing Then
+                        location = eventBlock.EventStatement.GetLocation()
+                    Else
+                        Dim methodBlock = node.FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
+                        If methodBlock IsNot Nothing Then
+                            location = methodBlock.BlockStatement.GetLocation()
+                        Else
+                            Return
+                        End If
+                    End If
+                End If
+
+                reportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, location, containingSymbol.Name))
+            End Sub
+        End Class
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68654")>
+        Public Async Function TestAnalyzerLocalDiagnosticsWhenReportedOnEnumFieldSymbol() As Task
+            Dim source = "
+Public Class Outer
+    Public Enum E1
+        A1 = 0
+    End Enum
+End Class
+
+Public Enum E2
+    A2 = 0
+End Enum"
+
+            Dim compilation = CreateCompilation(source)
+            compilation.VerifyDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim analyzer = New EnumTypeFieldSymbolAnalyzer()
+            Dim compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer), AnalyzerOptions.Empty)
+            Dim result = Await compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None)
+
+            Dim localSemanticDiagnostics = result.SemanticDiagnostics(tree)(analyzer)
+            localSemanticDiagnostics.Verify(
+                Diagnostic("ID0001", "A1 = 0").WithLocation(4, 9),
+                Diagnostic("ID0001", "A2 = 0").WithLocation(9, 5))
+
+            Assert.Empty(result.CompilationDiagnostics)
+        End Function
+
+        <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+        Private Class EnumTypeFieldSymbolAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared ReadOnly Descriptor As New DiagnosticDescriptor("ID0001", "Title", "Message", "Category", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(Sub(symbolContext As SymbolAnalysisContext)
+                                                 Dim namedType = DirectCast(symbolContext.Symbol, INamedTypeSymbol)
+                                                 For Each field In namedType.GetMembers().OfType(Of IFieldSymbol)
+                                                     If Not field.IsImplicitlyDeclared Then
+                                                         Dim diag = CodeAnalysis.Diagnostic.Create(Descriptor, field.DeclaringSyntaxReferences(0).GetLocation())
+                                                         symbolContext.ReportDiagnostic(diag)
+                                                     End If
+                                                 Next
+                                             End Sub,
+                    SymbolKind.NamedType)
+            End Sub
+        End Class
     End Class
 End Namespace

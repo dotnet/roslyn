@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -17,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Get
         End Property
 
-        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
-            Return options.GetVisualBasicSimplifierOptions(DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
+        Public Overrides Function GetSimplifierOptions(options As IOptionsReader) As SimplifierOptions
+            Return New VisualBasicSimplifierOptions(options)
         End Function
     End Class
 End Namespace

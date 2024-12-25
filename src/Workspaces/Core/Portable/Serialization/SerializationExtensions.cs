@@ -3,88 +3,86 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Serialization
+namespace Microsoft.CodeAnalysis.Serialization;
+
+internal static class SerializationExtensions
 {
-    internal static class SerializationExtensions
+    public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
+        => value switch
+        {
+            SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
+            SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState,
+            ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
+            SolutionInfo.SolutionAttributes => WellKnownSynchronizationKind.SolutionAttributes,
+            ProjectInfo.ProjectAttributes => WellKnownSynchronizationKind.ProjectAttributes,
+            DocumentInfo.DocumentAttributes => WellKnownSynchronizationKind.DocumentAttributes,
+            CompilationOptions => WellKnownSynchronizationKind.CompilationOptions,
+            ParseOptions => WellKnownSynchronizationKind.ParseOptions,
+            ProjectReference => WellKnownSynchronizationKind.ProjectReference,
+            MetadataReference => WellKnownSynchronizationKind.MetadataReference,
+            AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
+            SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
+            SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
+            SourceGeneratorExecutionVersionMap => WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap,
+            ImmutableDictionary<string, StructuredAnalyzerConfigOptions> => WellKnownSynchronizationKind.FallbackAnalyzerOptions,
+            _ => throw ExceptionUtilities.UnexpectedValue(value),
+        };
+
+    public static CompilationOptions FixUpCompilationOptions(this ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
     {
-        public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
-            => value switch
-            {
-                SolutionStateChecksums _ => WellKnownSynchronizationKind.SolutionState,
-                ProjectStateChecksums _ => WellKnownSynchronizationKind.ProjectState,
-                DocumentStateChecksums _ => WellKnownSynchronizationKind.DocumentState,
-                ChecksumCollection _ => WellKnownSynchronizationKind.ChecksumCollection,
-                SolutionInfo.SolutionAttributes _ => WellKnownSynchronizationKind.SolutionAttributes,
-                ProjectInfo.ProjectAttributes _ => WellKnownSynchronizationKind.ProjectAttributes,
-                DocumentInfo.DocumentAttributes _ => WellKnownSynchronizationKind.DocumentAttributes,
-                CompilationOptions _ => WellKnownSynchronizationKind.CompilationOptions,
-                ParseOptions _ => WellKnownSynchronizationKind.ParseOptions,
-                ProjectReference _ => WellKnownSynchronizationKind.ProjectReference,
-                MetadataReference _ => WellKnownSynchronizationKind.MetadataReference,
-                AnalyzerReference _ => WellKnownSynchronizationKind.AnalyzerReference,
-                SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
-                SourceText _ => WellKnownSynchronizationKind.SourceText,
-                SourceGeneratedDocumentIdentity _ => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
-                _ => throw ExceptionUtilities.UnexpectedValue(value),
-            };
+        return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
+                                 .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info), Path.GetTempPath()));
+    }
 
-        public static CompilationOptions FixUpCompilationOptions(this ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
+    private static XmlFileResolver GetXmlResolver(string? filePath)
+    {
+        // Given filePath can be any arbitrary string project is created with.
+        // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
+        // filePath will point to actual file on disk, but in memory solultion, or
+        // one from AdhocWorkspace and etc, FilePath can be a random string.
+        // Make sure we return only if given filePath is in right form.
+        if (!PathUtilities.IsAbsolute(filePath))
         {
-            return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
-                                     .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
+            // xmlFileResolver can only deal with absolute path
+            // return Default
+            return XmlFileResolver.Default;
         }
 
-        private static XmlFileResolver GetXmlResolver(string? filePath)
-        {
-            // Given filePath can be any arbitrary string project is created with.
-            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
-            // filePath will point to actual file on disk, but in memory solultion, or
-            // one from AdhocWorkspace and etc, FilePath can be a random string.
-            // Make sure we return only if given filePath is in right form.
-            if (!PathUtilities.IsAbsolute(filePath))
-            {
-                // xmlFileResolver can only deal with absolute path
-                // return Default
-                return XmlFileResolver.Default;
-            }
+        return new XmlFileResolver(PathUtilities.GetDirectoryName(filePath));
+    }
 
-            return new XmlFileResolver(PathUtilities.GetDirectoryName(filePath));
+    private static ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
+    {
+        // Given FilePath/OutputFilePath can be any arbitrary strings project is created with.
+        // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
+        // filePath will point to actual file on disk, but in memory solultion, or
+        // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
+        // Make sure we return only if given filePath is in right form.
+        if (info.FilePath == null && info.OutputFilePath == null)
+        {
+            // return empty since that is what IDE does for this case
+            // see AbstractProject.GetStrongNameKeyPaths
+            return [];
         }
 
-        private static ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
+        var builder = ArrayBuilder<string>.GetInstance();
+        if (PathUtilities.IsAbsolute(info.FilePath))
         {
-            // Given FilePath/OutputFilePath can be any arbitrary strings project is created with.
-            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
-            // filePath will point to actual file on disk, but in memory solultion, or
-            // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
-            // Make sure we return only if given filePath is in right form.
-            if (info.FilePath == null && info.OutputFilePath == null)
-            {
-                // return empty since that is what IDE does for this case
-                // see AbstractProject.GetStrongNameKeyPaths
-                return ImmutableArray<string>.Empty;
-            }
-
-            var builder = ArrayBuilder<string>.GetInstance();
-            if (PathUtilities.IsAbsolute(info.FilePath))
-            {
-                // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
-            }
-
-            if (PathUtilities.IsAbsolute(info.OutputFilePath))
-            {
-                // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
-            }
-
-            return builder.ToImmutableAndFree();
+            // desktop strong name provider only knows how to deal with absolute path
+            builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
         }
+
+        if (PathUtilities.IsAbsolute(info.OutputFilePath))
+        {
+            // desktop strong name provider only knows how to deal with absolute path
+            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
+        }
+
+        return builder.ToImmutableAndFree();
     }
 }

@@ -7,17 +7,13 @@
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptInlineRenameReplacementWrapper(InlineRenameReplacement underlyingObject)
 {
-    internal readonly struct VSTypeScriptInlineRenameReplacementWrapper
-    {
-        internal readonly InlineRenameReplacement UnderlyingObject;
+    internal readonly InlineRenameReplacement UnderlyingObject = underlyingObject;
 
-        public VSTypeScriptInlineRenameReplacementWrapper(InlineRenameReplacement underlyingObject)
-            => UnderlyingObject = underlyingObject;
-
-        public VSTypeScriptInlineRenameReplacementKind Kind => VSTypeScriptInlineRenameReplacementKindHelpers.ConvertFrom(UnderlyingObject.Kind);
-        public TextSpan OriginalSpan => UnderlyingObject.OriginalSpan;
-        public TextSpan NewSpan => UnderlyingObject.NewSpan;
-    }
+    public VSTypeScriptInlineRenameReplacementKind Kind => VSTypeScriptInlineRenameReplacementKindHelpers.ConvertFrom(UnderlyingObject.Kind);
+    public TextSpan OriginalSpan => UnderlyingObject.OriginalSpan;
+    public TextSpan NewSpan => UnderlyingObject.NewSpan;
 }

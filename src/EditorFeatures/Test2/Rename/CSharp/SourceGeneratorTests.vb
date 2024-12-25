@@ -57,7 +57,7 @@ public class GeneratedClass
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem(51537, "https://github.com/dotnet/roslyn/issues/51537")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/51537")>
         Public Sub RenameWithCascadeIntoGeneratedFile(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -72,17 +72,20 @@ public partial class GeneratedClass : IInterface { }
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="A", sourceGenerator:=New GeneratorThatImplementsInterfaceMethod())
-
             End Using
         End Sub
 
+#Disable Warning RS1042
         Private Class GeneratorThatImplementsInterfaceMethod
             Implements ISourceGenerator
+#Enable Warning RS1042
 
+#Disable Warning BC40000
             Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
             End Sub
 
             Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
+#Enable Warning BC40000
                 Dim [interface] = context.Compilation.GetTypeByMetadataName("IInterface")
                 Dim memberName = [interface].MemberNames.Single()
 

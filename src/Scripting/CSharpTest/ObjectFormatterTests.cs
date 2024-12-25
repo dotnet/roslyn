@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using ObjectFormatterFixtures;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -507,7 +508,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 return i < 7;
             });
             str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("Enumerable.WhereEnumerableIterator<int> { 0, 1, 2, 3, 4, !<Exception> ... }", str);
+            var iteratorType = RuntimeUtilities.IsCoreClr9OrHigherRuntime
+                ? "IEnumerableWhereIterator"
+                : "WhereEnumerableIterator";
+            Assert.Equal($"Enumerable.{iteratorType}<int> {{ 0, 1, 2, 3, 4, !<Exception> ... }}", str);
         }
 
         [Fact]
@@ -780,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [Fact, WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+        [Fact, WorkItem("https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
             var obj = new MockDesktopTask(TaskMethod);
@@ -857,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_ArrayBuilder()
         {
-            var obj = new ArrayBuilder<int>();
+            var obj = ArrayBuilder<int>.GetInstance();
             obj.AddRange(new[] { 1, 2, 3, 4, 5 });
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
@@ -871,6 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                  "4",
                  "5"
             );
+
+            obj.Free();
         }
 
         [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
@@ -920,8 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -943,8 +949,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -967,8 +973,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -991,8 +997,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -1023,8 +1029,8 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem("https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -1063,8 +1069,8 @@ $@"'object' does not contain a definition for 'x'
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -1088,8 +1094,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try

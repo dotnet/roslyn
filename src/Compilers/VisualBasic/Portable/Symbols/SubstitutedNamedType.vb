@@ -589,6 +589,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return OriginalDefinition.HasAnyDeclaredRequiredMembers
+            End Get
+        End Property
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            Return OriginalDefinition.GetGuidString(guidString)
+        End Function
+
         ''' <summary>
         ''' Base class for symbols representing non-generic or open generic types contained within constructed generic type.
         ''' For example: A(Of Integer).B, A(Of Integer).B.C or A(Of Integer).B.C(Of ).

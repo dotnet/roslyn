@@ -6,11 +6,12 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
-        <Extension()>
+        <Extension>
         Public Function LookupTypeRegardlessOfArity(semanticModel As SemanticModel,
                                                     name As SyntaxToken,
                                                     cancellationToken As CancellationToken) As IList(Of ITypeSymbol)
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SpecializedCollections.EmptyList(Of ITypeSymbol)()
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function LookupName(semanticModel As SemanticModel, name As SyntaxToken,
                                    namespacesAndTypesOnly As Boolean,
                                    cancellationToken As CancellationToken) As IList(Of ISymbol)
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SpecializedCollections.EmptyList(Of ISymbol)()
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function LookupName(semanticModel As SemanticModel,
                                    expression As ExpressionSyntax,
                                    namespacesAndTypesOnly As Boolean,
@@ -67,17 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 semanticModel.LookupSymbols(expr.SpanStart, container:=symbol, name:=name))
         End Function
 
-        <Extension()>
-        Public Function GetSymbolInfo(semanticModel As SemanticModel, token As SyntaxToken) As SymbolInfo
-            Dim expression = TryCast(token.Parent, ExpressionSyntax)
-            If expression Is Nothing Then
-                Return Nothing
-            End If
-
-            Return semanticModel.GetSymbolInfo(expression)
-        End Function
-
-        <Extension()>
+        <Extension>
         Public Function GetImportNamespacesInScope(semanticModel As SemanticModel, location As SyntaxNode) As ISet(Of INamespaceSymbol)
             Dim q =
                 From u In location.GetAncestorOrThis(Of CompilationUnitSyntax).Imports
@@ -91,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return q.ToSet()
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function GetAliasInfo(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As IAliasSymbol
             Dim nameSyntax = TryCast(expression, IdentifierNameSyntax)
             If nameSyntax Is Nothing Then
@@ -101,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function DetermineAccessibilityConstraint(semanticModel As SemanticModel,
                                                          type As TypeSyntax,
                                                          cancellationToken As CancellationToken) As Accessibility
@@ -184,6 +175,82 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Yield [alias]
                 End If
             Next
+        End Function
+
+        ''' <summary>
+        ''' Given an expression node, tries to generate an appropriate name that can be used for
+        ''' that expression.
+        ''' </summary> 
+        <Extension>
+        Public Function GenerateNameForExpression(semanticModel As SemanticModel,
+                                                  expression As ExpressionSyntax,
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String
+            ' Try to find a usable name node that we can use to name the
+            ' parameter.  If we have an expression that has a name as part of it
+            ' then we try to use that part.
+            Dim current = expression
+            Dim returnType As ITypeSymbol = Nothing
+
+            ' If we have an implicitly callable expression (like `WriteLine(SomeMethod)`) we don't want to generate
+            ' `someMethod` as the name of the parameter.  Just fallback to our default naming strategy.
+            If Not IsImplicitlyCallable(expression, semanticModel, cancellationToken, returnType) Then
+                While True
+                    current = current.WalkDownParentheses()
+                    If current.Kind = SyntaxKind.IdentifierName Then
+                        Return (DirectCast(current, IdentifierNameSyntax)).Identifier.ValueText.ToCamelCase()
+                    ElseIf TypeOf current Is MemberAccessExpressionSyntax Then
+                        Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()
+                    ElseIf TypeOf current Is CastExpressionSyntax Then
+                        current = (DirectCast(current, CastExpressionSyntax)).Expression
+                    Else
+                        Exit While
+                    End If
+                End While
+            End If
+
+            ' there was nothing in the expression to signify a name.  If we're in an argument
+            ' location, then try to choose a name based on the argument name.
+            Dim argumentName = TryGenerateNameForArgumentExpression(
+                semanticModel, expression, cancellationToken)
+            If argumentName IsNot Nothing Then
+                Return If(capitalize, argumentName.ToPascalCase(), argumentName.ToCamelCase())
+            End If
+
+            ' Otherwise, figure out the type of the expression and generate a name from that
+            ' instead.
+            Dim info = semanticModel.GetTypeInfo(expression, cancellationToken)
+            If info.Type Is Nothing Then
+                Return [Shared].Extensions.ITypeSymbolExtensions.DefaultParameterName
+            End If
+
+            Return semanticModel.GenerateNameFromType(info.Type, VisualBasicSyntaxFacts.Instance, capitalize)
+        End Function
+
+        Private Function TryGenerateNameForArgumentExpression(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As String
+            Dim topExpression = expression.WalkUpParentheses()
+            If TypeOf topExpression.Parent Is ArgumentSyntax Then
+                Dim argument = DirectCast(topExpression.Parent, ArgumentSyntax)
+                Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
+
+                If simpleArgument?.NameColonEquals IsNot Nothing Then
+                    Return simpleArgument.NameColonEquals.Name.Identifier.ValueText
+                End If
+
+                Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+                If argumentList IsNot Nothing Then
+                    Dim index = argumentList.Arguments.IndexOf(argument)
+                    Dim member = TryCast(semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol, IMethodSymbol)
+                    If member IsNot Nothing AndAlso index < member.Parameters.Length Then
+                        Dim parameter = member.Parameters(index)
+                        If parameter.Type.TypeKind <> TypeKind.TypeParameter Then
+                            Return parameter.Name
+                        End If
+                    End If
+                End If
+            End If
+
+            Return Nothing
         End Function
     End Module
 End Namespace

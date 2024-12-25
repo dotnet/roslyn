@@ -7,12 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -27,7 +22,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         internal sealed class Control : InternalOptionsControl
         {
             public Control(OptionStore optionStore)
-                : base(Array.Empty<IOption>(), optionStore)
+                : base(Array.Empty<IOption2>(), optionStore)
             {
             }
 

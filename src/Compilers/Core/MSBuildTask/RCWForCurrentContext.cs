@@ -115,6 +115,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     _shouldReleaseRCW &&
                     Marshal.IsComObject(_rcwForCurrentCtx))
                 {
+#if NET
+                    Debug.Assert(OperatingSystem.IsWindows());
+#endif
                     Marshal.ReleaseComObject(_rcwForCurrentCtx);
                 }
             }

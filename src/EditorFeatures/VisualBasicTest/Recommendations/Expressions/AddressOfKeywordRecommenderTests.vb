@@ -123,7 +123,7 @@ Loop Until |</MethodBody>, "AddressOf")
             VerifyRecommendationsContain(<MethodBody>RemoveHandler goo, |</MethodBody>, "AddressOf")
         End Sub
 
-        <Fact, WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         Public Sub AddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Module Program
@@ -141,7 +141,7 @@ End Module
             VerifyRecommendationsContain(code, "AddressOf")
         End Sub
 
-        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         Public Sub AddressOfNotAfterAddressOfTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
@@ -154,7 +154,7 @@ End Function
             VerifyRecommendationsMissing(code, "AddressOf")
         End Sub
 
-        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         Public Sub AddressOfNotAfterAddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
@@ -165,7 +165,7 @@ Delegate Sub Goo()
             VerifyRecommendationsMissing(code, "AddressOf")
         End Sub
 
-        <Fact, WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         Public Sub AddressOfNestedInsideAddressOfExpressionTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C

@@ -1,6 +1,6 @@
 # Capturing a crash dump
 
-## Using a registry setting
+## Using a registry setting (recommended on Windows)
 
 Create a registry key file (`dump.reg`) with the contents below, then execute it. The settings mean that every crash will produce a full dump (`DumpType`=2) in the folder specified by `DumpFolder`, and at most one will be kept (every subsequent crash will overwrite the file, because `DumpCount`=1).
 
@@ -18,6 +18,10 @@ Windows Registry Editor Version 5.00
 ```
 
 More [information](https://msdn.microsoft.com/en-us/library/windows/desktop/bb787181(v=vs.85).aspx)
+
+## Using environment variables (recommended on Linux)
+
+Define the container with the [correct variables](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/collect-dumps-crash) to collect a dump on crash.
 
 # Running the compiler with a long command line
 
@@ -64,3 +68,19 @@ I recently had to test a [Roslyn change](https://github.com/dotnet/roslyn/pull/2
 Using the 32-bit Task Manager (`%WINDIR%\SysWow64\TaskMgr.exe` so that SoS will work), right-click on the hung process to produce a `.dmp` file. You can then share the file with the team via some online drive (dropbox and the like).
 
 ![image](https://user-images.githubusercontent.com/12466233/42392334-4eed5286-8107-11e8-8212-26fa53383f19.png)
+
+# Investigating build-time regressions
+
+There are three significant candidates to investigate:
+1. analyzer issue:  
+  Use `/p:ReportAnalyzer=true` to add analyzer timing information to the binary log.  
+  The binary log viewer can display that information.
+2. compiler server issue:  
+  Inspect the binary log (search for `$message CompilerServer failed` or "Error:").  
+  If the compiler server is having issues, there will be many such entries.  
+  In that case, use the environment variable `set RoslynCommandLineLogFile=c:\some\dir\log.txt` to enable additional logging.  
+  In that log, "Keep alive" entries indicate that the compiler server restarted (which we don't expect to happen very often).
+3. difference in inputs:  
+  Use `/p:Features=debug-determinism` to create an additional output file that documents all the inputs to a particular compilation.  
+  The file is written next to the compilation output and has a `.key` suffix.  
+  Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  

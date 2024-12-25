@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -26,7 +25,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Microsoft.VisualStudio.Text.Editor;
 
     // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
     // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
@@ -53,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// Includes both command buffers as well as language buffers.
         /// Does not include the current buffer unless it has been submitted.
         /// </remarks>
-        private readonly List<ITextBuffer> _submittedBuffers = new();
+        private readonly List<ITextBuffer> _submittedBuffers = [];
 
         #endregion
 
         public IContentType ContentType { get; }
 
         public InteractiveEvaluatorResetOptions ResetOptions { get; set; }
-            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
+            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Core);
 
         internal CSharpInteractiveEvaluator(
             IThreadingContext threadingContext,
@@ -71,11 +69,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
             ITextDocumentFactoryService textDocumentFactoryService,
-            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
-            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
+            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1);
 
             _threadingContext = threadingContext;
             ContentType = contentType;
@@ -84,14 +81,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices, editorOptionsService.GlobalOptions);
+            _workspace = new InteractiveWindowWorkspace(hostServices);
 
             _session = new InteractiveSession(
                 _workspace,
-                threadingContext,
                 listener,
                 textDocumentFactoryService,
-                editorOptionsService,
                 languageInfo,
                 initialWorkingDirectory);
 

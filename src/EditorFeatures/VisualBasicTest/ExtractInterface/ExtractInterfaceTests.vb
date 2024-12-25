@@ -1184,7 +1184,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=ExtractInterfaceTestState.Composition)
+            Dim workspace = EditorTestWorkspace.Create(workspaceXml, composition:=ExtractInterfaceTestState.Composition)
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = Await testState.ExtractViaCommandAsync()
                 Assert.True(result.Succeeded)
@@ -1269,7 +1269,7 @@ End Namespace
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestExtractInterfaceCommandDisabledInSubmission()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Public Class C
@@ -1286,16 +1286,14 @@ End Namespace
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New ExtractInterfaceCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    workspace.GlobalOptions)
+                Dim handler = New ExtractInterfaceCommandHandler(workspace.GetService(Of IThreadingContext))
 
                 Dim state = handler.GetCommandState(New ExtractInterfaceCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
             End Using
         End Sub
 
-        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23855")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_WithCopyright1() As Task
             Dim markup = <text>'' Copyright
@@ -1333,7 +1331,7 @@ End Interface
                 rootNamespace:="RootNamespace")
         End Function
 
-        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23855")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_WithCopyright2() As Task
             Dim markup = <text>'' Copyright
@@ -1377,7 +1375,7 @@ End Interface
                 rootNamespace:="RootNamespace")
         End Function
 
-        <WorkItem(43952, "https://github.com/dotnet/roslyn/issues/43952")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43952")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_IgnoreWithEvents() As Task
             Dim markup = <text>Class C$$
@@ -1386,7 +1384,7 @@ End Class</text>.NormalizedValue()
             Await TestExtractInterfaceCommandVisualBasicAsync(markup, expectedSuccess:=False)
         End Function
 
-        <WorkItem(43952, "https://github.com/dotnet/roslyn/issues/43952")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/43952")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_IgnoreWithEvents2() As Task
             Dim markup = <text>Class C$$

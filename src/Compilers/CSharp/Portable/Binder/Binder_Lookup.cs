@@ -1304,6 +1304,10 @@ symIsHidden:;
             {
                 return ImmutableArray<Symbol>.Empty;
             }
+            else if (nsOrType is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true } sourceMemberContainerTypeSymbol)
+            {
+                return sourceMemberContainerTypeSymbol.GetCandidateMembersForLookup(name);
+            }
             else
             {
                 return nsOrType.GetMembers(name);
@@ -1332,7 +1336,7 @@ symIsHidden:;
 
         private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
         {
-            while (symbol is not null and not NamedTypeSymbol { AssociatedFileIdentifier: not null })
+            while (symbol is not null and not NamedTypeSymbol { IsFileLocal: true })
             {
                 symbol = symbol.ContainingType;
             }
@@ -1349,8 +1353,8 @@ symIsHidden:;
                 return false;
             }
 
-            var symbolFileIdentifier = ((NamedTypeSymbol)symbol).AssociatedFileIdentifier.GetValueOrDefault();
-            if (symbolFileIdentifier.FilePathChecksumOpt.IsDefault)
+            var symbolFileIdentifier = ((NamedTypeSymbol)symbol).AssociatedFileIdentifier;
+            if (symbolFileIdentifier is null || symbolFileIdentifier.FilePathChecksumOpt.IsDefault)
             {
                 // the containing file of the file-local type has an ill-formed path.
                 return false;
@@ -1367,7 +1371,7 @@ symIsHidden:;
                     if (binder is BuckStopsHereBinder lastBinder)
                     {
                         // we never expect to bind a file type in a context where the BuckStopsHereBinder lacks an AssociatedFileIdentifier
-                        return lastBinder.AssociatedFileIdentifier.Value;
+                        return lastBinder.AssociatedFileIdentifier ?? throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -1391,7 +1395,11 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
+            if ((options & LookupOptions.MustNotBeParameter) != 0 && unwrappedSymbol is ParameterSymbol)
+            {
+                return LookupResult.Empty();
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
             }

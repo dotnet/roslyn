@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -84,6 +85,18 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 #pragma warning disable RS0042 // Do not copy value
             this = array;
 #pragma warning restore RS0042 // Do not copy value
+        }
+
+        public static TemporaryArray<T> GetInstance(int capacity)
+        {
+            // Capacity <= 4 is already supported by the Empty array value. so can just return that without allocating anything.
+            if (capacity <= InlineCapacity)
+                return Empty;
+
+            return new TemporaryArray<T>()
+            {
+                _builder = ArrayBuilder<T>.GetInstance(capacity)
+            };
         }
 
         public static TemporaryArray<T> Empty => default;
@@ -214,16 +227,75 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
+        public T RemoveLast()
+        {
+            var count = this.Count;
+
+            var last = this[count - 1];
+            this[count - 1] = default!;
+
+            if (_builder != null)
+            {
+                _builder.Count--;
+            }
+            else
+            {
+                _count--;
+            }
+
+            return last;
+        }
+
+        public readonly bool Contains(T value, IEqualityComparer<T>? equalityComparer = null)
+            => IndexOf(value, equalityComparer) >= 0;
+
+        public readonly int IndexOf(T value, IEqualityComparer<T>? equalityComparer = null)
+        {
+            equalityComparer ??= EqualityComparer<T>.Default;
+
+            if (_builder != null)
+                return _builder.IndexOf(value, equalityComparer);
+
+            var index = 0;
+            foreach (var v in this)
+            {
+                if (equalityComparer.Equals(v, value))
+                    return index;
+
+                index++;
+            }
+
+            return -1;
+        }
+
         public readonly Enumerator GetEnumerator()
         {
             return new Enumerator(in this);
         }
 
         /// <summary>
+        /// Create an <see cref="OneOrMany{T}"/> with the elements currently held in the temporary array, and clear the
+        /// array.
+        /// </summary>
+        public OneOrMany<T> ToOneOrManyAndClear()
+        {
+            switch (this.Count)
+            {
+                case 0:
+                    return OneOrMany<T>.Empty;
+                case 1:
+                    var result = OneOrMany.Create(this[0]);
+                    this.Clear();
+                    return result;
+                default:
+                    return new(this.ToImmutableAndClear());
+            }
+        }
+
+        /// <summary>
         /// Create an <see cref="ImmutableArray{T}"/> with the elements currently held in the temporary array, and clear
         /// the array.
         /// </summary>
-        /// <returns></returns>
         public ImmutableArray<T> ToImmutableAndClear()
         {
             if (_builder is not null)
@@ -265,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 builder.Add(this[i]);
 
-#if NETCOREAPP
+#if NET
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
                 {
@@ -299,6 +371,59 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     return;
                 case 4:
                     (_item0, _item1, _item2, _item3) = (_item3, _item2, _item1, _item0);
+                    return;
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        public void Sort(Comparison<T> compare)
+        {
+            if (_builder is not null)
+            {
+                _builder.Sort(compare);
+                return;
+            }
+
+            switch (_count)
+            {
+                case <= 1:
+                    return;
+                case 2:
+                    if (compare(_item0, _item1) > 0)
+                    {
+                        (_item0, _item1) = (_item1, _item0);
+                    }
+                    return;
+                case 3:
+                    if (compare(_item0, _item1) > 0)
+                        (_item0, _item1) = (_item1, _item0);
+
+                    if (compare(_item1, _item2) > 0)
+                    {
+                        (_item1, _item2) = (_item2, _item1);
+
+                        if (compare(_item0, _item1) > 0)
+                            (_item0, _item1) = (_item1, _item0);
+                    }
+                    return;
+                case 4:
+
+                    if (compare(_item0, _item1) > 0)
+                        (_item0, _item1) = (_item1, _item0);
+
+                    if (compare(_item2, _item3) > 0)
+                        (_item2, _item3) = (_item3, _item2);
+
+                    if (compare(_item0, _item2) > 0)
+                        (_item0, _item2) = (_item2, _item0);
+
+                    if (compare(_item1, _item3) > 0)
+                        (_item1, _item3) = (_item3, _item1);
+
+                    if (compare(_item1, _item2) > 0)
+                        (_item1, _item2) = (_item2, _item1);
+
                     return;
                 default:
                     throw ExceptionUtilities.Unreachable();

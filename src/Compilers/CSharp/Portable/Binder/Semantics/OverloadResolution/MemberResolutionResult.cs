@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents the results of overload resolution for a single member.
     /// </summary>
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal readonly struct MemberResolutionResult<TMember> where TMember : Symbol
+    internal readonly struct MemberResolutionResult<TMember> : IMemberResolutionResultWithPriority<TMember> where TMember : Symbol
     {
         private readonly TMember _member;
         private readonly TMember _leastOverriddenMember;
@@ -120,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return _result; }
         }
+
+        TMember IMemberResolutionResultWithPriority<TMember>.MemberWithPriority => LeastOverriddenMember;
 
         public override bool Equals(object? obj)
         {

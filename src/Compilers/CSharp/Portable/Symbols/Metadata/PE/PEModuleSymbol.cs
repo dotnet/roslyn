@@ -106,10 +106,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
-        private ThreeState _lazyUseUpdatedEscapeRules;
+        internal enum RefSafetyRulesAttributeVersion
+        {
+            Uninitialized = 0,
+            NoAttribute,
+            Version11,
+            UnrecognizedAttribute,
+        }
+
+        private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 #nullable disable
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
@@ -468,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal void OnNewTypeDeclarationsLoaded(
-            Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict)
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> typesDict)
         {
             bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
 
@@ -650,8 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
-                return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.CompilationRelaxationsAttribute) >= 0;
+                // This API is called only for added modules. Assembly level attributes from added modules are 
+                // copied to the resulting assembly and that is done by using CSharpAttributeData for them.
+                // Therefore, it is acceptable to implement this property by using the same CSharpAttributeData
+                // objects rather than trying to avoid creating them and going to metadata directly.
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
+                return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0;
             }
         }
 
@@ -659,8 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
-                return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
+                // This API is called only for added modules. Assembly level attributes from added modules are 
+                // copied to the resulting assembly and that is done by using CSharpAttributeData for them.
+                // Therefore, it is acceptable to implement this property by using the same CSharpAttributeData
+                // objects rather than trying to avoid creating them and going to metadata directly.
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
+                return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
             }
         }
 
@@ -683,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal NamedTypeSymbol LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
             NamedTypeSymbol? result;
-            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegmentsMemory);
 
             if ((object?)scope == null)
             {
@@ -823,22 +841,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
 
         internal override bool UseUpdatedEscapeRules
+            => RefSafetyRulesVersion == RefSafetyRulesAttributeVersion.Version11;
+
+        internal RefSafetyRulesAttributeVersion RefSafetyRulesVersion
         {
             get
             {
-                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
+                if (_lazyRefSafetyRulesAttributeVersion == RefSafetyRulesAttributeVersion.Uninitialized)
                 {
-                    bool value = CalculateUseUpdatedRules();
-                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
+                    _lazyRefSafetyRulesAttributeVersion = getAttributeVersion();
                 }
-                return _lazyUseUpdatedEscapeRules == ThreeState.True;
+                return _lazyRefSafetyRulesAttributeVersion;
+
+                RefSafetyRulesAttributeVersion getAttributeVersion()
+                {
+                    if (_module.HasRefSafetyRulesAttribute(Token, out int version, out bool foundAttributeType))
+                    {
+                        return version == 11
+                            ? RefSafetyRulesAttributeVersion.Version11
+                            : RefSafetyRulesAttributeVersion.UnrecognizedAttribute;
+                    }
+                    return foundAttributeType
+                        ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
+                        : RefSafetyRulesAttributeVersion.NoAttribute;
+                }
             }
         }
 
-        private bool CalculateUseUpdatedRules()
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
-            // [RefSafetyRules(version)], regardless of version.
-            return _module.HasRefSafetyRulesAttribute(Token, out _);
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    var experimentalData = _module.TryDecodeExperimentalAttributeData(Token, new MetadataDecoder(this));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+            }
         }
     }
 }

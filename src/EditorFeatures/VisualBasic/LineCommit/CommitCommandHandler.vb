@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic) Then
+            If Not _globalOptions.GetOption(LineCommitOptionsStorage.PrettyListing, LanguageNames.VisualBasic) Then
                 nextHandler()
                 Return
             End If
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Try
                 ' Evil: we really want a enter in VB to be always grouped as a single undo transaction, and so make sure all
                 ' things from here on out are grouped as one.
-                Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Insert_new_line)
+                Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line)
                     transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
 
                     nextHandler()
@@ -221,19 +221,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As PasteCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of PasteCommandArgs).ExecuteCommand
-            Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_pasted_text)
+            Using context.OperationContext.AddScope(allowCancellation:=True, EditorFeaturesResources.Formatting_pasted_text)
                 CommitOnPaste(args, nextHandler, context.OperationContext.UserCancellationToken)
             End Using
         End Sub
 
         Private Sub CommitOnPaste(args As PasteCommandArgs, nextHandler As Action, cancellationToken As CancellationToken)
-            Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Paste)
+            Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Paste)
                 Dim oldVersion = args.SubjectBuffer.CurrentSnapshot.Version
 
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
+                If Not _globalOptions.GetOption(FormattingOptionsStorage.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If _globalOptions.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If _globalOptions.GetOption(FormattingOptionsStorage.FormatOnSave) Then
                 Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
                         _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)

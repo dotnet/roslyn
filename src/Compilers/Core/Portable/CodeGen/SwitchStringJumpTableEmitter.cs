@@ -208,12 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return stringHashMap;
         }
 
-        internal static bool ShouldGenerateHashTableSwitch(CommonPEModuleBuilder module, int labelsCount)
-        {
-            return module.SupportsPrivateImplClass && ShouldGenerateHashTableSwitch(labelsCount);
-        }
-
-        private static bool ShouldGenerateHashTableSwitch(int labelsCount)
+        internal static bool ShouldGenerateHashTableSwitch(int labelsCount)
         {
             // Heuristic used by Dev10 compiler for emitting string switch:
             //  Generate hash table based string switch jump table

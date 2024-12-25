@@ -6,20 +6,12 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.Snippets
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportSnippetProviderAttribute : ExportAttribute
-    {
-        public string Name { get; }
-        public string Language { get; }
+namespace Microsoft.CodeAnalysis.Snippets;
 
-        public ExportSnippetProviderAttribute(string name, string language)
-            : base(typeof(ISnippetProvider))
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Language = language ?? throw new ArgumentNullException(nameof(language));
-        }
-    }
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportSnippetProviderAttribute(string name, string language) : ExportAttribute(typeof(ISnippetProvider))
+{
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

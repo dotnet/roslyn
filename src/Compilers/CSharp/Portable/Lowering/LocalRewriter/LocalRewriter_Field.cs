@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValue, node.ResultKind, node.Type, node);
+            return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.Type, node);
         }
 
         private BoundExpression MakeFieldAccess(
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo = useSiteInfo.AdjustDiagnosticInfo(null);
             }
 
-            _diagnostics.Add(useSiteInfo, syntax.Location);
+            _diagnostics.Add(useSiteInfo, syntax);
 
             return MakeTupleFieldAccess(syntax, field, tuple);
         }

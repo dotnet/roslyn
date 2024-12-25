@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.LocalFunctionStatement:
                     lambdaBody1 = GetLocalFunctionBody((LocalFunctionStatementSyntax)node);
-                    return true;
+                    return lambdaBody1 != null;
             }
 
             return false;
@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.UsingStatement:
+                case SyntaxKind.TryStatement:
 
                 // ctor parameter captured by a lambda in a ctor initializer
                 case SyntaxKind.ConstructorDeclaration:
@@ -418,7 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                    // With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                    // Captured primary constructor parameters.
+                    //
+                    // With dynamic analysis instrumentation, a type declaration can also be the syntax associated
                     // with the analysis payload local of a synthesized constructor.
                     // If the synthesized constructor includes an initializer with a lambda,
                     // that lambda needs a closure that captures the analysis payload of the constructor.
@@ -478,9 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
         }
 
-        private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
-        {
-            return (SyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody!.Expression;
-        }
+        private static SyntaxNode? GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
+            => (SyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody?.Expression;
     }
 }

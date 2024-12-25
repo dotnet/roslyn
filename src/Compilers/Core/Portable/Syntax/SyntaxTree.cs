@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -284,12 +285,26 @@ namespace Microsoft.CodeAnalysis
         internal string GetDisplayPath(TextSpan span, SourceReferenceResolver? resolver)
         {
             var mappedSpan = GetMappedLineSpan(span);
-            if (resolver == null || mappedSpan.Path.IsEmpty())
+            if (resolver is null || mappedSpan.Path.IsEmpty())
             {
                 return mappedSpan.Path;
             }
 
             return resolver.NormalizePath(mappedSpan.Path, baseFilePath: mappedSpan.HasMappedPath ? FilePath : null) ?? mappedSpan.Path;
+        }
+
+        /// <summary>
+        /// Returns the path used for emit purposes. This takes into account /pathmap arguments passed into
+        /// the compiler.
+        /// </summary>
+        internal string GetNormalizedPath(SourceReferenceResolver? resolver)
+        {
+            if (resolver is null)
+            {
+                return FilePath;
+            }
+
+            return resolver.NormalizePath(FilePath, baseFilePath: null) ?? FilePath;
         }
 
         /// <summary>
@@ -355,11 +370,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Cci.DebugSourceInfo GetDebugSourceInfo()
         {
-            if (_lazyChecksum.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(ref _lazyChecksum).IsDefault)
             {
                 var text = this.GetText();
-                _lazyChecksum = text.GetChecksum();
                 _lazyHashAlgorithm = text.ChecksumAlgorithm;
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, text.GetChecksum());
             }
 
             Debug.Assert(!_lazyChecksum.IsDefault);
@@ -419,7 +434,7 @@ namespace Microsoft.CodeAnalysis
                 if (syntaxHelper.ContainsGlobalAliases(root))
                     result |= SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases;
 
-                if (syntaxHelper.ContainsAttributeList(root))
+                if (root.ContainsAttributes)
                     result |= SourceGeneratorSyntaxTreeInfo.ContainsAttributeList;
 
                 _sourceGeneratorInfo = result;

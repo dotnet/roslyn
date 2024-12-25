@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool publicSign = false;
             string? sourceLink = null;
             string? ruleSetPath = null;
+            bool reportIVTs = false;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -266,7 +267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            features.Add(value);
+                            // When a features value like "InterceptorsNamespaces=NS1;NS2" is provided,
+                            // the build system will quote it so that splitting doesn't occur in the wrong layer.
+                            // We need to unquote here so that subsequent layers can properly identify the feature name and value.
+                            features.Add(value.Unquote());
                         }
                         continue;
 
@@ -1354,6 +1358,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected);
                             }
                             continue;
+
+                        case "reportivts":
+                        case "reportivts+":
+                            if (valueMemory is not null) break;
+                            reportIVTs = true;
+                            continue;
+
+                        case "reportivts-":
+                            if (valueMemory is not null) break;
+                            reportIVTs = false;
+                            continue;
                     }
                 }
 
@@ -1576,7 +1591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
                 SkipAnalyzers = skipAnalyzers,
-                EmbeddedFiles = embeddedFiles.AsImmutable()
+                EmbeddedFiles = embeddedFiles.AsImmutable(),
+                ReportInternalsVisibleToAttributes = reportIVTs,
             };
         }
 
@@ -1800,6 +1816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case "arm64":
                     return Platform.Arm64;
                 default:
+                    // This switch supports architectures that .NET Framework runs on Windows only.
+                    // Non-Windows architectures that .NET runs on are intentionally not supported here.
                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadPlatformType, value);
                     return Platform.AnyCpu;
             }

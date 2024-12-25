@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void TestDefaultInstance()
         {
             var data = default(SegmentedArray<IntPtr>);
-            Assert.Null(data.GetTestAccessor().Items);
+            Assert.Null(SegmentedCollectionsMarshal.AsSegments(data));
 
             Assert.True(data.IsFixedSize);
             Assert.True(data.IsReadOnly);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Throws<ArgumentOutOfRangeException>("length", () => new SegmentedArray<byte>(-1));
 
             Assert.Empty(new SegmentedArray<byte>(0));
-            Assert.Same(Array.Empty<byte[]>(), new SegmentedArray<byte>(0).GetTestAccessor().Items);
+            Assert.Same(Array.Empty<byte[]>(), SegmentedCollectionsMarshal.AsSegments(new SegmentedArray<byte>(0)));
         }
 
         [Theory]
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var data = new SegmentedArray<IntPtr>(length);
             Assert.Equal(length, data.Length);
 
-            var items = data.GetTestAccessor().Items;
+            var items = SegmentedCollectionsMarshal.AsSegments(data);
             Assert.Equal(length, items.Sum(item => item.Length));
 
             for (var i = 0; i < items.Length - 1; i++)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
             Assert.Equal(length, data.Length);
-            Assert.Same(data.GetTestAccessor().Items, data.SyncRoot);
+            Assert.Same(SegmentedCollectionsMarshal.AsSegments(data), data.SyncRoot);
 
             Assert.Equal(length, ((ICollection)data).Count);
             Assert.Equal(length, ((ICollection<IntPtr>)data).Count);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void TestIterateLargeArray()
         {
             var data = new SegmentedArray<Guid>(1000000);
-            Assert.True(data.GetTestAccessor().Items.Length > 10);
+            Assert.True(SegmentedCollectionsMarshal.AsSegments(data).Length > 10);
 
             for (var i = 0; i < data.Length; i++)
             {

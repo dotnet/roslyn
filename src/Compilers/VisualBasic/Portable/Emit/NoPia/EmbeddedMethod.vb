@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property Visibility As Cci.TypeMemberVisibility
             Get
-                Return PEModuleBuilder.MemberVisibility(UnderlyingMethod.AdaptedMethodSymbol)
+                Return UnderlyingMethod.AdaptedMethodSymbol.MetadataVisibility
             End Get
         End Property
 

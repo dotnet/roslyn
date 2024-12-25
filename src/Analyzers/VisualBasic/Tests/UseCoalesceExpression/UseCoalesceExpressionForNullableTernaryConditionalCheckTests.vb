@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
     Public Class UseCoalesceExpressionForNullableTernaryConditionalCheckTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer(),
@@ -146,7 +146,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17028")>
         Public Async Function TestInExpressionOfT() As Task
             Await TestInRegularAndScriptAsync(
 "

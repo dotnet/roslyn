@@ -4,17 +4,16 @@
 
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal class PreviewWarningTag : TextMarkerTag
 {
-    internal class PreviewWarningTag : TextMarkerTag
+    public const string TagId = "RoslynPreviewWarningTag";
+
+    public static readonly PreviewWarningTag Instance = new();
+
+    private PreviewWarningTag()
+        : base(TagId)
     {
-        public const string TagId = "RoslynPreviewWarningTag";
-
-        public static readonly PreviewWarningTag Instance = new();
-
-        private PreviewWarningTag()
-            : base(TagId)
-        {
-        }
     }
 }

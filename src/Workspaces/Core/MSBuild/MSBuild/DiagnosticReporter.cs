@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public DiagnosticReporter(Workspace workspace)
         {
             _workspace = workspace;
-            Diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
+            Diagnostics = [];
         }
 
         public void Report(DiagnosticReportingMode mode, string message, Func<string, Exception>? createException = null)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _workspace.OnWorkspaceFailed(diagnostic);
         }
 
-        public void Report(DiagnosticLog log)
+        public void Report(IEnumerable<DiagnosticLogItem> log)
         {
             foreach (var logItem in log)
             {

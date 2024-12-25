@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -74,17 +75,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            for (var m = this.CurrentSymbol as MethodSymbol; (object)m != null; m = m.ContainingSymbol as MethodSymbol)
+            Symbol current = CurrentSymbol;
+            bool ignoreThisParameter = false;
+
+            while (current?.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
             {
-                foreach (var p in m.Parameters)
+                if (current is MethodSymbol m)
                 {
-                    if (p.RefKind != RefKind.None) _readOutside.Add(p);
+                    foreach (var p in m.Parameters)
+                    {
+                        if (p.RefKind != RefKind.None) _readOutside.Add(p);
+                    }
+
+                    Debug.Assert(!ignoreThisParameter || m is SynthesizedPrimaryConstructor);
+
+                    if (!ignoreThisParameter)
+                    {
+                        var thisParameter = m.ThisParameter;
+                        if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
+                        {
+                            _readOutside.Add(thisParameter);
+                        }
+                    }
                 }
 
-                var thisParameter = m.ThisParameter;
-                if ((object)thisParameter != null && thisParameter.RefKind != RefKind.None)
+                Symbol containing = current.ContainingSymbol;
+
+                if (!current.IsStatic &&
+                    containing is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } &&
+                    (object)current != primaryConstructor)
                 {
-                    _readOutside.Add(thisParameter);
+                    current = primaryConstructor;
+                    ignoreThisParameter = true;
+                }
+                else
+                {
+                    current = containing;
                 }
             }
 
@@ -103,11 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteRead(variable, rangeVariableUnderlyingParameter);
         }
 
-        protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
+        protected override void NoteWrite(Symbol variable, BoundExpression value, bool read, bool isRef)
         {
             if ((object)variable == null) return;
             (IsInside ? _writtenInside : _writtenOutside).Add(variable);
-            base.NoteWrite(variable, value, read);
+            base.NoteWrite(variable, value, read: read, isRef: isRef);
         }
 
         protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
@@ -122,6 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void NoteReceiverWritten(BoundFieldAccess expr)
         {
             NoteReceiverReadOrWritten(expr, _writtenInside);
+        }
+
+        private void NoteReceiverWritten(BoundInlineArrayAccess expr)
+        {
+            NoteExpressionReadOrWritten(expr.Expression, _writtenInside);
         }
 
         private void NoteReceiverRead(BoundFieldAccess expr)
@@ -141,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.FieldSymbol.IsStatic) return;
             if (expr.FieldSymbol.ContainingType.IsReferenceType) return;
             var receiver = expr.ReceiverOpt;
+            NoteExpressionReadOrWritten(receiver, readOrWritten);
+        }
+
+        private void NoteExpressionReadOrWritten(BoundExpression receiver, HashSet<Symbol> readOrWritten)
+        {
             if (receiver == null) return;
             var receiverSyntax = receiver.Syntax;
             if (receiverSyntax == null) return;
@@ -179,7 +215,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     if (receiver.Type.IsStructType() && receiverSyntax.Span.OverlapsWith(RegionSpan))
                     {
-                        NoteReceiverReadOrWritten(receiver as BoundFieldAccess, readOrWritten);
+                        NoteReceiverReadOrWritten((BoundFieldAccess)receiver, readOrWritten);
+                    }
+                    break;
+                case BoundKind.InlineArrayAccess:
+                    if (receiverSyntax.Span.OverlapsWith(RegionSpan))
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)receiver;
+                        NoteExpressionReadOrWritten(elementAccess.Expression, readOrWritten);
                     }
                     break;
             }
@@ -190,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.RangeVariable:
-                    if (written) NoteWrite(((BoundRangeVariable)node).RangeVariableSymbol, value, read);
+                    if (written) NoteWrite(((BoundRangeVariable)node).RangeVariableSymbol, value, read: read, isRef: isRef);
                     break;
 
                 case BoundKind.QueryClause:
@@ -199,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = ((BoundQueryClause)node).DefinedSymbol;
                         if ((object)symbol != null)
                         {
-                            if (written) NoteWrite(symbol, value, read);
+                            if (written) NoteWrite(symbol, value, read: read, isRef: isRef);
                         }
                     }
                     break;
@@ -214,6 +257,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundKind.InlineArrayAccess:
+                    {
+                        base.AssignImpl(node, value, isRef, written, read);
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        if (!IsInside && node.Syntax != null && node.Syntax.Span.Contains(RegionSpan))
+                        {
+                            NoteReceiverWritten(elementAccess);
+                        }
+
+                        break;
+                    }
 
                 default:
                     base.AssignImpl(node, value, isRef, written, read);

@@ -22,6 +22,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericMethodParameter
         Implements IGenericTypeParameter
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Return False
@@ -224,6 +230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IGenericParameterMustBeValueType As Boolean Implements IGenericParameter.MustBeValueType
             Get
                 Return AdaptedTypeParameterSymbol.HasValueTypeConstraint
+            End Get
+        End Property
+
+        Private ReadOnly Property IGenericParameterAllowByRefLike As Boolean Implements IGenericParameter.AllowsRefLikeType
+            Get
+                Return AdaptedTypeParameterSymbol.AllowsRefLikeType
             End Get
         End Property
 

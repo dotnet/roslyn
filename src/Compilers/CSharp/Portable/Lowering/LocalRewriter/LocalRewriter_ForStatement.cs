@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (rewrittenCondition != null && this.Instrument)
             {
-                rewrittenCondition = _instrumenter.InstrumentForStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentForStatementCondition(node, rewrittenCondition, _factory);
             }
 
             return RewriteForStatement(
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement RewriteForStatementWithoutInnerLocals(
-            BoundLoopStatement original,
+            BoundNode original,
             ImmutableArray<LocalSymbol> outerLocals,
             BoundStatement? rewrittenInitializer,
             BoundExpression? rewrittenCondition,
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            Debug.Assert(original.Kind == BoundKind.ForStatement || original.Kind == BoundKind.ForEachStatement);
+            Debug.Assert(original.Kind is BoundKind.ForStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);
             Debug.Assert(rewrittenBody != null);
 
             // The sequence point behavior exhibited here is different from that of the native compiler.  In the native
@@ -147,10 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (original.Kind)
                 {
                     case BoundKind.ForEachStatement:
-                        branchBack = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)original, branchBack);
+                        branchBack = Instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)original, branchBack);
                         break;
                     case BoundKind.ForStatement:
-                        branchBack = _instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
+                        branchBack = Instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
+                        break;
+                    case BoundKind.CollectionExpressionSpreadElement:
+                        // No instrumentation needed since the loop for the spread expression
+                        // was generated in lowering, and not explicit in the source.
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(original.Kind);
@@ -239,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.Instrument)
                 {
-                    ifNotConditionGotoBreak = _instrumenter.InstrumentForStatementConditionalGotoStartOrBreak(node, ifNotConditionGotoBreak);
+                    ifNotConditionGotoBreak = Instrumenter.InstrumentForStatementConditionalGotoStartOrBreak(node, ifNotConditionGotoBreak);
                 }
 
                 blockBuilder.Add(ifNotConditionGotoBreak);

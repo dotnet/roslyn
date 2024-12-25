@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void VerifyResults(IEnumerable<ISymbol> declarations, string[] expectedResults)
         {
             declarations = declarations.OrderBy(d => d.ToString());
-            expectedResults = expectedResults.OrderBy(r => r).ToArray();
+            expectedResults = [.. expectedResults.OrderBy(r => r)];
 
             for (var i = 0; i < expectedResults.Length; i++)
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private Workspace CreateWorkspace(TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspace(TestHost testHost = TestHost.OutOfProcess)
         {
             var composition = FeaturesTestCompositions.Features.WithTestHostParts(testHost);
             var workspace = new AdhocWorkspace(composition.GetHostServices());
@@ -122,22 +122,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
-        private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.OutOfProcess)
             => solutionKind switch
             {
-                SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClass }, out solution),
-                SolutionKind.SingleClassWithSingleMethod => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleMethod }, out solution),
-                SolutionKind.SingleClassWithSingleProperty => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleProperty }, out solution),
-                SolutionKind.SingleClassWithSingleField => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleField }, out solution),
-                SolutionKind.TwoProjectsEachWithASingleClassWithSingleMethod => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleMethod, SingleClassWithSingleMethod }, out solution),
-                SolutionKind.TwoProjectsEachWithASingleClassWithSingleProperty => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleProperty, SingleClassWithSingleProperty }, out solution),
-                SolutionKind.TwoProjectsEachWithASingleClassWithSingleField => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleField, SingleClassWithSingleField }, out solution),
-                SolutionKind.NestedClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { NestedClass }, out solution),
-                SolutionKind.TwoNamespacesWithIdenticalClasses => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { Namespace1, Namespace2 }, out solution),
+                SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClass], out solution),
+                SolutionKind.SingleClassWithSingleMethod => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClassWithSingleMethod], out solution),
+                SolutionKind.SingleClassWithSingleProperty => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClassWithSingleProperty], out solution),
+                SolutionKind.SingleClassWithSingleField => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClassWithSingleField], out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleMethod => CreateWorkspaceWithMultipleProjectSolution(testHost, [SingleClassWithSingleMethod, SingleClassWithSingleMethod], out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleProperty => CreateWorkspaceWithMultipleProjectSolution(testHost, [SingleClassWithSingleProperty, SingleClassWithSingleProperty], out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleField => CreateWorkspaceWithMultipleProjectSolution(testHost, [SingleClassWithSingleField, SingleClassWithSingleField], out solution),
+                SolutionKind.NestedClass => CreateWorkspaceWithSingleProjectSolution(testHost, [NestedClass], out solution),
+                SolutionKind.TwoNamespacesWithIdenticalClasses => CreateWorkspaceWithSingleProjectSolution(testHost, [Namespace1, Namespace2], out solution),
                 _ => throw ExceptionUtilities.UnexpectedValue(solutionKind),
             };
 
-        private Workspace CreateWorkspaceWithProject(SolutionKind solutionKind, out Project project, TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspaceWithProject(SolutionKind solutionKind, out Project project, TestHost testHost = TestHost.OutOfProcess)
         {
             var workspace = CreateWorkspaceWithSolution(solutionKind, out var solution, testHost);
             project = solution.Projects.First();

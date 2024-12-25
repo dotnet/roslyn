@@ -4,28 +4,22 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal abstract partial class Matcher<T>
 {
-    internal partial class Matcher<T>
+    private sealed class RepeatMatcher(Matcher<T> matcher) : Matcher<T>
     {
-        private class RepeatMatcher : Matcher<T>
+        public override bool TryMatch(IList<T> sequence, ref int index)
         {
-            private readonly Matcher<T> _matcher;
-
-            public RepeatMatcher(Matcher<T> matcher)
-                => _matcher = matcher;
-
-            public override bool TryMatch(IList<T> sequence, ref int index)
+            while (matcher.TryMatch(sequence, ref index))
             {
-                while (_matcher.TryMatch(sequence, ref index))
-                {
-                }
-
-                return true;
             }
 
-            public override string ToString()
-                => string.Format("({0}*)", _matcher);
+            return true;
         }
+
+        public override string ToString()
+            => string.Format("({0}*)", matcher);
     }
 }

@@ -297,20 +297,34 @@ namespace RunTests
                 var name = Path.GetFileName(project);
                 if (!shouldInclude(name, options) || shouldExclude(name, options))
                 {
+                    Console.WriteLine($"Skipping {name} because it is not included or is excluded");
                     continue;
                 }
 
                 var fileName = $"{name}.dll";
-                // Find the dlls matching the request configuration and target frameworks.
-                foreach (var targetFramework in options.TargetFrameworks)
+
+                var configDirectory = Path.Combine(project, options.Configuration);
+                if (!Directory.Exists(configDirectory))
                 {
-                    var targetFrameworkDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    Console.WriteLine($"Skipping {name} because {options.Configuration} does not exist");
+                    continue;
+                }
+
+                foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
+                {
+                    var tfm = Path.GetFileName(targetFrameworkDirectory)!;
+                    if (!IsMatch(options.TestRuntime, tfm))
+                    {
+                        Console.WriteLine($"Skipping {name} {tfm} does not match the target framework");
+                        continue;
+                    }
+
                     var filePath = Path.Combine(targetFrameworkDirectory, fileName);
                     if (File.Exists(filePath))
                     {
                         list.Add(new AssemblyInfo(filePath));
                     }
-                    else if (Directory.Exists(targetFrameworkDirectory) && Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
+                    else if (Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
                     {
                         // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
                         // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
@@ -320,7 +334,13 @@ namespace RunTests
                             var message = $"Multiple unit test assemblies found in '{targetFrameworkDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
                             throw new Exception(message);
                         }
+
+                        Console.WriteLine($"Found unit test assembly '{matches[0]}' in '{targetFrameworkDirectory}'");
                         list.Add(new AssemblyInfo(matches[0]));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{targetFrameworkDirectory} does not contain unit tests");
                     }
                 }
             }
@@ -358,6 +378,15 @@ namespace RunTests
 
                 return false;
             }
+
+            static bool IsMatch(TestRuntime testRuntime, string dirName) =>
+                testRuntime switch
+                {
+                    TestRuntime.Both => true,
+                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\."),
+                    TestRuntime.Framework => dirName is "net472",
+                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestRuntime)} value: {testRuntime}"),
+                };
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)

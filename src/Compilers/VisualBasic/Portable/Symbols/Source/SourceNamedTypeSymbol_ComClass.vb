@@ -304,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' presence and its value. If we start caching that information, implementation of this function 
                 ' should change to take advantage of the cache.
                 Dim attrData As ImmutableArray(Of VisualBasicAttributeData) = target.GetAttributes()
-                Dim comVisible = attrData.IndexOfAttribute(target, AttributeDescription.ComVisibleAttribute)
+                Dim comVisible = attrData.IndexOfAttribute(AttributeDescription.ComVisibleAttribute)
 
                 If comVisible > -1 Then
                     Dim typedValue As TypedConstant = attrData(comVisible).CommonConstructorArguments(0)
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' presence and its value. If we start caching that information, implementation of this function 
                 ' should change to take advantage of the cache.
                 Dim attrData As ImmutableArray(Of VisualBasicAttributeData) = target.GetAttributes()
-                Dim dispIdIndex = attrData.IndexOfAttribute(target, AttributeDescription.DispIdAttribute)
+                Dim dispIdIndex = attrData.IndexOfAttribute(AttributeDescription.DispIdAttribute)
 
                 If dispIdIndex > -1 Then
                     Dim typedValue As TypedConstant = attrData(dispIdIndex).CommonConstructorArguments(0)
@@ -1025,6 +1025,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
                     Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
                 End Function
+
+                Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+                    Get
+                        Return False
+                    End Get
+                End Property
+
+                Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+                    guidString = Nothing
+                    Return False
+                End Function
             End Class
 
             Private Class SynthesizedComMethod
@@ -1154,6 +1165,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return False
                     End Get
                 End Property
+
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user  
+                End Function
 
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get
@@ -1373,6 +1388,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
                     Throw ExceptionUtilities.Unreachable
                 End Function
+
+                Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+                    Get
+                        Return False
+                    End Get
+                End Property
             End Class
 
             Private Class SynthesizedComEventMethod
@@ -1762,6 +1783,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user 
+                End Function
+
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get
                         Return False
@@ -1847,6 +1872,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Sub
 
                 Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
+                    Get
+                        Return False
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property IsRequired As Boolean
                     Get
                         Return False
                     End Get

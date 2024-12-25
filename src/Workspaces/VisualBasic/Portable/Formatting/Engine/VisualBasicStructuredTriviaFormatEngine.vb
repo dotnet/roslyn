@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
-            Return New TriviaDataFactory(Me.TreeData, Me.Options)
+            Return New TriviaDataFactory(Me.TreeData, Me.Options.LineFormatting)
         End Function
 
         Protected Overrides Function CreateFormattingContext(tokenStream As TokenStream, cancellationToken As CancellationToken) As FormattingContext

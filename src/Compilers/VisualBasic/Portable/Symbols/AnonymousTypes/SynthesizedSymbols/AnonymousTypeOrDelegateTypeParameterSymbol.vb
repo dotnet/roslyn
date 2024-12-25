@@ -42,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
                     Return ImmutableArray(Of Location).Empty
@@ -88,6 +94,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Property
 
             Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
                 Get
                     Return False
                 End Get

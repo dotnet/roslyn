@@ -6,30 +6,34 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
+        internal static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp };
+            IEnumerable<MetadataReference> asyncRefs = new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
-            return CreateCompilationWithMscorlib45(source, options: options, references: references);
+            return CreateCompilationWithMscorlib461(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
         {
             var compilation = CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
@@ -54,7 +58,7 @@ class Test
         F(123).Wait();
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source);
+            var c = CreateCompilationWithMscorlib461(source);
 
             CompilationOptions options;
 
@@ -869,6 +873,207 @@ class Driver
     }
 }";
             CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66829")]
+        public void AddressOf_WithinAwaitBoundary()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    public static async Task Main()
+                    {
+                        long x = 1;
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+
+                        await Task.Delay(1000);
+                    }
+                }
+                """;
+
+            var diagnostics = new[]
+            {
+                // (12,29): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //             Console.Write(*&x);
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(12, 29),
+                // (17,29): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //             Console.Write(*&x);
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(17, 29)
+            };
+
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: debugSymbolValidator, verify: Verification.Fails)
+                .VerifyDiagnostics(diagnostics);
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: releaseSymbolValidator, verify: Verification.Fails)
+                .VerifyDiagnostics(diagnostics);
+
+            void debugSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                var hoistedField = stateMachine.GetMember<FieldSymbol>("<x>5__1");
+                Assert.Equal(SpecialType.System_Int64, hoistedField.Type.SpecialType);
+            }
+
+            void releaseSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                // Test that there is no state-machine field based on 'x'.
+                Assert.Empty(stateMachine.GetMembers().Where(m => m.Name.StartsWith("<x>")));
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66829")]
+        public void AddressOf_AcrossAwaitBoundary()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    public static async Task Main()
+                    {
+                        long x = 1;
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+
+                        await Task.Delay(1000);
+
+                        unsafe
+                        {
+                            Console.Write(*&x);
+                        }
+                    }
+                }
+                """;
+
+            var diagnostics = new[]
+            {
+                // (12,29): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //             Console.Write(*&x);
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(12, 29),
+                // (19,29): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //             Console.Write(*&x);
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(19, 29)
+            };
+
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "11", symbolValidator: debugSymbolValidator, verify: Verification.Fails)
+                .VerifyDiagnostics(diagnostics);
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: "10", symbolValidator: releaseSymbolValidator, verify: Verification.Fails)
+                .VerifyDiagnostics(diagnostics);
+
+            void debugSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                var hoistedField = stateMachine.GetMember<FieldSymbol>("<x>5__1");
+                Assert.Equal(SpecialType.System_Int64, hoistedField.Type.SpecialType);
+            }
+
+            void releaseSymbolValidator(ModuleSymbol module)
+            {
+                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program.<Main>d__0");
+                // Test that there is no state-machine field based on 'x'.
+                Assert.Empty(stateMachine.GetMembers().Where(m => m.Name.StartsWith("<x>")));
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66829")]
+        public void AddressOf_Fixed()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                #pragma warning disable 1998
+                class Program
+                {
+                    int F;
+
+                    public static unsafe async Task Main()
+                    {
+                        Program prog = new Program();
+                        int* ptr = &prog.F; // 1
+                        fixed (int* ptr1 = &prog.F) { }
+
+                        int local = 0;
+                        int* localPtr = &local; // 2
+                        fixed (int* localPtr1 = &local) { } // 3, 4
+
+                        S structLocal = default;
+                        int* innerPtr = &structLocal.F; // 5
+                        fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+
+                        localFunc();
+                        void localFunc()
+                        {
+                            int localFuncLocal = 0;
+                            int* localFuncLocalPtr = &localFuncLocal;
+                        }
+
+                        _ = asyncLocalFunc();
+                        async Task asyncLocalFunc()
+                        {
+                            int localFuncLocal = 0;
+                            int* localFuncLocalPtr = &localFuncLocal; // 8
+                        }
+                    }
+                }
+
+                struct S { public int F; }
+                """;
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* ptr = &prog.F; // 1
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
+                // (15,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //         int* localPtr = &local; // 2
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 26),
+                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* localPtr1 = &local) { } // 3, 4
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
+                // (16,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //         fixed (int* localPtr1 = &local) { } // 3, 4
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(16, 34),
+                // (19,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //         int* innerPtr = &structLocal.F; // 5
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(19, 26),
+                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33),
+                // (20,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(20, 34),
+                // (33,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                //             int* localFuncLocalPtr = &localFuncLocal; // 8
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(33, 39));
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugExe.WithWarningLevel(7)).VerifyDiagnostics(
+                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* ptr = &prog.F; // 1
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
+                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* localPtr1 = &local) { } // 3, 4
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
+                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33));
         }
 
         [Fact]
@@ -3103,7 +3308,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3133,7 +3338,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3164,7 +3369,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -3502,7 +3707,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             // Builder
             var libB = @"public class B { }";
-            var cB = CreateCompilationWithMscorlib45(libB);
+            var cB = CreateCompilationWithMscorlib461(libB);
             var rB = cB.EmitToImageReference();
 
             // Tasklike
@@ -3513,7 +3718,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            var cT = CreateCompilationWithMscorlib461(libT, references: new[] { rB });
             var rT = cT.EmitToImageReference();
 
             // Consumer, fails to reference builder
@@ -3525,7 +3730,7 @@ class Program {
     async T f() => await Task.Delay(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
+            var c = CreateCompilationWithMscorlib461(source, references: new[] { rT });
             c.VerifyEmitDiagnostics(
                 // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -3822,7 +4027,7 @@ class Mismatch2MethodBuilder<T>
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS8940: A generic task-like return type was expected, but the type 'Mismatch1MethodBuilder' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
@@ -4300,7 +4505,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4309,7 +4514,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"await System.Threading.Tasks.Task.FromResult(4);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4319,7 +4524,7 @@ namespace CompilerCrashRepro2
             var source =
 @"int x = await System.Threading.Tasks.Task.Run(() => 2);
 System.Console.WriteLine(x);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4363,7 +4568,7 @@ System.Console.WriteLine(x);";
     await System.Threading.Tasks.Task.FromResult(1);
 int y = x +
     await System.Threading.Tasks.Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 //     await System.Threading.Tasks.Task.FromResult(1);
@@ -5692,10 +5897,10 @@ class IntCode
 ";
             var expected = new[]
             {
-                // (8,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
+                // (8,9): error CS8178: A reference returned by a call to 'IntCode.ReadMemory()' cannot be preserved across 'await' or 'yield' boundary.
                 //         ReadMemory() = await t;
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(8, 9),
-                // (9,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
+                // (9,9): error CS8178: A reference returned by a call to 'IntCode.ReadMemory()' cannot be preserved across 'await' or 'yield' boundary.
                 //         ReadMemory() += await t;
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(9, 9)
             };
@@ -5728,94 +5933,102 @@ public class C {
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp);
-            verifier.VerifyIL("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", source: source, expectedIL: @"
-    {
-      // Code size      176 (0xb0)
-      .maxstack  3
-      .locals init (int V_0,
-                    C V_1,
-                    int? V_2,
-                    int V_3,
-                    System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
-                    System.Exception V_5)
-      IL_0000:  ldarg.0
-      IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
-      IL_0006:  stloc.0
-      IL_0007:  ldarg.0
-      IL_0008:  ldfld      ""C C.<M>d__1.<>4__this""
-      IL_000d:  stloc.1
-      .try
-      {
-        IL_000e:  ldloc.0
-        IL_000f:  brfalse.s  IL_0062
-        IL_0011:  ldarg.0
-        IL_0012:  ldfld      ""int? C.<M>d__1.val""
-        IL_0017:  stloc.2
-        IL_0018:  ldloca.s   V_2
-        IL_001a:  call       ""bool int?.HasValue.get""
-        IL_001f:  brfalse.s  IL_002b
-        IL_0021:  ldloca.s   V_2
-        IL_0023:  call       ""int int?.GetValueOrDefault()""
-        IL_0028:  stloc.3
-        IL_0029:  br.s       IL_0087
-        IL_002b:  ldloc.1
-        IL_002c:  call       ""System.Threading.Tasks.Task<int> C.Get()""
-        IL_0031:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-        IL_0036:  stloc.s    V_4
-        IL_0038:  ldloca.s   V_4
-        IL_003a:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-        IL_003f:  brtrue.s   IL_007f
-        IL_0041:  ldarg.0
-        IL_0042:  ldc.i4.0
-        IL_0043:  dup
-        IL_0044:  stloc.0
-        IL_0045:  stfld      ""int C.<M>d__1.<>1__state""
-        IL_004a:  ldarg.0
-        IL_004b:  ldloc.s    V_4
-        IL_004d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
-        IL_0052:  ldarg.0
-        IL_0053:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
-        IL_0058:  ldloca.s   V_4
-        IL_005a:  ldarg.0
-        IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__1)""
-        IL_0060:  leave.s    IL_00af
-        IL_0062:  ldarg.0
-        IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
-        IL_0068:  stloc.s    V_4
-        IL_006a:  ldarg.0
-        IL_006b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
-        IL_0070:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-        IL_0076:  ldarg.0
-        IL_0077:  ldc.i4.m1
-        IL_0078:  dup
-        IL_0079:  stloc.0
-        IL_007a:  stfld      ""int C.<M>d__1.<>1__state""
-        IL_007f:  ldloca.s   V_4
-        IL_0081:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-        IL_0086:  stloc.3
-        IL_0087:  ldloc.3
-        IL_0088:  ldc.i4.1
-        IL_0089:  pop
-        IL_008a:  pop
-        IL_008b:  ldsfld     ""string string.Empty""
-        IL_0090:  newobj     ""System.NotImplementedException..ctor(string)""
-        IL_0095:  throw
-      }
-      catch System.Exception
-      {
-        IL_0096:  stloc.s    V_5
-        IL_0098:  ldarg.0
-        IL_0099:  ldc.i4.s   -2
-        IL_009b:  stfld      ""int C.<M>d__1.<>1__state""
-        IL_00a0:  ldarg.0
-        IL_00a1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
-        IL_00a6:  ldloc.s    V_5
-        IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-        IL_00ad:  leave.s    IL_00af
-      }
-      IL_00af:  ret
-    }
-");
+            verifier.VerifyMethodBody("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      176 (0xb0)
+  .maxstack  3
+  .locals init (int V_0,
+                C V_1,
+                int? V_2,
+                int V_3,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_4,
+                System.Exception V_5)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""C C.<M>d__1.<>4__this""
+  IL_000d:  stloc.1
+  .try
+  {
+    // sequence point: <hidden>
+    IL_000e:  ldloc.0
+    IL_000f:  brfalse.s  IL_0062
+    // sequence point: switch (val ?? await Get())
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      ""int? C.<M>d__1.val""
+    IL_0017:  stloc.2
+    IL_0018:  ldloca.s   V_2
+    IL_001a:  call       ""bool int?.HasValue.get""
+    IL_001f:  brfalse.s  IL_002b
+    IL_0021:  ldloca.s   V_2
+    IL_0023:  call       ""int int?.GetValueOrDefault()""
+    IL_0028:  stloc.3
+    IL_0029:  br.s       IL_0087
+    IL_002b:  ldloc.1
+    IL_002c:  call       ""System.Threading.Tasks.Task<int> C.Get()""
+    IL_0031:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0036:  stloc.s    V_4
+    // sequence point: <hidden>
+    IL_0038:  ldloca.s   V_4
+    IL_003a:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_003f:  brtrue.s   IL_007f
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.0
+    IL_0045:  stfld      ""int C.<M>d__1.<>1__state""
+    // async: yield
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.s    V_4
+    IL_004d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
+    IL_0058:  ldloca.s   V_4
+    IL_005a:  ldarg.0
+    IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<M>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<M>d__1)""
+    IL_0060:  leave.s    IL_00af
+    // async: resume
+    IL_0062:  ldarg.0
+    IL_0063:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
+    IL_0068:  stloc.s    V_4
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<M>d__1.<>u__1""
+    IL_0070:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.m1
+    IL_0078:  dup
+    IL_0079:  stloc.0
+    IL_007a:  stfld      ""int C.<M>d__1.<>1__state""
+    IL_007f:  ldloca.s   V_4
+    IL_0081:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0086:  stloc.3
+    IL_0087:  ldloc.3
+    // sequence point: <hidden>
+    IL_0088:  ldc.i4.1
+    IL_0089:  pop
+    IL_008a:  pop
+    // sequence point: throw new NotImplementedException(string.Empty);
+    IL_008b:  ldsfld     ""string string.Empty""
+    IL_0090:  newobj     ""System.NotImplementedException..ctor(string)""
+    IL_0095:  throw
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_0096:  stloc.s    V_5
+    IL_0098:  ldarg.0
+    IL_0099:  ldc.i4.s   -2
+    IL_009b:  stfld      ""int C.<M>d__1.<>1__state""
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__1.<>t__builder""
+    IL_00a6:  ldloc.s    V_5
+    IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ad:  leave.s    IL_00af
+  }
+  IL_00af:  ret
+}");
         }
 
         [Fact, WorkItem(46843, "https://github.com/dotnet/roslyn/issues/46843")]
@@ -5843,6 +6056,216 @@ public class C
 ";
             var comp = CSharpTestBase.CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedStringLocal()
+        {
+            string src = """
+using System.Reflection;
+
+var tcs = new System.Threading.Tasks.TaskCompletionSource();
+var task = C.ProduceAsync(true, tcs.Task);
+
+var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(task);
+object stateMachineBox = callback.Target;
+object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
+
+System.Console.Write((string)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine) is null);
+
+class C
+{
+    public static async System.Threading.Tasks.Task<int> ProduceAsync(bool b, System.Threading.Tasks.Task task)
+    {
+        while (b)
+        {
+            string values2 = "value ";
+            await System.Threading.Tasks.Task.CompletedTask;
+            System.Console.Write(values2);
+            b = false;
+        }
+        await task; // block execution here to check what's in the field for "values2"
+        return 42;
+    }
+}
+""";
+            // Note: nested hoisted local gets cleared when exiting nested scope normally
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedLocalWithStructFromAnotherCompilation()
+        {
+            var libSrc = """
+public struct S
+{
+    public int field;
+    public override string ToString() => field.ToString();
+}
+""";
+            var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+            string src = """
+using System.Reflection;
+
+var tcs = new System.Threading.Tasks.TaskCompletionSource();
+var task = C.ProduceAsync(true, tcs.Task);
+
+var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(task);
+object stateMachineBox = callback.Target;
+object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
+
+System.Console.Write((S)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine));
+
+class C
+{
+    public static async System.Threading.Tasks.Task<int> ProduceAsync(bool b, System.Threading.Tasks.Task task)
+    {
+        while (b)
+        {
+            S values2 = new S { field = 42 };
+            await System.Threading.Tasks.Task.CompletedTask;
+            System.Console.Write(values2);
+            b = false;
+        }
+        await task; // block execution here to check what's in the field for "values2"
+        return 10;
+    }
+}
+""";
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("4242"), references: [libComp.EmitToImageReference()],
+                targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<ProduceAsync>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      309 (0x135)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                S V_2,
+                System.Runtime.CompilerServices.TaskAwaiter V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<ProduceAsync>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0065
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00df
+    IL_0011:  br         IL_009f
+    IL_0016:  ldarg.0
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  initobj    "S"
+    IL_001f:  ldloca.s   V_2
+    IL_0021:  ldc.i4.s   42
+    IL_0023:  stfld      "int S.field"
+    IL_0028:  ldloc.2
+    IL_0029:  stfld      "S C.<ProduceAsync>d__0.<values2>5__2"
+    IL_002e:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0033:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_0038:  stloc.3
+    IL_0039:  ldloca.s   V_3
+    IL_003b:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0040:  brtrue.s   IL_0081
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.0
+    IL_0044:  dup
+    IL_0045:  stloc.0
+    IL_0046:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_004b:  ldarg.0
+    IL_004c:  ldloc.3
+    IL_004d:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+    IL_0058:  ldloca.s   V_3
+    IL_005a:  ldarg.0
+    IL_005b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ProduceAsync>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ProduceAsync>d__0)"
+    IL_0060:  leave      IL_0134
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_006b:  stloc.3
+    IL_006c:  ldarg.0
+    IL_006d:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_0072:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_0078:  ldarg.0
+    IL_0079:  ldc.i4.m1
+    IL_007a:  dup
+    IL_007b:  stloc.0
+    IL_007c:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_0081:  ldloca.s   V_3
+    IL_0083:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_0088:  ldarg.0
+    IL_0089:  ldfld      "S C.<ProduceAsync>d__0.<values2>5__2"
+    IL_008e:  box        "S"
+    IL_0093:  call       "void System.Console.Write(object)"
+    IL_0098:  ldarg.0
+    IL_0099:  ldc.i4.0
+    IL_009a:  stfld      "bool C.<ProduceAsync>d__0.b"
+    IL_009f:  ldarg.0
+    IL_00a0:  ldfld      "bool C.<ProduceAsync>d__0.b"
+    IL_00a5:  brtrue     IL_0016
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldfld      "System.Threading.Tasks.Task C.<ProduceAsync>d__0.task"
+    IL_00b0:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_00b5:  stloc.3
+    IL_00b6:  ldloca.s   V_3
+    IL_00b8:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_00bd:  brtrue.s   IL_00fb
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldc.i4.1
+    IL_00c1:  dup
+    IL_00c2:  stloc.0
+    IL_00c3:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldloc.3
+    IL_00ca:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_00cf:  ldarg.0
+    IL_00d0:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+    IL_00d5:  ldloca.s   V_3
+    IL_00d7:  ldarg.0
+    IL_00d8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ProduceAsync>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ProduceAsync>d__0)"
+    IL_00dd:  leave.s    IL_0134
+    IL_00df:  ldarg.0
+    IL_00e0:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_00e5:  stloc.3
+    IL_00e6:  ldarg.0
+    IL_00e7:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_00ec:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_00f2:  ldarg.0
+    IL_00f3:  ldc.i4.m1
+    IL_00f4:  dup
+    IL_00f5:  stloc.0
+    IL_00f6:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_00fb:  ldloca.s   V_3
+    IL_00fd:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_0102:  ldc.i4.s   10
+    IL_0104:  stloc.1
+    IL_0105:  leave.s    IL_0120
+  }
+  catch System.Exception
+  {
+    IL_0107:  stloc.s    V_4
+    IL_0109:  ldarg.0
+    IL_010a:  ldc.i4.s   -2
+    IL_010c:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_0111:  ldarg.0
+    IL_0112:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+    IL_0117:  ldloc.s    V_4
+    IL_0119:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)"
+    IL_011e:  leave.s    IL_0134
+  }
+  IL_0120:  ldarg.0
+  IL_0121:  ldc.i4.s   -2
+  IL_0123:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+  IL_0128:  ldarg.0
+  IL_0129:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+  IL_012e:  ldloc.1
+  IL_012f:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)"
+  IL_0134:  ret
+}
+""");
         }
     }
 }

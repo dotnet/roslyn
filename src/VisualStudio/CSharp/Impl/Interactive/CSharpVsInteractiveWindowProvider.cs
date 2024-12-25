@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -18,7 +17,6 @@ using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 
@@ -30,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,22 +41,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             [ImportMany] IInteractiveWindowCommand[] commands,
             ITextDocumentFactoryService textDocumentFactoryService,
-            EditorOptionsService editorOptionsService,
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
             _textDocumentFactoryService = textDocumentFactoryService;
-            _editorOptionsService = editorOptionsService;
         }
 
         protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
 
         protected override Guid Id => CSharpVsInteractiveWindowPackage.Id;
 
-        // Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
-        protected override string Title => "C# Interactive";
+        protected override string Title => CSharpVSResources.CSharp_Interactive;
 
         protected override FunctionId InteractiveWindowFunctionId => FunctionId.CSharp_Interactive_Window;
 
@@ -78,7 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 CommandsFactory,
                 Commands,
                 _textDocumentFactoryService,
-                _editorOptionsService,
                 CSharpInteractiveEvaluatorLanguageInfoProvider.Instance,
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }

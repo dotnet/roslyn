@@ -7,22 +7,21 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+internal class OrderableLanguageMetadata : OrderableMetadata, ILanguageMetadata
 {
-    internal class OrderableLanguageMetadata : OrderableMetadata, ILanguageMetadata
+    public string Language { get; }
+
+    public OrderableLanguageMetadata(IDictionary<string, object> data)
+        : base(data)
     {
-        public string Language { get; }
+        this.Language = (string)data.GetValueOrDefault("Language");
+    }
 
-        public OrderableLanguageMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-            this.Language = (string)data.GetValueOrDefault("Language");
-        }
-
-        public OrderableLanguageMetadata(string name, string language, IEnumerable<string> after, IEnumerable<string> before)
-            : base(name, after, before)
-        {
-            this.Language = language;
-        }
+    public OrderableLanguageMetadata(string name, string language, IEnumerable<string> after, IEnumerable<string> before)
+        : base(name, after, before)
+    {
+        this.Language = language;
     }
 }

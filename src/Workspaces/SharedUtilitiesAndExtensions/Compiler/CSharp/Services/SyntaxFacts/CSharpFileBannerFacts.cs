@@ -4,18 +4,22 @@
 
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageService
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
+
+internal class CSharpFileBannerFacts : AbstractFileBannerFacts
 {
-    internal class CSharpFileBannerFacts : AbstractFileBannerFacts
+    public static readonly IFileBannerFacts Instance = new CSharpFileBannerFacts();
+
+    protected CSharpFileBannerFacts()
     {
-        public static readonly IFileBannerFacts Instance = new CSharpFileBannerFacts();
-
-        protected CSharpFileBannerFacts()
-        {
-        }
-
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-
-        protected override IDocumentationCommentService DocumentationCommentService => CSharpDocumentationCommentService.Instance;
     }
+
+    protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
+    protected override IDocumentationCommentService DocumentationCommentService => CSharpDocumentationCommentService.Instance;
+
+    public override SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text)
+        => trivia.Kind() is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineDocumentationCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia
+            ? SyntaxFactory.Comment(text)
+            : trivia;
 }

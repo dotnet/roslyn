@@ -865,25 +865,25 @@ End Class
 
         Private Sub AddParenthesesOptions(optionStore As OptionStore)
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
+                optionStore, CodeStyleOptions2.ArithmeticBinaryParentheses,
                 BasicVSResources.In_arithmetic_binary_operators,
                 {s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary},
                 defaultAddForClarity:=True)
 
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.OtherBinaryParentheses,
+                optionStore, CodeStyleOptions2.OtherBinaryParentheses,
                 BasicVSResources.In_other_binary_operators,
                 {s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary},
                 defaultAddForClarity:=True)
 
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
+                optionStore, CodeStyleOptions2.RelationalBinaryParentheses,
                 BasicVSResources.In_relational_binary_operators,
                 {s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary},
                 defaultAddForClarity:=True)
 
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionStore, CodeStyleOptions2.OtherParentheses,
+                optionStore, CodeStyleOptions2.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 {s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary},
                 defaultAddForClarity:=False)
@@ -892,7 +892,7 @@ End Class
         Private Sub AddUnusedValueOptions(optionStore As OptionStore, expressionPreferencesGroupTitle As String)
             Dim unusedValuePreferences = New List(Of CodeStylePreference) From
             {
-                New CodeStylePreference(BasicVSResources.Unused_local, isChecked:=True)
+                New CodeStylePreference(ServicesVSResources.Unused_local, isChecked:=True)
             }
 
             Dim enumValues =
@@ -929,7 +929,7 @@ End Class
                 s_avoidUnusedParametersAllMethods
             }
 
-            AddUnusedParameterOption(LanguageNames.VisualBasic, optionStore, parameterPreferencesGroupTitle, examples)
+            AddUnusedParameterOption(optionStore, parameterPreferencesGroupTitle, examples)
         End Sub
     End Class
 End Namespace
