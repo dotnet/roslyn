@@ -22,7 +22,7 @@ internal abstract partial class AbstractExtractMethodService<
 {
     internal abstract partial class MethodExtractor
     {
-        protected class VariableInfo(
+        protected sealed class VariableInfo(
             VariableSymbol variableSymbol,
             VariableStyle variableStyle,
             bool useAsReturnValue = false) : IComparable<VariableInfo>
