@@ -163,7 +163,7 @@ internal abstract partial class AbstractExtractMethodService<
                 var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue, unsafeAddressTakenUsed) =
                     GetSignatureInformation(dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
 
-                (returnType, var returnTypeHasAnonymousType, var awaitTaskReturn) = AdjustReturnType(returnType);
+                (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
@@ -172,7 +172,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType, containsAnyLocalFunctionCallNotWithinSpan);
+                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
 
                 return new AnalyzerResult(
                     typeParametersInDeclaration,
@@ -188,12 +188,10 @@ internal abstract partial class AbstractExtractMethodService<
                     operationStatus);
             }
 
-            private (ITypeSymbol typeSymbol, bool hasAnonymousType, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
+            private (ITypeSymbol typeSymbol, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
             {
                 // check whether return type contains anonymous type and if it does, fix it up by making it object
                 var model = this.SemanticDocument.SemanticModel;
-                var returnTypeHasAnonymousType = returnType.ContainsAnonymousType();
-                returnType = returnTypeHasAnonymousType ? returnType.RemoveAnonymousTypes(model.Compilation) : returnType;
 
                 // if selection contains await which is not under async lambda or anonymous delegate,
                 // change return type to be wrapped in Task
@@ -202,12 +200,12 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     WrapReturnTypeInTask(model, ref returnType, out var awaitTaskReturn);
 
-                    return (returnType, returnTypeHasAnonymousType, awaitTaskReturn);
+                    return (returnType, awaitTaskReturn);
                 }
 
                 // unwrap task if needed
                 UnwrapTaskIfNeeded(ref returnType);
-                return (returnType, returnTypeHasAnonymousType, false);
+                return (returnType, false);
             }
 
             private void UnwrapTaskIfNeeded(ref ITypeSymbol returnType)
