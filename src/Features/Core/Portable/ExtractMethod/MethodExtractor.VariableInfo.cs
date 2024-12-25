@@ -25,7 +25,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected sealed class VariableInfo(
             VariableSymbol variableSymbol,
             VariableStyle variableStyle,
-            bool useAsReturnValue = false) : IComparable<VariableInfo>
+            bool useAsReturnValue) : IComparable<VariableInfo>
         {
             private readonly VariableSymbol _variableSymbol = variableSymbol;
             private readonly VariableStyle _variableStyle = variableStyle;

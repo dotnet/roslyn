@@ -1047,9 +1047,10 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     ILocalSymbol local => new VariableInfo(
                         new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
-                        style),
-                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
-                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
+                        style,
+                        useAsReturnValue: false),
+                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style, useAsReturnValue: false),
+                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style, useAsReturnValue: false),
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
             }
