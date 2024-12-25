@@ -16,8 +16,6 @@ internal sealed partial class CSharpExtractMethodService
     {
         private sealed class CSharpAnalyzer(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
         {
-            private static readonly HashSet<int> s_nonNoisySyntaxKindSet = [(int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia];
-
             public static AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
@@ -33,7 +31,7 @@ internal sealed partial class CSharpExtractMethodService
             protected override VariableInfo CreateFromSymbol(
                 ISymbol symbol, ITypeSymbol type, VariableStyle style, bool variableDeclared)
             {
-                return CreateFromSymbolCommon<LocalDeclarationStatementSyntax>(symbol, type, style, s_nonNoisySyntaxKindSet);
+                return CreateFromSymbolCommon(symbol, type, style);
             }
 
             protected override ITypeSymbol? GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)

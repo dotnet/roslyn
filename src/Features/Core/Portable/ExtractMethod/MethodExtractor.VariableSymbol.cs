@@ -199,7 +199,7 @@ internal abstract partial class AbstractExtractMethodService<
             public override bool CanBeCapturedByLocalFunction => true;
         }
 
-        protected sealed class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
+        protected sealed class LocalVariableSymbol : VariableSymbol, IComparable<LocalVariableSymbol>
         {
             private readonly SyntaxAnnotation _annotation = new();
             private readonly ILocalSymbol _localSymbol;
@@ -218,9 +218,9 @@ internal abstract partial class AbstractExtractMethodService<
             public override int DisplayOrder => 1;
 
             protected override int CompareTo(VariableSymbol right)
-                => CompareTo((LocalVariableSymbol<T>)right);
+                => CompareTo((LocalVariableSymbol)right);
 
-            public int CompareTo(LocalVariableSymbol<T> other)
+            public int CompareTo(LocalVariableSymbol other)
             {
                 Contract.ThrowIfNull(other);
 
@@ -289,7 +289,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return true;
                 }
 
-                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>();
+                var declStatement = identifier.Parent.FirstAncestorOrSelf<TStatementSyntax>();
                 if (declStatement == null)
                 {
                     return true;

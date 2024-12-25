@@ -14,8 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class VisualBasicAnalyzer
                 Inherits Analyzer
 
-                Private Shared ReadOnly s_nonNoisySyntaxKindSet As HashSet(Of Integer) = New HashSet(Of Integer) From {SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia}
-
                 Public Shared Function AnalyzeResult(currentSelectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As AnalyzerResult
                     Dim analyzer = New VisualBasicAnalyzer(currentSelectionResult, cancellationToken)
                     Return analyzer.Analyze()
@@ -41,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         style = AlwaysReturn(style)
                     End If
 
-                    Return CreateFromSymbolCommon(Of LocalDeclarationStatementSyntax)(symbol, type, style, s_nonNoisySyntaxKindSet)
+                    Return CreateFromSymbolCommon(symbol, type, style)
                 End Function
 
                 Protected Overrides Function GetRangeVariableType(semanticModel As SemanticModel, symbol As IRangeVariableSymbol) As ITypeSymbol

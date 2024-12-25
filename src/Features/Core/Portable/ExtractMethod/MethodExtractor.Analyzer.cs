@@ -29,23 +29,28 @@ internal abstract partial class AbstractExtractMethodService<
     {
         protected abstract partial class Analyzer
         {
-            private readonly SemanticDocument _semanticDocument;
-
             protected readonly CancellationToken CancellationToken;
             protected readonly TSelectionResult SelectionResult;
             protected readonly bool LocalFunction;
 
-            protected ISemanticFactsService SemanticFacts => _semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
-            protected ISyntaxFactsService SyntaxFacts => _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            private readonly HashSet<int> _nonNoisySyntaxKindSet;
+
+            private SemanticDocument SemanticDocument => SelectionResult.SemanticDocument;
+
+            protected ISemanticFactsService SemanticFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
+            protected ISyntaxFactsService SyntaxFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
                 SelectionResult = selectionResult;
-                _semanticDocument = selectionResult.SemanticDocument;
                 CancellationToken = cancellationToken;
                 LocalFunction = localFunction;
+
+                var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+                _nonNoisySyntaxKindSet = [syntaxKinds.WhitespaceTrivia, syntaxKinds.EndOfLineTrivia];
+
             }
 
             /// <summary>
@@ -100,7 +105,7 @@ internal abstract partial class AbstractExtractMethodService<
             public AnalyzerResult Analyze()
             {
                 // do data flow analysis
-                var model = _semanticDocument.SemanticModel;
+                var model = this.SemanticDocument.SemanticModel;
                 var dataFlowAnalysisData = GetDataFlowAnalysisData(model);
 
                 // build symbol map for the identifiers used inside of the selection
@@ -270,7 +275,7 @@ internal abstract partial class AbstractExtractMethodService<
                     Dictionary<ISymbol, VariableInfo> variableInfoMap,
                     bool isInExpressionOrHasReturnStatement)
             {
-                var model = _semanticDocument.SemanticModel;
+                var model = this.SemanticDocument.SemanticModel;
                 var compilation = model.Compilation;
                 if (isInExpressionOrHasReturnStatement)
                 {
@@ -426,7 +431,7 @@ internal abstract partial class AbstractExtractMethodService<
                 var outRefCount = numberOfOutParameters + numberOfRefParameters;
                 if (outRefCount > 0 &&
                     this.SelectionResult.CreateAsyncMethod() &&
-                    this.SyntaxFacts.SupportsTupleDeconstruction(_semanticDocument.Document.Project.ParseOptions!))
+                    this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!))
                 {
                     var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfo.Length);
                     foreach (var info in variableInfo)
@@ -1034,16 +1039,15 @@ internal abstract partial class AbstractExtractMethodService<
                 return OperationStatus.SucceededStatus;
             }
 
-            protected static VariableInfo CreateFromSymbolCommon<T>(
+            protected VariableInfo CreateFromSymbolCommon(
                 ISymbol symbol,
                 ITypeSymbol type,
-                VariableStyle style,
-                HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
+                VariableStyle style)
             {
                 return symbol switch
                 {
                     ILocalSymbol local => new VariableInfo(
-                        new LocalVariableSymbol<T>(local, type, nonNoisySyntaxKindSet),
+                        new LocalVariableSymbol(local, type, _nonNoisySyntaxKindSet),
                         style,
                         useAsReturnValue: false),
                     IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
