@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -13421,10 +13421,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     {
         var refKeyword = useRef ? "ref " : "";
         var source = $$"""
-scoped {{refKeyword}}$$
+            scoped {{refKeyword}}$$
 
-ref struct MyRefStruct { }
-""";
+            ref struct MyRefStruct { }
+            """;
         await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
     }
 
@@ -13433,12 +13433,12 @@ ref struct MyRefStruct { }
     {
         var refKeyword = useRef ? "ref " : "";
         var source = $$"""
-using System;
+            using System;
 
-scoped {{refKeyword}}$$
+            scoped {{refKeyword}}$$
 
-struct S { }
-""";
+            struct S { }
+            """;
         await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
     }
 
@@ -13447,12 +13447,12 @@ struct S { }
     {
         var refKeyword = useRef ? "ref " : "";
         var source = $$"""
-using System;
+            using System;
 
-scoped {{refKeyword}}$$
+            scoped {{refKeyword}}$$
 
-partial struct S { }
-""";
+            partial struct S { }
+            """;
         await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
     }
 
