@@ -151,8 +151,7 @@ internal abstract partial class AbstractExtractMethodService<
                     || primaryConstructorParameterReadOrWritten;
 
                 var shouldBeReadOnly = !isThisParameterWritten
-                    && thisParameterBeingRead != null
-                    && thisParameterBeingRead.Type is { TypeKind: TypeKind.Struct, IsReadOnly: false };
+                    && thisParameterBeingRead is { Type: { TypeKind: TypeKind.Struct, IsReadOnly: false } };
 
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable(model);
