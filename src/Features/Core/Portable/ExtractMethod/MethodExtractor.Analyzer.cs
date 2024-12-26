@@ -160,8 +160,9 @@ internal abstract partial class AbstractExtractMethodService<
                 // collects various variable informations
                 // extracted code contains return value
                 var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
-                var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue, unsafeAddressTakenUsed) =
-                    GetSignatureInformation(dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
+                var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
+                var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue) =
+                    GetSignatureInformation(variableInfoMap, isInExpressionOrHasReturnStatement);
 
                 (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
@@ -244,11 +245,8 @@ internal abstract partial class AbstractExtractMethodService<
                 return (returnType, awaitTaskReturn: false);
             }
 
-            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue, bool unsafeAddressTakenUsed)
-                GetSignatureInformation(
-                    DataFlowAnalysis dataFlowAnalysisData,
-                    Dictionary<ISymbol, VariableInfo> variableInfoMap,
-                    bool isInExpressionOrHasReturnStatement)
+            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
+                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> variableInfoMap, bool isInExpressionOrHasReturnStatement)
             {
                 var model = this.SemanticDocument.SemanticModel;
                 var compilation = model.Compilation;
@@ -259,8 +257,7 @@ internal abstract partial class AbstractExtractMethodService<
                     var (returnType, returnsByRef) = SelectionResult.GetReturnType();
                     returnType ??= compilation.GetSpecialType(SpecialType.System_Object);
 
-                    var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, returnsByRef, [], unsafeAddressTakenUsed);
+                    return (parameters, returnType, returnsByRef, []);
                 }
                 else
                 {
@@ -270,8 +267,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
 
-                    var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, returnsByRef: false, variablesToUseAsReturnValue, unsafeAddressTakenUsed);
+                    return (parameters, returnType, returnsByRef: false, variablesToUseAsReturnValue);
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
