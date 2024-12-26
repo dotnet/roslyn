@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CheckDefinitionInvariant()
 
             Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)
-            Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
+            Dim synthesized As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
 
             userDefined = AdaptedMethodSymbol.GetReturnTypeAttributes()
             AdaptedMethodSymbol.AddSynthesizedReturnTypeAttributes(synthesized)

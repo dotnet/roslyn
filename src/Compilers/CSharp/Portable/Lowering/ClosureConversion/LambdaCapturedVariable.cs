@@ -10,18 +10,20 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// A field of a frame class that represents a variable that has been captured in a lambda.
     /// </summary>
-    internal sealed class LambdaCapturedVariable : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
+    internal class LambdaCapturedVariable : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly TypeWithAnnotations _type;
         private readonly bool _isThis;
 
-        private LambdaCapturedVariable(SynthesizedClosureEnvironment frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
+        protected LambdaCapturedVariable(SynthesizedClosureEnvironment frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
             : base(frame,
                    fieldName,
                    isPublic: true,
@@ -45,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string fieldName = GetCapturedVariableFieldName(captured, ref uniqueId);
             TypeSymbol type = GetCapturedVariableFieldType(frame, captured);
-            return new LambdaCapturedVariable(frame, TypeWithAnnotations.Create(type), fieldName, IsThis(captured));
+            return captured is ParameterSymbol { IsThis: false } parameter ?
+                new LambdaCapturedVariableForRegularParameter(frame, TypeWithAnnotations.Create(type), fieldName, parameter) :
+                new LambdaCapturedVariable(frame, TypeWithAnnotations.Create(type), fieldName, IsThis(captured));
         }
 
         private static bool IsThis(Symbol captured)
@@ -150,5 +154,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public bool HasMethodBodyDependency
             => false;
+    }
+
+    internal sealed class LambdaCapturedVariableForRegularParameter : LambdaCapturedVariable
+    {
+        private readonly ParameterSymbol _parameter;
+
+        public LambdaCapturedVariableForRegularParameter(SynthesizedClosureEnvironment frame, TypeWithAnnotations type, string fieldName, ParameterSymbol parameter)
+            : base(frame, type, fieldName, isThisParameter: false)
+        {
+            Debug.Assert(parameter is { IsThis: false });
+            _parameter = parameter;
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            if (_parameter.OriginalDefinition is SourceParameterSymbolBase definition &&
+                ContainingModule == definition.ContainingModule)
+            {
+                foreach (CSharpAttributeData attr in definition.GetAttributes())
+                {
+                    if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true } attributeType &&
+                        (attributeType.GetAttributeUsageInfo().ValidTargets & System.AttributeTargets.Field) != 0)
+                    {
+                        AddSynthesizedAttribute(ref attributes, attr);
+                    }
+                }
+            }
+
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        }
     }
 }

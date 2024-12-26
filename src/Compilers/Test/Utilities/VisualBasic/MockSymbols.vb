@@ -310,6 +310,12 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
+    Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
     Friend Overrides ReadOnly Property IsExtensibleInterfaceNoUseSiteDiagnostics As Boolean
         Get
             Throw New NotImplementedException()

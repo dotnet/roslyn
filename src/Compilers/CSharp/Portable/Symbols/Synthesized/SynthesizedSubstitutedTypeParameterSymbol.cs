@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             if (ContainingSymbol.Kind == SymbolKind.NamedType &&
-                _underlyingTypeParameter.OriginalDefinition is SourceMethodTypeParameterSymbol &&
-                ContainingSymbol.ContainingModule == _underlyingTypeParameter.OriginalDefinition.ContainingModule)
+                _underlyingTypeParameter.OriginalDefinition is SourceMethodTypeParameterSymbol definition &&
+                ContainingSymbol.ContainingModule == definition.ContainingModule)
             {
-                foreach (CSharpAttributeData attr in _underlyingTypeParameter.OriginalDefinition.GetAttributes())
+                foreach (CSharpAttributeData attr in definition.GetAttributes())
                 {
                     if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
                     {
