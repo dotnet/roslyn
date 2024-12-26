@@ -157,10 +157,10 @@ internal abstract partial class AbstractExtractMethodService<
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = IsEndOfSelectionReachable();
 
-                // collects various variable informations
-                // extracted code contains return value
                 var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
-                var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
+
+                // check whether the selection contains "&" over a symbol exist
+                var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
                 var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue) =
                     GetSignatureInformation(variableInfoMap, isInExpressionOrHasReturnStatement);
 
@@ -362,13 +362,6 @@ internal abstract partial class AbstractExtractMethodService<
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
                 return symbolMap;
-            }
-
-            private static bool ContainsVariableUnsafeAddressTaken(DataFlowAnalysis dataFlowAnalysisData, IEnumerable<ISymbol> symbols)
-            {
-                // check whether the selection contains "&" over a symbol exist
-                var map = new HashSet<ISymbol>(dataFlowAnalysisData.UnsafeAddressTaken);
-                return symbols.Any(map.Contains);
             }
 
             private DataFlowAnalysis GetDataFlowAnalysisData()
