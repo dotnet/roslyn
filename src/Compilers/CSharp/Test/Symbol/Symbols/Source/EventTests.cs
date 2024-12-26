@@ -2625,7 +2625,7 @@ public class Test1
         .removeon instance void Test1::remove_E1(class [netstandard]System.Action)
     }
 } // end of class Test1
-");
+".Replace("[netstandard]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
         }
 
         [Fact]
@@ -2763,7 +2763,7 @@ public class Test1
         .removeon instance void Test1::remove_E1(class [netstandard]System.Action)
     }
 } // end of class Test1
-");
+".Replace("[netstandard]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
         }
     }
 }
