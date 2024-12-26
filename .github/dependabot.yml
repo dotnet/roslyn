@@ -7,6 +7,14 @@ updates:
   directory: /
   schedule:
     interval: weekly
+  groups:
+    nerdbank-gitversioning:
+      patterns:
+      - nbgv
+      - nerdbank.gitversioning
+    xunit:
+      patterns:
+      - 'xunit*'
 - package-ecosystem: dotnet-sdk
   directory: /
   schedule:
