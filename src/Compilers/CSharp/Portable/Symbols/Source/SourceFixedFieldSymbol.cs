@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly FieldSymbol _internalField;
 
         public FixedFieldImplementationType(SourceMemberFieldSymbol field)
-            : base(GeneratedNames.MakeFixedFieldImplementationName(field.Name), typeParameters: ImmutableArray<TypeParameterSymbol>.Empty, typeMap: TypeMap.Empty)
+            : base(GeneratedNames.MakeFixedFieldImplementationName(field.Name))
         {
             _field = field;
             _constructor = new SynthesizedInstanceConstructor(this);

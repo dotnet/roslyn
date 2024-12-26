@@ -38,15 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParameters, TypeMap typeMap)
+        protected SynthesizedContainer(string name)
         {
             Debug.Assert(name != null);
-            Debug.Assert(!typeParameters.IsDefault);
-            Debug.Assert(typeMap != null);
 
             Name = name;
-            _typeParameters = typeParameters;
-            TypeMap = typeMap;
+            _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            TypeMap = TypeMap.Empty;
         }
 
         internal TypeMap TypeMap { get; }

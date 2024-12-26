@@ -1668,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
                     break;
                 case SymbolKind.TypeParameter:
-                    if (this is SourceTypeParameterSymbolBase typeParameter)
+                    if (this is SourceTypeParameterSymbol typeParameter)
                     {
                         builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
                         foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
