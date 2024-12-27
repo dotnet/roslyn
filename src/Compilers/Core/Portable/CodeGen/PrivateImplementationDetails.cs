@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <summary>
     /// Simple struct type with explicit size and no members.
     /// </summary>
-    internal sealed class ExplicitSizeStruct : DefaultTypeDef, Cci.INestedTypeDefinition
+    internal sealed class ExplicitSizeStruct : NestedTypeDefinition
     {
         private readonly uint _size;
         private readonly ushort _alignment;
@@ -674,9 +674,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _sysValueType = sysValueType;
         }
 
-        public override string ToString()
-            => _containingType.ToString() + "." + this.Name;
-
         public override ushort Alignment => _alignment;
 
         public override Cci.ITypeReference GetBaseClass(EmitContext context) => _sysValueType;
@@ -685,26 +682,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override uint SizeOf => _size;
 
-        public override void Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
-
-        public string Name => _alignment == 1 ?
+        public override string Name => _alignment == 1 ?
             $"__StaticArrayInitTypeSize={_size}" :
             $"__StaticArrayInitTypeSize={_size}_Align={_alignment}";
 
-        public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
+        public override Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
 
-        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
+        public override Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
 
         public override bool IsValueType => true;
-
-        public Cci.ITypeReference GetContainingType(EmitContext context) => _containingType;
-
-        public override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
-
-        public override Cci.INestedTypeReference AsNestedTypeReference => this;
     }
 
     /// <summary>
@@ -712,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     ///
     /// https://github.com/dotnet/roslyn/blob/main/docs/features/string-literals-data-section.md
     /// </summary>
-    internal sealed class DataSectionStringType : DefaultTypeDef, Cci.INestedTypeDefinition
+    internal sealed class DataSectionStringType : NestedTypeDefinition
     {
         private readonly string _name;
         private readonly PrivateImplementationDetails _containingType;
@@ -775,18 +761,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public Cci.IFieldDefinition Field => _fields[0];
-        public string Name => _name;
-        public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
-        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
-        public Cci.ITypeReference GetContainingType(EmitContext context) => _containingType;
-        public override void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
+        public override string Name => _name;
+        public override Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
+        public override Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
         public override Cci.ITypeReference GetBaseClass(EmitContext context) => _containingType.SystemObject;
-        public override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
-        public override Cci.INestedTypeReference AsNestedTypeReference => this;
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context) => _fields;
         public override IEnumerable<Cci.IMethodDefinition> GetMethods(EmitContext context) => _methods;
         public override bool IsBeforeFieldInit => true;
-        public override string ToString() => $"{_containingType}.{this.Name}";
 
         private sealed class DataSectionStringField(
             string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
@@ -962,6 +943,29 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
         public override bool IsReadOnly => false;
+    }
+
+    internal abstract class NestedTypeDefinition : DefaultTypeDef, Cci.INestedTypeDefinition
+    {
+        public sealed override string ToString()
+            => ContainingTypeDefinition.ToString() + "." + this.Name;
+
+        public sealed override void Dispatch(Cci.MetadataVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        public abstract string Name { get; }
+
+        public abstract Cci.ITypeDefinition ContainingTypeDefinition { get; }
+
+        public abstract Cci.TypeMemberVisibility Visibility { get; }
+
+        public Cci.ITypeReference GetContainingType(EmitContext context) => ContainingTypeDefinition;
+
+        public sealed override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
+
+        public sealed override Cci.INestedTypeReference AsNestedTypeReference => this;
     }
 
     /// <summary>
