@@ -50,7 +50,7 @@ The utf8 string literal encoding emit strategy emits `ldsfld` of a field in a ge
 
 For every string literal, a unique internal static class is generated which:
 - has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string
-  (when there is a conflict, a compile-time error is reported),
+  (collisions [should not happen][xxh128] with XXH128 and so they aren't currently detected or reported, the behavior in that case is undefined),
 - is nested in the `<PrivateImplementationDetails>` type to avoid polluting the global namespace
   and to avoid having to enforce name uniqueness across modules,
 - has one internal static readonly `string` field which is initialized in a static constructor of the class,
@@ -250,3 +250,4 @@ However, that would likely result in worse machine code due to more branches and
 <!-- links -->
 [u8-literals]: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-11.0/utf8-string-literals
 [constant-array-init]: https://github.com/dotnet/roslyn/pull/24621
+[xxh128]: https://github.com/Cyan4973/xxHash/blob/86f6400a2a14ea7123ada691c89faf1d2a6a126f/tests/collisions/README.md
