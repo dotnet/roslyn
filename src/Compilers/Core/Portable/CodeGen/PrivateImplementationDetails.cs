@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
         private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
-        internal readonly Cci.ITypeReference SystemStringType;       //for data section string literal fields
-
         private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
 
         private readonly string _name;
@@ -117,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt16Type,
             Cci.ITypeReference systemInt32Type,
             Cci.ITypeReference systemInt64Type,
-            Cci.ITypeReference systemStringType,
             Cci.ICustomAttribute compilerGeneratedAttribute)
         {
             RoslynDebug.Assert(systemObject != null);
@@ -131,8 +128,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _systemInt16Type = systemInt16Type;
             _systemInt32Type = systemInt32Type;
             _systemInt64Type = systemInt64Type;
-
-            SystemStringType = systemStringType;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
@@ -328,11 +323,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string text,
             ImmutableArray<byte> data,
             Compilation compilation,
+            Cci.ITypeReference systemStringType,
             DiagnosticBag diagnostics)
         {
             return _dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
             {
-                var (@this, data, compilation, diagnostics) = arg;
+                var (@this, data, compilation, systemStringType, diagnostics) = arg;
 
                 string name = "<S>" + DataToHexViaXxHash128(data);
 
@@ -346,9 +342,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     containingType: @this,
                     dataField: dataField,
                     bytesToStringHelper: bytesToStringHelper,
+                    systemStringType: systemStringType,
                     diagnostics: diagnostics);
             },
-            (this, data, compilation, diagnostics)).Field;
+            (this, data, compilation, systemStringType, diagnostics)).Field;
         }
 
         /// <summary>
@@ -759,12 +756,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             PrivateImplementationDetails containingType,
             MappedField dataField,
             Cci.IMethodDefinition bytesToStringHelper,
+            Cci.ITypeReference systemStringType,
             DiagnosticBag diagnostics)
         {
             _name = name;
             _containingType = containingType;
 
-            var stringField = new DataSectionStringField("s", this, containingType.SystemStringType);
+            var stringField = new DataSectionStringField("s", this, systemStringType);
 
             var staticConstructor = synthesizeStaticConstructor(module, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
 
