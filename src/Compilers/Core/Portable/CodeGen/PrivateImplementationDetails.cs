@@ -357,52 +357,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if (method is null)
             {
-                TryAddSynthesizedMethod(synthesizeBytesToStringHelper(this, compilation, diagnostics));
-
-                method = GetMethod(SynthesizedBytesToStringFunctionName);
-            }
-
-            Debug.Assert(method is not null);
-            return method;
-
-            static Cci.IMethodDefinition synthesizeBytesToStringHelper(
-                PrivateImplementationDetails @this,
-                Compilation compilation,
-                DiagnosticBag diagnostics)
-            {
                 var encodingUtf8 = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__get_UTF8);
                 var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
-                var ilBuilder = new ILBuilder(
-                    (ITokenDeferral)@this._moduleBuilder,
-                    new LocalSlotManager(slotAllocator: null),
-                    OptimizationLevel.Release,
-                    areLocalsZeroed: false);
-
-                // Call `Encoding.get_UTF8()`.
-                ilBuilder.EmitOpCode(ILOpCode.Call, 1);
-                ilBuilder.EmitToken(encodingUtf8, null, diagnostics);
-
-                // Push the `byte*`.
-                ilBuilder.EmitOpCode(ILOpCode.Ldarg_0);
-
-                // Push the byte size.
-                ilBuilder.EmitOpCode(ILOpCode.Ldarg_1);
-
-                // Call `Encoding.GetString(byte*, int)`.
-                ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
-                ilBuilder.EmitToken(encodingGetString, null, diagnostics);
-
-                // Return.
-                ilBuilder.EmitRet(isVoid: false);
-                ilBuilder.Realize();
-
-                return new BytesToStringHelper(
-                    containingType: @this,
+                TryAddSynthesizedMethod(BytesToStringHelper.Create(
+                    moduleBuilder: (ITokenDeferral)_moduleBuilder,
+                    containingType: this,
+                    encodingUtf8: encodingUtf8,
                     encodingGetString: encodingGetString,
-                    maxStack: ilBuilder.MaxStack,
-                    il: ilBuilder.RealizedIL);
+                    diagnostics: diagnostics));
+
+                method = GetMethod(SynthesizedBytesToStringFunctionName);
+                Debug.Assert(method is not null);
             }
+
+            return method;
 
             static Cci.IMethodReference getWellKnownTypeMember(
                 Compilation compilation,
@@ -1135,21 +1104,61 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// }
     /// </code>
     /// </remarks>
-    file sealed class BytesToStringHelper(
-        Cci.INamespaceTypeDefinition containingType,
-        Cci.IMethodReference encodingGetString,
-        ushort maxStack,
-        ImmutableArray<byte> il)
-        : Cci.MethodDefinitionBase(
-            containingType,
-            maxStack,
-            il)
+    file sealed class BytesToStringHelper : Cci.MethodDefinitionBase
     {
-        private readonly ImmutableArray<Cci.IParameterDefinition> _parameters =
-        [
-            new BytesParameter(encodingGetString),                              // byte* bytes
-            new ParameterDefinition(1, "length", Cci.PlatformType.SystemInt32), // int length
-        ];
+        private readonly ImmutableArray<Cci.IParameterDefinition> _parameters;
+
+        private BytesToStringHelper(
+            Cci.INamespaceTypeDefinition containingType,
+            Cci.IMethodReference encodingGetString,
+            ushort maxStack,
+            ImmutableArray<byte> il)
+            : base(containingType, maxStack, il)
+        {
+            _parameters =
+            [
+                new BytesParameter(encodingGetString),                              // byte* bytes
+                new ParameterDefinition(1, "length", Cci.PlatformType.SystemInt32), // int length
+            ];
+        }
+
+        public static BytesToStringHelper Create(
+            ITokenDeferral moduleBuilder,
+            Cci.INamespaceTypeDefinition containingType,
+            Cci.IMethodReference encodingUtf8,
+            Cci.IMethodReference encodingGetString,
+            DiagnosticBag diagnostics)
+        {
+            var ilBuilder = new ILBuilder(
+                moduleBuilder,
+                new LocalSlotManager(slotAllocator: null),
+                OptimizationLevel.Release,
+                areLocalsZeroed: false);
+
+            // Call `Encoding.get_UTF8()`.
+            ilBuilder.EmitOpCode(ILOpCode.Call, 1);
+            ilBuilder.EmitToken(encodingUtf8, null, diagnostics);
+
+            // Push the `byte*`.
+            ilBuilder.EmitOpCode(ILOpCode.Ldarg_0);
+
+            // Push the byte size.
+            ilBuilder.EmitOpCode(ILOpCode.Ldarg_1);
+
+            // Call `Encoding.GetString(byte*, int)`.
+            ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
+            ilBuilder.EmitToken(encodingGetString, null, diagnostics);
+
+            // Return.
+            ilBuilder.EmitRet(isVoid: false);
+            ilBuilder.Realize();
+
+            return new BytesToStringHelper(
+                containingType: containingType,
+                encodingGetString: encodingGetString,
+                maxStack: ilBuilder.MaxStack,
+                il: ilBuilder.RealizedIL);
+        }
 
         public override string Name => PrivateImplementationDetails.SynthesizedBytesToStringFunctionName;
         public override Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Private;
