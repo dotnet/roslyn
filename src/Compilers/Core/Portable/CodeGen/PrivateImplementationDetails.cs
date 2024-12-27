@@ -1171,10 +1171,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private sealed class BytesParameter(
             Cci.IMethodReference encodingGetString)
-            : ParameterDefinitionBase(0, "bytes")
+            : Cci.ParameterDefinitionBase
         {
             private readonly Cci.IMethodReference _encodingGetString = encodingGetString;
 
+            public override ushort Index => 0;
+            public override string Name => "bytes";
             public override Cci.ITypeReference GetType(EmitContext context)
             {
                 return _encodingGetString.GetParameters(context)[0].GetType(context);
@@ -1186,40 +1188,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         ushort index,
         string name,
         Cci.PlatformType type)
-        : ParameterDefinitionBase(index, name)
-    {
-        private readonly Cci.PlatformType _type = type;
-
-        public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(_type, context);
-    }
-
-    file abstract class ParameterDefinitionBase(
-        ushort index,
-        string name)
-        : Cci.IParameterDefinition
+        : Cci.ParameterDefinitionBase
     {
         private readonly ushort _index = index;
         private readonly string _name = name;
+        private readonly Cci.PlatformType _type = type;
 
-        public bool HasDefaultValue => false;
-        public bool IsIn => false;
-        public bool IsMarshalledExplicitly => false;
-        public bool IsOptional => false;
-        public bool IsOut => false;
-        public Cci.IMarshallingInformation? MarshallingInformation => null;
-        public ImmutableArray<byte> MarshallingDescriptor => default;
-        public bool IsEncDeleted => false;
-        public string Name => _name;
-        public ImmutableArray<Cci.ICustomModifier> CustomModifiers => [];
-        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => [];
-        public bool IsByReference => false;
-        public ushort Index => _index;
-
-        public Cci.IDefinition? AsDefinition(EmitContext context) => this;
-        public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
-        public IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context) => [];
-        public MetadataConstant? GetDefaultValue(EmitContext context) => null;
-        public ISymbolInternal? GetInternalSymbol() => null;
-        public abstract Cci.ITypeReference GetType(EmitContext context);
+        public override ushort Index => _index;
+        public override string Name => _name;
+        public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(_type, context);
     }
 }
