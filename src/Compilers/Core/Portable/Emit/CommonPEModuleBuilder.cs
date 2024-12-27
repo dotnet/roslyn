@@ -1045,12 +1045,17 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
         }
 
-        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             if (text.TryGetUtf8ByteRepresentation(out byte[] data, out _))
             {
-                var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
-                return privateImpl.GetOrCreateFieldForStringValue(text, data.ToImmutableArray(), Compilation, diagnostics);
+                var privateImpl = GetPrivateImplClass(syntaxNode, diagnostics);
+                return privateImpl.GetOrCreateFieldForStringValue(
+                    text,
+                    data.ToImmutableArray(),
+                    Compilation,
+                    this.GetSpecialType(SpecialType.System_String, syntaxNode, diagnostics),
+                    diagnostics);
             }
 
             return null;
@@ -1100,7 +1105,6 @@ namespace Microsoft.CodeAnalysis.Emit
                         this.GetSpecialType(SpecialType.System_Int16, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_Int32, syntaxNodeOpt, diagnostics),
                         this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
-                        this.GetSpecialType(SpecialType.System_String, syntaxNodeOpt, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
                 if (Interlocked.CompareExchange(ref _lazyPrivateImplementationDetails, result, null) != null)
