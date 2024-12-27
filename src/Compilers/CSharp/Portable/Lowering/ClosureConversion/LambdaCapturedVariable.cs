@@ -41,22 +41,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SynthesizedClosureEnvironment Frame
             => (SynthesizedClosureEnvironment)ContainingType;
 
+#nullable enable
+
         public static LambdaCapturedVariable Create(SynthesizedClosureEnvironment frame, Symbol captured, ref int uniqueId)
         {
             Debug.Assert(captured is LocalSymbol || captured is ParameterSymbol);
 
             string fieldName = GetCapturedVariableFieldName(captured, ref uniqueId);
             TypeSymbol type = GetCapturedVariableFieldType(frame, captured);
-            return captured is ParameterSymbol { IsThis: false } parameter ?
+            bool isThis = IsThis(captured, out ParameterSymbol? parameter);
+            return parameter is not null && !isThis ?
                 new LambdaCapturedVariableForRegularParameter(frame, TypeWithAnnotations.Create(type), fieldName, parameter) :
-                new LambdaCapturedVariable(frame, TypeWithAnnotations.Create(type), fieldName, IsThis(captured));
+                new LambdaCapturedVariable(frame, TypeWithAnnotations.Create(type), fieldName, isThis);
         }
 
         private static bool IsThis(Symbol captured)
         {
-            var parameter = captured as ParameterSymbol;
-            return (object)parameter != null && parameter.IsThis;
+            return IsThis(captured, out _);
         }
+
+        /// <param name="captured"></param>
+        /// <param name="parameter">
+        /// Is assigned to <paramref name="captured"/> when it is a <see cref="ParameterSymbol"/>,
+        /// null otherwise. Note, the value is not correlated with returned boolean. 
+        /// </param>
+        private static bool IsThis(Symbol captured, out ParameterSymbol? parameter)
+        {
+            parameter = captured as ParameterSymbol;
+            return (object?)parameter != null && parameter.IsThis;
+        }
+
+#nullable disable
 
         private static string GetCapturedVariableFieldName(Symbol variable, ref int uniqueId)
         {
