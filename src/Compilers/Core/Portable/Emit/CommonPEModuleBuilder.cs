@@ -1045,10 +1045,15 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
         }
 
-        Cci.IFieldReference ITokenDeferral.GetFieldForDataString(string text, ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
-            return privateImpl.GetOrCreateDataSectionStringLiteralType(text, data, Compilation, syntaxNode, diagnostics)?.Field;
+            if (text.TryGetUtf8ByteRepresentation(out byte[] data, out _))
+            {
+                var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+                return privateImpl.GetOrCreateFieldForStringValue(text, data.ToImmutableArray(), Compilation, syntaxNode, diagnostics);
+            }
+
+            return null;
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

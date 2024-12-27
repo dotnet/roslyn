@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
 
-        Cci.IFieldReference? GetFieldForDataString(string text, ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
-
         Cci.IMethodReference GetInitArrayHelper();
 
         string GetStringFromToken(uint token);
