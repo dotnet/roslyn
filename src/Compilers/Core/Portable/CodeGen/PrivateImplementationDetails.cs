@@ -319,6 +319,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this);
         }
 
+        /// <summary>
+        /// Gets the field of <see cref="DataSectionStringType"/> or creates one
+        /// if the type does not exist yet for the given <paramref name="text"/>.
+        /// </summary>
         internal Cci.IFieldReference GetOrCreateFieldForStringValue(
             string text,
             ImmutableArray<byte> data,
