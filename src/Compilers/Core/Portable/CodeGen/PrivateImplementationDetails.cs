@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _fields = [stringField];
             _methods = [staticConstructor];
 
-            static StaticConstructor synthesizeStaticConstructor(
+            static Cci.IMethodDefinition synthesizeStaticConstructor(
                 ITokenDeferral module,
                 Cci.INamespaceTypeDefinition containingType,
                 MappedField dataField,
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 ilBuilder.EmitRet(isVoid: true);
                 ilBuilder.Realize();
 
-                return new StaticConstructor(containingType, ilBuilder.MaxStack, ilBuilder.RealizedIL);
+                return new Cci.StaticConstructor(containingType, ilBuilder.MaxStack, ilBuilder.RealizedIL);
             }
         }
 
@@ -1140,9 +1140,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         Cci.IMethodReference encodingGetString,
         ushort maxStack,
         ImmutableArray<byte> il)
-        : DefaultMethodDef(
-            PrivateImplementationDetails.SynthesizedBytesToStringFunctionName,
-            Cci.TypeMemberVisibility.Private,
+        : Cci.MethodDefinitionBase(
             containingType,
             maxStack,
             il)
@@ -1153,6 +1151,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ParameterDefinition(1, "length", Cci.PlatformType.SystemInt32), // int length
         ];
 
+        public override string Name => PrivateImplementationDetails.SynthesizedBytesToStringFunctionName;
+        public override Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Private;
         public override ImmutableArray<Cci.IParameterDefinition> Parameters => _parameters;
         public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemString, context);
 
@@ -1167,115 +1167,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return _encodingGetString.GetParameters(context)[0].GetType(context);
             }
         }
-    }
-
-    file sealed class StaticConstructor(
-        Cci.INamespaceTypeDefinition containingType,
-        ushort maxStack,
-        ImmutableArray<byte> il)
-        : DefaultMethodDef(
-            WellKnownMemberNames.StaticConstructorName,
-            Cci.TypeMemberVisibility.Private,
-            containingType,
-            maxStack,
-            il)
-    {
-        public override bool IsRuntimeSpecial => true;
-        public override bool IsSpecialName => true;
-    }
-
-    file class DefaultMethodDef(
-        string name,
-        Cci.TypeMemberVisibility visibility,
-        Cci.INamespaceTypeDefinition containingType,
-        ushort maxStack,
-        ImmutableArray<byte> il)
-        : Cci.IMethodDefinition, Cci.IMethodBody
-    {
-        private readonly string _name = name;
-        private readonly Cci.TypeMemberVisibility _visibility = visibility;
-        private readonly Cci.INamespaceTypeDefinition _containingType = containingType;
-        private readonly ushort _maxStack = maxStack;
-        private readonly ImmutableArray<byte> _il = il;
-
-        #region IMethodDefinition
-        public bool HasBody => true;
-        public IEnumerable<Cci.IGenericMethodParameter> GenericParameters => [];
-        public bool HasDeclarativeSecurity => false;
-        public bool IsAbstract => false;
-        public bool IsAccessCheckedOnOverride => false;
-        public bool IsConstructor => false;
-        public bool IsExternal => false;
-        public bool IsHiddenBySignature => true;
-        public bool IsNewSlot => false;
-        public bool IsPlatformInvoke => false;
-        public virtual bool IsRuntimeSpecial => false;
-        public bool IsSealed => false;
-        public virtual bool IsSpecialName => false;
-        public bool IsStatic => true;
-        public bool IsVirtual => false;
-        public virtual ImmutableArray<Cci.IParameterDefinition> Parameters => [];
-        public Cci.IPlatformInvokeInformation PlatformInvokeData => throw ExceptionUtilities.Unreachable();
-        public bool RequiresSecurityObject => false;
-        public bool ReturnValueIsMarshalledExplicitly => false;
-        public Cci.IMarshallingInformation ReturnValueMarshallingInformation => throw ExceptionUtilities.Unreachable();
-        public ImmutableArray<byte> ReturnValueMarshallingDescriptor => throw ExceptionUtilities.Unreachable();
-        public IEnumerable<Cci.SecurityAttribute> SecurityAttributes => [];
-        public Cci.INamespace ContainingNamespace => throw ExceptionUtilities.Unreachable();
-        public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
-        public Cci.TypeMemberVisibility Visibility => _visibility;
-        public bool IsEncDeleted => false;
-        public bool AcceptsExtraArguments => false;
-        public ushort GenericParameterCount => 0;
-        public ImmutableArray<Cci.IParameterTypeInformation> ExtraParameters => [];
-        public Cci.IGenericMethodInstanceReference? AsGenericMethodInstanceReference => null;
-        public Cci.ISpecializedMethodReference? AsSpecializedMethodReference => null;
-        public Cci.CallingConvention CallingConvention => Cci.CallingConvention.Default;
-        public ushort ParameterCount => (ushort)Parameters.Length;
-        public ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers => [];
-        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => [];
-        public bool ReturnValueIsByRef => false;
-        public string Name => _name;
-
-        public Cci.IMethodBody? GetBody(EmitContext context) => this;
-        public Cci.IDefinition? AsDefinition(EmitContext context) => this;
-        public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit((Cci.IMethodDefinition)this);
-        public IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context) => [];
-        public Cci.ITypeReference GetContainingType(EmitContext context) => ContainingTypeDefinition;
-        public MethodImplAttributes GetImplementationAttributes(EmitContext context) => default;
-        public ISymbolInternal? GetInternalSymbol() => null;
-        public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(EmitContext context)
-            => Parameters.CastArray<Cci.IParameterTypeInformation>();
-        public Cci.IMethodDefinition? GetResolvedMethod(EmitContext context) => this;
-        public IEnumerable<Cci.ICustomAttribute> GetReturnValueAttributes(EmitContext context) => [];
-        public virtual Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
-        #endregion
-
-        #region IMethodBody
-        public ImmutableArray<Cci.ExceptionHandlerRegion> ExceptionRegions => [];
-        public bool AreLocalsZeroed => false;
-        public bool HasStackalloc => false;
-        public ImmutableArray<Cci.ILocalDefinition> LocalVariables => [];
-        public Cci.IMethodDefinition MethodDefinition => this;
-        public StateMachineMoveNextBodyDebugInfo? MoveNextBodyInfo => null;
-        public ushort MaxStack => _maxStack;
-        public ImmutableArray<byte> IL => _il;
-        public ImmutableArray<Cci.SequencePoint> SequencePoints => [];
-        public bool HasDynamicLocalVariables => false;
-        public ImmutableArray<Cci.LocalScope> LocalScopes => [];
-        public Cci.IImportScope? ImportScope => null;
-        public DebugId MethodId => default;
-        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => [];
-        public string? StateMachineTypeName => null;
-        public ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlots => [];
-        public ImmutableArray<Cci.ITypeReference?> StateMachineAwaiterSlots => [];
-        public ImmutableArray<EncClosureInfo> ClosureDebugInfo => [];
-        public ImmutableArray<EncLambdaInfo> LambdaDebugInfo => [];
-        public ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits => [];
-        public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
-        public ImmutableArray<SourceSpan> CodeCoverageSpans => [];
-        public bool IsPrimaryConstructor => false;
-        #endregion
     }
 
     file sealed class ParameterDefinition(
