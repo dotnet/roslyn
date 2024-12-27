@@ -4,7 +4,6 @@
     "config:recommended"
   ],
   "semanticCommits": "disabled",
-  "prHourlyLimit": 5,
   "labels": ["dependencies"],
   "packageRules": [
     {

@@ -37,6 +37,8 @@ Further customize your repo by:
 1. Verify the license is suitable for your goal as it appears in the LICENSE and stylecop.json files and the Directory.Build.props file's `PackageLicenseExpression` property.
 1. Reset or replace the badges at the top of this file.
 
+[Activate Renovate automated dependency updates](https://docs.renovatebot.com/getting-started/installing-onboarding/) for your repo.
+
 ### Maintaining your repo based on this template
 
 The best way to keep your repo in sync with this template's evolving features and best practices is to periodically merge the template into your repo:
