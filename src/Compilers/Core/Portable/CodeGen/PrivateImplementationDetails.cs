@@ -328,18 +328,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string text,
             ImmutableArray<byte> data,
             Compilation compilation,
-            SyntaxNode syntaxNode,
             DiagnosticBag diagnostics)
         {
             return _dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
             {
-                var (@this, data, compilation, syntaxNode, diagnostics) = arg;
+                var (@this, data, compilation, diagnostics) = arg;
 
                 string name = "<S>" + DataToHexViaXxHash128(data);
 
                 MappedField dataField = @this.CreateDataField(data, alignment: 1);
 
-                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(compilation, syntaxNode, diagnostics);
+                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(compilation, diagnostics);
 
                 return new DataSectionStringType(
                     module: (ITokenDeferral)@this._moduleBuilder,
@@ -349,19 +348,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bytesToStringHelper: bytesToStringHelper,
                     diagnostics: diagnostics);
             },
-            (this, data, compilation, syntaxNode, diagnostics)).Field;
+            (this, data, compilation, diagnostics)).Field;
         }
 
         /// <summary>
         /// Gets the <see cref="BytesToStringHelper"/> or creates it if it does not exist yet.
         /// </summary>
-        private Cci.IMethodDefinition GetOrSynthesizeBytesToStringHelper(Compilation compilation, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        private Cci.IMethodDefinition GetOrSynthesizeBytesToStringHelper(Compilation compilation, DiagnosticBag diagnostics)
         {
             var method = GetMethod(SynthesizedBytesToStringFunctionName);
 
             if (method is null)
             {
-                TryAddSynthesizedMethod(synthesizeBytesToStringHelper(this, compilation, syntaxNode, diagnostics));
+                TryAddSynthesizedMethod(synthesizeBytesToStringHelper(this, compilation, diagnostics));
 
                 method = GetMethod(SynthesizedBytesToStringFunctionName);
             }
@@ -372,21 +371,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             static Cci.IMethodDefinition synthesizeBytesToStringHelper(
                 PrivateImplementationDetails @this,
                 Compilation compilation,
-                SyntaxNode syntaxNode,
                 DiagnosticBag diagnostics)
             {
-                if (!tryGetWellKnownTypeMember(compilation, syntaxNode, diagnostics, WellKnownMember.System_Text_Encoding__get_UTF8, out var encodingUtf8) |
-                    !tryGetWellKnownTypeMember(compilation, syntaxNode, diagnostics, WellKnownMember.System_Text_Encoding__GetString, out var encodingGetString))
-                {
-                    return new DefaultMethodDef(
-                        name: SynthesizedBytesToStringFunctionName,
-                        visibility: Cci.TypeMemberVisibility.Private,
-                        containingType: @this,
-                        maxStack: 8,
-                        il: []);
-                }
-
-                Debug.Assert(encodingUtf8 is not null && encodingGetString is not null);
+                var encodingUtf8 = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__get_UTF8);
+                var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
                 var ilBuilder = new ILBuilder(
                     (ITokenDeferral)@this._moduleBuilder,
@@ -419,28 +407,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     il: ilBuilder.RealizedIL);
             }
 
-            static bool tryGetWellKnownTypeMember(
+            static Cci.IMethodReference getWellKnownTypeMember(
                 Compilation compilation,
-                SyntaxNode syntaxNode,
-                DiagnosticBag diagnostics,
-                WellKnownMember member,
-                [NotNullWhen(returnValue: true)] out Cci.IMethodReference? result)
+                WellKnownMember member)
             {
-                if (compilation.CommonGetWellKnownTypeMember(member) is { } symbol)
-                {
-                    result = (Cci.IMethodReference)symbol.GetCciAdapter();
-                    return true;
-                }
-                else
-                {
-                    var memberDescriptor = WellKnownMembers.GetDescriptor(member);
-                    diagnostics.Add(compilation.MessageProvider.CreateDiagnostic(
-                        compilation.MessageProvider.ERR_MissingPredefinedMember,
-                        syntaxNode.GetLocation(),
-                        memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name));
-                    result = null;
-                    return false;
-                }
+                ISymbolInternal? symbol = compilation.CommonGetWellKnownTypeMember(member);
+                Debug.Assert(symbol is not null, "The emit layer should check the helpers exist.");
+                return (Cci.IMethodReference)symbol.GetCciAdapter();
             }
         }
 

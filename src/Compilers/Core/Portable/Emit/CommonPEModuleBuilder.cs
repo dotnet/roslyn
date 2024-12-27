@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (text.TryGetUtf8ByteRepresentation(out byte[] data, out _))
             {
                 var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
-                return privateImpl.GetOrCreateFieldForStringValue(text, data.ToImmutableArray(), Compilation, syntaxNode, diagnostics);
+                return privateImpl.GetOrCreateFieldForStringValue(text, data.ToImmutableArray(), Compilation, diagnostics);
             }
 
             return null;
