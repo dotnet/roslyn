@@ -1045,6 +1045,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
         }
 
+        /// <summary>
+        /// <see cref="PrivateImplementationDetails.GetOrCreateFieldForStringValue"/>
+        /// </summary>
         public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             if (text.TryGetUtf8ByteRepresentation(out byte[] data, out _))
