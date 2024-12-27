@@ -1937,7 +1937,7 @@ next:;
                 // 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
                 // 8. It must be non-generic (checked as part of IsMicrosoftCodeAnalysisEmbeddedAttribute, we don't error on this because both types can exist)
 
-                const AttributeTargets ExpectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
+                const AttributeTargets expectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
 
                 if (DeclaredAccessibility != Accessibility.Internal
                     || TypeKind != TypeKind.Class
@@ -1945,7 +1945,7 @@ next:;
                     || IsStatic
                     || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
                     || !this.DeclaringCompilation.IsAttributeType(this)
-                    || (GetAttributeUsageInfo().ValidTargets & ExpectedTargets) != ExpectedTargets)
+                    || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
                 {
                     // The type '{0}' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
                     diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, GetFirstLocation(), AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);

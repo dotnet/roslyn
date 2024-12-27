@@ -1706,15 +1706,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Me.IsMicrosoftCodeAnalysisEmbeddedAttribute() Then
                 ' This Is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules
                 ' 1. It must be Friend
-                ' 2. It must be a class
+                ' 2. It must be a Class
                 ' 3. It must be NotInheritable
                 ' 4. It must not be a Module
-                ' 5. It must have a Public parameterless constructor. This is different from C#, because VB requires public parameterless attribute constructors in general
+                ' 5. It must have a Public parameterless constructor. This is different from C#, because VB requires any attribute to have a Public parameterless constructor.
                 ' 6. It must inherit from System.Attribute
-                ' 7. It must be allowed on any type declaration (class, struct, interface, enum, Or delegate)
-                ' 8. It must be non-generic
+                ' 7. It must be allowed on any type declaration (Class, Struct, Interface, Enum, or Delegate)
+                ' 8. It must be non-generic. Note that generic attributes are not supported in VB, and won't pass the `IsMicrosoftCodeAnalysisEmbeddedAttribute` check, it's just listed here for completeness.
 
-                Dim expectedTargets = AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate
+                Const expectedTargets = AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate
 
                 If DeclaredAccessibility <> Accessibility.Friend OrElse
                         TypeKind <> TypeKind.Class OrElse

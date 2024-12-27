@@ -40,7 +40,7 @@ End Class
 ***Introduced in Visual Studio 2022 version 17.13***
 
 The compiler now validates the shape of `Microsoft.CodeAnalysis.EmbeddedAttribute` when declared in source. Previously, the compiler
-would allow user-defined declarations of this attribute, but only when it didn't need to generate one itself. We now validate that:
+would allow user-defined declarations of this attribute with any shape. We now validate that:
 
 1. It must be Friend
 2. It must be a Class
@@ -50,9 +50,12 @@ would allow user-defined declarations of this attribute, but only when it didn't
 6. It must inherit from System.Attribute.
 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
 
-```cs
-namespace Microsoft.CodeAnalysis;
+```vb
+Namespace Microsoft.CodeAnalysis
 
-// Previously, sometimes allowed. Now, CS9271
-public class EmbeddedAttribute : Attribute {}
-`
+    ' Previously allowed. Now, CS9271
+    Public Class EmbeddedAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+```

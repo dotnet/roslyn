@@ -5172,7 +5172,6 @@ Namespace Microsoft.CodeAnalysis
 End Namespace
 "
 
-
             If ctorAccessModifier <> "Private" Then
             End If
 
@@ -5183,10 +5182,12 @@ BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritabl
 ]]>)
         End Sub
 
-        <Fact>
-        Public Sub EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeGeneratesAttributeApplication()
-            Dim code = "
+        <Theory, CombinatorialData>
+        Public Sub EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication(hasObsolete As Boolean)
+            Dim obsolete = If(hasObsolete, "<System.Obsolete>", "")
+            Dim code = $"
 Namespace Microsoft.CodeAnalysis
+    {obsolete}
     Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
 
@@ -5203,7 +5204,8 @@ End Namespace
             CompileAndVerify(comp, symbolValidator:=Sub([module])
                                                         Dim embeddedAttr = [module].ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName)
                                                         Assert.NotNull(embeddedAttr)
-                                                        Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"}, embeddedAttr.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+                                                        Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"},
+                                                            embeddedAttr.GetAttributes().Where(Function(a) a.AttributeClass.Name <> "ObsoleteAttribute").Select(Function(a) a.AttributeClass.ToTestDisplayString()))
                                                     End Sub).VerifyDiagnostics()
         End Sub
 

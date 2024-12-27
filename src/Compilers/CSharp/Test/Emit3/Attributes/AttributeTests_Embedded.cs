@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var code = @"
 namespace Microsoft.CodeAnalysis
 {
-    [Embedded]
     internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace TestReference
@@ -94,7 +93,6 @@ class Program
             var module = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
-    [Embedded]
     internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace TestReference
@@ -175,7 +173,6 @@ class Program
             var code = @"
 namespace Microsoft.CodeAnalysis
 {
-    [Embedded]
     internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace OtherNamespace
@@ -274,7 +271,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -301,7 +298,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -328,7 +325,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -366,7 +363,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -390,12 +387,13 @@ class Test
                 .VerifyEmitDiagnostics(diagnostics.ToArray());
         }
 
-        [Fact]
-        public void EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeGeneratesAttributeApplication()
+        [Theory, CombinatorialData]
+        public void EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication(bool hasObsolete)
         {
-            var code = """
+            var code = $$"""
                 namespace Microsoft.CodeAnalysis
                 {
+                    {{(hasObsolete ? "[System.Obsolete]" : "")}}
                     internal sealed class EmbeddedAttribute : System.Attribute
                     {
                         public EmbeddedAttribute() { }
@@ -405,7 +403,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating EmbeddedAttribute if we hadn't defined one
                     }
                 }
                 """;
@@ -418,7 +416,7 @@ class Test
                 {
                     var embeddedAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                     Assert.NotNull(embeddedAttribute);
-                    Assert.Equal(["Microsoft.CodeAnalysis.EmbeddedAttribute"], embeddedAttribute.GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
+                    Assert.Equal(["Microsoft.CodeAnalysis.EmbeddedAttribute"], embeddedAttribute.GetAttributes().Where(a => a.AttributeClass.Name != "ObsoleteAttribute").Select(a => a.AttributeClass.ToTestDisplayString()));
                 })
                 .VerifyDiagnostics();
         }
@@ -439,7 +437,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -474,7 +472,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -510,7 +508,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
                     }
                 }
                 """;
@@ -546,7 +544,7 @@ class Test
                 {
                     public void M(in int p)
                     {
-                        // This should trigger generating another EmbeddedAttribute
+                        // This would trigger generating EmbeddedAttribute if we hadn't defined one
                     }
                 }
                 """;
@@ -855,7 +853,6 @@ public class Test
             var compilation1 = CreateCompilation(parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
-    [Embedded]
     internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 [Microsoft.CodeAnalysis.Embedded]
