@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal const string SynthesizedBytesToStringFunctionName = "BytesToString";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
-        private readonly Cci.ITypeReference _systemObject;           //base type
+        internal readonly Cci.ITypeReference SystemObject;           //base type
         private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
 
         private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of byte arrays
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
         private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
-        private readonly Cci.ITypeReference _systemStringType;       //for data section string literal fields
+        internal readonly Cci.ITypeReference SystemStringType;       //for data section string literal fields
 
         private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             RoslynDebug.Assert(systemValueType != null);
 
             _moduleBuilder = moduleBuilder;
-            _systemObject = systemObject;
+            SystemObject = systemObject;
             _systemValueType = systemValueType;
 
             _systemInt8Type = systemInt8Type;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _systemInt32Type = systemInt32Type;
             _systemInt64Type = systemInt64Type;
 
-            _systemStringType = systemStringType;
+            SystemStringType = systemStringType;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this);
         }
 
-        internal DataSectionStringType? GetOrCreateDataSectionStringLiteralType(
+        internal Cci.IFieldReference GetOrCreateFieldForStringValue(
             string text,
             ImmutableArray<byte> data,
             Compilation compilation,
@@ -344,14 +344,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return new DataSectionStringType(
                     module: (ITokenDeferral)@this._moduleBuilder,
                     name: name,
-                    systemObject: @this._systemObject,
-                    systemString: @this._systemStringType,
                     containingType: @this,
                     dataField: dataField,
                     bytesToStringHelper: bytesToStringHelper,
                     diagnostics: diagnostics);
             },
-            (this, data, compilation, syntaxNode, diagnostics));
+            (this, data, compilation, syntaxNode, diagnostics)).Field;
         }
 
         /// <summary>
@@ -566,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override string ToString() => this.Name;
 
-        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _systemObject;
+        public override Cci.ITypeReference GetBaseClass(EmitContext context) => SystemObject;
 
         public override IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
         {
@@ -599,16 +597,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string NamespaceName => string.Empty;
 
-        internal static string DataToHex(ImmutableArray<byte> data)
+        private static string DataToHex(ImmutableArray<byte> data)
         {
             ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
             return HashToHex(hash.AsSpan());
         }
 
-        internal static string DataToHexViaXxHash128(ImmutableArray<byte> data)
+        private static string DataToHexViaXxHash128(ImmutableArray<byte> data)
         {
             Span<byte> hash = stackalloc byte[sizeof(ulong) * 2];
-            var bytesWritten = XxHash128.Hash(data.AsSpan(), hash);
+            int bytesWritten = XxHash128.Hash(data.AsSpan(), hash);
             Debug.Assert(bytesWritten == hash.Length);
             return HashToHex(hash);
         }
@@ -642,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
         }
 
-        internal sealed class FieldComparer : IComparer<SynthesizedStaticField>
+        private sealed class FieldComparer : IComparer<SynthesizedStaticField>
         {
             public static readonly FieldComparer Instance = new FieldComparer();
 
@@ -660,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal sealed class DataAndUShortEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Value)>
+        private sealed class DataAndUShortEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Value)>
         {
             public static readonly DataAndUShortEqualityComparer Instance = new DataAndUShortEqualityComparer();
 
@@ -778,32 +776,26 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal sealed class DataSectionStringType : DefaultTypeDef, Cci.INestedTypeDefinition
     {
         private readonly string _name;
-        private readonly Cci.ITypeReference _systemObject;
-        private readonly Cci.INamedTypeDefinition _containingType;
-        private readonly Cci.IFieldDefinition _field;
+        private readonly PrivateImplementationDetails _containingType;
         private readonly ImmutableArray<Cci.IFieldDefinition> _fields;
         private readonly ImmutableArray<Cci.IMethodDefinition> _methods;
 
         public DataSectionStringType(
             ITokenDeferral module,
             string name,
-            Cci.ITypeReference systemObject,
-            Cci.ITypeReference systemString,
-            Cci.INamespaceTypeDefinition containingType,
+            PrivateImplementationDetails containingType,
             MappedField dataField,
             Cci.IMethodDefinition bytesToStringHelper,
             DiagnosticBag diagnostics)
         {
             _name = name;
-            _systemObject = systemObject;
             _containingType = containingType;
 
-            var stringField = new DataSectionStringField("s", this, systemString);
+            var stringField = new DataSectionStringField("s", this, containingType.SystemStringType);
 
             var staticConstructor = synthesizeStaticConstructor(module, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
 
-            _field = stringField;
-            _fields = [_field];
+            _fields = [stringField];
             _methods = [staticConstructor];
 
             static StaticConstructor synthesizeStaticConstructor(
@@ -842,13 +834,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public Cci.IFieldDefinition Field => _field;
+        public Cci.IFieldDefinition Field => _fields[0];
         public string Name => _name;
         public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
         public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Assembly;
         public Cci.ITypeReference GetContainingType(EmitContext context) => _containingType;
         public override void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
-        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _systemObject;
+        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _containingType.SystemObject;
         public override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
         public override Cci.INestedTypeReference AsNestedTypeReference => this;
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context) => _fields;
@@ -1163,6 +1155,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// A helper method used in static constructor of <see cref="DataSectionStringType"/>.
     /// to share IL and hence save assembly size.
     /// </summary>
+    /// <remarks>
+    /// The method is equivalent to:
+    /// <code>
+    /// private unsafe static string BytesToString(byte* bytes, int length)
+    /// {
+    ///     return Encoding.UTF8.GetString(bytes, length);
+    /// }
+    /// </code>
+    /// </remarks>
     file sealed class BytesToStringHelper(
         Cci.INamespaceTypeDefinition containingType,
         Cci.IMethodReference encodingGetString,

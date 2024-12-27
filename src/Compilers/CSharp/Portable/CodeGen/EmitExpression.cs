@@ -3492,16 +3492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             // Emit long strings into data section so they don't overflow the UserString heap.
             if (constantValue.IsString &&
-                constantValue.StringValue.Length > _dataSectionStringLiteralThreshold &&
-                LocalRewriter.TryGetUtf8ByteRepresentation(constantValue.StringValue, out byte[] utf8Bytes, out _))
+                constantValue.StringValue.Length > _module.Compilation.DataSectionStringLiteralThreshold &&
+                _module.TryGetOrCreateFieldForStringValue(constantValue.StringValue, syntaxNode, _diagnostics.DiagnosticBag) is { } field)
             {
-                var data = utf8Bytes.ToImmutableArray();
-                var field = _builder.module.GetFieldForDataString(constantValue.StringValue, data, syntaxNode, _diagnostics.DiagnosticBag);
-                if (field is null)
-                {
-                    return false;
-                }
-
                 _builder.EmitOpCode(ILOpCode.Ldsfld);
                 _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
                 return true;
