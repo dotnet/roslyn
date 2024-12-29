@@ -361,21 +361,22 @@ internal partial class CSharpIndentationService
 
     private static IndentationResult GetDefaultIndentationFromToken(Indenter indenter, SyntaxToken token)
     {
-        if (IsPartOfQueryExpression(token))
-        {
-            return GetIndentationForQueryExpression(indenter, token);
-        }
-
-        return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
+        return TryGetIndentationForQueryExpression(indenter, token)
+            ?? GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
     }
 
-    private static IndentationResult GetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
+    private static IndentationResult? TryGetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
     {
+        if (!IsPartOfQueryExpression(token))
+        {
+            return null;
+        }
+
         // find containing non terminal node
         var queryExpressionClause = GetQueryExpressionClause(token);
         if (queryExpressionClause == null)
         {
-            return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
+            return null;
         }
 
         // find line where first token of the node is
@@ -390,7 +391,7 @@ internal partial class CSharpIndentationService
         if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
         {
             // do default behavior
-            return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
+            return null;
         }
 
         // okay, we are right under the query expression.
