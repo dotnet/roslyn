@@ -319,7 +319,7 @@ internal partial class CSharpIndentationService
         }
 
         return TryGetIndentationForQueryExpression(indenter, token)
-            ?? GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
+            ?? GetDefaultIndentationFromTokenLine(indenter, token);
     }
 
     private static IndentationResult? TryGetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
@@ -357,7 +357,7 @@ internal partial class CSharpIndentationService
             }
         }
 
-        return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
+        return GetDefaultIndentationFromTokenLine(indenter, token);
     }
 
     private static IndentationResult? TryGetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
@@ -456,8 +456,7 @@ internal partial class CSharpIndentationService
         return queryExpression != null;
     }
 
-    private static IndentationResult GetDefaultIndentationFromTokenLine(
-        Indenter indenter, SyntaxToken token, bool addAdditionalIndentation)
+    private static IndentationResult GetDefaultIndentationFromTokenLine(Indenter indenter, SyntaxToken token)
     {
         // find containing non expression node
         var nonExpressionNode = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is StatementSyntax);
@@ -483,7 +482,7 @@ internal partial class CSharpIndentationService
         // well, I can't find any non expression node. use default behavior
         var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
 
-        var spaceToAdd = addAdditionalIndentation ? indenter.Options.FormattingOptions.IndentationSize : 0;
+        var spaceToAdd = indenter.Options.FormattingOptions.IndentationSize;
 
         return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
     }
