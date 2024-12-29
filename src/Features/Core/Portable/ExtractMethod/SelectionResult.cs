@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +53,10 @@ internal abstract partial class AbstractExtractMethodService<
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
         public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnType();
+
+        public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
+        public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
+        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion);
 
         public ITypeSymbol? GetContainingScopeType()
         {
@@ -225,6 +231,66 @@ internal abstract partial class AbstractExtractMethodService<
 
             var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
             return root.ReplaceNodes(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
+        }
+
+        public OperationStatus AnalyzeControlFlow(CancellationToken cancellationToken)
+        {
+            if (!this.IsExtractMethodOnExpression)
+            {
+                // var root = SemanticDocument.Root;
+
+                //var controlFlowSpan = selectionInfo.GetControlFlowSpan();
+                //var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
+                //if (statementRange == null)
+                //    return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
+
+                var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(cancellationToken);
+                if (!isFinalSpanSemanticallyValid)
+                    return new(succeeded: true, FeaturesResources.Not_all_code_paths_return);
+            }
+
+            return OperationStatus.SucceededStatus;
+        }
+
+        protected bool IsFinalSpanSemanticallyValidSpan(CancellationToken cancellationToken)
+        {
+            var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
+
+            var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
+
+            // there must be no control in and out of given span
+            if (controlFlowAnalysisData.EntryPoints.Any())
+                return false;
+
+            // check something like continue, break, yield break, yield return, and etc
+            if (ContainsNonReturnExitPointsStatements(controlFlowAnalysisData.ExitPoints))
+                return false;
+
+            // okay, there is no branch out, check whether next statement can be executed normally
+            var returnStatements = GetOuterReturnStatements(firstStatement.GetCommonRoot(lastStatement), controlFlowAnalysisData.ExitPoints);
+            if (!returnStatements.Any())
+            {
+                if (!controlFlowAnalysisData.EndPointIsReachable)
+                {
+                    // REVIEW: should we just do extract method regardless or show some warning to user?
+                    // in dev10, looks like we went ahead and did the extract method even if selection contains
+                    // unreachable code.
+                }
+
+                return true;
+            }
+
+            // okay, only branch was return. make sure we have all return in the selection.
+
+            // check for special case, if end point is not reachable, we don't care the selection
+            // actually contains all return statements. we just let extract method go through
+            // and work like we did in dev10
+            if (!controlFlowAnalysisData.EndPointIsReachable)
+                return true;
+
+            // there is a return statement, and current position is reachable. let's check whether this is a case where that is okay
+            return IsFinalSpanSemanticallyValidSpan(
+                this.FinalSpan, returnStatements, cancellationToken);
         }
     }
 }

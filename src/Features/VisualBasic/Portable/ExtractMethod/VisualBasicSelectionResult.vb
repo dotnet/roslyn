@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -311,6 +312,85 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return node.DescendantNodesAndSelf(
                     TextSpan.FromBounds(first.SpanStart, last.Span.End)) _
                                            .Any(Function(n) TypeOf n Is InstanceExpressionSyntax)
+            End Function
+            Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As ImmutableArray(Of SyntaxNode)) As Boolean
+                Dim returnStatement = False
+                Dim exitStatement = False
+
+                For Each statement In jumpsOutOfRegion
+                    If TypeOf statement Is ReturnStatementSyntax Then
+                        returnStatement = True
+                    ElseIf TypeOf statement Is ExitStatementSyntax Then
+                        exitStatement = True
+                    Else
+                        Return True
+                    End If
+                Next
+
+                If exitStatement Then
+                    Return Not returnStatement
+                End If
+
+                Return False
+            End Function
+
+            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
+                Dim container = commonRoot.GetAncestorsOrThis(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault()
+                If container Is Nothing Then
+                    Return ImmutableArray(Of ExecutableStatementSyntax).Empty
+                End If
+
+                ' now filter return statements to only include the one under outmost container
+                Return jumpsOutOfRegionStatements.
+                    OfType(Of ExecutableStatementSyntax).
+                    Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).
+                    Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
+                    Where(Function(p) p.container Is container).
+                    SelectAsArray(Function(p) p.returnStatement)
+            End Function
+
+            Public Overrides Function IsFinalSpanSemanticallyValidSpan(
+                    textSpan As TextSpan,
+                    returnStatements As ImmutableArray(Of ExecutableStatementSyntax),
+                    cancellationToken As CancellationToken) As Boolean
+
+                ' do quick check to make sure we are under sub (no return value) container. otherwise, there is no point to anymore checks.
+                If returnStatements.Any(Function(s)
+                                            Return s.TypeSwitch(
+                                                Function(e As ExitStatementSyntax) e.BlockKeyword.Kind <> SyntaxKind.SubKeyword,
+                                                Function(r As ReturnStatementSyntax) r.Expression IsNot Nothing,
+                                                Function(n As ExecutableStatementSyntax) True)
+                                        End Function) Then
+                    Return False
+                End If
+
+                ' check whether selection reaches the end of the container
+                Dim lastToken = Me.SemanticDocument.Root.FindToken(textSpan.End)
+                If lastToken.Kind = SyntaxKind.None Then
+                    Return False
+                End If
+
+                Dim nextToken = lastToken.GetNextToken(includeZeroWidth:=True)
+
+                Dim container = nextToken.GetAncestors(Of SyntaxNode).Where(Function(n) n.IsReturnableConstruct()).FirstOrDefault()
+                If container Is Nothing Then
+                    Return False
+                End If
+
+                Dim match = If(TryCast(container, MethodBlockBaseSyntax)?.EndBlockStatement.EndKeyword = nextToken, False) OrElse
+                            If(TryCast(container, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement.EndKeyword = nextToken, False)
+
+                If Not match Then
+                    Return False
+                End If
+
+                If TryCast(container, MethodBlockBaseSyntax)?.BlockStatement.Kind = SyntaxKind.SubStatement Then
+                    Return True
+                ElseIf TryCast(container, MultiLineLambdaExpressionSyntax)?.SubOrFunctionHeader.Kind = SyntaxKind.SubLambdaHeader Then
+                    Return True
+                Else
+                    Return False
+                End If
             End Function
         End Class
     End Class
