@@ -356,7 +356,7 @@ internal partial class CSharpIndentationService
 
         // smart indenter has a special indent block rule for comma separated list, so don't
         // need to add default additional space for multiline expressions
-        return GetDefaultIndentationFromTokenLine(indenter, token, additionalSpace: 0);
+        return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: false);
     }
 
     private static IndentationResult GetDefaultIndentationFromToken(Indenter indenter, SyntaxToken token)
@@ -366,7 +366,7 @@ internal partial class CSharpIndentationService
             return GetIndentationForQueryExpression(indenter, token);
         }
 
-        return GetDefaultIndentationFromTokenLine(indenter, token);
+        return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
     }
 
     private static IndentationResult GetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
@@ -375,7 +375,7 @@ internal partial class CSharpIndentationService
         var queryExpressionClause = GetQueryExpressionClause(token);
         if (queryExpressionClause == null)
         {
-            return GetDefaultIndentationFromTokenLine(indenter, token);
+            return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
         }
 
         // find line where first token of the node is
@@ -390,7 +390,7 @@ internal partial class CSharpIndentationService
         if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
         {
             // do default behavior
-            return GetDefaultIndentationFromTokenLine(indenter, token);
+            return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
         }
 
         // okay, we are right under the query expression.
@@ -461,9 +461,9 @@ internal partial class CSharpIndentationService
     }
 
     private static IndentationResult GetDefaultIndentationFromTokenLine(
-        Indenter indenter, SyntaxToken token, int? additionalSpace = null)
+        Indenter indenter, SyntaxToken token, bool addAdditionalIndentation)
     {
-        var spaceToAdd = additionalSpace ?? indenter.Options.FormattingOptions.IndentationSize;
+        var spaceToAdd = addAdditionalIndentation ? indenter.Options.FormattingOptions.IndentationSize : 0;
 
         var sourceText = indenter.LineToBeIndented.Text;
         RoslynDebug.AssertNotNull(sourceText);
