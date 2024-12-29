@@ -461,9 +461,8 @@ internal partial class CSharpIndentationService
         return queryExpression != null;
     }
 
-    private static IndentationResult GetDefaultIndentationFromTokenLine(Indenter indenter, SyntaxToken token)
+    private static IndentationResult? TryGetIndentationFromMultilineStatement(Indenter indenter, SyntaxToken token)
     {
-        // find containing non expression node
         var nonExpressionNode = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is StatementSyntax);
         if (nonExpressionNode != null)
         {
@@ -484,7 +483,16 @@ internal partial class CSharpIndentationService
             }
         }
 
-        // well, I can't find any non expression node. use default behavior
+        return null;
+    }
+
+    private static IndentationResult GetDefaultIndentationFromTokenLine(Indenter indenter, SyntaxToken token)
+    {
+        if (TryGetIndentationFromMultilineStatement(indenter, token) is { } result)
+        {
+            return result;
+        }
+
         var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
 
         var spaceToAdd = indenter.Options.FormattingOptions.IndentationSize;
