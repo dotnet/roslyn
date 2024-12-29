@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     cancellationToken)
             End Function
 
-            Private Function CheckErrorCasesAndAppendDescriptions(
+            Private Shared Function CheckErrorCasesAndAppendDescriptions(
                     selectionInfo As SelectionInfo,
                     semanticModel As SemanticModel,
                     cancellationToken As CancellationToken) As SelectionInfo
@@ -97,12 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         status:=clone.Status.With(succeeded:=True, VBFeaturesResources.Argument_used_for_ByRef_parameter_can_t_be_extracted_out))
                 End If
 
-                Dim containsAllStaticLocals = ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(selectionInfo, semanticModel, cancellationToken)
-                If Not containsAllStaticLocals Then
-                    clone = clone.With(
-                        status:=clone.Status.With(succeeded:=True, VBFeaturesResources.all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection))
-                End If
-
                 ' if it is multiple statement case.
                 If Not selectionInfo.SelectionInExpression AndAlso Not selectionInfo.SelectionInSingleStatement Then
                     If commonNode.GetAncestorOrThis(Of WithBlockSyntax)() IsNot Nothing Then
@@ -140,52 +134,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim originalLastToken = selectionInfo.LastTokenInOriginalSpan
 
                 Return originalFirstToken <> finalFirstToken OrElse originalLastToken <> finalLastToken
-            End Function
-
-            Private Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(
-                    selectionInfo As SelectionInfo,
-                    semanticModel As SemanticModel,
-                    cancellationToken As CancellationToken) As Boolean
-                If selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of FieldDeclarationSyntax)() IsNot Nothing OrElse
-                   selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of PropertyStatementSyntax)() IsNot Nothing Then
-                    ' static local can't exist in field initializer
-                    Return True
-                End If
-
-                Dim result As DataFlowAnalysis
-
-                If selectionInfo.SelectionInExpression Then
-                    Dim expression = GetFinalTokenCommonRoot(selectionInfo).GetAncestorOrThis(Of ExpressionSyntax)()
-                    result = semanticModel.AnalyzeDataFlow(expression)
-                Else
-                    Dim range = Me.GetStatementRangeContainingSpan(
-                        semanticModel.SyntaxTree.GetRoot(cancellationToken), selectionInfo.FinalSpan, cancellationToken)
-
-                    ' we can't determine valid range of statements, don't bother to do the analysis
-                    If range Is Nothing Then
-                        Return True
-                    End If
-
-                    result = semanticModel.AnalyzeDataFlow(range.Value.Item1, range.Value.Item2)
-                End If
-
-                For Each symbol In result.VariablesDeclared
-                    Dim local = TryCast(symbol, ILocalSymbol)
-                    If local Is Nothing Then
-                        Continue For
-                    End If
-
-                    If Not local.IsStatic Then
-                        Continue For
-                    End If
-
-                    If result.WrittenOutside().Any(Function(s) Equals(s, local)) OrElse
-    result.ReadOutside().Any(Function(s) Equals(s, local)) Then
-                        Return False
-                    End If
-                Next
-
-                Return True
             End Function
 
             Private Shared Function GetFinalTokenCommonRoot(selection As SelectionInfo) As SyntaxNode

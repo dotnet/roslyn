@@ -44,21 +44,21 @@ internal abstract partial class AbstractExtractMethodService<
             if (selectionInfo.Status.Failed)
                 return (null, selectionInfo.Status);
 
-            if (!selectionInfo.SelectionInExpression &&
-                GetStatementRangeContainedInSpan(SemanticDocument.Root, selectionInfo.FinalSpan, cancellationToken) == null)
+            if (!selectionInfo.SelectionInExpression)
             {
-                return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
+                if (!IsValidStatementRange(SemanticDocument.Root, selectionInfo.FinalSpan, cancellationToken))
+                    return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
             }
 
             var selectionResult = await CreateSelectionResultAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
 
             var status = selectionInfo.Status.With(
-                selectionResult.AnalyzeControlFlow(cancellationToken));
+                selectionResult.ValidateSelectionResult(cancellationToken));
 
             return (selectionResult, status);
         }
 
-        protected static (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainedInSpan(
+        private static bool IsValidStatementRange(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // use top-down approach to find largest statement range contained in the given span
@@ -82,10 +82,7 @@ internal abstract partial class AbstractExtractMethodService<
                     lastStatement = statement;
             }
 
-            if (firstStatement == null || lastStatement == null)
-                return null;
-
-            return (firstStatement, lastStatement);
+            return firstStatement != null && lastStatement != null;
         }
 
         protected (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(

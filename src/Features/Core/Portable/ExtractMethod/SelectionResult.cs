@@ -58,6 +58,8 @@ internal abstract partial class AbstractExtractMethodService<
         public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
         public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion);
 
+        protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
+
         public ITypeSymbol? GetContainingScopeType()
         {
             var (typeSymbol, _) = GetReturnType();
@@ -233,20 +235,14 @@ internal abstract partial class AbstractExtractMethodService<
             return root.ReplaceNodes(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
         }
 
-        public OperationStatus AnalyzeControlFlow(CancellationToken cancellationToken)
+        public OperationStatus ValidateSelectionResult(CancellationToken cancellationToken)
         {
             if (!this.IsExtractMethodOnExpression)
             {
-                // var root = SemanticDocument.Root;
-
-                //var controlFlowSpan = selectionInfo.GetControlFlowSpan();
-                //var statementRange = GetStatementRangeContainedInSpan(root, controlFlowSpan, cancellationToken);
-                //if (statementRange == null)
-                //    return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
-
-                var isFinalSpanSemanticallyValid = IsFinalSpanSemanticallyValidSpan(cancellationToken);
-                if (!isFinalSpanSemanticallyValid)
+                if (!IsFinalSpanSemanticallyValidSpan(cancellationToken))
                     return new(succeeded: true, FeaturesResources.Not_all_code_paths_return);
+
+                return ValidateLanguageSpecificRules(cancellationToken);
             }
 
             return OperationStatus.SucceededStatus;

@@ -59,6 +59,12 @@ internal sealed partial class CSharpExtractMethodService
         protected override ISyntaxFacts SyntaxFacts
             => CSharpSyntaxFacts.Instance;
 
+        protected override OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken)
+        {
+            // Nothing language specific for C#.
+            return OperationStatus.SucceededStatus;
+        }
+
         public override SyntaxNode GetNodeForDataFlowAnalysis()
         {
             var node = base.GetNodeForDataFlowAnalysis();
