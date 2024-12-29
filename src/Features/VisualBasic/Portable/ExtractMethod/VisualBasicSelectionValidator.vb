@@ -19,13 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Sub
 
             Protected Overrides Function UpdateSelectionInfo(selectionInfo As SelectionInfo, firstStatement As StatementSyntax, lastStatement As StatementSyntax, cancellationToken As CancellationToken) As SelectionInfo
-                Dim root = Me.SemanticDocument.Root
                 Dim model = Me.SemanticDocument.SemanticModel
 
                 selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement)
                 selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken)
                 selectionInfo = AdjustFinalTokensIfNextStatement(selectionInfo, model, cancellationToken)
-                selectionInfo = FixUpFinalTokensAndAssignFinalSpan(selectionInfo, root)
+                selectionInfo = AssignFinalSpan(selectionInfo)
                 selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, model, cancellationToken)
 
                 Return selectionInfo
@@ -136,31 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private Shared Function GetCommonRoot(token1 As SyntaxToken, token2 As SyntaxToken) As SyntaxNode
                 Return token1.GetCommonRoot(token2)
-            End Function
-
-            Private Function FixUpFinalTokensAndAssignFinalSpan(
-                    selectionInfo As SelectionInfo,
-                    root As SyntaxNode) As SelectionInfo
-                If selectionInfo.Status.Failed() Then
-                    Return selectionInfo
-                End If
-
-                Dim clone = selectionInfo
-
-                ' make sure we include statement terminator token if selection contains them
-                Dim firstToken = selectionInfo.FirstTokenInFinalSpan
-                Dim lastToken = selectionInfo.LastTokenInFinalSpan
-
-                Dim adjustedSpan = GetAdjustedSpan(root, Me.OriginalSpan)
-
-                ' set final span
-                Dim start = If(adjustedSpan.Start <= firstToken.SpanStart, adjustedSpan.Start, firstToken.FullSpan.Start)
-                Dim [end] = If(lastToken.Span.End <= adjustedSpan.End, adjustedSpan.End, lastToken.Span.End)
-
-                Return clone.With(
-                    finalSpan:=GetAdjustedSpan(root, TextSpan.FromBounds(start, [end])),
-                    firstTokenInFinalSpan:=firstToken,
-                    lastTokenInFinalSpan:=lastToken)
             End Function
 
             Private Shared Function AdjustFinalTokensIfNextStatement(
@@ -325,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides Function GetInitialSelectionInfo() As SelectionInfo
                 Dim root = Me.SemanticDocument.Root
-                Dim adjustedSpan = GetAdjustedSpan(root, Me.OriginalSpan)
+                Dim adjustedSpan = GetAdjustedSpan(Me.OriginalSpan)
                 Dim firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped:=False)
                 Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)
 
@@ -408,21 +382,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                        }
             End Function
 
-            Private Shared Function GetAdjustedSpan(root As SyntaxNode, textSpan As TextSpan) As TextSpan
+            Protected Overrides Function GetAdjustedSpan(textSpan As TextSpan) As TextSpan
+                Dim root = Me.SemanticDocument.Root
+                Dim text = Me.SemanticDocument.Text
+
                 ' quick exit
                 If textSpan.IsEmpty OrElse textSpan.End = 0 Then
                     Return textSpan
                 End If
 
                 ' regular column 0 check
-                Dim line = root.GetText().Lines.GetLineFromPosition(textSpan.End)
+                Dim line = text.Lines.GetLineFromPosition(textSpan.End)
                 If line.Start <> textSpan.End Then
                     Return textSpan
                 End If
 
                 ' previous line
                 Contract.ThrowIfFalse(line.LineNumber > 0)
-                Dim previousLine = root.GetText().Lines(line.LineNumber - 1)
+                Dim previousLine = text.Lines(line.LineNumber - 1)
 
                 ' check whether end of previous line is last token of a statement. if it is, don't do anything
                 If root.FindTokenOnLeftOfPosition(previousLine.End).IsLastTokenOfStatement() Then
@@ -430,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 ' move end position of the selection
-                Return TextSpan.FromBounds(textSpan.Start, previousLine.End)
+                Return textSpan.FromBounds(textSpan.Start, previousLine.End)
             End Function
         End Class
     End Class

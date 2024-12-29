@@ -28,15 +28,14 @@ internal sealed partial class CSharpExtractMethodService
         protected override SelectionInfo UpdateSelectionInfo(
             SelectionInfo selectionInfo, StatementSyntax? firstStatement, StatementSyntax? lastStatement, CancellationToken cancellationToken)
         {
-            var text = SemanticDocument.Text;
             var root = SemanticDocument.Root;
             var model = SemanticDocument.SemanticModel;
 
             // go through pipe line and calculate information about the user selection
             selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
-            selectionInfo = AssignFinalSpan(selectionInfo, text);
-            selectionInfo = ApplySpecialCases(selectionInfo, text, SemanticDocument.SyntaxTree.Options, _localFunction);
+            selectionInfo = AssignFinalSpan(selectionInfo);
+            selectionInfo = ApplySpecialCases(selectionInfo, SemanticDocument.SyntaxTree.Options, _localFunction);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
             return selectionInfo;
@@ -57,7 +56,7 @@ internal sealed partial class CSharpExtractMethodService
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
+        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, ParseOptions options, bool localFunction)
         {
             if (selectionInfo.Status.Failed)
                 return selectionInfo;
@@ -102,7 +101,7 @@ internal sealed partial class CSharpExtractMethodService
             {
                 FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true),
                 LastTokenInFinalSpan = assign.Right.GetLastToken(includeZeroWidth: true),
-            }, text);
+            });
 
             bool IsCodeInGlobalLevel()
             {
@@ -171,9 +170,8 @@ internal sealed partial class CSharpExtractMethodService
         protected override SelectionInfo GetInitialSelectionInfo()
         {
             var root = this.SemanticDocument.Root;
-            var text = this.SemanticDocument.Text;
 
-            var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
+            var adjustedSpan = GetAdjustedSpan(OriginalSpan);
 
             var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
             var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
@@ -439,30 +437,10 @@ internal sealed partial class CSharpExtractMethodService
             };
         }
 
-        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
+        protected override TextSpan GetAdjustedSpan(TextSpan textSpan)
         {
-            if (selectionInfo.Status.Failed)
-                return selectionInfo;
+            var text = this.SemanticDocument.Text;
 
-            var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
-
-            // set final span
-            var start = selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan
-                ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, adjustedSpan.Start)
-                : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
-
-            var end = selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan
-                ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, adjustedSpan.End)
-                : selectionInfo.LastTokenInFinalSpan.FullSpan.End;
-
-            return selectionInfo with
-            {
-                FinalSpan = GetAdjustedSpan(text, TextSpan.FromBounds(start, end)),
-            };
-        }
-
-        private static TextSpan GetAdjustedSpan(SourceText text, TextSpan textSpan)
-        {
             // beginning of a file
             if (textSpan.IsEmpty || textSpan.End == 0)
             {

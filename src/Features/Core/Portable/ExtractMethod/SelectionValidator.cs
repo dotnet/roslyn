@@ -29,6 +29,8 @@ internal abstract partial class AbstractExtractMethodService<
 
         public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
+        protected abstract TextSpan GetAdjustedSpan(TextSpan textSpan);
+
         protected abstract SelectionInfo GetInitialSelectionInfo();
 
         protected abstract SelectionInfo UpdateSelectionInfo(
@@ -164,6 +166,28 @@ internal abstract partial class AbstractExtractMethodService<
 
                 return parent1 == parent2;
             }
+        }
+
+        protected SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo)
+        {
+            if (selectionInfo.Status.Failed)
+                return selectionInfo;
+
+            var adjustedSpan = GetAdjustedSpan(OriginalSpan);
+
+            // set final span
+            var start = selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan
+                ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, adjustedSpan.Start)
+                : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
+
+            var end = selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan
+                ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, adjustedSpan.End)
+                : selectionInfo.LastTokenInFinalSpan.Span.End;
+
+            return selectionInfo with
+            {
+                FinalSpan = GetAdjustedSpan(TextSpan.FromBounds(start, end)),
+            };
         }
     }
 }
