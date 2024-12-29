@@ -240,7 +240,7 @@ internal partial class CSharpIndentationService
                     // special cases
                     if (token.IsSemicolonInForStatement())
                     {
-                        return GetDefaultIndentationFromToken(indenter, token);
+                        break;
                     }
 
                     return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
@@ -253,7 +253,7 @@ internal partial class CSharpIndentationService
                     {
                         if (token.GetNextToken().IsEqualsTokenInAutoPropertyInitializers())
                         {
-                            return GetDefaultIndentationFromToken(indenter, token);
+                            break;
                         }
                     }
 
@@ -275,7 +275,7 @@ internal partial class CSharpIndentationService
                         return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.IndentationSize);
                     }
 
-                    goto default;
+                    break;
                 }
 
             case SyntaxKind.CloseBracketToken:
@@ -289,7 +289,7 @@ internal partial class CSharpIndentationService
                         return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
                     }
 
-                    goto default;
+                    break;
                 }
 
             case SyntaxKind.XmlTextLiteralToken:
@@ -309,14 +309,11 @@ internal partial class CSharpIndentationService
                         return GetDefaultIndentationFromToken(indenter, token.Parent.GetFirstToken(includeZeroWidth: true));
                     }
 
-                    goto default;
-                }
-
-            default:
-                {
-                    return GetDefaultIndentationFromToken(indenter, token);
+                    break;
                 }
         }
+
+        return GetDefaultIndentationFromToken(indenter, token);
     }
 
     private static IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
