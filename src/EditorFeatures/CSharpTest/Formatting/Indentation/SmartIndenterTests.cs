@@ -1266,6 +1266,25 @@ namespace NS
             expectedIndentation: 24);
     }
 
+    [WpfFact]
+    public void QueryExpression_InsideSeparatedSyntaxOnOneLine()
+    {
+        AssertSmartIndent(
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = from v in M(1,
+
+                            select s;
+                }
+            }
+            """,
+            indentationLine: 5,
+            expectedIndentation: 16);
+    }
+
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538333")]
     public void Statement1()
     {

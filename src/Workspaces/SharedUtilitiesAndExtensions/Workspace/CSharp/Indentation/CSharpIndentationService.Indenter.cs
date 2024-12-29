@@ -357,7 +357,7 @@ internal partial class CSharpIndentationService
             }
         }
 
-        return GetDefaultIndentationFromTokenLine(indenter, token);
+        return null;
     }
 
     private static IndentationResult? TryGetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
