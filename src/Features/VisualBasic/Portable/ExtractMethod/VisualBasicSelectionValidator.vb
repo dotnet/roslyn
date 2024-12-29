@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     cancellationToken)
             End Function
 
-            Private Shared Function CheckErrorCasesAndAppendDescriptions(
+            Private Function CheckErrorCasesAndAppendDescriptions(
                     selectionInfo As SelectionInfo,
                     semanticModel As SemanticModel,
                     cancellationToken As CancellationToken) As SelectionInfo
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return originalFirstToken <> finalFirstToken OrElse originalLastToken <> finalLastToken
             End Function
 
-            Private Shared Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(
+            Private Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(
                     selectionInfo As SelectionInfo,
                     semanticModel As SemanticModel,
                     cancellationToken As CancellationToken) As Boolean
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim expression = GetFinalTokenCommonRoot(selectionInfo).GetAncestorOrThis(Of ExpressionSyntax)()
                     result = semanticModel.AnalyzeDataFlow(expression)
                 Else
-                    Dim range = GetStatementRangeContainedInSpan(
+                    Dim range = Me.GetStatementRangeContainingSpan(
                         semanticModel.SyntaxTree.GetRoot(cancellationToken), selectionInfo.FinalSpan, cancellationToken)
 
                     ' we can't determine valid range of statements, don't bother to do the analysis
