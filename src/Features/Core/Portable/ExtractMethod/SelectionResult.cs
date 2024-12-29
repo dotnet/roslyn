@@ -38,6 +38,8 @@ internal abstract partial class AbstractExtractMethodService<
         public SelectionType SelectionType { get; } = selectionType;
         public bool SelectionChanged { get; } = selectionChanged;
 
+        private ControlFlowAnalysis? _statementControlFlowAnalysis;
+
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
 
@@ -185,6 +187,16 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
+        public ControlFlowAnalysis GetStatementControlFlowAnalysis()
+        {
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
+            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            return _statementControlFlowAnalysis ??= this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
+        }
+
+        public bool IsEndOfSelectionReachable()
+            => this.IsExtractMethodOnExpression || GetStatementControlFlowAnalysis().EndPointIsReachable;
+
         /// <summary>f
         /// convert text span to node range for the flow analysis API
         /// </summary>
@@ -249,7 +261,7 @@ internal abstract partial class AbstractExtractMethodService<
         {
             var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
 
-            var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
+            var controlFlowAnalysisData = this.GetStatementControlFlowAnalysis();
 
             // there must be no control in and out of given span
             if (controlFlowAnalysisData.EntryPoints.Any())

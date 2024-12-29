@@ -130,7 +130,7 @@ internal abstract partial class AbstractExtractMethodService<
                     && thisParameterBeingRead is { Type: { TypeKind: TypeKind.Struct, IsReadOnly: false } };
 
                 // check whether end of selection is reachable
-                var endOfSelectionReachable = IsEndOfSelectionReachable();
+                var endOfSelectionReachable = this.SelectionResult.IsEndOfSelectionReachable();
 
                 var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
 
@@ -346,18 +346,6 @@ internal abstract partial class AbstractExtractMethodService<
 
                 var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
                 return this.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
-            }
-
-            private bool IsEndOfSelectionReachable()
-            {
-                if (SelectionResult.IsExtractMethodOnExpression)
-                {
-                    return true;
-                }
-
-                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
-                var analysis = this.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
-                return analysis.EndPointIsReachable;
             }
 
             private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
@@ -746,11 +734,7 @@ internal abstract partial class AbstractExtractMethodService<
             private bool ContainsReturnStatementInSelectedCode()
             {
                 Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
-
-                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
-                var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
-
-                return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
+                return ContainsReturnStatementInSelectedCode(this.SelectionResult.GetStatementControlFlowAnalysis().ExitPoints);
             }
 
             private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
