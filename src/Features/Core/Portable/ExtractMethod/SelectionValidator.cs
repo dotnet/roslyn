@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -35,8 +37,6 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract SelectionInfo UpdateSelectionInfo(
             SelectionInfo selectionInfo, TStatementSyntax? firstStatement, TStatementSyntax? lastStatement, CancellationToken cancellationToken);
         protected abstract Task<TSelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
-
-        protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);
 
         public async Task<(TSelectionResult?, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
@@ -111,6 +111,8 @@ internal abstract partial class AbstractExtractMethodService<
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
+            var blockFacts = this.SemanticDocument.GetRequiredLanguageService<IBlockFactsService>();
+
             // use top-down approach to find smallest statement range that contains given span.
             // this approach is more expansive than bottom-up approach I used before but way simpler and easy to understand
             var token1 = root.FindToken(textSpan.Start);
@@ -157,6 +159,14 @@ internal abstract partial class AbstractExtractMethodService<
                 return null;
 
             return (firstStatement, lastStatement);
+
+            bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2)
+            {
+                var parent1 = blockFacts.GetImmediateParentExecutableBlockForStatement(statement1) ?? statement1.Parent;
+                var parent2 = blockFacts.GetImmediateParentExecutableBlockForStatement(statement2) ?? statement2.Parent;
+
+                return parent1 == parent2;
+            }
         }
     }
 }

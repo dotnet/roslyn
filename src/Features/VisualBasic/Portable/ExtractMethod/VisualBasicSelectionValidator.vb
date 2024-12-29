@@ -19,10 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(document, textSpan)
             End Sub
 
-            Protected Overrides Function AreStatementsInSameContainer(statement1 As StatementSyntax, statement2 As StatementSyntax) As Boolean
-                Return statement1.Parent Is statement2.Parent
-            End Function
-
             Protected Overrides Function UpdateSelectionInfo(selectionInfo As SelectionInfo, firstStatement As StatementSyntax, lastStatement As StatementSyntax, cancellationToken As CancellationToken) As SelectionInfo
                 Dim root = Me.SemanticDocument.Root
                 Dim model = Me.SemanticDocument.SemanticModel

@@ -27,21 +27,6 @@ internal sealed partial class CSharpExtractMethodService
     {
         private readonly bool _localFunction = localFunction;
 
-        protected override bool AreStatementsInSameContainer(StatementSyntax statement1, StatementSyntax statement2)
-        {
-            if (statement1.Parent == statement2.Parent)
-                return true;
-
-            if (statement1.Parent is GlobalStatementSyntax
-                && statement2.Parent is GlobalStatementSyntax
-                && statement1.Parent.Parent == statement2.Parent.Parent)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         protected override SelectionInfo UpdateSelectionInfo(
             SelectionInfo selectionInfo, StatementSyntax? firstStatement, StatementSyntax? lastStatement, CancellationToken cancellationToken)
         {
