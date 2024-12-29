@@ -35,7 +35,7 @@ internal sealed partial class CSharpExtractMethodService
         protected override SyntaxNode GetInsertionPointNode(
             AnalyzerResult analyzerResult, CancellationToken cancellationToken)
         {
-            var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
+            var originalSpanStart = OriginalSelectionResult.FinalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
             var document = this.OriginalSelectionResult.SemanticDocument;
@@ -65,10 +65,10 @@ internal sealed partial class CSharpExtractMethodService
                 {
                     if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
                     {
-                        if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
+                        if (SelectionWithin(anonymousFunction.Body) || SelectionWithin(anonymousFunction.ExpressionBody))
                             return currentNode;
 
-                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        if (!OriginalSelectionResult.FinalSpan.Contains(anonymousFunction.Span))
                         {
                             // If we encountered a function but the selection isn't within the body, it's likely the user
                             // is attempting to move the function (which is behavior that is supported). Stop looking up the 
@@ -80,10 +80,10 @@ internal sealed partial class CSharpExtractMethodService
 
                     if (currentNode is LocalFunctionStatementSyntax localFunction)
                     {
-                        if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
+                        if (SelectionWithin(localFunction.ExpressionBody) || SelectionWithin(localFunction.Body))
                             return currentNode;
 
-                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        if (!OriginalSelectionResult.FinalSpan.Contains(localFunction.Span))
                         {
                             // If we encountered a function but the selection isn't within the body, it's likely the user
                             // is attempting to move the function (which is behavior that is supported). Stop looking up the 
@@ -150,14 +150,14 @@ internal sealed partial class CSharpExtractMethodService
             }
         }
 
-        private bool OriginalSelectionWithin(SyntaxNode node)
+        private bool SelectionWithin(SyntaxNode node)
         {
             if (node is null)
             {
                 return false;
             }
 
-            return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
+            return node.Span.Contains(OriginalSelectionResult.FinalSpan);
         }
 
         protected override async Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken)

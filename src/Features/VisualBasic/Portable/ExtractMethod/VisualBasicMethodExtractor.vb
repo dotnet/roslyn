@@ -29,28 +29,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Protected Overrides Function GetInsertionPointNode(
                     analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As SyntaxNode
                 Dim document = Me.OriginalSelectionResult.SemanticDocument
-                Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
-                Contract.ThrowIfFalse(originalSpanStart >= 0)
+                Dim spanStart = OriginalSelectionResult.FinalSpan.Start
+                Contract.ThrowIfFalse(spanStart >= 0)
 
                 Dim root = document.Root
-                Dim basePosition = root.FindToken(originalSpanStart)
+                Dim basePosition = root.FindToken(spanStart)
 
                 Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of EventBlockSyntax)()
-                End If
 
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of MethodBlockBaseSyntax)()
-                End If
-
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of FieldDeclarationSyntax)()
-                End If
-
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of PropertyStatementSyntax)()
-                End If
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of EventBlockSyntax))
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of MethodBlockBaseSyntax))
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of FieldDeclarationSyntax))
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of PropertyStatementSyntax))
 
                 Contract.ThrowIfNull(enclosingTopLevelNode)
                 Return enclosingTopLevelNode

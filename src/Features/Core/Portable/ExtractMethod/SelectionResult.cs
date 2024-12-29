@@ -23,7 +23,6 @@ internal abstract partial class AbstractExtractMethodService<
     internal abstract class SelectionResult(
         SemanticDocument document,
         SelectionType selectionType,
-        TextSpan originalSpan,
         TextSpan finalSpan,
         bool selectionChanged)
     {
@@ -33,7 +32,6 @@ internal abstract partial class AbstractExtractMethodService<
         private bool? _createAsyncMethod;
 
         public SemanticDocument SemanticDocument { get; private set; } = document;
-        public TextSpan OriginalSpan { get; } = originalSpan;
         public TextSpan FinalSpan { get; } = finalSpan;
         public SelectionType SelectionType { get; } = selectionType;
         public bool SelectionChanged { get; } = selectionChanged;

@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New VisualBasicSelectionResult(
                     newDocument,
                     selectionInfo.GetSelectionType(),
-                    selectionInfo.OriginalSpan,
                     selectionInfo.FinalSpan,
                     selectionChanged)
             End Function
@@ -41,14 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Sub New(
                 document As SemanticDocument,
                 selectionType As SelectionType,
-                originalSpan As TextSpan,
                 finalSpan As TextSpan,
                 selectionChanged As Boolean)
 
                 MyBase.New(
                     document,
                     selectionType,
-                    originalSpan,
                     finalSpan,
                     selectionChanged)
             End Sub
