@@ -65,7 +65,7 @@ internal sealed partial class CSharpExtractMethodService
             return OperationStatus.SucceededStatus;
         }
 
-        public override SyntaxNode GetNodeForDataFlowAnalysis()
+        protected override SyntaxNode GetNodeForDataFlowAnalysis()
         {
             var node = base.GetNodeForDataFlowAnalysis();
 

@@ -82,7 +82,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 // do data flow analysis
                 var model = this.SemanticDocument.SemanticModel;
-                var dataFlowAnalysisData = GetDataFlowAnalysisData();
+                var dataFlowAnalysisData = this.SelectionResult.GetDataFlowAnalysis();
 
                 // build symbol map for the identifiers used inside of the selection
                 var symbolMap = GetSymbolMap();
@@ -337,15 +337,6 @@ internal abstract partial class AbstractExtractMethodService<
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
                 return symbolMap;
-            }
-
-            private DataFlowAnalysis GetDataFlowAnalysisData()
-            {
-                if (SelectionResult.IsExtractMethodOnExpression)
-                    return this.SemanticModel.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
-
-                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
-                return this.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
             }
 
             private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)

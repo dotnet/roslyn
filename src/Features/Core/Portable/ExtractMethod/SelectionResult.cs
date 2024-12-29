@@ -38,6 +38,15 @@ internal abstract partial class AbstractExtractMethodService<
         public SelectionType SelectionType { get; } = selectionType;
         public bool SelectionChanged { get; } = selectionChanged;
 
+        /// <summary>
+        /// Cached data flow analysis result for the selected code.  Valid for both expressions and statements.
+        /// </summary>
+        private DataFlowAnalysis? _dataFlowAnalysis;
+
+        /// <summary>
+        /// Cached information about the control flow of the selected code.  Only valid if the selection covers one or
+        /// more statements.
+        /// </summary>
         private ControlFlowAnalysis? _statementControlFlowAnalysis;
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }
@@ -69,7 +78,7 @@ internal abstract partial class AbstractExtractMethodService<
         public bool IsExtractMethodOnSingleStatement => this.SelectionType == SelectionType.SingleStatement;
         public bool IsExtractMethodOnMultipleStatements => this.SelectionType == SelectionType.MultipleStatements;
 
-        public virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
+        protected virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
 
         public SelectionResult With(SemanticDocument document)
         {
@@ -187,6 +196,21 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
+        public DataFlowAnalysis GetDataFlowAnalysis()
+        {
+            return _dataFlowAnalysis ??= ComputeDataFlowAnalysis();
+
+            DataFlowAnalysis ComputeDataFlowAnalysis()
+            {
+                var semanticModel = this.SemanticDocument.SemanticModel;
+                if (this.IsExtractMethodOnExpression)
+                    return semanticModel.AnalyzeDataFlow(this.GetNodeForDataFlowAnalysis());
+
+                var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
+                return semanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
+            }
+        }
+
         public ControlFlowAnalysis GetStatementControlFlowAnalysis()
         {
             Contract.ThrowIfTrue(IsExtractMethodOnExpression);
@@ -259,8 +283,6 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected bool IsFinalSpanSemanticallyValidSpan(CancellationToken cancellationToken)
         {
-            var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
-
             var controlFlowAnalysisData = this.GetStatementControlFlowAnalysis();
 
             // there must be no control in and out of given span
@@ -272,6 +294,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return false;
 
             // okay, there is no branch out, check whether next statement can be executed normally
+            var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
             var returnStatements = GetOuterReturnStatements(firstStatement.GetCommonRoot(lastStatement), controlFlowAnalysisData.ExitPoints);
             if (!returnStatements.Any())
             {
