@@ -180,7 +180,7 @@ internal sealed partial class CSharpExtractMethodService
 
             if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
             {
-                return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
+                return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection) };
             }
 
             if (firstTokenInSelection.SpanStart > lastTokenInSelection.Span.End)
@@ -188,7 +188,6 @@ internal sealed partial class CSharpExtractMethodService
                 return new()
                 {
                     Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_does_not_contain_a_valid_token),
-                    OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
                 };
@@ -199,7 +198,6 @@ internal sealed partial class CSharpExtractMethodService
                 return new()
                 {
                     Status = new OperationStatus(succeeded: false, FeaturesResources.No_valid_selection_to_perform_extraction),
-                    OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
                 };
@@ -212,7 +210,6 @@ internal sealed partial class CSharpExtractMethodService
                 return new()
                 {
                     Status = new OperationStatus(succeeded: false, FeaturesResources.No_common_root_node_for_extraction),
-                    OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
                 };
@@ -223,7 +220,6 @@ internal sealed partial class CSharpExtractMethodService
                 return new()
                 {
                     Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_not_contained_inside_a_type),
-                    OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
                 };
@@ -235,7 +231,6 @@ internal sealed partial class CSharpExtractMethodService
                 return new()
                 {
                     Status = new OperationStatus(succeeded: false, FeaturesResources.No_valid_selection_to_perform_extraction),
-                    OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
                 };
@@ -244,7 +239,6 @@ internal sealed partial class CSharpExtractMethodService
             return new()
             {
                 Status = OperationStatus.SucceededStatus,
-                OriginalSpan = adjustedSpan,
                 CommonRootFromOriginalSpan = commonRoot,
                 SelectionInExpression = selectionInExpression,
                 FirstTokenInOriginalSpan = firstTokenInSelection,
@@ -445,18 +439,20 @@ internal sealed partial class CSharpExtractMethodService
             };
         }
 
-        private static SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
+        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.Failed)
                 return selectionInfo;
 
+            var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
+
             // set final span
             var start = selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan
-                ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start)
+                ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, adjustedSpan.Start)
                 : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
 
             var end = selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan
-                ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End)
+                ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, adjustedSpan.End)
                 : selectionInfo.LastTokenInFinalSpan.FullSpan.End;
 
             return selectionInfo with

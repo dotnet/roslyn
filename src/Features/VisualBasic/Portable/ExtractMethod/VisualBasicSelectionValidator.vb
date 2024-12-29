@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -26,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement)
                 selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken)
                 selectionInfo = AdjustFinalTokensIfNextStatement(selectionInfo, model, cancellationToken)
-                selectionInfo = FixUpFinalTokensAndAssignFinalSpan(selectionInfo, root, cancellationToken)
+                selectionInfo = FixUpFinalTokensAndAssignFinalSpan(selectionInfo, root)
                 selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, model, cancellationToken)
 
                 Return selectionInfo
@@ -139,10 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return token1.GetCommonRoot(token2)
             End Function
 
-            Private Shared Function FixUpFinalTokensAndAssignFinalSpan(
+            Private Function FixUpFinalTokensAndAssignFinalSpan(
                     selectionInfo As SelectionInfo,
-                    root As SyntaxNode,
-                    cancellationToken As CancellationToken) As SelectionInfo
+                    root As SyntaxNode) As SelectionInfo
                 If selectionInfo.Status.Failed() Then
                     Return selectionInfo
                 End If
@@ -153,9 +151,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim firstToken = selectionInfo.FirstTokenInFinalSpan
                 Dim lastToken = selectionInfo.LastTokenInFinalSpan
 
+                Dim adjustedSpan = GetAdjustedSpan(root, Me.OriginalSpan)
+
                 ' set final span
-                Dim start = If(selectionInfo.OriginalSpan.Start <= firstToken.SpanStart, selectionInfo.OriginalSpan.Start, firstToken.FullSpan.Start)
-                Dim [end] = If(lastToken.Span.End <= selectionInfo.OriginalSpan.End, selectionInfo.OriginalSpan.End, lastToken.Span.End)
+                Dim start = If(adjustedSpan.Start <= firstToken.SpanStart, adjustedSpan.Start, firstToken.FullSpan.Start)
+                Dim [end] = If(lastToken.Span.End <= adjustedSpan.End, adjustedSpan.End, lastToken.Span.End)
 
                 Return clone.With(
                     finalSpan:=GetAdjustedSpan(root, TextSpan.FromBounds(start, [end])),
@@ -330,19 +330,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)
 
                 If firstTokenInSelection.Kind = SyntaxKind.None OrElse lastTokenInSelection.Kind = SyntaxKind.None Then
-                    Return New SelectionInfo With {.Status = New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
+                    Return New SelectionInfo With {.Status = New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection)}
                 End If
 
                 If firstTokenInSelection <> lastTokenInSelection AndAlso
                    firstTokenInSelection.Span.End > lastTokenInSelection.SpanStart Then
-                    Return New SelectionInfo With {.Status = New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
+                    Return New SelectionInfo With {.Status = New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection)}
                 End If
 
                 If (Not adjustedSpan.Contains(firstTokenInSelection.Span)) AndAlso (Not adjustedSpan.Contains(lastTokenInSelection.Span)) Then
                     Return New SelectionInfo With
                            {
                                .Status = New OperationStatus(succeeded:=False, FeaturesResources.Selection_does_not_contain_a_valid_token),
-                               .OriginalSpan = adjustedSpan,
                                .FirstTokenInOriginalSpan = firstTokenInSelection,
                                .LastTokenInOriginalSpan = lastTokenInSelection
                            }
@@ -352,7 +351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New SelectionInfo With
                            {
                                .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction),
-                               .OriginalSpan = adjustedSpan,
                                .FirstTokenInOriginalSpan = firstTokenInSelection,
                                .LastTokenInOriginalSpan = lastTokenInSelection
                            }
@@ -363,7 +361,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New SelectionInfo With
                            {
                                .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_common_root_node_for_extraction),
-                               .OriginalSpan = adjustedSpan,
                                .FirstTokenInOriginalSpan = firstTokenInSelection,
                                .LastTokenInOriginalSpan = lastTokenInSelection
                            }
@@ -373,7 +370,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New SelectionInfo With
                         {
                             .Status = New OperationStatus(succeeded:=False, FeaturesResources.Selection_not_contained_inside_a_type),
-                            .OriginalSpan = adjustedSpan,
                             .FirstTokenInOriginalSpan = firstTokenInSelection,
                             .LastTokenInOriginalSpan = lastTokenInSelection
                         }
@@ -387,7 +383,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New SelectionInfo With
                            {
                                .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction),
-                               .OriginalSpan = adjustedSpan,
                                .FirstTokenInOriginalSpan = firstTokenInSelection,
                                .LastTokenInOriginalSpan = lastTokenInSelection
                            }
@@ -398,7 +393,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New SelectionInfo With
                            {
                                .Status = New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction),
-                               .OriginalSpan = adjustedSpan,
                                .FirstTokenInOriginalSpan = firstTokenInSelection,
                                .LastTokenInOriginalSpan = lastTokenInSelection
                            }
@@ -407,7 +401,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New SelectionInfo With
                        {
                            .Status = OperationStatus.SucceededStatus,
-                           .OriginalSpan = adjustedSpan,
                            .CommonRootFromOriginalSpan = commonRoot,
                            .SelectionInExpression = selectionInExpression,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
