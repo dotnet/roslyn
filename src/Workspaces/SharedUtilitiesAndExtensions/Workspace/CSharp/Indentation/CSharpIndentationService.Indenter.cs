@@ -357,9 +357,7 @@ internal partial class CSharpIndentationService
             }
         }
 
-        // smart indenter has a special indent block rule for comma separated list, so don't
-        // need to add default additional space for multiline expressions
-        return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: false);
+        return GetDefaultIndentationFromTokenLine(indenter, token, addAdditionalIndentation: true);
     }
 
     private static IndentationResult? TryGetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
