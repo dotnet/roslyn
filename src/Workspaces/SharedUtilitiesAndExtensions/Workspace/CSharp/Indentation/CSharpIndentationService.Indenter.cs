@@ -464,23 +464,18 @@ internal partial class CSharpIndentationService
     private static IndentationResult GetDefaultIndentationFromTokenLine(
         Indenter indenter, SyntaxToken token, bool addAdditionalIndentation)
     {
-        var spaceToAdd = addAdditionalIndentation ? indenter.Options.FormattingOptions.IndentationSize : 0;
-
-        var sourceText = indenter.LineToBeIndented.Text;
-        RoslynDebug.AssertNotNull(sourceText);
-
-        // find line where given token is
-        var givenTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
-
-        // find right position
-        var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
-
         // find containing non expression node
         var nonExpressionNode = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is StatementSyntax);
         if (nonExpressionNode != null)
         {
+            var sourceText = indenter.LineToBeIndented.Text;
+            RoslynDebug.AssertNotNull(sourceText);
+
             // find line where first token of the node is
             var firstTokenLine = sourceText.Lines.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
+
+            // find line where given token is
+            var givenTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
 
             // multiline expression
             if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
@@ -491,6 +486,10 @@ internal partial class CSharpIndentationService
         }
 
         // well, I can't find any non expression node. use default behavior
+        var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
+
+        var spaceToAdd = addAdditionalIndentation ? indenter.Options.FormattingOptions.IndentationSize : 0;
+
         return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
     }
 }
