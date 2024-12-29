@@ -214,7 +214,7 @@ internal abstract partial class AbstractExtractMethodService<
         public ControlFlowAnalysis GetStatementControlFlowAnalysis()
         {
             Contract.ThrowIfTrue(IsExtractMethodOnExpression);
-            var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+            var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
             return _statementControlFlowAnalysis ??= this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
         }
 
@@ -224,7 +224,7 @@ internal abstract partial class AbstractExtractMethodService<
         /// <summary>f
         /// convert text span to node range for the flow analysis API
         /// </summary>
-        public (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
+        private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
         {
             var first = this.GetFirstStatement();
             var last = this.GetLastStatement();
