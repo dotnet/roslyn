@@ -316,18 +316,19 @@ internal abstract partial class AbstractExtractMethodService<
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                var annotations = new List<(SyntaxToken, SyntaxAnnotation)>();
+                var annotations = new MultiDictionary<SyntaxToken, SyntaxAnnotation>();
 
                 foreach (var variable in variables)
                 {
-                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
-                                          DeclarationBehavior.MoveIn or
-                                          DeclarationBehavior.Delete);
+                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is
+                        DeclarationBehavior.MoveOut or
+                        DeclarationBehavior.MoveIn or
+                        DeclarationBehavior.Delete);
 
                     variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
                 }
 
-                return new HashSet<SyntaxAnnotation>(annotations.Select(t => t.Item2));
+                return [.. annotations.Values.SelectMany(v => v)];
             }
 
             protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()

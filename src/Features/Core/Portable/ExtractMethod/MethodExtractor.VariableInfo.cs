@@ -103,7 +103,7 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             public void AddIdentifierTokenAnnotationPair(
-                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
+                MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken)
             {
                 _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }

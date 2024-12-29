@@ -177,11 +177,9 @@ internal abstract partial class AbstractExtractMethodService<
             SyntaxNode insertionPointNode,
             CancellationToken cancellationToken)
         {
-            var annotations = new List<(SyntaxToken, SyntaxAnnotation)>(analyzeResult.Variables.Length);
+            var tokenMap = new MultiDictionary<SyntaxToken, SyntaxAnnotation>();
             foreach (var variable in analyzeResult.Variables)
-                variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
-
-            var tokenMap = annotations.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+                variable.AddIdentifierTokenAnnotationPair(tokenMap, cancellationToken);
 
             var insertionPointAnnotation = new SyntaxAnnotation();
 
