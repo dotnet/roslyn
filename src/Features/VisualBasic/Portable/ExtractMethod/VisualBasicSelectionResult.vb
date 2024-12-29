@@ -298,22 +298,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.Unreachable
             End Function
 
-            Public Function IsUnderModuleBlock() As Boolean
-                Dim currentScope = GetContainingScope()
-                Dim types = currentScope.GetAncestors(Of TypeBlockSyntax)()
-
-                Return types.Any(Function(t) t.BlockStatement.Kind = SyntaxKind.ModuleStatement)
-            End Function
-
-            Public Function ContainsInstanceExpression() As Boolean
-                Dim first = GetFirstTokenInSelection()
-                Dim last = GetLastTokenInSelection()
-                Dim node = first.GetCommonRoot(last)
-
-                Return node.DescendantNodesAndSelf(
-                    TextSpan.FromBounds(first.SpanStart, last.Span.End)) _
-                                           .Any(Function(n) TypeOf n Is InstanceExpressionSyntax)
-            End Function
             Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As ImmutableArray(Of SyntaxNode)) As Boolean
                 Dim returnStatement = False
                 Dim exitStatement = False

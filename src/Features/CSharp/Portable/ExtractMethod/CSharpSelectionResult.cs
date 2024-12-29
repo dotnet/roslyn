@@ -193,40 +193,6 @@ internal sealed partial class CSharpExtractMethodService
             return last.Parent.Parent;
         }
 
-        public bool ShouldPutUnsafeModifier()
-        {
-            var token = GetFirstTokenInSelection();
-            var ancestors = token.GetAncestors<SyntaxNode>();
-
-            // if enclosing type contains unsafe keyword, we don't need to put it again
-            if (ancestors.Where(a => CSharp.SyntaxFacts.IsTypeDeclaration(a.Kind()))
-                         .Cast<MemberDeclarationSyntax>()
-                         .Any(m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword)))
-            {
-                return false;
-            }
-
-            return token.Parent.IsUnsafeContext();
-        }
-
-        public SyntaxKind UnderCheckedExpressionContext()
-            => UnderCheckedContext<CheckedExpressionSyntax>();
-
-        public SyntaxKind UnderCheckedStatementContext()
-            => UnderCheckedContext<CheckedStatementSyntax>();
-
-        private SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
-        {
-            var token = GetFirstTokenInSelection();
-            var contextNode = token.Parent.GetAncestor<T>();
-            if (contextNode == null)
-            {
-                return SyntaxKind.None;
-            }
-
-            return contextNode.Kind();
-        }
-
         public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion)
             => jumpsOutOfRegion.Any(n => n is not ReturnStatementSyntax);
 

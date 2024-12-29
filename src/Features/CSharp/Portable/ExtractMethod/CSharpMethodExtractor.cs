@@ -19,14 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 internal sealed partial class CSharpExtractMethodService
 {
-    internal sealed partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
+    internal sealed partial class CSharpMethodExtractor(
+        SelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
         : MethodExtractor(result, options, localFunction)
     {
         protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
             => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, this.Options, this.LocalFunction);
 
-        protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
+        protected override AnalyzerResult Analyze(CancellationToken cancellationToken)
+        {
+            var analyzer = new CSharpAnalyzer(this.OriginalSelectionResult, this.LocalFunction, cancellationToken);
+            return analyzer.Analyze();
+        }
 
         protected override SyntaxNode GetInsertionPointNode(
             AnalyzerResult analyzerResult, CancellationToken cancellationToken)
@@ -166,8 +170,11 @@ internal sealed partial class CSharpExtractMethodService
                 result);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
-            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
+        {
+            var codeGenerator = CSharpCodeGenerator.Create(selectionResult, analyzeResult, options, this.LocalFunction);
+            return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);
+        }
 
         protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
             => FormattingRule.Instance;

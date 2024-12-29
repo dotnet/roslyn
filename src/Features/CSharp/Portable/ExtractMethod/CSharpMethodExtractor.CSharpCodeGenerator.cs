@@ -44,20 +44,8 @@ internal sealed partial class CSharpExtractMethodService
             private const string NewMethodPascalCaseStr = "NewMethod";
             private const string NewMethodCamelCaseStr = "newMethod";
 
-            public static Task<GeneratedCode> GenerateAsync(
-                InsertionPoint insertionPoint,
-                CSharpSelectionResult selectionResult,
-                AnalyzerResult analyzerResult,
-                ExtractMethodGenerationOptions options,
-                bool localFunction,
-                CancellationToken cancellationToken)
-            {
-                var codeGenerator = Create(selectionResult, analyzerResult, options, localFunction);
-                return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);
-            }
-
             public static CSharpCodeGenerator Create(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 ExtractMethodGenerationOptions options,
                 bool localFunction)
@@ -72,7 +60,7 @@ internal sealed partial class CSharpExtractMethodService
             }
 
             protected CSharpCodeGenerator(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 ExtractMethodGenerationOptions options,
                 bool localFunction)
@@ -202,9 +190,25 @@ internal sealed partial class CSharpExtractMethodService
                 return declStatement.Parent;
             }
 
+            private bool ShouldPutUnsafeModifier()
+            {
+                var token = this.SelectionResult.GetFirstTokenInSelection();
+                var ancestors = token.GetAncestors<SyntaxNode>();
+
+                // if enclosing type contains unsafe keyword, we don't need to put it again
+                if (ancestors.Where(a => CSharp.SyntaxFacts.IsTypeDeclaration(a.Kind()))
+                             .Cast<MemberDeclarationSyntax>()
+                             .Any(m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword)))
+                {
+                    return false;
+                }
+
+                return token.Parent.IsUnsafeContext();
+            }
+
             private DeclarationModifiers CreateMethodModifiers()
             {
-                var isUnsafe = this.SelectionResult.ShouldPutUnsafeModifier();
+                var isUnsafe = ShouldPutUnsafeModifier();
                 var isAsync = this.SelectionResult.CreateAsyncMethod();
                 var isStatic = !AnalyzerResult.UseInstanceMember;
                 var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
@@ -269,9 +273,27 @@ internal sealed partial class CSharpExtractMethodService
                 return statements;
             }
 
+            protected SyntaxKind UnderCheckedExpressionContext()
+                => UnderCheckedContext<CheckedExpressionSyntax>();
+
+            protected SyntaxKind UnderCheckedStatementContext()
+                => UnderCheckedContext<CheckedStatementSyntax>();
+
+            protected SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
+            {
+                var token = this.SelectionResult.GetFirstTokenInSelection();
+                var contextNode = token.Parent.GetAncestor<T>();
+                if (contextNode == null)
+                {
+                    return SyntaxKind.None;
+                }
+
+                return contextNode.Kind();
+            }
+
             private ImmutableArray<StatementSyntax> WrapInCheckStatementIfNeeded(ImmutableArray<StatementSyntax> statements)
             {
-                var kind = this.SelectionResult.UnderCheckedStatementContext();
+                var kind = UnderCheckedStatementContext();
                 if (kind == SyntaxKind.None)
                     return statements;
 

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
     TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>
@@ -52,7 +51,7 @@ internal abstract partial class AbstractExtractMethodService<
             protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
             protected readonly SyntaxAnnotation CallSiteAnnotation;
 
-            protected readonly TSelectionResult SelectionResult;
+            protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly ExtractMethodGenerationOptions ExtractMethodGenerationOptions;
@@ -61,7 +60,7 @@ internal abstract partial class AbstractExtractMethodService<
             protected readonly bool LocalFunction;
 
             protected CodeGenerator(
-                TSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 ExtractMethodGenerationOptions options,
                 bool localFunction)

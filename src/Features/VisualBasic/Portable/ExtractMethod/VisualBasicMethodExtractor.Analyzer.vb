@@ -15,12 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class VisualBasicAnalyzer
                 Inherits Analyzer
 
-                Public Shared Function AnalyzeResult(currentSelectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As AnalyzerResult
-                    Dim analyzer = New VisualBasicAnalyzer(currentSelectionResult, cancellationToken)
-                    Return analyzer.Analyze()
-                End Function
-
-                Public Sub New(currentSelectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken)
+                Public Sub New(currentSelectionResult As SelectionResult, cancellationToken As CancellationToken)
                     MyBase.New(currentSelectionResult, localFunction:=False, cancellationToken)
                 End Sub
 

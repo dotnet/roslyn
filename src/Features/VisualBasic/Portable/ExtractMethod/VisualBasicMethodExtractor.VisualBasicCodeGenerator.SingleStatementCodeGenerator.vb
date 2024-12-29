@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Inherits VisualBasicCodeGenerator
 
                     Public Sub New(
-                            selectionResult As VisualBasicSelectionResult,
+                            selectionResult As SelectionResult,
                             analyzerResult As AnalyzerResult,
                             options As ExtractMethodGenerationOptions)
                         MyBase.New(selectionResult, analyzerResult, options)

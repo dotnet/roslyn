@@ -13,7 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend NotInheritable Class VisualBasicExtractMethodService
         Inherits AbstractExtractMethodService(Of
             VisualBasicMethodExtractor,
-            VisualBasicSelectionResult,
             StatementSyntax,
             ExecutableStatementSyntax,
             ExpressionSyntax)
@@ -27,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return New VisualBasicSelectionValidator(document, textSpan)
         End Function
 
-        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions, localFunction As Boolean) As VisualBasicMethodExtractor
+        Protected Overrides Function CreateMethodExtractor(selectionResult As SelectionResult, options As ExtractMethodGenerationOptions, localFunction As Boolean) As VisualBasicMethodExtractor
             Return New VisualBasicMethodExtractor(selectionResult, options)
         End Function
     End Class

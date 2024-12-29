@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
     TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>
@@ -35,9 +34,9 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract SelectionInfo UpdateSelectionInfo(
             SelectionInfo selectionInfo, TStatementSyntax? firstStatement, TStatementSyntax? lastStatement, CancellationToken cancellationToken);
-        protected abstract Task<TSelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
+        protected abstract Task<SelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
 
-        public async Task<(TSelectionResult?, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
+        public async Task<(SelectionResult?, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
             if (!this.ContainsValidSelection)
                 return (null, OperationStatus.FailedWithUnknownReason);

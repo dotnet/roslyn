@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Partial Friend Class VisualBasicMethodExtractor
             Inherits MethodExtractor
 
-            Public Sub New(result As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions)
+            Public Sub New(result As SelectionResult, options As ExtractMethodGenerationOptions)
                 MyBase.New(result, options, localFunction:=False)
             End Sub
 
@@ -21,8 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, Me.Options)
             End Function
 
-            Protected Overrides Function Analyze(selectionResult As VisualBasicSelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
-                Return VisualBasicAnalyzer.AnalyzeResult(selectionResult, cancellationToken)
+            Protected Overrides Function Analyze(cancellationToken As CancellationToken) As AnalyzerResult
+                Dim analyzer = New VisualBasicAnalyzer(Me.OriginalSelectionResult, cancellationToken)
+                Return analyzer.Analyze()
             End Function
 
             Protected Overrides Function GetInsertionPointNode(
@@ -66,8 +67,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         result)
             End Function
 
-            Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, options, cancellationToken)
+            Protected Overrides Async Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+                Dim generator = VisualBasicCodeGenerator.Create(selectionResult, analyzeResult, options)
+                Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
             Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule

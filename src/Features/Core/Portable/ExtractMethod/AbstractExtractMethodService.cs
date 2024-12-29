@@ -17,18 +17,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 /// </summary>
 internal abstract partial class AbstractExtractMethodService<
     TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax> : IExtractMethodService
-    where TExtractor : AbstractExtractMethodService<TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.MethodExtractor
-    where TSelectionResult : AbstractExtractMethodService<TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.SelectionResult
+    where TExtractor : AbstractExtractMethodService<TExtractor, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.MethodExtractor
     where TStatementSyntax : SyntaxNode
     where TExecutableStatementSyntax : TStatementSyntax
     where TExpressionSyntax : SyntaxNode
 {
     protected abstract SelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction);
-    protected abstract TExtractor CreateMethodExtractor(TSelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
+    protected abstract TExtractor CreateMethodExtractor(SelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
 
     public async Task<ExtractMethodResult> ExtractMethodAsync(
         Document document,

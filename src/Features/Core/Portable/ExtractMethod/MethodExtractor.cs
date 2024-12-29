@@ -21,28 +21,27 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
     TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     internal abstract partial class MethodExtractor(
-        TSelectionResult selectionResult,
+        SelectionResult selectionResult,
         ExtractMethodGenerationOptions options,
         bool localFunction)
     {
-        protected readonly TSelectionResult OriginalSelectionResult = selectionResult;
+        protected readonly SelectionResult OriginalSelectionResult = selectionResult;
         protected readonly ExtractMethodGenerationOptions Options = options;
         protected readonly bool LocalFunction = localFunction;
 
         protected abstract SyntaxNode ParseTypeName(string name);
-        protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
+        protected abstract AnalyzerResult Analyze(CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken);
 
         protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
         protected abstract Task<GeneratedCode> GenerateCodeAsync(
-            InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
+            InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
@@ -53,8 +52,7 @@ internal abstract partial class AbstractExtractMethodService<
         public ExtractMethodResult ExtractMethod(OperationStatus initialStatus, CancellationToken cancellationToken)
         {
             var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
-            var analyzeResult = Analyze(OriginalSelectionResult, LocalFunction, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
+            var analyzeResult = Analyze(cancellationToken);
 
             var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult, cancellationToken);
             if (status.Failed)
@@ -84,7 +82,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                     var generatedCode = await GenerateCodeAsync(
                         insertionPoint.With(triviaResult.SemanticDocument),
-                        (TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument),
+                        (SelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument),
                         analyzeResult,
                         Options,
                         cancellationToken).ConfigureAwait(false);

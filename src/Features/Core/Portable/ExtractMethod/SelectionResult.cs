@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
     TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>

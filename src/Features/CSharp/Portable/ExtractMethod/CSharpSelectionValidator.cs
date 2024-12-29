@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +42,7 @@ internal sealed partial class CSharpExtractMethodService
             return selectionInfo;
         }
 
-        protected override Task<CSharpSelectionResult> CreateSelectionResultAsync(
+        protected override async Task<SelectionResult> CreateSelectionResultAsync(
             SelectionInfo selectionInfo, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(ContainsValidSelection);
@@ -52,11 +50,11 @@ internal sealed partial class CSharpExtractMethodService
 
             var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
-            return CSharpSelectionResult.CreateAsync(
+            return await CSharpSelectionResult.CreateAsync(
                 SemanticDocument,
                 selectionInfo,
                 selectionChanged,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
 
         private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)

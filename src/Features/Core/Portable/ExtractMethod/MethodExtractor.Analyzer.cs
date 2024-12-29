@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
     TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>
@@ -29,7 +28,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract partial class Analyzer
         {
             protected readonly CancellationToken CancellationToken;
-            protected readonly TSelectionResult SelectionResult;
+            protected readonly SelectionResult SelectionResult;
             protected readonly bool LocalFunction;
 
             private readonly HashSet<int> _nonNoisySyntaxKindSet;
@@ -40,7 +39,7 @@ internal abstract partial class AbstractExtractMethodService<
             protected ISemanticFactsService SemanticFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
             protected ISyntaxFactsService SyntaxFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            protected Analyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
