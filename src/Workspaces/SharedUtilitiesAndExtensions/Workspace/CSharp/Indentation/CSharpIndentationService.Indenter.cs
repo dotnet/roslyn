@@ -311,7 +311,7 @@ internal partial class CSharpIndentationService
                 {
                     if (token.Parent.IsKind(SyntaxKind.ArgumentList))
                     {
-                        return GetDefaultIndentationFromToken(indenter, token.Parent.GetFirstToken(includeZeroWidth: true));
+                        token = token.Parent.GetFirstToken(includeZeroWidth: true);
                     }
 
                     break;
