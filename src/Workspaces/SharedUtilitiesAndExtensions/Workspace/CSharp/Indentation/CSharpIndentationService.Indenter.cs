@@ -318,13 +318,17 @@ internal partial class CSharpIndentationService
                 }
         }
 
-        var result = TryGetIndentationForQueryExpression(indenter, token);
+        var result = TryGetIndentationForQueryExpression(indenter, token)
+            ?? TryGetIndentationFromMultilineStatement(indenter, token);
+
         if (result is not null)
         {
             return result.Value;
         }
 
-        return GetDefaultIndentationFromTokenLine(indenter, token);
+        var spaceToAdd = indenter.Options.FormattingOptions.IndentationSize;
+
+        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
     }
 
     private static IndentationResult? TryGetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
@@ -484,19 +488,5 @@ internal partial class CSharpIndentationService
         }
 
         return null;
-    }
-
-    private static IndentationResult GetDefaultIndentationFromTokenLine(Indenter indenter, SyntaxToken token)
-    {
-        if (TryGetIndentationFromMultilineStatement(indenter, token) is { } result)
-        {
-            return result;
-        }
-
-        var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
-
-        var spaceToAdd = indenter.Options.FormattingOptions.IndentationSize;
-
-        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
     }
 }
