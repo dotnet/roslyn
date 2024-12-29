@@ -16,17 +16,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 /// between executable code statements and symbol signatures.
 /// </summary>
 internal abstract partial class AbstractExtractMethodService<
-    TExtractor,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax> : IExtractMethodService
-    where TExtractor : AbstractExtractMethodService<TExtractor, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.MethodExtractor
     where TStatementSyntax : SyntaxNode
     where TExecutableStatementSyntax : TStatementSyntax
     where TExpressionSyntax : SyntaxNode
 {
     protected abstract SelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction);
-    protected abstract TExtractor CreateMethodExtractor(SelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
+    protected abstract MethodExtractor CreateMethodExtractor(SelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
 
     public async Task<ExtractMethodResult> ExtractMethodAsync(
         Document document,
