@@ -55,8 +55,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return enclosingTopLevelNode
             End Function
 
-            Protected Overrides Async Function PreserveTriviaAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
-                Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
+            Protected Overrides Async Function PreserveTriviaAsync(root As SyntaxNode, cancellationToken As CancellationToken) As Task(Of TriviaResult)
+                Dim semanticDocument = Me.OriginalSelectionResult.SemanticDocument
+                Dim preservationService = semanticDocument.Document.Project.Services.GetService(Of ISyntaxTriviaService)()
+
+                Dim result = preservationService.SaveTriviaAroundSelection(root, Me.OriginalSelectionResult.FinalSpan)
+
+                Return New VisualBasicTriviaResult(
+                        Await semanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(False),
+                        result)
             End Function
 
             Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)

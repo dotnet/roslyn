@@ -156,8 +156,15 @@ internal sealed partial class CSharpExtractMethodService
             return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
         }
 
-        protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
-            => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
+        protected override async Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken)
+        {
+            var semanticDocument = this.OriginalSelectionResult.SemanticDocument;
+            var preservationService = semanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
+            var result = preservationService.SaveTriviaAroundSelection(root, this.OriginalSelectionResult.FinalSpan);
+            return new CSharpTriviaResult(
+                await semanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(false),
+                result);
+        }
 
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
             => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);

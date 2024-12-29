@@ -39,7 +39,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract SyntaxNode ParseTypeName(string name);
         protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
-        protected abstract Task<TriviaResult> PreserveTriviaAsync(TSelectionResult selectionResult, CancellationToken cancellationToken);
+        protected abstract Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken);
 
         protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
         protected abstract Task<GeneratedCode> GenerateCodeAsync(
@@ -80,7 +80,7 @@ internal abstract partial class AbstractExtractMethodService<
                     var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
                         originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
-                    var triviaResult = await PreserveTriviaAsync((TSelectionResult)OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
+                    var triviaResult = await PreserveTriviaAsync(analyzedDocument.Root, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var generatedCode = await GenerateCodeAsync(

@@ -13,17 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class VisualBasicTriviaResult
                 Inherits TriviaResult
 
-                Public Shared Async Function ProcessAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of VisualBasicTriviaResult)
-                    Dim preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService(Of ISyntaxTriviaService)()
-                    Dim root = selectionResult.SemanticDocument.Root
-                    Dim result = preservationService.SaveTriviaAroundSelection(root, selectionResult.FinalSpan)
-
-                    Return New VisualBasicTriviaResult(
-                        Await selectionResult.SemanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(False),
-                        result)
-                End Function
-
-                Private Sub New(document As SemanticDocument, result As ITriviaSavedResult)
+                Public Sub New(document As SemanticDocument, result As ITriviaSavedResult)
                     MyBase.New(document, result, SyntaxKind.EndOfLineTrivia, SyntaxKind.WhitespaceTrivia)
                 End Sub
 
