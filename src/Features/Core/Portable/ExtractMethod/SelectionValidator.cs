@@ -30,7 +30,10 @@ internal abstract partial class AbstractExtractMethodService<
 
         public bool ContainsValidSelection => !OriginalSpan.IsEmpty;
 
-        protected abstract SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
+        protected abstract SelectionInfo GetInitialSelectionInfo();
+
+        protected abstract SelectionInfo UpdateSelectionInfo(
+            SelectionInfo selectionInfo, TStatementSyntax? firstStatement, TStatementSyntax? lastStatement, CancellationToken cancellationToken);
         protected abstract Task<TSelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
 
         protected abstract bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2);
@@ -40,14 +43,32 @@ internal abstract partial class AbstractExtractMethodService<
             if (!this.ContainsValidSelection)
                 return (null, OperationStatus.FailedWithUnknownReason);
 
-            var selectionInfo = GetInitialSelectionInfo(cancellationToken);
+            var selectionInfo = this.GetInitialSelectionInfo();
             if (selectionInfo.Status.Failed)
                 return (null, selectionInfo.Status);
 
+            TStatementSyntax? firstStatement = null;
+            TStatementSyntax? lastStatement = null;
             if (!selectionInfo.SelectionInExpression)
             {
-                if (!IsValidStatementRange(SemanticDocument.Root, selectionInfo.FinalSpan, cancellationToken))
-                    return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
+                var range = GetStatementRangeContainingSpan(
+                    this.SemanticDocument.Root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
+                    cancellationToken);
+
+                if (range is null)
+                    return (null, new(succeeded: false, FeaturesResources.No_valid_statement_range_to_extract));
+
+                (firstStatement, lastStatement) = range.Value;
+            }
+
+            selectionInfo = UpdateSelectionInfo(selectionInfo, firstStatement, lastStatement, cancellationToken);
+            if (selectionInfo.Status.Failed)
+                return (null, selectionInfo.Status);
+
+            if (!selectionInfo.SelectionInExpression &&
+                !IsValidStatementRange(SemanticDocument.Root, selectionInfo.FinalSpan, cancellationToken))
+            {
+                return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
             }
 
             var selectionResult = await CreateSelectionResultAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
@@ -85,7 +106,7 @@ internal abstract partial class AbstractExtractMethodService<
             return firstStatement != null && lastStatement != null;
         }
 
-        protected (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
+        private (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
             SyntaxNode root,
             TextSpan textSpan,
             CancellationToken cancellationToken)

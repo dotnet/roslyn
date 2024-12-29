@@ -23,12 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return statement1.Parent Is statement2.Parent
             End Function
 
-            Protected Overrides Function GetInitialSelectionInfo(cancellationToken As CancellationToken) As SelectionInfo
+            Protected Overrides Function UpdateSelectionInfo(selectionInfo As SelectionInfo, firstStatement As StatementSyntax, lastStatement As StatementSyntax, cancellationToken As CancellationToken) As SelectionInfo
                 Dim root = Me.SemanticDocument.Root
                 Dim model = Me.SemanticDocument.SemanticModel
 
-                Dim selectionInfo = GetInitialSelectionInfo(root)
-                selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken)
+                selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement)
                 selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken)
                 selectionInfo = AdjustFinalTokensIfNextStatement(selectionInfo, model, cancellationToken)
                 selectionInfo = FixUpFinalTokensAndAssignFinalSpan(selectionInfo, root, cancellationToken)
@@ -252,10 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     lastTokenInFinalSpan:=firstValidNode.GetLastToken(includeZeroWidth:=True))
             End Function
 
-            Private Function AssignInitialFinalTokens(
+            Private Shared Function AssignInitialFinalTokens(
                     selectionInfo As SelectionInfo,
-                    root As SyntaxNode,
-                    cancellationToken As CancellationToken) As SelectionInfo
+                    firstStatement As StatementSyntax,
+                    lastStatement As StatementSyntax) As SelectionInfo
                 If selectionInfo.Status.Failed() Then
                     Return selectionInfo
                 End If
@@ -272,17 +271,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         lastTokenInFinalSpan:=outerNode.GetLastToken(includeZeroWidth:=True))
                 End If
 
-                Dim range = GetStatementRangeContainingSpan(
-                    root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
-                    cancellationToken)
-
-                If range Is Nothing Then
-                    Return selectionInfo.With(
-                        status:=selectionInfo.Status.With(succeeded:=False, FeaturesResources.No_valid_statement_range_to_extract))
-                End If
-
-                Dim statement1 = range.Value.firstStatement
-                Dim statement2 = range.Value.lastStatement
+                Dim statement1 = firstStatement
+                Dim statement2 = lastStatement
 
                 If statement1 Is statement2 Then
                     ' check one more time to see whether it is an expression case
@@ -337,7 +327,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     lastTokenInFinalSpan:=statement2.GetLastToken(includeZeroWidth:=True))
             End Function
 
-            Private Overloads Function GetInitialSelectionInfo(root As SyntaxNode) As SelectionInfo
+            Protected Overrides Function GetInitialSelectionInfo() As SelectionInfo
+                Dim root = Me.SemanticDocument.Root
                 Dim adjustedSpan = GetAdjustedSpan(root, Me.OriginalSpan)
                 Dim firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped:=False)
                 Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)

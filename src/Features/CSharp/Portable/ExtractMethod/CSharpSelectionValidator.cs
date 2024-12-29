@@ -42,15 +42,15 @@ internal sealed partial class CSharpExtractMethodService
             return false;
         }
 
-        protected override SelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken)
+        protected override SelectionInfo UpdateSelectionInfo(
+            SelectionInfo selectionInfo, StatementSyntax? firstStatement, StatementSyntax? lastStatement, CancellationToken cancellationToken)
         {
             var text = SemanticDocument.Text;
             var root = SemanticDocument.Root;
             var model = SemanticDocument.SemanticModel;
 
             // go through pipe line and calculate information about the user selection
-            var selectionInfo = GetInitialSelectionInfo(root, text);
-            selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
+            selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text);
             selectionInfo = ApplySpecialCases(selectionInfo, text, SemanticDocument.SyntaxTree.Options, _localFunction);
@@ -185,8 +185,11 @@ internal sealed partial class CSharpExtractMethodService
             };
         }
 
-        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
+        protected override SelectionInfo GetInitialSelectionInfo()
         {
+            var root = this.SemanticDocument.Root;
+            var text = this.SemanticDocument.Text;
+
             var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
 
             var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
@@ -410,7 +413,8 @@ internal sealed partial class CSharpExtractMethodService
             return selectionInfo;
         }
 
-        private SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+        private static SelectionInfo AssignInitialFinalTokens(
+            SelectionInfo selectionInfo, StatementSyntax? firstStatement, StatementSyntax? lastStatement)
         {
             if (selectionInfo.Status.Failed)
                 return selectionInfo;
@@ -425,18 +429,8 @@ internal sealed partial class CSharpExtractMethodService
                 };
             }
 
-            var range = GetStatementRangeContainingSpan(
-                root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
-                cancellationToken);
-
-            if (range is not var (firstStatement, lastStatement))
-            {
-                return selectionInfo with
-                {
-                    Status = selectionInfo.Status.With(succeeded: false, FeaturesResources.No_valid_statement_range_to_extract),
-                };
-            }
-
+            Contract.ThrowIfNull(firstStatement);
+            Contract.ThrowIfNull(lastStatement);
             if (firstStatement == lastStatement)
             {
                 // check one more time to see whether it is an expression case
