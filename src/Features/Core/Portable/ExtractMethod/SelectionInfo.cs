@@ -18,7 +18,6 @@ internal abstract partial class AbstractExtractMethodService<
     {
         public OperationStatus Status { get; init; }
 
-       //  public TextSpan OriginalSpan { get; init; }
         public TextSpan FinalSpan { get; init; }
 
         public SyntaxNode CommonRootFromOriginalSpan { get; init; }
