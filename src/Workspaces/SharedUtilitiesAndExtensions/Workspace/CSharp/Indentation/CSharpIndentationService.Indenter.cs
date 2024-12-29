@@ -299,7 +299,12 @@ internal partial class CSharpIndentationService
 
             case SyntaxKind.CommaToken:
                 {
-                    return GetIndentationFromCommaSeparatedList(indenter, token);
+                    if (TryGetIndentationFromCommaSeparatedList(indenter, token) is { } result)
+                    {
+                        return result;
+                    }
+
+                    break;
                 }
 
             case SyntaxKind.CloseParenToken:
@@ -316,25 +321,25 @@ internal partial class CSharpIndentationService
         return GetDefaultIndentationFromToken(indenter, token);
     }
 
-    private static IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
+    private static IndentationResult? TryGetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
         => token.Parent switch
         {
-            BaseArgumentListSyntax argument => GetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token),
-            BaseParameterListSyntax parameter => GetIndentationFromCommaSeparatedList(indenter, parameter.Parameters, token),
-            TypeArgumentListSyntax typeArgument => GetIndentationFromCommaSeparatedList(indenter, typeArgument.Arguments, token),
-            TypeParameterListSyntax typeParameter => GetIndentationFromCommaSeparatedList(indenter, typeParameter.Parameters, token),
-            EnumDeclarationSyntax enumDeclaration => GetIndentationFromCommaSeparatedList(indenter, enumDeclaration.Members, token),
-            InitializerExpressionSyntax initializerSyntax => GetIndentationFromCommaSeparatedList(indenter, initializerSyntax.Expressions, token),
-            _ => GetDefaultIndentationFromToken(indenter, token),
+            BaseArgumentListSyntax argument => TryGetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token),
+            BaseParameterListSyntax parameter => TryGetIndentationFromCommaSeparatedList(indenter, parameter.Parameters, token),
+            TypeArgumentListSyntax typeArgument => TryGetIndentationFromCommaSeparatedList(indenter, typeArgument.Arguments, token),
+            TypeParameterListSyntax typeParameter => TryGetIndentationFromCommaSeparatedList(indenter, typeParameter.Parameters, token),
+            EnumDeclarationSyntax enumDeclaration => TryGetIndentationFromCommaSeparatedList(indenter, enumDeclaration.Members, token),
+            InitializerExpressionSyntax initializerSyntax => TryGetIndentationFromCommaSeparatedList(indenter, initializerSyntax.Expressions, token),
+            _ => null,
         };
 
-    private static IndentationResult GetIndentationFromCommaSeparatedList<T>(
+    private static IndentationResult? TryGetIndentationFromCommaSeparatedList<T>(
         Indenter indenter, SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
     {
         var index = list.GetWithSeparators().IndexOf(token);
         if (index < 0)
         {
-            return GetDefaultIndentationFromToken(indenter, token);
+            return null;
         }
 
         // find node that starts at the beginning of a line
