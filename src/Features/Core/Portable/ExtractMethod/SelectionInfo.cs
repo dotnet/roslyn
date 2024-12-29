@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
-    TValidator,
     TExtractor,
     TSelectionResult,
     TStatementSyntax,

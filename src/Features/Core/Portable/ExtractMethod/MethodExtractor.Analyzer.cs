@@ -18,7 +18,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
-    TValidator,
     TExtractor,
     TSelectionResult,
     TStatementSyntax,

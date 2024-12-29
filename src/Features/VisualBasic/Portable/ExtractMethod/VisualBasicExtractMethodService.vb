@@ -12,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     <Export(GetType(IExtractMethodService)), ExportLanguageService(GetType(IExtractMethodService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend NotInheritable Class VisualBasicExtractMethodService
         Inherits AbstractExtractMethodService(Of
-            VisualBasicSelectionValidator,
             VisualBasicMethodExtractor,
             VisualBasicSelectionResult,
             StatementSyntax,
@@ -24,9 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreateSelectionValidator(document As SemanticDocument,
-                                                              textSpan As TextSpan,
-                                                              localFunction As Boolean) As VisualBasicSelectionValidator
+        Protected Overrides Function CreateSelectionValidator(document As SemanticDocument, textSpan As TextSpan, localFunction As Boolean) As SelectionValidator
             Return New VisualBasicSelectionValidator(document, textSpan)
         End Function
 
