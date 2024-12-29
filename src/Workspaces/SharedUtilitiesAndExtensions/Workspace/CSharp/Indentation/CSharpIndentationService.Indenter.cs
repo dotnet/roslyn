@@ -299,9 +299,9 @@ internal partial class CSharpIndentationService
 
             case SyntaxKind.CommaToken:
                 {
-                    if (TryGetIndentationFromCommaSeparatedList(indenter, token) is { } result)
+                    if (TryGetIndentationFromCommaSeparatedList(indenter, token) is { } commaResult)
                     {
-                        return result;
+                        return commaResult;
                     }
 
                     break;
@@ -318,8 +318,13 @@ internal partial class CSharpIndentationService
                 }
         }
 
-        return TryGetIndentationForQueryExpression(indenter, token)
-            ?? GetDefaultIndentationFromTokenLine(indenter, token);
+        var result = TryGetIndentationForQueryExpression(indenter, token);
+        if (result is not null)
+        {
+            return result.Value;
+        }
+
+        return GetDefaultIndentationFromTokenLine(indenter, token);
     }
 
     private static IndentationResult? TryGetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
