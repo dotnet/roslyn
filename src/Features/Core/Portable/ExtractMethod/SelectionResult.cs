@@ -297,16 +297,7 @@ internal abstract partial class AbstractExtractMethodService<
             var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
             var returnStatements = GetOuterReturnStatements(firstStatement.GetCommonRoot(lastStatement), controlFlowAnalysisData.ExitPoints);
             if (!returnStatements.Any())
-            {
-                if (!controlFlowAnalysisData.EndPointIsReachable)
-                {
-                    // REVIEW: should we just do extract method regardless or show some warning to user?
-                    // in dev10, looks like we went ahead and did the extract method even if selection contains
-                    // unreachable code.
-                }
-
                 return true;
-            }
 
             // okay, only branch was return. make sure we have all return in the selection.
 
