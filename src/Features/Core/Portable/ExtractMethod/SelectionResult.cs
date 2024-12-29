@@ -180,6 +180,27 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
+        /// <summary>f
+        /// convert text span to node range for the flow analysis API
+        /// </summary>
+        public (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
+        {
+            var first = this.GetFirstStatement();
+            var last = this.GetLastStatement();
+
+            // single statement case
+            if (first == last ||
+                first.Span.Contains(last.Span))
+            {
+                return (first, first);
+            }
+
+            // multiple statement case
+            var firstUnderContainer = this.GetFirstStatementUnderContainer();
+            var lastUnderContainer = this.GetLastStatementUnderContainer();
+            return (firstUnderContainer, lastUnderContainer);
+        }
+
         /// <summary>
         /// create a new root node from the given root after adding annotations to the tokens
         /// 

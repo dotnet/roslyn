@@ -51,28 +51,6 @@ internal abstract partial class AbstractExtractMethodService<
 
                 var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
                 _nonNoisySyntaxKindSet = [syntaxKinds.WhitespaceTrivia, syntaxKinds.EndOfLineTrivia];
-
-            }
-
-            /// <summary>f
-            /// convert text span to node range for the flow analysis API
-            /// </summary>
-            private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
-            {
-                var first = this.SelectionResult.GetFirstStatement();
-                var last = this.SelectionResult.GetLastStatement();
-
-                // single statement case
-                if (first == last ||
-                    first.Span.Contains(last.Span))
-                {
-                    return (first, first);
-                }
-
-                // multiple statement case
-                var firstUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
-                var lastUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
-                return (firstUnderContainer, lastUnderContainer);
             }
 
             protected abstract bool IsInPrimaryConstructorBaseType();
@@ -369,7 +347,7 @@ internal abstract partial class AbstractExtractMethodService<
                 if (SelectionResult.IsExtractMethodOnExpression)
                     return this.SemanticModel.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
-                var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
                 return this.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
             }
 
@@ -380,7 +358,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return true;
                 }
 
-                var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
                 var analysis = this.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
                 return analysis.EndPointIsReachable;
             }
@@ -772,7 +750,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
 
-                var (firstStatement, lastStatement) = GetFlowAnalysisNodeRange();
+                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
                 var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
 
                 return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
