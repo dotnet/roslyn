@@ -477,22 +477,20 @@ internal partial class CSharpIndentationService
 
         // find containing non expression node
         var nonExpressionNode = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is StatementSyntax);
-        if (nonExpressionNode == null)
+        if (nonExpressionNode != null)
         {
-            // well, I can't find any non expression node. use default behavior
-            return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
+            // find line where first token of the node is
+            var firstTokenLine = sourceText.Lines.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
+
+            // multiline expression
+            if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
+            {
+                // okay, looks like containing node is written over multiple lines, in that case, give same indentation as given token
+                return indenter.GetIndentationOfLine(givenTokenLine);
+            }
         }
 
-        // find line where first token of the node is
-        var firstTokenLine = sourceText.Lines.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
-
-        // single line expression
-        if (firstTokenLine.LineNumber == givenTokenLine.LineNumber)
-        {
-            return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
-        }
-
-        // okay, looks like containing node is written over multiple lines, in that case, give same indentation as given token
-        return indenter.GetIndentationOfLine(givenTokenLine);
+        // well, I can't find any non expression node. use default behavior
+        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
     }
 }
