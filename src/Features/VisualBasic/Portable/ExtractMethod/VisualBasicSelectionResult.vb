@@ -379,51 +379,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Function ValidateLanguageSpecificRules(cancellationToken As CancellationToken) As OperationStatus
-                Dim containsAllStaticLocals = ContainsAllStaticLocalUsagesDefinedInSelectionIfExist()
-                If Not containsAllStaticLocals Then
-                    Return New OperationStatus(succeeded:=True, VBFeaturesResources.all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection)
+                ' static local can't exist in field initializer
+                If Me.GetFirstTokenInSelection().GetAncestor(Of FieldDeclarationSyntax)() Is Nothing AndAlso
+                   Me.GetFirstTokenInSelection().GetAncestor(Of PropertyStatementSyntax)() Is Nothing Then
+
+                    Dim dataFlowAnalysis = Me.GetDataFlowAnalysis()
+                    For Each symbol In dataFlowAnalysis.VariablesDeclared
+                        Dim local = TryCast(symbol, ILocalSymbol)
+                        If local?.IsStatic = True Then
+                            If dataFlowAnalysis.WrittenOutside().Contains(local) OrElse
+                               dataFlowAnalysis.ReadOutside().Contains(local) Then
+                                Return New OperationStatus(succeeded:=True, VBFeaturesResources.all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection)
+                            End If
+                        End If
+                    Next
                 End If
 
                 Return OperationStatus.SucceededStatus
             End Function
-
-            Private Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist() As Boolean
-                If Me.GetFirstTokenInSelection().GetAncestor(Of FieldDeclarationSyntax)() IsNot Nothing OrElse
-                   Me.GetFirstTokenInSelection().GetAncestor(Of PropertyStatementSyntax)() IsNot Nothing Then
-                    ' static local can't exist in field initializer
-                    Return True
-                End If
-
-                Dim result As DataFlowAnalysis
-
-                Dim semanticModel = Me.SemanticDocument.SemanticModel
-                If Me.IsExtractMethodOnExpression Then
-                    Dim expression = Me.GetFirstTokenInSelection().GetCommonRoot(Me.GetLastTokenInSelection()).GetAncestorOrThis(Of ExpressionSyntax)()
-                    result = SemanticModel.AnalyzeDataFlow(expression)
-                Else
-                    Dim range = Me.GetFlowAnalysisNodeRange()
-                    result = SemanticModel.AnalyzeDataFlow(range.firstStatement, range.lastStatement)
-                End If
-
-                For Each symbol In result.VariablesDeclared
-                    Dim local = TryCast(symbol, ILocalSymbol)
-                    If local Is Nothing Then
-                        Continue For
-                    End If
-
-                    If Not local.IsStatic Then
-                        Continue For
-                    End If
-
-                    If result.WrittenOutside().Any(Function(s) Equals(s, local)) OrElse
-                        result.ReadOutside().Any(Function(s) Equals(s, local)) Then
-                        Return False
-                    End If
-                Next
-
-                Return True
-            End Function
-
         End Class
     End Class
 End Namespace
