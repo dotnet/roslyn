@@ -63,9 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return InitialSelectionInfo.Failure(FeaturesResources.No_valid_selection_to_perform_extraction)
                 End If
 
-                Return If(selectionInExpression,
-                    InitialSelectionInfo.Expression(firstTokenInSelection, lastTokenInSelection),
-                    InitialSelectionInfo.Statement(Me.SemanticDocument, firstTokenInSelection, lastTokenInSelection, cancellationToken))
+                Return CreateInitialSelectionInfo(
+                    selectionInExpression, firstTokenInSelection, lastTokenInSelection, cancellationToken)
             End Function
 
             Protected Overrides Function UpdateSelectionInfo(initialSelectionInfo As InitialSelectionInfo, cancellationToken As CancellationToken) As FinalSelectionInfo

@@ -43,9 +43,8 @@ internal sealed partial class CSharpExtractMethodService
             if (statusReason is not null)
                 return InitialSelectionInfo.Failure(statusReason);
 
-            return selectionInExpression
-                ? InitialSelectionInfo.Expression(firstTokenInSelection, lastTokenInSelection)
-                : InitialSelectionInfo.Statement(this.SemanticDocument, firstTokenInSelection, lastTokenInSelection, cancellationToken);
+            return CreateInitialSelectionInfo(
+                selectionInExpression, firstTokenInSelection, lastTokenInSelection, cancellationToken);
 
             string? CheckSpan()
             {
