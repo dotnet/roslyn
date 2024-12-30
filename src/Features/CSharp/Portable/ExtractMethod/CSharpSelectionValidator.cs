@@ -25,8 +25,61 @@ internal sealed partial class CSharpExtractMethodService
     {
         private readonly bool _localFunction = localFunction;
 
+        protected override (SelectionInfo info, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan)
+            GetInitialSelectionInfo()
+        {
+            var root = this.SemanticDocument.Root;
+
+            var adjustedSpan = GetAdjustedSpan(OriginalSpan);
+
+            var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
+            var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
+
+            if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
+                return (new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection) }, firstTokenInSelection, lastTokenInSelection);
+
+            var commonRoot = firstTokenInSelection.GetCommonRoot(lastTokenInSelection);
+            var selectionInExpression = commonRoot is ExpressionSyntax;
+
+            var statusReason = CheckSpan();
+            if (statusReason is not null)
+                return (new() { Status = new OperationStatus(succeeded: false, statusReason) }, firstTokenInSelection, lastTokenInSelection);
+
+            return (new()
+            {
+                Status = OperationStatus.SucceededStatus,
+                CommonRootFromOriginalSpan = commonRoot,
+                SelectionInExpression = selectionInExpression,
+            }, firstTokenInSelection, lastTokenInSelection);
+
+            string? CheckSpan()
+            {
+                if (firstTokenInSelection.SpanStart > lastTokenInSelection.Span.End)
+                    return FeaturesResources.Selection_does_not_contain_a_valid_token;
+
+                if (!UnderValidContext(firstTokenInSelection) || !UnderValidContext(lastTokenInSelection))
+                    return FeaturesResources.No_valid_selection_to_perform_extraction;
+
+                if (commonRoot == null)
+                    return FeaturesResources.No_common_root_node_for_extraction;
+
+                if (!commonRoot.ContainedInValidType())
+                    return FeaturesResources.Selection_not_contained_inside_a_type;
+
+                if (!selectionInExpression && !commonRoot.UnderValidContext())
+                    return FeaturesResources.No_valid_selection_to_perform_extraction;
+
+                return null;
+            }
+        }
+
         protected override SelectionInfo UpdateSelectionInfo(
-            SelectionInfo selectionInfo, StatementSyntax? firstStatement, StatementSyntax? lastStatement, CancellationToken cancellationToken)
+            SelectionInfo selectionInfo,
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
+            StatementSyntax? firstStatement,
+            StatementSyntax? lastStatement,
+            CancellationToken cancellationToken)
         {
             var root = SemanticDocument.Root;
             var model = SemanticDocument.SemanticModel;
@@ -34,7 +87,7 @@ internal sealed partial class CSharpExtractMethodService
             // go through pipe line and calculate information about the user selection
             selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
-            selectionInfo = AssignFinalSpan(selectionInfo);
+            selectionInfo = AssignFinalSpan(selectionInfo, firstTokenInOriginalSpan, lastTokenInOriginalSpan);
             selectionInfo = ApplySpecialCases(selectionInfo, SemanticDocument.SyntaxTree.Options, _localFunction);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
@@ -42,12 +95,12 @@ internal sealed partial class CSharpExtractMethodService
         }
 
         protected override async Task<SelectionResult> CreateSelectionResultAsync(
-            SelectionInfo selectionInfo, CancellationToken cancellationToken)
+            SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(ContainsValidSelection);
             Contract.ThrowIfFalse(selectionInfo.Status.Succeeded);
 
-            var selectionChanged = selectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || selectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
+            var selectionChanged = firstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || lastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
             return await CSharpSelectionResult.CreateAsync(
                 SemanticDocument,
@@ -164,83 +217,6 @@ internal sealed partial class CSharpExtractMethodService
                 SelectionInSingleStatement = firstValidNode is StatementSyntax,
                 FirstTokenInFinalSpan = firstValidNode.GetFirstToken(includeZeroWidth: true),
                 LastTokenInFinalSpan = firstValidNode.GetLastToken(includeZeroWidth: true),
-            };
-        }
-
-        protected override SelectionInfo GetInitialSelectionInfo()
-        {
-            var root = this.SemanticDocument.Root;
-
-            var adjustedSpan = GetAdjustedSpan(OriginalSpan);
-
-            var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
-            var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
-
-            if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
-            {
-                return new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection) };
-            }
-
-            if (firstTokenInSelection.SpanStart > lastTokenInSelection.Span.End)
-            {
-                return new()
-                {
-                    Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_does_not_contain_a_valid_token),
-                    FirstTokenInOriginalSpan = firstTokenInSelection,
-                    LastTokenInOriginalSpan = lastTokenInSelection
-                };
-            }
-
-            if (!UnderValidContext(firstTokenInSelection) || !UnderValidContext(lastTokenInSelection))
-            {
-                return new()
-                {
-                    Status = new OperationStatus(succeeded: false, FeaturesResources.No_valid_selection_to_perform_extraction),
-                    FirstTokenInOriginalSpan = firstTokenInSelection,
-                    LastTokenInOriginalSpan = lastTokenInSelection
-                };
-            }
-
-            var commonRoot = firstTokenInSelection.GetCommonRoot(lastTokenInSelection);
-
-            if (commonRoot == null)
-            {
-                return new()
-                {
-                    Status = new OperationStatus(succeeded: false, FeaturesResources.No_common_root_node_for_extraction),
-                    FirstTokenInOriginalSpan = firstTokenInSelection,
-                    LastTokenInOriginalSpan = lastTokenInSelection
-                };
-            }
-
-            if (!commonRoot.ContainedInValidType())
-            {
-                return new()
-                {
-                    Status = new OperationStatus(succeeded: false, FeaturesResources.Selection_not_contained_inside_a_type),
-                    FirstTokenInOriginalSpan = firstTokenInSelection,
-                    LastTokenInOriginalSpan = lastTokenInSelection
-                };
-            }
-
-            var selectionInExpression = commonRoot is ExpressionSyntax;
-            if (!selectionInExpression && !commonRoot.UnderValidContext())
-            {
-                return new()
-                {
-                    Status = new OperationStatus(succeeded: false, FeaturesResources.No_valid_selection_to_perform_extraction),
-                    FirstTokenInOriginalSpan = firstTokenInSelection,
-                    LastTokenInOriginalSpan = lastTokenInSelection
-                };
-            }
-
-            return new()
-            {
-                Status = OperationStatus.SucceededStatus,
-                CommonRootFromOriginalSpan = commonRoot,
-                SelectionInExpression = selectionInExpression,
-                FirstTokenInOriginalSpan = firstTokenInSelection,
-                LastTokenInOriginalSpan = lastTokenInSelection
             };
         }
 

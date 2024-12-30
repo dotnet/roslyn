@@ -22,8 +22,8 @@ internal abstract partial class AbstractExtractMethodService<
 
         public SyntaxNode CommonRootFromOriginalSpan { get; init; }
 
-        public SyntaxToken FirstTokenInOriginalSpan { get; init; }
-        public SyntaxToken LastTokenInOriginalSpan { get; init; }
+        //public SyntaxToken FirstTokenInOriginalSpan { get; init; }
+        //public SyntaxToken LastTokenInOriginalSpan { get; init; }
 
         public SyntaxToken FirstTokenInFinalSpan { get; init; }
         public SyntaxToken LastTokenInFinalSpan { get; init; }

@@ -31,18 +31,19 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract TextSpan GetAdjustedSpan(TextSpan textSpan);
 
-        protected abstract SelectionInfo GetInitialSelectionInfo();
+        protected abstract (SelectionInfo info, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan) GetInitialSelectionInfo();
 
         protected abstract SelectionInfo UpdateSelectionInfo(
-            SelectionInfo selectionInfo, TStatementSyntax? firstStatement, TStatementSyntax? lastStatement, CancellationToken cancellationToken);
-        protected abstract Task<SelectionResult> CreateSelectionResultAsync(SelectionInfo selectionInfo, CancellationToken cancellationToken);
+            SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan, TStatementSyntax? firstStatement, TStatementSyntax? lastStatement, CancellationToken cancellationToken);
+        protected abstract Task<SelectionResult> CreateSelectionResultAsync(
+            SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan, CancellationToken cancellationToken);
 
         public async Task<(SelectionResult?, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
             if (!this.ContainsValidSelection)
                 return (null, OperationStatus.FailedWithUnknownReason);
 
-            var selectionInfo = this.GetInitialSelectionInfo();
+            var (selectionInfo, firstTokenInOriginalSpan, lastTokenInOriginalSpan) = this.GetInitialSelectionInfo();
             if (selectionInfo.Status.Failed)
                 return (null, selectionInfo.Status);
 
@@ -51,8 +52,7 @@ internal abstract partial class AbstractExtractMethodService<
             if (!selectionInfo.SelectionInExpression)
             {
                 var range = GetStatementRangeContainingSpan(
-                    this.SemanticDocument.Root, TextSpan.FromBounds(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.LastTokenInOriginalSpan.Span.End),
-                    cancellationToken);
+                    this.SemanticDocument.Root, firstTokenInOriginalSpan, lastTokenInOriginalSpan, cancellationToken);
 
                 if (range is null)
                     return (null, new(succeeded: false, FeaturesResources.No_valid_statement_range_to_extract));
@@ -60,7 +60,8 @@ internal abstract partial class AbstractExtractMethodService<
                 (firstStatement, lastStatement) = range.Value;
             }
 
-            selectionInfo = UpdateSelectionInfo(selectionInfo, firstStatement, lastStatement, cancellationToken);
+            selectionInfo = UpdateSelectionInfo(
+                selectionInfo, firstTokenInOriginalSpan, lastTokenInOriginalSpan, firstStatement, lastStatement, cancellationToken);
             if (selectionInfo.Status.Failed)
                 return (null, selectionInfo.Status);
 
@@ -107,13 +108,16 @@ internal abstract partial class AbstractExtractMethodService<
 
         private (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
             SyntaxNode root,
-            TextSpan textSpan,
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
             CancellationToken cancellationToken)
         {
             var blockFacts = this.SemanticDocument.GetRequiredLanguageService<IBlockFactsService>();
 
-            // use top-down approach to find smallest statement range that contains given span.
-            // this approach is more expansive than bottom-up approach I used before but way simpler and easy to understand
+            // use top-down approach to find smallest statement range that contains given span. this approach is more
+            // expansive than bottom-up approach I used before but way simpler and easy to understand
+            var textSpan = TextSpan.FromBounds(firstTokenInOriginalSpan.SpanStart, lastTokenInOriginalSpan.Span.End);
+
             var token1 = root.FindToken(textSpan.Start);
             var token2 = root.FindTokenFromEnd(textSpan.End);
 
@@ -168,7 +172,8 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        protected SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo)
+        protected SelectionInfo AssignFinalSpan(
+            SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan)
         {
             if (selectionInfo.Status.Failed)
                 return selectionInfo;
@@ -176,12 +181,12 @@ internal abstract partial class AbstractExtractMethodService<
             var adjustedSpan = GetAdjustedSpan(OriginalSpan);
 
             // set final span
-            var start = selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan
-                ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, adjustedSpan.Start)
+            var start = firstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan
+                ? Math.Min(firstTokenInOriginalSpan.SpanStart, adjustedSpan.Start)
                 : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
 
-            var end = selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan
-                ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, adjustedSpan.End)
+            var end = lastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan
+                ? Math.Max(lastTokenInOriginalSpan.Span.End, adjustedSpan.End)
                 : selectionInfo.LastTokenInFinalSpan.Span.End;
 
             return selectionInfo with
