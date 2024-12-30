@@ -54,6 +54,11 @@ internal abstract partial class AbstractExtractMethodService<
         public SyntaxNode CommonRoot => this.FirstTokenInOriginalSpan.GetCommonRoot(this.LastTokenInOriginalSpan);
     }
 
+    /// <summary>
+    /// Information about the final selection we adjust the the user's selection to. Kept separate from <see
+    /// cref="FinalSelectionInfo"/> to ensure different phases of the extract method process do not accidentally use the
+    /// wrong information.
+    /// </summary>
     internal sealed record FinalSelectionInfo
     {
         public required OperationStatus Status { get; init; }

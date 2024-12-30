@@ -58,7 +58,7 @@ internal abstract partial class AbstractExtractMethodService<
         public abstract SyntaxNode GetContainingScope();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnType();
+        public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnType(CancellationToken cancellationToken);
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
@@ -66,9 +66,9 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 
-        public ITypeSymbol? GetContainingScopeType()
+        public ITypeSymbol? GetContainingScopeType(CancellationToken cancellationToken)
         {
-            var (typeSymbol, _) = GetReturnType();
+            var (typeSymbol, _) = GetReturnType(cancellationToken);
             return typeSymbol;
         }
 

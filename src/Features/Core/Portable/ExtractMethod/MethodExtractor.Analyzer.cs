@@ -260,16 +260,7 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private bool IsInExpressionOrHasReturnStatement()
-            {
-                var isInExpressionOrHasReturnStatement = SelectionResult.IsExtractMethodOnExpression;
-                if (!isInExpressionOrHasReturnStatement)
-                {
-                    var containsReturnStatement = ContainsReturnStatementInSelectedCode();
-                    isInExpressionOrHasReturnStatement |= containsReturnStatement;
-                }
-
-                return isInExpressionOrHasReturnStatement;
-            }
+                => SelectionResult.IsExtractMethodOnExpression || ContainsReturnStatementInSelectedCode();
 
             private OperationStatus GetOperationStatus(
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
