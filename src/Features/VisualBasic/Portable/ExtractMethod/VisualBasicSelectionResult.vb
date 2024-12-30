@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Public Shared Async Function CreateResultAsync(
                     document As SemanticDocument,
-                    selectionInfo As SelectionInfo,
+                    selectionInfo As FinalSelectionInfo,
                     selectionChanged As Boolean,
                     cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 

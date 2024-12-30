@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +24,7 @@ internal sealed partial class CSharpExtractMethodService
     {
         private readonly bool _localFunction = localFunction;
 
-        protected override (SelectionInfo info, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan)
-            GetInitialSelectionInfo()
+        protected override InitialSelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken)
         {
             var root = this.SemanticDocument.Root;
 
@@ -36,21 +34,16 @@ internal sealed partial class CSharpExtractMethodService
             var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
 
             if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
-                return (new SelectionInfo { Status = new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection) }, firstTokenInSelection, lastTokenInSelection);
+                return new(new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection));
 
             var commonRoot = firstTokenInSelection.GetCommonRoot(lastTokenInSelection);
             var selectionInExpression = commonRoot is ExpressionSyntax;
 
             var statusReason = CheckSpan();
             if (statusReason is not null)
-                return (new() { Status = new OperationStatus(succeeded: false, statusReason) }, firstTokenInSelection, lastTokenInSelection);
+                return new(new OperationStatus(succeeded: false, statusReason));
 
-            return (new()
-            {
-                Status = OperationStatus.SucceededStatus,
-                CommonRootFromOriginalSpan = commonRoot,
-                SelectionInExpression = selectionInExpression,
-            }, firstTokenInSelection, lastTokenInSelection);
+            return new(this.SemanticDocument, OperationStatus.SucceededStatus, firstTokenInSelection, lastTokenInSelection, cancellationToken);
 
             string? CheckSpan()
             {
@@ -73,34 +66,30 @@ internal sealed partial class CSharpExtractMethodService
             }
         }
 
-        protected override SelectionInfo UpdateSelectionInfo(
-            SelectionInfo selectionInfo,
-            SyntaxToken firstTokenInOriginalSpan,
-            SyntaxToken lastTokenInOriginalSpan,
-            StatementSyntax? firstStatement,
-            StatementSyntax? lastStatement,
+        protected override FinalSelectionInfo UpdateSelectionInfo(
+            InitialSelectionInfo initialSelectionInfo,
             CancellationToken cancellationToken)
         {
             var root = SemanticDocument.Root;
             var model = SemanticDocument.SemanticModel;
 
             // go through pipe line and calculate information about the user selection
-            selectionInfo = AssignInitialFinalTokens(selectionInfo, firstStatement, lastStatement);
+            var selectionInfo = AssignInitialFinalTokens(initialSelectionInfo);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
-            selectionInfo = AssignFinalSpan(selectionInfo, firstTokenInOriginalSpan, lastTokenInOriginalSpan);
-            selectionInfo = ApplySpecialCases(selectionInfo, SemanticDocument.SyntaxTree.Options, _localFunction);
+            selectionInfo = AssignFinalSpan(initialSelectionInfo, selectionInfo);
+            selectionInfo = ApplySpecialCases(initialSelectionInfo, selectionInfo, SemanticDocument.SyntaxTree.Options, _localFunction);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
             return selectionInfo;
         }
 
         protected override async Task<SelectionResult> CreateSelectionResultAsync(
-            SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan, CancellationToken cancellationToken)
+            InitialSelectionInfo initialSelectionInfo, FinalSelectionInfo selectionInfo, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(ContainsValidSelection);
             Contract.ThrowIfFalse(selectionInfo.Status.Succeeded);
 
-            var selectionChanged = firstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || lastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
+            var selectionChanged = initialSelectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || initialSelectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
 
             return await CSharpSelectionResult.CreateAsync(
                 SemanticDocument,
@@ -109,10 +98,11 @@ internal sealed partial class CSharpExtractMethodService
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, ParseOptions options, bool localFunction)
+        private FinalSelectionInfo ApplySpecialCases(
+            InitialSelectionInfo initialSelectionInfo, FinalSelectionInfo finalSelectionInfo, ParseOptions options, bool localFunction)
         {
-            if (selectionInfo.Status.Failed)
-                return selectionInfo;
+            if (finalSelectionInfo.Status.Failed)
+                return finalSelectionInfo;
 
             // If we're under a global statement (and not inside an inner lambda/local-function) then there are restrictions
             // on if we can extract a method vs a local function.
@@ -120,37 +110,37 @@ internal sealed partial class CSharpExtractMethodService
             {
                 // Cannot extract a method from a top-level statement in normal code
                 if (!localFunction && options is { Kind: SourceCodeKind.Regular })
-                    return selectionInfo with { Status = selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_top_level_statements) };
+                    return finalSelectionInfo with { Status = finalSelectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_top_level_statements) };
 
                 // Cannot extract a local function from a global statement in script code
                 if (localFunction && options is { Kind: SourceCodeKind.Script })
-                    return selectionInfo with { Status = selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_global_statements) };
+                    return finalSelectionInfo with { Status = finalSelectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_include_global_statements) };
             }
 
             if (_localFunction)
             {
-                foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
+                foreach (var ancestor in initialSelectionInfo.CommonRoot.AncestorsAndSelf())
                 {
                     if (ancestor.Kind() is SyntaxKind.BaseConstructorInitializer or SyntaxKind.ThisConstructorInitializer)
-                        return selectionInfo with { Status = selectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer) };
+                        return finalSelectionInfo with { Status = finalSelectionInfo.Status.With(succeeded: false, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer) };
 
                     if (ancestor is AnonymousFunctionExpressionSyntax)
                         break;
                 }
             }
 
-            if (!selectionInfo.SelectionInExpression)
-                return selectionInfo;
+            if (!finalSelectionInfo.SelectionInExpression)
+                return finalSelectionInfo;
 
-            var expressionNode = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
+            var expressionNode = finalSelectionInfo.FirstTokenInFinalSpan.GetCommonRoot(finalSelectionInfo.LastTokenInFinalSpan);
             if (expressionNode is not AssignmentExpressionSyntax assign)
-                return selectionInfo;
+                return finalSelectionInfo;
 
             // make sure there is a visible token at right side expression
             if (assign.Right.GetLastToken().Kind() == SyntaxKind.None)
-                return selectionInfo;
+                return finalSelectionInfo;
 
-            return AssignFinalSpan(selectionInfo with
+            return AssignFinalSpan(initialSelectionInfo, finalSelectionInfo with
             {
                 FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true),
                 LastTokenInFinalSpan = assign.Right.GetLastToken(includeZeroWidth: true),
@@ -158,7 +148,7 @@ internal sealed partial class CSharpExtractMethodService
 
             bool IsCodeInGlobalLevel()
             {
-                for (var current = selectionInfo.CommonRootFromOriginalSpan; current != null; current = current.Parent)
+                for (var current = initialSelectionInfo.CommonRoot; current != null; current = current.Parent)
                 {
                     if (current is CompilationUnitSyntax)
                         return true;
@@ -174,8 +164,8 @@ internal sealed partial class CSharpExtractMethodService
             }
         }
 
-        private static SelectionInfo AdjustFinalTokensBasedOnContext(
-            SelectionInfo selectionInfo,
+        private static FinalSelectionInfo AdjustFinalTokensBasedOnContext(
+            FinalSelectionInfo selectionInfo,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -281,8 +271,8 @@ internal sealed partial class CSharpExtractMethodService
             return expressionBodiedMemberBody.Contains(textSpan);
         }
 
-        private static SelectionInfo CheckErrorCasesAndAppendDescriptions(
-            SelectionInfo selectionInfo,
+        private static FinalSelectionInfo CheckErrorCasesAndAppendDescriptions(
+            FinalSelectionInfo selectionInfo,
             SyntaxNode root)
         {
             if (selectionInfo.Status.Failed)
@@ -364,32 +354,33 @@ internal sealed partial class CSharpExtractMethodService
             return selectionInfo;
         }
 
-        private static SelectionInfo AssignInitialFinalTokens(
-            SelectionInfo selectionInfo, StatementSyntax? firstStatement, StatementSyntax? lastStatement)
+        private static FinalSelectionInfo AssignInitialFinalTokens(
+            InitialSelectionInfo selectionInfo)
         {
-            if (selectionInfo.Status.Failed)
-                return selectionInfo;
-
             if (selectionInfo.SelectionInExpression)
             {
                 // simple expression case
-                return selectionInfo with
+                return new()
                 {
-                    FirstTokenInFinalSpan = selectionInfo.CommonRootFromOriginalSpan.GetFirstToken(includeZeroWidth: true),
-                    LastTokenInFinalSpan = selectionInfo.CommonRootFromOriginalSpan.GetLastToken(includeZeroWidth: true),
+                    Status = selectionInfo.Status,
+                    SelectionInExpression = true,
+                    FirstTokenInFinalSpan = selectionInfo.CommonRoot.GetFirstToken(includeZeroWidth: true),
+                    LastTokenInFinalSpan = selectionInfo.CommonRoot.GetLastToken(includeZeroWidth: true),
                 };
             }
 
+            var (firstStatement, lastStatement) = (selectionInfo.FirstStatement, selectionInfo.LastStatement);
             Contract.ThrowIfNull(firstStatement);
             Contract.ThrowIfNull(lastStatement);
             if (firstStatement == lastStatement)
             {
                 // check one more time to see whether it is an expression case
-                var expression = selectionInfo.CommonRootFromOriginalSpan.GetAncestor<ExpressionSyntax>();
+                var expression = selectionInfo.CommonRoot.GetAncestor<ExpressionSyntax>();
                 if (expression != null && firstStatement.Span.Contains(expression.Span))
                 {
-                    return selectionInfo with
+                    return new()
                     {
+                        Status = selectionInfo.Status,
                         SelectionInExpression = true,
                         FirstTokenInFinalSpan = expression.GetFirstToken(includeZeroWidth: true),
                         LastTokenInFinalSpan = expression.GetLastToken(includeZeroWidth: true),
@@ -397,8 +388,9 @@ internal sealed partial class CSharpExtractMethodService
                 }
 
                 // single statement case
-                return selectionInfo with
+                return new()
                 {
+                    Status = selectionInfo.Status,
                     SelectionInSingleStatement = true,
                     FirstTokenInFinalSpan = firstStatement.GetFirstToken(includeZeroWidth: true),
                     LastTokenInFinalSpan = firstStatement.GetLastToken(includeZeroWidth: true),
@@ -406,8 +398,9 @@ internal sealed partial class CSharpExtractMethodService
             }
 
             // move only statements inside of the block
-            return selectionInfo with
+            return new()
             {
+                Status = selectionInfo.Status,
                 FirstTokenInFinalSpan = firstStatement.GetFirstToken(includeZeroWidth: true),
                 LastTokenInFinalSpan = lastStatement.GetLastToken(includeZeroWidth: true),
             };

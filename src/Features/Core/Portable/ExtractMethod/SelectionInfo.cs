@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,29 +16,118 @@ internal abstract partial class AbstractExtractMethodService<
     TExecutableStatementSyntax,
     TExpressionSyntax>
 {
-    internal sealed record InitialSelectionInfo
+    internal sealed class InitialSelectionInfo
     {
-        public required OperationStatus Status { get; init; }
+        public readonly OperationStatus Status;
 
-        public bool SelectionInExpression { get; init; }
+        public readonly bool SelectionInExpression;
 
-        public SyntaxToken FirstTokenInOriginalSpan { get; init; }
-        public SyntaxToken LastTokenInOriginalSpan { get; init; }
+        public readonly SyntaxToken FirstTokenInOriginalSpan;
+        public readonly SyntaxToken LastTokenInOriginalSpan;
 
-        public TStatementSyntax? FirstStatement { get; init; }
-        public TStatementSyntax? LastStatement { get; init; }
+        public readonly TStatementSyntax? FirstStatement;
+        public readonly TStatementSyntax? LastStatement;
+
+        public InitialSelectionInfo(OperationStatus status)
+            => Status = status;
+
+        public InitialSelectionInfo(
+            SemanticDocument document,
+            OperationStatus status,
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
+            CancellationToken cancellationToken)
+            : this(status)
+        {
+            FirstTokenInOriginalSpan = firstTokenInOriginalSpan;
+            LastTokenInOriginalSpan = lastTokenInOriginalSpan;
+            SelectionInExpression = this.CommonRoot is TExpressionSyntax;
+
+            if (!SelectionInExpression)
+            {
+                var statements = GetStatementRangeContainingSpan(document, firstTokenInOriginalSpan, lastTokenInOriginalSpan, cancellationToken);
+                if (statements != null)
+                    (FirstStatement, LastStatement) = statements.Value;
+                else
+                    Status = Status.With(succeeded: false, FeaturesResources.No_valid_statement_range_to_extract);
+            }
+        }
+
+        public SyntaxNode CommonRoot => this.FirstTokenInOriginalSpan.GetCommonRoot(this.LastTokenInOriginalSpan);
+
+        private static (TStatementSyntax firstStatement, TStatementSyntax lastStatement)? GetStatementRangeContainingSpan(
+            SemanticDocument document,
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
+            CancellationToken cancellationToken)
+        {
+            var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
+
+            // use top-down approach to find smallest statement range that contains given span. this approach is more
+            // expansive than bottom-up approach I used before but way simpler and easy to understand
+            var textSpan = TextSpan.FromBounds(firstTokenInOriginalSpan.SpanStart, lastTokenInOriginalSpan.Span.End);
+
+            var root = document.Root;
+            var token1 = root.FindToken(textSpan.Start);
+            var token2 = root.FindTokenFromEnd(textSpan.End);
+
+            var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<TStatementSyntax>() ?? root;
+
+            TStatementSyntax? firstStatement = null;
+            TStatementSyntax? lastStatement = null;
+
+            var spine = new List<TStatementSyntax>();
+
+            foreach (var statement in commonRoot.DescendantNodesAndSelf().OfType<TStatementSyntax>())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // quick skip check.
+                // - not containing at all
+                if (statement.Span.End < textSpan.Start)
+                    continue;
+
+                // quick exit check
+                // - passed candidate statements
+                if (textSpan.End < statement.SpanStart)
+                    break;
+
+                if (statement.SpanStart <= textSpan.Start)
+                {
+                    // keep track spine
+                    spine.Add(statement);
+                }
+
+                if (textSpan.End <= statement.Span.End && spine.Any(s => AreStatementsInSameContainer(s, statement)))
+                {
+                    // malformed code or selection can make spine to have more than an elements
+                    firstStatement = spine.First(s => AreStatementsInSameContainer(s, statement));
+                    lastStatement = statement;
+
+                    spine.Clear();
+                }
+            }
+
+            if (firstStatement == null || lastStatement == null)
+                return null;
+
+            return (firstStatement, lastStatement);
+
+            bool AreStatementsInSameContainer(TStatementSyntax statement1, TStatementSyntax statement2)
+            {
+                var parent1 = blockFacts.GetImmediateParentExecutableBlockForStatement(statement1) ?? statement1.Parent;
+                var parent2 = blockFacts.GetImmediateParentExecutableBlockForStatement(statement2) ?? statement2.Parent;
+
+                return parent1 == parent2;
+            }
+        }
     }
 
-    internal sealed record SelectionInfo
+    internal sealed record FinalSelectionInfo
     {
         public required OperationStatus Status { get; init; }
 
         public TextSpan FinalSpan { get; init; }
-
-        public required SyntaxNode CommonRootFromOriginalSpan { get; init; }
-
-        //public SyntaxToken FirstTokenInOriginalSpan { get; init; }
-        //public SyntaxToken LastTokenInOriginalSpan { get; init; }
 
         public SyntaxToken FirstTokenInFinalSpan { get; init; }
         public SyntaxToken LastTokenInFinalSpan { get; init; }
@@ -45,7 +138,7 @@ internal abstract partial class AbstractExtractMethodService<
         /// <summary>
         /// For VB.  C# should just use standard <c>with</c> operator.
         /// </summary>
-        public SelectionInfo With(
+        public FinalSelectionInfo With(
             Optional<OperationStatus> status = default,
             Optional<TextSpan> finalSpan = default,
             Optional<SyntaxToken> firstTokenInFinalSpan = default,

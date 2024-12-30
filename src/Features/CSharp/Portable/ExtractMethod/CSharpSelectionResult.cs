@@ -32,7 +32,7 @@ internal sealed partial class CSharpExtractMethodService
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
             SemanticDocument document,
-            SelectionInfo selectionInfo,
+            FinalSelectionInfo selectionInfo,
             bool selectionChanged,
             CancellationToken cancellationToken)
         {
