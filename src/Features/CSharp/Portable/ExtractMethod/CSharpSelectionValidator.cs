@@ -85,18 +85,13 @@ internal sealed partial class CSharpExtractMethodService
         }
 
         protected override async Task<SelectionResult> CreateSelectionResultAsync(
-            InitialSelectionInfo initialSelectionInfo, FinalSelectionInfo selectionInfo, CancellationToken cancellationToken)
+            FinalSelectionInfo selectionInfo, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(ContainsValidSelection);
             Contract.ThrowIfFalse(selectionInfo.Status.Succeeded);
 
-            var selectionChanged = initialSelectionInfo.FirstTokenInOriginalSpan != selectionInfo.FirstTokenInFinalSpan || initialSelectionInfo.LastTokenInOriginalSpan != selectionInfo.LastTokenInFinalSpan;
-
             return await CSharpSelectionResult.CreateAsync(
-                SemanticDocument,
-                selectionInfo,
-                selectionChanged,
-                cancellationToken).ConfigureAwait(false);
+                SemanticDocument, selectionInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private FinalSelectionInfo ApplySpecialCases(

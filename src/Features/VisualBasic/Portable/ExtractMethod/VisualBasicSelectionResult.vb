@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Public Shared Async Function CreateResultAsync(
                     document As SemanticDocument,
                     selectionInfo As FinalSelectionInfo,
-                    selectionChanged As Boolean,
                     cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 
                 Contract.ThrowIfNull(document)
@@ -33,21 +32,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New VisualBasicSelectionResult(
                     newDocument,
                     selectionInfo.GetSelectionType(),
-                    selectionInfo.FinalSpan,
-                    selectionChanged)
+                    selectionInfo.FinalSpan)
             End Function
 
             Private Sub New(
                 document As SemanticDocument,
                 selectionType As SelectionType,
-                finalSpan As TextSpan,
-                selectionChanged As Boolean)
+                finalSpan As TextSpan)
 
-                MyBase.New(
-                    document,
-                    selectionType,
-                    finalSpan,
-                    selectionChanged)
+                MyBase.New(document, selectionType, finalSpan)
             End Sub
 
             Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance

@@ -25,9 +25,8 @@ internal sealed partial class CSharpExtractMethodService
         private sealed class ExpressionResult(
             SemanticDocument document,
             SelectionType selectionType,
-            TextSpan finalSpan,
-            bool selectionChanged) : CSharpSelectionResult(
-                document, selectionType, finalSpan, selectionChanged)
+            TextSpan finalSpan)
+            : CSharpSelectionResult(document, selectionType, finalSpan)
         {
             public override bool ContainingScopeHasAsyncKeyword()
                 => false;

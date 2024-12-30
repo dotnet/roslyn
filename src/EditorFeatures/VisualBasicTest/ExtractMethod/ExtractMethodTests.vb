@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     Assert.True(status.Succeeded, "Selection wasn't expected to fail")
                 End If
 
-                If status.Succeeded AndAlso result.SelectionChanged Then
+                If status.Succeeded AndAlso namedSpans.ContainsKey("r") Then
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using

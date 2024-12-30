@@ -25,15 +25,13 @@ internal sealed partial class CSharpExtractMethodService
     internal abstract partial class CSharpSelectionResult(
         SemanticDocument document,
         SelectionType selectionType,
-        TextSpan finalSpan,
-        bool selectionChanged)
+        TextSpan finalSpan)
         : SelectionResult(
-            document, selectionType, finalSpan, selectionChanged)
+            document, selectionType, finalSpan)
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
             SemanticDocument document,
             FinalSelectionInfo selectionInfo,
-            bool selectionChanged,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(document);
@@ -50,8 +48,8 @@ internal sealed partial class CSharpExtractMethodService
             var finalSpan = selectionInfo.FinalSpan;
 
             return selectionType == SelectionType.Expression
-                ? new ExpressionResult(newDocument, selectionType, finalSpan, selectionChanged)
-                : new StatementResult(newDocument, selectionType, finalSpan, selectionChanged);
+                ? new ExpressionResult(newDocument, selectionType, finalSpan)
+                : new StatementResult(newDocument, selectionType, finalSpan);
         }
 
         protected override ISyntaxFacts SyntaxFacts

@@ -31,10 +31,8 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract InitialSelectionInfo GetInitialSelectionInfo(CancellationToken cancellationToken);
 
-        protected abstract FinalSelectionInfo UpdateSelectionInfo(
-            InitialSelectionInfo selectionInfo, CancellationToken cancellationToken);
-        protected abstract Task<SelectionResult> CreateSelectionResultAsync(
-            InitialSelectionInfo initialSelectionInfo, FinalSelectionInfo selectionInfo, CancellationToken cancellationToken);
+        protected abstract FinalSelectionInfo UpdateSelectionInfo(InitialSelectionInfo selectionInfo, CancellationToken cancellationToken);
+        protected abstract Task<SelectionResult> CreateSelectionResultAsync(FinalSelectionInfo selectionInfo, CancellationToken cancellationToken);
 
         public async Task<(SelectionResult?, OperationStatus)> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
@@ -55,7 +53,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return (null, selectionInfo.Status.With(succeeded: false, FeaturesResources.Cannot_determine_valid_range_of_statements_to_extract));
             }
 
-            var selectionResult = await CreateSelectionResultAsync(initialSelectionInfo, selectionInfo, cancellationToken).ConfigureAwait(false);
+            var selectionResult = await CreateSelectionResultAsync(selectionInfo, cancellationToken).ConfigureAwait(false);
 
             var status = selectionInfo.Status.With(
                 selectionResult.ValidateSelectionResult(cancellationToken));
