@@ -230,6 +230,7 @@ internal partial class CSharpIndentationService
                 embeddedStatementOwner = embeddedStatementOwner.Parent;
             }
 
+            // Match the indentation level of the outermost embedded statement owner.
             return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).SpanStart));
         }
 
@@ -276,6 +277,7 @@ internal partial class CSharpIndentationService
 
                     if (nonTerminalNode is SwitchLabelSyntax)
                     {
+                        // Match the indentation level on the line starting the switch, then add an extra level of indentation.
                         return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.IndentationSize);
                     }
 
@@ -290,6 +292,7 @@ internal partial class CSharpIndentationService
                     // if this is closing an attribute, we shouldn't indent.
                     if (nonTerminalNode is AttributeListSyntax)
                     {
+                        // Match the indentation level of the line starting the attribute.
                         return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
                     }
 
@@ -298,6 +301,7 @@ internal partial class CSharpIndentationService
 
             case SyntaxKind.XmlTextLiteralToken:
                 {
+                    // Match the indentation level of the line starting the XML doc comment.
                     return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(token.SpanStart));
                 }
 
@@ -330,6 +334,8 @@ internal partial class CSharpIndentationService
             return result.Value;
         }
 
+        // Apply indentation from format rules' IndentBlockOperations, possibly adding an extra level of indentation for
+        // wrapping. This is only added if a relative IndentBlockOperation is not selected.
         var extraSpaces = allowExtraIndentationLevel ? indenter.Options.FormattingOptions.IndentationSize : 0;
 
         return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, extraSpaces, indenter.CancellationToken));
