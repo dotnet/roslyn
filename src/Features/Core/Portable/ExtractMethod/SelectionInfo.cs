@@ -12,6 +12,11 @@ internal abstract partial class AbstractExtractMethodService<
     TExecutableStatementSyntax,
     TExpressionSyntax>
 {
+    /// <summary>
+    /// Information about the initial selection the user made, prior to do any fixup on it to select a more appropriate
+    /// range.  Kept separate from <see cref="FinalSelectionInfo"/> to ensure different phases of the extract method
+    /// process do not accidentally use the wrong information.
+    /// </summary>
     internal sealed class InitialSelectionInfo
     {
         public readonly OperationStatus Status;
@@ -93,7 +98,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             var firstStatement = this.FirstTokenInFinalSpan.GetRequiredAncestor<TExecutableStatementSyntax>();
             var lastStatement = this.LastTokenInFinalSpan.GetRequiredAncestor<TExecutableStatementSyntax>();
-            if (firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span))
+            if (firstStatement.Span.Contains(lastStatement.Span))
                 return SelectionType.SingleStatement;
 
             return SelectionType.MultipleStatements;
