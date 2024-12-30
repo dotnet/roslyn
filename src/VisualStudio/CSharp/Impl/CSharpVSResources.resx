@@ -449,8 +449,11 @@
     <value>In other binary operators:  &amp;&amp;   ||   ??   and   or</value>
     <comment>'and' and 'or' are C# keywords and should not be localized</comment>
   </data>
-  <data name="Show_name_suggestions" xml:space="preserve">
+  <data name="Show_name_s_uggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
+  </data>
+  <data name="Show_name_suggestions" xml:space="preserve">
+    <value>Show name suggestions</value>
   </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>

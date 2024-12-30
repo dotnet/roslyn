@@ -88,7 +88,7 @@ public class UnifiedSettingsTests
             customDefaultValue: SnippetsRule.AlwaysInclude,
             enumLabels: ["Never include snippets", "Always include snippets", "Include snippets when ?-Tab is typed after an identifier"],
             enumValues: [SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab],
-            customMaps: [new Map { Result = "neverInclude", Match = 1}, new Map { Result = "alwaysInclude", Match = 2}, new Map { Result = "always", Match = 0}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 3}],
+            customMaps: [new Map { Result = "neverInclude", Match = 1}, new Map { Result = "alwaysInclude", Match = 2}, new Map { Result = "alwaysInclude", Match = 0}, new Map { Result = "includeAfterTypingIdentifierQuestionTab", Match = 3}],
             languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.EnterKeyBehavior, CreateEnumOption(
             CompletionOptionsStorage.EnterKeyBehavior,
@@ -97,7 +97,7 @@ public class UnifiedSettingsTests
             customDefaultValue: EnterKeyRule.Never,
             enumLabels: ["Never add new line on enter", "Only add new line on enter after end of fully typed word", "Always add new line on enter"],
             enumValues: [EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always],
-            customMaps: [new Map { Result = "never", Match = 1}, new Map { Result = "never", Match = 0}, new Map { Result = "always", Match = 0}, new Map { Result = "afterFullyTypedWord", Match = 3}],
+            customMaps: [new Map { Result = "never", Match = 1}, new Map { Result = "never", Match = 0}, new Map { Result = "always", Match = 2}, new Map { Result = "afterFullyTypedWord", Match = 3}],
             languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.ShowNameSuggestions, CreateBooleanOption(
             CompletionOptionsStorage.ShowNameSuggestions,
