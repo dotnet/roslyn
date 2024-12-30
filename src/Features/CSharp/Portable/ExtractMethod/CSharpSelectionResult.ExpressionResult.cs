@@ -46,7 +46,7 @@ internal sealed partial class CSharpExtractMethodService
                 return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
-            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnType(CancellationToken cancellationToken)
+            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
             {
                 if (GetContainingScope() is not ExpressionSyntax node)
                 {

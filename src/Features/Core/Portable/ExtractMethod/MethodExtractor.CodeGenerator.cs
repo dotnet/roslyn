@@ -11,12 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -223,24 +221,19 @@ internal abstract partial class AbstractExtractMethodService<
                 return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
             }
 
-            protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(ImmutableArray<TStatementSyntax> statements)
+            protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(
+                ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
                 if (AnalyzerResult.EndOfSelectionReachable)
-                {
                     return statements;
-                }
 
-                var type = SelectionResult.GetContainingScopeType();
-                if (type != null && type.SpecialType != SpecialType.System_Void)
-                {
+                var returnType = SelectionResult.GetReturnType(cancellationToken);
+                if (returnType != null && returnType.SpecialType != SpecialType.System_Void)
                     return statements;
-                }
 
                 // no return type + end of selection not reachable
                 if (LastStatementOrHasReturnStatementInReturnableConstruct())
-                {
                     return statements;
-                }
 
                 return statements.Concat(CreateReturnStatement());
             }

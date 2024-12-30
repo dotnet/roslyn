@@ -47,20 +47,16 @@ internal sealed partial class CSharpExtractMethodService
                 Contract.ThrowIfNull(SemanticDocument);
                 Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
-                // it contains statements
-                var firstToken = GetFirstTokenInSelection();
-                return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
-                {
-                    return n is AccessorDeclarationSyntax or
-                           LocalFunctionStatementSyntax or
-                           BaseMethodDeclarationSyntax or
-                           AccessorDeclarationSyntax or
-                           AnonymousFunctionExpressionSyntax or
-                           CompilationUnitSyntax;
-                });
+                return GetFirstTokenInSelection().GetRequiredParent().AncestorsAndSelf().First(n =>
+                    n is AccessorDeclarationSyntax or
+                         LocalFunctionStatementSyntax or
+                         BaseMethodDeclarationSyntax or
+                         AccessorDeclarationSyntax or
+                         AnonymousFunctionExpressionSyntax or
+                         CompilationUnitSyntax);
             }
 
-            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnType(CancellationToken cancellationToken)
+            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 

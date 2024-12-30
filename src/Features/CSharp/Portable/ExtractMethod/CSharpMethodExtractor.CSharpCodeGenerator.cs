@@ -147,7 +147,7 @@ internal sealed partial class CSharpExtractMethodService
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
-                statements = AddReturnIfUnreachable(statements);
+                statements = AddReturnIfUnreachable(statements, cancellationToken);
 
                 return statements.CastArray<SyntaxNode>();
             }

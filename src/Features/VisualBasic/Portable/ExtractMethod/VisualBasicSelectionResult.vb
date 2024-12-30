@@ -130,11 +130,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return VisualBasicSyntaxFacts.Instance.GetRootStandaloneExpression(scope)
                 Else
                     ' it contains statements
-                    Return first.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax)
+                    Return first.GetRequiredParent().AncestorsAndSelf().First(
+                        Function(n)
+                            Return TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax
+                        End Function)
                 End If
             End Function
 
-            Public Overrides Function GetReturnType() As (returnType As ITypeSymbol, returnsByRef As Boolean)
+            Public Overrides Function GetReturnTypeInfo(cancellationToken As CancellationToken) As (returnType As ITypeSymbol, returnsByRef As Boolean)
                 ' Todo: consider supporting byref return types in VB
                 Dim returnType = GetReturnTypeWorker()
                 Return (returnType, returnsByRef:=False)
@@ -332,7 +335,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Public Overrides Function IsFinalSpanSemanticallyValidSpan(
-                    textSpan As TextSpan,
                     returnStatements As ImmutableArray(Of ExecutableStatementSyntax),
                     cancellationToken As CancellationToken) As Boolean
 
@@ -347,14 +349,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 ' check whether selection reaches the end of the container
-                Dim lastToken = Me.SemanticDocument.Root.FindToken(textSpan.End)
-                If lastToken.Kind = SyntaxKind.None Then
-                    Return False
-                End If
-
+                Dim lastToken = Me.GetLastTokenInSelection()
                 Dim nextToken = lastToken.GetNextToken(includeZeroWidth:=True)
 
-                Dim container = nextToken.GetAncestors(Of SyntaxNode).Where(Function(n) n.IsReturnableConstruct()).FirstOrDefault()
+                Dim container = returnStatements.First().AncestorsAndSelf().FirstOrDefault(Function(n) n.IsReturnableConstruct())
                 If container Is Nothing Then
                     Return False
                 End If

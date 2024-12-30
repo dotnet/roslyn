@@ -221,7 +221,9 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
-                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> variableInfoMap, bool isInExpressionOrHasReturnStatement)
+                GetSignatureInformation(
+                    Dictionary<ISymbol, VariableInfo> variableInfoMap,
+                    bool isInExpressionOrHasReturnStatement)
             {
                 var model = this.SemanticDocument.SemanticModel;
                 var compilation = model.Compilation;
@@ -229,7 +231,7 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap);
-                    var (returnType, returnsByRef) = SelectionResult.GetReturnType();
+                    var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
                     returnType ??= compilation.GetSpecialType(SpecialType.System_Object);
 
                     return (parameters, returnType, returnsByRef, []);
@@ -661,7 +663,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return false;
                 }
 
-                return type.Equals(SelectionResult.GetContainingScopeType());
+                return type.Equals(SelectionResult.GetReturnType(this.CancellationToken));
             }
 
             protected static VariableStyle AlwaysReturn(VariableStyle style)
