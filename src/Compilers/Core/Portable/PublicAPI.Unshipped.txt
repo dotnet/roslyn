@@ -12,6 +12,7 @@ Microsoft.CodeAnalysis.GeneratorFilterContext.Generator.get -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.GeneratorFilterContext.GeneratorFilterContext() -> void
 Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Host = 8 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
+Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool

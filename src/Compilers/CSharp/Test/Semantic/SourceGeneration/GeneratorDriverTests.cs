@@ -2447,6 +2447,82 @@ class C { }
         }
 
         [Fact]
+        public void IncrementalGenerator_PostInit_AddEmbeddedAttributeSource_Adds()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterPostInitializationOutput(c => c.AddEmbeddedAttributeDefinition());
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+
+            Assert.Single(runResult.GeneratedSources);
+
+            var generatedSource = runResult.GeneratedSources[0];
+
+            Assert.Equal("""
+            namespace Microsoft.CodeAnalysis
+            {
+                internal sealed partial class EmbeddedAttribute : global::System.Attribute
+                {
+                }
+            }
+            """, generatedSource.SourceText.ToString());
+            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.cs", generatedSource.HintName);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_PostInit_AddEmbeddedAttributeSource_DoubleAdd_Throws()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterPostInitializationOutput(c =>
+                {
+                    c.AddEmbeddedAttributeDefinition();
+                    Assert.Throws<ArgumentException>("hintName", () => c.AddEmbeddedAttributeDefinition());
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+
+            Assert.Single(runResult.GeneratedSources);
+
+            var generatedSource = runResult.GeneratedSources[0];
+
+            Assert.Equal("""
+            namespace Microsoft.CodeAnalysis
+            {
+                internal sealed partial class EmbeddedAttribute : global::System.Attribute
+                {
+                }
+            }
+            """, generatedSource.SourceText.ToString());
+            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.cs", generatedSource.HintName);
+        }
+
+        [Fact]
         public void Incremental_Generators_Can_Be_Cancelled()
         {
             var source = @"
