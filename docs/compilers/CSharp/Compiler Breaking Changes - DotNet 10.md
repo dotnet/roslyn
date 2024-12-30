@@ -156,3 +156,30 @@ struct S
     public static void M([UnscopedRef] ref int x) { }
 }
 ```
+
+## `record` and `record struct` types cannot define pointer type members, even when providing their own Equals implementations
+
+PROTOTYPE: Figure what version this is going into
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The specification for `record class` and `record struct` types indicated that any unsafe types are disallowed. However, this was not
+enforced correctly in 2 scenarios:
+
+1. When the `record class` or `record struct` type defined its own `Equals` implementation.
+2. When the field type only used the unsafe type in a nested context, such as `int*[]`.
+
+The compiler now correctly forbids both scenarios.
+
+```cs
+unsafe record struct R1(
+    int* P // Previously fine, now CS8908
+)
+{
+    public bool Equals(R other) => true;
+}
+
+unsafe record struct R2(
+    int*[] P // Previously fine, now CS8908
+);
+```
