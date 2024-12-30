@@ -137,8 +137,13 @@ internal static class BlockSyntaxExtensions
                 var comments = parent.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine());
                 if (!comments.IsEmpty())
                 {
-                    arrowExpression = arrowExpression.WithLeadingTrivia(
-                        parent.GetLeadingTrivia());
+                    arrowExpression = arrowExpression.WithLeadingTrivia(parent.GetLeadingTrivia());
+                }
+                else if (parent.GetLeadingTrivia().All(t => t.IsWhitespace()))
+                {
+                    // Manually copy indentation, but keep the elastic to erase the newline trivia after the property
+                    // identifier token if there is no comment following it.
+                    arrowExpression = arrowExpression.WithPrependedLeadingTrivia(parent.GetLeadingTrivia());
                 }
             }
 
