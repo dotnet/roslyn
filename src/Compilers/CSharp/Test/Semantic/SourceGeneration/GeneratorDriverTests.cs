@@ -2464,7 +2464,7 @@ class C { }
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
-            driver = driver.RunGenerators(compilation);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
             var runResult = driver.GetRunResult().Results[0];
 
             Assert.Single(runResult.GeneratedSources);
@@ -2480,6 +2480,8 @@ class C { }
             }
             """, generatedSource.SourceText.ToString());
             Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.cs", generatedSource.HintName);
+
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]

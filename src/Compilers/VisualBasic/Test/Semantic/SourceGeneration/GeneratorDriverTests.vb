@@ -646,7 +646,9 @@ End Class
                                                                                          End Sub))
         
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
-            driver = driver.RunGenerators(compilation)
+            Dim outputCompilation As Compilation = Nothing
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
             Dim runResult = driver.GetRunResult().Results(0)
         
             Assert.Single(runResult.GeneratedSources)
@@ -659,6 +661,8 @@ End Class
     End Class
 End Namespace", generatedSource.SourceText.ToString())
             Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.vb", generatedSource.HintName)
+
+            outputCompilation.VerifyDiagnostics()
         End Sub
         
         <Fact>
