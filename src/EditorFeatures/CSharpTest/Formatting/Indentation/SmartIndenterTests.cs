@@ -1285,6 +1285,44 @@ namespace NS
             expectedIndentation: 16);
     }
 
+    [WpfFact]
+    public void QueryExpression_OpenBrace()
+    {
+        AssertSmartIndent(
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = from v in new X {
+
+                            select s;
+                }
+            }
+            """,
+            indentationLine: 5,
+            expectedIndentation: 12); // Demonstrates status quo, but 20 would likely be better.
+    }
+
+    [WpfFact]
+    public void QueryExpression_CloseBrace()
+    {
+        AssertSmartIndent(
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = from v in new X { }
+
+                            select s;
+                }
+            }
+            """,
+            indentationLine: 5,
+            expectedIndentation: 16);
+    }
+
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538333")]
     public void Statement1()
     {

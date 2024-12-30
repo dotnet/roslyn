@@ -233,6 +233,8 @@ internal partial class CSharpIndentationService
             return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).SpanStart));
         }
 
+        var allowExtraIndentationLevel = true;
+
         switch (token.Kind())
         {
             case SyntaxKind.SemicolonToken:
@@ -243,7 +245,8 @@ internal partial class CSharpIndentationService
                         break;
                     }
 
-                    return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+                    allowExtraIndentationLevel = false;
+                    break;
                 }
 
             case SyntaxKind.CloseBraceToken:
@@ -257,12 +260,14 @@ internal partial class CSharpIndentationService
                         }
                     }
 
-                    return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+                    allowExtraIndentationLevel = false;
+                    break;
                 }
 
             case SyntaxKind.OpenBraceToken:
                 {
-                    return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+                    allowExtraIndentationLevel = false;
+                    break;
                 }
 
             case SyntaxKind.ColonToken:
@@ -326,9 +331,9 @@ internal partial class CSharpIndentationService
             return result.Value;
         }
 
-        var spaceToAdd = indenter.Options.FormattingOptions.IndentationSize;
+        var extraSpaces = allowExtraIndentationLevel ? indenter.Options.FormattingOptions.IndentationSize : 0;
 
-        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
+        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, extraSpaces, indenter.CancellationToken));
     }
 
     private static IndentationResult? TryGetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
