@@ -11,8 +11,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
 internal record AlternativeDefault<T>
 {
+    [JsonPropertyName("flagName")]
     public string FlagName { get; init; }
 
+    [JsonPropertyName("default")]
     public T Default { get; init; }
 
     [JsonConstructor]

@@ -137,7 +137,7 @@ public class UnifiedSettingsTests
         Assert.Equal("C#", propertyToCategory["textEditor.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["textEditor.csharp.intellisense"]!.Title);
         Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, propertyToCategory["textEditor.csharp.intellisense"]!.LegacyOptionPageId);
-        await VerifyTagAsync(jsonDocument.ToString());
+        await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class UnifiedSettingsTests
         }
 
         VerifyProperties(jsonDocument!, "textEditor.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
-        await VerifyTagAsync(jsonDocument!.ToString());
+        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
     #endregion
@@ -239,7 +239,7 @@ public class UnifiedSettingsTests
         Assert.Equal("Visual Basic", propertyToCategory["textEditor.basic"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["textEditor.basic.intellisense"]!.Title);
         Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, propertyToCategory["textEditor.basic.intellisense"]!.LegacyOptionPageId);
-        await VerifyTagAsync(jsonDocument.ToString());
+        await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class UnifiedSettingsTests
         }
 
         VerifyProperties(jsonDocument!, "textEditor.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
-        await VerifyTagAsync(jsonDocument!.ToString());
+        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
     private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
@@ -276,9 +276,9 @@ public class UnifiedSettingsTests
 
     #region Helpers
 
-    private static async Task VerifyTagAsync(string registrationFile)
+    private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)
     {
-        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
+        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream(pkgdefFileName);
         using var streamReader = new StreamReader(pkgDefFileStream!);
         var pkgdefFile = await streamReader.ReadToEndAsync();
 
@@ -339,7 +339,7 @@ public class UnifiedSettingsTests
             Order = order,
             EnableWhen = enableWhen,
             Migration = migration,
-            AlternativeDefault = alternativeDefault,
+            AlternateDefault = alternativeDefault,
             Default = (bool)expectedDefault,
             Messages = message is null ? null : [new Message { Text = message }],
         };
@@ -392,7 +392,7 @@ public class UnifiedSettingsTests
             Order = order,
             EnableWhen = enableWhen,
             Migration = migration,
-            AlternativeDefault = alternativeDefault,
+            AlternateDefault = alternativeDefault,
             Default = expectedDefault.ToString().ToCamelCase(),
         };
     }

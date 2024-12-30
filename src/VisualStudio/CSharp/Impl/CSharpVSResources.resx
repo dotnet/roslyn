@@ -536,6 +536,9 @@
   <data name="Show_new_snippet_experience_experimental" xml:space="preserve">
     <value>Show new snippet experience (experimental)</value>
   </data>
+  <data name="Show_new_snippet_experience" xml:space="preserve">
+    <value>Show new snippet experience</value>
+  </data>
   <data name="Allow_blank_line_after_token_in_conditional_expression" xml:space="preserve">
     <value>Allow blank line after token in conditional expression</value>
   </data>

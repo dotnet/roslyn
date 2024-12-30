@@ -182,6 +182,11 @@
         <target state="new">Show name s_uggestions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="new">Show new snippet experience</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">Mostrar nueva experiencia de fragmento de código (experimental)</target>

@@ -11,6 +11,6 @@ internal record UnifiedSettingsOption<T> : UnifiedSettingBase
     [JsonPropertyName("default")]
     public required T Default { get; init; }
 
-    [JsonPropertyName("alternativeDefault")]
-    public AlternativeDefault<T>? AlternativeDefault { get; init; }
+    [JsonPropertyName("alternateDefault")]
+    public AlternativeDefault<T>? AlternateDefault { get; init; }
 }
