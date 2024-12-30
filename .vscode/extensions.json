@@ -13,8 +13,7 @@
     "dotjoshjohnson.xml",
     "ms-vscode-remote.remote-containers",
     "ms-azuretools.vscode-docker",
-    "tintoy.msbuild-project-tools",
-    "mrmlnc.vscode-json5"
+    "tintoy.msbuild-project-tools"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []

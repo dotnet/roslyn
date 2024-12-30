@@ -17,8 +17,7 @@
         "dotjoshjohnson.xml",
         "ms-vscode-remote.remote-containers",
         "ms-azuretools.vscode-docker",
-        "tintoy.msbuild-project-tools",
-        "mrmlnc.vscode-json5"
+        "tintoy.msbuild-project-tools"
       ]
     }
   },
