@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,13 +12,26 @@ internal abstract partial class AbstractExtractMethodService<
     TExecutableStatementSyntax,
     TExpressionSyntax>
 {
+    internal sealed record InitialSelectionInfo
+    {
+        public required OperationStatus Status { get; init; }
+
+        public bool SelectionInExpression { get; init; }
+
+        public SyntaxToken FirstTokenInOriginalSpan { get; init; }
+        public SyntaxToken LastTokenInOriginalSpan { get; init; }
+
+        public TStatementSyntax? FirstStatement { get; init; }
+        public TStatementSyntax? LastStatement { get; init; }
+    }
+
     internal sealed record SelectionInfo
     {
-        public OperationStatus Status { get; init; }
+        public required OperationStatus Status { get; init; }
 
         public TextSpan FinalSpan { get; init; }
 
-        public SyntaxNode CommonRootFromOriginalSpan { get; init; }
+        public required SyntaxNode CommonRootFromOriginalSpan { get; init; }
 
         //public SyntaxToken FirstTokenInOriginalSpan { get; init; }
         //public SyntaxToken LastTokenInOriginalSpan { get; init; }

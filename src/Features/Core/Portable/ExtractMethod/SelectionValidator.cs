@@ -31,10 +31,10 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract TextSpan GetAdjustedSpan(TextSpan textSpan);
 
-        protected abstract (SelectionInfo info, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan) GetInitialSelectionInfo();
+        protected abstract InitialSelectionInfo GetInitialSelectionInfo();
 
         protected abstract SelectionInfo UpdateSelectionInfo(
-            SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan, TStatementSyntax? firstStatement, TStatementSyntax? lastStatement, CancellationToken cancellationToken);
+            InitialSelectionInfo selectionInfo, CancellationToken cancellationToken);
         protected abstract Task<SelectionResult> CreateSelectionResultAsync(
             SelectionInfo selectionInfo, SyntaxToken firstTokenInOriginalSpan, SyntaxToken lastTokenInOriginalSpan, CancellationToken cancellationToken);
 
@@ -43,13 +43,13 @@ internal abstract partial class AbstractExtractMethodService<
             if (!this.ContainsValidSelection)
                 return (null, OperationStatus.FailedWithUnknownReason);
 
-            var (selectionInfo, firstTokenInOriginalSpan, lastTokenInOriginalSpan) = this.GetInitialSelectionInfo();
-            if (selectionInfo.Status.Failed)
-                return (null, selectionInfo.Status);
+            var initialSelectionInfo = this.GetInitialSelectionInfo();
+            if (initialSelectionInfo.Status.Failed)
+                return (null, initialSelectionInfo.Status);
 
             TStatementSyntax? firstStatement = null;
             TStatementSyntax? lastStatement = null;
-            if (!selectionInfo.SelectionInExpression)
+            if (!initialSelectionInfo.SelectionInExpression)
             {
                 var range = GetStatementRangeContainingSpan(
                     this.SemanticDocument.Root, firstTokenInOriginalSpan, lastTokenInOriginalSpan, cancellationToken);
