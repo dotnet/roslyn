@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 ' get the node that covers the selection
                 Dim commonNode = GetFinalTokenCommonRoot(selectionInfo)
 
-                If (selectionInfo.SelectionInExpression OrElse selectionInfo.SelectionInSingleStatement) AndAlso commonNode.HasDiagnostics() Then
+                If selectionInfo.GetSelectionType() <> SelectionType.MultipleStatements AndAlso commonNode.HasDiagnostics() Then
                     clone = clone.With(
                         status:=clone.Status.With(succeeded:=False, VBFeaturesResources.the_selection_contains_syntactic_errors))
                 End If
@@ -141,16 +141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 ' if it is multiple statement case.
-                If Not selectionInfo.SelectionInExpression AndAlso Not selectionInfo.SelectionInSingleStatement Then
+                If selectionInfo.GetSelectionType() = SelectionType.MultipleStatements Then
                     If commonNode.GetAncestorOrThis(Of WithBlockSyntax)() IsNot Nothing Then
                         If commonNode.GetImplicitMemberAccessExpressions(selectionInfo.FinalSpan).Any() Then
                             clone = clone.With(
                                 status:=clone.Status.With(succeeded:=True, VBFeaturesResources.Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement))
                         End If
                     End If
-                End If
 
-                If Not selectionInfo.SelectionInExpression AndAlso Not selectionInfo.SelectionInSingleStatement Then
                     If selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of ExecutableStatementSyntax)() Is Nothing OrElse
                         selectionInfo.LastTokenInFinalSpan.GetAncestor(Of ExecutableStatementSyntax)() Is Nothing Then
                         clone = clone.With(
@@ -225,8 +223,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Dim firstStatement = forBlock.ForOrForEachStatement
                 Return selectionInfo.With(
-                    selectionInExpression:=False,
-                    selectionInSingleStatement:=forBlock.Span.Contains(nextStatement.Span),
                     firstTokenInFinalSpan:=firstStatement.GetFirstToken(includeZeroWidth:=True),
                     lastTokenInFinalSpan:=nextStatement.GetLastToken(includeZeroWidth:=True))
             End Function
@@ -240,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 ' don't need to adjust anything if it is multi-statements case
-                If (Not selectionInfo.SelectionInExpression) AndAlso (Not selectionInfo.SelectionInSingleStatement) Then
+                If selectionInfo.GetSelectionType() = SelectionType.MultipleStatements Then
                     Return selectionInfo
                 End If
 
@@ -265,7 +261,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Return selectionInfo.With(
                     selectionInExpression:=TypeOf firstValidNode Is ExpressionSyntax,
-                    selectionInSingleStatement:=TypeOf firstValidNode Is StatementSyntax,
                     firstTokenInFinalSpan:=firstValidNode.GetFirstToken(includeZeroWidth:=True),
                     lastTokenInFinalSpan:=firstValidNode.GetLastToken(includeZeroWidth:=True))
             End Function
@@ -275,13 +270,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 If selectionInfo.SelectionInExpression Then
                     ' prefer outer statement or expression if two has same span
-                    Dim outerNode = selectionInfo.CommonRoot.GetOutermostNodeWithSameSpan(Function(n) TypeOf n Is StatementSyntax OrElse TypeOf n Is ExpressionSyntax)
+                    Dim outerNode = selectionInfo.CommonRoot.GetOutermostNodeWithSameSpan(Function(n) TypeOf n Is ExecutableStatementSyntax OrElse TypeOf n Is ExpressionSyntax)
 
                     ' simple expression case
                     Return New FinalSelectionInfo With {
                         .Status = selectionInfo.Status,
                         .SelectionInExpression = TypeOf outerNode Is ExpressionSyntax,
-                        .SelectionInSingleStatement = TypeOf outerNode Is StatementSyntax,
                         .FirstTokenInFinalSpan = outerNode.GetFirstToken(includeZeroWidth:=True),
                         .LastTokenInFinalSpan = outerNode.GetLastToken(includeZeroWidth:=True)
                         }
@@ -304,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     ' single statement case
                     ' current way to find out a statement that can be extracted out
-                    Dim singleStatement = statement1.GetAncestorsOrThis(Of StatementSyntax)().FirstOrDefault(
+                    Dim singleStatement = statement1.GetAncestorsOrThis(Of ExecutableStatementSyntax)().FirstOrDefault(
                         Function(s) s.Parent IsNot Nothing AndAlso s.Parent.IsStatementContainerNode() AndAlso s.Parent.ContainStatement(s))
 
                     If singleStatement Is Nothing Then
@@ -315,7 +309,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     Return New FinalSelectionInfo With {
                         .Status = selectionInfo.Status,
-                        .SelectionInSingleStatement = True,
                         .FirstTokenInFinalSpan = singleStatement.GetFirstToken(includeZeroWidth:=True),
                         .LastTokenInFinalSpan = singleStatement.GetLastToken(includeZeroWidth:=True)
                         }
@@ -331,14 +324,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     If Not contain1 OrElse Not contain2 Then
                         Dim parent = statement1.Parent _
                                                .GetAncestorsOrThis(Of SyntaxNode)() _
-                                               .Where(Function(n) TypeOf n Is ExpressionSyntax OrElse TypeOf n Is StatementSyntax) _
+                                               .Where(Function(n) TypeOf n Is ExpressionSyntax OrElse TypeOf n Is ExecutableStatementSyntax) _
                                                .First()
 
                         ' single statement case
                         Return New FinalSelectionInfo With {
                             .Status = selectionInfo.Status,
                             .SelectionInExpression = TypeOf parent Is ExpressionSyntax,
-                            .SelectionInSingleStatement = TypeOf parent Is StatementSyntax,
                             .FirstTokenInFinalSpan = parent.GetFirstToken(),
                             .LastTokenInFinalSpan = parent.GetLastToken()
                             }

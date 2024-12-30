@@ -174,10 +174,8 @@ internal sealed partial class CSharpExtractMethodService
                 return selectionInfo;
 
             // don't need to adjust anything if it is multi-statements case
-            if (!selectionInfo.SelectionInExpression && !selectionInfo.SelectionInSingleStatement)
-            {
+            if (selectionInfo.GetSelectionType() == SelectionType.MultipleStatements)
                 return selectionInfo;
-            }
 
             // get the node that covers the selection
             var node = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
@@ -205,7 +203,6 @@ internal sealed partial class CSharpExtractMethodService
             return selectionInfo with
             {
                 SelectionInExpression = firstValidNode is ExpressionSyntax,
-                SelectionInSingleStatement = firstValidNode is StatementSyntax,
                 FirstTokenInFinalSpan = firstValidNode.GetFirstToken(includeZeroWidth: true),
                 LastTokenInFinalSpan = firstValidNode.GetLastToken(includeZeroWidth: true),
             };
@@ -290,7 +287,7 @@ internal sealed partial class CSharpExtractMethodService
             // get the node that covers the selection
             var commonNode = selectionInfo.FirstTokenInFinalSpan.GetCommonRoot(selectionInfo.LastTokenInFinalSpan);
 
-            if ((selectionInfo.SelectionInExpression || selectionInfo.SelectionInSingleStatement) && commonNode.HasDiagnostics())
+            if (selectionInfo.GetSelectionType() != SelectionType.MultipleStatements && commonNode.HasDiagnostics())
             {
                 selectionInfo = selectionInfo with
                 {
@@ -392,7 +389,6 @@ internal sealed partial class CSharpExtractMethodService
                 return new()
                 {
                     Status = selectionInfo.Status,
-                    SelectionInSingleStatement = true,
                     FirstTokenInFinalSpan = firstStatement.GetFirstToken(includeZeroWidth: true),
                     LastTokenInFinalSpan = firstStatement.GetLastToken(includeZeroWidth: true),
                 };

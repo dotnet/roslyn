@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -63,7 +59,6 @@ internal abstract partial class AbstractExtractMethodService<
         public SyntaxToken LastTokenInFinalSpan { get; init; }
 
         public bool SelectionInExpression { get; init; }
-        public bool SelectionInSingleStatement { get; init; }
 
         /// <summary>
         /// For VB.  C# should just use standard <c>with</c> operator.
@@ -73,15 +68,13 @@ internal abstract partial class AbstractExtractMethodService<
             Optional<TextSpan> finalSpan = default,
             Optional<SyntaxToken> firstTokenInFinalSpan = default,
             Optional<SyntaxToken> lastTokenInFinalSpan = default,
-            Optional<bool> selectionInExpression = default,
-            Optional<bool> selectionInSingleStatement = default)
+            Optional<bool> selectionInExpression = default)
         {
             var resultStatus = status.HasValue ? status.Value : this.Status;
             var resultFinalSpan = finalSpan.HasValue ? finalSpan.Value : this.FinalSpan;
             var resultFirstTokenInFinalSpan = firstTokenInFinalSpan.HasValue ? firstTokenInFinalSpan.Value : this.FirstTokenInFinalSpan;
             var resultLastTokenInFinalSpan = lastTokenInFinalSpan.HasValue ? lastTokenInFinalSpan.Value : this.LastTokenInFinalSpan;
             var resultSelectionInExpression = selectionInExpression.HasValue ? selectionInExpression.Value : this.SelectionInExpression;
-            var resultSelectionInSingleStatement = selectionInSingleStatement.HasValue ? selectionInSingleStatement.Value : this.SelectionInSingleStatement;
 
             return this with
             {
@@ -90,7 +83,6 @@ internal abstract partial class AbstractExtractMethodService<
                 FirstTokenInFinalSpan = resultFirstTokenInFinalSpan,
                 LastTokenInFinalSpan = resultLastTokenInFinalSpan,
                 SelectionInExpression = resultSelectionInExpression,
-                SelectionInSingleStatement = resultSelectionInSingleStatement,
             };
         }
 
