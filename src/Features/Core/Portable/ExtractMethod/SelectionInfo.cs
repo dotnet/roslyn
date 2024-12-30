@@ -28,29 +28,47 @@ internal abstract partial class AbstractExtractMethodService<
         public readonly TStatementSyntax? FirstStatement;
         public readonly TStatementSyntax? LastStatement;
 
-        public InitialSelectionInfo(OperationStatus status)
+        private InitialSelectionInfo(OperationStatus status)
             => Status = status;
 
-        public InitialSelectionInfo(
-            SemanticDocument document,
+
+        private InitialSelectionInfo(
             OperationStatus status,
             SyntaxToken firstTokenInOriginalSpan,
             SyntaxToken lastTokenInOriginalSpan,
-            CancellationToken cancellationToken)
+            TStatementSyntax? firstStatement,
+            TStatementSyntax? lastStatement,
+            bool selectionInExpression)
             : this(status)
         {
             FirstTokenInOriginalSpan = firstTokenInOriginalSpan;
             LastTokenInOriginalSpan = lastTokenInOriginalSpan;
-            SelectionInExpression = this.CommonRoot is TExpressionSyntax;
+            FirstStatement = firstStatement;
+            LastStatement = lastStatement;
+            SelectionInExpression = selectionInExpression;
+        }
 
-            if (!SelectionInExpression)
-            {
-                var statements = GetStatementRangeContainingSpan(document, firstTokenInOriginalSpan, lastTokenInOriginalSpan, cancellationToken);
-                if (statements != null)
-                    (FirstStatement, LastStatement) = statements.Value;
-                else
-                    Status = Status.With(succeeded: false, FeaturesResources.No_valid_statement_range_to_extract);
-            }
+        public static InitialSelectionInfo Failure(string reason)
+            => new(new(succeeded: false, reason));
+
+        public static InitialSelectionInfo Expression(
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan)
+        {
+            return new(OperationStatus.SucceededStatus, firstTokenInOriginalSpan, lastTokenInOriginalSpan, firstStatement: null, lastStatement: null, selectionInExpression: true);
+        }
+
+        public static InitialSelectionInfo Statement(
+            SemanticDocument document,
+            SyntaxToken firstTokenInOriginalSpan,
+            SyntaxToken lastTokenInOriginalSpan,
+            CancellationToken cancellationToken)
+        {
+            var statements = GetStatementRangeContainingSpan(document, firstTokenInOriginalSpan, lastTokenInOriginalSpan, cancellationToken);
+            if (statements is not var (firstStatement, lastStatement))
+                return Failure(FeaturesResources.No_valid_statement_range_to_extract);
+
+            return new(OperationStatus.SucceededStatus, firstTokenInOriginalSpan, lastTokenInOriginalSpan, firstStatement, lastStatement, selectionInExpression: false);
         }
 
         public SyntaxNode CommonRoot => this.FirstTokenInOriginalSpan.GetCommonRoot(this.LastTokenInOriginalSpan);
@@ -176,8 +194,5 @@ internal abstract partial class AbstractExtractMethodService<
 
             return SelectionType.MultipleStatements;
         }
-
-        //public TextSpan GetControlFlowSpan()
-        //    => TextSpan.FromBounds(this.FirstTokenInFinalSpan.SpanStart, this.LastTokenInFinalSpan.Span.End);
     }
 }

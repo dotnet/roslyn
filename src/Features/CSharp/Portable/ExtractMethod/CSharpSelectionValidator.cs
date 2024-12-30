@@ -34,16 +34,18 @@ internal sealed partial class CSharpExtractMethodService
             var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
 
             if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
-                return new(new OperationStatus(succeeded: false, FeaturesResources.Invalid_selection));
+                return InitialSelectionInfo.Failure(FeaturesResources.Invalid_selection);
 
             var commonRoot = firstTokenInSelection.GetCommonRoot(lastTokenInSelection);
             var selectionInExpression = commonRoot is ExpressionSyntax;
 
             var statusReason = CheckSpan();
             if (statusReason is not null)
-                return new(new OperationStatus(succeeded: false, statusReason));
+                return InitialSelectionInfo.Failure(statusReason);
 
-            return new(this.SemanticDocument, OperationStatus.SucceededStatus, firstTokenInSelection, lastTokenInSelection, cancellationToken);
+            return selectionInExpression
+                ? InitialSelectionInfo.Expression(firstTokenInSelection, lastTokenInSelection)
+                : InitialSelectionInfo.Statement(this.SemanticDocument, firstTokenInSelection, lastTokenInSelection, cancellationToken);
 
             string? CheckSpan()
             {

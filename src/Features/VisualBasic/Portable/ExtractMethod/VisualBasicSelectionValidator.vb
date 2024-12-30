@@ -25,29 +25,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)
 
                 If firstTokenInSelection.Kind = SyntaxKind.None OrElse lastTokenInSelection.Kind = SyntaxKind.None Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.Invalid_selection)
                 End If
 
                 If firstTokenInSelection <> lastTokenInSelection AndAlso
                    firstTokenInSelection.Span.End > lastTokenInSelection.SpanStart Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.Invalid_selection))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.Invalid_selection)
                 End If
 
                 If (Not adjustedSpan.Contains(firstTokenInSelection.Span)) AndAlso (Not adjustedSpan.Contains(lastTokenInSelection.Span)) Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.Selection_does_not_contain_a_valid_token))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.Selection_does_not_contain_a_valid_token)
                 End If
 
                 If (Not firstTokenInSelection.UnderValidContext()) OrElse (Not lastTokenInSelection.UnderValidContext()) Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.No_valid_selection_to_perform_extraction)
                 End If
 
                 Dim commonRoot = GetCommonRoot(firstTokenInSelection, lastTokenInSelection)
                 If commonRoot Is Nothing Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.No_common_root_node_for_extraction))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.No_common_root_node_for_extraction)
                 End If
 
                 If Not commonRoot.ContainedInValidType() Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.Selection_not_contained_inside_a_type))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.Selection_not_contained_inside_a_type)
                 End If
 
                 Dim selectionInExpression = TypeOf commonRoot Is ExpressionSyntax AndAlso
@@ -55,16 +55,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                             commonRoot.GetLastToken(includeZeroWidth:=True) = lastTokenInSelection
 
                 If (Not selectionInExpression) AndAlso (Not commonRoot.UnderValidContext()) Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.No_valid_selection_to_perform_extraction)
                 End If
 
                 ' make sure type block enclosing the selection exist
                 If commonRoot.GetAncestor(Of TypeBlockSyntax)() Is Nothing Then
-                    Return New InitialSelectionInfo(New OperationStatus(succeeded:=False, FeaturesResources.No_valid_selection_to_perform_extraction))
+                    Return InitialSelectionInfo.Failure(FeaturesResources.No_valid_selection_to_perform_extraction)
                 End If
 
-                Return New InitialSelectionInfo(
-                    Me.SemanticDocument, OperationStatus.SucceededStatus, firstTokenInSelection, lastTokenInSelection, cancellationToken)
+                Return If(selectionInExpression,
+                    InitialSelectionInfo.Expression(firstTokenInSelection, lastTokenInSelection),
+                    InitialSelectionInfo.Statement(Me.SemanticDocument, firstTokenInSelection, lastTokenInSelection, cancellationToken))
             End Function
 
             Protected Overrides Function UpdateSelectionInfo(initialSelectionInfo As InitialSelectionInfo, cancellationToken As CancellationToken) As FinalSelectionInfo
