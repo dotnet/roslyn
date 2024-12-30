@@ -240,12 +240,11 @@ internal partial class CSharpIndentationService
             case SyntaxKind.SemicolonToken:
                 {
                     // special cases
-                    if (token.IsSemicolonInForStatement())
+                    if (!token.IsSemicolonInForStatement())
                     {
-                        break;
+                        allowExtraIndentationLevel = false;
                     }
 
-                    allowExtraIndentationLevel = false;
                     break;
                 }
 
