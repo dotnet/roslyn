@@ -25,7 +25,7 @@ internal class ResourceStringArrayConverter : JsonConverter<string[]>
             if (reader.TokenType == JsonTokenType.String)
             {
                 var value = reader.GetString()!;
-                builder.Add(Utilities.EvalResource(value));
+                builder.Add(Utilities.EvalResource(value)!);
             }
             else
             {
