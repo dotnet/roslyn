@@ -44,6 +44,9 @@ public class UnifiedSettingsTests
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.csharp.intellisense.enableArgumentCompletionSnippets").
         Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "textEditor.csharp.intellisense.showNewSnippetExperience");
 
+    /// <summary>
+    /// Array containing the option to expected unified settings for C# intellisense page.
+    /// </summary>
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_csharpIntellisenseExpectedSettings =
     [
         (CompletionOptionsStorage.TriggerOnTypingLetters, CreateBooleanOption(
