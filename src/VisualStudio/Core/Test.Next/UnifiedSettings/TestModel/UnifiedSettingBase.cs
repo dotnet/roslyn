@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
+
 internal abstract record UnifiedSettingBase
 {
     [JsonPropertyName("title")]
