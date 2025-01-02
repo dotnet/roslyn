@@ -66,7 +66,6 @@ internal abstract partial class AbstractExtractMethodService<
             public abstract string Name { get; }
             public abstract bool CanBeCapturedByLocalFunction { get; }
 
-            public abstract bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken);
             public abstract SyntaxAnnotation IdentifierTokenAnnotation { get; }
             public abstract SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken);
 
@@ -101,12 +100,6 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract class NotMovableVariableSymbol(ITypeSymbol type) : VariableSymbol(type)
         {
-            public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
-            {
-                // decl never get moved
-                return false;
-            }
-
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
                 => default;
 
@@ -200,16 +193,13 @@ internal abstract partial class AbstractExtractMethodService<
         {
             private readonly SyntaxAnnotation _annotation = new();
             private readonly ILocalSymbol _localSymbol;
-            private readonly HashSet<int> _nonNoisySet;
 
-            public LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet)
+            public LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol type)
                 : base(type)
             {
                 Contract.ThrowIfNull(localSymbol);
-                Contract.ThrowIfNull(nonNoisySet);
 
                 _localSymbol = localSymbol;
-                _nonNoisySet = nonNoisySet;
             }
 
             public override int DisplayOrder => 1;
@@ -270,46 +260,6 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 annotations.Add(GetOriginalIdentifierToken(cancellationToken), _annotation);
             }
-
-            public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
-            {
-                var identifier = GetOriginalIdentifierToken(cancellationToken);
-
-                // check whether there is a noisy trivia around the token.
-                if (ContainsNoisyTrivia(identifier.LeadingTrivia))
-                {
-                    return true;
-                }
-
-                if (ContainsNoisyTrivia(identifier.TrailingTrivia))
-                {
-                    return true;
-                }
-
-                var declStatement = identifier.Parent.FirstAncestorOrSelf<TStatementSyntax>();
-                if (declStatement == null)
-                {
-                    return true;
-                }
-
-                foreach (var token in declStatement.DescendantTokens())
-                {
-                    if (ContainsNoisyTrivia(token.LeadingTrivia))
-                    {
-                        return true;
-                    }
-
-                    if (ContainsNoisyTrivia(token.TrailingTrivia))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            private bool ContainsNoisyTrivia(SyntaxTriviaList list)
-                => list.Any(t => !_nonNoisySet.Contains(t.RawKind));
         }
 
         protected sealed class QueryVariableSymbol : NotMovableVariableSymbol, IComparable<QueryVariableSymbol>

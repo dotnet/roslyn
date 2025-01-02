@@ -216,9 +216,9 @@ internal abstract partial class AbstractExtractMethodService<
                     MethodDefinitionAnnotation));
             }
 
-            protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition()
             {
-                return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition();
             }
 
             protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(
@@ -244,7 +244,7 @@ internal abstract partial class AbstractExtractMethodService<
                 if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                     return statements;
 
-                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Any(v => v.UseAsReturnValue));
+                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite().Any(v => v.UseAsReturnValue));
 
                 // add invocation expression
                 return statements.Concat(
@@ -283,7 +283,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 using var _ = ArrayBuilder<TStatementSyntax>.GetInstance(out var list);
 
-                foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
+                foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite())
                 {
                     if (variable.UseAsReturnValue)
                         continue;
@@ -310,7 +310,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                 foreach (var variable in variables)
                 {
-                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is
+                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior() is
                         DeclarationBehavior.MoveOut or
                         DeclarationBehavior.MoveIn);
 
