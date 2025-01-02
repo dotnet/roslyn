@@ -78,7 +78,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             #region method to be implemented in sub classes
 
-            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken);
+            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable();
 
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode insertionPointNode, SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
@@ -196,15 +196,8 @@ internal abstract partial class AbstractExtractMethodService<
 
             private SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
             {
-                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                if (callSiteContainer != null)
-                {
-                    return callSiteContainer;
-                }
-                else
-                {
-                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
-                }
+                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable();
+                return callSiteContainer ?? this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
             }
 
             protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(SemanticDocument newDocument, CancellationToken cancellationToken)

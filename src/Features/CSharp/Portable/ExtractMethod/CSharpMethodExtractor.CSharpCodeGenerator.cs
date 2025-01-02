@@ -176,7 +176,7 @@ internal sealed partial class CSharpExtractMethodService
                 return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];
             }
 
-            protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
+            protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable()
             {
                 var outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition();
                 if (outmostVariable == null)

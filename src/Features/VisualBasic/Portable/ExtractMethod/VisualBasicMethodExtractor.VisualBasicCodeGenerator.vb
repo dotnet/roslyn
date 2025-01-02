@@ -128,13 +128,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count = 0)
 
                     ' propagate any type variable used in extracted code
-                    Dim typeVariables = (From methodTypeParameter In AnalyzerResult.MethodTypeParametersInDeclaration
-                                         Select SyntaxFactory.ParseTypeName(methodTypeParameter.Name)).ToList()
-
-                    Return SyntaxFactory.SeparatedList(typeVariables)
+                    Return SyntaxFactory.SeparatedList(
+                        From methodTypeParameter In AnalyzerResult.MethodTypeParametersInDeclaration
+                        Select SyntaxFactory.ParseTypeName(methodTypeParameter.Name))
                 End Function
 
-                Protected Overrides Function GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken As CancellationToken) As SyntaxNode
+                Protected Overrides Function GetCallSiteContainerFromOutermostMoveInVariable() As SyntaxNode
                     Dim outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition()
                     If outmostVariable Is Nothing Then
                         Return Nothing
