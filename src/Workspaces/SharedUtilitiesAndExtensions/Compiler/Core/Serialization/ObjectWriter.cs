@@ -131,15 +131,24 @@ internal sealed partial class ObjectWriter : IDisposable
 
     public Stream BaseStream => _writer.BaseStream;
 
-    public void Reset(bool includeValidationBytes = true)
+    public void Reset()
     {
         _stringReferenceMap.Reset();
-        _writer.BaseStream.Position = includeValidationBytes ? 2 : 0;
+
+        // Reset the position and length back to zero
+        _writer.BaseStream.Position = 0;
 
         if (_writer.BaseStream is SerializableBytes.ReadWriteStream pooledStream)
-            pooledStream.SetLength(_writer.BaseStream.Position, truncate: false);
+        {
+            // ReadWriteStream.SetLength allows us to indicate to not truncate, allowing
+            // reuse of the backing arrays.
+            pooledStream.SetLength(0, truncate: false);
+        }
         else
-            _writer.BaseStream.SetLength(_writer.BaseStream.Position);
+        {
+            // Otherwise, set the new length via the standard Stream.SetLength
+            _writer.BaseStream.SetLength(0);
+        }
     }
 
     /// <summary>
