@@ -69,7 +69,7 @@ internal sealed partial class CSharpExtractMethodService
                     // 1. if regular binding returns a meaningful type, we use it as it is
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
-                    var (regularType, returnsByRef) = GetRegularExpressionType(model, node);
+                    var (regularType, returnsByRef) = GetRegularExpressionType(model, node, cancellationToken);
                     if (regularType != null)
                         return (regularType, returnsByRef);
 
@@ -77,10 +77,11 @@ internal sealed partial class CSharpExtractMethodService
                         return (model.GetTypeInfo(castExpression, cancellationToken).Type, returnsByRef: false);
                 }
 
-                return GetRegularExpressionType(model, node);
+                return GetRegularExpressionType(model, node, cancellationToken);
             }
 
-            private static (ITypeSymbol? typeSymbol, bool returnsByRef) GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
+            private static (ITypeSymbol? typeSymbol, bool returnsByRef) GetRegularExpressionType(
+                SemanticModel semanticModel, ExpressionSyntax node, CancellationToken cancellationToken)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.WalkDownParentheses();
@@ -96,8 +97,8 @@ internal sealed partial class CSharpExtractMethodService
 
                 ITypeSymbol? GetRegularExpressionTypeWorker()
                 {
-                    var info = semanticModel.GetTypeInfo(expression);
-                    var conv = semanticModel.GetConversion(expression);
+                    var info = semanticModel.GetTypeInfo(expression, cancellationToken);
+                    var conv = semanticModel.GetConversion(expression, cancellationToken);
 
                     if (info.ConvertedType == null || info.ConvertedType.IsErrorType())
                     {
@@ -106,7 +107,7 @@ internal sealed partial class CSharpExtractMethodService
                     }
 
                     // always use converted type if method group
-                    if ((!node.IsKind(SyntaxKind.ObjectCreationExpression) && semanticModel.GetMemberGroup(expression).Length > 0) ||
+                    if ((!node.IsKind(SyntaxKind.ObjectCreationExpression) && semanticModel.GetMemberGroup(expression, cancellationToken).Length > 0) ||
                         IsCoClassImplicitConversion(info, conv, semanticModel.Compilation.CoClassType()))
                     {
                         return info.GetConvertedTypeWithAnnotatedNullability();
