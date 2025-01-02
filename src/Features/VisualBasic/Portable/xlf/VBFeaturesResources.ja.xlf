@@ -222,11 +222,6 @@
         <target state="translated">修飾子 'Me' を削除します</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">抽出するステートメントの有効な範囲を決定できません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
         <target state="translated">無効な選択が含まれています</target>
@@ -280,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">選択範囲に有効なノードが含まれていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">抽出する有効なステートメントの範囲がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">

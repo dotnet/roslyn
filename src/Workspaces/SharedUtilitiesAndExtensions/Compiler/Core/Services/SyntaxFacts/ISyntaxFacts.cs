@@ -336,7 +336,6 @@ internal interface ISyntaxFacts
     bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
     SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node);
-    bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
     bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);

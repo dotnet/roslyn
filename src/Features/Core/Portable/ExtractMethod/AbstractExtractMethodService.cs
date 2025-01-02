@@ -8,16 +8,25 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract class AbstractExtractMethodService<
+/// <summary>
+/// Core service that tries to share as much extract-method logic across C# and VB.  Note: TStatementSyntax and
+/// TExecutableStatementSyntax exist to model VB's inheritance model there (where StatementSyntax is used liberally
+/// (including for signatures of members, while ExecutableStatementSyntax generally corresponds to a code statement
+/// found within a method body).  In C# these will be the same StatementSyntax type as C# has a much stronger split
+/// between executable code statements and symbol signatures.
+/// </summary>
+internal abstract partial class AbstractExtractMethodService<
     TValidator,
     TExtractor,
     TSelectionResult,
     TStatementSyntax,
+    TExecutableStatementSyntax,
     TExpressionSyntax> : IExtractMethodService
-    where TValidator : SelectionValidator<TSelectionResult, TStatementSyntax>
-    where TExtractor : MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
-    where TSelectionResult : SelectionResult<TStatementSyntax>
+    where TValidator : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.SelectionValidator
+    where TExtractor : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.MethodExtractor
+    where TSelectionResult : AbstractExtractMethodService<TValidator, TExtractor, TSelectionResult, TStatementSyntax, TExecutableStatementSyntax, TExpressionSyntax>.SelectionResult
     where TStatementSyntax : SyntaxNode
+    where TExecutableStatementSyntax : TStatementSyntax
     where TExpressionSyntax : SyntaxNode
 {
     protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction);

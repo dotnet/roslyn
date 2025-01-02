@@ -132,11 +132,6 @@
         <target state="translated">因為潛在的範圍變數宣告，所以停用了自動選取。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">變更為 'as' 運算式</target>
@@ -365,11 +360,6 @@
       <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
         <source>The selected code is inside an unsafe context.</source>
         <target state="translated">選取的程式碼在不安全的內容中。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">沒有可擷取的有效陳述式範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="deprecated">
