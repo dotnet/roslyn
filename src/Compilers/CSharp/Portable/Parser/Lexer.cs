@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _interpolationFollowedByColon = interpolationFollowedByColon;
 
             // Obtain pooled items
-            _cache = LexerCache.Allocate();
+            _cache = LexerCache.GetInstance();
             _builder = _cache.StringBuilder;
             _identBuffer = _cache.IdentBuffer;
             _leadingTriviaCache = _cache.LeadingTriviaCache;
@@ -133,7 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override void Dispose()
         {
-            LexerCache.Free(_cache);
+            _cache.Free();
+
             _xmlParser?.Dispose();
             _directiveParser?.Dispose();
 

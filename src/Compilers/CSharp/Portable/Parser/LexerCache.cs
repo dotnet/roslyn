@@ -5,8 +5,6 @@
 // #define COLLECT_STATS
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
@@ -31,15 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return kind;
                             });
 
-        private TextKeyedCache<SyntaxTrivia> _triviaMap;
-        private TextKeyedCache<SyntaxToken> _tokenMap;
-        private CachingIdentityFactory<string, SyntaxKind> _keywordKindMap;
+        private TextKeyedCache<SyntaxTrivia>? _triviaMap;
+        private TextKeyedCache<SyntaxToken>? _tokenMap;
+        private CachingIdentityFactory<string, SyntaxKind>? _keywordKindMap;
         internal const int MaxKeywordLength = 10;
 
-        private PooledStringBuilder _stringBuilder;
+        private PooledStringBuilder? _stringBuilder;
         private readonly char[] _identBuffer;
-        private SyntaxListBuilder _leadingTriviaCache;
-        private SyntaxListBuilder _trailingTriviaCache;
+        private SyntaxListBuilder? _leadingTriviaCache;
+        private SyntaxListBuilder? _trailingTriviaCache;
 
         private const int LeadingTriviaCacheInitialCapacity = 128;
         private const int TrailingTriviaCacheInitialCapacity = 16;
@@ -47,64 +45,129 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private LexerCache()
         {
             _identBuffer = new char[32];
-
-            Initialize();
         }
 
-        [MemberNotNull(nameof(_triviaMap), nameof(_tokenMap), nameof(_keywordKindMap), nameof(_stringBuilder), nameof(_leadingTriviaCache), nameof(_trailingTriviaCache))]
-        private void Initialize()
+        public static LexerCache GetInstance()
         {
-            _triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
-            _tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
-            _keywordKindMap = s_keywordKindPool.Allocate();
-            _stringBuilder = PooledStringBuilder.GetInstance();
+            return s_lexerCachePool.Allocate();
+        }
 
-            // Create new trivia caches if the existing ones have grown too large for pooling.
-            if (_leadingTriviaCache is null || _leadingTriviaCache.Capacity > LeadingTriviaCacheInitialCapacity * 2)
+        public void Free()
+        {
+            if (_keywordKindMap != null)
             {
-                _leadingTriviaCache = new SyntaxListBuilder(LeadingTriviaCacheInitialCapacity);
+                _keywordKindMap.Free();
+                _keywordKindMap = null;
             }
 
-            if (_trailingTriviaCache is null || _trailingTriviaCache.Capacity > TrailingTriviaCacheInitialCapacity * 2)
+            if (_triviaMap != null)
             {
-                _trailingTriviaCache = new SyntaxListBuilder(TrailingTriviaCacheInitialCapacity);
+                _triviaMap.Free();
+                _triviaMap = null;
             }
+
+            if (_tokenMap != null)
+            {
+                _tokenMap.Free();
+                _tokenMap = null;
+            }
+
+            if (_stringBuilder != null)
+            {
+                _stringBuilder.Free();
+                _stringBuilder = null;
+            }
+
+            if (_leadingTriviaCache != null)
+            {
+                if (_leadingTriviaCache.Capacity > LeadingTriviaCacheInitialCapacity * 2)
+                {
+                    // Don't reuse _leadingTriviaCache if it has grown too large for pooling.
+                    _leadingTriviaCache = null;
+                }
+                else
+                {
+                    _leadingTriviaCache.Clear();
+                }
+            }
+
+            if (_trailingTriviaCache != null)
+            {
+                if (_trailingTriviaCache.Capacity > TrailingTriviaCacheInitialCapacity * 2)
+                {
+                    // Don't reuse _trailingTriviaCache if it has grown too large for pooling.
+                    _trailingTriviaCache = null;
+                }
+                else
+                {
+                    _trailingTriviaCache.Clear();
+                }
+            }
+
+            s_lexerCachePool.Free(this);
         }
 
-        public static LexerCache Allocate()
-        {
-            var lexerCache = s_lexerCachePool.Allocate();
-
-            lexerCache.Initialize();
-
-            return lexerCache;
-        }
-
-        internal static void Free(LexerCache cache)
-        {
-            cache.Free();
-
-            s_lexerCachePool.Free(cache);
-        }
-
-        private void Free()
-        {
-            _keywordKindMap.Free();
-            _triviaMap.Free();
-            _tokenMap.Free();
-
-            // Use a pooled string builder as it's Free method understands whether it's too large
-            // to return to the pool
-            _stringBuilder.Free();
-
-            _leadingTriviaCache.Clear();
-            _trailingTriviaCache.Clear();
-        }
-
-        internal StringBuilder StringBuilder => _stringBuilder;
         internal char[] IdentBuffer => _identBuffer;
-        internal SyntaxListBuilder LeadingTriviaCache => _leadingTriviaCache;
-        internal SyntaxListBuilder TrailingTriviaCache => _trailingTriviaCache;
+
+        private TextKeyedCache<SyntaxTrivia> TriviaMap
+        {
+            get
+            {
+                _triviaMap ??= new TextKeyedCache<SyntaxTrivia>();
+
+                return _triviaMap;
+            }
+        }
+
+        private TextKeyedCache<SyntaxToken> TokenMap
+        {
+            get
+            {
+                _tokenMap ??= new TextKeyedCache<SyntaxToken>();
+
+                return _tokenMap;
+            }
+        }
+
+        private CachingIdentityFactory<string, SyntaxKind> KeywordKindMap
+        {
+            get
+            {
+                _keywordKindMap ??= s_keywordKindPool.Allocate();
+
+                return _keywordKindMap;
+            }
+        }
+
+        internal PooledStringBuilder StringBuilder
+        {
+            get
+            {
+                _stringBuilder ??= PooledStringBuilder.GetInstance();
+
+                return _stringBuilder;
+            }
+        }
+
+        internal SyntaxListBuilder LeadingTriviaCache
+        {
+            get
+            {
+                _leadingTriviaCache ??= new SyntaxListBuilder(LeadingTriviaCacheInitialCapacity);
+
+                return _leadingTriviaCache;
+            }
+        }
+
+        internal SyntaxListBuilder TrailingTriviaCache
+        {
+            get
+            {
+                _trailingTriviaCache ??= new SyntaxListBuilder(TrailingTriviaCacheInitialCapacity);
+
+                return _trailingTriviaCache;
+            }
+        }
 
         internal bool TryGetKeywordKind(string key, out SyntaxKind kind)
         {
@@ -114,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            kind = _keywordKindMap.GetOrMakeValue(key);
+            kind = KeywordKindMap.GetOrMakeValue(key);
             return kind != SyntaxKind.None;
         }
 
@@ -126,12 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Func<TArg, SyntaxTrivia> createTriviaFunction,
             TArg data)
         {
-            var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = TriviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {
                 value = createTriviaFunction(data);
-                _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                TriviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
 
             return value;
@@ -166,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Func<TArg, SyntaxToken> createTokenFunction,
             TArg data)
         {
-            var value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = TokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {
@@ -174,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Miss();
 #endif
                 value = createTokenFunction(data);
-                _tokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                TokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
             else
             {
