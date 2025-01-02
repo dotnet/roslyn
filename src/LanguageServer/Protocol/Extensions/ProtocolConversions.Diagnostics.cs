@@ -33,7 +33,10 @@ internal static partial class ProtocolConversions
             return [];
         }
 
-        var diagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions);
+        // Use LSP.DiagnosticSeverity.Hint for suggestion diagnostics when we are not in VS and the option to use hint severity is enabled
+        var useHintForSuggestions = !supportsVisualStudioExtensions && globalOptionService.GetOption(LspOptionsStorage.RenderSuggestionDiagnosticsAsHints, project.Language);
+
+        var diagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions, useHintForSuggestions);
 
         // Check if we need to handle the unnecessary tag (fading).
         if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
@@ -65,7 +68,7 @@ internal static partial class ProtocolConversions
             diagnosticsBuilder.Add(diagnostic);
             foreach (var location in unnecessaryLocations)
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions);
+                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions, useHintForSuggestions: true);
                 additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
                 additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
@@ -96,7 +99,8 @@ internal static partial class ProtocolConversions
         Project project,
         bool isLiveSource,
         bool potentialDuplicate,
-        bool supportsVisualStudioExtensions)
+        bool supportsVisualStudioExtensions,
+        bool useHintForSuggestions)
     {
         Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
 
@@ -107,7 +111,7 @@ internal static partial class ProtocolConversions
             Code = diagnosticData.Id,
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
             Message = diagnosticData.Message,
-            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, supportsVisualStudioExtensions),
+            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, useHintForSuggestions),
             Tags = ConvertTags(diagnosticData, isLiveSource, potentialDuplicate),
             DiagnosticRank = ConvertRank(diagnosticData),
             Range = GetRange(diagnosticData.DataLocation)
@@ -207,14 +211,13 @@ internal static partial class ProtocolConversions
         return null;
     }
 
-    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, bool supportsVisualStudioExtensions)
+    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, bool useHintForSuggestions)
         => severity switch
         {
             // Hidden is translated in ConvertTags to pass along appropriate _ms tags
             // that will hide the item in a client that knows about those tags.
             DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-            // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
-            DiagnosticSeverity.Info => supportsVisualStudioExtensions ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
+            DiagnosticSeverity.Info => useHintForSuggestions ? LSP.DiagnosticSeverity.Hint : LSP.DiagnosticSeverity.Information,
             DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
             _ => throw ExceptionUtilities.UnexpectedValue(severity),

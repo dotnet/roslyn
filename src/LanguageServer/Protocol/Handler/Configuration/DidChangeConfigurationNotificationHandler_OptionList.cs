@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             LspOptionsStorage.LspEnableReferencesCodeLens,
             LspOptionsStorage.LspEnableTestsCodeLens,
             LspOptionsStorage.LspEnableAutoInsert,
+            LspOptionsStorage.RenderSuggestionDiagnosticsAsHints,
             LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
             LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
             MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,

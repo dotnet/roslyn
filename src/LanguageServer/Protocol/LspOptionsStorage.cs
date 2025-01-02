@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private static readonly OptionGroup s_autoInsertOptionGroup = new(name: "auto_insert", description: "");
 
+        private static readonly OptionGroup s_diagnosticsOptionGroup = new(name: "diagnostics", description: "");
+
         /// <summary>
         /// Flag indicating whether or not references should be returned in LSP codelens.
         /// </summary>
@@ -48,5 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Flag indicating whether or not auto-insert should be abled by default in LSP.
         /// </summary>
         public static readonly PerLanguageOption2<bool> LspEnableAutoInsert = new("dotnet_enable_auto_insert", defaultValue: true, group: s_autoInsertOptionGroup);
+
+        /// <summary>
+        /// Flag indicating whether suggestion diagnostics returned from the server should be categorized as LSP DiagnosticSeverity.Hint or LSP DiagnosticSeverity.Information.
+        /// This changes how the client will render these diagnostics in the editor.  By default we render them as hints as this is more similar to the rendering in VS.
+        /// </summary>
+        public static readonly PerLanguageOption2<bool> RenderSuggestionDiagnosticsAsHints = new("dotnet_render_suggestions_as_hints", defaultValue: true, group: s_diagnosticsOptionGroup);
     }
 }

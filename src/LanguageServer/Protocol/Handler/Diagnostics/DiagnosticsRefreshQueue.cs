@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 
@@ -20,17 +21,20 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly Refresher _refresher;
+        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public Factory(
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            Refresher refresher)
+            Refresher refresher,
+            IGlobalOptionService globalOptionService)
         {
             _asyncListenerProvider = asynchronousOperationListenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _refresher = refresher;
+            _globalOptionService = globalOptionService;
         }
 
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
@@ -38,7 +42,7 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
             var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
 
-            return new DiagnosticsRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _refresher);
+            return new DiagnosticsRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _refresher, _globalOptionService);
         }
     }
 
@@ -73,24 +77,39 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
     }
 
     private readonly Refresher _refresher;
+    private readonly IGlobalOptionService _globalOptionService;
 
     private DiagnosticsRefreshQueue(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
-        Refresher refresher)
+        Refresher refresher,
+        IGlobalOptionService globalOptionService)
         : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
     {
         _refresher = refresher;
+        _globalOptionService = globalOptionService;
 
         refresher.WorkspaceRefreshRequested += WorkspaceRefreshRequested;
+        globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
     }
 
     public override void Dispose()
     {
         base.Dispose();
         _refresher.WorkspaceRefreshRequested -= WorkspaceRefreshRequested;
+        _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
+
+    }
+
+    private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
+    {
+        if (e.HasOption(static option => option.Equals(LspOptionsStorage.RenderSuggestionDiagnosticsAsHints)))
+        {
+            // Trigger a refresh via the diagnostic refresher to ensure the diagnostic state is updated and diagnostics get recalculated and re-sent to the client.
+            _refresher.RequestWorkspaceRefresh();
+        }
     }
 
     private void WorkspaceRefreshRequested()
