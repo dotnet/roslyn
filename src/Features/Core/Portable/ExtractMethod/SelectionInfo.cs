@@ -72,6 +72,5 @@ internal abstract partial class AbstractExtractMethodService<
 
             return SelectionType.MultipleStatements;
         }
-
     }
 }
