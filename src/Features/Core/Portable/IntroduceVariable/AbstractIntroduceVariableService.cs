@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -50,7 +51,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
     protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
 
     protected abstract Document IntroduceQueryLocal(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
-    protected abstract Document IntroduceLocal(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
+    protected abstract Document IntroduceLocal(SemanticDocument document, CodeCleanupOptions options, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
     protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
 
     protected abstract int DetermineFieldInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);

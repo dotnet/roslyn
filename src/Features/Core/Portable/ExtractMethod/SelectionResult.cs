@@ -209,8 +209,13 @@ internal abstract partial class AbstractExtractMethodService<
         public ControlFlowAnalysis GetStatementControlFlowAnalysis()
         {
             Contract.ThrowIfTrue(IsExtractMethodOnExpression);
-            var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
-            return _statementControlFlowAnalysis ??= this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
+            return _statementControlFlowAnalysis ??= ComputeControlFlowAnalysis();
+
+            ControlFlowAnalysis ComputeControlFlowAnalysis()
+            {
+                var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
+                return this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
+            }
         }
 
         public bool IsEndOfSelectionReachable()
