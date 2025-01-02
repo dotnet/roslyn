@@ -40,14 +40,14 @@ internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
 
             // add o# option values:
             var lineFormattingOptions = editorConfigOptions.LineFormattingOptions;
-            AddOption(FormattingOptions2.UseTabs, lineFormattingOptions.UseTabs, builder);
-            AddOption(FormattingOptions2.TabSize, lineFormattingOptions.TabSize, builder);
-            AddOption(FormattingOptions2.IndentationSize, lineFormattingOptions.IndentationSize, builder);
-            AddOption(FormattingOptions2.NewLine, lineFormattingOptions.NewLine, builder);
+            AddOption(FormattingOptions2.UseTabs, lineFormattingOptions.UseTabs);
+            AddOption(FormattingOptions2.TabSize, lineFormattingOptions.TabSize);
+            AddOption(FormattingOptions2.IndentationSize, lineFormattingOptions.IndentationSize);
+            AddOption(FormattingOptions2.NewLine, lineFormattingOptions.NewLine);
 
             var implementTypeOptions = editorConfigOptions.ImplementTypeOptions;
-            AddOption(ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)implementTypeOptions.InsertionBehavior, builder);
-            AddOption(ImplementTypeOptionsStorage.PropertyGenerationBehavior, (ImplementTypePropertyGenerationBehavior)implementTypeOptions.PropertyGenerationBehavior, builder);
+            AddOption(ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)implementTypeOptions.InsertionBehavior);
+            AddOption(ImplementTypeOptionsStorage.PropertyGenerationBehavior, (ImplementTypePropertyGenerationBehavior)implementTypeOptions.PropertyGenerationBehavior);
 
             var newFallbackOptions = oldFallbackOptions.SetItem(
                 LanguageNames.CSharp,
@@ -55,20 +55,19 @@ internal static class OmniSharpSolutionAnalyzerConfigOptionsUpdater
 
             var newSolution = oldSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
             return workspace.TryApplyChanges(newSolution);
+
+            void AddOption<T>(
+                PerLanguageOption2<T> option,
+                T value)
+            {
+                var configName = option.Definition.ConfigName;
+                var configValue = option.Definition.Serializer.Serialize(value);
+                builder[configName] = configValue;
+            }
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
         {
             throw ExceptionUtilities.Unreachable();
-        }
-
-        static void AddOption<T>(
-            PerLanguageOption2<T> option,
-            T value,
-            ImmutableDictionary<string, string>.Builder builder)
-        {
-            var configName = option.Definition.ConfigName;
-            var configValue = option.Definition.Serializer.Serialize(value);
-            builder.Add(configName, configValue);
         }
     }
 }

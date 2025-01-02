@@ -18,8 +18,8 @@ internal class AbstractLspServiceProvider
         IEnumerable<Lazy<ILspService, LspServiceMetadataView>> specificLspServices,
         IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> specificLspServiceFactories)
     {
-        _lspServices = specificLspServices.ToImmutableArray();
-        _lspServiceFactories = specificLspServiceFactories.ToImmutableArray();
+        _lspServices = [.. specificLspServices];
+        _lspServiceFactories = [.. specificLspServiceFactories];
     }
 
     public LspServices CreateServices(WellKnownLspServerKinds serverKind, FrozenDictionary<string, ImmutableArray<BaseService>> baseServices)

@@ -145,9 +145,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return new SymbolSpecification(
                 ID,
                 ItemName,
-                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolOrTypeOrMethodKind()).ToImmutableArray(),
-                AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
-                ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToImmutableArray());
+                [.. SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolOrTypeOrMethodKind())],
+                [.. AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility)],
+                [.. ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier))]);
         }
 
         internal bool TrySubmit()

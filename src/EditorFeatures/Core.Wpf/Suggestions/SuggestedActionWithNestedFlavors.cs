@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // check if Copilot service is available using a relatively cheap, but async method call.
                 _nestedFlavors = await extensionManager.PerformFunctionAsync(
                     Provider, CreateAllFlavorsAsync,
-                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty, cancellationToken).ConfigureAwait(false);
+                    defaultValue: [], cancellationToken).ConfigureAwait(false);
             }
 
             Contract.ThrowIfTrue(_nestedFlavors.IsDefault);

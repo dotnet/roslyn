@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface
     internal interface IOmniSharpExtractInterfaceOptionsService
     {
         // OmniSharp only uses these two arguments from the full IExtractInterfaceOptionsService
-        Task<OmniSharpExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+        OmniSharpExtractInterfaceOptionsResult GetExtractInterfaceOptions(
             List<ISymbol> extractableMembers,
             string defaultInterfaceName);
     }

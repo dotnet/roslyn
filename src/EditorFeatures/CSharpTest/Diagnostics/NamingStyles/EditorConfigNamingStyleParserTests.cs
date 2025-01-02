@@ -463,7 +463,7 @@ public class EditorConfigNamingStyleParserTests
         var symbolSpecifications = CreateDefaultSymbolSpecification();
         foreach (var applicableSymbolKind in symbolSpecifications.ApplicableSymbolKindList)
         {
-            var editorConfigString = EditorConfigNamingStyleParser.ToEditorConfigString(ImmutableArray.Create(applicableSymbolKind));
+            var editorConfigString = EditorConfigNamingStyleParser.ToEditorConfigString([applicableSymbolKind]);
             Assert.True(!string.IsNullOrEmpty(editorConfigString));
         }
     }

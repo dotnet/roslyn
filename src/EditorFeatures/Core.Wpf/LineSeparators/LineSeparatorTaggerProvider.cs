@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray<IOption2>.Empty;
+        protected sealed override ImmutableArray<IOption2> Options { get; } = [];
 
         private readonly object _lineSeparatorTagGate = new();
         private LineSeparatorTag _lineSeparatorTag;

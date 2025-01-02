@@ -32,7 +32,7 @@ internal sealed class CodeGenerationOperatorSymbol(
          refKind: RefKind.None,
          explicitInterfaceImplementations: default,
          GetMetadataName(operatorKind),
-         typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+         typeParameters: [],
          parameters,
          returnTypeAttributes,
          documentationCommentXml)
