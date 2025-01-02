@@ -53,7 +53,7 @@ internal abstract partial class AbstractExtractMethodService<
             var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
             var analyzeResult = Analyze(cancellationToken);
 
-            var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult, cancellationToken);
+            var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult);
             if (status.Failed)
                 return ExtractMethodResult.Fail(status);
 
@@ -199,27 +199,18 @@ internal abstract partial class AbstractExtractMethodService<
 
         private OperationStatus CheckVariableTypes(
             OperationStatus status,
-            AnalyzerResult analyzeResult,
-            CancellationToken cancellationToken)
+            AnalyzerResult analyzeResult)
         {
             var semanticModel = OriginalSelectionResult.SemanticDocument.SemanticModel;
 
-            // sync selection result to same semantic data as analyzeResult
-            var firstToken = OriginalSelectionResult.GetFirstTokenInSelection();
-            var context = firstToken.Parent;
+            status = TryCheckVariableType(semanticModel, analyzeResult.Variables, status);
+            status = TryCheckVariableType(semanticModel, analyzeResult.MethodParameters, status);
 
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.MethodParameters, status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), status);
-
-            return status.With(CheckType(semanticModel, context, analyzeResult.ReturnType));
+            return status.With(CheckType(semanticModel, analyzeResult.ReturnType));
         }
 
         private OperationStatus TryCheckVariableType(
             SemanticModel semanticModel,
-            SyntaxNode contextNode,
             IEnumerable<VariableInfo> variables,
             OperationStatus status)
         {
@@ -228,7 +219,7 @@ internal abstract partial class AbstractExtractMethodService<
                 foreach (var variable in variables)
                 {
                     var originalType = variable.GetVariableType();
-                    status = status.With(CheckType(semanticModel, contextNode, originalType));
+                    status = status.With(CheckType(semanticModel, originalType));
                     if (status.Failed)
                         return status;
                 }
@@ -238,7 +229,7 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         private OperationStatus CheckType(
-            SemanticModel semanticModel, SyntaxNode contextNode, ITypeSymbol type)
+            SemanticModel semanticModel, ITypeSymbol type)
         {
             Contract.ThrowIfNull(type);
 
@@ -253,7 +244,7 @@ internal abstract partial class AbstractExtractMethodService<
             foreach (var typeParameter in TypeParameterCollector.Collect(type))
             {
                 var typeName = ParseTypeName(typeParameter.Name);
-                var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                var currentType = semanticModel.GetSpeculativeTypeInfo(this.OriginalSelectionResult.FinalSpan.Start, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
                     return new OperationStatus(succeeded: true,
