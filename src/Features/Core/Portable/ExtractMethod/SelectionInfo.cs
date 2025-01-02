@@ -73,7 +73,5 @@ internal abstract partial class AbstractExtractMethodService<
             return SelectionType.MultipleStatements;
         }
 
-        //public TextSpan GetControlFlowSpan()
-        //    => TextSpan.FromBounds(this.FirstTokenInFinalSpan.SpanStart, this.LastTokenInFinalSpan.Span.End);
     }
 }
