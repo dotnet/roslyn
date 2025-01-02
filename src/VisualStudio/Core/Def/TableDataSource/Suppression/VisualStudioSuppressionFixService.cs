@@ -162,7 +162,7 @@ internal sealed class VisualStudioSuppressionFixService(
                 ? await _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken).ConfigureAwait(true)
                 : [];
 
-            diagnosticsToFix = diagnosticsToFixArray.ToImmutableHashSet();
+            diagnosticsToFix = [.. diagnosticsToFixArray];
 
         }, GetFixTitle(isAddSuppression), GetWaitDialogMessage(isAddSuppression)).ConfigureAwait(true);
 
@@ -493,7 +493,7 @@ internal sealed class VisualStudioSuppressionFixService(
                 latestDocumentDiagnosticsMap.Clear();
                 foreach (var kvp in latestProjectDiagnostics.Where(d => d.DocumentId != null).GroupBy(d => d.DocumentId!))
                 {
-                    latestDocumentDiagnosticsMap.Add(kvp.Key, kvp.ToImmutableHashSet());
+                    latestDocumentDiagnosticsMap.Add(kvp.Key, [.. kvp]);
                 }
             }
 
@@ -513,7 +513,7 @@ internal sealed class VisualStudioSuppressionFixService(
                     if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                     {
                         // Ignore stale diagnostics in error list.
-                        latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                        latestDocumentDiagnostics = [];
                     }
 
                     // Filter out stale diagnostics in error list.

@@ -150,7 +150,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
 
     private static ImmutableArray<string> GetTargetFrameworks(IEnumerable<ProjectFileInfo> projectFileInfos)
     {
-        return projectFileInfos.Select(p => GetTargetFramework(p)?.ToLower()).WhereNotNull().ToImmutableArray();
+        return [.. projectFileInfos.Select(p => GetTargetFramework(p)?.ToLower()).WhereNotNull()];
 
         string? GetTargetFramework(ProjectFileInfo projectFileInfo)
             => projectFileInfo.TargetFramework ?? projectFileInfo.TargetFrameworkVersion;

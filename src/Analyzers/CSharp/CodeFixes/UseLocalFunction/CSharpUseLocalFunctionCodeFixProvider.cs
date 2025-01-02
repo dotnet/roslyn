@@ -114,7 +114,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
             currentRoot = ReplaceReferences(
                 document, currentRoot,
                 delegateType, parameterList,
-                references.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray());
+                [.. references.Select(node => currentRoot.GetCurrentNode(node))]);
         }
 
         editor.ReplaceNode(root, currentRoot);

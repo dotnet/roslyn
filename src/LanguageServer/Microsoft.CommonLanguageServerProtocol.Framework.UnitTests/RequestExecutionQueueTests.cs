@@ -62,12 +62,12 @@ public class RequestExecutionQueueTests
         for (var i = 0; i < 20; i++)
         {
             // Arrange
-            var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, handlers: new[]
-            {
+            var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, handlers:
+            [
                 (CancellingHandler.Metadata, CancellingHandler.Instance),
                 (CompletingHandler.Metadata, CompletingHandler.Instance),
                 (MutatingHandler.Metadata, MutatingHandler.Instance),
-            });
+            ]);
             var lspServices = GetLspServices();
 
             var cancellingRequestCancellationToken = new CancellationToken();

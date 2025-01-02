@@ -26,7 +26,7 @@ public partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProvi
         {
             get
             {
-                return ImmutableArray.Create(_descriptor);
+                return [_descriptor];
             }
         }
 

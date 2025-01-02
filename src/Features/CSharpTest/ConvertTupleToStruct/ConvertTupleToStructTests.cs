@@ -384,7 +384,7 @@ public class ConvertTupleToStructTests
         var symbolSpecification = new SymbolSpecification(
             Guid.NewGuid(),
             "Name2",
-            ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
             accessibilityList: default,
             modifiers: default);
 
@@ -404,9 +404,9 @@ public class ConvertTupleToStructTests
         };
 
         var info = new NamingStylePreferences(
-            ImmutableArray.Create(symbolSpecification),
-            ImmutableArray.Create(namingStyle),
-            ImmutableArray.Create(namingRule));
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
         var options = PreferImplicitTypeWithInfo();
         options.Add(NamingStyleOptions.NamingPreferences, info);

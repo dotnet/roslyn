@@ -135,7 +135,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             _eventArgsType = compilation.EventArgsType();
             _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
             _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
-            _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange<INamedTypeSymbol?>(GetAttributesForMethodsToIgnore(compilation));
+            _attributeSetForMethodsToIgnore = [.. GetAttributesForMethodsToIgnore(compilation)];
         }
 
         private static Location GetDiagnosticLocation(ISymbol symbol)

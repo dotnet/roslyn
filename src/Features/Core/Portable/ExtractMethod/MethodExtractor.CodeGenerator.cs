@@ -319,7 +319,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }
 
-            return new HashSet<SyntaxAnnotation>(annotations.Select(t => t.Item2));
+            return [.. annotations.Select(t => t.Item2)];
         }
 
         protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()

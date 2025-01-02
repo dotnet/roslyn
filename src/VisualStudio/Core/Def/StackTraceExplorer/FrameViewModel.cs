@@ -27,7 +27,7 @@ internal abstract class FrameViewModel
         _classificationTypeMap = typeMap;
     }
 
-    public ImmutableArray<Inline> Inlines => CreateInlines().ToImmutableArray();
+    public ImmutableArray<Inline> Inlines => [.. CreateInlines()];
 
     protected abstract IEnumerable<Inline> CreateInlines();
 

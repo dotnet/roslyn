@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (pathNames.Length > 0)
                 {
                     folders = pathNames.Length > 1
-                        ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
+                        ? [.. pathNames.Take(pathNames.Length - 1)]
                         : [];
 
                     name = pathNames[^1];

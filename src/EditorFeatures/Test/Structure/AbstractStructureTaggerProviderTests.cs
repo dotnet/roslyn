@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,7 +16,7 @@ public class AbstractStructureTaggerProviderTests
     private static void TextContainsRegionOrUsing(string input, bool expected, string language)
     {
         var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
-        var buffer = EditorFactory.CreateBuffer(exportProvider, input.Split(new string[] { Environment.NewLine }, StringSplitOptions.None));
+        var buffer = EditorFactory.CreateBuffer(exportProvider, input.Split([Environment.NewLine], StringSplitOptions.None));
         var textSnapshot = buffer.CurrentSnapshot;
 
         var actual = AbstractStructureTaggerProvider.ContainsRegionOrImport(textSnapshot, collapseRegions: true, collapseImports: true, language);

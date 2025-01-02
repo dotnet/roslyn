@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption([]) } };
 
         internal OptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind)
-            => SymbolKindsArePascalCase(ImmutableArray.Create(ToSymbolKindOrTypeKind(symbolOrTypeKind)));
+            => SymbolKindsArePascalCase([ToSymbolKindOrTypeKind(symbolOrTypeKind)]);
 
         internal static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
         {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 EnforcementLevel = ReportDiagnostic.Error
             };
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -276,9 +276,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 EnforcementLevel = ReportDiagnostic.Error
             };
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)],
                 accessibilities,
                 modifiers: default);
 
@@ -344,9 +344,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 EnforcementLevel = ReportDiagnostic.Error
             };
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -375,9 +375,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 EnforcementLevel = ReportDiagnostic.Error
             };
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -406,9 +406,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 EnforcementLevel = ReportDiagnostic.Error
             };
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -438,9 +438,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name2",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -470,9 +470,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name2",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -502,9 +502,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -534,9 +534,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -566,9 +566,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -598,9 +598,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -630,9 +630,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter)],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -662,9 +662,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -674,11 +674,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(
+                [
                     new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-                    new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                    new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local),
+                ],
                 accessibilityList: default,
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)));
+                [new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)]);
 
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
@@ -696,9 +697,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }
@@ -708,16 +709,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var localsSymbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Locals",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)],
                 accessibilityList: default,
                 modifiers: default);
 
             var constLocalsSymbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Const Locals",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)],
                 accessibilityList: default,
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)));
+                [new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)]);
 
             var camelCaseNamingStyle = new NamingStyle(
                 Guid.NewGuid(),
@@ -750,9 +751,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(localsSymbolSpecification, constLocalsSymbolSpecification),
-                ImmutableArray.Create(camelCaseNamingStyle, allUpperNamingStyle),
-                ImmutableArray.Create(constLocalsUpperCaseNamingRule, localsCamelCaseNamingRule));
+                [localsSymbolSpecification, constLocalsSymbolSpecification],
+                [camelCaseNamingStyle, allUpperNamingStyle],
+                [constLocalsUpperCaseNamingRule, localsCamelCaseNamingRule]);
 
             return info;
         }
@@ -762,11 +763,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                ImmutableArray.Create(
+                [
                     new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary),
-                    new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
+                    new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction),
+                ],
                 accessibilityList: default,
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)));
+                [new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)]);
 
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
@@ -784,9 +786,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             };
 
             var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [symbolSpecification],
+                [namingStyle],
+                [namingRule]);
 
             return info;
         }

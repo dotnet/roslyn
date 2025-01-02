@@ -70,8 +70,8 @@ internal sealed partial class InitializerExpressionSignatureHelpProvider : Abstr
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        return CreateCollectionInitializerSignatureHelpItems(addMethods.Select(s =>
-            ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel)).ToList(),
+        return CreateCollectionInitializerSignatureHelpItems([.. addMethods.Select(s =>
+            ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
     }
 

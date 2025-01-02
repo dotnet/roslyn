@@ -74,7 +74,7 @@ internal sealed partial class CSharpMethodExtractor
             block = block.ReplaceTokens([firstToken, lastToken], (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
 
             // return only statements without the wrapping block
-            return ImmutableArray.CreateRange(block.Statements);
+            return [.. block.Statements];
         }
 
         public ImmutableArray<StatementSyntax> MergeDeclarationStatements(ImmutableArray<StatementSyntax> statements)
