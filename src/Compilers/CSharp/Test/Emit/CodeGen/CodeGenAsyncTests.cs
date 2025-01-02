@@ -6305,5 +6305,49 @@ class Test1
                     m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>d__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
             }
         }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Threading.Tasks;
+
+class Test1
+{
+    async Task<int> M2<T>([Preserve1][Preserve2][Preserve3]int x)
+    {
+        await Task.Yield();
+        return x;
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__0.x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
     }
 }
