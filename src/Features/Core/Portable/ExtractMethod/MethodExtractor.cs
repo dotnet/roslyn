@@ -214,11 +214,7 @@ internal abstract partial class AbstractExtractMethodService<
             status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), status);
             status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), status);
 
-            if (status.Failed)
-                return status;
-
-            var checkedStatus = CheckType(semanticModel, context, analyzeResult.ReturnType);
-            return checkedStatus.With(status);
+            return status.With(CheckType(semanticModel, context, analyzeResult.ReturnType));
         }
 
         private OperationStatus TryCheckVariableType(
@@ -232,9 +228,9 @@ internal abstract partial class AbstractExtractMethodService<
                 foreach (var variable in variables)
                 {
                     var originalType = variable.GetVariableType();
-                    var result = CheckType(semanticModel, contextNode, originalType);
-                    if (result.Failed)
-                        return status.With(result);
+                    status = status.With(CheckType(semanticModel, contextNode, originalType));
+                    if (status.Failed)
+                        return status;
                 }
             }
 
