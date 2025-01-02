@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestAfterGlobalStatement()
+        public async Task TestAfterGlobalStatement_Interactive()
         {
-            await VerifyKeywordAsync(
+            await VerifyKeywordAsync(SourceCodeKind.Script,
                 """
                 System.Console.WriteLine();
                 $$

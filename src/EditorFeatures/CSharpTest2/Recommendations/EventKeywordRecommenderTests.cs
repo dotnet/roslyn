@@ -31,9 +31,9 @@ public sealed class EventKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
+    public async Task TestAfterGlobalStatement_Interactive()
     {
-        await VerifyKeywordAsync(
+        await VerifyKeywordAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
