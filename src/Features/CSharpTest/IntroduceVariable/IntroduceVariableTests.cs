@@ -943,6 +943,56 @@ options: ImplicitTypingEverywhere());
     }
 
     [Fact]
+    public async Task TestNameVerbatimIdentifier1NoVar_1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            static class G<T>
+            {
+                public class @class
+                {
+                }
+
+                public static void Add(object @class)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    G<int>.Add([|new G<int>.@class()|]);
+                }
+            }
+            """,
+            """
+            static class G<T>
+            {
+                public class @class
+                {
+                }
+
+                public static void Add(object @class)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    G<int>.@class {|Rename:@class|} = new new G<int>.@class();
+                    G<int>.Add(@class);
+                }
+            }
+            """, options: new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, CodeStyleOption2.FalseWithSilentEnforcement }
+            });
+    }
+
+    [Fact]
     public async Task TestNameVerbatimIdentifier2()
     {
         await TestInRegularAndScriptAsync(
