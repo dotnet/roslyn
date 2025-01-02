@@ -1704,7 +1704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnostics As BindingDiagnosticBag = Nothing
             If Me.IsMicrosoftCodeAnalysisEmbeddedAttribute() Then
-                ' This Is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules
+                ' This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules
                 ' 1. It must be Friend
                 ' 2. It must be a Class
                 ' 3. It must be NotInheritable
@@ -1724,7 +1724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         (Not DeclaringCompilation.IsAttributeType(Me)) OrElse
                         (GetAttributeUsageInfo().ValidTargets And expectedTargets) <> expectedTargets Then
                     diagnostics = BindingDiagnosticBag.GetInstance()
-                    diagnostics.Add(ERRID.ERR_ReservedTypeMustFollowPattern, TypeDeclaration.Declarations(0).Location, Me)
+                    diagnostics.Add(ERRID.ERR_EmbeddedAttributeMustFollowPattern, TypeDeclaration.Declarations(0).Location)
                 End If
             End If
 

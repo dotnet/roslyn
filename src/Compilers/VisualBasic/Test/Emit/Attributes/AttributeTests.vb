@@ -5084,9 +5084,11 @@ End Class
         End Sub
 
         <Theory>
-        <CombinatorialData>
-        Public Sub EmbeddedAttributeFromSourceValidation_Valid(includeTargetsList As Boolean)
-            Dim targets = If(includeTargetsList, ", System.AttributeUsage(System.AttributeTargets.Class Or System.AttributeTargets.Struct Or System.AttributeTargets.Interface Or System.AttributeTargets.Enum Or System.AttributeTargets.Delegate)", "")
+        <InlineData("System.AttributeTargets.Class Or System.AttributeTargets.Struct Or System.AttributeTargets.Interface Or System.AttributeTargets.Enum Or System.AttributeTargets.Delegate")>
+        <InlineData("System.AttributeTargets.All")>
+        <InlineData("")>
+        Public Sub EmbeddedAttributeFromSourceValidation_Valid(targetsList As String)
+            Dim targets = If(targetsList <> "", $", System.AttributeUsage({targetsList})", "")
 
             Dim code = $"
 Namespace Microsoft.CodeAnalysis
@@ -5128,7 +5130,7 @@ End Namespace
 "
 
             CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
-BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     <Embedded>
     ~~~~~~~~~~~
 ]]>)
@@ -5149,7 +5151,7 @@ End Namespace
 "
 
             CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(
-                "BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+                "BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     <Embedded>
     ~~~~~~~~~~~")
         End Sub
@@ -5172,11 +5174,8 @@ Namespace Microsoft.CodeAnalysis
 End Namespace
 "
 
-            If ctorAccessModifier <> "Private" Then
-            End If
-
             CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
-BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     Friend NotInheritable Class EmbeddedAttribute
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>)
@@ -5207,6 +5206,29 @@ End Namespace
                                                         Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"},
                                                             embeddedAttr.GetAttributes().Where(Function(a) a.AttributeClass.Name <> "ObsoleteAttribute").Select(Function(a) a.AttributeClass.ToTestDisplayString()))
                                                     End Sub).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication_Partial()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Partial Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace"
+
+            Dim comp = CreateCompilationWithMscorlib40({code, code})
+            comp.AssertNoDiagnostics()
+
+            Dim sourceDeclaration = comp.SourceAssembly.GetTypeByMetadataName("Microsoft.CodeAnalysis.EmbeddedAttribute")
+            Assert.Equal(2, sourceDeclaration.Locations.Length)
+
+            CompileAndVerify(comp, symbolValidator:=Sub([module])
+                                                        Dim embeddedAttr = [module].ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName)
+                                                        Assert.NotNull(embeddedAttr)
+                                                        Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"},
+                                                            embeddedAttr.GetAttributes().Where(Function(a) a.AttributeClass.Name <> "ObsoleteAttribute").Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+                                                    End Sub)
         End Sub
 
         <Fact>
@@ -5249,7 +5271,7 @@ End Namespace
 "
 
             CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
-BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     <Embedded>
     ~~~~~~~~~~~
 BC31504: 'EmbeddedAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
@@ -5279,7 +5301,7 @@ End Namespace
 "
 
             CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
-BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     <Embedded>
     ~~~~~~~~~~~
 BC31504: 'EmbeddedAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
@@ -5314,14 +5336,14 @@ End Namespace
             Dim comp = CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20)
 
             If targets.Contains("Class") Then
-                comp.AssertTheseDiagnostics($"BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+                comp.AssertTheseDiagnostics($"BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     <Embedded, AttributeUsage({targets})>
     ~~~~~~~~~~~~~~~~~~~~~~~~~~{(New String("~"c, targets.Length))}~~~"
 )
             Else
 
                 comp.AssertTheseDiagnostics(<![CDATA[
-BC37335: The type 'EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
     <Embedded, AttributeUsage(AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate)>
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30662: Attribute 'EmbeddedAttribute' cannot be applied to 'EmbeddedAttribute' because the attribute is not valid on this declaration type.

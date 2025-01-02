@@ -1414,7 +1414,6 @@ next:;
         {
             get
             {
-
                 var data = GetEarlyDecodedWellKnownAttributeData();
                 return (data != null && data.HasCodeAnalysisEmbeddedAttribute)
                     // If this is Microsoft.CodeAnalysis.EmbeddedAttribute, we'll synthesize EmbeddedAttribute even if it's not applied.
@@ -1947,8 +1946,8 @@ next:;
                     || !this.DeclaringCompilation.IsAttributeType(this)
                     || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
                 {
-                    // The type '{0}' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
-                    diagnostics.Add(ErrorCode.ERR_ReservedTypeMustFollowPattern, GetFirstLocation(), AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                    diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
                 }
 
             }

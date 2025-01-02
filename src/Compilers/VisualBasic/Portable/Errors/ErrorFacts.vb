@@ -1546,7 +1546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_InvalidExperimentalDiagID,
                      ERRID.ERR_LockTypeUnsupported,
                      ERRID.WRN_ConvertingLock,
-                     ERRID.ERR_ReservedTypeMustFollowPattern
+                     ERRID.ERR_EmbeddedAttributeMustFollowPattern
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement
