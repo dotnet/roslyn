@@ -81,13 +81,16 @@ internal abstract partial class AbstractExtractMethodService<
                 return Variables.WhereAsArray(
                     v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitIn or
                          DeclarationBehavior.MoveIn);
-            }
+            } 
+
+            public IEnumerable<VariableInfo> MethodParameters
+                => Variables.Where(v => v.UseAsParameter);
 
             public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
                 => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
-                => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or DeclarationBehavior.Delete);
+                => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut);
 
             public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite(CancellationToken cancellationToken)
                 => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or DeclarationBehavior.MoveOut);

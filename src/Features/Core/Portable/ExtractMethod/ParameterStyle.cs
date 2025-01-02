@@ -15,9 +15,6 @@ internal sealed record class ParameterStyle(
     public static readonly ParameterStyle InputOnly =
         new(ParameterBehavior.Input, DeclarationBehavior.None, DeclarationBehavior.None);
 
-    public static readonly ParameterStyle Delete =
-        new(ParameterBehavior.None, DeclarationBehavior.Delete, DeclarationBehavior.None);
-
     public static readonly ParameterStyle MoveOut =
         new(ParameterBehavior.None, DeclarationBehavior.MoveOut, DeclarationBehavior.SplitOut);
 

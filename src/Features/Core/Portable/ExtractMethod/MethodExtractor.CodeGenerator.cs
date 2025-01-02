@@ -312,8 +312,7 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is
                         DeclarationBehavior.MoveOut or
-                        DeclarationBehavior.MoveIn or
-                        DeclarationBehavior.Delete);
+                        DeclarationBehavior.MoveIn);
 
                     variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
                 }
