@@ -203,29 +203,18 @@ internal abstract partial class AbstractExtractMethodService<
         {
             var semanticModel = OriginalSelectionResult.SemanticDocument.SemanticModel;
 
-            status = TryCheckVariableType(semanticModel, analyzeResult.Variables, status);
-            status = TryCheckVariableType(semanticModel, analyzeResult.MethodParameters, status);
+            if (status.Failed)
+                return status;
 
-            return status.With(CheckType(semanticModel, analyzeResult.ReturnType));
-        }
-
-        private OperationStatus TryCheckVariableType(
-            SemanticModel semanticModel,
-            IEnumerable<VariableInfo> variables,
-            OperationStatus status)
-        {
-            if (status.Succeeded)
+            foreach (var variable in analyzeResult.Variables)
             {
-                foreach (var variable in variables)
-                {
-                    var originalType = variable.GetVariableType();
-                    status = status.With(CheckType(semanticModel, originalType));
-                    if (status.Failed)
-                        return status;
-                }
+                var originalType = variable.GetVariableType();
+                status = status.With(CheckType(semanticModel, originalType));
+                if (status.Failed)
+                    return status;
             }
 
-            return status;
+            return status.With(CheckType(semanticModel, analyzeResult.ReturnType));
         }
 
         private OperationStatus CheckType(
