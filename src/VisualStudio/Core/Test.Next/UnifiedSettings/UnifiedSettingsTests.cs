@@ -283,7 +283,7 @@ public class UnifiedSettingsTests
         var pkgdefFile = await streamReader.ReadToEndAsync();
 
         var fileBytes = Encoding.ASCII.GetBytes(registrationFile);
-        var expectedTags = BitConverter.ToInt64(XxHash128.Hash(fileBytes).Take(8).ToArray(), 0).ToString("X16");
+        var expectedTags = BitConverter.ToInt64([.. XxHash128.Hash(fileBytes).Take(8)], 0).ToString("X16");
         var regex = new Regex("""
                               "CacheTag"=qword:\w{16}
                               """);
