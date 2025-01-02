@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
                 }
             }
 
-            return ImmutableArray<DocumentHighlights>.Empty;
+            return [];
 
             static HighlightSpanKind ConvertKind(AspNetCoreHighlightSpanKind kind)
             {

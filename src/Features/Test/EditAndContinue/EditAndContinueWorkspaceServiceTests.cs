@@ -133,7 +133,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             filePath: sourceFileD.Path));
 
         var captureMatchingDocuments = captureAllDocuments
-            ? ImmutableArray<DocumentId>.Empty
+            ? []
             : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
 
         var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
@@ -417,9 +417,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         }
 
         // make sure renames are not supported:
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
-        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : ImmutableArray<DocumentId>.Empty;
+        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : [];
         var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
@@ -450,7 +450,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.NotEmpty(activeStatementMap.DocumentPathMap);
 
         // Active statements in design-time documents should be left unchanged.
-        var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(designTimeOnlyDocumentId), CancellationToken.None);
+        var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [designTimeOnlyDocumentId], CancellationToken.None);
         Assert.Empty(asSpans.Single());
 
         // no Rude Edits reported:
@@ -1900,7 +1900,7 @@ class C { int Y => 2; }
 
         // TODO: https://github.com/dotnet/roslyn/issues/1204
         // Should return span in document B since the document content matches the PDB.
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentA1.Id, documentB2.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentA1.Id, documentB2.Id], CancellationToken.None);
         AssertEx.Equal(
         [
             "<empty>",
@@ -1950,7 +1950,7 @@ class C { int Y => 2; }
         EmitAndLoadLibraryToDebuggee(source1);
 
         // attached to processes that allow updating custom attributes:
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline", "ChangeCustomAttributes"];
 
         // F5
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -1975,7 +1975,7 @@ class C { int Y => 2; }
             ExitBreakState(debuggingSession);
         }
 
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         if (breakState)
         {
@@ -2000,7 +2000,7 @@ class C { int Y => 2; }
            diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // detach from processes that do not allow updating custom attributes:
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline", "ChangeCustomAttributes"];
 
         if (breakState)
         {
@@ -2063,7 +2063,7 @@ class G
         LoadLibraryToDebuggee(moduleId);
 
         // attached to processes that doesn't allow creating new types
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
@@ -2098,7 +2098,7 @@ class G
         EmitAndLoadLibraryToDebuggee(source1);
 
         // attached to processes that doesn't allow creating new types
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         // F5
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -3130,7 +3130,7 @@ class C { int Y => 1; }
         EmitAndLoadLibraryToDebuggee(source1);
 
         // attached to processes that doesn't allow creating new types
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         // F5
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -3407,7 +3407,7 @@ class C { int Y => 1; }
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
         // default if not called in a break state
-        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None)).IsDefault);
+        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document1.Id], CancellationToken.None)).IsDefault);
 
         var moduleId = Guid.NewGuid();
         var activeInstruction1 = new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1);
@@ -3430,7 +3430,7 @@ class C { int Y => 1; }
         var activeStatementSpan11 = new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame);
         var activeStatementSpan12 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame);
 
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document1.Id], CancellationToken.None);
         AssertEx.Equal(
         [
             activeStatementSpan11,
@@ -3503,7 +3503,7 @@ class C { int Y => 1; }
 
         EnterBreakState(debuggingSession, activeStatements);
 
-        var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
@@ -3554,13 +3554,13 @@ class C { int Y => 1; }
         var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(currentSpans);
 
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         Assert.Empty(baseSpans.Single());
 
         // update solution:
         solution = solution.WithDocumentText(document.Id, CreateText("dummy2"));
 
-        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         Assert.Empty(baseSpans.Single());
     }
 
@@ -3739,14 +3739,14 @@ class C { int Y => 1; }
         Assert.True(activeStatement1.IsLeaf);
 
         // Active statement reported as unchanged as the containing document is out-of-sync:
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         AssertEx.Equal([$"(9,18)-(9,22)"], baseSpans.Single().Select(s => s.LineSpan.ToString()));
 
         // Document got synchronized:
         debuggingSession.LastCommittedSolution.Test_SetDocumentState(document.Id, CommittedSolution.DocumentState.MatchesBuildOutput);
 
         // New location of the active statement reported:
-        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         AssertEx.Equal([$"(10,12)-(10,16)"], baseSpans.Single().Select(s => s.LineSpan.ToString()));
     }
 
@@ -4028,7 +4028,7 @@ class C
                 ActiveStatementFlags.Stale | ActiveStatementFlags.NonLeafFrame,        // F - not up-to-date anymore and since F v1 is followed by F v3 (hot-reload) it is now stale
             ]));
 
-        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new(4, 41), new(4, 42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame),
@@ -4131,7 +4131,7 @@ class C
         var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
         var expectedSpanF1 = new LinePositionSpan(new LinePosition(8, 14), new LinePosition(8, 18));
 
-        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
@@ -4144,7 +4144,7 @@ class C
         var expectedSpanG2 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
         var expectedSpanF2 = new LinePositionSpan(new LinePosition(9, 14), new LinePosition(9, 18));
 
-        spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
@@ -4241,7 +4241,7 @@ class C
         // check that the active statement is mapped correctly to snapshot v2:
         var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
 
-        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
@@ -4367,7 +4367,7 @@ class C
                 solution,
                 _debuggerService,
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: true,
                 CancellationToken.None);
@@ -4413,7 +4413,7 @@ class C
         // The following methods can be called at any point in time, so we must handle race with dispose gracefully.
         Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
-        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray<DocumentId>.Empty, CancellationToken.None)).IsDefault);
+        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [], CancellationToken.None)).IsDefault);
     }
 
     [Fact]

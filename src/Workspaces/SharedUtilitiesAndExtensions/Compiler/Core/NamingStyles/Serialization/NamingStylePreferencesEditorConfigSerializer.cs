@@ -152,7 +152,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
 
         static string ToSnakeCaseName(string name)
         {
-            return new string(name
+            return new string([.. name
                 .Select(ch =>
                 {
                     if (char.IsLetterOrDigit(ch))
@@ -163,8 +163,7 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
                     {
                         return '_';
                     }
-                })
-                .ToArray());
+                })]);
         }
     }
 

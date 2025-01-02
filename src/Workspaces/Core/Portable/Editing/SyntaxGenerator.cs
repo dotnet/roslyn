@@ -1440,10 +1440,10 @@ public abstract class SyntaxGenerator : ILanguageService
     internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
     {
         // return tokens from newList, but use original tokens of kind matches
-        return new SyntaxTokenList(newList.Select(
+        return [.. newList.Select(
             token => Any(original, token.RawKind)
                 ? original.First(tk => tk.RawKind == token.RawKind)
-                : token));
+                : token)];
     }
 
     private static bool Any(SyntaxTokenList original, int rawKind)

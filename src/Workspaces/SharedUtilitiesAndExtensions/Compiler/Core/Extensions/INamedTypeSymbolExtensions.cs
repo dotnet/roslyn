@@ -369,9 +369,7 @@ internal static partial class INamedTypeSymbolExtensions
     private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
         IEnumerable<INamedTypeSymbol> abstractClasses)
     {
-        return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
-                              .Where(t => t.IsAbstractClass())
-                              .ToImmutableArray();
+        return [.. abstractClasses.SelectMany(a => a.GetBaseTypesAndThis()).Where(t => t.IsAbstractClass())];
     }
 
     private static ImmutableArray<INamedTypeSymbol> GetInterfacesToImplement(

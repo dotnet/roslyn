@@ -76,7 +76,7 @@ internal sealed partial class CSharpExtractMethodService
                 block = block.ReplaceTokens([firstToken, lastToken], (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
 
                 // return only statements without the wrapping block
-                return ImmutableArray.CreateRange(block.Statements);
+                return [.. block.Statements];
             }
 
             public ImmutableArray<StatementSyntax> MergeDeclarationStatements(ImmutableArray<StatementSyntax> statements)
@@ -300,8 +300,8 @@ internal sealed partial class CSharpExtractMethodService
                 [
                     declaration.WithDeclaration(
                     declaration.Declaration.WithVariables([variable])),
-                .. statements.Skip(2),
-            ];
+                    .. statements.Skip(2),
+                ];
             }
         }
     }

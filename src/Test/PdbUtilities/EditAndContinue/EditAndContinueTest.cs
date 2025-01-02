@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
+                var verifier = new GenerationVerifier(index, generation, [.. readers]);
                 generation.Verifier(verifier);
 
-                exceptions.Add(verifier.Exceptions.ToImmutableArray());
+                exceptions.Add([.. verifier.Exceptions]);
 
                 index++;
             }
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var syntaxMapFromMarkers = oldSource.MarkedSpans.IsEmpty ? null : SourceWithMarkedNodes.GetSyntaxMap(oldSource, newSource, unmappedNodes);
 
-            return ImmutableArray.CreateRange(edits.Select(e =>
+            return [.. edits.Select(e =>
             {
                 var oldSymbol = e.Kind is SemanticEditKind.Update or SemanticEditKind.Delete ? e.SymbolProvider(oldCompilation) : null;
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.RudeEdits);
-            }));
+            })];
         }
 
         public void Dispose()

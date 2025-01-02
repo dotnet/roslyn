@@ -166,7 +166,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _tokens = tokens;
 
             // Other watching fields are not used for this kind
-            _filters = ImmutableArray<string>.Empty;
+            _filters = [];
             _cookies = null!;
         }
 
@@ -178,7 +178,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _cookies = cookies;
 
             // Other watching fields are not used for this kind
-            _filters = ImmutableArray<string>.Empty;
+            _filters = [];
             _fileChangeFlags = 0;
             _sink = null!;
             _tokens = OneOrMany<Context.RegularWatchedFile>.Empty;
@@ -193,7 +193,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _tokens = tokens;
 
             // Other watching fields are not used for this kind
-            _filters = ImmutableArray<string>.Empty;
+            _filters = [];
             _fileChangeFlags = 0;
             _sink = null!;
             _cookies = null!;
@@ -307,7 +307,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                     _cookies.Add(cookie);
 
                     if (_filters.Length > 0)
-                        await service.FilterDirectoryChangesAsync(cookie, _filters.ToArray(), cancellationToken).ConfigureAwait(false);
+                        await service.FilterDirectoryChangesAsync(cookie, [.. _filters], cancellationToken).ConfigureAwait(false);
 
                     return;
 
@@ -386,7 +386,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             }
 
             _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchDirectories(_directoryWatchCookies));
-            _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFiles(_activeFileWatchingTokens.ToImmutableArray()));
+            _fileChangeWatcher._taskQueue.AddWork(WatcherOperation.UnwatchFiles([.. _activeFileWatchingTokens]));
         }
 
         public IWatchedFile EnqueueWatchingFile(string filePath)

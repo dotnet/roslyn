@@ -347,7 +347,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
             tokenSpans.Add(TextSpan.FromBounds(start, end));
         }
 
-        return tokenSpans.ToNormalizedSpans().ToImmutableArray();
+        return [.. tokenSpans.ToNormalizedSpans()];
     }
 
     /// <summary>

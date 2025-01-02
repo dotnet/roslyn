@@ -60,7 +60,7 @@ internal static class LightBulbHelper
                 return;
 
             if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
-                tcs.SetResult(e.ActionSets.ToList());
+                tcs.SetResult([.. e.ActionSets]);
             else if (e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
                 tcs.SetResult([]);
             else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)

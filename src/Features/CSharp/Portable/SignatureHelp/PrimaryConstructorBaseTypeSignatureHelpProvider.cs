@@ -101,8 +101,8 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
         var currentConstructor = semanticModel.GetSymbolInfo(baseTypeSyntax, cancellationToken).Symbol;
         var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor);
 
-        return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
-            Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleConstructors.SelectAsArray(c =>
+            Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
     }
 
@@ -133,7 +133,7 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
             GetPreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetPostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
 
         static IList<SymbolDisplayPart> GetPreambleParts(

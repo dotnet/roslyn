@@ -201,11 +201,10 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             ? semanticModel.GetMemberGroup(bindableParent, cancellationToken)
             : [];
 
-        symbols = symbols.Where(IsOk)
+        symbols = [.. symbols.Where(IsOk)
                          .Where(s => IsAccessible(s, enclosingType))
                          .Concat(overloads)
-                         .Distinct(SymbolEquivalenceComparer.Instance)
-                         .ToImmutableArray();
+                         .Distinct(SymbolEquivalenceComparer.Instance)];
 
         if (symbols.Any())
         {

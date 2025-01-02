@@ -574,7 +574,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
             return (null, false);
         }
 
-        aliases = metadataReference.Properties.Aliases.Where(a => a != MetadataReferenceProperties.GlobalAlias).ToImmutableArray();
+        aliases = [.. metadataReference.Properties.Aliases.Where(a => a != MetadataReferenceProperties.GlobalAlias)];
         if (!aliases.Any())
         {
             return (null, false);

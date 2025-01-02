@@ -195,7 +195,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
 
         var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
             unformattedInterfaceDocument.Project.Solution,
-            symbolMapping.DocumentIdsToSymbolMap.Keys.ToImmutableArray(),
+            [.. symbolMapping.DocumentIdsToSymbolMap.Keys],
             symbolMapping.TypeNodeAnnotation,
             refactoringResult.TypeToExtractFrom,
             extractedInterfaceSymbol,
@@ -237,7 +237,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
 
         // After the interface is inserted, update the original type to show it implements the new interface
         var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
-            unformattedSolution, symbolMapping.DocumentIdsToSymbolMap.Keys.ToImmutableArray(),
+            unformattedSolution, [.. symbolMapping.DocumentIdsToSymbolMap.Keys],
             symbolMapping.TypeNodeAnnotation,
             refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
             extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
@@ -272,9 +272,9 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         return service.GetExtractInterfaceOptions(
             syntaxFactsService,
             notificationService,
-            extractableMembers.ToList(),
+            [.. extractableMembers],
             defaultInterfaceName,
-            conflictingTypeNames.ToList(),
+            [.. conflictingTypeNames],
             containingNamespace,
             generatedNameTypeParameterSuffix,
             document.Project.Language,

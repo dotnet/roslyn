@@ -31,11 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             LanguageName = languageName;
             _notificationService = notificationService;
 
-            Items = new ObservableCollection<INamingStylesInfoDialogViewModel>(specifications.Select(specification => new SymbolSpecificationViewModel(
+            Items = [.. specifications.Select(specification => new SymbolSpecificationViewModel(
                 languageName,
                 specification,
                 !namingRules.Any(rule => rule.SelectedSpecification?.ID == specification.ID),
-                notificationService)));
+                notificationService))];
         }
 
         internal void AddSymbolSpecification(INamingStylesInfoDialogViewModel _)

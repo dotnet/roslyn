@@ -314,7 +314,7 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     public NamingStyleRules Rules => _lazyRules.Value;
 
     public NamingStyleRules CreateRules()
-        => new(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
+        => new([.. NamingRules.Select(r => r.GetRule(this))]);
 
     internal XElement CreateXElement()
     {
@@ -330,12 +330,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         element = GetUpgradedSerializationIfNecessary(element);
 
         return new NamingStylePreferences(
-            element.Element("SymbolSpecifications").Elements(nameof(SymbolSpecification))
-                   .Select(SymbolSpecification.FromXElement).ToImmutableArray(),
-            element.Element("NamingStyles").Elements(nameof(NamingStyle))
-                   .Select(NamingStyle.FromXElement).ToImmutableArray(),
-            element.Element("NamingRules").Elements(nameof(SerializableNamingRule))
-                   .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
+            [.. element.Element("SymbolSpecifications").Elements(nameof(SymbolSpecification)).Select(SymbolSpecification.FromXElement)],
+            [.. element.Element("NamingStyles").Elements(nameof(NamingStyle)).Select(NamingStyle.FromXElement)],
+            [.. element.Element("NamingRules").Elements(nameof(SerializableNamingRule)).Select(SerializableNamingRule.FromXElement)]);
     }
 
     public override bool Equals(object obj)
