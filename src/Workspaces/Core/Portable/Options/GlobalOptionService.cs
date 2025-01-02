@@ -24,7 +24,7 @@ internal sealed class GlobalOptionService(
     [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
     [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters) : IGlobalOptionService
 {
-    private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders = optionPersisters.ToImmutableArray();
+    private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders = [.. optionPersisters];
 
     private readonly object _gate = new();
 

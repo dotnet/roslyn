@@ -2944,9 +2944,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         };
 
         return new NamingStylePreferences(
-            styles.Select(t => t.specification).ToImmutableArray(),
-            styles.Select(t => t.style).ToImmutableArray(),
-            styles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+            [.. styles.Select(t => t.specification)],
+            [.. styles.Select(t => t.style)],
+            [.. styles.Select(t => CreateRule(t.specification, t.style))]);
 
         // Local functions
 
@@ -2955,7 +2955,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 name,
-                ImmutableArray.Create(kind));
+                [kind]);
 
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
@@ -2978,9 +2978,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         };
 
         return new NamingStylePreferences(
-            specificationStyles.Select(t => t.specification).ToImmutableArray(),
-            specificationStyles.Select(t => t.style).ToImmutableArray(),
-            specificationStyles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+            [.. specificationStyles.Select(t => t.specification)],
+            [.. specificationStyles.Select(t => t.style)],
+            [.. specificationStyles.Select(t => CreateRule(t.specification, t.style))]);
 
         // Local functions
 
@@ -2989,7 +2989,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 name: suffix,
-                ImmutableArray.Create(kind),
+                [kind],
                 accessibilityList: default,
                 modifiers: default);
 
@@ -3011,13 +3011,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             new SymbolSpecification(
                 id: Guid.NewGuid(),
                 name: "parameters",
-                ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                [new SymbolKindOrTypeKind(SymbolKind.Parameter)],
                 accessibilityList: default,
                 modifiers: default),
             new SymbolSpecification(
                 id: Guid.NewGuid(),
                 name: "fallback",
-                ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)),
+                [new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)],
                 accessibilityList: default,
                 modifiers: default));
         var namingStyles = ImmutableArray.Create(
@@ -3038,9 +3038,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         return new NamingStylePreferences(
             symbolSpecifications,
             namingStyles,
-            namingRules: ImmutableArray.Create(
-                CreateRule(symbolSpecifications[0], namingStyles[0]),
-                CreateRule(symbolSpecifications[1], namingStyles[1])));
+            namingRules: [CreateRule(symbolSpecifications[0], namingStyles[0]), CreateRule(symbolSpecifications[1], namingStyles[1])]);
     }
 
     private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)

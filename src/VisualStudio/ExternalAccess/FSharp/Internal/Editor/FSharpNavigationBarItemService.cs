@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null
-                ? ImmutableArray<NavigationBarItem>.Empty
+                ? []
                 : ConvertItems(items, textVersion);
         }
 

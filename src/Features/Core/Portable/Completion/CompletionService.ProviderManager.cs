@@ -193,7 +193,7 @@ public abstract partial class CompletionService
             if (snippetsRule is SnippetsRule.Default or
                 SnippetsRule.NeverInclude)
             {
-                return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                return [.. providers.Where(p => !p.IsSnippetProvider)];
             }
             else if (snippetsRule == SnippetsRule.AlwaysInclude)
             {
@@ -203,11 +203,11 @@ public abstract partial class CompletionService
             {
                 if (trigger.Kind == CompletionTriggerKind.Snippets)
                 {
-                    return providers.Where(p => p.IsSnippetProvider).ToImmutableArray();
+                    return [.. providers.Where(p => p.IsSnippetProvider)];
                 }
                 else
                 {
-                    return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                    return [.. providers.Where(p => !p.IsSnippetProvider)];
                 }
             }
 

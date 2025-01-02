@@ -564,9 +564,7 @@ internal sealed class DebuggingSession : IDisposable
         {
             foreach (var updatedBaseline in pendingUpdate.ProjectBaselines)
             {
-                _projectBaselines[updatedBaseline.ProjectId] = _projectBaselines[updatedBaseline.ProjectId]
-                    .Select(existingBaseline => existingBaseline.ModuleId == updatedBaseline.ModuleId ? updatedBaseline : existingBaseline)
-                    .ToImmutableList();
+                _projectBaselines[updatedBaseline.ProjectId] = [.. _projectBaselines[updatedBaseline.ProjectId].Select(existingBaseline => existingBaseline.ModuleId == updatedBaseline.ModuleId ? updatedBaseline : existingBaseline)];
             }
         }
 
@@ -897,7 +895,7 @@ internal sealed class DebuggingSession : IDisposable
         {
             lock (instance._projectEmitBaselinesGuard)
             {
-                return instance._initialBaselineModuleReaders.Values.SelectMany(entry => new IDisposable[] { entry.metadata, entry.pdb }).ToImmutableArray();
+                return [.. instance._initialBaselineModuleReaders.Values.SelectMany(entry => new IDisposable[] { entry.metadata, entry.pdb })];
             }
         }
 

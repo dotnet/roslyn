@@ -127,7 +127,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
                     private int _i;
                 }
             }
-            """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
+            """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), []);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
@@ -172,7 +172,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
                     private int _i;
                 }
             }
-            """, description, ImmutableArray<TextSpan>.Empty);
+            """, description, []);
     }
 
     private static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
@@ -183,7 +183,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
         Assert.NotNull(description);
         Assert.Equal(expectedDescription, description.Text);
         Assert.Collection(relatedSpans,
-            info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
+            [.. info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan)))]);
     }
 
     private static async Task<QuickInfoItem> GetQuickinfo(EditorTestWorkspace workspace, Document document, int position)
@@ -207,9 +207,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
         CSharpParseOptions parseOptions = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
-        var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
-            new CSharpCompilerDiagnosticAnalyzer(),
-            new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
+        var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer(), new CSharpRemoveUnusedMembersDiagnosticAnalyzer()]);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var testDocument = workspace.Documents.Single();
@@ -244,7 +242,7 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
             {
             {{code}}
             }
-            """, expectedDescription, relatedSpans.ToImmutableArray());
+            """, expectedDescription, [.. relatedSpans]);
 
     private static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestInClassAsync(

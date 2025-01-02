@@ -194,7 +194,7 @@ internal sealed class ValueTrackedTreeItemViewModel : TreeItemViewModel
 
         return await valueTrackedItems.SelectAsArrayAsync(static (item, self, cancellationToken) =>
             CreateAsync(
-                self._solution, item, children: ImmutableArray<TreeItemViewModel>.Empty,
+                self._solution, item, children: [],
                 self.TreeViewModel, self._glyphService, self._valueTrackingService, self._globalOptions,
                 self.ThreadingContext, self._listener, self._threadOperationExecutor, cancellationToken), this, cancellationToken).ConfigureAwait(false);
     }

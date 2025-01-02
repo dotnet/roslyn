@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             {
                 ResolveProvider = true,
                 TriggerCharacters = ["<", " ", ":", ".", "=", "\"", "'", "{", ",", "("],
-                AllCommitCharacters = RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
+                AllCommitCharacters = [.. RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString())]
             },
             HoverProvider = true,
             FoldingRangeProvider = new FoldingRangeOptions { },

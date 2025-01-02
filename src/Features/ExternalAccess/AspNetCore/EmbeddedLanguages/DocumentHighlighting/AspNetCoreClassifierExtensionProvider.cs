@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
             ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute>
     {
         protected override ImmutableArray<string> GetLanguages(ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute exportAttribute)
-            => ImmutableArray.Create(exportAttribute.Language);
+            => [exportAttribute.Language];
 
         protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageDocumentHighlighter> extensions)
         {

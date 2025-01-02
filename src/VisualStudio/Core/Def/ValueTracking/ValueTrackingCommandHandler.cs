@@ -134,7 +134,7 @@ internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditor
                 foreach (var child in children)
                 {
                     var root = await ValueTrackedTreeItemViewModel.CreateAsync(
-                        solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
+                        solution, child, children: [], toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
                     rootItems.Add(root);
                 }
             }
@@ -144,7 +144,7 @@ internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditor
                 foreach (var child in children)
                 {
                     var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(
-                        solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
+                        solution, child, children: [], toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, _listener, _threadOperationExecutor, cancellationToken).ConfigureAwait(false);
                     childItems.Add(childViewModel);
                 }
 

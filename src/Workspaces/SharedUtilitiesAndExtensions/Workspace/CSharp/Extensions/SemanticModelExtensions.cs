@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames)
-            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
+            => [.. NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                 .Select((name, index) => new ParameterName(name, isFixed[index]))
-                .Skip(reservedNames.Count).ToImmutableArray();
+                .Skip(reservedNames.Count)];
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,

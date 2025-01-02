@@ -173,6 +173,13 @@ Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation.OmniSharpNavigableIte
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation.OmniSharpNavigableItem.OmniSharpNavigableItem() -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation.OmniSharpNavigableItem.OmniSharpNavigableItem(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> displayTaggedParts, Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan sourceSpan) -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation.OmniSharpNavigableItem.SourceSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.IOmniSharpNotificationService
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.IOmniSharpNotificationService.ConfirmMessageBox(string! message, string? title = null, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity severity = Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity.Warning) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.IOmniSharpNotificationService.SendNotification(string! message, string? title = null, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity severity = Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity.Warning) -> void
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity.Error = 2 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity.Information = 0 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity.Warning = 1 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Notification.OmniSharpNotificationSeverity
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.Deconstruct(out bool RenameInComments, out bool RenameInStrings, out bool RenameOverloads) -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions other) -> bool
@@ -375,6 +382,12 @@ virtual Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavi
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineTypeHintsOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavigateToSearchResult.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavigateToSearchResult.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenameOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.OmniSharpRenamer.RenameResult.Equals(object obj) -> bool
