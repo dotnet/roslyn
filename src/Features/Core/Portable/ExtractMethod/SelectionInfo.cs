@@ -56,8 +56,8 @@ internal abstract partial class AbstractExtractMethodService<
 
     /// <summary>
     /// Information about the final selection we adjust the the user's selection to. Kept separate from <see
-    /// cref="FinalSelectionInfo"/> to ensure different phases of the extract method process do not accidentally use the
-    /// wrong information.
+    /// cref="InitialSelectionInfo"/> to ensure different phases of the extract method process do not accidentally use
+    /// the wrong information.
     /// </summary>
     internal sealed record FinalSelectionInfo
     {
