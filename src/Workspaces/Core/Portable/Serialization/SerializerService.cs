@@ -81,6 +81,20 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
         }
     }
 
+    public void SerializeDelta(object? oldValue, object newValue, ObjectWriter writer, CancellationToken cancellationToken)
+    {
+        var newKind = newValue.GetWellKnownSynchronizationKind();
+
+        switch (newKind)
+        {
+            case WellKnownSynchronizationKind.SerializableSourceText:
+                SerializeSourceText((SerializableSourceText?)oldValue, (SerializableSourceText)newValue, writer, cancellationToken);
+                return;
+        }
+
+        Serialize(newValue, writer, cancellationToken);
+    }
+
     public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
@@ -129,7 +143,7 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
+                    SerializeSourceText(oldText: null, (SerializableSourceText)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionCompilationState:
@@ -271,5 +285,6 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
 internal enum SerializationKinds
 {
     Bits,
-    MemoryMapFile
+    MemoryMapFile,
+    Delta
 }

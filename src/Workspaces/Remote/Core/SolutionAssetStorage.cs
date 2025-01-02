@@ -33,7 +33,7 @@ internal partial class SolutionAssetStorage
     /// </summary>
     private readonly Dictionary<Checksum, Scope> _checksumToScope = [];
 
-    public Scope GetScope(Checksum solutionChecksum)
+    public Scope GetRequiredScope(Checksum solutionChecksum)
     {
         lock (_gate)
         {
@@ -42,6 +42,16 @@ internal partial class SolutionAssetStorage
                 Debug.Fail($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
                 throw new InvalidOperationException($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
             }
+
+            return scope;
+        }
+    }
+
+    public Scope? GetScope(Checksum solutionChecksum)
+    {
+        lock (_gate)
+        {
+            _checksumToScope.TryGetValue(solutionChecksum, out var scope);
 
             return scope;
         }

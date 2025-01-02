@@ -29,4 +29,5 @@ internal enum WellKnownSynchronizationKind : byte
     AnalyzerReference = 14,
 
     SerializableSourceText = 15,
+    SerializableSourceTextDelta = 16,
 }

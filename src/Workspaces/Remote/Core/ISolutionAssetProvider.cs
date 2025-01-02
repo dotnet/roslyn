@@ -26,5 +26,5 @@ internal interface ISolutionAssetProvider
     /// save substantially on performance by avoiding having to search the full solution tree to find matching items for
     /// a particular checksum.</param>
     ValueTask WriteAssetsAsync(
-        PipeWriter pipeWriter, Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken);
+        PipeWriter pipeWriter, Checksum solutionChecksum, Checksum? oldSolutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken);
 }

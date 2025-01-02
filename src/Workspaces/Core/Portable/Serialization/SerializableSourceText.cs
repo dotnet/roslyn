@@ -22,13 +22,27 @@ namespace Microsoft.CodeAnalysis.Serialization;
 
 #pragma warning disable CA1416 // Validate platform compatibility
 
+internal abstract class AbstractSerializableAsset
+{
+    public abstract bool AllowsDeltaSerialization { get; }
+
+    public abstract object? WithDeltaSerializationApplied(Solution oldSolution);
+}
+
 /// <summary>
 /// Represents a <see cref="SourceText"/> which can be serialized for sending to another process. The text is not
 /// required to be a live object in the current process, and can instead be held in temporary storage accessible by
 /// both processes.
 /// </summary>
-internal sealed class SerializableSourceText
+internal sealed class SerializableSourceText : AbstractSerializableAsset
 {
+    public override bool AllowsDeltaSerialization => true;
+
+    public override object? WithDeltaSerializationApplied(object oldAsset)
+    {
+        if ()
+    }
+
     /// <summary>
     /// The storage location for <see cref="SourceText"/>.
     /// </summary>

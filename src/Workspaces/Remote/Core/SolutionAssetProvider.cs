@@ -27,6 +27,7 @@ internal sealed class SolutionAssetProvider(SolutionServices services) : ISoluti
     public ValueTask WriteAssetsAsync(
         PipeWriter pipeWriter,
         Checksum solutionChecksum,
+        Checksum? oldSolutionChecksum,
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
         CancellationToken cancellationToken)
@@ -49,8 +50,13 @@ internal sealed class SolutionAssetProvider(SolutionServices services) : ISoluti
             Exception? exception = null;
             try
             {
-                var scope = _assetStorage.GetScope(solutionChecksum);
-                var writer = new RemoteHostAssetWriter(pipeWriter, scope, assetPath, checksums, _serializer);
+                var scope = _assetStorage.GetRequiredScope(solutionChecksum);
+                SolutionAssetStorage.Scope? oldScope = null;
+
+                if (oldSolutionChecksum.HasValue)
+                    oldScope = _assetStorage.GetScope(oldSolutionChecksum.Value);
+
+                var writer = new RemoteHostAssetWriter(pipeWriter, scope, oldScope, assetPath, checksums, _serializer);
                 await writer.WriteDataAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)

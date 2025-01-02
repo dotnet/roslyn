@@ -153,6 +153,7 @@ internal abstract class AbstractAssetProvider
             attributeChecksums,
             cancellationToken);
 
+        SerializableSourceText.AddDebugInfo("AbstractAssetProvider.SynchronizeProjectDocumentsAsync calling multiple");
         var textTask = this.GetAssetsAsync<SerializableSourceText>(
             assetPath: new(AssetPathKind.DocumentText, projectChecksums.ProjectId),
             textChecksums,
@@ -164,6 +165,8 @@ internal abstract class AbstractAssetProvider
     public async Task<DocumentInfo> CreateDocumentInfoAsync(
         DocumentId documentId, Checksum attributeChecksum, Checksum textChecksum, CancellationToken cancellationToken)
     {
+        SerializableSourceText.AddDebugInfo("AbstractAssetProvider.CreateDocumentInfoAsync calling single");
+
         var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), attributeChecksum, cancellationToken).ConfigureAwait(false);
         var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), textChecksum, cancellationToken).ConfigureAwait(false);
 

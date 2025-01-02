@@ -51,7 +51,7 @@ using ChecksumAndAsset = (Checksum checksum, object asset);
 /// invoke. Finally, the asset data itself is written out.
 /// </summary>
 internal readonly struct RemoteHostAssetWriter(
-    PipeWriter pipeWriter, Scope scope, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService serializer)
+    PipeWriter pipeWriter, Scope scope, Scope? oldScope, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService serializer)
 {
     /// <summary>
     /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as
@@ -64,6 +64,7 @@ internal readonly struct RemoteHostAssetWriter(
 
     private readonly PipeWriter _pipeWriter = pipeWriter;
     private readonly Scope _scope = scope;
+    private readonly Scope? _oldScope = oldScope;
     private readonly AssetPath _assetPath = assetPath;
     private readonly ReadOnlyMemory<Checksum> _checksums = checksums;
     private readonly ISerializerService _serializer = serializer;
@@ -79,8 +80,24 @@ internal readonly struct RemoteHostAssetWriter(
     private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
         => _scope.FindAssetsAsync(
             _assetPath, _checksums,
-            static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
-            onItemFound, cancellationToken);
+            static (checksum, asset, arg) =>
+            {
+                var (onItemFound, self) = arg;
+
+                var serializationKind = asset.GetWellKnownSynchronizationKind();
+
+                if (self._oldScope != null && asset is AbstractSerializableAsset { AllowsDeltaSerialization: true } deltaSerializableAsset)
+                {
+                    self._oldScope.FindAssetsAsync(
+                        _assetPath,
+                        self._oldScope.SolutionChecksum
+
+                    asset = deltaSerializableAsset.WithDeltaSerializationApplied(self._oldScope);
+                }
+
+                onItemFound((checksum, asset));
+            },
+            (onItemFound, this), cancellationToken);
 
     private async Task WriteBatchToPipeAsync(
         IAsyncEnumerable<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)
@@ -126,7 +143,7 @@ internal readonly struct RemoteHostAssetWriter(
         // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
         // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer. Instead,
         // we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
-        WriteAssetToTempStream(tempStream, objectWriter, checksum, asset, cancellationToken);
+        await WriteAssetToTempStreamAsync(tempStream, objectWriter, checksum, asset, cancellationToken).ConfigureAwait(false);
 
         // Write the length of the asset to the pipe writer so the reader knows how much data to read.
         WriteTempStreamLengthToPipeWriter(tempStream);
@@ -146,7 +163,7 @@ internal readonly struct RemoteHostAssetWriter(
         await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private void WriteAssetToTempStream(
+    private async Task WriteAssetToTempStreamAsync(
         ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
     {
         // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
@@ -163,11 +180,22 @@ internal readonly struct RemoteHostAssetWriter(
         // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
         checksum.WriteTo(objectWriter);
 
+        var serializationKind = asset.GetWellKnownSynchronizationKind();
+
         // Write out the kind so the receiving end knows how to deserialize this asset.
-        objectWriter.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
+        objectWriter.WriteByte((byte)serializationKind);
+
+        object? oldAsset = null;
+        if (_oldScope != null && serializationKind == WellKnownSynchronizationKind.SerializableSourceText)
+        {
+            await _oldScope.FindAssetsAsync(
+                _assetPath, _checksums,
+                (checksum, asset, _) => oldAsset = asset,
+                default(VoidResult), cancellationToken).ConfigureAwait(false);
+        }
 
         // Now serialize out the asset itself.
-        _serializer.Serialize(asset, objectWriter, cancellationToken);
+        _serializer.SerializeDelta(oldAsset, asset, objectWriter, cancellationToken);
     }
 
     private void WriteSentinelByteToPipeWriter()
