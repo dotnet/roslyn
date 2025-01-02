@@ -48,7 +48,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
 
             Contract.ThrowIfNull(_state.DelegatedConstructor);
             var thisConstructorArguments = factory.CreateArguments(
-                _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
+                [.. _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length)]);
 
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
             using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);

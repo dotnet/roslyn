@@ -337,7 +337,7 @@ class B : C, A
             // Find references on definition C.Boo()
             var typeC = comp.GetTypeByMetadataName("C");
             boo = typeC.GetMembers("Boo").First();
-            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            result = [.. (await SymbolFinder.FindReferencesAsync(boo, solution))];
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = [3, 13, 14];
@@ -348,7 +348,7 @@ class B : C, A
             // Find references on definition A.Boo()
             var typeA = comp.GetTypeByMetadataName("A");
             boo = typeA.GetMembers("Boo").First();
-            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            result = [.. (await SymbolFinder.FindReferencesAsync(boo, solution))];
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = [7, 12];

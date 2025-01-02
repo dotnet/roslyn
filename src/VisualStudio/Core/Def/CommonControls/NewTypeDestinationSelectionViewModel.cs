@@ -19,7 +19,7 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         LanguageNames.CSharp,
         string.Empty,
         string.Empty,
-        ImmutableArray<string>.Empty,
+        [],
         null
     );
 

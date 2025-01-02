@@ -37,18 +37,22 @@ public class ActiveStatementTrackingServiceTests
 
         var spanProvider = new MockActiveStatementSpanProvider();
 
-        spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
+        spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) =>
+        [
             ImmutableArray.Create(
-                new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
-                new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
-            ImmutableArray<ActiveStatementSpan>.Empty);
+                    new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
+                    new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
+            [],
+        ];
 
         spanProvider.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
         {
-            "1.cs" => ImmutableArray.Create(
+            "1.cs" =>
+            [
                 new ActiveStatementSpan(new ActiveStatementId(0), span21, ActiveStatementFlags.NonLeafFrame),
-                new ActiveStatementSpan(new ActiveStatementId(1), span22, ActiveStatementFlags.LeafFrame)),
-            "2.cs" => ImmutableArray<ActiveStatementSpan>.Empty,
+                new ActiveStatementSpan(new ActiveStatementId(1), span22, ActiveStatementFlags.LeafFrame),
+            ],
+            "2.cs" => [],
             _ => throw ExceptionUtilities.Unreachable()
         };
 
@@ -111,7 +115,7 @@ public class ActiveStatementTrackingServiceTests
         }
 
         // we are not able to determine active statements in a document:
-        spanProvider.GetAdjustedActiveStatementSpansImpl = (_, _) => ImmutableArray<ActiveStatementSpan>.Empty;
+        spanProvider.GetAdjustedActiveStatementSpansImpl = (_, _) => [];
 
         var spans6 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
         AssertEx.Equal(

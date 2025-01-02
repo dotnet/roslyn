@@ -18,7 +18,7 @@ public partial class CodeCleanupTests
 {
     private abstract class TestThirdPartyCodeFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create("HasDefaultCase");
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ["HasDefaultCase"];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

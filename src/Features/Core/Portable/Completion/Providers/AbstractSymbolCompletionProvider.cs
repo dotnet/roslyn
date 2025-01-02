@@ -311,9 +311,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
 
         // We want the resultant contexts ordered in the same order the related documents came in.  Importantly, the
         // context for *our* starting document should be placed first.
-        contextAndSymbolLists = contextAndSymbolLists
-            .OrderBy((tuple1, tuple2) => documentIdToIndex[tuple1.documentId] - documentIdToIndex[tuple2.documentId])
-            .ToImmutableArray();
+        contextAndSymbolLists = [.. contextAndSymbolLists.OrderBy((tuple1, tuple2) => documentIdToIndex[tuple1.documentId] - documentIdToIndex[tuple2.documentId])];
 
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);

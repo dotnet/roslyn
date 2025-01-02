@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
             return !string.IsNullOrWhiteSpace(aliasesText)
-                ? ImmutableArray.CreateRange(aliasesText.Split([','], StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
+                ? [.. aliasesText.Split([','], StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim())]
                 : [];
         }
 

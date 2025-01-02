@@ -236,7 +236,7 @@ internal static class SymbolCompletionItem
         {
             return new SupportedPlatformData(
                 solution,
-                invalidProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
+                [.. invalidProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s)))],
                 candidateProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList());
         }
 

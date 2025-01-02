@@ -275,7 +275,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
         AddAccessedFields(semanticModel, getMethod, fieldNames, set, cancellationToken);
 
-        return new(TrivialField: null, set.ToImmutableArray());
+        return new(TrivialField: null, [.. set]);
     }
 
     private AccessedFields GetSetterFields(
@@ -291,7 +291,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
         AddAccessedFields(semanticModel, setMethod, fieldNames, set, cancellationToken);
 
-        return new(TrivialField: null, set.ToImmutableArray());
+        return new(TrivialField: null, [.. set]);
     }
 
     private IFieldSymbol? CheckFieldAccessExpression(

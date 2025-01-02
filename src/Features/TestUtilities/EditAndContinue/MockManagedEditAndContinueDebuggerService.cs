@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(GetCapabilitiesImpl?.Invoke() ?? ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+            => ValueTaskFactory.FromResult(GetCapabilitiesImpl?.Invoke() ?? ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             => ValueTaskFactory.CompletedTask;

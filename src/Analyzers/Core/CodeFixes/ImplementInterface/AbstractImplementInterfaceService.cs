@@ -80,7 +80,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             trivia.Add(this.SyntaxGeneratorInternal.ElasticCarriageReturnLineFeed);
         }
 
-        return new SyntaxTriviaList(trivia);
+        return [.. trivia];
     }
 
     public async Task<Document> ImplementInterfaceAsync(

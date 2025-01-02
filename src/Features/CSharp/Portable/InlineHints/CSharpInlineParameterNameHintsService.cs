@@ -19,14 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints;
 /// as well as associate the adornments back to the parameter name
 /// </summary>
 [ExportLanguageService(typeof(IInlineParameterNameHintsService), LanguageNames.CSharp), Shared]
-internal class CSharpInlineParameterNameHintsService : AbstractInlineParameterNameHintsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpInlineParameterNameHintsService() : AbstractInlineParameterNameHintsService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpInlineParameterNameHintsService()
-    {
-    }
-
     protected override void AddAllParameterNameHintLocations(
          SemanticModel semanticModel,
          ISyntaxFactsService syntaxFacts,
@@ -66,12 +62,23 @@ internal class CSharpInlineParameterNameHintsService : AbstractInlineParameterNa
         BaseArgumentListSyntax argumentList,
         CancellationToken cancellationToken)
     {
+        // Ensure we don't add an inline parameter name hint using the same name already present on another argument.
+        using var _ = PooledHashSet<string?>.GetInstance(out var presentNames);
+        foreach (var argument in argumentList.Arguments)
+        {
+            if (argument is { NameColon.Name.Identifier.ValueText: string nameText })
+                presentNames.Add(nameText);
+        }
+
         foreach (var argument in argumentList.Arguments)
         {
             if (argument.NameColon != null)
                 continue;
 
             var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+            if (presentNames.Contains(parameter?.Name))
+                continue;
+
             buffer.Add((argument.Span.Start, argument, parameter, GetKind(argument.Expression)));
         }
     }

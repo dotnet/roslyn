@@ -234,7 +234,7 @@ internal class StackFrameViewModel : FrameViewModel
     {
         if (node.ChildCount == 0)
         {
-            return ImmutableArray<StackFrameTrivia>.Empty;
+            return [];
         }
 
         var child = node[0];
@@ -250,7 +250,7 @@ internal class StackFrameViewModel : FrameViewModel
     {
         if (node.ChildCount == 0)
         {
-            return ImmutableArray<StackFrameTrivia>.Empty;
+            return [];
         }
 
         var child = node[^1];

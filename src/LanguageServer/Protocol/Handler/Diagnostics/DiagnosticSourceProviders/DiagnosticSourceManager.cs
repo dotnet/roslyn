@@ -115,9 +115,7 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             // will have same value for GetDocumentIdentifier and GetProject(). Thus can be
             // aggregated in a single source which will return same values. See
             // AggregatedDocumentDiagnosticSource implementation for more details.
-            sources = sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s)
-                .SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))
-                .ToImmutableArray();
+            sources = [.. sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s).SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))];
         }
 
         return sources;

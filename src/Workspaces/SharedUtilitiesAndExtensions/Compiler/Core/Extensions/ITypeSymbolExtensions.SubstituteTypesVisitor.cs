@@ -89,7 +89,7 @@ internal static partial class ITypeSymbolExtensions
                 return symbol;
             }
 
-            return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.ToArray()).WithNullableAnnotation(symbol.NullableAnnotation);
+            return _typeGenerator.Construct(symbol.OriginalDefinition, [.. substitutedArguments]).WithNullableAnnotation(symbol.NullableAnnotation);
         }
 
         public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
