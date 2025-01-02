@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class Lexer : AbstractLexer
     {
-        private static readonly ObjectPool<LexerCache> s_lexerCachePool = new ObjectPool<LexerCache>(() => new LexerCache());
-
         private const int TriviaListInitialCapacity = 8;
 
         private readonly CSharpParseOptions _options;
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _interpolationFollowedByColon = interpolationFollowedByColon;
 
             // Obtain pooled items
-            _cache = s_lexerCachePool.Allocate();
+            _cache = LexerCache.Allocate();
             _builder = _cache.StringBuilder;
             _identBuffer = _cache.IdentBuffer;
             _leadingTriviaCache = _cache.LeadingTriviaCache;
@@ -135,9 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override void Dispose()
         {
-            _cache.Free();
-            s_lexerCachePool.Free(_cache);
-
+            LexerCache.Free(_cache);
             _xmlParser?.Dispose();
             _directiveParser?.Dispose();
 

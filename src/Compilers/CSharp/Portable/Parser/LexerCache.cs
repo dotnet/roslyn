@@ -5,6 +5,7 @@
 // #define COLLECT_STATS
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
@@ -12,8 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal partial class LexerCache
+    internal class LexerCache
     {
+        private static readonly ObjectPool<LexerCache> s_lexerCachePool = new ObjectPool<LexerCache>(() => new LexerCache());
+
         private static readonly ObjectPool<CachingIdentityFactory<string, SyntaxKind>> s_keywordKindPool =
             CachingIdentityFactory<string, SyntaxKind>.CreatePool(
                             512,
@@ -41,53 +44,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private const int LeadingTriviaCacheInitialCapacity = 128;
         private const int TrailingTriviaCacheInitialCapacity = 16;
 
-        internal LexerCache()
+        private LexerCache()
         {
-            _triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
-            _tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
-            _keywordKindMap = s_keywordKindPool.Allocate();
-
-            _stringBuilder = PooledStringBuilder.GetInstance();
             _identBuffer = new char[32];
-            _leadingTriviaCache = new SyntaxListBuilder(LeadingTriviaCacheInitialCapacity);
-            _trailingTriviaCache = new SyntaxListBuilder(TrailingTriviaCacheInitialCapacity);
+
+            Initialize();
         }
 
-        internal void Free()
+        [MemberNotNull(nameof(_triviaMap), nameof(_tokenMap), nameof(_keywordKindMap), nameof(_stringBuilder), nameof(_leadingTriviaCache), nameof(_trailingTriviaCache))]
+        private void Initialize()
+        {
+            _triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
+            _tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
+            _keywordKindMap = s_keywordKindPool.Allocate();
+            _stringBuilder = PooledStringBuilder.GetInstance();
+
+            // Create new trivia caches if the existing ones have grown too large for pooling.
+            if (_leadingTriviaCache is null || _leadingTriviaCache.Capacity > LeadingTriviaCacheInitialCapacity * 2)
+            {
+                _leadingTriviaCache = new SyntaxListBuilder(LeadingTriviaCacheInitialCapacity);
+            }
+
+            if (_trailingTriviaCache is null || _trailingTriviaCache.Capacity > TrailingTriviaCacheInitialCapacity * 2)
+            {
+                _trailingTriviaCache = new SyntaxListBuilder(TrailingTriviaCacheInitialCapacity);
+            }
+        }
+
+        public static LexerCache Allocate()
+        {
+            var lexerCache = s_lexerCachePool.Allocate();
+
+            lexerCache.Initialize();
+
+            return lexerCache;
+        }
+
+        internal static void Free(LexerCache cache)
+        {
+            cache.Free();
+
+            s_lexerCachePool.Free(cache);
+        }
+
+        private void Free()
         {
             _keywordKindMap.Free();
-            _keywordKindMap = s_keywordKindPool.Allocate();
-
             _triviaMap.Free();
-            _triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
-
             _tokenMap.Free();
-            _tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
 
             // Use a pooled string builder as it's Free method understands whether it's too large
             // to return to the pool
             _stringBuilder.Free();
-            _stringBuilder = PooledStringBuilder.GetInstance();
 
-            // Create new trivia caches if the existing ones have grown too large for pooling.
-            // Otherwise just clear the existing ones.
-            if (_leadingTriviaCache.Capacity > LeadingTriviaCacheInitialCapacity * 2)
-            {
-                _leadingTriviaCache = new SyntaxListBuilder(LeadingTriviaCacheInitialCapacity);
-            }
-            else
-            {
-                _leadingTriviaCache.Clear();
-            }
-
-            if (_trailingTriviaCache.Capacity > TrailingTriviaCacheInitialCapacity * 2)
-            {
-                _trailingTriviaCache = new SyntaxListBuilder(TrailingTriviaCacheInitialCapacity);
-            }
-            else
-            {
-                _trailingTriviaCache.Clear();
-            }
+            _leadingTriviaCache.Clear();
+            _trailingTriviaCache.Clear();
         }
 
         internal StringBuilder StringBuilder => _stringBuilder;

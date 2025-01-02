@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public void Clear()
         {
-            Array.Clear(_nodes, 0, Count);
+            Array.Clear(_nodes, 0, _nodes.Length);
             this.Count = 0;
         }
 
