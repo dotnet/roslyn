@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -47,20 +47,16 @@ internal sealed partial class CSharpExtractMethodService
                 Contract.ThrowIfNull(SemanticDocument);
                 Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
-                // it contains statements
-                var firstToken = GetFirstTokenInSelection();
-                return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
-                {
-                    return n is AccessorDeclarationSyntax or
-                           LocalFunctionStatementSyntax or
-                           BaseMethodDeclarationSyntax or
-                           AccessorDeclarationSyntax or
-                           AnonymousFunctionExpressionSyntax or
-                           CompilationUnitSyntax;
-                });
+                return GetFirstTokenInSelection().GetRequiredParent().AncestorsAndSelf().First(n =>
+                    n is AccessorDeclarationSyntax or
+                         LocalFunctionStatementSyntax or
+                         BaseMethodDeclarationSyntax or
+                         AccessorDeclarationSyntax or
+                         AnonymousFunctionExpressionSyntax or
+                         CompilationUnitSyntax);
             }
 
-            public override (ITypeSymbol returnType, bool returnsByRef) GetReturnType()
+            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
@@ -70,27 +66,22 @@ internal sealed partial class CSharpExtractMethodService
                 switch (node)
                 {
                     case AccessorDeclarationSyntax access:
-                        // property or event case
-                        if (access.Parent == null || access.Parent.Parent == null)
-                            return default;
-
-                        return semanticModel.GetDeclaredSymbol(access.Parent.Parent) switch
+                        return semanticModel.GetDeclaredSymbol(access.GetRequiredParent().GetRequiredParent(), cancellationToken) switch
                         {
                             IPropertySymbol propertySymbol => (propertySymbol.Type, propertySymbol.ReturnsByRef),
                             IEventSymbol eventSymbol => (eventSymbol.Type, false),
-                            _ => default,
+                            _ => throw ExceptionUtilities.UnexpectedValue(node),
                         };
 
                     case MethodDeclarationSyntax methodDeclaration:
                         {
-                            return semanticModel.GetDeclaredSymbol(methodDeclaration) is not IMethodSymbol method
-                                ? default
-                                : (method.ReturnType, method.ReturnsByRef);
+                            var method = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
+                            return (method.ReturnType, method.ReturnsByRef);
                         }
 
                     case AnonymousFunctionExpressionSyntax function:
                         {
-                            return semanticModel.GetSymbolInfo(function).Symbol is not IMethodSymbol method
+                            return semanticModel.GetSymbolInfo(function, cancellationToken).Symbol is not IMethodSymbol method
                                 ? default
                                 : (method.ReturnType, method.ReturnsByRef);
                         }

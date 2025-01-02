@@ -58,19 +58,16 @@ internal abstract partial class AbstractExtractMethodService<
         public abstract SyntaxNode GetContainingScope();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnType();
+        public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken);
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
-        public abstract bool IsFinalSpanSemanticallyValidSpan(TextSpan textSpan, ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
+        public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
         public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion);
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 
-        public ITypeSymbol? GetContainingScopeType()
-        {
-            var (typeSymbol, _) = GetReturnType();
-            return typeSymbol;
-        }
+        public ITypeSymbol? GetReturnType(CancellationToken cancellationToken)
+            => GetReturnTypeInfo(cancellationToken).returnType;
 
         public bool IsExtractMethodOnExpression => this.SelectionType == SelectionType.Expression;
         public bool IsExtractMethodOnSingleStatement => this.SelectionType == SelectionType.SingleStatement;
@@ -311,8 +308,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return true;
 
             // there is a return statement, and current position is reachable. let's check whether this is a case where that is okay
-            return IsFinalSpanSemanticallyValidSpan(
-                this.FinalSpan, returnStatements, cancellationToken);
+            return IsFinalSpanSemanticallyValidSpan(returnStatements, cancellationToken);
         }
     }
 }

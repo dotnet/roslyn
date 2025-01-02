@@ -32,7 +32,7 @@ internal sealed partial class CSharpExtractMethodService
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
             SemanticDocument document,
-            SelectionInfo selectionInfo,
+            FinalSelectionInfo selectionInfo,
             bool selectionChanged,
             CancellationToken cancellationToken)
         {
@@ -210,37 +210,23 @@ internal sealed partial class CSharpExtractMethodService
         }
 
         public override bool IsFinalSpanSemanticallyValidSpan(
-            TextSpan textSpan, ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
+            ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
             // return statement shouldn't contain any return value
             if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))
-            {
                 return false;
-            }
 
-            var lastToken = this.SemanticDocument.Root.FindToken(textSpan.End);
-            if (lastToken.Kind() == SyntaxKind.None)
-            {
-                return false;
-            }
-
-            var container = lastToken.GetAncestors<SyntaxNode>().FirstOrDefault(n => n.IsReturnableConstruct());
+            var container = returnStatements.First().AncestorsAndSelf().FirstOrDefault(n => n.IsReturnableConstruct());
             if (container == null)
-            {
                 return false;
-            }
 
             var body = container.GetBlockBody();
             if (body == null)
-            {
                 return false;
-            }
 
             // make sure that next token of the last token in the selection is the close braces of containing block
-            if (body.CloseBraceToken != lastToken.GetNextToken(includeZeroWidth: true))
-            {
+            if (body.CloseBraceToken != GetLastTokenInSelection().GetNextToken(includeZeroWidth: true))
                 return false;
-            }
 
             // alright, for these constructs, it must be okay to be extracted
             switch (container.Kind())
@@ -253,9 +239,7 @@ internal sealed partial class CSharpExtractMethodService
 
             // now, only method is okay to be extracted out
             if (body.Parent is not MethodDeclarationSyntax method)
-            {
                 return false;
-            }
 
             // make sure this method doesn't have return type.
             return method.ReturnType is PredefinedTypeSyntax p &&

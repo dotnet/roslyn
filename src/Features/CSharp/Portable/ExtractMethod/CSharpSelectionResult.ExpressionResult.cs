@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -45,7 +46,7 @@ internal sealed partial class CSharpExtractMethodService
                 return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
-            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnType()
+            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
             {
                 if (GetContainingScope() is not ExpressionSyntax node)
                 {
@@ -59,7 +60,7 @@ internal sealed partial class CSharpExtractMethodService
                 {
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
-                        return (model.GetTypeInfo(variableDeclExpression.Type).Type, returnsByRef: false);
+                        return (model.GetTypeInfo(variableDeclExpression.Type, cancellationToken).Type, returnsByRef: false);
                 }
 
                 if (node.IsExpressionInCast())
@@ -74,7 +75,7 @@ internal sealed partial class CSharpExtractMethodService
                         return (regularType, returnsByRef);
 
                     if (node.Parent is CastExpressionSyntax castExpression)
-                        return (model.GetTypeInfo(castExpression).Type, returnsByRef: false);
+                        return (model.GetTypeInfo(castExpression, cancellationToken).Type, returnsByRef: false);
                 }
 
                 return GetRegularExpressionType(model, node);

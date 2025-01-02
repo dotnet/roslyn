@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     statements = postProcessor.MergeDeclarationStatements(statements)
                     statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                     statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
-                    statements = AddReturnIfUnreachable(statements)
+                    statements = AddReturnIfUnreachable(statements, cancellationToken)
 
                     Return statements
                 End Function
