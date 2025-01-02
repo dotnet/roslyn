@@ -982,7 +982,7 @@ options: ImplicitTypingEverywhere());
             {
                 static void Main()
                 {
-                    G<int>.@class {|Rename:@class|} = new new G<int>.@class();
+                    G<int>.@class {|Rename:@class|} = new G<int>.@class();
                     G<int>.Add(@class);
                 }
             }
