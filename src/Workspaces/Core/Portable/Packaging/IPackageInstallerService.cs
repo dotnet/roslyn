@@ -7,60 +7,57 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Packaging
+namespace Microsoft.CodeAnalysis.Packaging;
+
+internal interface IPackageInstallerService : IWorkspaceService
 {
-    internal interface IPackageInstallerService : IWorkspaceService
-    {
-        bool IsEnabled(ProjectId projectId);
+    bool IsEnabled(ProjectId projectId);
 
-        bool IsInstalled(ProjectId projectId, string packageName);
+    bool IsInstalled(ProjectId projectId, string packageName);
 
-        Task<bool> TryInstallPackageAsync(
-            Workspace workspace, DocumentId documentId,
-            string? source, string packageName,
-            string? version, bool includePrerelease,
-            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+    Task<bool> TryInstallPackageAsync(
+        Workspace workspace, DocumentId documentId,
+        string? source, string packageName,
+        string? version, bool includePrerelease,
+        IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
-        ImmutableArray<string> GetInstalledVersions(string packageName);
+    ImmutableArray<string> GetInstalledVersions(string packageName);
 
-        ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
-        bool CanShowManagePackagesDialog();
-        void ShowManagePackagesDialog(string packageName);
+    ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
+    bool CanShowManagePackagesDialog();
+    void ShowManagePackagesDialog(string packageName);
 
-        /// <summary>
-        /// Attempts to get the package sources applicable to the workspace.  Note: this call is made on a best effort
-        /// basis.  If the results are not available (for example, they have not been computed, and doing so would
-        /// require switching to the UI thread), then an empty array can be returned.
-        /// </summary>
-        /// <returns>
-        /// <para>A collection of package sources.</para>
-        /// </returns>
-        ImmutableArray<PackageSource> TryGetPackageSources();
+    /// <summary>
+    /// Attempts to get the package sources applicable to the workspace.  Note: this call is made on a best effort
+    /// basis.  If the results are not available (for example, they have not been computed, and doing so would
+    /// require switching to the UI thread), then an empty array can be returned.
+    /// </summary>
+    /// <returns>
+    /// <para>A collection of package sources.</para>
+    /// </returns>
+    ImmutableArray<PackageSource> TryGetPackageSources();
 
-        event EventHandler PackageSourcesChanged;
-    }
+    event EventHandler PackageSourcesChanged;
+}
 
-    [DataContract]
-    internal readonly struct PackageSource(string name, string source) : IEquatable<PackageSource>
-    {
-        [DataMember(Order = 0)]
-        public readonly string Name = name;
+[DataContract]
+internal readonly struct PackageSource(string name, string source) : IEquatable<PackageSource>
+{
+    [DataMember(Order = 0)]
+    public readonly string Name = name;
 
-        [DataMember(Order = 1)]
-        public readonly string Source = source;
+    [DataMember(Order = 1)]
+    public readonly string Source = source;
 
-        public override bool Equals(object? obj)
-            => obj is PackageSource source && Equals(source);
+    public override bool Equals(object? obj)
+        => obj is PackageSource source && Equals(source);
 
-        public bool Equals(PackageSource other)
-            => Name == other.Name && Source == other.Source;
+    public bool Equals(PackageSource other)
+        => Name == other.Name && Source == other.Source;
 
-        public override int GetHashCode()
-            => Hash.Combine(Name, Source.GetHashCode());
-    }
+    public override int GetHashCode()
+        => Hash.Combine(Name, Source.GetHashCode());
 }

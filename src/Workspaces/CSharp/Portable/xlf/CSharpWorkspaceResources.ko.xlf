@@ -12,21 +12,6 @@
         <target state="translated">C# 서식 설정 규칙</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indentation_preferences">
-        <source>Indentation preferences</source>
-        <target state="translated">들여쓰기 기본 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">노드가 루트의 내림차순이 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">부모의 자식 목록에 노드가 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">Using 제거 및 정렬(&amp;E)</target>
@@ -37,21 +22,6 @@
         <target state="translated">Using 정렬(&amp;S)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Space_preferences">
-        <source>Space preferences</source>
-        <target state="translated">공간 기본 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia가 토큰에 연결되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
-        <source>Cannot retrieve the Span of a null syntax reference.</source>
-        <target state="translated">null 구문 참조의 범위를 검색할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
         <target state="translated">특성, 생성자 이니셜라이저, 식 또는 문만 명시적일 수 있습니다.</target>
@@ -60,11 +30,6 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">인터페이스 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrapping_preferences">
-        <source>Wrapping preferences</source>
-        <target state="translated">기본 설정 래핑</target>
         <note />
       </trans-unit>
     </body>

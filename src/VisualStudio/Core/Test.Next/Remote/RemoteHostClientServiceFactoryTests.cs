@@ -4,16 +4,11 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -53,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
 
             var oldText = document.GetTextSynchronously(CancellationToken.None);
-            var newText = oldText.WithChanges(new[] { new TextChange(new TextSpan(0, 1), "abc") });
+            var newText = oldText.WithChanges([new TextChange(new TextSpan(0, 1), "abc")]);
             var newSolution = document.Project.Solution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
 
             workspace.TryApplyChanges(newSolution);
@@ -66,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await listener.ExpeditedWaitAsync();
 
             // checksum should already exist
-            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out _));
+            Assert.True(workspace.CurrentSolution.CompilationState.TryGetStateChecksums(out _));
 
             checksumUpdater.Shutdown();
         }

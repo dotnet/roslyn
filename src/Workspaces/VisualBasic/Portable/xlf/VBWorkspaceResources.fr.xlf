@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VBWorkspaceResources.resx">
     <body>
-      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
-        <source>Namespace can not be added in this destination.</source>
-        <target state="translated">L'espace de noms ne peut pas être ajouté dans cette destination.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, expressions or statements can be made explicit</source>
         <target state="translated">Seuls les attributs, les expressions ou les déclarations peuvent être rendus explicites</target>
@@ -225,21 +220,6 @@
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
         <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
         <target state="translated">Introduit une opération de conversion de type qui ne lève pas d'exception. En cas d'échec d'une tentative de conversion, TryCast retourne Nothing, qui peut être testé par votre programme.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Le nœud ne provient pas de la racine.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Le nœud ne figure pas dans la liste des enfants du parent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia non associé au jeton</target>
         <note />
       </trans-unit>
       <trans-unit id="typeOrMember">

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -20,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 private readonly Workspace _workspace;
                 private readonly CodeAction _originalCodeAction;
-                private readonly SolutionChangeSummary _changeSummary;
+                private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync;
 
-                public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, SolutionChangeSummary changeSummary)
+                public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync)
                 {
                     _workspace = workspace;
                     _originalCodeAction = originalCodeAction;
-                    _changeSummary = changeSummary;
+                    _getPreviewResultAsync = getPreviewResultAsync;
                 }
 
                 public override string Title => EditorFeaturesResources.Preview_changes2;
@@ -38,7 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
                     if (previewDialogService == null)
                     {
-                        return ImmutableArray<CodeActionOperation>.Empty;
+                        return [];
+                    }
+
+                    var previewResult = await _getPreviewResultAsync(cancellationToken).ConfigureAwait(true);
+                    if (previewResult?.ChangeSummary is not { } changeSummary)
+                    {
+                        return [];
                     }
 
                     var changedSolution = previewDialogService.PreviewChanges(
@@ -47,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         _originalCodeAction.Title,
                         EditorFeaturesResources.Changes,
                         CodeAnalysis.Glyph.OpenFolder,
-                        _changeSummary.NewSolution,
-                        _changeSummary.OldSolution,
+                        changeSummary.NewSolution,
+                        changeSummary.OldSolution,
                         showCheckBoxes: false);
 
                     if (changedSolution == null)
                     {
                         // User pressed the cancel button.
-                        return ImmutableArray<CodeActionOperation>.Empty;
+                        return [];
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();

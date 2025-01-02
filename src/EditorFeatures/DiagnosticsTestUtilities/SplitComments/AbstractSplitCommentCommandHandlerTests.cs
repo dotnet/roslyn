@@ -4,14 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 {
     public abstract class AbstractSplitCommentCommandHandlerTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string markup);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup);
 
         /// <summary>
         /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033

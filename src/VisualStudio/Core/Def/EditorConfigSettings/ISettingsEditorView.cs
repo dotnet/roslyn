@@ -7,13 +7,12 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
+
+internal interface ISettingsEditorView
 {
-    internal interface ISettingsEditorView
-    {
-        UserControl SettingControl { get; }
-        IWpfTableControl TableControl { get; }
-        Task<SourceText> UpdateEditorConfigAsync(SourceText sourceText);
-        void OnClose();
-    }
+    UserControl SettingControl { get; }
+    IWpfTableControl TableControl { get; }
+    Task<SourceText> UpdateEditorConfigAsync(SourceText sourceText);
+    void OnClose();
 }

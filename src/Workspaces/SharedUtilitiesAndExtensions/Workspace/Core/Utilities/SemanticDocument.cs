@@ -4,33 +4,31 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class SemanticDocument(Document document, SourceText text, SyntaxNode root, SemanticModel semanticModel)
+    : SyntacticDocument(document, text, root)
 {
-    internal class SemanticDocument : SyntacticDocument
+    public readonly SemanticModel SemanticModel = semanticModel;
+
+    public static new async Task<SemanticDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
-        public readonly SemanticModel SemanticModel;
-
-        private SemanticDocument(Document document, SourceText text, SyntaxNode root, SemanticModel semanticModel)
-            : base(document, text, root)
-        {
-            this.SemanticModel = semanticModel;
-        }
-
-        public static new async Task<SemanticDocument> CreateAsync(Document document, CancellationToken cancellationToken)
-        {
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return new SemanticDocument(document, text, root, model);
-        }
-
-        public new async ValueTask<SemanticDocument> WithSyntaxRootAsync(SyntaxNode root, CancellationToken cancellationToken)
-        {
-            var newDocument = this.Document.WithSyntaxRoot(root);
-            return await CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
-        }
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return new SemanticDocument(document, text, root, model);
     }
+
+    public new async ValueTask<SemanticDocument> WithSyntaxRootAsync(SyntaxNode root, CancellationToken cancellationToken)
+    {
+        var newDocument = this.Document.WithSyntaxRoot(root);
+        return await CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+    }
+
+    public TLanguageService GetRequiredLanguageService<TLanguageService>() where TLanguageService : class, ILanguageService
+        => this.Document.GetRequiredLanguageService<TLanguageService>();
 }

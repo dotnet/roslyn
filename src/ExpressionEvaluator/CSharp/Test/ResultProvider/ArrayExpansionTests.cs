@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         public void NestedArray()
         {
             var rootExpr = "new int[][] { new[] { 1, 2 }, new[] { 3 } }";
-            var value = CreateDkmClrValue(new int[][] { new[] { 1, 2 }, new[] { 3 } });
+            var value = CreateDkmClrValue(new int[][] { [1, 2], [3] });
             var evalResult = FormatResult(rootExpr, value);
             Verify(evalResult,
                 EvalResult(rootExpr, "{int[2][]}", "int[][]", rootExpr, DkmEvaluationResultFlags.Expandable));
@@ -259,7 +259,7 @@ class C
         public void NonZeroLowerBounds()
         {
             var rootExpr = "arrayExpr";
-            var array = (int[,])System.Array.CreateInstance(typeof(int), new[] { 2, 3 }, new[] { 3, 4 });
+            var array = (int[,])System.Array.CreateInstance(typeof(int), [2, 3], [3, 4]);
             array[3, 4] = 1;
             array[3, 5] = 2;
             array[3, 6] = 3;
@@ -299,7 +299,7 @@ class C
         [Fact]
         public void HexadecimalNonZeroLowerBounds()
         {
-            var array = (int[,])System.Array.CreateInstance(typeof(int), new[] { 2, 1 }, new[] { -3, 4 });
+            var array = (int[,])System.Array.CreateInstance(typeof(int), [2, 1], [-3, 4]);
             array[-3, 4] = 1;
             array[-2, 4] = 2;
             var value = CreateDkmClrValue(array);

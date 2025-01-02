@@ -6,17 +6,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -382,12 +383,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             sb.Append("Diagnostic(");
             if (_errorCodeType == typeof(string))
             {
-                sb.Append("\"").Append(_code).Append("\"");
+                sb.Append('"').Append(_code).Append('"');
             }
             else
             {
                 sb.Append(_errorCodeType.Name);
-                sb.Append(".");
+                sb.Append('.');
                 sb.Append(Enum.GetName(_errorCodeType, _code));
             }
 
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(", isSuppressed: true");
             }
 
-            sb.Append(")");
+            sb.Append(')');
 
             if (_arguments != null)
             {
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         sb.Append(", ");
                     }
                 }
-                sb.Append(")");
+                sb.Append(')');
             }
 
             if (_startPosition != null)
@@ -435,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(_startPosition.Value.Line + 1);
                 sb.Append(", ");
                 sb.Append(_startPosition.Value.Character + 1);
-                sb.Append(")");
+                sb.Append(')');
             }
 
             if (_isWarningAsError)
@@ -483,13 +484,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return specifiers;
         }
 
-        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unamtchedExpected, IEnumerable<Diagnostic> unmatchedActual)
+        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unmatchedExpected, IEnumerable<Diagnostic> unmatchedActual)
         {
-            const int CSharp = 1;
-            const int VisualBasic = 2;
-            var language = actual.Any() && actual.First() is CSDiagnostic ? CSharp : VisualBasic;
-            var includeDiagnosticMessagesAsComments = (language == CSharp);
-            int indentDepth = (language == CSharp) ? 4 : 1;
+            var isCSharpOrRazor = actual.Any() && actual.First() is CSDiagnostic or { Descriptor.Category: "Razor" };
+            var includeDiagnosticMessagesAsComments = isCSharpOrRazor;
+            int indentDepth = isCSharpOrRazor ? 4 : 1;
             var includeDefaultSeverity = expected.Any() && expected.All(d => d.DefaultSeverity != null);
             var includeEffectiveSeverity = expected.Any() && expected.All(d => d.EffectiveSeverity != null);
 
@@ -520,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (i = 0; e.MoveNext(); i++)
             {
                 Diagnostic d = e.Current;
-                string message = d.ToString();
+                string message = d.ToString(CultureInfo.InvariantCulture);
                 if (Regex.Match(message, @"{\d+}").Success)
                 {
                     Assert.True(false, "Diagnostic messages should never contain unsubstituted placeholders.\n    " + message);
@@ -535,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Indent(assertText, indentDepth);
                     assertText.Append("// ");
-                    assertText.AppendLine(d.ToString());
+                    assertText.AppendLine(message);
                     var l = d.Location;
                     if (l.IsInSource)
                     {
@@ -556,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             assertText.AppendLine("Diff:");
 
             var unmatchedExpectedText = ArrayBuilder<string>.GetInstance();
-            foreach (var d in unamtchedExpected)
+            foreach (var d in unmatchedExpected)
             {
                 unmatchedExpectedText.Add(GetDiagnosticDescription(d, indentDepth));
             }

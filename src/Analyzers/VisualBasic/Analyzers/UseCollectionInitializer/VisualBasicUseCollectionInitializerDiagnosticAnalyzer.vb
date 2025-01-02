@@ -2,9 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.UseCollectionExpression
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -24,6 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
         Protected Overrides Function GetAnalyzer() As VisualBasicCollectionInitializerAnalyzer
             Return VisualBasicCollectionInitializerAnalyzer.Allocate()
         End Function
@@ -36,12 +40,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return False
         End Function
 
-        Protected Overrides Function CanUseCollectionExpression(semanticModel As SemanticModel, objectCreationExpression As ObjectCreationExpressionSyntax, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function CanUseCollectionExpression(
+                semanticModel As SemanticModel,
+                objectCreationExpression As ObjectCreationExpressionSyntax,
+                expressionType As INamedTypeSymbol,
+                matches As ImmutableArray(Of CollectionMatch(Of SyntaxNode)),
+                allowSemanticsChange As Boolean,
+                cancellationToken As CancellationToken,
+                ByRef changesSemantics As Boolean) As Boolean
             Throw ExceptionUtilities.Unreachable()
-        End Function
-
-        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
-            Return VisualBasicSyntaxFacts.Instance
         End Function
     End Class
 End Namespace

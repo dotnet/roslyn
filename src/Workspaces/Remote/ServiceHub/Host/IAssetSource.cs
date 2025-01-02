@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -14,6 +14,13 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal interface IAssetSource
 {
-    ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+    /// <param name="callback">Will be called back once per checksum in <paramref name="checksums"/> in the exact order of that array.</param>
+    ValueTask GetAssetsAsync<T, TArg>(
+        Checksum solutionChecksum,
+        AssetPath assetPath,
+        ReadOnlyMemory<Checksum> checksums,
+        ISerializerService serializerService,
+        Action<Checksum, T, TArg> callback,
+        TArg arg,
+        CancellationToken cancellationToken);
 }

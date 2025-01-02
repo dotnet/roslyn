@@ -4,13 +4,15 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ExtractMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
     Public Class ExtractMethodTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New ExtractMethodCodeRefactoringProvider()
         End Function
 
@@ -1076,6 +1078,108 @@ class C
         Return b?.@e
     End Function
 end class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>
+        Public Function TestPreferMePreference_NotForInstanceMethodWhenOff() As Task
+            Return TestInRegularAndScriptAsync(
+"
+Imports System
+
+class Program
+    dim i as integer
+
+    public sub M()
+        [|Console.WriteLine(i)|]
+    end sub
+end class
+",
+    "
+Imports System
+
+class Program
+    dim i as integer
+
+    public sub M()
+        {|Rename:NewMethod|}()
+    end sub
+
+    Private Sub NewMethod()
+        Console.WriteLine(i)
+    End Sub
+end class
+",
+            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+                {CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement}
+            })
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>
+        Public Async Function TestPreferThisPreference_ForInstanceMethodWhenOn(diagnostic As ReportDiagnostic) As Task
+            If diagnostic = ReportDiagnostic.Default Then
+                Return
+            End If
+
+            Await TestInRegularAndScriptAsync(
+"
+Imports System
+
+class Program
+    dim i as integer
+
+    public sub M()
+        [|Console.WriteLine(i)|]
+    end sub
+end class
+",
+"
+Imports System
+
+class Program
+    dim i as integer
+
+    public sub M()
+        Me.{|Rename:NewMethod|}()
+    end sub
+
+    Private Sub NewMethod()
+        Console.WriteLine(i)
+    End Sub
+end class
+",
+            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+                {CodeStyleOptions2.QualifyMethodAccess, New CodeStyleOption2(Of Boolean)(True, New NotificationOption2(diagnostic, True))}
+            })
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33618")>
+        Public Function TestPreferThisPreference_NotForStaticMethodWhenOn() As Task
+            Return TestInRegularAndScriptAsync(
+"
+Imports System
+
+class Program
+    public sub M()
+        [|Console.WriteLine()|]
+    end sub
+end class
+",
+"
+Imports System
+
+class Program
+    public sub M()
+        {|Rename:NewMethod|}()
+    end sub
+
+    Private Shared Sub NewMethod()
+        Console.WriteLine()
+    End Sub
+end class
+",
+            options:=New OptionsCollection(LanguageNames.VisualBasic) From {
+                {CodeStyleOptions2.QualifyMethodAccess, CodeStyleOption2.FalseWithSilentEnforcement}
+            })
         End Function
     End Class
 End Namespace

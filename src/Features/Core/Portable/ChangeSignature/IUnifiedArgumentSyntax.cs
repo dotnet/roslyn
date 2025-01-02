@@ -4,14 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal interface IUnifiedArgumentSyntax
 {
-    internal interface IUnifiedArgumentSyntax
-    {
-        bool IsDefault { get; }
-        bool IsNamed { get; }
-        string GetName();
-        IUnifiedArgumentSyntax WithName(string name);
-        IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation);
-    }
+    bool IsDefault { get; }
+    bool IsNamed { get; }
+    string GetName();
+    IUnifiedArgumentSyntax WithName(string name);
+    IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation);
 }

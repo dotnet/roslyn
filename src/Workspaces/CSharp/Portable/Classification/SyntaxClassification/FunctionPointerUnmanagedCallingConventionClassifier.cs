@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
 internal sealed class FunctionPointerUnmanagedCallingConventionClassifier : AbstractSyntaxClassifier
 {
-    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(typeof(FunctionPointerUnmanagedCallingConventionSyntax));
+    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(FunctionPointerUnmanagedCallingConventionSyntax)];
 
     public override void AddClassifications(
         SyntaxNode syntax,
@@ -39,9 +39,7 @@ internal sealed class FunctionPointerUnmanagedCallingConventionClassifier : Abst
             if (name is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall")
                 return true;
 
-            var fullName = $"System.Runtime.CompilerServices.CallConv{name}";
-            var type = semanticModel.Compilation.GetBestTypeByMetadataName(fullName);
-            return type != null;
+            return semanticModel.Compilation.TryGetCallingConventionSymbol(name) is not null;
         }
     }
 }

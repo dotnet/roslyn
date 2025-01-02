@@ -11,8 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class VisualBasicSignatureHelpCommandHandlerTests
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         Public Async Function TestFilterOnNamedParameters1() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
@@ -50,8 +49,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
         Public Async Function TestFilterOnNamedParameters2() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
@@ -148,8 +146,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         Public Async Function TestSigHelpNotDismissedAfterQuote() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -171,8 +168,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
         Public Async Function TestSigHelpDismissedAfterComment() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -193,8 +189,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082128")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082128")>
         Public Async Function TestSigHelpNotDismissedAfterSpace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document><![CDATA[
@@ -271,8 +266,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/5174")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5174")>
         Public Async Function DoNotShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>

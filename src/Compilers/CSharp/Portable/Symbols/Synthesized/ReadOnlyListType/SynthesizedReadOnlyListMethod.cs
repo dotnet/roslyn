@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly GenerateMethodBodyDelegate _generateMethodBody;
 
-        internal SynthesizedReadOnlyListMethod(SynthesizedReadOnlyListTypeSymbol containingType, MethodSymbol interfaceMethod, GenerateMethodBodyDelegate generateMethodBody) :
+        internal SynthesizedReadOnlyListMethod(NamedTypeSymbol containingType, MethodSymbol interfaceMethod, GenerateMethodBodyDelegate generateMethodBody) :
             base(interfaceMethod, containingType)
         {
             _generateMethodBody = generateMethodBody;

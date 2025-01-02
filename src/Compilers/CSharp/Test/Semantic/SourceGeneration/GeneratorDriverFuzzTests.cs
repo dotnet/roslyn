@@ -23,6 +23,8 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
+#pragma warning disable RS0062 // Do not implicitly capture primary constructor parameters
+
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class GeneratorDriverFuzzTests

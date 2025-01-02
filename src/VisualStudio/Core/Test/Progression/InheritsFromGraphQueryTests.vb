@@ -36,15 +36,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=C)" Target="(@2 Namespace=System Type=Object)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546199")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546199")>
         Public Async Function TestErrorBaseType() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -69,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=C)" Target="(@1 Type=A)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -106,8 +105,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@2 Type=B)" Target="(@1 Type=A)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/ProjectA.dll"/>
-                            <Alias n="2" Uri="Assembly=file:///Z:/ProjectB.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/ProjectA.dll"/>
+                            <Alias n="2" Uri="Assembly=file:///Z:/bin/ProjectB.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

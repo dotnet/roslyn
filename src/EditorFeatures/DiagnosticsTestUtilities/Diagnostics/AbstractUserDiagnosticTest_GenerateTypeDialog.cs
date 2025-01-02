@@ -11,11 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -28,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         // TODO: IInlineRenameService requires WPF (https://github.com/dotnet/roslyn/issues/46153)
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(
-                typeof(MockDiagnosticUpdateSourceRegistrationService),
                 typeof(TestGenerateTypeOptionsService),
                 typeof(TestProjectManagementService));
 
@@ -60,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             bool isCancelled = false)
         {
             using var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial, composition: s_composition)
+                ? EditorTestWorkspace.Create(initial, composition: s_composition)
                 : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial, composition: s_composition)
-                  : TestWorkspace.CreateVisualBasic(initial, composition: s_composition);
+                  ? EditorTestWorkspace.CreateCSharp(initial, composition: s_composition)
+                  : EditorTestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
             var testOptions = new TestParameters();
             var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
@@ -111,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 oldSolutionAndNewSolution = await TestOperationsAsync(
                     testState.Workspace, expected, operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: testState.ExistingDocument.Id);
             }
             else
@@ -133,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 Assert.NotNull(expectedTextWithUsings);
                 await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: testState.InvocationDocument.Id);
             }
 
@@ -172,9 +167,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 if (assertGenerateTypeDialogOptions != null)
                 {
-                    Assert.True(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility == generateTypeDialogOptions.IsPublicOnlyAccessibility);
-                    Assert.True(assertGenerateTypeDialogOptions.TypeKindOptions == generateTypeDialogOptions.TypeKindOptions);
-                    Assert.True(assertGenerateTypeDialogOptions.IsAttribute == generateTypeDialogOptions.IsAttribute);
+                    Assert.Equal(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility, generateTypeDialogOptions.IsPublicOnlyAccessibility);
+                    Assert.Equal(assertGenerateTypeDialogOptions.TypeKindOptions, generateTypeDialogOptions.TypeKindOptions);
+                    Assert.Equal(assertGenerateTypeDialogOptions.IsAttribute, generateTypeDialogOptions.IsAttribute);
                 }
 
                 if (assertTypeKindPresent != null)

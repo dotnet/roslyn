@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </remarks>
             private void RecordSyntaxDiagnostics(CSharpSyntaxNode treelessSyntax, Location sourceLocation)
             {
-                if (treelessSyntax.ContainsDiagnostics && ((SyntaxTree)sourceLocation.SourceTree).ReportDocumentationCommentDiagnostics())
+                if (treelessSyntax.ContainsDiagnostics && sourceLocation.SourceTree.ReportDocumentationCommentDiagnostics())
                 {
                     // NOTE: treelessSyntax doesn't have its own SyntaxTree, so we have to access the diagnostics
                     // via the Dummy tree.
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </remarks>
             private void RecordBindingDiagnostics(BindingDiagnosticBag bindingDiagnostics, Location sourceLocation)
             {
-                if (((SyntaxTree)sourceLocation.SourceTree).ReportDocumentationCommentDiagnostics())
+                if (sourceLocation.SourceTree.ReportDocumentationCommentDiagnostics())
                 {
                     if (bindingDiagnostics.DiagnosticBag?.IsEmptyWithoutResolution == false)
                     {

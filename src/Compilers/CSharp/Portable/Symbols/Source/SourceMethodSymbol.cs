@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// things like ordinary methods and constructors, and functions
     /// like lambdas and local functions.
     /// </summary>
-    internal abstract class SourceMethodSymbol : MethodSymbol
+    internal abstract partial class SourceMethodSymbol : MethodSymbol
     {
         /// <summary>
         /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, getLocation(parameter, location), parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefParameter, getLocation(parameter, location), parameter.Type);
                 }
             }
 
@@ -83,5 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
+        }
     }
 }

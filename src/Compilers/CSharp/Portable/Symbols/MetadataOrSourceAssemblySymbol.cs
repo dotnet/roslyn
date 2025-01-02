@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal sealed override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal sealed override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
 #if DEBUG
             foreach (var module in this.Modules)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="corType"></param>
         internal sealed override void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
         {
-            SpecialType typeId = corType.SpecialType;
+            ExtendedSpecialType typeId = corType.ExtendedSpecialType;
             Debug.Assert(typeId != SpecialType.None);
             Debug.Assert(ReferenceEquals(corType.ContainingAssembly, this));
             Debug.Assert(corType.ContainingModule.Ordinal == 0);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazySpecialTypes == null)
             {
                 Interlocked.CompareExchange(ref _lazySpecialTypes,
-                    new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
+                    new NamedTypeSymbol[(int)InternalSpecialType.NextAvailable], null);
             }
 
             if ((object)Interlocked.CompareExchange(ref _lazySpecialTypes[(int)typeId], corType, null) != null)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 Interlocked.Increment(ref _cachedSpecialTypes);
-                Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes <= (int)SpecialType.Count);
+                Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes < (int)InternalSpecialType.NextAvailable);
             }
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ReferenceEquals(this.CorLibrary, this) && _cachedSpecialTypes < (int)SpecialType.Count;
+                return ReferenceEquals(this.CorLibrary, this) && _cachedSpecialTypes < (int)InternalSpecialType.NextAvailable - 1;
             }
         }
 
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var descriptor = SpecialMembers.GetDescriptor(member);
-                NamedTypeSymbol type = GetDeclaredSpecialType((SpecialType)descriptor.DeclaringTypeId);
+                NamedTypeSymbol type = GetDeclaredSpecialType(descriptor.DeclaringSpecialType);
                 Symbol result = null;
 
                 if (!type.IsErrorType())

@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis
         bool HasValueTypeConstraint { get; }
 
         /// <summary>
+        /// True if the 'allows ref struct' constraint was specified for the type parameter.
+        /// </summary>
+        bool AllowsRefLikeType { get; }
+
+        /// <summary>
         /// True if the value type constraint (<c>unmanaged</c>) was specified for the type parameter.
         /// </summary>
         bool HasUnmanagedTypeConstraint { get; }

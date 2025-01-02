@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null);
 
-        internal abstract ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
+        internal abstract ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
         public bool IsRef => RefKind != RefKind.None;
 

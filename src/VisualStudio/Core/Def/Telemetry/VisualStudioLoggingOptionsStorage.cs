@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal static class VisualStudioLoggingOptionsStorage
 {
-    internal static class VisualStudioLoggingOptionsStorage
-    {
-        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("visual_studio_enable_file_logging_for_diagnostics", defaultValue: false);
-    }
+    public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("visual_studio_enable_file_logging_for_diagnostics", defaultValue: false);
 }

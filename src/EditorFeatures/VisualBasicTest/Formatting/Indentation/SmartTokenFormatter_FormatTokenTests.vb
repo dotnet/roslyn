@@ -179,7 +179,7 @@ End Class
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code)
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
 

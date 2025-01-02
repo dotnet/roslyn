@@ -7,18 +7,17 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <summary>
     ''' This class watches for buffer-based events, tracks the dirty regions, and invokes the formatter as appropriate
     ''' </summary>
     Partial Friend Class CommitBufferManager
-        Inherits ForegroundThreadAffinitizedObject
 
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-
         Private _referencingViews As Integer
 
         ''' <summary>
@@ -41,9 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Public Sub New(
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
-            inlineRenameService As IInlineRenameService,
-            threadingContext As IThreadingContext)
-            MyBase.New(threadingContext, assertIsForeground:=False)
+            inlineRenameService As IInlineRenameService)
 
             Contract.ThrowIfNull(buffer)
             Contract.ThrowIfNull(commitFormatter)
@@ -55,21 +52,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Public Sub AddReferencingView()
-            ThisCanBeCalledOnAnyThread()
-
             SyncLock _referencingViewsLock
                 _referencingViews += 1
 
                 If _referencingViews = 1 Then
                     AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
                     AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
+
+                    Dim projectionBuffer = TryCast(_buffer, IProjectionBuffer)
+                    If projectionBuffer IsNot Nothing Then
+                        AddHandler projectionBuffer.SourceSpansChanged, AddressOf OnSourceSpansChanged
+                    End If
                 End If
             End SyncLock
         End Sub
 
         Public Sub RemoveReferencingView()
-            ThisCanBeCalledOnAnyThread()
-
             SyncLock _referencingViewsLock
                 ' If someone enables line commit with a file already open, we might end up decrementing
                 ' the ref count too many times, so only do work if we are still above 0.
@@ -79,6 +77,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     If _referencingViews = 0 Then
                         RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
                         RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
+
+                        Dim projectionBuffer = TryCast(_buffer, IProjectionBuffer)
+                        If projectionBuffer IsNot Nothing Then
+                            RemoveHandler projectionBuffer.SourceSpansChanged, AddressOf OnSourceSpansChanged
+                        End If
                     End If
                 End If
             End SyncLock
@@ -290,6 +293,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Else
                 _dirtyState = _dirtyState.WithExpandedDirtySpan(encompassingNewSpan)
             End If
+        End Sub
+
+        Private Sub OnSourceSpansChanged(sender As Object, e As ProjectionSourceSpansChangedEventArgs)
+            ' DirtyState information should be purged when source spans change, as the new buffer content
+            ' may be unrelated to prior content. Aspx and legacy razor may generate significant differences
+            ' during generations (eg, converting a <%= to a <%# in aspx), causing unnecessary (and troublesome) large
+            ' dirty state ranges.
+            _dirtyState = Nothing
         End Sub
 
         Private Shared Async Function ForceComputeInternalsVisibleToAsync(document As Document, cancellationToken As CancellationToken) As Task

@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -313,6 +313,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            return 0;
+        }
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol

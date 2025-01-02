@@ -1014,7 +1014,7 @@ class D
 </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedWorkspace = TestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
+                Using changedWorkspace = EditorTestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()

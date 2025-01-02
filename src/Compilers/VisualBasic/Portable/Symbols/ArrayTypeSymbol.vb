@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class ArrayTypeSymbol
         Inherits TypeSymbol
-        Implements IArrayTypeSymbol
+        Implements IArrayTypeSymbol, IArrayTypeSymbolInternal
 
         ''' <summary>
         ''' Create a new ArrayTypeSymbol.
@@ -363,6 +364,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
 
+        Friend Overrides Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            Return ManagedKind.Managed
+        End Function
+
 #Region "Use-Site Diagnostics"
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
@@ -398,6 +403,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IArrayTypeSymbolInternal_ElementType As ITypeSymbolInternal Implements IArrayTypeSymbolInternal.ElementType
+            Get
+                Return Me.ElementType
+            End Get
+        End Property
+
         Private ReadOnly Property IArrayTypeSymbol_ElementNullableAnnotation As NullableAnnotation Implements IArrayTypeSymbol.ElementNullableAnnotation
             Get
                 Return NullableAnnotation.None
@@ -410,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IArrayTypeSymbol_IsSZArray As Boolean Implements IArrayTypeSymbol.IsSZArray
+        Private ReadOnly Property IArrayTypeSymbol_IsSZArray As Boolean Implements IArrayTypeSymbol.IsSZArray, IArrayTypeSymbolInternal.IsSZArray
             Get
                 Return Me.IsSZArray
             End Get

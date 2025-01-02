@@ -23,6 +23,11 @@ internal abstract class InstanceConstructorDeclarationBody : MemberBody
     /// </summary>
     public abstract SyntaxNode? ExplicitBody { get; }
 
+    /// <summary>
+    /// Node that represents the closure that constructor parameters captured within its body are lifted to.
+    /// </summary>
+    public abstract SyntaxNode? ParameterClosure { get; }
+
     public sealed override SyntaxTree SyntaxTree
         => InitializerActiveStatement.SyntaxTree;
 
@@ -98,4 +103,15 @@ internal abstract class InstanceConstructorDeclarationBody : MemberBody
         => MatchRoot is { } oldRoot && ((InstanceConstructorDeclarationBody)newBody).MatchRoot is { } newRoot
             ? SyntaxComparer.Statement.ComputeMatch(oldRoot, newRoot, knownMatches)
             : null;
+
+    public override DeclarationBodyMap ComputeMap(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    {
+        var map = base.ComputeMap(newBody, knownMatches);
+
+        // parameter closures are represented by the constructor or type declaration node, which may not be included in the match:
+        return ParameterClosure is { } parameterClosure &&
+               ((InstanceConstructorDeclarationBody)newBody).ParameterClosure is { } newParameterClosure &&
+               !map.Forward.ContainsKey(parameterClosure)
+               ? map.WithAdditionalMapping(parameterClosure, newParameterClosure) : map;
+    }
 }

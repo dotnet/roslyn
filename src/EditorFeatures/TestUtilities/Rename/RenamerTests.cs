@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             solution = solution
                     .AddProject(projectInfo);
 
-            var remainingErrors = new HashSet<string>(expectedErrors ?? new string[0]);
+            var remainingErrors = new HashSet<string>(expectedErrors ?? []);
 
             for (var i = 0; i < startDocuments.Length; i++)
             {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 return splitPath;
             }
 
-            return splitPath.Take(splitPath.Length - 1).ToArray();
+            return [.. splitPath.Take(splitPath.Length - 1)];
         }
 
         protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)

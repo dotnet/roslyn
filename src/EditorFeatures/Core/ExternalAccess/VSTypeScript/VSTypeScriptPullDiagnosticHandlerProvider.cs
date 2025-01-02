@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
@@ -17,8 +18,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
     IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
-    IGlobalOptionService globalOptions) : DocumentPullDiagnosticHandlerFactory(analyzerService, diagnosticsRefresher, globalOptions)
+    IGlobalOptionService globalOptions) : DocumentPullDiagnosticHandlerFactory(analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
 }
 
@@ -26,8 +28,10 @@ internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptWorkspacePullDiagnosticHandler(
+    LspWorkspaceRegistrationService registrationService,
     IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
-    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(analyzerService, diagnosticsRefresher, globalOptions)
+    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
 }

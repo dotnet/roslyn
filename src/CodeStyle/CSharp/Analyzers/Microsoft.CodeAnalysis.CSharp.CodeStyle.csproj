@@ -25,6 +25,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems" Label="Shared" />
 </Project>

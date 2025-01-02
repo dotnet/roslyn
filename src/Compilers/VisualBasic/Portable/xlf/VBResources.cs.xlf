@@ -17,6 +17,16 @@
         <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
         <target state="translated">Z {0} nelze dědit, protože obsahuje požadované členy.</target>
@@ -40,6 +50,26 @@
       <trans-unit id="ERR_DoNotUseRequiredMember">
         <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
         <target state="translated">Atribut System.Runtime.CompilerServices.RequiredMemberAttribute je vyhrazen pouze pro použití kompilátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
+        <target state="new">Cannot update '{0}'; attribute '{1}' is missing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">Argument diagnosticId atributu Experimental musí být platný identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">Zadaný řetězec verze obsahuje zástupné znaky, které nejsou kompatibilní s determinismem. Odeberte zástupné znaky z řetězce verze nebo pro tuto kompilaci zakažte determinismus.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">Hodnota typu System.Threading.Lock není v SyncLock podporována. Zvažte ruční volání metod Enter a Exit ve Zkušebním/Závěrečném bloku.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -97,6 +127,11 @@
         <target state="translated">{0} je definováno v sestavení {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeReserved">
+        <source>The type name '{0}' is reserved to be used by the compiler.</source>
+        <target state="new">The type name '{0}' is reserved to be used by the compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní nebo virtuální {2}.</target>
@@ -105,6 +140,11 @@
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Atribut UnmanagedCallersOnly se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
+        <target state="new">Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -132,9 +172,19 @@
         <target state="translated">přiřazování do vlastností ByRef nebo jejich předávání pomocí metod setter init-only</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">parametry neomezeného typu v binárních podmíněných výrazech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_UnmanagedConstraint">
+        <source>recognizing 'unmanaged' constraint</source>
+        <target state="new">recognizing 'unmanaged' constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
@@ -603,6 +653,16 @@
         <target state="translated">CallerArgumentExpressionAttribute použitý u parametru nebude mít žádný vliv, protože odkazuje sám na sebe.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Hodnota typu System.Threading.Lock převedená na jiný typ použije pravděpodobně nezamýšlené zamykání na základě monitorování v příkazu SyncLock.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Hodnota typu System.Threading.Lock převedená na jiný typ použije pravděpodobně nezamýšlené zamykání na základě monitorování v příkazu SyncLock.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">Odkaz analyzátoru {0} byl zadán vícekrát</target>
@@ -611,6 +671,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -1735,11 +1805,6 @@
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
         <target state="translated">Nepovedlo se vygenerovat modul {0}: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">Nelze aktualizovat {0}; chybí atribut {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNeeded3">
@@ -7672,8 +7737,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Zadaný řetězec verze není v souladu s doporučeným formátem – hlavní_verze.dílčí_verze.build.revize.</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">Zadaný řetězec verze neodpovídá doporučenému formátu – major.minor.build.revision (bez zástupných znaků).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">
@@ -9283,7 +9348,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání.</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
@@ -9292,8 +9357,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</source>
-        <target state="translated">Informace o ladění metody {0} (token 0x{1}) ze sestavení {2} nelze přečíst.</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

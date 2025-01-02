@@ -18,16 +18,12 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 
 [ExportEmbeddedLanguageClassifier(
-    PredefinedEmbeddedLanguageNames.CSharpTest, new[] { LanguageNames.CSharp }, supportsUnannotatedAPIs: false,
+    PredefinedEmbeddedLanguageNames.CSharpTest, [LanguageNames.CSharp], supportsUnannotatedAPIs: false,
     PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
-internal sealed class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguageClassifier
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpTestEmbeddedLanguageClassifier()
-    {
-    }
-
     private static TextSpan FromBounds(VirtualChar vc1, VirtualChar vc2)
         => TextSpan.FromBounds(vc1.Span.Start, vc2.Span.End);
 
@@ -90,7 +86,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageCl
                 }
             }
         }
-        else
+        else if (!virtualCharsWithoutMarkup.IsEmpty)
         {
             context.AddClassification(
                 ClassificationTypeNames.TestCode,

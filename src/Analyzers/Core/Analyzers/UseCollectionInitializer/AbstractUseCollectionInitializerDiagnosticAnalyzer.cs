@@ -2,31 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
-
-/// <summary>
-/// Represents statements following an object initializer that should be converted into
-/// collection-initializer/expression elements.
-/// </summary>
-/// <param name="Statement">The statement that follows that contains the values to add to the new
-/// collection-initializer or collection-expression</param>
-/// <param name="UseSpread">Whether or not a spread (<c>.. x</c>) element should be created for this statement. This
-/// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
-/// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see
-/// what form it is.</param>
-internal readonly record struct Match<TStatementSyntax>(
-    TStatementSyntax Statement,
-    bool UseSpread) where TStatementSyntax : SyntaxNode;
 
 internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyzer<
     TSyntaxKind,
@@ -67,6 +54,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
         IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
         EnforceOnBuildValues.UseCollectionInitializer,
+        hasAnyCodeStyleOption: true,
         new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         isUnnecessary: false);
@@ -74,22 +62,31 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
         IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
         EnforceOnBuildValues.UseCollectionInitializer,
+        hasAnyCodeStyleOption: true,
         new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         isUnnecessary: true);
 
     protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
-                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
+        : base(
+            [
+                (s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
+            ])
     {
     }
 
-    protected abstract ISyntaxFacts GetSyntaxFacts();
+    protected abstract ISyntaxFacts SyntaxFacts { get; }
 
     protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
     protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
-    protected abstract bool CanUseCollectionExpression(SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken);
+    protected abstract bool CanUseCollectionExpression(
+        SemanticModel semanticModel,
+        TObjectCreationExpressionSyntax objectCreationExpression,
+        INamedTypeSymbol? expressionType,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        bool allowSemanticsChange,
+        CancellationToken cancellationToken,
+        out bool changesSemantics);
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -101,30 +98,34 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (!AreCollectionInitializersSupported(context.Compilation))
             return;
 
-        var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
-        if (ienumerableType != null)
-        {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+        var ienumerableType = context.Compilation.IEnumerableType();
+        if (ienumerableType is null)
+            return;
 
-            using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
-            matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
-            if (syntaxKinds.ImplicitObjectCreationExpression != null)
-                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
-            var matchKindsArray = matchKinds.ToImmutableAndClear();
+        var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
 
-            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-            // and eventually report fading diagnostics with location outside this node.
-            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-            context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
+        using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+        matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+        if (syntaxKinds.ImplicitObjectCreationExpression != null)
+            matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+        var matchKindsArray = matchKinds.ToImmutableAndClear();
+
+        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+        // and eventually report fading diagnostics with location outside this node.
+        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+        var expressionType = context.Compilation.ExpressionOfTType();
+        context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
                 blockStartContext.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                    nodeContext => AnalyzeNode(nodeContext, ienumerableType, expressionType),
                     matchKindsArray));
-        }
     }
 
-    private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
+    private void AnalyzeNode(
+        SyntaxNodeAnalysisContext context,
+        INamedTypeSymbol ienumerableType,
+        INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
@@ -135,8 +136,14 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
 
         // not point in analyzing if both options are off.
-        if (!preferInitializerOption.Value && !preferExpressionOption.Value)
+        if (!preferInitializerOption.Value
+            && preferExpressionOption.Value == Shared.CodeStyle.CollectionExpressionPreference.Never
+            && !ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
+                    [preferInitializerOption.Notification, preferExpressionOption.Notification],
+                    context.CancellationToken))
+        {
             return;
+        }
 
         // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
         var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
@@ -145,7 +152,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         // Analyze the surrounding statements. First, try a broader set of statements if the language supports
         // collection expressions. 
-        var syntaxFacts = GetSyntaxFacts();
+        var syntaxFacts = this.SyntaxFacts;
         using var analyzer = GetAnalyzer();
 
         var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
@@ -158,7 +165,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             return;
 
         // if one fails, prefer the other.  If both succeed, prefer the one with more matches.
-        var (matches, shouldUseCollectionExpression) =
+        var (matches, shouldUseCollectionExpression, changesSemantics) =
             collectionExpressionMatches is null ? collectionInitializerMatches!.Value :
             collectionInitializerMatches is null ? collectionExpressionMatches!.Value :
             collectionExpressionMatches.Value.matches.Length >= collectionInitializerMatches.Value.matches.Length
@@ -167,19 +174,23 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty
-            : ImmutableArray.Create<SyntaxNode>(containingStatement);
-        nodes = nodes.AddRange(matches.Select(static m => m.Statement));
+            : [containingStatement];
+        nodes = nodes.AddRange(matches.Select(static m => m.Node));
         if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             return;
 
         var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-        var option = shouldUseCollectionExpression ? preferExpressionOption : preferInitializerOption;
-        var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : null;
+        var notification = shouldUseCollectionExpression ? preferExpressionOption.Notification : preferInitializerOption.Notification;
+        var properties = shouldUseCollectionExpression ? UseCollectionInitializerHelpers.UseCollectionExpressionProperties : ImmutableDictionary<string, string?>.Empty;
+        if (changesSemantics)
+            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            notification,
+            context.Options,
             additionalLocations: locations,
             properties));
 
@@ -187,7 +198,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         return;
 
-        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionInitializerMatches()
+        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
         {
             if (containingStatement is null)
                 return null;
@@ -195,45 +206,46 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!preferInitializerOption.Value)
                 return null;
 
-            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
+            var (_, matches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
             if (matches.IsDefault)
                 return null;
 
-            return (matches, shouldUseCollectionExpression: false);
+            return (matches, shouldUseCollectionExpression: false, changesSemantics: false);
         }
 
-        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression)? GetCollectionExpressionMatches()
+        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
-            if (!preferExpressionOption.Value)
+            if (preferExpressionOption.Value == CollectionExpressionPreference.Never)
                 return null;
 
             // Don't bother analyzing for the collection expression case if the lang/version doesn't even support it.
             if (!this.AreCollectionExpressionsSupported(context.Compilation))
                 return null;
 
-            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
+            var (preMatches, postMatches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
-            if (matches.IsDefault)
+            if (preMatches.IsDefault || postMatches.IsDefault)
                 return null;
 
             // Check if it would actually be legal to use a collection expression here though.
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+            var allowSemanticsChange = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, preMatches, allowSemanticsChange, cancellationToken, out var changesSemantics))
                 return null;
 
-            return (matches, shouldUseCollectionExpression: true);
+            return (preMatches.Concat(postMatches), shouldUseCollectionExpression: true, changesSemantics);
         }
     }
 
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<Match<TStatementSyntax>> matches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> matches,
         ImmutableArray<Location> locations,
         ImmutableDictionary<string, string?>? properties)
     {
-        var syntaxFacts = GetSyntaxFacts();
+        var syntaxFacts = this.SyntaxFacts;
 
         foreach (var match in matches)
         {
@@ -247,7 +259,8 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_unnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties));

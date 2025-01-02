@@ -5,12 +5,11 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -24,8 +23,10 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
-    TAnalyzer>
-    : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
+    TAnalyzer>()
+    : AbstractUseCollectionExpressionCodeFixProvider<TObjectCreationExpressionSyntax>(
+        AnalyzersResources.Collection_initialization_can_be_simplified,
+        nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -46,24 +47,19 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    protected AbstractUseCollectionInitializerCodeFixProvider()
-        : base(AnalyzersResources.Collection_initialization_can_be_simplified,
-               nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
-    {
-    }
-
     public sealed override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
+        => [IDEDiagnosticIds.UseCollectionInitializerDiagnosticId];
 
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, CodeActionOptionsProvider fallbackOptions, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         TObjectCreationExpressionSyntax objectCreation,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -80,17 +76,20 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         using var analyzer = GetAnalyzer();
 
         var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
-        var matches = analyzer.Analyze(
+        var (preMatches, postMatches) = analyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-        if (matches.IsDefault)
+        if (preMatches.IsDefault || postMatches.IsDefault)
             return;
 
         var (oldNode, newNode) = await GetReplacementNodesAsync(
-            document, fallbackOptions, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            document, objectCreation, useCollectionExpression, preMatches, postMatches, cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(oldNode, newNode);
-        foreach (var match in matches)
-            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+        // We only need to remove the post-matches.  The pre-matches are the arguments in teh object creation, which
+        // itself got replaced above.
+        foreach (var match in postMatches)
+            editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 }

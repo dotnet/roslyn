@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        otherAssembly As SourceAssemblySymbol,
                        synthesizedTypes As SynthesizedTypeMaps,
-                       otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
-                       otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
+                       otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                       otherDeletedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
 
             _visitor = New Visitor(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
@@ -77,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private ReadOnly _sourceAssembly As SourceAssemblySymbol
             Private ReadOnly _otherAssembly As AssemblySymbol
-            Private ReadOnly _otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
-            Private ReadOnly _otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
+            Private ReadOnly _otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
+            Private ReadOnly _otherDeletedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
 
             ' A cache of members per type, populated when the first member for a given
             ' type Is needed. Within each type, members are indexed by name. The reason
@@ -89,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Sub New(sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
                            synthesizedTypes As SynthesizedTypeMaps,
-                           otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
-                           otherDeletedMembers As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                           otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                           otherDeletedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            deepTranslatorOpt As DeepTranslator)
 
                 _synthesizedTypes = synthesizedTypes
@@ -475,8 +475,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' edit. Furthermore, comparing constraint types might lead to a cycle.
                 Debug.Assert(type.HasConstructorConstraint = other.HasConstructorConstraint)
                 Debug.Assert(type.HasValueTypeConstraint = other.HasValueTypeConstraint)
+                Debug.Assert(type.AllowsRefLikeType = other.AllowsRefLikeType)
                 Debug.Assert(type.HasReferenceTypeConstraint = other.HasReferenceTypeConstraint)
                 Debug.Assert(type.ConstraintTypesNoUseSiteDiagnostics.Length = other.ConstraintTypesNoUseSiteDiagnostics.Length)
+                Debug.Assert(type.HasUnmanagedTypeConstraint = other.HasUnmanagedTypeConstraint)
                 Return True
             End Function
 

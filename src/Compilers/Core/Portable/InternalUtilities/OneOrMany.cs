@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
@@ -60,6 +61,9 @@ namespace Roslyn.Utilities
         private bool HasOneItem
             => _many.IsDefault;
 
+        public bool IsDefault
+            => _one == null && _many.IsDefault;
+
         public T this[int index]
         {
             get
@@ -90,6 +94,18 @@ namespace Roslyn.Utilities
             => HasOneItem ? OneOrMany.Create(_one, item) :
                IsEmpty ? OneOrMany.Create(item) :
                OneOrMany.Create(_many.Add(item));
+
+        public void AddRangeTo(ArrayBuilder<T> builder)
+        {
+            if (HasOneItem)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+        }
 
         public bool Contains(T item)
             => HasOneItem ? EqualityComparer<T>.Default.Equals(item, _one) : _many.Contains(item);
@@ -237,8 +253,10 @@ namespace Roslyn.Utilities
 
         private sealed class DebuggerProxy(OneOrMany<T> instance)
         {
+            private readonly OneOrMany<T> _instance = instance;
+
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public T[] Items => instance.ToArray();
+            public T[] Items => _instance.ToArray();
         }
 
         private string GetDebuggerDisplay()

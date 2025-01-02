@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
@@ -20,7 +21,7 @@ internal static class CSharpStructureHelpers
     public const string Ellipsis = "...";
     public const string MultiLineCommentSuffix = "*/";
     public const int MaxXmlDocCommentBannerLength = 120;
-    private static readonly char[] s_newLineCharacters = new[] { '\r', '\n' };
+    private static readonly char[] s_newLineCharacters = ['\r', '\n'];
 
     private static int GetCollapsibleStart(SyntaxToken firstToken)
     {
@@ -161,7 +162,7 @@ internal static class CSharpStructureHelpers
     }
 
     public static void CollectCommentBlockSpans(
-        SyntaxTriviaList triviaList, ref TemporaryArray<BlockSpan> spans)
+        SyntaxTriviaList triviaList, ArrayBuilder<BlockSpan> spans)
     {
         if (triviaList.Count > 0)
         {
@@ -186,14 +187,14 @@ internal static class CSharpStructureHelpers
                 else if (trivia is not SyntaxTrivia(
                     SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia or SyntaxKind.EndOfFileToken))
                 {
-                    completeSingleLineCommentGroup(ref spans);
+                    completeSingleLineCommentGroup(spans);
                 }
             }
 
-            completeSingleLineCommentGroup(ref spans);
+            completeSingleLineCommentGroup(spans);
             return;
 
-            void completeSingleLineCommentGroup(ref TemporaryArray<BlockSpan> spans)
+            void completeSingleLineCommentGroup(ArrayBuilder<BlockSpan> spans)
             {
                 if (startComment != null)
                 {
@@ -208,7 +209,7 @@ internal static class CSharpStructureHelpers
 
     public static void CollectCommentBlockSpans(
         SyntaxNode node,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         in BlockStructureOptions options)
     {
         if (node == null)
@@ -223,7 +224,7 @@ internal static class CSharpStructureHelpers
         else
         {
             var triviaList = node.GetLeadingTrivia();
-            CollectCommentBlockSpans(triviaList, ref spans);
+            CollectCommentBlockSpans(triviaList, spans);
         }
 
         return;

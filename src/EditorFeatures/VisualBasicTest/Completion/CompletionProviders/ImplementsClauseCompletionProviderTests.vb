@@ -620,7 +620,7 @@ End Interface
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(element, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.Create(element, composition:=GetComposition())
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                 Dim service = GetCompletionService(document.Project)

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Search.Data;
 
@@ -40,10 +40,10 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 searchResult,
                 new HighlightedText(
                     searchResult.NavigableItem.DisplayTaggedParts.JoinText(),
-                    searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan()).ToArray()),
+                    [.. searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan())]),
                 new HighlightedText(
                     searchResult.AdditionalInformation,
-                    Array.Empty<VisualStudio.Text.Span>()),
+                    []),
                 primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
         }
 
@@ -63,8 +63,23 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             if (filePath is null)
                 return null;
 
-            if (!Uri.TryCreate(filePath, UriKind.RelativeOrAbsolute, out var uri))
-                return null;
+            Uri? absoluteUri;
+            if (document.SourceGeneratedDocumentIdentity is not null)
+            {
+                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value);
+            }
+            else
+            {
+                try
+                {
+                    absoluteUri = ProtocolConversions.CreateAbsoluteUri(filePath);
+                }
+                catch (UriFormatException)
+                {
+                    // Unable to create an absolute URI for this path
+                    return null;
+                }
+            }
 
             var projectGuid = _provider._workspace.GetProjectGuid(document.Project.Id);
             if (projectGuid == Guid.Empty)
@@ -74,7 +89,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             {
                 new RoslynSearchResultPreviewPanel(
                     _provider,
-                    uri,
+                    absoluteUri,
                     projectGuid,
                     roslynResult.SearchResult.NavigableItem.SourceSpan.ToSpan(),
                     searchResultView.Title.Text,

@@ -31,7 +31,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 
@@ -1038,16 +1037,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var formattingRules = Formatter.GetDefaultFormattingRules(document);
             if (additionalRules != null)
             {
-                formattingRules = additionalRules.Concat(formattingRules).ToImmutableArray();
+                formattingRules = [.. additionalRules, .. formattingRules];
             }
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var options = await document.GetSyntaxFormattingOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 return await Formatter.FormatAsync(
                     document,
-                    new TextSpan[] { formattingSpan },
+                    [formattingSpan],
                     options,
                     formattingRules,
                     cancellationToken).ConfigureAwait(false);
@@ -1089,7 +1088,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 document = _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_editorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
                     return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
                 });
             }

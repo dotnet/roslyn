@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal static class DiagnosticCategory
 {
-    internal static class DiagnosticCategory
-    {
-        public const string Style = nameof(Style);
-        public const string CodeQuality = nameof(CodeQuality);
-        public const string EditAndContinue = nameof(EditAndContinue);
-        public const string Compiler = nameof(Compiler);
-    }
+    public const string Style = nameof(Style);
+    public const string CodeQuality = nameof(CodeQuality);
+    public const string EditAndContinue = nameof(EditAndContinue);
+    public const string Compiler = nameof(Compiler);
 }

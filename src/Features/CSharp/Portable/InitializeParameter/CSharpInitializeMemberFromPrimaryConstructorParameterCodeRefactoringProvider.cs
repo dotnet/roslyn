@@ -31,15 +31,11 @@ using static InitializeParameterHelpersCore;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromPrimaryConstructorParameter), Shared]
-internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider()
     : CodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpInitializeMemberFromPrimaryConstructorParameterCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, _, cancellationToken) = context;
@@ -68,13 +64,12 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
         // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
         // field/prop if we can find one, or add a new field/prop if we can't.
-        var fallbackOptions = context.Options;
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
         if (parameterNameParts.BaseName == "")
             return;
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var fieldOrProperty = TryFindMatchingUninitializedFieldOrPropertySymbol();
         var refactorings = fieldOrProperty == null
@@ -91,6 +86,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             var parameterWords = parameterNameParts.BaseNameParts;
             var containingType = parameter.ContainingType;
+            var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
 
             // Walk through the naming rules against this parameter's name to see what name the user would like for
             // it as a member in this type.  Note that we have some fallback rules that use the standard conventions
@@ -120,7 +116,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                         // We also allow assigning into a property of the form `=> throw new
                         // NotImplementedException()`. That way users can easily spit out those methods, but then
                         // convert them to be normal properties with ease.
-                        if (IsThrowNotImplementedProperty(compilation, property, cancellationToken))
+                        if (initializeParameterService.IsThrowNotImplementedProperty(compilation, property, cancellationToken))
                             return property;
 
                         if (property.IsWritableInConstructor())
@@ -141,7 +137,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             // Found a field/property that this parameter should be assigned to. Just offer the simple assignment to it.
             yield return CreateCodeAction(
                 string.Format(fieldOrProperty.Kind == SymbolKind.Field ? FeaturesResources.Initialize_field_0 : FeaturesResources.Initialize_property_0, fieldOrProperty.Name),
-                cancellationToken => UpdateExistingMemberAsync(document, parameter, fieldOrProperty, cancellationToken));
+                cancellationToken => AddAssignmentForPrimaryConstructorAsync(document, parameter, fieldOrProperty, cancellationToken));
         }
 
         IEnumerable<CodeAction> HandleNoExistingFieldOrProperty()
@@ -157,10 +153,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             var fieldAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(field), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, [parameter], [field], cancellationToken));
             var propertyAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(property), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, [parameter], [property], cancellationToken));
 
             yield return siblingFieldOrProperty is IFieldSymbol ? fieldAction : propertyAction;
             yield return siblingFieldOrProperty is IFieldSymbol ? propertyAction : fieldAction;
@@ -170,10 +166,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             {
                 var allFieldsAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_fields,
-                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken));
+                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), cancellationToken));
                 var allPropertiesAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_properties,
-                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken));
+                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), cancellationToken));
 
                 yield return siblingFieldOrProperty is IFieldSymbol ? allFieldsAction : allPropertiesAction;
                 yield return siblingFieldOrProperty is IFieldSymbol ? allPropertiesAction : allFieldsAction;

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -25,15 +26,7 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     : SyntaxEditorBasedCodeFixProvider
     where TDiagnosticNode : SyntaxNode
 {
-    private readonly string _title;
-    private readonly string _equivalenceKey;
-
-    protected ForkingSyntaxEditorBasedCodeFixProvider(
-        string title, string equivalenceKey)
-    {
-        _title = title;
-        _equivalenceKey = equivalenceKey;
-    }
+    protected abstract (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context);
 
     /// <summary>
     /// Subclasses must override this to actually provide the fix for a particular diagnostic.  The implementation will
@@ -46,7 +39,6 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     protected abstract Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         TDiagnosticNode diagnosticNode,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
@@ -57,7 +49,8 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, _title, _equivalenceKey);
+        var (title, equivalenceKey) = GetTitleAndEquivalenceKey(context);
+        RegisterCodeFix(context, title, equivalenceKey);
         return Task.CompletedTask;
     }
 
@@ -65,12 +58,11 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var originalRoot = editor.OriginalRoot;
 
-        var originalNodes = new Stack<(TDiagnosticNode diagnosticNode, Diagnostic diagnostic)>();
+        using var _ = ArrayBuilder<(TDiagnosticNode diagnosticNode, Diagnostic diagnostic)>.GetInstance(out var originalNodes);
         foreach (var diagnostic in diagnostics)
         {
             var diagnosticNode = (TDiagnosticNode)originalRoot.FindNode(
@@ -86,9 +78,9 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
             document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodes.Select(static t => t.diagnosticNode))),
             cancellationToken).ConfigureAwait(false);
 
-        while (originalNodes.Count > 0)
+        while (originalNodes.TryPop(out var tuple))
         {
-            var (originalDiagnosticNode, diagnostic) = originalNodes.Pop();
+            var (originalDiagnosticNode, diagnostic) = tuple;
             var currentRoot = semanticDocument.Root;
             var diagnosticNode = currentRoot.GetCurrentNodes(originalDiagnosticNode).Single();
 
@@ -97,7 +89,6 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
             await FixAsync(
                 semanticDocument.Document,
                 subEditor,
-                fallbackOptions,
                 diagnosticNode,
                 diagnostic.Properties,
                 cancellationToken).ConfigureAwait(false);

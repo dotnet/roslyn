@@ -46,9 +46,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingTypeParameter = underlyingTypeParameter;
             }
 
+            public bool IsEncDeleted
+                => false;
+
             protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
             protected abstract bool MustBeReferenceType { get; }
             protected abstract bool MustBeValueType { get; }
+            protected abstract bool AllowsRefLikeType { get; }
             protected abstract bool MustHaveDefaultConstructor { get; }
             protected abstract string Name { get; }
             protected abstract ushort Index { get; }
@@ -79,6 +83,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return MustBeValueType;
+                }
+            }
+
+            bool Cci.IGenericParameter.AllowsRefLikeType
+            {
+                get
+                {
+                    return AllowsRefLikeType;
                 }
             }
 

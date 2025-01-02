@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ScopeBinder = binder;
 
-            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
+            _binder = binder;
 
             if (syntax.TypeParameterList != null)
             {
@@ -85,8 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
             _declarationDependencies.AddAll(diagnostics.DependenciesBag);
             diagnostics.Free();
-
-            _binder = binder;
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
             {
-                typeParam.ForceComplete(null, default(CancellationToken));
+                typeParam.ForceComplete(null, filter: null, default(CancellationToken));
             }
 
             // force lazy init
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var p in _lazyParameters)
             {
                 // Force complete parameters to retrieve all diagnostics
-                p.ForceComplete(null, default(CancellationToken));
+                p.ForceComplete(null, filter: null, default(CancellationToken));
             }
 
             ComputeReturnType();
@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
+            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for local functions
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ComputeParameters()
         {
-            if (_lazyParameters != null)
+            if (!RoslynImmutableInterlocked.VolatileRead(in _lazyParameters).IsDefault)
             {
                 return;
             }
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (_lazyParameters != null)
+                if (!_lazyParameters.IsDefault)
                 {
                     diagnostics.Free();
                     return;
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                 diagnostics.Free();
                 _lazyIsVarArg = isVararg;
-                _lazyParameters = parameters;
+                RoslynImmutableInterlocked.VolatileWrite(ref _lazyParameters, parameters);
             }
         }
 
@@ -378,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

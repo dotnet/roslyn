@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Text

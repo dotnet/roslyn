@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim attribute As AttributeSyntax = Nothing
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetParameterPrefixDisplayParts(i As Integer) As List(Of SymbolDisplayPart)
             If i = 0 Then
                 Return New List(Of SymbolDisplayPart) From {
-                    New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBFeaturesResources.Properties),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, FeaturesResources.Properties),
                     Punctuation(SyntaxKind.ColonToken),
                     Space()
                 }

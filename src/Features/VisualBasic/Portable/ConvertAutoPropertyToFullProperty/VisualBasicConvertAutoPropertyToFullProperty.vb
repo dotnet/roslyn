@@ -5,12 +5,9 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -31,13 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         ''' name preceded by an underscore. We will use this as the field name so we don't mess up 
         ''' any existing references to this field.
         ''' </summary>
-        Protected Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, fallbackOptions As NamingStylePreferencesProvider, cancellationToken As CancellationToken) As Task(Of String)
+        Protected Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, cancellationToken As CancellationToken) As Task(Of String)
             Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 
         Protected Overrides Function GetNewAccessors(
                 info As VisualBasicCodeGenerationContextInfo,
-                propertyNode As SyntaxNode,
+                propertySyntax As PropertyStatementSyntax,
                 fieldName As String,
                 generator As SyntaxGenerator,
                 cancellationToken As CancellationToken) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
@@ -47,8 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Dim getAccessor As SyntaxNode = SyntaxFactory.GetAccessorBlock(
                 SyntaxFactory.GetAccessorStatement(),
                 returnStatement)
-
-            Dim propertySyntax = DirectCast(propertyNode, PropertyStatementSyntax)
 
             Dim setAccessor As SyntaxNode
             If IsReadOnly(propertySyntax) Then

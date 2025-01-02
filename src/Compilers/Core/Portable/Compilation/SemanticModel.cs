@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
-    /// an instance is obtained by a call to GetBinding on a Compilation or Compilation.
+    /// an instance is obtained by a call to <see cref="Compilation.GetSemanticModel(SyntaxTree, SemanticModelOptions)"/>.
     /// </summary>
     /// <remarks>
     /// <para>An instance of SemanticModel caches local symbols and semantic information. Thus, it
@@ -87,6 +87,9 @@ namespace Microsoft.CodeAnalysis
         {
             get { return false; }
         }
+
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        public abstract bool NullableAnalysisIsDisabled { get; }
 
         /// <summary>
         /// Gets symbol information about a syntax node.
@@ -404,7 +407,7 @@ namespace Microsoft.CodeAnalysis
         /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
         /// all declared symbols.</item>
         /// <item>in the case of type declarations with a primary constructor, both the <see cref="INamedTypeSymbol"/>
-        /// for the type, and the <see cref="IMethodSymbol"/> for the primary contructor will be returned.</item>
+        /// for the type, and the <see cref="IMethodSymbol"/> for the primary constructor will be returned.</item>
         /// </list>
         /// </summary>
         /// <param name="declaration">A syntax node that is a declaration. This can be any type
@@ -425,7 +428,7 @@ namespace Microsoft.CodeAnalysis
         /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
         /// all declared symbols.</item>
         /// <item>in the case of type declarations with a primary constructor, both the <see cref="INamedTypeSymbol"/>
-        /// for the type, and the <see cref="IMethodSymbol"/> for the primary contructor will be returned.</item>
+        /// for the type, and the <see cref="IMethodSymbol"/> for the primary constructor will be returned.</item>
         /// </list>
         /// </summary>
         /// <param name="declaration">A syntax node that is a declaration. This can be any type

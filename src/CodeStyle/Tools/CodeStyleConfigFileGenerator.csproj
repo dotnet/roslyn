@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
     <IsShipping>false</IsShipping>
@@ -10,7 +10,7 @@
     <Compile Include="..\..\Analyzers\Core\Analyzers\EnforceOnBuild.cs" Link="EnforceOnBuild.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CodeStyle\EditorConfigSeverityStrings.cs" Link="EditorConfigSeverityStrings.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\DiagnosticSeverityExtensions.cs" Link="DiagnosticSeverityExtensions.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\DiagnosticSeverityExtensions_Shared.cs" Link="DiagnosticSeverityExtensions_Shared.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

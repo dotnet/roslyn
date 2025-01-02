@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PreferFrameworkTypeTests
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
     Partial Public Class PreferFrameworkTypeTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private ReadOnly onWithInfo As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Suggestion)
         Private ReadOnly offWithInfo As New CodeStyleOption2(Of Boolean)(False, NotificationOption2.Suggestion)

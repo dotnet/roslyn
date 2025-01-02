@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -369,11 +370,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Cci.DebugSourceInfo GetDebugSourceInfo()
         {
-            if (_lazyChecksum.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(ref _lazyChecksum).IsDefault)
             {
                 var text = this.GetText();
-                _lazyChecksum = text.GetChecksum();
                 _lazyHashAlgorithm = text.ChecksumAlgorithm;
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, text.GetChecksum());
             }
 
             Debug.Assert(!_lazyChecksum.IsDefault);
@@ -433,7 +434,7 @@ namespace Microsoft.CodeAnalysis
                 if (syntaxHelper.ContainsGlobalAliases(root))
                     result |= SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases;
 
-                if (syntaxHelper.ContainsAttributeList(root))
+                if (root.ContainsAttributes)
                     result |= SourceGeneratorSyntaxTreeInfo.ContainsAttributeList;
 
                 _sourceGeneratorInfo = result;

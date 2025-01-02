@@ -9,178 +9,177 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TransposeRecordKeyword
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TransposeRecordKeyword;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    EmptyDiagnosticAnalyzer,
+    CSharpTransposeRecordKeywordCodeFixProvider>;
+
+public class TransposeRecordKeywordTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        EmptyDiagnosticAnalyzer,
-        CSharpTransposeRecordKeywordCodeFixProvider>;
-
-    public class TransposeRecordKeywordTests
+    [Fact]
+    public async Task TestStructRecord()
     {
-        [Fact]
-        public async Task TestStructRecord()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"struct {|CS9012:record|} C { }",
-                FixedCode = @"record struct C { }",
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
+            TestCode = @"struct {|CS9012:record|} C { }",
+            FixedCode = @"record struct C { }",
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestClassRecord()
+    [Fact]
+    public async Task TestClassRecord()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"class {|CS9012:record|} C { }",
-                FixedCode = @"record class C { }",
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
+            TestCode = @"class {|CS9012:record|} C { }",
+            FixedCode = @"record class C { }",
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestWithModifiers()
+    [Fact]
+    public async Task TestWithModifiers()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"public struct {|CS9012:record|} C { }",
-                FixedCode = @"public record struct C { }",
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
+            TestCode = @"public struct {|CS9012:record|} C { }",
+            FixedCode = @"public record struct C { }",
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestWithComment()
+    [Fact]
+    public async Task TestWithComment()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            // my struct
+            public struct {|CS9012:record|} C { }
+            """,
+            FixedCode = """
+            // my struct
+            public record struct C { }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithDocComment()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            /// <summary></summary>
+            public struct {|CS9012:record|} C { }
+            """,
+            FixedCode = """
+            /// <summary></summary>
+            public record struct C { }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithAttributes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            [System.CLSCompliant(false)]
+            struct {|CS9012:record|} C { }
+            """,
+            FixedCode = """
+            [System.CLSCompliant(false)]
+            record struct C { }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithAttributes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            [System.CLSCompliant(false)] struct {|CS9012:record|} C { }
+            """,
+            FixedCode = """
+            [System.CLSCompliant(false)] record struct C { }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedRecord()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            class {|CS9012:record|} C
             {
-                TestCode = """
+                struct {|CS9012:record|} D { }
+            }
+            """,
+            FixedCode = """
+            record class C
+            {
+                record struct D { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedRecordWithComments()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            // my class
+            class {|CS9012:record|} C
+            {
                 // my struct
-                public struct {|CS9012:record|} C { }
-                """,
-                FixedCode = """
+                struct {|CS9012:record|} D { }
+            }
+            """,
+            FixedCode = """
+            // my class
+            record class C
+            {
                 // my struct
-                public record struct C { }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
+                record struct D { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestWithDocComment()
+    [Fact]
+    public async Task TestTriviaBeforeAfter()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                /// <summary></summary>
-                public struct {|CS9012:record|} C { }
-                """,
-                FixedCode = """
-                /// <summary></summary>
-                public record struct C { }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestWithAttributes1()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                [System.CLSCompliant(false)]
-                struct {|CS9012:record|} C { }
-                """,
-                FixedCode = """
-                [System.CLSCompliant(false)]
-                record struct C { }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestWithAttributes2()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                [System.CLSCompliant(false)] struct {|CS9012:record|} C { }
-                """,
-                FixedCode = """
-                [System.CLSCompliant(false)] record struct C { }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNestedRecord()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                class {|CS9012:record|} C
-                {
-                    struct {|CS9012:record|} D { }
-                }
-                """,
-                FixedCode = """
-                record class C
-                {
-                    record struct D { }
-                }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNestedRecordWithComments()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                // my class
-                class {|CS9012:record|} C
-                {
-                    // my struct
-                    struct {|CS9012:record|} D { }
-                }
-                """,
-                FixedCode = """
-                // my class
-                record class C
-                {
-                    // my struct
-                    record struct D { }
-                }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestTriviaBeforeAfter()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                /*1*/
-                class /**/
-                /*3*/
-                {|CS9012:record|} /*4*/ C { }
-                """,
-                FixedCode = """
-                /*1*/
-                record /**/
-                /*3*/
-                class /*4*/ C { }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10
-            }.RunAsync();
-        }
+            TestCode = """
+            /*1*/
+            class /**/
+            /*3*/
+            {|CS9012:record|} /*4*/ C { }
+            """,
+            FixedCode = """
+            /*1*/
+            record /**/
+            /*3*/
+            class /*4*/ C { }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10
+        }.RunAsync();
     }
 }

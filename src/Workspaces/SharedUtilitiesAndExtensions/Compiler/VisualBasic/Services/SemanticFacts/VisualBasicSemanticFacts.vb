@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetAliasNameSet(model As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String) Implements ISemanticFacts.GetAliasNameSet
-            Dim original = DirectCast(model.GetOriginalSemanticModel(), SemanticModel)
+            Dim original = model.GetOriginalSemanticModel()
 
             If Not original.SyntaxTree.HasCompilationUnitRoot Then
                 Return ImmutableHashSet.Create(Of String)()
@@ -258,9 +258,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols
-            Return If(node Is Nothing,
-                      ImmutableArray(Of ISymbol).Empty,
-                      semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
+            If node Is Nothing Then
+                Return ImmutableArray(Of ISymbol).Empty
+            End If
+
+            Dim preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol
+            Return If(preprocessingSymbol IsNot Nothing,
+                ImmutableArray.Create(Of ISymbol)(preprocessingSymbol),
+                semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
         End Function
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
@@ -282,5 +287,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.GenerateNameForExpression(
                 DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
+
+        Public Function GetPreprocessingSymbol(model As SemanticModel, node As SyntaxNode) As IPreprocessingSymbol Implements ISemanticFacts.GetPreprocessingSymbol
+            Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
+            If nameSyntax IsNot Nothing Then
+                If IsWithinPreprocessorConditionalExpression(nameSyntax) Then
+                    Return CreatePreprocessingSymbol(model, nameSyntax.Identifier)
+                End If
+            End If
+
+            Dim constSyntax = TryCast(node, ConstDirectiveTriviaSyntax)
+            If constSyntax IsNot Nothing Then
+                Return CreatePreprocessingSymbol(model, constSyntax.Name)
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Shared Function CreatePreprocessingSymbol(model As SemanticModel, token As SyntaxToken) As IPreprocessingSymbol
+            Return model.Compilation.CreatePreprocessingSymbol(token.ValueText)
+        End Function
+
+        Friend Shared Function IsWithinPreprocessorConditionalExpression(node As IdentifierNameSyntax) As Boolean
+            Debug.Assert(node IsNot Nothing)
+            Dim current As SyntaxNode = node
+            Dim parent As SyntaxNode = node.Parent
+
+            While parent IsNot Nothing
+                Select Case parent.Kind()
+                    Case SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia
+                        Return DirectCast(parent, IfDirectiveTriviaSyntax).Condition Is current
+                    Case SyntaxKind.ConstDirectiveTrivia
+                        Return DirectCast(parent, ConstDirectiveTriviaSyntax).Value Is current
+                    Case Else
+                        current = parent
+                        parent = current.Parent
+                End Select
+            End While
+
+            Return False
+        End Function
+
+#If Not CODE_STYLE Then
+
+        Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
+            ' VB does not support interceptors
+            Return SpecializedTasks.Null(Of ISymbol)
+        End Function
+
+#End If
     End Class
 End Namespace

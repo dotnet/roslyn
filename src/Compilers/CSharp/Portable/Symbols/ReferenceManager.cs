@@ -1094,8 +1094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private static ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(CSharpCompilation compilation)
                 {
                     // Collect information about references
-                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance();
-
                     var modules = compilation.Assembly.Modules;
 
                     // Filter out linked assemblies referenced by the source module.
@@ -1103,6 +1101,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sourceReferencedAssemblySymbols = modules[0].GetReferencedAssemblySymbols();
 
                     Debug.Assert(sourceReferencedAssemblies.Length == sourceReferencedAssemblySymbols.Length);
+
+                    // Pre-calculate size to ensure this code only requires a single array allocation.
+                    var builderSize = modules.Sum(static (module, index) =>
+                    {
+                        if (index == 0)
+                            return module.GetReferencedAssemblySymbols().Count(static identity => !identity.IsLinked);
+                        else
+                            return module.GetReferencedAssemblies().Length;
+                    });
+
+                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
 
                     for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
                     {
@@ -1117,6 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
+                    Debug.Assert(result.Count == builderSize);
                     return result.ToImmutableAndFree();
                 }
 

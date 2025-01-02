@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TaskList
     Public Class VisualBasicTaskListTests
         Inherits AbstractTaskListTests
 
-        Protected Overrides Function CreateWorkspace(codeWithMarker As String, composition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(codeWithMarker, composition:=composition)
+        Protected Overrides Function CreateWorkspace(codeWithMarker As String, composition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(codeWithMarker, composition:=composition)
         End Function
 
         <Theory, CombinatorialData>

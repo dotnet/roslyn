@@ -5,23 +5,29 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Contracts.Client;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Export(typeof(IManagedHotReloadLanguageService))]
-internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
+[Export(typeof(IManagedHotReloadLanguageService2))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ManagedHotReloadLanguageService(
+    IServiceBrokerProvider serviceBrokerProvider,
+    IEditAndContinueService encService,
+    SolutionSnapshotRegistry solutionSnapshotRegistry) : IManagedHotReloadLanguageService2
 {
     private sealed class PdbMatchingSourceTextProvider : IPdbMatchingSourceTextProvider
     {
@@ -35,28 +41,13 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
     private static readonly ActiveStatementSpanProvider s_emptyActiveStatementProvider =
         (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-    private readonly IManagedHotReloadService _debuggerService;
-    private readonly ISolutionSnapshotProvider _solutionSnapshotProvider;
-    private readonly IEditAndContinueService _encService;
-    private readonly SolutionSnapshotRegistry _solutionSnapshotRegistry;
+    private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider.ServiceBroker);
+    private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider.ServiceBroker);
 
     private bool _disabled;
     private DebuggingSessionId? _debuggingSession;
     private Solution? _committedDesignTimeSolution;
     private Solution? _pendingUpdatedDesignTimeSolution;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ManagedHotReloadLanguageService(
-        [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
-        IEditAndContinueService encService,
-        SolutionSnapshotRegistry registry)
-    {
-        _debuggerService = new ManagedHotReloadServiceProxy(serviceBroker);
-        _solutionSnapshotProvider = new SolutionSnapshotProviderProxy(serviceBroker);
-        _encService = encService;
-        _solutionSnapshotRegistry = registry;
-    }
 
     private void Disable()
     {
@@ -64,7 +55,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         _debuggingSession = null;
         _committedDesignTimeSolution = null;
         _pendingUpdatedDesignTimeSolution = null;
-        _solutionSnapshotRegistry.Clear();
+        solutionSnapshotRegistry.Clear();
     }
 
     private async ValueTask<Solution> GetCurrentDesignTimeSolutionAsync(CancellationToken cancellationToken)
@@ -74,7 +65,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         // Once complete the snapshot should be registered.
         var id = await _solutionSnapshotProvider.RegisterSolutionSnapshotAsync(cancellationToken).ConfigureAwait(false);
 
-        return _solutionSnapshotRegistry.GetRegisteredSolutionSnapshot(id);
+        return solutionSnapshotRegistry.GetRegisteredSolutionSnapshot(id);
     }
 
     private static Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
@@ -94,11 +85,11 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
             var compileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
 
             // TODO: use remote proxy once we transition to pull diagnostics
-            _debuggingSession = await _encService.StartDebuggingSessionAsync(
+            _debuggingSession = await encService.StartDebuggingSessionAsync(
                 compileTimeSolution,
                 _debuggerService,
                 PdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
@@ -120,7 +111,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         try
         {
             Contract.ThrowIfNull(_debuggingSession);
-            _encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState, out _);
+            encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -154,7 +145,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
 
             _committedDesignTimeSolution = committedDesignTimeSolution;
 
-            _encService.CommitSolutionUpdate(_debuggingSession.Value, out _);
+            encService.CommitSolutionUpdate(_debuggingSession.Value);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -162,6 +153,35 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         }
 
         return ValueTaskFactory.CompletedTask;
+    }
+
+    public async ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
+        }
+
+        try
+        {
+            Contract.ThrowIfNull(_debuggingSession);
+
+            var currentDesignTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
+            var currentCompileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
+
+            _committedDesignTimeSolution = currentDesignTimeSolution;
+
+            var projectIds = from path in projectPaths
+                             let projectId = currentCompileTimeSolution.Projects.FirstOrDefault(project => project.FilePath == path)?.Id
+                             where projectId != null
+                             select projectId;
+
+            encService.UpdateBaselines(_debuggingSession.Value, currentCompileTimeSolution, [.. projectIds]);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            Disable();
+        }
     }
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
@@ -176,7 +196,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
             Contract.ThrowIfNull(_debuggingSession);
             Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
 
-            _encService.DiscardSolutionUpdate(_debuggingSession.Value);
+            encService.DiscardSolutionUpdate(_debuggingSession.Value);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -197,7 +217,7 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         {
             Contract.ThrowIfNull(_debuggingSession);
 
-            _encService.EndDebuggingSession(_debuggingSession.Value, out _);
+            encService.EndDebuggingSession(_debuggingSession.Value);
 
             _debuggingSession = null;
             _committedDesignTimeSolution = null;
@@ -248,11 +268,14 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
         }
     }
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => GetUpdatesAsync(runningProjects: [], cancellationToken);
+
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            return new ManagedHotReloadUpdates([], []);
         }
 
         try
@@ -262,19 +285,15 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
             var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
 
-            ModuleUpdates moduleUpdates;
-            ImmutableArray<DiagnosticData> diagnosticData;
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
-            DiagnosticData? syntaxError;
+            EmitSolutionUpdateResults.Data results;
 
             try
             {
-                var results = await _encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false);
+                using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
+                runningProjectPaths.AddAll(runningProjects);
+                var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
 
-                moduleUpdates = results.ModuleUpdates;
-                diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-                rudeEdits = results.RudeEdits;
-                syntaxError = results.GetSyntaxErrorData(solution);
+                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectIds, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -285,25 +304,29 @@ internal sealed partial class ManagedHotReloadLanguageService : IManagedHotReloa
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(designTimeSolution, diagnostic, project: null));
-                rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
-                syntaxError = null;
+                results = new EmitSolutionUpdateResults.Data()
+                {
+                    Diagnostics = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)],
+                    RudeEdits = [],
+                    ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
+                    SyntaxError = null,
+                    ProjectsToRebuild = [],
+                    ProjectsToRestart = [],
+                };
             }
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-            if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
-            return new ManagedHotReloadUpdates(moduleUpdates.Updates, diagnostics);
+            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates, results.GetAllDiagnostics());
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
             Disable();
-            return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            return new ManagedHotReloadUpdates([], []);
         }
     }
 }

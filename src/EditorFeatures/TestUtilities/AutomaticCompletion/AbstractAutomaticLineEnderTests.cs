@@ -8,9 +8,6 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Commanding;
@@ -26,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
     public abstract class AbstractAutomaticLineEnderTests
     {
         protected abstract string Language { get; }
-        protected abstract Action CreateNextHandler(TestWorkspace workspace);
+        protected abstract Action CreateNextHandler(EditorTestWorkspace workspace);
 
-        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
+        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(EditorTestWorkspace workspace);
 
         protected void Test(string expected, string markupCode, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             var markupCode = code[0..position] + "$$" + code[position..];
 
             // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
-            using var workspace = TestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, new[] { markupCode }, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, [markupCode], composition: EditorTestCompositions.EditorFeaturesWpf);
 
             var view = workspace.Documents.Single().GetTextView();
             var buffer = workspace.Documents.Single().GetTextBuffer();

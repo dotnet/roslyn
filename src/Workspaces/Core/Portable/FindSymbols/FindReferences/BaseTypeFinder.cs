@@ -4,25 +4,37 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
+namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences;
+
+internal static partial class BaseTypeFinder
 {
-    internal static partial class BaseTypeFinder
+    public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+        => FindBaseTypes(type).AddRange(type.AllInterfaces);
+
+    public static ImmutableArray<ISymbol> FindOverriddenAndImplementedMembers(
+        ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
-        public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
-            => FindBaseTypes(type).AddRange(type.AllInterfaces);
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
 
-        public static async ValueTask<ImmutableArray<ISymbol>> FindOverriddenAndImplementedMembersAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        // This is called for all: class, struct or interface member.
+        results.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
+
+        AddOverrides(allowLooseMatch: false);
+
+        // If we've found nothing at all (either interface impls or exact override matches), then attempt a loose match
+        // to see if we can find something in an error condition.
+        if (results.Count == 0)
+            AddOverrides(allowLooseMatch: true);
+
+        // Remove duplicates from interface implementations before adding their projects.
+        results.RemoveDuplicates();
+        return results.ToImmutableAndClear();
+
+        void AddOverrides(bool allowLooseMatch)
         {
-            var results = ArrayBuilder<ISymbol>.GetInstance();
-
-            // This is called for all: class, struct or interface member.
-            results.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
-
             // The type scenario. Iterate over all base classes to find overridden and hidden (new/Shadows) methods.
             foreach (var type in FindBaseTypes(symbol.ContainingType))
             {
@@ -31,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Add to results overridden members only. Do not add hidden members.
-                    if (await SymbolFinder.IsOverrideAsync(solution, symbol, member, cancellationToken).ConfigureAwait(false))
+                    if (SymbolFinder.IsOverride(solution, symbol, member, allowLooseMatch))
                     {
                         results.Add(member);
 
@@ -62,23 +74,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                     }
                 }
             }
-
-            // Remove duplicates from interface implementations before adding their projects.
-            return results.ToImmutableAndFree().Distinct();
         }
+    }
 
-        private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
+    private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
+    {
+        var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+        var currentType = type.BaseType;
+        while (currentType != null)
         {
-            var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-
-            var currentType = type.BaseType;
-            while (currentType != null)
-            {
-                typesBuilder.Add(currentType);
-                currentType = currentType.BaseType;
-            }
-
-            return typesBuilder.ToImmutableAndFree();
+            typesBuilder.Add(currentType);
+            currentType = currentType.BaseType;
         }
+
+        return typesBuilder.ToImmutableAndFree();
     }
 }

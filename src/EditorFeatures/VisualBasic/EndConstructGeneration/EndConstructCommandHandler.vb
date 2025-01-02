@@ -32,33 +32,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Implements IChainedCommandHandler(Of TypeCharCommandArgs)
         Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
+        Private ReadOnly _threadingContext As IThreadingContext
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _undoHistoryRegistry As ITextUndoHistoryRegistry
         Private ReadOnly _editorOptionsService As EditorOptionsService
 
         <ImportingConstructor()>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
-                       undoHistoryRegistry As ITextUndoHistoryRegistry,
-                       editorOptionsService As EditorOptionsService)
-
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                editorOperationsFactoryService As IEditorOperationsFactoryService,
+                undoHistoryRegistry As ITextUndoHistoryRegistry,
+                editorOptionsService As EditorOptionsService)
+            _threadingContext = threadingContext
             _editorOperationsFactoryService = editorOperationsFactoryService
             _undoHistoryRegistry = undoHistoryRegistry
             _editorOptionsService = editorOptionsService
         End Sub
 
-        Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
-            Get
-                Return VBEditorResources.End_Construct
-            End Get
-        End Property
+        Public ReadOnly Property DisplayName As String = VBEditorResources.End_Construct Implements INamed.DisplayName
 
         Public Function GetCommandState_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
         Public Sub ExecuteCommand_ReturnKeyCommandHandler(args As ReturnKeyCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, nextHandler)
+            _threadingContext.JoinableTaskFactory.Run(Function() ExecuteEndConstructOnReturnAsync(
+                args.TextView, args.SubjectBuffer, nextHandler, context.OperationContext.UserCancellationToken))
         End Sub
 
         Public Function GetCommandState_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of TypeCharCommandArgs).GetCommandState
@@ -66,21 +66,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Function
 
         Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of TypeCharCommandArgs).ExecuteCommand
-            nextHandler()
+            _threadingContext.JoinableTaskFactory.Run(
+                Async Function()
+                    nextHandler()
 
-            If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) Then
-                Return
-            End If
+                    If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) Then
+                        Return
+                    End If
 
-            Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
-            If document Is Nothing Then
-                Return
-            End If
+                    Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
+                    Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                    If document Is Nothing Then
+                        Return
+                    End If
 
-            ' End construct is not cancellable.
-            Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
-            endConstructService.TryDo(args.TextView, args.SubjectBuffer, args.TypedChar, CancellationToken.None)
+                    ' End construct is not cancellable.
+                    Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
+                    Await endConstructService.TryDoAsync(
+                        args.TextView, args.SubjectBuffer, args.TypedChar, context.OperationContext.UserCancellationToken).ConfigureAwait(True)
+                End Function)
         End Sub
 
         Public Function GetCommandState_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).GetCommandState
@@ -88,17 +92,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Function
 
         Public Sub ExecuteCommand_AutomaticLineEnderCommandHandler(args As AutomaticLineEnderCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of AutomaticLineEnderCommandArgs).ExecuteCommand
-            ExecuteEndConstructOnReturn(args.TextView, args.SubjectBuffer, Sub()
-                                                                               Dim operations = Me._editorOperationsFactoryService.GetEditorOperations(args.TextView)
-                                                                               If operations Is Nothing Then
-                                                                                   nextHandler()
-                                                                               Else
-                                                                                   operations.InsertNewLine()
-                                                                               End If
-                                                                           End Sub)
+            _threadingContext.JoinableTaskFactory.Run(Function() ExecuteEndConstructOnReturnAsync(
+                args.TextView,
+                args.SubjectBuffer,
+                Sub()
+                    Dim operations = Me._editorOperationsFactoryService.GetEditorOperations(args.TextView)
+                    If operations Is Nothing Then
+                        nextHandler()
+                    Else
+                        operations.InsertNewLine()
+                    End If
+                End Sub,
+                context.OperationContext.UserCancellationToken))
         End Sub
 
-        Private Sub ExecuteEndConstructOnReturn(textView As ITextView, subjectBuffer As ITextBuffer, nextHandler As Action)
+        Private Async Function ExecuteEndConstructOnReturnAsync(
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                nextHandler As Action,
+                cancellationToken As CancellationToken) As Task
             If Not _editorOptionsService.GlobalOptions.GetOption(EndConstructGenerationOptionsStorage.EndConstruct, LanguageNames.VisualBasic) OrElse
                Not subjectBuffer.CanApplyChangeDocumentToWorkspace() Then
                 nextHandler()
@@ -111,18 +123,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return
             End If
 
-            CleanupBeforeEndConstruct(textView, subjectBuffer, document, CancellationToken.None)
+            Await CleanupBeforeEndConstructAsync(
+                textView, subjectBuffer, document, cancellationToken).ConfigureAwait(True)
 
             Dim endConstructService = document.GetLanguageService(Of IEndConstructGenerationService)()
-            Dim result = endConstructService.TryDo(textView, subjectBuffer, vbLf(0), CancellationToken.None)
+            Dim result = Await endConstructService.TryDoAsync(
+                textView, subjectBuffer, vbLf(0), cancellationToken).ConfigureAwait(True)
 
             If Not result Then
                 nextHandler()
                 Return
             End If
-        End Sub
+        End Function
 
-        Private Sub CleanupBeforeEndConstruct(view As ITextView, buffer As ITextBuffer, document As Document, cancellationToken As CancellationToken)
+        Private Async Function CleanupBeforeEndConstructAsync(
+                view As ITextView,
+                buffer As ITextBuffer,
+                document As Document,
+                cancellationToken As CancellationToken) As Task
             Dim position = view.GetCaretPoint(buffer)
             If Not position.HasValue Then
                 Return
@@ -140,16 +158,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                                  Return p.Name = PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators
                              End Function)
 
-            Dim options = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, explicitFormat:=False, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
-            Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), Options, codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim changes = cleanDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim options = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat:=False, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
+            Dim cleanDocument = Await CodeCleaner.CleanupAsync(
+                document, GetSpanToCleanup(statement), options, codeCleanups, cancellationToken).ConfigureAwait(True)
+            Dim changes = cleanDocument.GetTextChangesSynchronously(document, cancellationToken)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
                 buffer.ApplyChanges(changes)
                 transaction.Complete()
             End Using
-        End Sub
+        End Function
 
         Private Shared Function GetSpanToCleanup(statement As StatementSyntax) As TextSpan
             Dim firstToken = statement.GetFirstToken()

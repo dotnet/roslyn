@@ -1529,6 +1529,21 @@ lReportErrorOnTwoTokens:
                     Else
                         Return Nothing
                     End If
+                ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                    If Not CanHaveOverloadResolutionPriority Then
+                        'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                        Return Nothing
+                    End If
+
+                    Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
+                    If Not attrdata.HasErrors AndAlso attrdata.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
+                        Dim priority As Integer = attrdata.GetConstructorArgument(Of Integer)(0, SpecialType.System_Int32)
+                        arguments.GetOrCreateData(Of MethodEarlyWellKnownAttributeData)().OverloadResolutionPriority = priority
+                        Return If(Not hasAnyDiagnostics, attrdata, Nothing)
+                    Else
+                        Return Nothing
+                    End If
                 Else
                     Dim BoundAttribute As VisualBasicAttributeData = Nothing
                     Dim obsoleteData As ObsoleteAttributeData = Nothing
@@ -1566,13 +1581,18 @@ lReportErrorOnTwoTokens:
             Return If(data IsNot Nothing, data.ConditionalSymbols, ImmutableArray(Of String).Empty)
         End Function
 
+        Public NotOverridable Overrides Function GetOverloadResolutionPriority() As Integer
+            Dim data As MethodEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Return If(data?.OverloadResolutionPriority, 0)
+        End Function
+
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.UnmanagedCallersOnlyAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.UnmanagedCallersOnlyAttribute) Then
                 ' VB does not support UnmanagedCallersOnly attributes on methods at all
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_UnmanagedCallersOnlyNotSupported, arguments.AttributeSyntaxOpt.Location)
             End If
@@ -1597,7 +1617,7 @@ lReportErrorOnTwoTokens:
             ' Decode well-known attributes applied to method
             Dim attrData = arguments.Attribute
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                 ' Just report errors here. The extension attribute is decoded early.
 
                 If Me.MethodKind <> MethodKind.Ordinary AndAlso Me.MethodKind <> MethodKind.DeclareMethod Then
@@ -1626,7 +1646,7 @@ lReportErrorOnTwoTokens:
                     End If
                 End If
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.WebMethodAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.WebMethodAttribute) Then
 
                 ' Check for optional parameters
                 For Each parameter In Me.Parameters
@@ -1635,12 +1655,12 @@ lReportErrorOnTwoTokens:
                     End If
                 Next
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.PreserveSigAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.PreserveSigAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().SetPreserveSignature(arguments.Index)
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MethodImplAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MethodImplAttribute) Then
                 AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DllImportAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DllImportAttribute) Then
                 If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, diagnostics) Then
                     Return
                 End If
@@ -1708,35 +1728,48 @@ lReportErrorOnTwoTokens:
                     DllImportData.MakeFlags(exactSpelling, charSet, setLastError, callingConvention, bestFitMapping, throwOnUnmappable),
                     preserveSig)
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSpecialNameAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
                 attrData.DecodeSecurityAttribute(Of MethodWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.STAThreadAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.STAThreadAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSTAThreadAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MTAThreadAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MTAThreadAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasMTAThreadAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ConditionalAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.ConditionalAttribute) Then
                 If Not Me.IsSub Then
                     ' BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
                     diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
-            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.ModuleInitializerAttribute) Then
                 diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                If Not CanHaveOverloadResolutionPriority Then
+                    diagnostics.Add(If(IsOverrides,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                                       ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember),
+                                    arguments.AttributeSyntaxOpt.GetLocation())
+                Else
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                   arguments.AttributeSyntaxOpt.GetLocation(),
+                                                   DirectCast(arguments.AttributeSyntaxOpt.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                   InternalSyntax.Feature.OverloadResolutionPriority)
+                End If
             Else
                 Dim methodImpl As MethodSymbol = If(Me.IsPartial, PartialImplementationPart, Me)
 
                 If methodImpl IsNot Nothing AndAlso (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso Not methodImpl.ContainingType.IsInterfaceType() Then
-                    If attrData.IsTargetAttribute(Me, AttributeDescription.SecurityCriticalAttribute) Then
+                    If attrData.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute) Then
                         Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecurityCritical")
                         Return
-                    ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SecuritySafeCriticalAttribute) Then
+                    ElseIf attrData.IsTargetAttribute(AttributeDescription.SecuritySafeCriticalAttribute) Then
                         Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecuritySafeCritical")
                         Return
                     End If
@@ -1748,7 +1781,7 @@ lReportErrorOnTwoTokens:
             ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation),
             description As AttributeDescription
         ) As Boolean
-            If arguments.Attribute.IsTargetAttribute(Me, description) Then
+            If arguments.Attribute.IsTargetAttribute(description) Then
                 ' Obsolete Attribute is not allowed on event accessors.
                 If Me.IsAccessor() AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Event Then
                     DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
@@ -1765,7 +1798,7 @@ lReportErrorOnTwoTokens:
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
             End If
         End Sub
@@ -2156,7 +2189,9 @@ lReportErrorOnTwoTokens:
                     If param.Locations.Length > 0 Then
                         ' Note: Errors are reported on the parameter name. Ideally, we should
                         ' match Dev10 and report errors on the parameter type syntax instead.
-                        param.Type.CheckAllConstraints(param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                        param.Type.CheckAllConstraints(
+                            DeclaringCompilation.LanguageVersion,
+                            param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
                     End If
                 Next
 
@@ -2164,7 +2199,9 @@ lReportErrorOnTwoTokens:
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
 
-                    retType.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                    retType.CheckAllConstraints(
+                        DeclaringCompilation.LanguageVersion,
+                        diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
 
                     If useSiteDiagnosticsBuilder IsNot Nothing Then
                         diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)

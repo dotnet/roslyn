@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     isExtensionMethod: false,
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVarArg: false,
-                                    isExplicitInterfaceImplementation: false);
+                                    isExplicitInterfaceImplementation: false,
+                                    hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
@@ -289,6 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             return false;
+        }
+
+        internal sealed override int TryGetOverloadResolutionPriority()
+        {
+            return 0;
         }
     }
 }

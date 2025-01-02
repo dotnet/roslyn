@@ -11,52 +11,47 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
+namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
+
+internal class DiscardSyntaxClassifier : AbstractSyntaxClassifier
 {
-    internal class DiscardSyntaxClassifier : AbstractSyntaxClassifier
+    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(DiscardDesignationSyntax), typeof(DiscardPatternSyntax), typeof(ParameterSyntax), typeof(IdentifierNameSyntax)];
+
+    public override void AddClassifications(
+       SyntaxNode syntax,
+       TextSpan textSpan,
+       SemanticModel semanticModel,
+       ClassificationOptions options,
+       SegmentedList<ClassifiedSpan> result,
+       CancellationToken cancellationToken)
     {
-        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
-            typeof(DiscardDesignationSyntax),
-            typeof(DiscardPatternSyntax),
-            typeof(ParameterSyntax),
-            typeof(IdentifierNameSyntax));
-
-        public override void AddClassifications(
-           SyntaxNode syntax,
-           TextSpan textSpan,
-           SemanticModel semanticModel,
-           ClassificationOptions options,
-           SegmentedList<ClassifiedSpan> result,
-           CancellationToken cancellationToken)
+        if (syntax.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.DiscardPattern)
         {
-            if (syntax.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.DiscardPattern)
-            {
-                result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
-                return;
-            }
+            result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
+            return;
+        }
 
-            switch (syntax)
-            {
-                case ParameterSyntax parameter when parameter.Identifier.Text == "_":
-                    var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
+        switch (syntax)
+        {
+            case ParameterSyntax parameter when parameter.Identifier.Text == "_":
+                var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
 
-                    if (symbol?.IsDiscard == true)
-                    {
-                        result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
-                    }
+                if (symbol?.IsDiscard == true)
+                {
+                    result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
+                }
 
-                    break;
+                break;
 
-                case IdentifierNameSyntax identifierName when identifierName.Identifier.Text == "_":
-                    var symbolInfo = semanticModel.GetSymbolInfo(identifierName, cancellationToken);
+            case IdentifierNameSyntax identifierName when identifierName.Identifier.Text == "_":
+                var symbolInfo = semanticModel.GetSymbolInfo(identifierName, cancellationToken);
 
-                    if (symbolInfo.Symbol?.Kind == SymbolKind.Discard)
-                    {
-                        result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
-                    }
+                if (symbolInfo.Symbol?.Kind == SymbolKind.Discard)
+                {
+                    result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
+                }
 
-                    break;
-            }
+                break;
         }
     }
 }

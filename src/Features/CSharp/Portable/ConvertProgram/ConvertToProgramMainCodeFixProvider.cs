@@ -9,49 +9,46 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
+namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram;
+
+using static ConvertProgramTransform;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToProgramMain), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ConvertToProgramMainCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    using static ConvertProgramTransform;
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.UseProgramMainId];
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToProgramMain), Shared]
-    internal class ConvertToProgramMainCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertToProgramMainCodeFixProvider()
-        {
-        }
+        var document = context.Document;
+        var cancellationToken = context.CancellationToken;
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseProgramMainId);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
+            ? CodeActionPriority.Low
+            : CodeActionPriority.Default;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+        RegisterCodeFix(context, CSharpAnalyzersResources.Convert_to_Program_Main_style_program, nameof(ConvertToProgramMainCodeFixProvider), priority);
+    }
 
-            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
-            var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
-                ? CodeActionPriority.Low
-                : CodeActionPriority.Default;
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var fixedDocument = await ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
+        var fixedRoot = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            RegisterCodeFix(context, CSharpAnalyzersResources.Convert_to_Program_Main_style_program, nameof(ConvertToProgramMainCodeFixProvider), priority);
-        }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var fixedDocument = await ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
-            var fixedRoot = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            editor.ReplaceNode(editor.OriginalRoot, fixedRoot);
-        }
+        editor.ReplaceNode(editor.OriginalRoot, fixedRoot);
     }
 }

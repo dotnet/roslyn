@@ -694,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node.Type, ErrorFactory.ErrorInfo(ERRID.ERR_VoidArrayDisallowed))
             End If
 
-            Return New BoundGetType(node, typeExpression, GetWellKnownType(WellKnownType.System_Type, node, diagnostics))
+            Return New BoundGetType(node, typeExpression, getTypeFromHandle:=Nothing, GetWellKnownType(WellKnownType.System_Type, node, diagnostics))
         End Function
 
         Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
@@ -1399,6 +1399,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(propertyAccess.AccessKind)
                 End Select
+
+            ElseIf expr.Kind = BoundKind.InterpolatedStringExpression Then
+
+                expr = BindUnconvertedInterpolatedStringToString(DirectCast(expr, BoundInterpolatedStringExpression), diagnostics)
 
             ElseIf expr.IsLateBound() Then
 

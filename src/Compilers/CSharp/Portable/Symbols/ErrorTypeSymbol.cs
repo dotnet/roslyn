@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol
     {
         internal static readonly ErrorTypeSymbol UnknownResultType = new UnsupportedMetadataTypeSymbol();
+        internal static readonly ErrorTypeSymbol EmptyParamsCollectionElementTypeSentinel = new UnsupportedMetadataTypeSymbol();
 
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
@@ -432,6 +433,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
@@ -567,6 +574,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             builderType = null;
             methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
             return false;
         }
     }

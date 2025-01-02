@@ -4,19 +4,15 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.InlineHints
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineHintsTests
         Protected Async Function VerifyParamHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True) As Task
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
                 Dim options = New InlineParameterHintsOptions() With
@@ -30,15 +26,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
+
+                Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
                 Dim inlineHints = Await tagService.GetInlineHintsAsync(
-                    document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=False, CancellationToken.None)
+                    document, span, options, displayOptions, displayAllOverride:=False, CancellationToken.None)
 
                 Dim producedTags = From hint In inlineHints
                                    Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
 
                 ValidateSpans(hostDocument, producedTags)
 
-                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim outWorkspace = EditorTestWorkspace.Create(output)
                 Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
                 Await ValidateDoubleClick(document, expectedDocument, inlineHints)
             End Using
@@ -74,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
         End Function
 
         Protected Async Function VerifyTypeHints(test As XElement, output As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = EditorTestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
 
                 Dim options = New InlineTypeHintsOptions() With
@@ -88,15 +86,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
+
+                Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
                 Dim typeHints = Await tagService.GetInlineHintsAsync(
-                    document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, displayAllOverride:=ephemeral, CancellationToken.None)
+                    document, span, options, displayOptions, displayAllOverride:=ephemeral, CancellationToken.None)
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
 
                 ValidateSpans(hostDocument, producedTags)
 
-                Dim outWorkspace = TestWorkspace.Create(output)
+                Dim outWorkspace = EditorTestWorkspace.Create(output)
                 Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
                 Await ValidateDoubleClick(document, expectedDocument, typeHints)
             End Using

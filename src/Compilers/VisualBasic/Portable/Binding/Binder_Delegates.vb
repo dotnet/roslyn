@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly DelegateConversions As ConversionKind
             Public ReadOnly Target As MethodSymbol
             Public ReadOnly MethodConversions As MethodConversionKind
-            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            Public ReadOnly Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(
                 DelegateConversions As ConversionKind,
                 Target As MethodSymbol,
                 MethodConversions As MethodConversionKind,
-                Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+                Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             )
                 Me.DelegateConversions = DelegateConversions
                 Me.Target = Target
@@ -1280,7 +1280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundLambda = New BoundLambda(syntaxNode,
                                           lambdaSymbol,
                                           lambdaBody,
-                                          ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
+                                          ReadOnlyBindingDiagnostic(Of AssemblySymbol).Empty,
                                           Nothing,
                                           delegateRelaxation,
                                           MethodConversionKind.Identity)

@@ -747,6 +747,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
+        internal void EmitUnaligned(sbyte alignment)
+        {
+            Debug.Assert(alignment is 1 or 2 or 4);
+            EmitOpCode(ILOpCode.Unaligned);
+            EmitInt8(alignment);
+        }
+
         private void EmitInt8(sbyte int8)
         {
             this.GetCurrentWriter().WriteSByte(int8);

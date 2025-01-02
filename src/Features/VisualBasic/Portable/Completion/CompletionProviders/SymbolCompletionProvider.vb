@@ -71,6 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.True
         End Function
 
+        Protected Overrides Function ShouldProvideAvailableSymbolsInCurrentContextAsync(completionContext As CompletionContext, syntaxContext As VisualBasicSyntaxContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Return SpecializedTasks.True
+        End Function
+
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             Return GetInsertionTextAtInsertionTime(item, ch)
         End Function

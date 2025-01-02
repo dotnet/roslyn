@@ -17,6 +17,16 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
         <target state="translated">必要なメンバーがあるため、'{0}' から継承できません。</target>
@@ -40,6 +50,26 @@
       <trans-unit id="ERR_DoNotUseRequiredMember">
         <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' は、コンパイラでのみ使用するために予約されています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
+        <target state="new">Cannot update '{0}'; attribute '{1}' is missing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">指定されたバージョン文字列には、決定性と互換性のないワイルドカードが含まれています。バージョン文字列からワイルドカードを削除するか、このコンパイルの決定性を無効にしてください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">型 'System.Threading.Lock' の値は SyncLock ではサポートされていません。代わりに Try/Finally ブロック内で 'Enter' メソッドと 'Exit' メソッドを手動で呼び出すことを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -97,6 +127,11 @@
         <target state="translated">'{0}' はアセンブリ '{1}' で定義されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeReserved">
+        <source>The type name '{0}' is reserved to be used by the compiler.</source>
+        <target state="new">The type name '{0}' is reserved to be used by the compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}' には、共有された抽象または仮想 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
@@ -105,6 +140,11 @@
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' 属性はサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
+        <target state="new">Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -132,9 +172,19 @@
         <target state="translated">初期化専用セッターを使用して、'ByRef' プロパティに割り当てるか、そのプロパティを渡します</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">バイナリ条件式での非制約型パラメーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_UnmanagedConstraint">
+        <source>recognizing 'unmanaged' constraint</source>
+        <target state="new">recognizing 'unmanaged' constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
@@ -605,6 +655,16 @@
         <target state="translated">パラメーターに適用された CallerArgumentExpressionAttribute は自己参照であるため、無効となります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、SyncLock ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、SyncLock ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">複数回指定されたアナライザー参照 '{0}'</target>
@@ -613,6 +673,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">複数回指定されたアナライザー参照</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -1737,11 +1807,6 @@
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
         <target state="translated">モジュール '{0}' の生成に失敗しました: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">'{0}' を更新できません。属性 '{1}' がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNeeded3">
@@ -7674,8 +7739,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">指定したバージョン文字列は、推奨される形式 (major.minor.build.revision) に従っていません</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">指定したバージョン文字列は、推奨される形式 (major.minor.build.revision、ワイルドカードなし) に従っていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">
@@ -9285,7 +9350,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}' は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
@@ -9294,8 +9359,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</source>
-        <target state="translated">メソッド '{0}' (トークン 0x{1}) のデバッグ情報をアセンブリ '{2}' から読み取ることができません</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

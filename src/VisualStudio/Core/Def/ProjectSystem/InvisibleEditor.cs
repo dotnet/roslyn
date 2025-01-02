@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
@@ -15,153 +16,177 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal sealed partial class InvisibleEditor : IInvisibleEditor
 {
-    internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInvisibleEditor
+    private readonly IServiceProvider _serviceProvider;
+    private readonly string _filePath;
+    private readonly bool _needsSave = false;
+
+    /// <summary>
+    /// The text buffer. null if the object has been disposed.
+    /// </summary>
+    private ITextBuffer? _buffer;
+    private IVsInvisibleEditor _invisibleEditor;
+    private OLE.Interop.IOleUndoManager? _manager;
+    private readonly bool _needsUndoRestored;
+    private readonly IThreadingContext _threadingContext;
+
+    /// <remarks>
+    /// <para>The optional project is used to obtain an <see cref="IVsProject"/> instance. When this instance is
+    /// provided, Visual Studio will use <see cref="IVsProject.IsDocumentInProject"/> to attempt to locate the
+    /// specified file within a project. If no project is specified, Visual Studio falls back to using
+    /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
+    /// projects in the solution.</para>
+    /// </remarks>
+    public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVsHierarchy? hierarchy, bool needsSave, bool needsUndoDisabled)
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly string _filePath;
-        private readonly bool _needsSave = false;
+        _threadingContext = serviceProvider.GetMefService<IThreadingContext>();
+        _threadingContext.ThrowIfNotOnUIThread();
+        _serviceProvider = serviceProvider;
+        _filePath = filePath;
+        _needsSave = needsSave;
 
-        /// <summary>
-        /// The text buffer. null if the object has been disposed.
-        /// </summary>
-        private ITextBuffer? _buffer;
-        private IVsTextLines _vsTextLines;
-        private IVsInvisibleEditor _invisibleEditor;
-        private OLE.Interop.IOleUndoManager? _manager;
-        private readonly bool _needsUndoRestored;
+        var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
+        var vsProject = hierarchy as IVsProject;
+        Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out var invisibleEditorPtr));
 
-        /// <remarks>
-        /// <para>The optional project is used to obtain an <see cref="IVsProject"/> instance. When this instance is
-        /// provided, Visual Studio will use <see cref="IVsProject.IsDocumentInProject"/> to attempt to locate the
-        /// specified file within a project. If no project is specified, Visual Studio falls back to using
-        /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
-        /// projects in the solution.</para>
-        /// </remarks>
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVsHierarchy? hierarchy, bool needsSave, bool needsUndoDisabled)
-            : base(serviceProvider.GetMefService<IThreadingContext>(), assertIsForeground: true)
+        try
         {
-            _serviceProvider = serviceProvider;
-            _filePath = filePath;
-            _needsSave = needsSave;
+            _invisibleEditor = (IVsInvisibleEditor)Marshal.GetUniqueObjectForIUnknown(invisibleEditorPtr);
 
-            var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
-            var vsProject = hierarchy as IVsProject;
-            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out var invisibleEditorPtr));
+            VsTextLines = RetrieveDocData(_invisibleEditor, needsSave);
 
+            var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
+            _buffer = editorAdapterFactoryService.GetDocumentBuffer(VsTextLines);
+            if (needsUndoDisabled)
+            {
+                Marshal.ThrowExceptionForHR(VsTextLines.GetUndoManager(out _manager));
+                Marshal.ThrowExceptionForHR(((IVsUndoState)_manager).IsEnabled(out var isEnabled));
+                _needsUndoRestored = isEnabled != 0;
+                if (_needsUndoRestored)
+                {
+                    _manager.DiscardFrom(null); // Discard the undo history for this document
+                    _manager.Enable(0); // Disable Undo for this document
+                }
+            }
+        }
+        finally
+        {
+            // We need to clean up the extra reference we have, now that we have an RCW holding onto the object.
+            Marshal.Release(invisibleEditorPtr);
+        }
+
+        // Try casting the doc data to IVsTextLines first.
+        // If it fails try casting to IVsTextBufferProvider as some files like .aspx use that to provide the buffer
+        static IVsTextLines RetrieveDocData(IVsInvisibleEditor invisibleEditor, bool needsSave)
+        {
+            IVsTextLines? buffer = null;
+            var docDataPtrViaTextBufferProvider = IntPtr.Zero;
+
+            var hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextLines).GUID, ppDocData: out var docDataPtrViaTextLines);
             try
             {
-                _invisibleEditor = (IVsInvisibleEditor)Marshal.GetUniqueObjectForIUnknown(invisibleEditorPtr);
-
-                var docDataPtr = IntPtr.Zero;
-                Marshal.ThrowExceptionForHR(_invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextLines).GUID, ppDocData: out docDataPtr));
-
-                try
+                if (ErrorHandler.Succeeded(hr) &&
+                    Marshal.GetObjectForIUnknown(docDataPtrViaTextLines) is IVsTextLines vsTextLines)
                 {
-                    var docData = Marshal.GetObjectForIUnknown(docDataPtr);
-                    _vsTextLines = (IVsTextLines)docData;
-                    var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-                    _buffer = editorAdapterFactoryService.GetDocumentBuffer(_vsTextLines);
-                    if (needsUndoDisabled)
-                    {
-                        Marshal.ThrowExceptionForHR(_vsTextLines.GetUndoManager(out _manager));
-                        Marshal.ThrowExceptionForHR(((IVsUndoState)_manager).IsEnabled(out var isEnabled));
-                        _needsUndoRestored = isEnabled != 0;
-                        if (_needsUndoRestored)
-                        {
-                            _manager.DiscardFrom(null); // Discard the undo history for this document
-                            _manager.Enable(0); // Disable Undo for this document
-                        }
-                    }
+                    buffer = vsTextLines;
                 }
-                finally
+                else
                 {
-                    Marshal.Release(docDataPtr);
+                    hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextBufferProvider).GUID, ppDocData: out docDataPtrViaTextBufferProvider);
+                    if (ErrorHandler.Succeeded(hr) &&
+                        Marshal.GetObjectForIUnknown(docDataPtrViaTextBufferProvider) is IVsTextBufferProvider vsTextBufferProvider)
+                    {
+                        hr = vsTextBufferProvider.GetTextBuffer(out buffer);
+                    }
                 }
             }
             finally
             {
-                // We need to clean up the extra reference we have, now that we have an RCW holding onto the object.
-                Marshal.Release(invisibleEditorPtr);
-            }
-        }
+                if (docDataPtrViaTextBufferProvider != IntPtr.Zero)
+                    Marshal.Release(docDataPtrViaTextBufferProvider);
 
-        public IVsTextLines VsTextLines
+                if (docDataPtrViaTextLines != IntPtr.Zero)
+                    Marshal.Release(docDataPtrViaTextLines);
+            }
+
+            Marshal.ThrowExceptionForHR(hr);
+            Contract.ThrowIfNull(buffer, $"We were unable to fetch a buffer in {nameof(InvisibleEditor)}.");
+
+            return buffer;
+        }
+    }
+
+    public IVsTextLines VsTextLines { get; private set; }
+
+    public ITextBuffer TextBuffer
+    {
+        get
         {
-            get
+            if (_buffer == null)
             {
-                return _vsTextLines;
+                throw new ObjectDisposedException(GetType().Name);
             }
-        }
 
-        public ITextBuffer TextBuffer
+            return _buffer;
+        }
+    }
+
+    /// <summary>
+    /// Closes the invisible editor and saves the underlying document as appropriate.
+    /// </summary>
+    public void Dispose()
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        _buffer = null;
+        VsTextLines = null!;
+
+        try
         {
-            get
+            if (_needsSave)
             {
-                if (_buffer == null)
+                // We need to tell this document to save before we get rid of the invisible editor. Otherwise,
+                // the invisible editor never actually makes the document go away. Check out CLockHolder::ReleaseEditLock
+                // in env\msenv\core\editmgr.cpp for details. We choose this particular technique for saving files
+                // since it's what the old cslangsvc.dll used.
+                var runningDocumentTable4 = (IVsRunningDocumentTable4)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+
+                if (runningDocumentTable4.IsMonikerValid(_filePath))
                 {
-                    throw new ObjectDisposedException(GetType().Name);
+                    var cookie = runningDocumentTable4.GetDocumentCookie(_filePath);
+                    var runningDocumentTable = (IVsRunningDocumentTable)runningDocumentTable4;
+
+                    // Old cslangsvc.dll requested not to add to MRU for, and I quote, "performance!". Makes sense not
+                    // to include it in the MRU anyways.
+                    ErrorHandler.ThrowOnFailure(runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU, fSet: 1));
+
+                    runningDocumentTable.SaveDocuments((uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_SaveIfDirty, pHier: null, itemid: 0, docCookie: cookie);
                 }
-
-                return _buffer;
             }
-        }
 
-        /// <summary>
-        /// Closes the invisible editor and saves the underlying document as appropriate.
-        /// </summary>
-        public void Dispose()
+            if (_needsUndoRestored && _manager != null)
+            {
+                _manager.Enable(1);
+                _manager = null;
+            }
+
+            // Clean up our RCW. This RCW is a unique RCW, so this is actually safe to do!
+            Marshal.ReleaseComObject(_invisibleEditor);
+            _invisibleEditor = null!;
+
+            GC.SuppressFinalize(this);
+        }
+        catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical)) // critical severity, since this means we're not saving edited files
         {
-            AssertIsForeground();
-
-            _buffer = null;
-            _vsTextLines = null!;
-
-            try
-            {
-                if (_needsSave)
-                {
-                    // We need to tell this document to save before we get rid of the invisible editor. Otherwise,
-                    // the invisible editor never actually makes the document go away. Check out CLockHolder::ReleaseEditLock
-                    // in env\msenv\core\editmgr.cpp for details. We choose this particular technique for saving files
-                    // since it's what the old cslangsvc.dll used.
-                    var runningDocumentTable4 = (IVsRunningDocumentTable4)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-
-                    if (runningDocumentTable4.IsMonikerValid(_filePath))
-                    {
-                        var cookie = runningDocumentTable4.GetDocumentCookie(_filePath);
-                        var runningDocumentTable = (IVsRunningDocumentTable)runningDocumentTable4;
-
-                        // Old cslangsvc.dll requested not to add to MRU for, and I quote, "performance!". Makes sense not
-                        // to include it in the MRU anyways.
-                        ErrorHandler.ThrowOnFailure(runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU, fSet: 1));
-
-                        runningDocumentTable.SaveDocuments((uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_SaveIfDirty, pHier: null, itemid: 0, docCookie: cookie);
-                    }
-                }
-
-                if (_needsUndoRestored && _manager != null)
-                {
-                    _manager.Enable(1);
-                    _manager = null;
-                }
-
-                // Clean up our RCW. This RCW is a unique RCW, so this is actually safe to do!
-                Marshal.ReleaseComObject(_invisibleEditor);
-                _invisibleEditor = null!;
-
-                GC.SuppressFinalize(this);
-            }
-            catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical)) // critical severity, since this means we're not saving edited files
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
+    }
 
 #if DEBUG
-        ~InvisibleEditor()
-            => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
+    ~InvisibleEditor()
+        => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
-    }
 }

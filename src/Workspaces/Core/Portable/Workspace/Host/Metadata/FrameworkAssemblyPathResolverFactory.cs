@@ -6,36 +6,35 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+[ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Default), Shared]
+internal sealed class FrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Default), Shared]
-    internal sealed class FrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FrameworkAssemblyPathResolverFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FrameworkAssemblyPathResolverFactory()
+    }
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new Service();
+
+    private sealed class Service : IFrameworkAssemblyPathResolver
+    {
+        public Service()
         {
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new Service();
+        //public bool CanResolveType(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName)
+        //{
+        //    return false;
+        //}
 
-        private sealed class Service : IFrameworkAssemblyPathResolver
+        public string? ResolveAssemblyPath(ProjectId projectId, string assemblyName, string? fullyQualifiedTypeName)
         {
-            public Service()
-            {
-            }
-
-            //public bool CanResolveType(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName)
-            //{
-            //    return false;
-            //}
-
-            public string? ResolveAssemblyPath(ProjectId projectId, string assemblyName, string? fullyQualifiedTypeName)
-            {
-                // Assembly path resolution not supported at the default workspace level.
-                return null;
-            }
+            // Assembly path resolution not supported at the default workspace level.
+            return null;
         }
     }
 }

@@ -6,30 +6,30 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
-{
-    internal static class TaggerConstants
-    {
-        internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior, ITextBuffer textBufferOpt)
-        {
-            if (TextBufferAssociatedViewService.AnyAssociatedViewHasFocus(textBufferOpt))
-            {
-                // TODO : should we remove TaggerBehavior enum all together and put NearImmediateDelay
-                // const in Interaction?
-                return ComputeTimeDelay(behavior);
-            }
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
-            return DelayTimeSpan.NonFocus;
+internal static class TaggerConstants
+{
+    internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior, ITextBuffer textBufferOpt)
+    {
+        if (TextBufferAssociatedViewService.AnyAssociatedViewHasFocus(textBufferOpt))
+        {
+            // TODO : should we remove TaggerBehavior enum all together and put NearImmediateDelay
+            // const in Interaction?
+            return ComputeTimeDelay(behavior);
         }
 
-        internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior)
-            => behavior switch
-            {
-                TaggerDelay.NearImmediate => DelayTimeSpan.NearImmediate,
-                TaggerDelay.Short => DelayTimeSpan.Short,
-                TaggerDelay.Medium => DelayTimeSpan.Medium,
-                TaggerDelay.OnIdle => DelayTimeSpan.Idle,
-                _ => DelayTimeSpan.NonFocus,
-            };
+        return DelayTimeSpan.NonFocus;
     }
+
+    internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior)
+        => behavior switch
+        {
+            TaggerDelay.NearImmediate => DelayTimeSpan.NearImmediate,
+            TaggerDelay.Short => DelayTimeSpan.Short,
+            TaggerDelay.Medium => DelayTimeSpan.Medium,
+            TaggerDelay.OnIdle => DelayTimeSpan.Idle,
+            TaggerDelay.OnIdleWithLongDelay => DelayTimeSpan.IdleWithLongDelay,
+            _ => DelayTimeSpan.NonFocus,
+        };
 }

@@ -16,8 +16,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
+using Microsoft.CodeAnalysis.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -73,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>>();
             return new VSInternalCompletionList
             {
-                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument, commitCharactersCache)).ToArray(),
+                Items = [.. completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument, commitCharactersCache))],
                 SuggestionMode = false,
             };
         }
@@ -90,8 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
                 Kind = GetItemKind(xamlCompletion.Kind),
-                Description = xamlCompletion.Description,
-                Icon = xamlCompletion.Icon,
+                Description = xamlCompletion.Description.ToLSPElement(),
+                Icon = xamlCompletion.Icon.ToLSPImageElement(),
                 InsertTextFormat = xamlCompletion.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
@@ -110,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 item.Command = new Command()
                 {
                     CommandIdentifier = StringConstants.CreateEventHandlerCommand,
-                    Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                    Arguments = [textDocument, xamlCompletion.EventDescription],
                     Title = CreateEventHandlerCommandTitle
                 };
             }

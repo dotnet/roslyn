@@ -8,35 +8,34 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal sealed partial class TopLevelSyntaxTreeIndex
 {
-    internal sealed partial class TopLevelSyntaxTreeIndex : IObjectWritable
+    public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
+        IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
     {
-        public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
-            IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
-        {
-            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
-        }
+        return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+    }
 
-        public override void WriteTo(ObjectWriter writer)
-        {
-            _declarationInfo.WriteTo(writer);
-            _extensionMethodInfo.WriteTo(writer);
-        }
+    public override void WriteTo(ObjectWriter writer)
+    {
+        _declarationInfo.WriteTo(writer);
+        _extensionMethodInfo.WriteTo(writer);
+    }
 
-        private static TopLevelSyntaxTreeIndex? ReadIndex(
-            StringTable stringTable, ObjectReader reader, Checksum? checksum)
-        {
-            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
-            var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
+    private static TopLevelSyntaxTreeIndex? ReadIndex(
+        StringTable stringTable, ObjectReader reader, Checksum? checksum)
+    {
+        var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
+        var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
 
-            if (declarationInfo == null || extensionMethodInfo == null)
-                return null;
+        if (declarationInfo == null || extensionMethodInfo == null)
+            return null;
 
-            return new TopLevelSyntaxTreeIndex(
-                checksum,
-                declarationInfo.Value,
-                extensionMethodInfo.Value);
-        }
+        return new TopLevelSyntaxTreeIndex(
+            checksum,
+            declarationInfo.Value,
+            extensionMethodInfo.Value);
     }
 }

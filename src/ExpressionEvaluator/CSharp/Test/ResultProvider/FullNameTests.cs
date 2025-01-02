@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
             Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new string[0]));
-            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "" }));
-            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { " " }));
-            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "1" }));
-            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "[]", "2", "3" }));
-            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "", "", "" }));
+            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, [""]));
+            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, [" "]));
+            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["1"]));
+            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["[]", "2", "3"]));
+            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["", "", ""]));
         }
 
         [Fact]
@@ -1001,7 +1001,7 @@ namespace @namespace
 
             IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
-            Assert.Equal("<StringParameter>P", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+            Assert.Equal("StringParameter", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
     }
 }

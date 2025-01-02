@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -16,15 +17,15 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
@@ -37,36 +38,36 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 {
     [UseExportProvider]
-    public abstract class AbstractNavigateToTests
+    public abstract partial class AbstractNavigateToTests
     {
-        protected static readonly TestComposition DefaultComposition = EditorTestCompositions.EditorFeatures;
-        protected static readonly TestComposition FirstVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(FirstDocIsVisibleDocumentTrackingService.Factory));
-        protected static readonly TestComposition FirstActiveAndVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(FirstDocIsActiveAndVisibleDocumentTrackingService.Factory));
+        protected static readonly TestComposition DefaultComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService));
+        protected static readonly TestComposition FirstVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService), typeof(FirstDocIsVisibleDocumentTrackingService.Factory));
+        protected static readonly TestComposition FirstActiveAndVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService), typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
 
-        internal static readonly PatternMatch s_emptyExactPatternMatch = new PatternMatch(PatternMatchKind.Exact, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyPrefixPatternMatch = new PatternMatch(PatternMatchKind.Prefix, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptySubstringPatternMatch = new PatternMatch(PatternMatchKind.Substring, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseExact, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch = new PatternMatch(PatternMatchKind.CamelCasePrefix, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousPrefix, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseSubstring, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, true, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyFuzzyPatternMatch = new PatternMatch(PatternMatchKind.Fuzzy, true, true, ImmutableArray<Span>.Empty);
+        internal static readonly PatternMatch s_emptyExactPatternMatch = new PatternMatch(PatternMatchKind.Exact, true, true, []);
+        internal static readonly PatternMatch s_emptyPrefixPatternMatch = new PatternMatch(PatternMatchKind.Prefix, true, true, []);
+        internal static readonly PatternMatch s_emptySubstringPatternMatch = new PatternMatch(PatternMatchKind.Substring, true, true, []);
+        internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseExact, true, true, []);
+        internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch = new PatternMatch(PatternMatchKind.CamelCasePrefix, true, true, []);
+        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousPrefix, true, true, []);
+        internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseSubstring, true, true, []);
+        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, true, []);
+        internal static readonly PatternMatch s_emptyFuzzyPatternMatch = new PatternMatch(PatternMatchKind.Fuzzy, true, true, []);
 
-        internal static readonly PatternMatch s_emptyExactPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Exact, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyPrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Prefix, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptySubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Substring, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseExact, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCasePrefix, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousPrefix, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseSubstring, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, ImmutableArray<Span>.Empty);
-        internal static readonly PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Fuzzy, true, false, ImmutableArray<Span>.Empty);
+        internal static readonly PatternMatch s_emptyExactPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Exact, true, false, []);
+        internal static readonly PatternMatch s_emptyPrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Prefix, true, false, []);
+        internal static readonly PatternMatch s_emptySubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Substring, true, false, []);
+        internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseExact, true, false, []);
+        internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCasePrefix, true, false, []);
+        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousPrefix, true, false, []);
+        internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseSubstring, true, false, []);
+        internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, []);
+        internal static readonly PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Fuzzy, true, false, []);
 
-        protected abstract TestWorkspace CreateWorkspace(string content, TestComposition composition);
+        protected abstract EditorTestWorkspace CreateWorkspace(string content, TestComposition composition);
         protected abstract string Language { get; }
 
         public enum Composition
@@ -76,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             FirstActiveAndVisible,
         }
 
-        private protected static NavigateToItemProvider CreateProvider(TestWorkspace workspace)
+        private protected static NavigateToItemProvider CreateProvider(EditorTestWorkspace workspace)
             => new(
                 workspace,
                 workspace.GetService<IThreadingContext>(),
                 workspace.GetService<IUIThreadOperationExecutor>(),
                 AsynchronousOperationListenerProvider.NullListener);
 
-        protected async Task TestAsync(TestHost testHost, Composition composition, string content, Func<TestWorkspace, Task> body)
+        protected async Task TestAsync(TestHost testHost, Composition composition, string content, Func<EditorTestWorkspace, Task> body)
         {
             var testComposition = composition switch
             {
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, testComposition);
         }
 
-        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<TestWorkspace, Task> body)
+        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<EditorTestWorkspace, Task> body)
         {
             var testComposition = composition switch
             {
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, TestHost testHost,
+            string content, Func<EditorTestWorkspace, Task> body, TestHost testHost,
             TestComposition composition)
         {
             using var workspace = CreateWorkspace(content, testHost, composition);
@@ -118,26 +119,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         protected async Task TestAsync(
-            XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
+            XElement content, Func<EditorTestWorkspace, Task> body, TestHost testHost,
             TestComposition composition)
         {
             using var workspace = CreateWorkspace(content, testHost, composition);
             await body(workspace);
         }
 
-        private protected TestWorkspace CreateWorkspace(
+        private protected EditorTestWorkspace CreateWorkspace(
             XElement workspaceElement,
             TestHost testHost,
             TestComposition composition)
         {
             composition = composition.WithTestHostParts(testHost);
 
-            var workspace = TestWorkspace.Create(workspaceElement, composition: composition);
+            var workspace = EditorTestWorkspace.Create(workspaceElement, composition: composition);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
-        private protected TestWorkspace CreateWorkspace(
+        private protected EditorTestWorkspace CreateWorkspace(
             string content,
             TestHost testHost,
             TestComposition composition)
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             return workspace;
         }
 
-        internal void InitializeWorkspace(TestWorkspace workspace)
+        internal void InitializeWorkspace(EditorTestWorkspace workspace)
         {
             _provider = new NavigateToItemProvider(
                 workspace,
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected static void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
-            expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
+            expecteditems = [.. expecteditems.OrderBy(i => i.Name)];
             items = items.OrderBy(i => i.Name).ToList();
 
             Assert.Equal(expecteditems.Count(), items.Count());
@@ -223,11 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             => ComparerWithState.CompareTo(a, b, s_comparisonComponents);
 
         private static readonly ImmutableArray<Func<NavigateToItem, IComparable>> s_comparisonComponents =
-            ImmutableArray.Create<Func<NavigateToItem, IComparable>>(
-                item => (int)item.PatternMatch.Kind,
-                item => item.Name,
-                item => item.Kind,
-                item => item.SecondarySort);
+            [item => (int)item.PatternMatch.Kind, item => item.Name, item => item.Kind, item => item.SecondarySort];
 
         private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {
@@ -237,16 +234,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             private FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
                 => _workspace = workspace;
 
-            public bool SupportsDocumentTracking => true;
-
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
             public DocumentId TryGetActiveDocument()
                 => null;
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()
-                => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
+                => [_workspace.CurrentSolution.Projects.First().DocumentIds.First()];
 
             [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
             public class Factory : IWorkspaceServiceFactory
@@ -263,38 +257,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        private class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
+        [ExportWorkspaceService(typeof(IWorkspaceNavigateToSearcherHostService))]
+        [PartNotDiscoverable, Shared]
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
         {
-            private readonly Workspace _workspace;
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            private FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
-                => _workspace = workspace;
-
-            public bool SupportsDocumentTracking => true;
-
-            public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
-
-            public DocumentId TryGetActiveDocument()
-                => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
-
-            public ImmutableArray<DocumentId> GetVisibleDocuments()
-                => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
-
-            [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-            public class Factory : IWorkspaceServiceFactory
-            {
-                [ImportingConstructor]
-                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-                public Factory()
-                {
-                }
-
-                [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-                public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                    => new FirstDocIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
-            }
+            public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+                => new(true);
         }
     }
 }

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseInferredMemberName
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseInferredMemberName)>
     Public Class UseInferredMemberNameTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseInferredMemberNameDiagnosticAnalyzer(),

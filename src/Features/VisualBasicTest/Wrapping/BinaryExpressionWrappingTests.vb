@@ -5,16 +5,13 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     <Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
     Public Class BinaryExpressionWrappingTests
         Inherits AbstractWrappingTests
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicWrappingCodeRefactoringProvider()
-        End Function
 
         Private ReadOnly Property EndOfLine As TestParameters =
             New TestParameters(options:=[Option](CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.EndOfLine))

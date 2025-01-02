@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
     ''' </summary>
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
     Partial Public Class RemoveUnnecessaryParenthesesTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private Shared ReadOnly CheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=True)
         Private Shared ReadOnly DoNotCheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=False)
@@ -639,7 +639,7 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses, compila
 end class"
 
             Dim parameters = New TestParameters(options:=RemoveAllUnnecessaryParentheses)
-            Using workspace As TestWorkspace = CreateWorkspaceFromOptions(input, parameters)
+            Using workspace = CreateWorkspaceFromOptions(input, parameters)
                 Dim expectedSpans = workspace.Documents.First().AnnotatedSpans
 
                 Dim diagnostics = Await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(False)

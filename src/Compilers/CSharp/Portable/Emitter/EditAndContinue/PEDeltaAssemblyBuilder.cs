@@ -6,68 +6,54 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase, IPEDeltaAssemblyBuilder
     {
-        private readonly CSharpDefinitionMap _previousDefinitions;
         private readonly SymbolChanges _changes;
         private readonly CSharpSymbolMatcher.DeepTranslator _deepTranslator;
+        private readonly MethodSymbol? _predefinedHotReloadExceptionConstructor;
+
+        /// <summary>
+        /// HotReloadException type. May be created even if not used. We might find out
+        /// we need it late in the emit phase only after all types and members have been compiled.
+        /// <see cref="_isHotReloadExceptionTypeUsed"/> indicates if the type is actually used in the delta.
+        /// </summary>
+        private SynthesizedHotReloadExceptionSymbol? _lazyHotReloadExceptionType;
+
+        /// <summary>
+        /// True if usage of HotReloadException type symbol has been observed and shouldn't be changed anymore.
+        /// </summary>
+        private volatile bool _freezeHotReloadExceptionTypeUsage;
+
+        /// <summary>
+        /// True if HotReloadException type is actually used in the delta.
+        /// </summary>
+        private volatile bool _isHotReloadExceptionTypeUsed;
 
         public PEDeltaAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
+            CSharpSymbolChanges changes,
             EmitOptions emitOptions,
             OutputKind outputKind,
             Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
-            EmitBaseline previousGeneration,
-            IEnumerable<SemanticEdit> edits,
-            Func<ISymbol, bool> isAddedSymbol)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
+            MethodSymbol? predefinedHotReloadExceptionConstructor)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: [])
         {
-            var initialBaseline = previousGeneration.InitialBaseline;
-
-            // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
-            // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
-            var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
-            var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
-            var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
-
-            var matchToMetadata = new CSharpSymbolMatcher(
-                metadataSymbols.SynthesizedTypes,
-                sourceAssembly,
-                metadataAssembly);
-
-            CSharpSymbolMatcher? matchToPrevious = null;
-            if (previousGeneration.Ordinal > 0)
-            {
-                RoslynDebug.AssertNotNull(previousGeneration.Compilation);
-                RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
-
-                var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-
-                matchToPrevious = new CSharpSymbolMatcher(
-                    sourceAssembly: sourceAssembly,
-                    otherAssembly: previousAssembly,
-                    previousGeneration.SynthesizedTypes,
-                    otherSynthesizedMembers: previousGeneration.SynthesizedMembers,
-                    otherDeletedMembers: previousGeneration.DeletedMembers);
-            }
-
-            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious, previousGeneration);
-            _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
+            _changes = changes;
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
             // When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -82,22 +68,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             // that translates the symbol recursively.
             _deepTranslator = new CSharpSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object));
+
+            _predefinedHotReloadExceptionConstructor = predefinedHotReloadExceptionConstructor;
         }
 
         public override SymbolChanges? EncSymbolChanges => _changes;
-        public override EmitBaseline PreviousGeneration => _previousDefinitions.Baseline;
+        public override EmitBaseline PreviousGeneration => _changes.DefinitionMap.Baseline;
 
         internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
         {
             // Note: The translator is not aware of synthesized types. If type is a synthesized type it won't get mapped.
             // In such case use the type itself. This can only happen for variables storing lambda display classes.
             var visited = (TypeSymbol)_deepTranslator.Visit(type);
-            Debug.Assert((object)visited != null);
+            Debug.Assert(visited is not null);
             //Debug.Assert(visited != null || type is LambdaFrame || ((NamedTypeSymbol)type).ConstructedFrom is LambdaFrame);
             return Translate(visited ?? type, null, diagnostics);
         }
 
-        private static EmitBaseline.MetadataSymbols GetOrCreateMetadataSymbols(EmitBaseline initialBaseline, CSharpCompilation compilation)
+        internal static EmitBaseline.MetadataSymbols GetOrCreateMetadataSymbols(EmitBaseline initialBaseline, CSharpCompilation compilation)
         {
             if (initialBaseline.LazyMetadataSymbols != null)
             {
@@ -124,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal static SynthesizedTypeMaps GetSynthesizedTypesFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
             var anonymousTypes = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
-            var anonymousDelegatesWithIndexedNames = ImmutableSegmentedDictionary.CreateBuilder<string, AnonymousTypeValue>();
+            var anonymousDelegatesWithIndexedNames = new Dictionary<AnonymousDelegateWithIndexedNamePartialKey, ArrayBuilder<AnonymousTypeValue>>();
             var anonymousDelegates = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var handle in reader.TypeDefinitions)
@@ -178,14 +166,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
                         var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
-                        anonymousDelegatesWithIndexedNames.Add(name, value);
+                        int parameterCount = -1;
+
+                        foreach (var methodHandle in def.GetMethods())
+                        {
+                            var methodDef = reader.GetMethodDefinition(methodHandle);
+                            if (reader.StringComparer.Equals(methodDef.Name, "Invoke"))
+                            {
+                                try
+                                {
+                                    metadataDecoder.DecodeMethodSignatureParameterCountsOrThrow(methodHandle, out int invokeMethodParameterCount, out _);
+                                    parameterCount = invokeMethodParameterCount;
+                                    break;
+                                }
+                                catch (BadImageFormatException)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (parameterCount >= 0)
+                        {
+                            anonymousDelegatesWithIndexedNames.AddPooled(new AnonymousDelegateWithIndexedNamePartialKey(type.Arity, parameterCount), value);
+                        }
                     }
 
                     continue;
                 }
             }
 
-            return new SynthesizedTypeMaps(anonymousTypes.ToImmutable(), anonymousDelegates.ToImmutable(), anonymousDelegatesWithIndexedNames.ToImmutable());
+            return new SynthesizedTypeMaps(anonymousTypes.ToImmutable(), anonymousDelegates.ToImmutable(), anonymousDelegatesWithIndexedNames.ToImmutableSegmentedDictionaryAndFree());
         }
 
         private static bool TryGetAnonymousTypeKey(
@@ -207,9 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal CSharpDefinitionMap PreviousDefinitions
-        {
-            get { return _previousDefinitions; }
-        }
+            => (CSharpDefinitionMap)_changes.DefinitionMap;
 
         public SynthesizedTypeMaps GetSynthesizedTypes()
         {
@@ -234,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
-            return _previousDefinitions.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics);
+            return _changes.DefinitionMap.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics);
         }
 
         internal override MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
@@ -242,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // EmitDifference does not allow setting instrumentation kinds on EmitOptions:
             Debug.Assert(EmitOptions.InstrumentationKinds.IsEmpty);
 
-            return _previousDefinitions.GetMethodBodyInstrumentations(method);
+            return _changes.DefinitionMap.GetMethodBodyInstrumentations(method);
         }
 
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
@@ -256,14 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal override int GetNextAnonymousTypeIndex()
-        {
-            return PreviousGeneration.GetNextAnonymousTypeIndex();
-        }
+            => PreviousGeneration.GetNextAnonymousTypeIndex();
 
-        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
+        internal override int GetNextAnonymousDelegateIndex()
+            => PreviousGeneration.GetNextAnonymousDelegateIndex();
+
+        internal override bool TryGetPreviousAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
         {
-            Debug.Assert(this.Compilation == template.DeclaringCompilation);
-            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
+            Debug.Assert(Compilation == template.DeclaringCompilation);
+            return PreviousDefinitions.TryGetAnonymousTypeValue(template, out typeValue);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)
@@ -276,6 +286,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType.AdaptedSymbol), Location.None);
                 }
             }
+        }
+
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => _predefinedHotReloadExceptionConstructor is null
+                ? GetOrCreateSynthesizedHotReloadExceptionType()
+                : null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+        {
+            if (_predefinedHotReloadExceptionConstructor is not null)
+            {
+                return _predefinedHotReloadExceptionConstructor;
+            }
+
+            if (_freezeHotReloadExceptionTypeUsage)
+            {
+                // the type shouldn't be used after usage has been frozen.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            _isHotReloadExceptionTypeUsed = true;
+            return GetOrCreateSynthesizedHotReloadExceptionType().Constructor;
+        }
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+        {
+            _freezeHotReloadExceptionTypeUsage = true;
+            return _isHotReloadExceptionTypeUsed ? _lazyHotReloadExceptionType : null;
+        }
+
+        private SynthesizedHotReloadExceptionSymbol GetOrCreateSynthesizedHotReloadExceptionType()
+        {
+            var symbol = _lazyHotReloadExceptionType;
+            if (symbol is not null)
+            {
+                return symbol;
+            }
+
+            var exceptionType = Compilation.GetWellKnownType(WellKnownType.System_Exception);
+            var stringType = Compilation.GetSpecialType(SpecialType.System_String);
+            var intType = Compilation.GetSpecialType(SpecialType.System_Int32);
+
+            var containingNamespace = GetOrSynthesizeNamespace(SynthesizedHotReloadExceptionSymbol.NamespaceName);
+            symbol = new SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, stringType, intType);
+
+            Interlocked.CompareExchange(ref _lazyHotReloadExceptionType, symbol, comparand: null);
+            return _lazyHotReloadExceptionType;
         }
     }
 }

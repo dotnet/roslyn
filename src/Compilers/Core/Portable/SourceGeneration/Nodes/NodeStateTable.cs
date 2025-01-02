@@ -204,7 +204,16 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = 0; i < state.Count; i++)
                 {
-                    pooled.Builder.Append(state.GetState(i).ToString()[0]);
+                    var packedChar = state.GetState(i) switch
+                    {
+                        EntryState.Added => 'A',
+                        EntryState.Removed => 'R',
+                        EntryState.Modified => 'M',
+                        EntryState.Cached => 'C',
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    };
+
+                    pooled.Builder.Append(packedChar);
                 }
                 pooled.Builder.Append(',');
             }

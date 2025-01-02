@@ -172,13 +172,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return _underlyingAssembly.HasImportedFromTypeLibAttribute
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return _underlyingAssembly.HasPrimaryInteropAssemblyAttribute
+            End Get
+        End Property
+
         ''' <summary>
         ''' Lookup declaration for FX type in this Assembly.
         ''' </summary>
         ''' <param name="type"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
             ' Cor library should not have any references and, therefore, should never be
             ' wrapped by a RetargetingAssemblySymbol.
             Throw ExceptionUtilities.Unreachable

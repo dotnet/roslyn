@@ -4,10 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;

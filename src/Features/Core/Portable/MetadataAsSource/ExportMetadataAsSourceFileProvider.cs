@@ -5,16 +5,15 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource;
+
+/// <summary>
+/// Use this attribute to export a <see cref="IMetadataAsSourceFileProvider"/> so that it will
+/// be found and used by the <see cref="IMetadataAsSourceFileService"/>.
+/// </summary>
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportMetadataAsSourceFileProviderAttribute(string name) : ExportAttribute(typeof(IMetadataAsSourceFileProvider))
 {
-    /// <summary>
-    /// Use this attribute to export a <see cref="IMetadataAsSourceFileProvider"/> so that it will
-    /// be found and used by the <see cref="IMetadataAsSourceFileService"/>.
-    /// </summary>
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportMetadataAsSourceFileProviderAttribute(string name) : ExportAttribute(typeof(IMetadataAsSourceFileProvider))
-    {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-    }
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
 }

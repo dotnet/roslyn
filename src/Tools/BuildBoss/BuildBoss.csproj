@@ -7,13 +7,6 @@
     <SignAssembly>false</SignAssembly>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <IsShipping>false</IsShipping>
-
-    <!-- 
-      Bumping MSBuildStructuredLoggerVersion for entire repo would move us to newer version of MSBuild Pacakge,
-      which no longer support netcoreapp3.1. Therefore we only change the version referenced here to get the binlog 
-      checker to work for logs produced by newer MSBuild in CI without requiring product change.
-     -->
-    <MSBuildStructuredLoggerVersion>2.1.787</MSBuildStructuredLoggerVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -22,11 +15,16 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" />
-    <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Reflection.Metadata" />
+    <PackageReference Include="MSBuild.StructuredLogger" />
+    <PackageReference Include="Mono.Options" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

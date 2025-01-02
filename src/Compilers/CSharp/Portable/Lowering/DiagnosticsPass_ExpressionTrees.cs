@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda &&
                 node.Indices.Length == 1 &&
-                node.Indices[0].Type!.SpecialType == SpecialType.None)
+                !node.Indices[0].Type!.SpecialType.CanOptimizeBehavior())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
@@ -676,6 +676,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            // Do not use left recursion because we can have many nested binary patterns.
+
+            BoundBinaryPattern current = node;
+            while (true)
+            {
+                Visit(current.Right);
+                if (current.Left is BoundBinaryPattern left)
+                {
+                    current = left;
+                }
+                else
+                {
+                    Visit(current.Left);
+                    break;
+                }
+            }
+
+            return null;
+        }
+
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
             CheckLiftedUserDefinedConditionalLogicalOperator(node);
@@ -1036,10 +1058,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, node);
+                Error(
+                    node.IsParamsArrayOrCollection ?
+                        ErrorCode.ERR_ParamsCollectionExpressionTree :
+                        ErrorCode.ERR_ExpressionTreeContainsCollectionExpression,
+                    node);
             }
 
             return base.VisitCollectionExpression(node);
+        }
+
+        public override BoundNode VisitIfStatement(BoundIfStatement node)
+        {
+            while (true)
+            {
+                this.Visit(node.Condition);
+                this.Visit(node.Consequence);
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    this.Visit(alternative);
+                    break;
+                }
+            }
+
+            return null;
+        }
+
+        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            Visit(node.InterpolationData?.Construction);
+            return base.VisitInterpolatedString(node);
         }
     }
 }

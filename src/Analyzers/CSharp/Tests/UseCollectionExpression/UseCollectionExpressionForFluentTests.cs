@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -1678,11 +1676,8 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M()
                     {
-                        List<int> list =
-                        [
-                            1 +
-                                2,
-                        ];
+                        List<int> list = [1 +
+                            2];
                     }
                 }
                 """,
@@ -2400,6 +2395,758 @@ public class UseCollectionExpressionForFluentTests
                     }
                 }
                 """.ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>()
+                        .Order()
+                        .[|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>().Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>().
+                        Order().
+                        [|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>().Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>() // comment
+                        .Order()
+                        .[|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>() // comment
+                        .Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>(). // comment
+                        Order().
+                        [|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>(). // comment
+                        Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>()
+                        .Order()
+                        .Order()
+                        .[|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>()
+                        .Order()
+                        .Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>().
+                        Order().
+                        Order().
+                        [|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>().
+                        Order().
+                        Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<List<int>> f = () => new int[] { 1, 2, 3 }.[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<List<int>> f = () => [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        var f = () => new int[] { 1, 2, 3 }.ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Expression<Func<List<int>>> f = () => new int[] { 1, 2, 3 }.ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
+    public async Task TestNotInParallelEnumerable1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        const bool shouldParallelize = false;
+
+                        IEnumerable<int> sequence = null!;
+
+                        var result = sequence.AsParallel().ToArray();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
+    public async Task TestNotInParallelEnumerable2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        const bool shouldParallelize = false;
+
+                        IEnumerable<int> sequence = null!;
+
+                        var result = shouldParallelize
+                            ? sequence.AsParallel().ToArray()
+                            : sequence.[|ToArray|]();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        const bool shouldParallelize = false;
+
+                        IEnumerable<int> sequence = null!;
+
+                        var result = shouldParallelize
+                            ? sequence.AsParallel().ToArray()
+                            : [.. sequence];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<int> list = new[] { 1, 2, 3 }.[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<int> list = [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOff()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<int> list = new[] { 1, 2, 3 }.ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
+    public async Task TestAddRangeOfCollectionExpression1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = ImmutableArray<int>.Empty.{|CS0121:AddRange|}([1, 2]).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M()
+                    {
+                        List<int> list = [1, 2];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
+    public async Task TestAddRangeOfCollectionExpression2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> list = ImmutableArray<int>.Empty.{|CS0121:AddRange|}([1, .. x]).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        List<int> list = [1, .. x];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71788")]
+    public async Task NotOnBannedType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public int[] M(object o)
+                    {
+                        if (o is IIListProvider<int> pa) return pa.ToArray();
+                        return null;
+                    }
+                }
+
+                interface IIListProvider<T> : IEnumerable<T>
+                {
+                    T[] ToArray();
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestObjectCreation_PreservesTrivia()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        int[] array = new List<int>() //Some comment
+                        {
+                            1, 2, 3
+                        }.Concat(x).[|ToArray|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        int[] array =
+                        //Some comment
+                        [
+                            1, 2, 3, .. x
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = new List<int>(values).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [.. values];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = new List<int>(values) { 1, 2, 3 }.[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [.. values, 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values, int[] x)
+                    {
+                        List<int> list = new List<int>(values).Concat(x).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values, int[] x)
+                    {
+                        List<int> list = [.. values, .. x];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values, int[] x)
+                    {
+                        List<int> list = new List<int>(values) { 1, 2, 3 }.Concat(x).[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values, int[] x)
+                    {
+                        List<int> list = [.. values, 1, 2, 3, .. x];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
+    public async Task TestSelectToImmutableArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    ImmutableArray<string> GetFormattedNumbers(ImmutableArray<int> numbers)
+                    {
+                        return numbers.Select(n => $"Number: {n}").[|ToImmutableArray|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    ImmutableArray<string> GetFormattedNumbers(ImmutableArray<int> numbers)
+                    {
+                        return [.. numbers.Select(n => $"Number: {n}")];
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();

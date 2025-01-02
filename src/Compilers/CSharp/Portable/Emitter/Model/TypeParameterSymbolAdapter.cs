@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericMethodParameter,
         Cci.IGenericTypeParameter
     {
+        public bool IsEncDeleted
+            => false;
+
         bool Cci.ITypeReference.IsEnum
         {
             get { return false; }
@@ -296,6 +299,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return AdaptedTypeParameterSymbol.HasValueTypeConstraint || AdaptedTypeParameterSymbol.HasUnmanagedTypeConstraint;
+            }
+        }
+
+        bool Cci.IGenericParameter.AllowsRefLikeType
+        {
+            get
+            {
+                return AdaptedTypeParameterSymbol.AllowsRefLikeType;
             }
         }
 

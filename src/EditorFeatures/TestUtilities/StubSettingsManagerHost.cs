@@ -78,12 +78,12 @@ internal sealed class StubSettingsManagerHost : ISettingsManagerHost5
         throw new NotImplementedException();
     }
 
-    Task<Stream> ISettingsManagerHost5.GetServiceStreamAsync(string serviceMoniker, CancellationToken cancellationToken)
+    Task<Stream> ISettingsManagerHost5.GetServiceStreamAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    private sealed class StringStorage : IStringStorage, IAsyncStringStorage
+    private sealed class StringStorage : IStringStorage2, IAsyncStringStorage
     {
         private ImmutableDictionary<string, VersionedString> _values = ImmutableDictionary<string, VersionedString>.Empty;
         private PropertyChangedEventHandler? _propertyChanged;
@@ -176,6 +176,11 @@ internal sealed class StubSettingsManagerHost : ISettingsManagerHost5
         }
 
         Task<ServiceUploadResult> IAsyncStringStorage.SetAsync(NamedVersionedString value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IStringStorage2.ForEachSettingNameStartingWith(string prefix, CharSpanProcessorDelegate processFunc)
         {
             throw new NotImplementedException();
         }

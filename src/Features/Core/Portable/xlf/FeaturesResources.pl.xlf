@@ -40,11 +40,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Odejmowanie musi być ostatnim elementem w klasie znaków</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">Uzyskanie dostępu do przechwyconej zmiennej elementu „{0}”, do którego nie uzyskano dostępu wcześniej w {1}, wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Dodaj atrybut "DebuggerDisplay"</target>
@@ -90,16 +85,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Dodawanie elementu {0} wokół aktywnej instrukcji wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
-        <source>Adding {0} into a {1} requires restarting the application.</source>
-        <target state="translated">Dodanie elementu {0} do {1} wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
-        <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
-        <target state="translated">Dodawanie elementu {0} do klasy za pomocą jawnego lub sekwencyjnego układu wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
         <source>Adding {0} into an interface method requires restarting the application.</source>
         <target state="translated">Dodanie elementu {0} do metody interfejsu wymaga ponownego uruchomienia aplikacji.</target>
@@ -113,11 +98,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">Dodanie elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Dodawanie elementu {0}, który uzyskuje dostęp do przechwyconych zmiennych „{1}" i „{2}" zadeklarowanych w różnych zakresach, wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -163,6 +143,21 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
         <source>Adding an imported method requires restarting the application.</source>
         <target state="translated">Dodawanie zaimportowanej metody wymaga ponownego uruchomienia aplikacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_or_moving_0_of_1_requires_restarting_the_application">
+        <source>Adding or moving {0} of {1} requires restarting the application.</source>
+        <target state="new">Adding or moving {0} of {1} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application">
+        <source>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</source>
+        <target state="new">Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application">
+        <source>Adding or moving {0} of a COM interface requires restarting the application.</source>
+        <target state="new">Adding or moving {0} of a COM interface requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -316,8 +311,8 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">Zadanie, na które oczekiwano, zwraca wartość „{0}”</target>
+        <source>Awaited task returns {0}</source>
+        <target state="translated">Zadanie, którego oczekiwano, zwraca wartość {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -325,9 +320,9 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zadanie, na które oczekiwano, nie zwraca wartości</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">Klasy podstawowe zawierają niedostępne niezaimplementowane składowe</target>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="translated">Wbudowana analiza funkcji Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -362,27 +357,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">Przechwytywanie zmiennej "{0}", która nie została przechwycona wcześniej, wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">Zaprzestanie dostępu do przechwyconej zmiennej "{0}" w {1} wymaga ponownego uruchomienia aplikacji.</target>
+        <target state="translated">Przechwytywanie podstawowego parametru konstruktora „{0}”, który nie został wcześniej przechwycony, wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="translated">Próba przechwycenia podstawowego parametru konstruktora '{0}' '{1}' wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">Zaprzestanie przechwytywania zmiennej "{0}" wymaga ponownego uruchomienia aplikacji.</target>
+        <target state="translated">Przerwanie przechwytywania podstawowego parametru konstruktora „{0}” „{1}” wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -425,6 +405,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana elementu {0} z asynchronicznego na synchroniczny wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="translated">Zmiana elementu „{0}” może nie mieć żadnego wpływu, dopóki aplikacja nie zostanie uruchomiona ponownie.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">Zmiana elementu „{0}” na „{1}” wymaga ponownego uruchomienia aplikacji, ponieważ zmienia on kształt automatu stanów.</target>
@@ -437,7 +422,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">Zmienianie atrybutu „{0}” wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
@@ -480,9 +465,14 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana zwracanego typu elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
+        <source>Changing the signature of {0} requires restarting the application.</source>
+        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="translated">Zmienianie podpisu {0} wymaga ponownego uruchomienia aplikacji, ponieważ nie jest to obsługiwane przez środowisko uruchomieniowe.</target>
+        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -533,6 +523,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
         <target state="translated">Konfiguruj ważność wszystkich analizatorów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="new">Conflict(s) detected.</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -632,12 +627,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">Debuguj wszystkie testy</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">Debuguj test</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -670,19 +665,14 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Usunięcie {0} wymaga ponownego uruchomienia aplikacji, ponieważ nie jest to obsługiwane przez środowisko uruchomieniowe.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">Usuwanie przechwyconej zmiennej "{0}" wymaga ponownego uruchomienia aplikacji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">Dyrektywy z „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Nie zmieniaj tego kodu. Umieść kod czyszczący w metodzie „{0}”.</target>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="translated">Odrzuć</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
@@ -786,8 +776,8 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <note />
       </trans-unit>
       <trans-unit id="Fix_All_0">
-        <source>Fix All: '{0}'</source>
-        <target state="new">Fix All: '{0}'</target>
+        <source>Fix All: {0}</source>
+        <target state="translated">Napraw wszystko: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -845,79 +835,19 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Znaleziono pojedynczy zestaw: „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">Generuj metodę abstrakcyjną „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">Generuj właściwość abstrakcyjną „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Generuj operatory porównania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">Generuj stałą „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">Generuj konstruktor w elemencie „{0}” (z polami)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">Generuj konstruktor w elemencie „{0}” (z właściwościami)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">Generuj składową wyliczenia „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">Generuj pole „{0}”</target>
+      <trans-unit id="Generate_constructor_from_members">
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Wygeneruj dla elementu „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">Generuj metodę „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">Generuj parametr „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">Generowanie parametru „{0}” (i przesłonięć/implementacji)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">Generuj właściwość „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">Generuj pole tylko do odczytu „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">Generuj właściwość tylko do odczytu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -950,11 +880,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Niejawnie zaimplementuj interfejs „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">Implementuj klasę abstrakcyjną</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">Jawnie zaimplementuj wszystkie interfejsy</target>
@@ -965,11 +890,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Niejawnie zaimplementuj wszystkie interfejsy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Jawnie zaimplementuj wszystkie składowe</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Zaimplementuj jawnie</target>
@@ -978,16 +898,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Zaimplementuj niejawnie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Jawnie zaimplementuj pozostałe składowe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">Implementuj za pomocą elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -1175,6 +1085,16 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">{0} musi zwrócić strumień, który obsługuje operacje odczytu i wyszukiwania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Method_0_must_be_static_and_non_generic">
+        <source>Method '{0}' must be static and non-generic</source>
+        <target state="translated">Metoda „{0}” musi być statyczna i nieogólna</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
+        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
+        <target state="translated">Metoda „{0}” musi mieć jeden parametr typu „{1}” i zwracać wartość „{2}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">Różne pliki</target>
@@ -1265,6 +1185,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Przenieś zawartość do przestrzeni nazw...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">Przenieś plik do lokalizacji „{0}”</target>
@@ -1288,6 +1213,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">Przeniesienie elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="translated">Akcje kodu platformy .NET</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1328,6 +1258,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">Brak prawidłowego zaznaczenia do wyodrębnienia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="new">Not all code paths return</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -1375,14 +1310,9 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Nie można zaktualizować referencji właściwości</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up">
-        <source>Pull '{0}' up</source>
-        <target state="translated">Ściągnij element „{0}” w górę</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_0_up_to_1">
-        <source>Pull '{0}' up to '{1}'</source>
-        <target state="translated">Ściągnij elementy „{0}” aż do elementu „{1}”</target>
+      <trans-unit id="Pull_0_up_to">
+        <source>Pull '{0}' up to ...</source>
+        <target state="new">Pull '{0}' up to ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -1404,6 +1334,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">Nic nie występuje przed kwantyfikatorem {x,y}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Query">
+        <source>Query</source>
+        <target state="translated">Zapytanie</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
@@ -2073,7 +2008,7 @@ Można połączyć dwa lub więcej zakresów znaków. Na przykład aby określi�
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">Konstrukcja wyrażenia regularnego \P{ nazwa } pasuje do dowolnego znaku, który nie należy do kategorii ogólnej znaków Unicode ani do bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
+        <target state="translated">Konstrukcja wyrażenia regularnego \P{ name } pasuje do dowolnego znaku, który nie należy do kategorii ogólnej znaków Unicode ani do bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
@@ -2365,7 +2300,7 @@ Istnieje niejednoznaczność między ósemkowymi kodami ucieczki (takimi jak \16
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">Konstrukcja wyrażenia regularnego \p{ nazwa } pasuje do dowolnego znaku należącego do ogólnej kategorii Unicode lub bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
+        <target state="translated">Konstrukcja wyrażenia regularnego \p{ name } pasuje do dowolnego znaku należącego do ogólnej kategorii Unicode lub bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
@@ -2540,14 +2475,14 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Usunięcie dokumentu nie jest obsługiwane</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">Usuń niepotrzebne operacje importowania lub używania</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Usuń niepotrzebne rzutowania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="translated">Usuń niepotrzebne importy lub użycia</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2563,11 +2498,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">Usuń nieużywane zmienne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Usunięcie elementu {0}, który uzyskał dostęp do przechwyconych zmiennych „{1}" i „{2}" deklarowanych w różnych zakresach, wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
@@ -2615,11 +2545,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Rozpoznaj: „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">Rozwiąż znaczniki konfliktów</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
         <target state="translated">Rozpoznaj moduł: „{0}” z „{1}”</target>
@@ -2632,12 +2557,12 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">Uruchom wszystkie testy</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">Wykonaj test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2650,9 +2575,39 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Zaznaczenie nie jest uwzględnione w typie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Wyszukiwanie semantyczne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_only_supported_on_net_core">
+        <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
+        <target state="translated">Wyszukiwanie semantyczne jest obsługiwane tylko wtedy, gdy analiza kodu jest uruchamiana w osobnym procesie na najnowszej platformie .NET (zobacz Narzędzia &gt; Opcje &gt; Edytor tekstów &gt; C# &gt; Zaawansowane).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_failed_to_compile">
+        <source>Semantic search query failed to compile</source>
+        <target state="translated">Nie można skompilować zapytania wyszukiwania semantycznego</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_terminated_with_exception">
+        <source>Semantic search query terminated with exception</source>
+        <target state="translated">Zapytanie wyszukiwania semantycznego zostało zakończone z wyjątkiem</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
         <target state="translated">Cichy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="new">Simplify member access '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="new">Simplify name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
@@ -2685,11 +2640,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Podziel na zagnieżdżone instrukcje „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
         <source>Strings must start with " not '</source>
         <target state="translated">Ciągi muszą zaczynać się od znaku „not”</target>
@@ -2710,19 +2660,19 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Znaleziono symbol w ścieżce zestawu „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="translated">Wyszukiwanie symboli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols">
+        <source>Symbols</source>
+        <target state="translated">Symbole</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="translated">Błąd składniowy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: Zwolnić niezarządzane zasoby (niezarządzane obiekty) i przesłonić finalizator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: Przesłonić finalizator tylko w sytuacji, gdy powyższa metoda „{0}” zawiera kod służący do zwalniania niezarządzanych zasobów</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -2738,6 +2688,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
         <target state="translated">Zestaw analizatora „{0}” odwołuje się do wersji „{1}” kompilatora, która jest nowsza niż obecnie uruchomiona wersja „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
+        <source>The query does not specify '{0}' method or top-level function</source>
+        <target state="translated">Zapytanie nie określa metody „{0}” ani funkcji najwyższego poziomu</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2793,6 +2748,16 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Nie można odczytać pliku źródłowego „{0}” lub pliku PDB skompilowanego dla projektu, w którym jest on zawarty. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_type_0_1">
+        <source>Unable to load type '{0}': '{1}'</source>
+        <target state="translated">Nie można załadować typu „{0}”: „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2877,7 +2842,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Unwrap_collection">
         <source>Unwrap collection</source>
-        <target state="new">Unwrap collection</target>
+        <target state="translated">Odpakuj kolekcję</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -2990,6 +2955,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Aktualizowanie rozmiaru elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="translated">Aktualizacja typu {0} (z „{1}” na „{2}”) dotycząca aktywnej instrukcji wymaga ponownego uruchomienia aplikacji.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">Aktualizacja typu elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
@@ -3052,7 +3022,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Wrap_collection">
         <source>Wrap collection</source>
-        <target state="new">Wrap collection</target>
+        <target state="translated">Zwiń kolekcję</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -3087,7 +3057,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Wrap_long_collection">
         <source>Wrap long collection</source>
-        <target state="new">Wrap long collection</target>
+        <target state="translated">Zwiń długą kolekcję</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3491,9 +3461,14 @@ Jeśli specyfikator formatu „H” zostanie użyty bez innych indywidualnych sp
         <target state="translated">i aktualizowanie miejsc wywoływania bezpośrednio</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="new">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">klasa z układem jawnie lub sekwencyjnym</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3672,6 +3647,11 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
         <target state="translated">w źródle (atrybut)</target>
         <note />
       </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="new">&lt;interface name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
         <target state="translated">na wyodrębnioną metodę do wywołania w miejscach wywoływania</target>
@@ -3790,6 +3770,11 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Niestandardowy specyfikator formatu „MMMM” reprezentuje pełną nazwę miesiąca. Zlokalizowana nazwa miesiąca jest pobierana z właściwości DateTimeFormatInfo.MonthNames bieżącej lub określonej kultury.</target>
         <note />
       </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="new">&lt;namespace name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="overload">
         <source>overload</source>
         <target state="translated">przeciążenie</target>
@@ -3833,11 +3818,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">Nie można wyodrębnić interfejsu: typ nie zawiera żadnej składowa, która może zostać wyodrębniona do interfejsu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">nie można utworzyć drzewa końcowego</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
@@ -3890,16 +3870,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Generuj konstruktor delegowania „{0}({1})”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Generuj konstruktor „{0}({1})”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Generuj konstruktor przypisujący pola „{0}({1})”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Generuj element Equals i GetHashCode</target>
@@ -3915,21 +3885,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Generuj element GetHashCode()</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">Generuj konstruktor w elemencie „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Generuj wszystko</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">Generuj lokalny element „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">Generuj element {0} „{1}” w nowym pliku</target>
@@ -3938,21 +3893,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
         <target state="translated">Generuj zagnieżdżony element {0} „{1}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Implementuj interfejs abstrakcyjnie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementuj interfejs za pomocą elementu „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Zaimplementuj interfejs</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -4094,11 +4034,6 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
         <target state="translated">Zwraca:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Wyjątki:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
         <target state="translated">Uwagi:</target>
@@ -4235,16 +4170,6 @@ Czy chcesz kontynuować?</target>
         <target state="translated">Uwaga: naciśnij dwa razy klawisz Tab, aby wstawić fragment kodu „{0}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Jawnie implementuj interfejs za pomocą wzorca likwidacji</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementuj interfejs za pomocą wzorca likwidacji</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">Trwa obliczanie poprawki kodu naprawiającej wszystkie obliczenia...</target>
@@ -4268,16 +4193,6 @@ Czy chcesz kontynuować?</target>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Rozwiązanie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: Wyczyścić stan zarządzany (obiekty zarządzane)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: Ustawić wartość null dla dużych pól</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -4630,11 +4545,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Zainstaluj wersję „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">Generuj zmienną „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Classes">
         <source>Classes</source>
         <target state="translated">Klasy</target>
@@ -4845,11 +4755,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Usuń separatory</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor">
-        <source>Generate constructor...</source>
-        <target state="translated">Generuj konstruktor...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">
         <source>Pick members to be used as constructor parameters</source>
         <target state="translated">Wybierz składowe, które zostaną użyte jako parametry konstruktora</target>
@@ -4896,8 +4801,8 @@ Ta wersja jest używana wersja: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks">
-        <source>Add null checks</source>
-        <target state="translated">Dodaj sprawdzenia wartości null</target>
+        <source>Add _null checks</source>
+        <target state="needs-review-translation">Dodaj sprawdzenia wartości null</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

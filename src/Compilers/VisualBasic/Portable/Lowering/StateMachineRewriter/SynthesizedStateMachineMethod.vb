@@ -208,10 +208,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Inherit some attributes from the kickoff method
                 Dim kickoffMethod = StateMachineType.KickoffMethod
                 For Each attribute In kickoffMethod.GetAttributes()
-                    If attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerHiddenAttribute) OrElse
-                       attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerNonUserCodeAttribute) OrElse
-                       attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepperBoundaryAttribute) OrElse
-                       attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepThroughAttribute) Then
+                    If attribute.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) OrElse
+                       attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) OrElse
+                       attribute.IsTargetAttribute(AttributeDescription.DebuggerStepperBoundaryAttribute) OrElse
+                       attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute) Then
                         If builder Is Nothing Then
                             builder = ArrayBuilder(Of VisualBasicAttributeData).GetInstance(4) ' only 4 different attributes are inherited at the moment
                         End If

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions
 {
@@ -25,37 +22,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
             if (symbol == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var codeProject = document.GetCodeProject();
             var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
             if (formatter == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
             if (symbolDisplayService == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             // Any code document will do
             var codeDocument = codeProject.Documents.FirstOrDefault();
             if (codeDocument == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var semanticModel = await codeDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var services = codeProject.Solution.Services;
-            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
+            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, [symbol], options, cancellationToken).ConfigureAwait(false);
             var builder = new List<TaggedText>();
             foreach (var section in quickInfo.Sections)
             {

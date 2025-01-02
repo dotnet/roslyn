@@ -9,53 +9,52 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToAsync
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToAsync;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    EmptyDiagnosticAnalyzer,
+    CSharpConvertToAsyncMethodCodeFixProvider>;
+
+public sealed class ConvertToAsyncTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        EmptyDiagnosticAnalyzer,
-        CSharpConvertToAsyncMethodCodeFixProvider>;
-
-    public sealed class ConvertToAsyncTests
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
+    public async Task CantAwaitAsyncVoid()
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
-        public async Task CantAwaitAsyncVoid()
-        {
-            var initial =
-                """
-                using System.Threading.Tasks;
+        var initial =
+            """
+            using System.Threading.Tasks;
 
-                class Program
+            class Program
+            {
+                async Task rtrt()
                 {
-                    async Task rtrt()
-                    {
-                        {|CS4008:await gt()|};
-                    }
-
-                    async void gt()
-                    {
-                    }
+                    {|CS4008:await gt()|};
                 }
-                """;
 
-            var expected =
-                """
-                using System.Threading.Tasks;
-
-                class Program
+                async void gt()
                 {
-                    async Task rtrt()
-                    {
-                        await gt();
-                    }
-
-                    async 
-                    Task
-                gt()
-                    {
-                    }
                 }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(initial, expected);
-        }
+            }
+            """;
+
+        var expected =
+            """
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                async Task rtrt()
+                {
+                    await gt();
+                }
+
+                async 
+                Task
+            gt()
+                {
+                }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(initial, expected);
     }
 }

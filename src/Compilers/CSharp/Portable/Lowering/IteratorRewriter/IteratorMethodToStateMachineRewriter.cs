@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -60,12 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, originalMethod, state, instanceIdField, hoistedVariables, nonReusableLocalProxies, nonReusableFieldsForCleanup, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _current = current;
 
@@ -73,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable disable
-        protected override string EncMissingStateMessage
-            => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
+        protected sealed override HotReloadExceptionCode EncMissingStateErrorCode
+            => HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod;
 
         protected override StateMachineState FirstIncreasingResumableState
             => StateMachineState.FirstResumableIteratorState;
@@ -146,15 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = F.Fault((BoundBlock)newBody, faultBlock);
             }
 
-            newBody = F.SequencePoint(body.Syntax, HandleReturn(newBody));
-
-            if (instrumentation != null)
-            {
-                newBody = F.Block(
-                    ImmutableArray.Create(instrumentation.Local),
-                    instrumentation.Prologue,
-                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
-            }
+            newBody = F.Instrument(F.SequencePoint(body.Syntax, HandleReturn(newBody)), instrumentation);
 
             F.CloseMethod(newBody);
 
@@ -167,7 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rootFrame.knownStates == null)
             {
                 // nothing to finalize
-                F.CloseMethod(F.Return());
+                var disposeBody = F.Block(
+                                    GenerateAllHoistedLocalsCleanup(),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
+                                    F.Return());
+
+                F.CloseMethod(disposeBody);
             }
             else
             {
@@ -178,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ImmutableArray.Create<LocalSymbol>(stateLocal),
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
+                                    GenerateAllHoistedLocalsCleanup(),
+                                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)),
                                     F.Return());
 
                 F.CloseMethod(disposeBody);
@@ -464,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
+            if (slotAllocator?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;
             }

@@ -4,24 +4,16 @@
 
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal sealed partial class SourceGeneratedFileItem
 {
-    internal sealed partial class SourceGeneratedFileItem
+    private sealed class BrowseObject(SourceGeneratedFileItem sourceGeneratedFileItem) : LocalizableProperties
     {
-        private class BrowseObject : LocalizableProperties
-        {
-            private readonly SourceGeneratedFileItem _sourceGeneratedFileItem;
+        [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
+        public string Name => sourceGeneratedFileItem.HintName;
 
-            public BrowseObject(SourceGeneratedFileItem sourceGeneratedFileItem)
-            {
-                _sourceGeneratedFileItem = sourceGeneratedFileItem;
-            }
-
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
-            public string Name => _sourceGeneratedFileItem.HintName;
-
-            public override string GetClassName() => SolutionExplorerShim.Source_Generated_File_Properties;
-            public override string GetComponentName() => _sourceGeneratedFileItem.HintName;
-        }
+        public override string GetClassName() => SolutionExplorerShim.Source_Generated_File_Properties;
+        public override string GetComponentName() => sourceGeneratedFileItem.HintName;
     }
 }

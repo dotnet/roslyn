@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.NamingStyles
     <Trait(Traits.Feature, Traits.Features.NamingStyle)>
     Public Class NamingStylesTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private Shared ReadOnly s_options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
 

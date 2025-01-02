@@ -7,35 +7,37 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
+
+public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpWrappingCodeRefactoringProvider();
+
+    protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
+
+    private protected TestParameters GetIndentionColumn(int column)
+        => new(options: Option(FormattingOptions2.WrappingColumn, column));
+
+    protected Task TestAllWrappingCasesAsync(
+        string input,
+        params string[] outputs)
     {
-        protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+        return TestAllWrappingCasesAsync(input, parameters: null, outputs);
+    }
 
-        private protected TestParameters GetIndentionColumn(int column)
-            => new(globalOptions: Option(CodeActionOptionsStorage.WrappingColumn, column));
-
-        protected Task TestAllWrappingCasesAsync(
-            string input,
-            params string[] outputs)
-        {
-            return TestAllWrappingCasesAsync(input, parameters: null, outputs);
-        }
-
-        private protected Task TestAllWrappingCasesAsync(
-            string input,
-            TestParameters parameters,
-            params string[] outputs)
-        {
-            return TestAllInRegularAndScriptAsync(input, parameters, outputs);
-        }
+    private protected Task TestAllWrappingCasesAsync(
+        string input,
+        TestParameters parameters,
+        params string[] outputs)
+    {
+        return TestAllInRegularAndScriptAsync(input, parameters, outputs);
     }
 }

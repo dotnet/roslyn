@@ -29,6 +29,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.AddFileBanner
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -509,7 +510,6 @@ End Class
 
         Private Shared Async Function TestThirdPartyCodeFixer(Of TCodefix As {CodeFixProvider, New}, TAnalyzer As {DiagnosticAnalyzer, New})(expected As String, code As String, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Warning) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf.AddParts(GetType(TCodefix)))
-                Dim options = CodeActionOptions.DefaultProvider
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim map = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
                     {
@@ -528,10 +528,6 @@ End Class
                 project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath:="z:\\.editorconfig").Project
                 workspace.TryApplyChanges(project.Solution)
 
-                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
-
                 Dim hostdoc = workspace.Documents.[Single]()
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
@@ -543,7 +539,6 @@ End Class
                     document,
                     enabledDiagnostics,
                     CodeAnalysisProgress.None,
-                    options,
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()
@@ -566,10 +561,10 @@ End Class
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
 
-                ' must set global options since incremental analyzer infra reads from global options
-                Dim globalOptions = workspace.GlobalOptions
-                globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)
-                globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst)
+                workspace.SetAnalyzerFallbackOptions(New OptionsCollection(LanguageNames.VisualBasic) From {
+                    {GenerationOptions.SeparateImportDirectiveGroups, separateImportsGroups},
+                    {GenerationOptions.PlaceSystemNamespaceFirst, systemImportsFirst}
+                })
 
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
@@ -579,10 +574,6 @@ End Class
                 })
 
                 workspace.TryApplyChanges(solution)
-
-                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
 
                 Dim hostdoc = workspace.Documents.[Single]()
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
@@ -595,7 +586,6 @@ End Class
                     document,
                     enabledDiagnostics,
                     CodeAnalysisProgress.None,
-                    globalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

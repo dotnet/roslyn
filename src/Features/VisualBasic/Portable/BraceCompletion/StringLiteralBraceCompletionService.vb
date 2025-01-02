@@ -7,11 +7,10 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.BraceCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
-    <Export(LanguageNames.VisualBasic, GetType(IBraceCompletionService)), [Shared]>
-    Friend Class StringLiteralBraceCompletionService
+    <ExportBraceCompletionService(LanguageNames.VisualBasic), [Shared]>
+    Friend NotInheritable Class StringLiteralBraceCompletionService
         Inherits AbstractVisualBasicBraceCompletionService
 
         <ImportingConstructor>

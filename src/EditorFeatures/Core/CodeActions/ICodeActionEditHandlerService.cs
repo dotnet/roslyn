@@ -8,22 +8,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 
-namespace Microsoft.CodeAnalysis.CodeActions
+namespace Microsoft.CodeAnalysis.CodeActions;
+
+internal interface ICodeActionEditHandlerService
 {
-    internal interface ICodeActionEditHandlerService
-    {
-        ITextBufferAssociatedViewService AssociatedViewService { get; }
+    ITextBufferAssociatedViewService AssociatedViewService { get; }
 
-        Task<SolutionPreviewResult?> GetPreviewsAsync(
-            Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken);
+    Task<SolutionPreviewResult?> GetPreviewsAsync(
+        Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken);
 
-        Task<bool> ApplyAsync(
-            Workspace workspace,
-            Solution originalSolution,
-            Document? fromDocument,
-            ImmutableArray<CodeActionOperation> operations,
-            string title,
-            IProgress<CodeAnalysisProgress> progressTracker,
-            CancellationToken cancellationToken);
-    }
+    Task<bool> ApplyAsync(
+        Workspace workspace,
+        Solution originalSolution,
+        Document? fromDocument,
+        ImmutableArray<CodeActionOperation> operations,
+        string title,
+        IProgress<CodeAnalysisProgress> progressTracker,
+        CancellationToken cancellationToken);
 }

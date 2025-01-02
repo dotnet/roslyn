@@ -4,16 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
@@ -22,10 +17,12 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
     [ExportVisualStudioStorageReadFallback("csharp_space_between_parentheses"), Shared]
     internal sealed class SpaceBetweenParentheses : IVisualStudioStorageReadFallback
     {
-        private static readonly ImmutableArray<(string key, int flag)> s_storages = ImmutableArray.Create(
+        private static readonly ImmutableArray<(string key, int flag)> s_storages =
+        [
             ("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses", (int)SpacePlacementWithinParentheses.Expressions),
             ("TextEditor.CSharp.Specific.SpaceWithinCastParentheses", (int)SpacePlacementWithinParentheses.TypeCasts),
-            ("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses", (int)SpacePlacementWithinParentheses.ControlFlowStatements));
+            ("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses", (int)SpacePlacementWithinParentheses.ControlFlowStatements),
+        ];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -40,7 +37,8 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
     [ExportVisualStudioStorageReadFallback("csharp_new_line_before_open_brace"), Shared]
     internal sealed class NewLinesForBraces : IVisualStudioStorageReadFallback
     {
-        private static readonly ImmutableArray<(string key, int flag)> s_storages = ImmutableArray.Create(
+        private static readonly ImmutableArray<(string key, int flag)> s_storages =
+        [
             ("TextEditor.CSharp.Specific.NewLinesForBracesInTypes", (int)NewLineBeforeOpenBracePlacement.Types),
             ("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes", (int)NewLineBeforeOpenBracePlacement.AnonymousTypes),
             ("TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers", (int)NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers),
@@ -49,7 +47,8 @@ internal static class CSharpVisualStudioOptionStorageReadFallbacks
             ("TextEditor.CSharp.Specific.NewLinesForBracesInAccessors", (int)NewLineBeforeOpenBracePlacement.Accessors),
             ("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousMethods", (int)NewLineBeforeOpenBracePlacement.AnonymousMethods),
             ("TextEditor.CSharp.Specific.NewLinesForBracesInLambdaExpressionBody", (int)NewLineBeforeOpenBracePlacement.LambdaExpressionBody),
-            ("TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks", (int)NewLineBeforeOpenBracePlacement.ControlBlocks));
+            ("TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks", (int)NewLineBeforeOpenBracePlacement.ControlBlocks),
+        ];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

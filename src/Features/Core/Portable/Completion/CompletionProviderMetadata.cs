@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+internal sealed class CompletionProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
 {
-    internal sealed class CompletionProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
-    {
-        public string[]? Roles { get; } = (string[]?)data.GetValueOrDefault("Roles")
-                ?? (string[]?)data.GetValueOrDefault("TextViewRoles");
-    }
+    public string[]? Roles { get; } = (string[]?)data.GetValueOrDefault("Roles")
+            ?? (string[]?)data.GetValueOrDefault("TextViewRoles");
 }

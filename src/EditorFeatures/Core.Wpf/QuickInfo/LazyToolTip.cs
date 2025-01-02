@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -18,9 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.
         /// </summary>
-        private class LazyToolTip : ForegroundThreadAffinitizedObject
+        private sealed class LazyToolTip
         {
             private readonly Func<DisposableToolTip> _createToolTip;
+            private readonly IThreadingContext _threadingContext;
             private readonly FrameworkElement _element;
 
             private DisposableToolTip _disposableToolTip;
@@ -29,10 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 IThreadingContext threadingContext,
                 FrameworkElement element,
                 Func<DisposableToolTip> createToolTip)
-                : base(threadingContext, assertIsForeground: true)
             {
+                _threadingContext = threadingContext;
                 _element = element;
                 _createToolTip = createToolTip;
+
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 // Set ourselves as the tooltip of this text block.  This will let WPF know that 
                 // it should attempt to show tooltips here.  When WPF wants to show the tooltip 
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             {
                 try
                 {
-                    AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
 
                     Debug.Assert(_element.ToolTip == this);
                     Debug.Assert(_disposableToolTip == null);
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             {
                 try
                 {
-                    AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
 
                     Debug.Assert(_disposableToolTip != null);
                     Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);

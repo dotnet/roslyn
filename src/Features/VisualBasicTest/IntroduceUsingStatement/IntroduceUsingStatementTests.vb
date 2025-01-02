@@ -3,16 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IntroduceUsingStatement
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)>
     Public NotInheritable Class IntroduceUsingStatementTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(ByVal workspace As Workspace, ByVal parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicIntroduceUsingStatementCodeRefactoringProvider
         End Function
 
@@ -745,6 +745,34 @@ Class C
             End Try
         End Using
     End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")>
+        Public Async Function TestExpressionStatement() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+
+Class C
+    Sub M()
+        [||]MethodThatReturnsDisposable()
+        Console.WriteLine()
+    End Sub
+
+    Function MethodThatReturnsDisposable() as IDisposable
+    End Function
+End Class",
+"Imports System
+
+Class C
+    Sub M()
+        Using MethodThatReturnsDisposable()
+            Console.WriteLine()
+        End Using
+    End Sub
+
+    Function MethodThatReturnsDisposable() as IDisposable
+    End Function
 End Class")
         End Function
     End Class

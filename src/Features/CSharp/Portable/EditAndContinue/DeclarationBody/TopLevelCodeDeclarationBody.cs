@@ -27,7 +27,7 @@ internal sealed class TopLevelCodeDeclarationBody(CompilationUnitSyntax unit) : 
         => unit.SyntaxTree;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, GlobalStatements.Last().Statement)!.Captured;
+        => model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, GlobalStatements.Last().Statement)!.CapturedInside;
 
     public override TextSpan Envelope
         => TextSpan.FromBounds(unit.Members[0].SpanStart, GlobalStatements.Last().Span.End);

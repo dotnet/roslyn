@@ -3,52 +3,47 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal partial class FormatCommandHandler
 {
-    internal partial class FormatCommandHandler
+    public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        => nextHandler();
+
+    public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
-            => nextHandler();
+        using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
+        var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
-        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        nextHandler();
+
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        try
         {
-            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-
-            nextHandler();
-
-            var cancellationToken = context.OperationContext.UserCancellationToken;
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            try
-            {
-                ExecuteCommandWorker(args, caretPosition, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // According to Editor command handler API guidelines, it's best if we return early if cancellation
-                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
-                // calling nextHandler().
-            }
+            _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandWorkerAsync());
+        }
+        catch (OperationCanceledException)
+        {
+            // According to Editor command handler API guidelines, it's best if we return early if cancellation
+            // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+            // calling nextHandler().
         }
 
-        private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
+        return;
+
+        async Task ExecuteCommandWorkerAsync()
         {
             if (!caretPosition.HasValue)
                 return;
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
 
             // Note: C# always completes synchronously, TypeScript is async
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            var changes = await formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).ConfigureAwait(true);
             if (changes.IsEmpty)
                 return;
 

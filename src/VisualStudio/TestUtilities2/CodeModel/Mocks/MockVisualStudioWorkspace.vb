@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -24,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
     Friend Class MockVisualStudioWorkspace
         Inherits VisualStudioWorkspaceImpl
 
-        Private _workspace As TestWorkspace
+        Private _workspace As EditorTestWorkspace
 
         <ImportingConstructor>
         <System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be marked with 'ObsoleteAttribute'", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -33,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         End Sub
 
-        Public Sub SetWorkspace(testWorkspace As TestWorkspace)
+        Public Sub SetWorkspace(testWorkspace As EditorTestWorkspace)
             _workspace = testWorkspace
             SetCurrentSolutionEx(testWorkspace.CurrentSolution)
 
@@ -80,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             Throw New NotImplementedException()
         End Sub
 
-        Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
+        Friend Overrides Function GetBrowseObjectAsync(symbolListItem As SymbolListItem, cancellationToken As CancellationToken) As Task(Of Object)
             Throw New NotImplementedException()
         End Function
 
@@ -93,10 +94,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
         Implements IInvisibleEditor
 
         Private ReadOnly _documentId As DocumentId
-        Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _workspace As EditorTestWorkspace
         Private ReadOnly _needsClose As Boolean
 
-        Public Sub New(documentId As DocumentId, workspace As TestWorkspace)
+        Public Sub New(documentId As DocumentId, workspace As EditorTestWorkspace)
             Me._documentId = documentId
             Me._workspace = workspace
 

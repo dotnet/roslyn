@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInEmptyStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -329,8 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestBeforeStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -340,8 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -351,8 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterBlock(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -363,8 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterIf(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -374,8 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterDo(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -385,8 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterWhile(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -396,8 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterFor(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -407,8 +398,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterForeach(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(

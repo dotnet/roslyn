@@ -8,177 +8,185 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
+namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
+
+[Export]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class EventHookupSessionManager(
+    IThreadingContext threadingContext,
+    IToolTipService toolTipService)
 {
-    [Export]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed partial class EventHookupSessionManager(
-        IThreadingContext threadingContext,
-        IToolTipService toolTipService,
-        IGlobalOptionService globalOptions)
+    public readonly IThreadingContext ThreadingContext = threadingContext;
+    private readonly IToolTipService _toolTipService = toolTipService;
+
+    private IToolTipPresenter _toolTipPresenter;
+
+    private EventHookupSession _currentSessionDoNotAccessDirectly;
+
+    internal EventHookupSession CurrentSession
     {
-        public readonly IThreadingContext ThreadingContext = threadingContext;
-        private readonly IToolTipService _toolTipService = toolTipService;
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
-
-        private IToolTipPresenter _toolTipPresenter;
-
-        internal EventHookupSession CurrentSession { get; set; }
-
-        // For test purposes only!
-        internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
-
-        internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
+        get
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-
-            var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
-
-            // only generate tooltip if it is not already shown (_toolTipPresenter == null)
-            // Ensure the analyzed session matches the current session and that the caret is still
-            // in the session's tracking span.
-            if (_toolTipPresenter == null &&
-                CurrentSession == analyzedSession &&
-                caretPoint.HasValue &&
-                IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.TextView.TextSnapshot, caretPoint.Value))
-            {
-                // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
-                _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
-                    new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
-
-                // tooltips text is: Program_MyEvents;      (Press TAB to insert)
-                // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
-                var textRuns = new[]
-                {
-                    new ClassifiedTextRun(ClassificationTypeNames.MethodName, analyzedSession.GetEventNameTask.Result, ClassifiedTextRunStyle.UseClassificationFont),
-                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
-                };
-                var content = new[] { new ClassifiedTextElement(textRuns) };
-
-                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
-
-                // For test purposes only!
-                TEST_MostRecentToolTipContent = content;
-
-                // Watch all text buffer changes & caret moves while this event hookup session is active
-                analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
-                CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
-
-                analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
-                CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
-            }
+            return _currentSessionDoNotAccessDirectly;
         }
 
-        private static bool IsCaretWithinSpanOrAtEnd(ITrackingSpan trackingSpan, ITextSnapshot textSnapshot, SnapshotPoint caretPoint)
-        {
-            var snapshotSpan = trackingSpan.GetSpan(textSnapshot);
-
-            // If the caret is within the span, then we want to show the tooltip
-            if (snapshotSpan.Contains(caretPoint))
-            {
-                return true;
-            }
-
-            // Otherwise if the span is empty, and at the end of the file, and the caret
-            // is also at the end of the file, then show the tooltip.
-            if (snapshotSpan.IsEmpty &&
-                snapshotSpan.Start.Position == caretPoint.Position &&
-                caretPoint.Position == textSnapshot.Length)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        internal void BeginSession(
-            EventHookupCommandHandler eventHookupCommandHandler,
-            ITextView textView,
-            ITextBuffer subjectBuffer,
-            IAsynchronousOperationListener asyncListener,
-            Mutex testSessionHookupMutex)
-        {
-            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
-        }
-
-        internal void CancelAndDismissExistingSessions()
+        set
         {
             ThreadingContext.ThrowIfNotOnUIThread();
+            _currentSessionDoNotAccessDirectly?.CancelBackgroundTasks();
+            _currentSessionDoNotAccessDirectly = value;
+        }
+    }
 
-            if (CurrentSession != null)
-            {
-                CurrentSession.Cancel();
-                CurrentSession = null;
-            }
+    // For test purposes only!
+    internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-            if (_toolTipPresenter != null)
+    public async Task EventHookupFoundInSessionAsync(
+        EventHookupSession analyzedSession, string eventName, CancellationToken cancellationToken)
+    {
+        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
+
+        // only generate tooltip if it is not already shown (_toolTipPresenter == null)
+        // Ensure the analyzed session matches the current session and that the caret is still
+        // in the session's tracking span.
+        if (_toolTipPresenter == null &&
+            CurrentSession == analyzedSession &&
+            caretPoint.HasValue &&
+            IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.SubjectBuffer.CurrentSnapshot, caretPoint.Value))
+        {
+            // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
+            _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
+                new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
+
+            // tooltips text is: Program_MyEvents;      (Press TAB to insert)
+            // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
+            var textRuns = new[]
             {
-                _toolTipPresenter.Dismiss();
-                _toolTipPresenter = null;
-            }
+                new ClassifiedTextRun(ClassificationTypeNames.MethodName, eventName, ClassifiedTextRunStyle.UseClassificationFont),
+                new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
+                new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
+            };
+            var content = new[] { new ClassifiedTextElement(textRuns) };
+
+            _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
 
             // For test purposes only!
-            TEST_MostRecentToolTipContent = null;
+            TEST_MostRecentToolTipContent = content;
+
+            // Watch all text buffer changes & caret moves while this event hookup session is active
+            analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
+            CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
+
+            analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
+            CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
+        }
+    }
+
+    private static bool IsCaretWithinSpanOrAtEnd(ITrackingSpan trackingSpan, ITextSnapshot textSnapshot, SnapshotPoint caretPoint)
+    {
+        var snapshotSpan = trackingSpan.GetSpan(textSnapshot);
+
+        // If the caret is within the span, then we want to show the tooltip
+        if (snapshotSpan.Contains(caretPoint))
+        {
+            return true;
         }
 
-        /// <summary>
-        /// If any text is deleted or any non-space text is entered, cancel the session.
-        /// </summary>
-        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        // Otherwise if the span is empty, and at the end of the file, and the caret
+        // is also at the end of the file, then show the tooltip.
+        if (snapshotSpan.IsEmpty &&
+            snapshotSpan.Start.Position == caretPoint.Position &&
+            caretPoint.Position == textSnapshot.Length)
         {
-            ThreadingContext.ThrowIfNotOnUIThread();
-
-            foreach (var change in e.Changes)
-            {
-                if (change.OldText.Length > 0 || change.NewText.Any(c => c != ' '))
-                {
-                    CancelAndDismissExistingSessions();
-                    return;
-                }
-            }
+            return true;
         }
 
-        /// <summary>
-        /// If the caret moves outside the session's tracking span, cancel the session.
-        /// </summary>
-        private void Caret_PositionChanged(object sender, EventArgs e)
-        {
-            ThreadingContext.ThrowIfNotOnUIThread();
+        return false;
+    }
 
-            if (CurrentSession == null)
+    internal void BeginSession(
+        EventHookupCommandHandler eventHookupCommandHandler,
+        ITextView textView,
+        ITextBuffer subjectBuffer,
+        int position,
+        Document document,
+        IAsynchronousOperationListener asyncListener,
+        Mutex testSessionHookupMutex)
+    {
+        CurrentSession = new EventHookupSession(
+            this, eventHookupCommandHandler, textView, subjectBuffer, position, document, asyncListener, testSessionHookupMutex);
+    }
+
+    public void DismissExistingSessions()
+    {
+        ThreadingContext.ThrowIfNotOnUIThread();
+
+        _toolTipPresenter?.Dismiss();
+        _toolTipPresenter = null;
+
+        CurrentSession = null;
+
+        // For test purposes only!
+        TEST_MostRecentToolTipContent = null;
+    }
+
+    /// <summary>
+    /// If any text is deleted or any non-space text is entered, cancel the session.
+    /// </summary>
+    private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+    {
+        ThreadingContext.ThrowIfNotOnUIThread();
+
+        foreach (var change in e.Changes)
+        {
+            if (change.OldText.Length > 0 || change.NewText.Any(c => c != ' '))
             {
-                CancelAndDismissExistingSessions();
+                DismissExistingSessions();
                 return;
             }
+        }
+    }
 
-            var caretPoint = CurrentSession.TextView.GetCaretPoint(CurrentSession.SubjectBuffer);
+    /// <summary>
+    /// If the caret moves outside the session's tracking span, cancel the session.
+    /// </summary>
+    private void Caret_PositionChanged(object sender, EventArgs e)
+    {
+        ThreadingContext.ThrowIfNotOnUIThread();
 
-            if (!caretPoint.HasValue)
-            {
-                CancelAndDismissExistingSessions();
-            }
-
-            var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot);
-            if (snapshotSpan.Snapshot != caretPoint.Value.Snapshot || !snapshotSpan.Contains(caretPoint.Value))
-            {
-                CancelAndDismissExistingSessions();
-            }
+        if (CurrentSession == null)
+        {
+            DismissExistingSessions();
+            return;
         }
 
-        internal bool IsTrackingSession()
-            => CurrentSession != null;
+        var caretPoint = CurrentSession.TextView.GetCaretPoint(CurrentSession.SubjectBuffer);
+
+        if (!caretPoint.HasValue)
+        {
+            DismissExistingSessions();
+        }
+
+        var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.SubjectBuffer.CurrentSnapshot);
+        if (snapshotSpan.Snapshot != caretPoint.Value.Snapshot || !snapshotSpan.Contains(caretPoint.Value))
+        {
+            DismissExistingSessions();
+        }
     }
 }

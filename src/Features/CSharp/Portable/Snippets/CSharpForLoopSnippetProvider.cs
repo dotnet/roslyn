@@ -11,35 +11,30 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpForLoopSnippetProvider() : AbstractCSharpForLoopSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpForLoopSnippetProvider : AbstractCSharpForLoopSnippetProvider
+    public override string Identifier => CSharpSnippetIdentifiers.For;
+
+    public override string Description => CSharpFeaturesResources.for_loop;
+
+    protected override SyntaxKind ConditionKind => SyntaxKind.LessThanExpression;
+
+    protected override SyntaxKind IncrementorKind => SyntaxKind.PostIncrementExpression;
+
+    protected override ExpressionSyntax GenerateInitializerValue(SyntaxGenerator generator, SyntaxNode? inlineExpression)
+        => (ExpressionSyntax)generator.LiteralExpression(0);
+
+    protected override ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression)
+        => (ExpressionSyntax)(inlineExpression ?? generator.IdentifierName("length"));
+
+    protected override void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition)
     {
-        public override string Identifier => "for";
-
-        public override string Description => CSharpFeaturesResources.for_loop;
-
-        protected override SyntaxKind ConditionKind => SyntaxKind.LessThanExpression;
-
-        protected override SyntaxKind IncrementorKind => SyntaxKind.PostIncrementExpression;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpForLoopSnippetProvider()
-        {
-        }
-
-        protected override ExpressionSyntax GenerateInitializerValue(SyntaxGenerator generator, SyntaxNode? inlineExpression)
-            => (ExpressionSyntax)generator.LiteralExpression(0);
-
-        protected override ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression)
-            => (ExpressionSyntax)(inlineExpression ?? generator.IdentifierName("length"));
-
-        protected override void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition)
-        {
-            if (!ConstructedFromInlineExpression)
-                placeholderBuilder.Add(rightOfCondition.ToString(), rightOfCondition.SpanStart);
-        }
+        if (!ConstructedFromInlineExpression)
+            placeholderBuilder.Add(rightOfCondition.ToString(), rightOfCondition.SpanStart);
     }
 }

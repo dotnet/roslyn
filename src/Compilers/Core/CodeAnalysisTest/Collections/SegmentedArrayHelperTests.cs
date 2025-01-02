@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class SegmentedArrayHelperTests
     {
+        [StructLayout(LayoutKind.Sequential, Size = 1)]
+        private struct Size1 { }
+
         [StructLayout(LayoutKind.Sequential, Size = 2)]
         private struct Size2 { }
 
@@ -44,10 +47,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [StructLayout(LayoutKind.Sequential, Size = 40)]
         private struct Size40 { }
 
+        [StructLayout(LayoutKind.Sequential, Size = 64)]
+        private struct Size64 { }
+
         public static IEnumerable<object[]> ExplicitSizeTypes
         {
             get
             {
+                yield return new object[] { typeof(Size1) };
                 yield return new object[] { typeof(Size2) };
                 yield return new object[] { typeof(Size4) };
                 yield return new object[] { typeof(Size8) };
@@ -57,6 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 yield return new object[] { typeof(Size28) };
                 yield return new object[] { typeof(Size32) };
                 yield return new object[] { typeof(Size40) };
+                yield return new object[] { typeof(Size64) };
             }
         }
 

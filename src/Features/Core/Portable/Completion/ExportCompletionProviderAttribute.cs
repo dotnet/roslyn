@@ -5,18 +5,17 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.CodeAnalysis.Completion;
+
+/// <summary>
+/// Use this attribute to export a <see cref="CompletionProvider"/> so that it will
+/// be found and used by the per language associated <see cref="CompletionService"/>.
+/// </summary>
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public sealed class ExportCompletionProviderAttribute(string name, string language) : ExportAttribute(typeof(CompletionProvider))
 {
-    /// <summary>
-    /// Use this attribute to export a <see cref="CompletionProvider"/> so that it will
-    /// be found and used by the per language associated <see cref="CompletionService"/>.
-    /// </summary>
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public sealed class ExportCompletionProviderAttribute(string name, string language) : ExportAttribute(typeof(CompletionProvider))
-    {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
-        public string[]? Roles { get; set; }
-    }
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
+    public string[]? Roles { get; set; }
 }

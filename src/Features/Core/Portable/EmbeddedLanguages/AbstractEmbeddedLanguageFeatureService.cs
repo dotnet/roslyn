@@ -24,7 +24,7 @@ internal abstract class AbstractEmbeddedLanguageFeatureService<TService>
     /// <summary>
     /// The kinds of literal tokens that we want to do embedded language work for.
     /// </summary>
-    protected readonly HashSet<int> SyntaxTokenKinds = new();
+    protected readonly HashSet<int> SyntaxTokenKinds = [];
 
     /// <summary>
     /// Services that can annotated older APIs not updated to use the [StringSyntax] attribute.

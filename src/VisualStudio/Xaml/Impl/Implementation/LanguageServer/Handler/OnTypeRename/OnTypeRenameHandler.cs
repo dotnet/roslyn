@@ -7,11 +7,10 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename;
 using Roslyn.Utilities;
 
@@ -90,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             return new LinkedEditingRanges
             {
-                Ranges = result.Ranges.Select(s => ProtocolConversions.TextSpanToRange(s, text)).ToArray(),
+                Ranges = [.. result.Ranges.Select(s => ProtocolConversions.TextSpanToRange(s, text))],
                 WordPattern = result.WordPattern
             };
         }

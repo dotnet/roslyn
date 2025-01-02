@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
-        private readonly string[] _secondaryBufferFileExtensions = new string[] { ".cshtml", ".razor", ".html", ".aspx", ".vue" };
+        private readonly string[] _secondaryBufferFileExtensions = [".cshtml", ".razor", ".html", ".aspx", ".vue"];
         private readonly CSharpLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
@@ -40,13 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         {
             if (!_remoteLanguageServiceWorkspace.IsRemoteSession)
             {
-                return ImmutableArray<ProjectInfo>.Empty;
+                return [];
             }
 
             var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
-                return ImmutableArray<ProjectInfo>.Empty;
+                return [];
             }
 
             CustomProtocol.Project[] projects;
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
 
             if (projects == null)
             {
-                return ImmutableArray<ProjectInfo>.Empty;
+                return [];
             }
 
             var projectInfos = ImmutableArray.CreateBuilder<ProjectInfo>();
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     .Where(f => !_secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray(), _remoteLanguageServiceWorkspace.Services.SolutionServices);
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, [.. files.Select(f => f.LocalPath)], _remoteLanguageServiceWorkspace.Services.SolutionServices);
                 projectInfos.Add(projectInfo);
             }
 
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     name: projectName,
                     assemblyName: projectName,
                     language,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm),
                 documents: docInfos);
         }

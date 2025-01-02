@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,119 +20,167 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
+
+using static CodeFixHelpers;
+using static CSharpSyntaxTokens;
+using static CSharpUseRangeOperatorDiagnosticAnalyzer;
+using static Helpers;
+using static SyntaxFactory;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseRangeOperator), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    using static CodeFixHelpers;
-    using static CSharpUseRangeOperatorDiagnosticAnalyzer;
-    using static Helpers;
-    using static SyntaxFactory;
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+        [IDEDiagnosticIds.UseRangeOperatorDiagnosticId];
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseRangeOperator), Shared]
-    internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpUseRangeOperatorCodeFixProvider()
+        RegisterCodeFix(context, CSharpAnalyzersResources.Use_range_operator, nameof(CSharpAnalyzersResources.Use_range_operator));
+        return Task.CompletedTask;
+    }
+
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var invocationNodes = diagnostics
+            .Select(d => GetInvocationExpression(d, cancellationToken))
+            .OrderByDescending(i => i.SpanStart)
+            .ToImmutableArray();
+        var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+
+        await editor.ApplyExpressionLevelSemanticEditsAsync(
+            document, invocationNodes,
+            canReplace: (_1, _2) => true,
+            (semanticModel, currentRoot, currentInvocation) =>
+                UpdateInvocation(semanticModel, currentRoot, currentInvocation, syntaxGenerator, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static SyntaxNode UpdateInvocation(
+        SemanticModel semanticModel, SyntaxNode currentRoot,
+        InvocationExpressionSyntax currentInvocation,
+        SyntaxGenerator generator,
+        CancellationToken cancellationToken)
+    {
+        if (semanticModel.GetOperation(currentInvocation, cancellationToken) is IInvocationOperation invocation &&
+            InfoCache.TryCreate(semanticModel.Compilation, out var infoCache) &&
+            AnalyzeInvocation(invocation, infoCache) is { } result)
         {
+            var updatedNode = FixOne(result, generator);
+            if (updatedNode != null)
+                return currentRoot.ReplaceNode(result.Invocation, updatedNode);
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseRangeOperatorDiagnosticId);
+        return currentRoot;
+    }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
+        => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+    private static ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
+    {
+        var invocation = result.Invocation;
+
+        var rangeExpression = CreateRangeExpression(result, generator);
+        var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
+        var arguments = SingletonSeparatedList(argument);
+
+        if (result.MemberInfo.OverloadedMethod == null)
         {
-            RegisterCodeFix(context, CSharpAnalyzersResources.Use_range_operator, nameof(CSharpAnalyzersResources.Use_range_operator));
-            return Task.CompletedTask;
-        }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
-                                             .OrderByDescending(i => i.SpanStart)
-                                             .ToImmutableArray();
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-
-            await editor.ApplyExpressionLevelSemanticEditsAsync(
-                document, invocationNodes,
-                canReplace: (_1, _2) => true,
-                (semanticModel, currentRoot, currentInvocation) =>
-                    UpdateInvocation(semanticModel, currentRoot, currentInvocation, syntaxGenerator, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private static SyntaxNode UpdateInvocation(
-            SemanticModel semanticModel, SyntaxNode currentRoot,
-            InvocationExpressionSyntax currentInvocation,
-            SyntaxGenerator generator,
-            CancellationToken cancellationToken)
-        {
-            if (semanticModel.GetOperation(currentInvocation, cancellationToken) is IInvocationOperation invocation &&
-                InfoCache.TryCreate(semanticModel.Compilation, out var infoCache) &&
-                AnalyzeInvocation(invocation, infoCache) is { } result)
+            var argList = invocation.ArgumentList;
+            var argumentList = BracketedArgumentList(
+                    OpenBracketToken.WithTriviaFrom(argList.OpenParenToken),
+                    arguments,
+                    CloseBracketToken.WithTriviaFrom(argList.CloseParenToken));
+            if (invocation.Expression is MemberBindingExpressionSyntax)
             {
-                var updatedNode = FixOne(result, generator);
-                if (updatedNode != null)
-                    return currentRoot.ReplaceNode(result.Invocation, updatedNode);
+                // x?.Substring(...) -> x?[...]
+                return ElementBindingExpression(argumentList);
             }
 
-            return currentRoot;
-        }
-
-        private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
-            => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-
-        private static ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
-        {
-            var invocation = result.Invocation;
-
-            var rangeExpression = CreateRangeExpression(result, generator);
-            var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
-            var arguments = SingletonSeparatedList(argument);
-
-            if (result.MemberInfo.OverloadedMethodOpt == null)
+            if (invocation.Expression is IdentifierNameSyntax)
             {
-                var argList = invocation.ArgumentList;
-                var argumentList = BracketedArgumentList(
-                        Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
-                        arguments,
-                        Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
-                if (invocation.Expression is MemberBindingExpressionSyntax)
+                // Substring(...) -> this[...]
+                return ElementAccessExpression(ThisExpression(), argumentList);
+            }
+
+            var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                ? memberAccess.Expression // x.Substring(...) -> x[...]
+                : invocation.Expression;
+            return ElementAccessExpression(expression, argumentList);
+        }
+        else
+        {
+            return invocation.ReplaceNode(
+                invocation.ArgumentList,
+                invocation.ArgumentList.WithArguments(arguments));
+        }
+    }
+
+    private static RangeExpressionSyntax CreateRangeExpression(Result result, SyntaxGenerator generator)
+        => result.Kind switch
+        {
+            ResultKind.Computed => CreateComputedRange(result),
+            ResultKind.Constant => CreateConstantRange(result, generator),
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+    private static RangeExpressionSyntax CreateComputedRange(Result result)
+    {
+        var instance = result.InvocationOperation.Instance;
+        var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
+
+        Contract.ThrowIfNull(instance);
+
+        var (startExpr, startFromEnd, endExpr, endFromEnd) = GetComputedRangeData();
+
+        // expressions that the iops point to may be skip certain expressions actually in source (like checked
+        // exprs).  Walk upwards so we grab all of that when producing the final range expression.
+        startExpr = WalkUpCheckedExpressions(startExpr);
+        endExpr = WalkUpCheckedExpressions(endExpr);
+
+        return RangeExpression(
+            startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr?.Parenthesize(),
+            endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr?.Parenthesize());
+
+        (ExpressionSyntax? startExpr, bool startFromEnd, ExpressionSyntax? endExpr, bool endFromEnd) GetComputedRangeData()
+        {
+            if (IsStringRemoveMethod(result.InvocationOperation.TargetMethod))
+            {
+                if (result.Invocation.ArgumentList.Arguments.Count == 1)
                 {
-                    // x?.Substring(...) -> x?[...]
-                    return ElementBindingExpression(argumentList);
+                    if (IsSubtraction(result.InvocationOperation.Arguments[0].Value, out var subtraction) &&
+                        IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                    {
+                        // `string.Remove(string.Length - x)` becomes `string[..^x]`
+                        return (startExpr: null, startFromEnd: false, (ExpressionSyntax)subtraction.RightOperand.Syntax, endFromEnd: true);
+                    }
+                    else
+                    {
+                        // `string.Remove(x)` becomes `string[..x]`
+                        return (startExpr: null, startFromEnd: false, (ExpressionSyntax)result.InvocationOperation.Arguments[0].Value.Syntax, endFromEnd: false);
+                    }
                 }
-
-                if (invocation.Expression is IdentifierNameSyntax)
+                else
                 {
-                    // Substring(...) -> this[...]
-                    return ElementAccessExpression(ThisExpression(), argumentList);
+                    if (IsSubtraction(result.InvocationOperation.Arguments[1].Value, out var subtraction) &&
+                        IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                    {
+                        // `string.Remove(0, string.Length - x)` becomes `string[^x..]`
+                        return ((ExpressionSyntax)subtraction.RightOperand.Syntax, startFromEnd: true, endExpr: null, endFromEnd: false);
+                    }
+                    else
+                    {
+                        // `string.Remove(0, x)` becomes `string[x..]`
+                        return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, endFromEnd: false);
+                    }
                 }
-
-                var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
-                    ? memberAccess.Expression // x.Substring(...) -> x[...]
-                    : invocation.Expression;
-                return ElementAccessExpression(expression, argumentList);
             }
-            else
-            {
-                return invocation.ReplaceNode(
-                    invocation.ArgumentList,
-                    invocation.ArgumentList.WithArguments(arguments));
-            }
-        }
 
-        private static RangeExpressionSyntax CreateRangeExpression(Result result, SyntaxGenerator generator)
-            => result.Kind switch
-            {
-                ResultKind.Computed => CreateComputedRange(result),
-                ResultKind.Constant => CreateConstantRange(result, generator),
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-        private static RangeExpressionSyntax CreateComputedRange(Result result)
-        {
             // We have enough information now to generate `start..end`.  However, this will often
             // not be what the user wants.  For example, generating `start..expr.Length` is not as
             // desirable as `start..`.  Similarly, `start..(expr.Length - 1)` is not as desirable as
@@ -141,10 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             var startOperation = result.Op1;
             var endOperation = result.Op2;
-
-            var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
-            var instance = result.InvocationOperation.Instance;
-            Contract.ThrowIfNull(instance);
 
             // If our start-op is actually equivalent to `expr.Length - val`, then just change our
             // start-op to be `val` and record that we should emit it as `^val`.
@@ -175,59 +218,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 startExpr = null;
             }
 
-            // expressions that the iops point to may be skip certain expressions actually in source (like checked
-            // exprs).  Walk upwards so we grab all of that when producing the final range expression.
-            startExpr = WalkUpCheckedExpressions(startExpr);
-            endExpr = WalkUpCheckedExpressions(endExpr);
-
-            return RangeExpression(
-                startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr?.Parenthesize(),
-                endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr?.Parenthesize());
+            return (startExpr, startFromEnd, endExpr, endFromEnd);
         }
+    }
 
-        [return: NotNullIfNotNull(nameof(expr))]
-        private static ExpressionSyntax? WalkUpCheckedExpressions(ExpressionSyntax? expr)
+    [return: NotNullIfNotNull(nameof(expr))]
+    private static ExpressionSyntax? WalkUpCheckedExpressions(ExpressionSyntax? expr)
+    {
+        while (expr?.Parent is CheckedExpressionSyntax parent)
+            expr = parent;
+
+        return expr;
+    }
+
+    private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)
+    {
+        if (IsStringRemoveMethod(result.InvocationOperation.TargetMethod))
         {
-            while (expr?.Parent is CheckedExpressionSyntax parent)
-                expr = parent;
-
-            return expr;
-        }
-
-        private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)
-        {
-            Contract.ThrowIfNull(result.Op2);
-
-            // the form is s.Slice(constant1, s.Length - constant2).  Want to generate
-            // s[constant1..(constant2-constant1)]
-            var constant1 = GetInt32Value(result.Op1);
-            var constant2 = GetInt32Value(result.Op2);
-
-            return RangeExpression(
-                // If we're starting the range operation from 0, then we can just leave off the start of
-                // the range. i.e. `..end`
-                constant1 == 0 ? null : WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax),
-                IndexExpression((ExpressionSyntax)generator.LiteralExpression(constant2 - constant1)));
-        }
-
-        private static int GetInt32Value(IOperation operation)
-            => (int)operation.ConstantValue.Value!; // Safe as we already confirmed this was an int when making the result.
-
-        /// <summary>
-        /// check if its the form: `expr.Length - value`.  If so, update rangeOperation to then
-        /// point to 'value' so that we can generate '^value'.
-        /// </summary>
-        private static bool IsFromEnd(
-            IPropertySymbol lengthLikeProperty, IOperation instance, ref IOperation rangeOperation)
-        {
-            if (IsSubtraction(rangeOperation, out var subtraction) &&
-                IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+            if (result.Op1 == result.InvocationOperation.Arguments[0].Value)
             {
-                rangeOperation = subtraction.RightOperand;
-                return true;
+                // `string.Remove(x, string.Length - x)` becomes `string[..x]`
+                return RangeExpression(leftOperand: null, WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax));
             }
-
-            return false;
+            else
+            {
+                // `string.Remove(string.Length - x, x)` becomes `string[..^x]`
+                return RangeExpression(leftOperand: null, IndexExpression(WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax)));
+            }
         }
+
+        Contract.ThrowIfNull(result.Op2);
+
+        // the form is s.Slice(constant1, s.Length - constant2).  Want to generate
+        // s[constant1..(constant2-constant1)]
+        var constant1 = GetInt32Value(result.Op1);
+        var constant2 = GetInt32Value(result.Op2);
+
+        return RangeExpression(
+            // If we're starting the range operation from 0, then we can just leave off the start of
+            // the range. i.e. `..end`
+            constant1 == 0 ? null : WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax),
+            IndexExpression((ExpressionSyntax)generator.LiteralExpression(constant2 - constant1)));
+    }
+
+    private static int GetInt32Value(IOperation operation)
+        => (int)operation.ConstantValue.Value!; // Safe as we already confirmed this was an int when making the result.
+
+    /// <summary>
+    /// check if its the form: `expr.Length - value`.  If so, update rangeOperation to then
+    /// point to 'value' so that we can generate '^value'.
+    /// </summary>
+    private static bool IsFromEnd(
+        IPropertySymbol lengthLikeProperty, IOperation instance, ref IOperation rangeOperation)
+    {
+        if (IsSubtraction(rangeOperation, out var subtraction) &&
+            IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+        {
+            rangeOperation = subtraction.RightOperand;
+            return true;
+        }
+
+        return false;
     }
 }

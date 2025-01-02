@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     internal class MockDiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private readonly ArrayBuilder<(DiagnosticData Diagnostic, DiagnosticKind KindFilter)> _diagnosticsWithKindFilter;
-        public readonly List<DocumentId> DocumentsToReanalyze = new();
+        public bool RequestedRefresh;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 AddDiagnostic(diagnostic, diagnosticKind);
         }
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
-            => DocumentsToReanalyze.AddRange(documentIds);
+        public void RequestDiagnosticRefresh()
+            => RequestedRefresh = true;
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();
@@ -61,19 +61,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKind, bool isExplicit, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, DiagnosticKind diagnosticKind, bool isExplicit, CancellationToken cancellationToken)
             => Task.FromResult(_diagnosticsWithKindFilter.Where(d => diagnosticKind == d.KindFilter).Select(d => d.Diagnostic).ToImmutableArray());
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, object id, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(TextDocument document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, DiagnosticKind diagnosticKind, bool isExplicit, CancellationToken cancellationToken)
             => throw new NotImplementedException();
     }
 }

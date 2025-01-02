@@ -8,7 +8,8 @@ docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
-eng/SourceBuild* @dotnet/source-build-internal
+/eng/DotNetBuild.props @dotnet/product-construction
+/eng/SourceBuild* @dotnet/source-build
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide
@@ -21,6 +22,7 @@ src/Compilers/Test/Core/Traits/Traits.cs
 src/EditorFeatures/ @dotnet/roslyn-ide
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
+src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure

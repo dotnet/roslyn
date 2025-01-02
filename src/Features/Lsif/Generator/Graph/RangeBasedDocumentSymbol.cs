@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Build.Logging.StructuredLogger;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
@@ -41,7 +40,7 @@ internal sealed class RangeBasedDocumentSymbol(Id<Range> id, TextSpan span)
 
             if (last.Span.Contains(symbol.Span))
             {
-                last.Children ??= new List<RangeBasedDocumentSymbol>();
+                last.Children ??= [];
                 AddNestedFromDocumentOrderTraversal(last.Children, symbol);
             }
             else

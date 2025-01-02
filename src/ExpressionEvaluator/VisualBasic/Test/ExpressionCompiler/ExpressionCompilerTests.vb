@@ -1131,7 +1131,7 @@ End Class
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="M(y)")
-            Dim parameter = testData.GetMethodData("<>x.<>m0(ByRef Object)").Method.Parameters.Single()
+            Dim parameter = testData.GetMethodData("<>x.<>m0(ByRef Object)").Method.ParameterSymbols.Single()
             Assert.Equal(RefKind.Ref, parameter.RefKind)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -1474,7 +1474,7 @@ Class C
     Shared Sub M(o As C, i As Integer, a As Action, obj As Object)
     End Sub
 End Class"
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(compilation0,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.M")
@@ -4669,7 +4669,7 @@ Class C
             End Sub
     End Sub
 End Class"
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
             WithRuntimeInstance(compilation0,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")

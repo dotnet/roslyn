@@ -21,14 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping;
 internal class CSharpWrappingCodeRefactoringProvider() : AbstractWrappingCodeRefactoringProvider(s_wrappers)
 {
     private static readonly ImmutableArray<ISyntaxWrapper> s_wrappers =
-        ImmutableArray.Create<ISyntaxWrapper>(
+        [
             new CSharpArgumentWrapper(),
             new CSharpParameterWrapper(),
             new CSharpBinaryExpressionWrapper(),
             new CSharpChainedExpressionWrapper(),
             new CSharpInitializerExpressionWrapper(),
-            new CSharpCollectionExpressionWrapper());
+            new CSharpCollectionExpressionWrapper(),
+        ];
 
-    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions)
-        => options.GetCSharpSyntaxWrappingOptions(ideOptions);
+    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options)
+        => options.GetCSharpSyntaxWrappingOptions();
 }

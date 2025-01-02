@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
             If hasGuid Then
                 ' This is an interface with a GuidAttribute, so we will generate the no-parameter TypeIdentifier.
-                Return New SynthesizedAttributeData(ctor, ImmutableArray(Of TypedConstant).Empty, ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
+                Return New SynthesizedAttributeData(TypeManager.ModuleBeingBuilt.Compilation, ctor, ImmutableArray(Of TypedConstant).Empty, ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
             Else
                 ' This is an interface with no GuidAttribute, or some other type, so we will generate the
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
                 If stringType IsNot Nothing Then
                     Dim guidString = TypeManager.GetAssemblyGuidString(UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly)
-                    Return New SynthesizedAttributeData(ctor,
+                    Return New SynthesizedAttributeData(TypeManager.ModuleBeingBuilt.Compilation, ctor,
                         ImmutableArray.Create(New TypedConstant(stringType, TypedConstantKind.Primitive, guidString),
                             New TypedConstant(stringType, TypedConstantKind.Primitive, UnderlyingNamedType.AdaptedNamedTypeSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)

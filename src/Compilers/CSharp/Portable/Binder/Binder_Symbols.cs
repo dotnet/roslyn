@@ -1373,14 +1373,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
-                // Note: lookup won't have reported this, since the arity was correct.
-                // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
-                Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                if (this.IsInsideNameof)
+                {
+                    // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
+                    CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureUnboundGenericTypesInNameof, diagnostics);
 
-                // If the syntax looks like an unbound generic type, then they probably wanted the definition.
-                // Give an error indicating that the syntax is incorrect and then use the definition.
-                // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
-                // outside a typeof.
+                    // From the spec:
+                    //
+                    // Member lookup on an unbound type expression will be performed the same way as for a `this`
+                    // expression within that type declaration.
+                    //
+                    // So we want to just return the originating type symbol as is (e.g. List<T> in nameof(List<>)).
+                    // This is distinctly different than how typeof(List<>) works, where it returns an unbound generic
+                    // type.
+                }
+                else
+                {
+                    // Note: lookup won't have reported this, since the arity was correct.
+                    // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
+
+                    // If the syntax looks like an unbound generic type, then they probably wanted the definition.
+                    // Give an error indicating that the syntax is incorrect and then use the definition.
+                    // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
+                    // outside a typeof.
+                    Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                }
+
                 return type;
             }
             else
@@ -1655,27 +1673,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Symbol GetSpecialTypeMember(SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
+            return GetSpecialTypeMember(this.Compilation, member, diagnostics, syntax);
+        }
+
+        internal static Symbol GetSpecialTypeMember(CSharpCompilation compilation, SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
             Symbol memberSymbol;
-            return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
+            return TryGetSpecialTypeMember(compilation, member, syntax, diagnostics, out memberSymbol)
                 ? memberSymbol
                 : null;
         }
 
-        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, BindingDiagnosticBag diagnostics, out TSymbol symbol)
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, BindingDiagnosticBag diagnostics, out TSymbol symbol, bool isOptional = false)
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
             if (symbol is null)
             {
-                MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                if (!isOptional)
+                {
+                    MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
+                    diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                }
+
                 return false;
             }
 
             var useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(symbol);
             if (useSiteInfo.DiagnosticInfo != null)
             {
-                diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
+                // Report errors only for non-optional members
+                if (isOptional)
+                {
+                    var severity = useSiteInfo.DiagnosticInfo.Severity;
+
+                    // If the member is optional and bad for whatever reason ignore it
+                    if (severity == DiagnosticSeverity.Error)
+                    {
+                        symbol = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
+                }
             }
 
             // No need to track assemblies used by special members or types. They are coming from core library, which 
@@ -2588,9 +2630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next?.GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
         }
 
-        protected AssemblySymbol GetForwardedToAssembly(string fullName, BindingDiagnosticBag diagnostics, Location location)
+        protected AssemblySymbol GetForwardedToAssembly(MetadataTypeName metadataName, BindingDiagnosticBag diagnostics, Location location)
         {
-            var metadataName = MetadataTypeName.FromFullName(fullName);
             foreach (var referencedAssembly in
                 Compilation.Assembly.Modules[0].GetReferencedAssemblySymbols())
             {
@@ -2605,7 +2646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
                         {
                             Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
-                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
+                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, metadataName.FullName, forwardedType.ContainingAssembly.Name);
                         }
                         else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
                         {
@@ -2675,7 +2716,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // File types can't be forwarded, so we won't attempt to determine a file identifier to attach to the metadata name.
             var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity, associatedFileIdentifier: null);
             var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
-            var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
+            var result = GetForwardedToAssembly(
+                MetadataTypeName.FromFullName(fullMetadataName),
+                diagnostics,
+                location);
             if ((object)result != null)
             {
                 return result;
