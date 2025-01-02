@@ -218,10 +218,9 @@ internal static class AddParameterService
         var referencedSymbols = await SymbolFinder.FindReferencesAsync(
             method, invocationDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
 
-        return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
+        return [.. referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                 .OfType<IMethodSymbol>()
-                                .Distinct()
-                                .ToImmutableArray();
+                                .Distinct()];
     }
 
     private static IParameterSymbol CreateParameterSymbol(

@@ -151,9 +151,6 @@
   <data name="Remove_this_qualification" xml:space="preserve">
     <value>Remove 'this' qualification</value>
   </data>
-  <data name="Cannot_determine_valid_range_of_statements_to_extract" xml:space="preserve">
-    <value>Cannot determine valid range of statements to extract</value>
-  </data>
   <data name="Selection_does_not_contain_a_valid_node" xml:space="preserve">
     <value>Selection does not contain a valid node</value>
   </data>
@@ -180,9 +177,6 @@
   </data>
   <data name="The_selected_code_is_inside_an_unsafe_context" xml:space="preserve">
     <value>The selected code is inside an unsafe context.</value>
-  </data>
-  <data name="No_valid_statement_range_to_extract" xml:space="preserve">
-    <value>No valid statement range to extract</value>
   </data>
   <data name="deprecated" xml:space="preserve">
     <value>deprecated</value>

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess;
 internal class UnitTestingReferencesService
 {
     private static readonly IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)> Empty =
-        Enumerable.Empty<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>();
+        [];
 
     internal static async Task<IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>> GetCallerMethodsAsync(
         IAsyncCodeLensDataPointProvider provider,

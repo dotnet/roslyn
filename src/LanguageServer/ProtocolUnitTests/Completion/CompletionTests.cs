@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     {
                         CompletionListSetting = new CompletionListSetting()
                         {
-                            ItemDefaults = new[] { CompletionCapabilityHelper.EditRangePropertyName },
+                            ItemDefaults = [CompletionCapabilityHelper.EditRangePropertyName],
                         },
                         CompletionItemKind = new(),
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { CompletionCapabilityHelper.EditRangePropertyName }
+                            ItemDefaults = [CompletionCapabilityHelper.EditRangePropertyName]
                         },
                         CompletionList = new LSP.VSInternalCompletionListSetting
                         {

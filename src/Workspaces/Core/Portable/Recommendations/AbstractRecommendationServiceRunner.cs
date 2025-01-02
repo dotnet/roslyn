@@ -528,6 +528,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
             => container is not INamedTypeSymbol { IsTupleType: true } namedType
                 ? symbols
-                : symbols.Where(s => s is not IFieldSymbol).Concat(namedType.TupleElements).ToImmutableArray();
+                : [.. symbols.Where(s => s is not IFieldSymbol), .. namedType.TupleElements];
     }
 }

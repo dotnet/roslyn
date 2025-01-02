@@ -75,7 +75,7 @@ public partial class ConvertAutoPropertyToFullPropertyTests
         var symbolSpecification = new SymbolSpecification(
             Guid.NewGuid(),
             "Name",
-            ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
             accessibilityList: default,
             modifiers: default);
 
@@ -95,9 +95,9 @@ public partial class ConvertAutoPropertyToFullPropertyTests
         };
 
         var info = new NamingStylePreferences(
-            ImmutableArray.Create(symbolSpecification),
-            ImmutableArray.Create(namingStyle),
-            ImmutableArray.Create(namingRule));
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
         return info;
     }
@@ -107,7 +107,7 @@ public partial class ConvertAutoPropertyToFullPropertyTests
         var symbolSpecification = new SymbolSpecification(
             Guid.NewGuid(),
             "Name",
-            ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
+            [new SymbolKindOrTypeKind(SymbolKind.Field)],
             accessibilityList: default,
             modifiers: default);
 
@@ -127,9 +127,9 @@ public partial class ConvertAutoPropertyToFullPropertyTests
         };
 
         var info = new NamingStylePreferences(
-            ImmutableArray.Create(symbolSpecification),
-            ImmutableArray.Create(namingStyle),
-            ImmutableArray.Create(namingRule));
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
         return info;
     }
@@ -139,9 +139,9 @@ public partial class ConvertAutoPropertyToFullPropertyTests
         var symbolSpecification = new SymbolSpecification(
             Guid.NewGuid(),
             "Name",
-            ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
+            [new SymbolKindOrTypeKind(SymbolKind.Field)],
             accessibilityList: default,
-            ImmutableArray.Create(new ModifierKind(DeclarationModifiers.Static)));
+            [new ModifierKind(DeclarationModifiers.Static)]);
 
         var namingStyle = new NamingStyle(
             Guid.NewGuid(),
@@ -159,9 +159,9 @@ public partial class ConvertAutoPropertyToFullPropertyTests
         };
 
         var info = new NamingStylePreferences(
-            ImmutableArray.Create(symbolSpecification),
-            ImmutableArray.Create(namingStyle),
-            ImmutableArray.Create(namingRule));
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
         return info;
     }

@@ -247,14 +247,14 @@ internal abstract class AbstractTriviaFormatter
 
         if (Succeeded())
         {
-            return new SyntaxTriviaList(triviaList);
+            return [.. triviaList];
         }
 
         triviaList.Clear();
         AddRange(triviaList, this.Token1.TrailingTrivia);
         AddRange(triviaList, this.Token2.LeadingTrivia);
 
-        return new SyntaxTriviaList(triviaList);
+        return [.. triviaList];
     }
 
     private static void AddRange(ArrayBuilder<SyntaxTrivia> result, SyntaxTriviaList triviaList)

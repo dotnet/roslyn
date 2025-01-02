@@ -696,7 +696,7 @@ int Method()
                 {
                     get
                     {
-                        return ImmutableArray.Create(Decsciptor);
+                        return [Decsciptor];
                     }
                 }
 
@@ -806,7 +806,7 @@ class Class
                 {
                     get
                     {
-                        return ImmutableArray.Create(_descriptor);
+                        return [_descriptor];
                     }
                 }
 
@@ -869,7 +869,7 @@ class Class
                 {
                     get
                     {
-                        return ImmutableArray.Create(_descriptor);
+                        return [_descriptor];
                     }
                 }
 
@@ -919,7 +919,7 @@ using System;
             {
                 get
                 {
-                    return ImmutableArray.Create(Decsciptor);
+                    return [Decsciptor];
                 }
             }
 
@@ -1060,7 +1060,7 @@ class Class
                 {
                     get
                     {
-                        return ImmutableArray.Create(Descriptor);
+                        return [Descriptor];
                     }
                 }
 
@@ -2056,7 +2056,7 @@ using System.Diagnostics.CodeAnalysis;
                 private readonly DiagnosticDescriptor _descriptor =
                     new("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
-                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
                 public override void Initialize(AnalysisContext context)
                     => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
@@ -2452,7 +2452,7 @@ namespace ClassLibrary10
                 new("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                => ImmutableArray.Create(Descriptor);
+                => [Descriptor];
 
             public override void Initialize(AnalysisContext context)
                 => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);

@@ -75,7 +75,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     public Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)
     {
         // TODO: implement
-        return Task.FromResult((IReadOnlyCollection<string>)ImmutableArray<string>.Empty);
+        return Task.FromResult((IReadOnlyCollection<string>)[]);
     }
 }
 #pragma warning restore RS0030 // Do not used banned APIs

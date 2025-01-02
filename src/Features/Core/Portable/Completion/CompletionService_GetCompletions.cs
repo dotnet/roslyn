@@ -86,7 +86,7 @@ public abstract partial class CompletionService
         var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
         var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-        triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+        triggeredProviders = [.. triggeredProviders.Except(additionalAugmentingProviders)];
 
         // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
         // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
@@ -356,7 +356,7 @@ public abstract partial class CompletionService
         {
             if (!options.PerformSort)
             {
-                return new(this);
+                return [.. this];
             }
 
             // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
@@ -365,7 +365,7 @@ public abstract partial class CompletionService
             {
                 list.AddRange(this);
                 list.Sort();
-                return new(list);
+                return [.. list];
             }
             finally
             {

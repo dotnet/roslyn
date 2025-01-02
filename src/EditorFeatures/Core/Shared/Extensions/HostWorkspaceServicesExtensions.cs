@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             if (items == null)
                 return [];
 
-            return items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).
-                Select(lazy => lazy.Value).ToList();
+            return [.. items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).Select(lazy => lazy.Value)];
         }
 
         private static bool LanguageMatches(

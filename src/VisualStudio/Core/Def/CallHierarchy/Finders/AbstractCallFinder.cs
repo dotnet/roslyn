@@ -163,7 +163,7 @@ internal abstract class AbstractCallFinder
                 else
                 {
                     var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly, cancellationToken);
-                    var item = await Provider.CreateItemAsync(caller.CallingSymbol, callingProject, caller.Locations.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+                    var item = await Provider.CreateItemAsync(caller.CallingSymbol, callingProject, [.. caller.Locations], cancellationToken).ConfigureAwait(false);
                     callback.AddResult(item);
                     cancellationToken.ThrowIfCancellationRequested();
                 }

@@ -40,7 +40,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 searchResult,
                 new HighlightedText(
                     searchResult.NavigableItem.DisplayTaggedParts.JoinText(),
-                    searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan()).ToArray()),
+                    [.. searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan())]),
                 new HighlightedText(
                     searchResult.AdditionalInformation,
                     []),

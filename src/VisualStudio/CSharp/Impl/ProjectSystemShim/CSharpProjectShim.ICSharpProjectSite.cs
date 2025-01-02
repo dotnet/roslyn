@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                             Marshal.FreeHGlobal(@class);
                     }
 
-                    _startupClasses = entryPointNames.Select(Marshal.StringToHGlobalUni).ToArray();
+                    _startupClasses = [.. entryPointNames.Select(Marshal.StringToHGlobalUni)];
                     Array.Copy(_startupClasses, classNames, _startupClasses.Length);
 
                     return (VSConstants.S_OK, entryPointNames.Length);

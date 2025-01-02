@@ -129,7 +129,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         public const string RuleId = "SYN0001";
         private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -143,7 +143,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         public const string RuleId = "SEM0001";
         private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -1092,7 +1092,7 @@ class A {
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(
             TaskListOptionsStorage.Descriptors,
-            ImmutableArray.Create("HACK:2", $"TODO:{priString}", "UNDONE:2", "UnresolvedMergeConflict:3"));
+            ["HACK:2", $"TODO:{priString}", "UNDONE:2", "UnresolvedMergeConflict:3"]);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 

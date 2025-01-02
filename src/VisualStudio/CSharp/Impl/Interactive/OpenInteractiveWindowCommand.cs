@@ -21,7 +21,7 @@ internal class OpenInteractiveWindowCommand(
 {
     public override CommandConfiguration CommandConfiguration => new("%CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName%")
     {
-        Placements = new[] { CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000) },
+        Placements = [CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000)],
         // TODO: Shortcuts https://github.com/dotnet/roslyn/issues/3941
     };
 

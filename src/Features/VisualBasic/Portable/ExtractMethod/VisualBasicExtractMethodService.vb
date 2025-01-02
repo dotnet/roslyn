@@ -10,11 +10,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     <Export(GetType(IExtractMethodService)), ExportLanguageService(GetType(IExtractMethodService), LanguageNames.VisualBasic), [Shared]>
-    Friend NotInheritable Class VisualBasicExtractMethodService
+    Partial Friend NotInheritable Class VisualBasicExtractMethodService
         Inherits AbstractExtractMethodService(Of
             VisualBasicSelectionValidator,
             VisualBasicMethodExtractor,
             VisualBasicSelectionResult,
+            StatementSyntax,
             ExecutableStatementSyntax,
             ExpressionSyntax)
 
