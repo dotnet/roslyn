@@ -51,12 +51,12 @@ internal sealed partial class CSharpIntroduceVariableService
             : default;
 
         var updatedExpression = expression.WithoutTrivia();
-        var csOptions = (CSharpSimplifierOptions)options.SimplifierOptions;
+        var simplifierOptions = (CSharpSimplifierOptions)options.SimplifierOptions;
 
         // If the target-type new syntax is preferred and "var" is not preferred under any circumstance, then we use the target-type new syntax.
         // The approach is not exhaustive. We aim to support codebases that rely strictly on the target-type new syntax (i.e., no "var").
-        if (csOptions.ImplicitObjectCreationWhenTypeIsApparent.Value && csOptions.GetUseVarPreference() == UseVarPreference.None
-            && expression is ObjectCreationExpressionSyntax objectCreationExpression)
+        if (simplifierOptions.ImplicitObjectCreationWhenTypeIsApparent.Value && simplifierOptions.GetUseVarPreference() == UseVarPreference.None
+            && updatedExpression is ObjectCreationExpressionSyntax objectCreationExpression)
         {
             updatedExpression = ImplicitObjectCreationExpression(objectCreationExpression.ArgumentList, objectCreationExpression.Initializer);
         }
