@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Partial Friend Class VisualBasicMethodExtractor
             Inherits MethodExtractor
 
-            Public Sub New(result As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions)
+            Public Sub New(result As SelectionResult, options As ExtractMethodGenerationOptions)
                 MyBase.New(result, options, localFunction:=False)
             End Sub
 
@@ -21,46 +21,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, Me.Options)
             End Function
 
-            Protected Overrides Function Analyze(selectionResult As VisualBasicSelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
-                Return VisualBasicAnalyzer.AnalyzeResult(selectionResult, cancellationToken)
+            Protected Overrides Function Analyze(cancellationToken As CancellationToken) As AnalyzerResult
+                Dim analyzer = New VisualBasicAnalyzer(Me.OriginalSelectionResult, cancellationToken)
+                Return analyzer.Analyze()
             End Function
 
             Protected Overrides Function GetInsertionPointNode(
                     analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As SyntaxNode
                 Dim document = Me.OriginalSelectionResult.SemanticDocument
-                Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
-                Contract.ThrowIfFalse(originalSpanStart >= 0)
+                Dim spanStart = OriginalSelectionResult.FinalSpan.Start
+                Contract.ThrowIfFalse(spanStart >= 0)
 
                 Dim root = document.Root
-                Dim basePosition = root.FindToken(originalSpanStart)
+                Dim basePosition = root.FindToken(spanStart)
 
                 Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of EventBlockSyntax)()
-                End If
 
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of MethodBlockBaseSyntax)()
-                End If
-
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of FieldDeclarationSyntax)()
-                End If
-
-                If enclosingTopLevelNode Is Nothing Then
-                    enclosingTopLevelNode = basePosition.GetAncestor(Of PropertyStatementSyntax)()
-                End If
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of EventBlockSyntax))
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of MethodBlockBaseSyntax))
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of FieldDeclarationSyntax))
+                enclosingTopLevelNode = If(enclosingTopLevelNode, basePosition.GetAncestor(Of PropertyStatementSyntax))
 
                 Contract.ThrowIfNull(enclosingTopLevelNode)
                 Return enclosingTopLevelNode
             End Function
 
-            Protected Overrides Async Function PreserveTriviaAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
-                Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
+            Protected Overrides Async Function PreserveTriviaAsync(root As SyntaxNode, cancellationToken As CancellationToken) As Task(Of TriviaResult)
+                Dim semanticDocument = Me.OriginalSelectionResult.SemanticDocument
+                Dim preservationService = semanticDocument.Document.Project.Services.GetService(Of ISyntaxTriviaService)()
+
+                Dim result = preservationService.SaveTriviaAroundSelection(root, Me.OriginalSelectionResult.FinalSpan)
+
+                Return New VisualBasicTriviaResult(
+                        Await semanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(False),
+                        result)
             End Function
 
-            Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, options, cancellationToken)
+            Protected Overrides Async Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+                Dim generator = VisualBasicCodeGenerator.Create(selectionResult, analyzeResult, options)
+                Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
             Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule

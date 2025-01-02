@@ -19,23 +19,9 @@ internal sealed partial class CSharpExtractMethodService
 {
     internal sealed partial class CSharpMethodExtractor
     {
-        private sealed class CSharpTriviaResult : TriviaResult
+        private sealed class CSharpTriviaResult(SemanticDocument document, ITriviaSavedResult result)
+            : TriviaResult(document, result, (int)SyntaxKind.EndOfLineTrivia, (int)SyntaxKind.WhitespaceTrivia)
         {
-            public static async Task<CSharpTriviaResult> ProcessAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
-            {
-                var preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
-                var root = selectionResult.SemanticDocument.Root;
-                var result = preservationService.SaveTriviaAroundSelection(root, selectionResult.FinalSpan);
-                return new CSharpTriviaResult(
-                    await selectionResult.SemanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(false),
-                    result);
-            }
-
-            private CSharpTriviaResult(SemanticDocument document, ITriviaSavedResult result)
-                : base(document, result, (int)SyntaxKind.EndOfLineTrivia, (int)SyntaxKind.WhitespaceTrivia)
-            {
-            }
-
             protected override AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode method)
             {
                 var isMethodOrLocalFunction = method is MethodDeclarationSyntax or LocalFunctionStatementSyntax;

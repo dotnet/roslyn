@@ -18,9 +18,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
-    TValidator,
-    TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>
@@ -30,7 +27,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract partial class Analyzer
         {
             protected readonly CancellationToken CancellationToken;
-            protected readonly TSelectionResult SelectionResult;
+            protected readonly SelectionResult SelectionResult;
             protected readonly bool LocalFunction;
 
             private readonly HashSet<int> _nonNoisySyntaxKindSet;
@@ -41,7 +38,7 @@ internal abstract partial class AbstractExtractMethodService<
             protected ISemanticFactsService SemanticFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
             protected ISyntaxFactsService SyntaxFacts => this.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            protected Analyzer(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            protected Analyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(selectionResult);
 
@@ -85,7 +82,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 // do data flow analysis
                 var model = this.SemanticDocument.SemanticModel;
-                var dataFlowAnalysisData = GetDataFlowAnalysisData();
+                var dataFlowAnalysisData = this.SelectionResult.GetDataFlowAnalysis();
 
                 // build symbol map for the identifiers used inside of the selection
                 var symbolMap = GetSymbolMap();
@@ -133,7 +130,7 @@ internal abstract partial class AbstractExtractMethodService<
                     && thisParameterBeingRead is { Type: { TypeKind: TypeKind.Struct, IsReadOnly: false } };
 
                 // check whether end of selection is reachable
-                var endOfSelectionReachable = IsEndOfSelectionReachable();
+                var endOfSelectionReachable = this.SelectionResult.IsEndOfSelectionReachable();
 
                 var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
 
@@ -340,27 +337,6 @@ internal abstract partial class AbstractExtractMethodService<
                 var context = SelectionResult.GetContainingScope();
                 var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
                 return symbolMap;
-            }
-
-            private DataFlowAnalysis GetDataFlowAnalysisData()
-            {
-                if (SelectionResult.IsExtractMethodOnExpression)
-                    return this.SemanticModel.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
-
-                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
-                return this.SemanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
-            }
-
-            private bool IsEndOfSelectionReachable()
-            {
-                if (SelectionResult.IsExtractMethodOnExpression)
-                {
-                    return true;
-                }
-
-                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
-                var analysis = this.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
-                return analysis.EndPointIsReachable;
             }
 
             private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
@@ -749,11 +725,7 @@ internal abstract partial class AbstractExtractMethodService<
             private bool ContainsReturnStatementInSelectedCode()
             {
                 Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
-
-                var (firstStatement, lastStatement) = this.SelectionResult.GetFlowAnalysisNodeRange();
-                var controlFlowAnalysisData = this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
-
-                return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
+                return ContainsReturnStatementInSelectedCode(this.SelectionResult.GetStatementControlFlowAnalysis().ExitPoints);
             }
 
             private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)

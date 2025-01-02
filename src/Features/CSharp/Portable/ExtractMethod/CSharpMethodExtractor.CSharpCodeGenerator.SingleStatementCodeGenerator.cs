@@ -20,7 +20,7 @@ internal sealed partial class CSharpExtractMethodService
         private abstract partial class CSharpCodeGenerator
         {
             public sealed class SingleStatementCodeGenerator(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 ExtractMethodGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)

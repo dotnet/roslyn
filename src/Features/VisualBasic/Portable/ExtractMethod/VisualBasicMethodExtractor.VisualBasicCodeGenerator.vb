@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -22,18 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Private ReadOnly _methodName As SyntaxToken
 
-                Public Shared Async Function GenerateResultAsync(
-                        insertionPoint As InsertionPoint,
-                        selectionResult As VisualBasicSelectionResult,
-                        analyzerResult As AnalyzerResult,
-                        options As ExtractMethodGenerationOptions,
-                        cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                    Dim generator = Create(selectionResult, analyzerResult, options)
-                    Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
-                End Function
-
                 Public Shared Function Create(
-                        selectionResult As VisualBasicSelectionResult,
+                        selectionResult As SelectionResult,
                         analyzerResult As AnalyzerResult,
                         options As ExtractMethodGenerationOptions) As VisualBasicCodeGenerator
                     If selectionResult.IsExtractMethodOnExpression Then
@@ -52,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Protected Sub New(
-                        selectionResult As VisualBasicSelectionResult,
+                        selectionResult As SelectionResult,
                         analyzerResult As AnalyzerResult,
                         options As ExtractMethodGenerationOptions)
                     MyBase.New(selectionResult, analyzerResult, options, localFunction:=False)
@@ -158,12 +149,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return declStatement.Parent
                 End Function
 
+                Private Function IsUnderModuleBlock() As Boolean
+                    Dim currentScope = Me.SelectionResult.GetContainingScope()
+                    Dim types = currentScope.GetAncestors(Of TypeBlockSyntax)()
+
+                    Return types.Any(Function(t) t.BlockStatement.Kind = SyntaxKind.ModuleStatement)
+                End Function
+
+                Public Function ContainsInstanceExpression() As Boolean
+                    Dim first = Me.SelectionResult.GetFirstTokenInSelection()
+                    Dim last = Me.SelectionResult.GetLastTokenInSelection()
+                    Dim node = first.GetCommonRoot(last)
+
+                    Return node.DescendantNodesAndSelf(TextSpan.FromBounds(first.SpanStart, last.Span.End)).
+                        Any(Function(n) TypeOf n Is InstanceExpressionSyntax)
+                End Function
+
                 Private Function CreateMethodModifiers() As DeclarationModifiers
                     Dim isShared = False
 
                     If Not Me.AnalyzerResult.UseInstanceMember AndAlso
-                       Not Me.SelectionResult.IsUnderModuleBlock() AndAlso
-                       Not Me.SelectionResult.ContainsInstanceExpression() Then
+                       Not IsUnderModuleBlock() AndAlso
+                       Not ContainsInstanceExpression() Then
                         isShared = True
                     End If
 

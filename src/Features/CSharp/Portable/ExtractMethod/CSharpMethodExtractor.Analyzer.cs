@@ -15,14 +15,9 @@ internal sealed partial class CSharpExtractMethodService
 {
     internal sealed partial class CSharpMethodExtractor
     {
-        private sealed class CSharpAnalyzer(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
+        private sealed class CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            : Analyzer(selectionResult, localFunction, cancellationToken)
         {
-            public static AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            {
-                var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
-                return analyzer.Analyze();
-            }
-
             protected override bool TreatOutAsRef
                 => false;
 

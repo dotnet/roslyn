@@ -1520,7 +1520,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     {
         var code = """
             using System;
-            class C { void M() { {|r:var x = new { {|b:String|} = true }; |}} }
+            class C { void M() { {|r:var x = new { {|b:String|} = true };|} } }
             """;
         await TestSelectionAsync(code);
     }
@@ -1717,7 +1717,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:a?.{|b:Prop|}?.Length |}?? 0;
+                    var l = {|r:a?.{|b:Prop|}?.Length|} ?? 0;
                 }
             }
             class A
@@ -1769,7 +1769,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:a?.{|b:Method()|}?.Length |}?? 0;
+                    var l = {|r:a?.{|b:Method()|}?.Length|} ?? 0;
                 }
             }
             class A

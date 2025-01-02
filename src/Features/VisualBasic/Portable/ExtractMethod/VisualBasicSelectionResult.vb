@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -18,10 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Inherits SelectionResult
 
             Public Shared Async Function CreateResultAsync(
-            document As SemanticDocument,
-            selectionInfo As SelectionInfo,
-            selectionChanged As Boolean,
-            cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
+                    document As SemanticDocument,
+                    selectionInfo As SelectionInfo,
+                    selectionChanged As Boolean,
+                    cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 
                 Contract.ThrowIfNull(document)
 
@@ -32,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New VisualBasicSelectionResult(
                     newDocument,
                     selectionInfo.GetSelectionType(),
-                    selectionInfo.OriginalSpan,
                     selectionInfo.FinalSpan,
                     selectionChanged)
             End Function
@@ -40,14 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Sub New(
                 document As SemanticDocument,
                 selectionType As SelectionType,
-                originalSpan As TextSpan,
                 finalSpan As TextSpan,
                 selectionChanged As Boolean)
 
                 MyBase.New(
                     document,
                     selectionType,
-                    originalSpan,
                     finalSpan,
                     selectionChanged)
             End Sub
@@ -256,9 +254,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim firstStatement = GetFirstStatementUnderContainer()
                 Dim container = firstStatement.GetStatementContainer()
 
-                Dim lastStatement = Me.GetLastStatement().GetAncestorsOrThis(Of ExecutableStatementSyntax) _
-                                                    .SkipWhile(Function(s) s.Parent IsNot container) _
-                                                    .First()
+                Dim lastStatement = Me.GetLastStatement().
+                    GetAncestorsOrThis(Of ExecutableStatementSyntax).
+                    SkipWhile(Function(s) s.Parent IsNot container).
+                    First()
 
                 Contract.ThrowIfNull(lastStatement)
                 Contract.ThrowIfFalse(lastStatement.Parent Is (GetFirstStatementUnderContainer()).Parent)
@@ -296,21 +295,104 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.Unreachable
             End Function
 
-            Public Function IsUnderModuleBlock() As Boolean
-                Dim currentScope = GetContainingScope()
-                Dim types = currentScope.GetAncestors(Of TypeBlockSyntax)()
+            Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As ImmutableArray(Of SyntaxNode)) As Boolean
+                Dim returnStatement = False
+                Dim exitStatement = False
 
-                Return types.Any(Function(t) t.BlockStatement.Kind = SyntaxKind.ModuleStatement)
+                For Each statement In jumpsOutOfRegion
+                    If TypeOf statement Is ReturnStatementSyntax Then
+                        returnStatement = True
+                    ElseIf TypeOf statement Is ExitStatementSyntax Then
+                        exitStatement = True
+                    Else
+                        Return True
+                    End If
+                Next
+
+                If exitStatement Then
+                    Return Not returnStatement
+                End If
+
+                Return False
             End Function
 
-            Public Function ContainsInstanceExpression() As Boolean
-                Dim first = GetFirstTokenInSelection()
-                Dim last = GetLastTokenInSelection()
-                Dim node = first.GetCommonRoot(last)
+            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
+                Dim container = commonRoot.GetAncestorsOrThis(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault()
+                If container Is Nothing Then
+                    Return ImmutableArray(Of ExecutableStatementSyntax).Empty
+                End If
 
-                Return node.DescendantNodesAndSelf(
-                    TextSpan.FromBounds(first.SpanStart, last.Span.End)) _
-                                           .Any(Function(n) TypeOf n Is InstanceExpressionSyntax)
+                ' now filter return statements to only include the one under outmost container
+                Return jumpsOutOfRegionStatements.
+                    OfType(Of ExecutableStatementSyntax).
+                    Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).
+                    Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
+                    Where(Function(p) p.container Is container).
+                    SelectAsArray(Function(p) p.returnStatement)
+            End Function
+
+            Public Overrides Function IsFinalSpanSemanticallyValidSpan(
+                    textSpan As TextSpan,
+                    returnStatements As ImmutableArray(Of ExecutableStatementSyntax),
+                    cancellationToken As CancellationToken) As Boolean
+
+                ' do quick check to make sure we are under sub (no return value) container. otherwise, there is no point to anymore checks.
+                If returnStatements.Any(Function(s)
+                                            Return s.TypeSwitch(
+                                                Function(e As ExitStatementSyntax) e.BlockKeyword.Kind <> SyntaxKind.SubKeyword,
+                                                Function(r As ReturnStatementSyntax) r.Expression IsNot Nothing,
+                                                Function(n As ExecutableStatementSyntax) True)
+                                        End Function) Then
+                    Return False
+                End If
+
+                ' check whether selection reaches the end of the container
+                Dim lastToken = Me.SemanticDocument.Root.FindToken(textSpan.End)
+                If lastToken.Kind = SyntaxKind.None Then
+                    Return False
+                End If
+
+                Dim nextToken = lastToken.GetNextToken(includeZeroWidth:=True)
+
+                Dim container = nextToken.GetAncestors(Of SyntaxNode).Where(Function(n) n.IsReturnableConstruct()).FirstOrDefault()
+                If container Is Nothing Then
+                    Return False
+                End If
+
+                Dim match = If(TryCast(container, MethodBlockBaseSyntax)?.EndBlockStatement.EndKeyword = nextToken, False) OrElse
+                            If(TryCast(container, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement.EndKeyword = nextToken, False)
+
+                If Not match Then
+                    Return False
+                End If
+
+                If TryCast(container, MethodBlockBaseSyntax)?.BlockStatement.Kind = SyntaxKind.SubStatement Then
+                    Return True
+                ElseIf TryCast(container, MultiLineLambdaExpressionSyntax)?.SubOrFunctionHeader.Kind = SyntaxKind.SubLambdaHeader Then
+                    Return True
+                Else
+                    Return False
+                End If
+            End Function
+
+            Protected Overrides Function ValidateLanguageSpecificRules(cancellationToken As CancellationToken) As OperationStatus
+                ' static local can't exist in field initializer
+                If Me.GetFirstTokenInSelection().GetAncestor(Of FieldDeclarationSyntax)() Is Nothing AndAlso
+                   Me.GetFirstTokenInSelection().GetAncestor(Of PropertyStatementSyntax)() Is Nothing Then
+
+                    Dim dataFlowAnalysis = Me.GetDataFlowAnalysis()
+                    For Each symbol In dataFlowAnalysis.VariablesDeclared
+                        Dim local = TryCast(symbol, ILocalSymbol)
+                        If local?.IsStatic = True Then
+                            If dataFlowAnalysis.WrittenOutside().Contains(local) OrElse
+                               dataFlowAnalysis.ReadOutside().Contains(local) Then
+                                Return New OperationStatus(succeeded:=True, VBFeaturesResources.all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection)
+                            End If
+                        End If
+                    Next
+                End If
+
+                Return OperationStatus.SucceededStatus
             End Function
         End Class
     End Class

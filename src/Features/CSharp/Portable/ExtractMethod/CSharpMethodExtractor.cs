@@ -19,19 +19,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 internal sealed partial class CSharpExtractMethodService
 {
-    internal sealed partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
+    internal sealed partial class CSharpMethodExtractor(
+        SelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
         : MethodExtractor(result, options, localFunction)
     {
         protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
             => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, this.Options, this.LocalFunction);
 
-        protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
+        protected override AnalyzerResult Analyze(CancellationToken cancellationToken)
+        {
+            var analyzer = new CSharpAnalyzer(this.OriginalSelectionResult, this.LocalFunction, cancellationToken);
+            return analyzer.Analyze();
+        }
 
         protected override SyntaxNode GetInsertionPointNode(
             AnalyzerResult analyzerResult, CancellationToken cancellationToken)
         {
-            var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
+            var originalSpanStart = OriginalSelectionResult.FinalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
             var document = this.OriginalSelectionResult.SemanticDocument;
@@ -61,10 +65,10 @@ internal sealed partial class CSharpExtractMethodService
                 {
                     if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
                     {
-                        if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
+                        if (SelectionWithin(anonymousFunction.Body) || SelectionWithin(anonymousFunction.ExpressionBody))
                             return currentNode;
 
-                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        if (!OriginalSelectionResult.FinalSpan.Contains(anonymousFunction.Span))
                         {
                             // If we encountered a function but the selection isn't within the body, it's likely the user
                             // is attempting to move the function (which is behavior that is supported). Stop looking up the 
@@ -76,10 +80,10 @@ internal sealed partial class CSharpExtractMethodService
 
                     if (currentNode is LocalFunctionStatementSyntax localFunction)
                     {
-                        if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
+                        if (SelectionWithin(localFunction.ExpressionBody) || SelectionWithin(localFunction.Body))
                             return currentNode;
 
-                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        if (!OriginalSelectionResult.FinalSpan.Contains(localFunction.Span))
                         {
                             // If we encountered a function but the selection isn't within the body, it's likely the user
                             // is attempting to move the function (which is behavior that is supported). Stop looking up the 
@@ -146,21 +150,31 @@ internal sealed partial class CSharpExtractMethodService
             }
         }
 
-        private bool OriginalSelectionWithin(SyntaxNode node)
+        private bool SelectionWithin(SyntaxNode node)
         {
             if (node is null)
             {
                 return false;
             }
 
-            return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
+            return node.Span.Contains(OriginalSelectionResult.FinalSpan);
         }
 
-        protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
-            => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
+        protected override async Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken)
+        {
+            var semanticDocument = this.OriginalSelectionResult.SemanticDocument;
+            var preservationService = semanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
+            var result = preservationService.SaveTriviaAroundSelection(root, this.OriginalSelectionResult.FinalSpan);
+            return new CSharpTriviaResult(
+                await semanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(false),
+                result);
+        }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
-            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
+        {
+            var codeGenerator = CSharpCodeGenerator.Create(selectionResult, analyzeResult, options, this.LocalFunction);
+            return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);
+        }
 
         protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
             => FormattingRule.Instance;

@@ -20,30 +20,27 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal abstract partial class AbstractExtractMethodService<
-    TValidator,
-    TExtractor,
-    TSelectionResult,
     TStatementSyntax,
     TExecutableStatementSyntax,
     TExpressionSyntax>
 {
     internal abstract partial class MethodExtractor(
-        TSelectionResult selectionResult,
+        SelectionResult selectionResult,
         ExtractMethodGenerationOptions options,
         bool localFunction)
     {
-        protected readonly TSelectionResult OriginalSelectionResult = selectionResult;
+        protected readonly SelectionResult OriginalSelectionResult = selectionResult;
         protected readonly ExtractMethodGenerationOptions Options = options;
         protected readonly bool LocalFunction = localFunction;
 
         protected abstract SyntaxNode ParseTypeName(string name);
-        protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
+        protected abstract AnalyzerResult Analyze(CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
-        protected abstract Task<TriviaResult> PreserveTriviaAsync(TSelectionResult selectionResult, CancellationToken cancellationToken);
+        protected abstract Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken);
 
         protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
         protected abstract Task<GeneratedCode> GenerateCodeAsync(
-            InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
+            InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
@@ -54,8 +51,7 @@ internal abstract partial class AbstractExtractMethodService<
         public ExtractMethodResult ExtractMethod(OperationStatus initialStatus, CancellationToken cancellationToken)
         {
             var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
-            var analyzeResult = Analyze(OriginalSelectionResult, LocalFunction, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
+            var analyzeResult = Analyze(cancellationToken);
 
             var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult, cancellationToken);
             if (status.Failed)
@@ -80,12 +76,12 @@ internal abstract partial class AbstractExtractMethodService<
                     var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
                         originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
-                    var triviaResult = await PreserveTriviaAsync((TSelectionResult)OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
+                    var triviaResult = await PreserveTriviaAsync(analyzedDocument.Root, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var generatedCode = await GenerateCodeAsync(
                         insertionPoint.With(triviaResult.SemanticDocument),
-                        (TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument),
+                        (SelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument),
                         analyzeResult,
                         Options,
                         cancellationToken).ConfigureAwait(false);
@@ -177,11 +173,9 @@ internal abstract partial class AbstractExtractMethodService<
             SyntaxNode insertionPointNode,
             CancellationToken cancellationToken)
         {
-            var annotations = new List<(SyntaxToken, SyntaxAnnotation)>(analyzeResult.Variables.Length);
+            var tokenMap = new MultiDictionary<SyntaxToken, SyntaxAnnotation>();
             foreach (var variable in analyzeResult.Variables)
-                variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
-
-            var tokenMap = annotations.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
+                variable.AddIdentifierTokenAnnotationPair(tokenMap, cancellationToken);
 
             var insertionPointAnnotation = new SyntaxAnnotation();
 

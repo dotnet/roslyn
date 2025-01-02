@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,11 +25,10 @@ internal sealed partial class CSharpExtractMethodService
     internal abstract partial class CSharpSelectionResult(
         SemanticDocument document,
         SelectionType selectionType,
-        TextSpan originalSpan,
         TextSpan finalSpan,
         bool selectionChanged)
         : SelectionResult(
-            document, selectionType, originalSpan, finalSpan, selectionChanged)
+            document, selectionType, finalSpan, selectionChanged)
     {
         public static async Task<CSharpSelectionResult> CreateAsync(
             SemanticDocument document,
@@ -43,22 +43,27 @@ internal sealed partial class CSharpExtractMethodService
                 root,
                 [
                     (selectionInfo.FirstTokenInFinalSpan, s_firstTokenAnnotation),
-                (selectionInfo.LastTokenInFinalSpan, s_lastTokenAnnotation)
+                    (selectionInfo.LastTokenInFinalSpan, s_lastTokenAnnotation)
                 ])), cancellationToken).ConfigureAwait(false);
 
             var selectionType = selectionInfo.GetSelectionType();
-            var originalSpan = selectionInfo.OriginalSpan;
             var finalSpan = selectionInfo.FinalSpan;
 
             return selectionType == SelectionType.Expression
-                ? new ExpressionResult(newDocument, selectionType, originalSpan, finalSpan, selectionChanged)
-                : new StatementResult(newDocument, selectionType, originalSpan, finalSpan, selectionChanged);
+                ? new ExpressionResult(newDocument, selectionType, finalSpan, selectionChanged)
+                : new StatementResult(newDocument, selectionType, finalSpan, selectionChanged);
         }
 
         protected override ISyntaxFacts SyntaxFacts
             => CSharpSyntaxFacts.Instance;
 
-        public override SyntaxNode GetNodeForDataFlowAnalysis()
+        protected override OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken)
+        {
+            // Nothing language specific for C#.
+            return OperationStatus.SucceededStatus;
+        }
+
+        protected override SyntaxNode GetNodeForDataFlowAnalysis()
         {
             var node = base.GetNodeForDataFlowAnalysis();
 
@@ -186,38 +191,75 @@ internal sealed partial class CSharpExtractMethodService
             return last.Parent.Parent;
         }
 
-        public bool ShouldPutUnsafeModifier()
-        {
-            var token = GetFirstTokenInSelection();
-            var ancestors = token.GetAncestors<SyntaxNode>();
+        public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion)
+            => jumpsOutOfRegion.Any(n => n is not ReturnStatementSyntax);
 
-            // if enclosing type contains unsafe keyword, we don't need to put it again
-            if (ancestors.Where(a => CSharp.SyntaxFacts.IsTypeDeclaration(a.Kind()))
-                         .Cast<MemberDeclarationSyntax>()
-                         .Any(m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword)))
+        public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion)
+        {
+            var container = commonRoot.GetAncestorsOrThis<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault();
+            if (container == null)
+                return [];
+
+            // now filter return statements to only include the one under outmost container
+            return jumpsOutOfRegion
+                .OfType<ReturnStatementSyntax>()
+                .Select(returnStatement => (returnStatement, container: returnStatement.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
+                .Where(p => p.container == container)
+                .SelectAsArray(p => p.returnStatement)
+                .CastArray<StatementSyntax>();
+        }
+
+        public override bool IsFinalSpanSemanticallyValidSpan(
+            TextSpan textSpan, ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
+        {
+            // return statement shouldn't contain any return value
+            if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))
             {
                 return false;
             }
 
-            return token.Parent.IsUnsafeContext();
-        }
-
-        public SyntaxKind UnderCheckedExpressionContext()
-            => UnderCheckedContext<CheckedExpressionSyntax>();
-
-        public SyntaxKind UnderCheckedStatementContext()
-            => UnderCheckedContext<CheckedStatementSyntax>();
-
-        private SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
-        {
-            var token = GetFirstTokenInSelection();
-            var contextNode = token.Parent.GetAncestor<T>();
-            if (contextNode == null)
+            var lastToken = this.SemanticDocument.Root.FindToken(textSpan.End);
+            if (lastToken.Kind() == SyntaxKind.None)
             {
-                return SyntaxKind.None;
+                return false;
             }
 
-            return contextNode.Kind();
+            var container = lastToken.GetAncestors<SyntaxNode>().FirstOrDefault(n => n.IsReturnableConstruct());
+            if (container == null)
+            {
+                return false;
+            }
+
+            var body = container.GetBlockBody();
+            if (body == null)
+            {
+                return false;
+            }
+
+            // make sure that next token of the last token in the selection is the close braces of containing block
+            if (body.CloseBraceToken != lastToken.GetNextToken(includeZeroWidth: true))
+            {
+                return false;
+            }
+
+            // alright, for these constructs, it must be okay to be extracted
+            switch (container.Kind())
+            {
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return true;
+            }
+
+            // now, only method is okay to be extracted out
+            if (body.Parent is not MethodDeclarationSyntax method)
+            {
+                return false;
+            }
+
+            // make sure this method doesn't have return type.
+            return method.ReturnType is PredefinedTypeSyntax p &&
+                p.Keyword.Kind() == SyntaxKind.VoidKeyword;
         }
     }
 }

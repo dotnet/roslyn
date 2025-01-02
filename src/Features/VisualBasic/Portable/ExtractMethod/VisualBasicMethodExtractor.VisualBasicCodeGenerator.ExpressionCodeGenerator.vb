@@ -17,15 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Inherits VisualBasicCodeGenerator
 
                     Public Sub New(
-                            selectionResult As VisualBasicSelectionResult,
+                            selectionResult As SelectionResult,
                             analyzerResult As AnalyzerResult,
                             options As ExtractMethodGenerationOptions)
                         MyBase.New(selectionResult, analyzerResult, options)
                     End Sub
-
-                    Public Shared Function IsExtractMethodOnExpression(code As VisualBasicSelectionResult) As Boolean
-                        Return code.IsExtractMethodOnExpression
-                    End Function
 
                     Protected Overrides Function CreateMethodName() As SyntaxToken
                         Dim methodName = "NewMethod"
@@ -71,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     End Function
 
                     Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                        Contract.ThrowIfFalse(IsExtractMethodOnExpression(Me.SelectionResult))
+                        Contract.ThrowIfFalse(Me.SelectionResult.IsExtractMethodOnExpression)
 
                         Dim expression = DirectCast(Me.SelectionResult.GetContainingScope(), ExpressionSyntax)
 

@@ -24,7 +24,7 @@ internal sealed partial class CSharpExtractMethodService
         private abstract partial class CSharpCodeGenerator
         {
             private sealed class ExpressionCodeGenerator(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 ExtractMethodGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
@@ -120,7 +120,7 @@ internal sealed partial class CSharpExtractMethodService
 
                 private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)
                 {
-                    var kind = this.SelectionResult.UnderCheckedExpressionContext();
+                    var kind = UnderCheckedExpressionContext();
                     if (kind == SyntaxKind.None)
                     {
                         return expression;
