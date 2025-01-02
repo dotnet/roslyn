@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                _triviaMap ??= new TextKeyedCache<SyntaxTrivia>();
+                _triviaMap ??= TextKeyedCache<SyntaxTrivia>.GetInstance();
 
                 return _triviaMap;
             }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                _tokenMap ??= new TextKeyedCache<SyntaxToken>();
+                _tokenMap ??= TextKeyedCache<SyntaxToken>.GetInstance();
 
                 return _tokenMap;
             }
