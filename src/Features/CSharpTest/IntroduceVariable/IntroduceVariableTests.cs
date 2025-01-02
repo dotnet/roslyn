@@ -935,11 +935,61 @@ options: ImplicitTypingEverywhere());
             {
                 static void Main()
                 {
-                    G<int>.@class {|Rename:@class|} = new G<int>.@class();
+                    G<int>.@class {|Rename:@class|} = new();
                     G<int>.Add(@class);
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestNameVerbatimIdentifier1NoVar_1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            static class G<T>
+            {
+                public class @class
+                {
+                }
+
+                public static void Add(object @class)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    G<int>.Add([|new G<int>.@class()|]);
+                }
+            }
+            """,
+            """
+            static class G<T>
+            {
+                public class @class
+                {
+                }
+
+                public static void Add(object @class)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    G<int>.@class {|Rename:@class|} = new G<int>.@class();
+                    G<int>.Add(@class);
+                }
+            }
+            """, options: new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, CodeStyleOption2.FalseWithSilentEnforcement }
+            });
     }
 
     [Fact]
@@ -1018,7 +1068,7 @@ options: ImplicitTypingEverywhere());
 
                 static void Main()
                 {
-                    G<int>.@class {|Rename:@class|} = new G<int>.@class();
+                    G<int>.@class {|Rename:@class|} = new();
                     G<int>.Add(@class);
                 }
             }
@@ -3001,7 +3051,7 @@ options: ImplicitTypingEverywhere());
             {
                 static void Main()
                 {
-                    Nullable<int*> {|Rename:v|} = new Nullable<int*>();
+                    Nullable<int*> {|Rename:v|} = new();
                     v.GetValueOrDefault();
                 }
             }
@@ -4281,6 +4331,56 @@ class SampleCollection<T>
 """;
 
         await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact]
+    public async Task TestIntroduceLocalWithTargetTypedNew()
+    {
+        var code =
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    int sum = Sum([|new Numbers()|]);
+                }
+
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
+
+                private class Numbers {}
+            }
+            """;
+
+        var expected =
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    Numbers {|Rename:numbers|} = new();
+                    int sum = Sum(numbers);
+                }
+
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
+
+                private class Numbers {}
+            }
+            """;
+
+        OptionsCollection optionsCollection = new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+        };
+
+        await TestInRegularAndScriptAsync(code, expected, options: optionsCollection);
     }
 
     [Fact]
