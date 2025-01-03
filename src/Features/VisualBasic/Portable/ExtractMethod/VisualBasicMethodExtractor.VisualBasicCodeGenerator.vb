@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend NotInheritable Class VisualBasicExtractMethodService
         Partial Friend Class VisualBasicMethodExtractor
             Partial Private MustInherit Class VisualBasicCodeGenerator
-                Inherits CodeGenerator(Of StatementSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
+                Inherits CodeGenerator(Of StatementSyntax, VisualBasicCodeGenerationOptions)
 
                 Private ReadOnly _methodName As SyntaxToken
 
