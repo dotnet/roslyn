@@ -48,7 +48,7 @@ would allow user-defined declarations of this attribute with any shape. We now v
 4. It must not be a Module
 5. It must have a Public parameterless constructor
 6. It must inherit from System.Attribute.
-7. It must be allowed on any type declaration (Class, Struct, Interface, Enum, or Delegate)
+7. It must be allowed on any type declaration (Class, Structure, Interface, Enum, or Delegate)
 
 ```vb
 Namespace Microsoft.CodeAnalysis

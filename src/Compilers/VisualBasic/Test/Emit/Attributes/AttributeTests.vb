@@ -5227,7 +5227,7 @@ End Namespace"
                                                         Dim embeddedAttr = [module].ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName)
                                                         Assert.NotNull(embeddedAttr)
                                                         Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"},
-                                                            embeddedAttr.GetAttributes().Where(Function(a) a.AttributeClass.Name <> "ObsoleteAttribute").Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+                                                            embeddedAttr.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
                                                     End Sub)
         End Sub
 
