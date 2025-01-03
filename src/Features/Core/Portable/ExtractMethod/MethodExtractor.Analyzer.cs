@@ -217,7 +217,8 @@ internal abstract partial class AbstractExtractMethodService<
                     // check whether current selection contains return statement
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
 
-                    return (allVariableInfos, [], returnType, returnsByRef);
+                    var variablesToUseAsReturnValue = allVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
+                    return (allVariableInfos, variablesToUseAsReturnValue, returnType, returnsByRef);
                 }
                 else
                 {
