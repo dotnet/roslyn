@@ -68,7 +68,7 @@ internal abstract partial class AbstractExtractMethodService<
             /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
-            protected abstract (int breakStatementCount, int continueStatementCount, bool exitIsReachable) GetComplexFlowControlInfo();
+            protected abstract (int breakStatementCount, int continueStatementCount, bool endPointIsReachable) GetComplexFlowControlInfo();
 
             public AnalyzerResult Analyze()
             {
@@ -216,24 +216,56 @@ internal abstract partial class AbstractExtractMethodService<
 
                 if (this.SelectionResult.IsExtractMethodOnExpression)
                 {
+                    // Just selecting an expression.  There can't be any sort of interesting flow control here as the
+                    // language doesn't support things like 'break/continue/return' expressions (those only have
+                    // statement forms).
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
                     return (allVariableInfos, returnType, returnsByRef);
                 }
                 else
                 {
-                    var (breakCount, continueCount, exitIsReachable) = GetComplexFlowControlInfo();
+                    var (breakCount, continueCount, endPointIsReachable) = GetComplexFlowControlInfo();
 
                     if (this.ContainsReturnStatementInSelectedCode())
                     {
+                        var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
 
+                        if (breakCount == 0 && continueCount == 0 && !endPointIsReachable)
+                        {
+                            // Trivial case.  The code we're extracting does contain return-statements, but no other
+                            // sorts of complex flow control (including falling through past the end of the selection.
+                            // In this case, we'll extract the code virtually as-is into a new method and have the
+                            // callsite return that *new* method.
+                            return (allVariableInfos, returnType, returnsByRef);
+                        }
+                        else
+                        {
+                            // More interesting case.  We have a return statement *and* some form of flow control we
+                            // need to convey to the caller as well.  Create a special variable to represent that
+                            // control flow value.
+                        }
                     }
+                    else
+                    {
+                        if (breakCount == 0 && continueCount == 0)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
+
+                    // If we get here, then we have a selection that either doesn't contain a return statement (and may
+                    // or may not have complex flow control), or it does contain a return statement *as well as* complex
+                    // flow control.
 
 
                     if (this.IsInExpressionOrHasReturnStatement())
                     {
                         // check whether current selection contains return statement
                         var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-
                         return (allVariableInfos, returnType, returnsByRef);
                     }
                     else
