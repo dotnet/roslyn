@@ -32,11 +32,9 @@ internal sealed partial class CSharpExtractMethodService
 
                 return node switch
                 {
-                    AccessorDeclarationSyntax _ => false,
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
-                    ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                    SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                    AnonymousMethodExpressionSyntax anonymous => anonymous.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
+                    LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                    AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.AsyncKeyword != default,
                     _ => false,
                 };
             }
@@ -88,6 +86,24 @@ internal sealed partial class CSharpExtractMethodService
                     default:
                         return default;
                 }
+            }
+
+            public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                if (this.IsExtractMethodOnSingleStatement)
+                {
+                    var firstStatement = this.GetFirstStatement();
+                    return firstStatement.GetRequiredParent();
+                }
+
+                if (this.IsExtractMethodOnMultipleStatements)
+                {
+                    var firstStatement = this.GetFirstStatementUnderContainer();
+                    var container = firstStatement.GetRequiredParent();
+                    return container is GlobalStatementSyntax ? container.GetRequiredParent() : container;
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

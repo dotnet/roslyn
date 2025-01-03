@@ -92,39 +92,6 @@ internal sealed partial class CSharpExtractMethodService
             return false;
         }
 
-        public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
-        {
-            if (this.IsExtractMethodOnExpression)
-            {
-                var container = this.GetInnermostStatementContainer();
-
-                Contract.ThrowIfNull(container);
-                Contract.ThrowIfFalse(
-                    container.IsStatementContainerNode() ||
-                    container is BaseListSyntax or TypeDeclarationSyntax or ConstructorDeclarationSyntax or CompilationUnitSyntax);
-
-                return container;
-            }
-
-            if (this.IsExtractMethodOnSingleStatement)
-            {
-                var firstStatement = this.GetFirstStatement();
-                return firstStatement.Parent;
-            }
-
-            if (this.IsExtractMethodOnMultipleStatements)
-            {
-                var firstStatement = this.GetFirstStatementUnderContainer();
-                var container = firstStatement.Parent;
-                if (container is GlobalStatementSyntax)
-                    return container.Parent;
-
-                return container;
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
-
         public override StatementSyntax GetFirstStatementUnderContainer()
         {
             Contract.ThrowIfTrue(IsExtractMethodOnExpression);
