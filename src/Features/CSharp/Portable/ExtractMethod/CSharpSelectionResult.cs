@@ -226,22 +226,7 @@ internal sealed partial class CSharpExtractMethodService
             if (body.CloseBraceToken != GetLastTokenInSelection().GetNextToken(includeZeroWidth: true))
                 return false;
 
-            // alright, for these constructs, it must be okay to be extracted
-            switch (container.Kind())
-            {
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return true;
-            }
-
-            // now, only method is okay to be extracted out
-            if (body.Parent is not MethodDeclarationSyntax method)
-                return false;
-
-            // make sure this method doesn't have return type.
-            return method.ReturnType is PredefinedTypeSyntax p &&
-                p.Keyword.Kind() == SyntaxKind.VoidKeyword;
+            return true;
         }
     }
 }
