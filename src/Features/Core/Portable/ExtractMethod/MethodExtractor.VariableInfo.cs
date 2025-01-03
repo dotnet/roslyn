@@ -110,9 +110,6 @@ internal abstract partial class AbstractExtractMethodService<
 
             public ITypeSymbol SymbolType => _variableSymbol.SymbolType;
 
-            //public ITypeSymbol GetVariableType()
-            //    => _variableSymbol.OriginalType;
-
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
                 => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
 

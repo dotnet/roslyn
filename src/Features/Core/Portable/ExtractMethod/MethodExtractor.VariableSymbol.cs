@@ -21,28 +21,19 @@ internal abstract partial class AbstractExtractMethodService<
 {
     internal abstract partial class MethodExtractor
     {
-        /// <summary>
-        /// temporary symbol until we have a symbol that can hold onto both local and parameter symbol
-        /// </summary>
         protected abstract class VariableSymbol
         {
             /// <summary>
-            /// The underlying symbol this points at.
-            /// </summary>
-            public ISymbol Symbol { get; }
-
-            /// <summary>
-            /// Get the type of <see cref="Symbol"/> to use when generating code. May contain anonymous types in it.
-            /// Note: this is not necessarily the type symbol that can be directly accessed off of <see cref="Symbol"/>
-            /// itself.  For example, it may have had nullability information changes applied to it.
+            /// Get the type of <see cref="GetSymbol"/> to use when generating code. May contain anonymous types in it.
+            /// Note: this is not necessarily the type symbol that can be directly accessed off of <see
+            /// cref="GetSymbol"/> itself.  For example, it may have had nullability information changes applied to it.
             /// </summary>
             public ITypeSymbol SymbolType { get; }
 
             private readonly bool _isCancellationToken;
 
-            protected VariableSymbol(ISymbol symbol, ITypeSymbol symbolType)
+            protected VariableSymbol(ITypeSymbol symbolType)
             {
-                Symbol = symbol;
                 SymbolType = symbolType;
                 _isCancellationToken = IsCancellationToken(SymbolType);
 
@@ -57,6 +48,11 @@ internal abstract partial class AbstractExtractMethodService<
                     };
                 }
             }
+
+            /// <summary>
+            /// The underlying symbol this points at.
+            /// </summary>
+            protected abstract ISymbol GetSymbol();
 
             public abstract int DisplayOrder { get; }
             public abstract bool CanBeCapturedByLocalFunction { get; }
@@ -92,14 +88,24 @@ internal abstract partial class AbstractExtractMethodService<
                 return left.DisplayOrder - right.DisplayOrder;
             }
 
-            public string Name => this.Symbol.ToDisplayString(
+            public string Name => this.GetSymbol().ToDisplayString(
                 new SymbolDisplayFormat(
                     parameterOptions: SymbolDisplayParameterOptions.IncludeName,
                     miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
-        protected abstract class NotMovableVariableSymbol(
-            ISymbol symbol, ITypeSymbol symbolType) : VariableSymbol(symbol, symbolType)
+        protected abstract class VariableSymbol<TSymbol>(TSymbol symbol, ITypeSymbol symbolType)
+            : VariableSymbol(symbolType)
+            where TSymbol : ISymbol
+        {
+            protected TSymbol Symbol { get; } = symbol;
+
+            protected override ISymbol GetSymbol() => this.Symbol;
+        }
+
+        protected abstract class NotMovableVariableSymbol<TSymbol>(
+            TSymbol symbol, ITypeSymbol symbolType) : VariableSymbol<TSymbol>(symbol, symbolType)
+            where TSymbol : ISymbol
         {
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
                 => default;
@@ -114,10 +120,8 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class ParameterVariableSymbol(IParameterSymbol symbol, ITypeSymbol symbolType)
-            : NotMovableVariableSymbol(symbol, symbolType), IComparable<ParameterVariableSymbol>
+            : NotMovableVariableSymbol<IParameterSymbol>(symbol, symbolType), IComparable<ParameterVariableSymbol>
         {
-            private IParameterSymbol ParameterSymbol => (IParameterSymbol)Symbol;
-
             public override int DisplayOrder => 0;
 
             protected override int CompareTo(VariableSymbol right)
@@ -132,14 +136,14 @@ internal abstract partial class AbstractExtractMethodService<
                     return 0;
                 }
 
-                var compare = CompareMethodParameters((IMethodSymbol)this.ParameterSymbol.ContainingSymbol, (IMethodSymbol)other.ParameterSymbol.ContainingSymbol);
+                var compare = CompareMethodParameters((IMethodSymbol)this.Symbol.ContainingSymbol, (IMethodSymbol)other.Symbol.ContainingSymbol);
                 if (compare != 0)
                 {
                     return compare;
                 }
 
-                Contract.ThrowIfFalse(ParameterSymbol.Ordinal != other.ParameterSymbol.Ordinal);
-                return (ParameterSymbol.Ordinal > other.ParameterSymbol.Ordinal) ? 1 : -1;
+                Contract.ThrowIfFalse(Symbol.Ordinal != other.Symbol.Ordinal);
+                return (Symbol.Ordinal > other.Symbol.Ordinal) ? 1 : -1;
             }
 
             private static int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
@@ -174,11 +178,9 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol symbolType)
-            : VariableSymbol(localSymbol, symbolType), IComparable<LocalVariableSymbol>
+            : VariableSymbol<ILocalSymbol>(localSymbol, symbolType), IComparable<LocalVariableSymbol>
         {
             private readonly SyntaxAnnotation _annotation = new();
-
-            private ILocalSymbol LocalSymbol => (ILocalSymbol)Symbol;
 
             public override int DisplayOrder => 1;
 
@@ -194,24 +196,24 @@ internal abstract partial class AbstractExtractMethodService<
                     return 0;
                 }
 
-                Contract.ThrowIfFalse(LocalSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(other.LocalSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(LocalSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(other.LocalSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(LocalSymbol.Locations[0].SourceTree == other.LocalSymbol.Locations[0].SourceTree);
-                Contract.ThrowIfFalse(LocalSymbol.Locations[0].SourceSpan.Start != other.LocalSymbol.Locations[0].SourceSpan.Start);
+                Contract.ThrowIfFalse(Symbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(other.Symbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(Symbol.Locations[0].IsInSource);
+                Contract.ThrowIfFalse(other.Symbol.Locations[0].IsInSource);
+                Contract.ThrowIfFalse(Symbol.Locations[0].SourceTree == other.Symbol.Locations[0].SourceTree);
+                Contract.ThrowIfFalse(Symbol.Locations[0].SourceSpan.Start != other.Symbol.Locations[0].SourceSpan.Start);
 
-                return LocalSymbol.Locations[0].SourceSpan.Start - other.LocalSymbol.Locations[0].SourceSpan.Start;
+                return Symbol.Locations[0].SourceSpan.Start - other.Symbol.Locations[0].SourceSpan.Start;
             }
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
             {
-                Contract.ThrowIfFalse(LocalSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(LocalSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfNull(LocalSymbol.Locations[0].SourceTree);
+                Contract.ThrowIfFalse(Symbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(Symbol.Locations[0].IsInSource);
+                Contract.ThrowIfNull(Symbol.Locations[0].SourceTree);
 
-                var tree = LocalSymbol.Locations[0].SourceTree;
-                var span = LocalSymbol.Locations[0].SourceSpan;
+                var tree = Symbol.Locations[0].SourceTree;
+                var span = Symbol.Locations[0].SourceSpan;
 
                 var token = tree.GetRoot(cancellationToken).FindToken(span.Start);
                 Contract.ThrowIfFalse(token.Span.Equals(span));
@@ -231,7 +233,7 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol symbolType)
-            : NotMovableVariableSymbol(symbol, symbolType), IComparable<QueryVariableSymbol>
+            : NotMovableVariableSymbol<IRangeVariableSymbol>(symbol, symbolType), IComparable<QueryVariableSymbol>
         {
             public override int DisplayOrder => 2;
 
