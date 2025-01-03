@@ -311,8 +311,29 @@ internal abstract partial class AbstractExtractMethodService<
 
             private MultiDictionary<ISymbol, SyntaxToken> GetSymbolMap()
             {
+                var symbolMap = new MultiDictionary<ISymbol, SyntaxToken>();
+
+                var semanticModel = this.SemanticModel;
+                var syntaxFacts = this.SyntaxFacts;
                 var context = SelectionResult.GetContainingScope();
-                return SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
+
+                foreach (var token in context.DescendantTokens())
+                {
+                    if (token.IsMissing ||
+                        token.Width() <= 0 ||
+                        !this.SelectionResult.FinalSpan.Contains(token.Span) ||
+                        !syntaxFacts.IsIdentifier(token) ||
+                        syntaxFacts.IsNameOfNamedArgument(token.Parent))
+                    {
+                        continue;
+                    }
+
+                    var symbolInfo = semanticModel.GetSymbolInfo(token, this.CancellationToken);
+                    foreach (var sym in symbolInfo.GetAllSymbols())
+                        symbolMap.Add(sym, token);
+                }
+
+                return symbolMap;
             }
 
             private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
