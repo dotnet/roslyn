@@ -122,12 +122,9 @@ internal abstract partial class AbstractExtractMethodService<
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = this.SelectionResult.IsEndOfSelectionReachable();
 
-                var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
-
                 // check whether the selection contains "&" over a symbol exist
                 var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
-                var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue) =
-                    GetSignatureInformation(variableInfoMap, isInExpressionOrHasReturnStatement);
+                var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue) = GetSignatureInformation(variableInfoMap);
 
                 (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
@@ -211,11 +208,9 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
-                GetSignatureInformation(
-                    Dictionary<ISymbol, VariableInfo> variableInfoMap,
-                    bool isInExpressionOrHasReturnStatement)
+                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> variableInfoMap)
             {
-                if (isInExpressionOrHasReturnStatement)
+                if (this.IsInExpressionOrHasReturnStatement())
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap);
