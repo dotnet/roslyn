@@ -1844,6 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RefReturnReadonlyNotField2
                 or ErrorCode.ERR_ExplicitReservedAttr
                 or ErrorCode.ERR_TypeReserved
+                or ErrorCode.ERR_EmbeddedAttributeMustFollowPattern
                 or ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne
                 or ErrorCode.ERR_InExtensionMustBeValueType
                 or ErrorCode.ERR_FieldsInRoStruct

@@ -156,3 +156,25 @@ struct S
     public static void M([UnscopedRef] ref int x) { }
 }
 ```
+
+## `Microsoft.CodeAnalysis.EmbeddedAttribute` is validated on declaration
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The compiler now validates the shape of `Microsoft.CodeAnalysis.EmbeddedAttribute` when declared in source. Previously, the compiler
+would allow user-defined declarations of this attribute, but only when it didn't need to generate one itself. We now validate that:
+
+1. It must be internal
+2. It must be a class
+3. It must be sealed
+4. It must be non-static
+5. It must have an internal or public parameterless constructor
+6. It must inherit from System.Attribute.
+7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+
+```cs
+namespace Microsoft.CodeAnalysis;
+
+// Previously, sometimes allowed. Now, CS9271
+public class EmbeddedAttribute : Attribute {}
+```

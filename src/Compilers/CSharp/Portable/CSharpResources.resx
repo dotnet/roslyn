@@ -5908,6 +5908,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
+  <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
+  </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
