@@ -312,19 +312,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
 
-            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
-                Dim container = commonRoot.GetAncestorsOrThis(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault()
-                If container Is Nothing Then
-                    Return ImmutableArray(Of ExecutableStatementSyntax).Empty
-                End If
-
-                ' now filter return statements to only include the one under outmost container
-                Return jumpsOutOfRegionStatements.
+            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, exitPoints As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
+                Return exitPoints.
                     OfType(Of ExecutableStatementSyntax).
                     Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).
-                    Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
-                    Where(Function(p) p.container Is container).
-                    SelectAsArray(Function(p) p.returnStatement)
+                    ToImmutableArray()
             End Function
 
             Public Overrides Function IsFinalSpanSemanticallyValidSpan(

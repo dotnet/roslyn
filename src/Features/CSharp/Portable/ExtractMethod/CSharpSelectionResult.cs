@@ -193,19 +193,7 @@ internal sealed partial class CSharpExtractMethodService
             => exitPoints.Any(n => n is not ReturnStatementSyntax);
 
         public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> exitPoints)
-        {
-            var container = commonRoot.AncestorsAndSelf().FirstOrDefault(a => a.IsReturnableConstruct());
-            if (container == null)
-                return [];
-
-            // now filter return statements to only include the one under outmost container
-            return exitPoints
-                .OfType<ReturnStatementSyntax>()
-                .Select(returnStatement => (returnStatement, container: returnStatement.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
-                .Where(p => p.container == container)
-                .SelectAsArray(p => p.returnStatement)
-                .CastArray<StatementSyntax>();
-        }
+            => exitPoints.OfType<ReturnStatementSyntax>().ToImmutableArray().CastArray<StatementSyntax>();
 
         public override bool IsFinalSpanSemanticallyValidSpan(
             ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
