@@ -192,14 +192,14 @@ internal sealed partial class CSharpExtractMethodService
         public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
             => exitPoints.Any(n => n is not ReturnStatementSyntax);
 
-        public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion)
+        public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> exitPoints)
         {
-            var container = commonRoot.GetAncestorsOrThis<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault();
+            var container = commonRoot.AncestorsAndSelf().FirstOrDefault(a => a.IsReturnableConstruct());
             if (container == null)
                 return [];
 
             // now filter return statements to only include the one under outmost container
-            return jumpsOutOfRegion
+            return exitPoints
                 .OfType<ReturnStatementSyntax>()
                 .Select(returnStatement => (returnStatement, container: returnStatement.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
                 .Where(p => p.container == container)
