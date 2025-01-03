@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -30,11 +27,13 @@ internal abstract partial class AbstractExtractMethodService<
             /// </summary>
             public ITypeSymbol SymbolType { get; }
 
+            private readonly int _displayOrder;
             private readonly bool _isCancellationToken;
 
-            protected VariableSymbol(ITypeSymbol symbolType)
+            protected VariableSymbol(ITypeSymbol symbolType, int displayOrder)
             {
                 SymbolType = symbolType;
+                _displayOrder = displayOrder;
                 _isCancellationToken = IsCancellationToken(SymbolType);
 
                 static bool IsCancellationToken(ITypeSymbol originalType)
@@ -54,7 +53,6 @@ internal abstract partial class AbstractExtractMethodService<
             /// </summary>
             protected abstract ISymbol GetSymbol();
 
-            public abstract int DisplayOrder { get; }
             public abstract bool CanBeCapturedByLocalFunction { get; }
 
             public abstract SyntaxAnnotation IdentifierTokenAnnotation { get; }
@@ -67,24 +65,19 @@ internal abstract partial class AbstractExtractMethodService<
 
             public static int Compare(VariableSymbol left, VariableSymbol right)
             {
+                if (left == right)
+                    return 0;
+
                 // CancellationTokens always go at the end of method signature.
-                var leftIsCancellationToken = left._isCancellationToken;
-                var rightIsCancellationToken = right._isCancellationToken;
-
-                if (leftIsCancellationToken && !rightIsCancellationToken)
+                return (left._isCancellationToken, right._isCancellationToken) switch
                 {
-                    return 1;
-                }
-                else if (!leftIsCancellationToken && rightIsCancellationToken)
-                {
-                    return -1;
-                }
-
-                var orderDiff = left.DisplayOrder - right.DisplayOrder;
-                if (orderDiff != 0)
-                    return orderDiff;
-
-                return left.CompareTo(right);
+                    (true, false) => 1,
+                    (false, true) => -1,
+                    // Then order by the general class of the variable (parameter, local, range-var).
+                    _ when (left._displayOrder != right._displayOrder) => left._displayOrder - right._displayOrder,
+                    // Finally, compare within the general class of the variable.
+                    _ => left.CompareTo(right),
+                };
             }
 
             public string Name => this.GetSymbol().ToDisplayString(
@@ -93,8 +86,9 @@ internal abstract partial class AbstractExtractMethodService<
                     miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
-        protected abstract class VariableSymbol<TVariableSymbol, TSymbol>(TSymbol symbol, ITypeSymbol symbolType)
-            : VariableSymbol(symbolType)
+        protected abstract class VariableSymbol<TVariableSymbol, TSymbol>(
+            TSymbol symbol, ITypeSymbol symbolType, int displayOrder)
+            : VariableSymbol(symbolType, displayOrder)
             where TVariableSymbol : VariableSymbol<TVariableSymbol, TSymbol>
             where TSymbol : ISymbol
         {
@@ -103,28 +97,37 @@ internal abstract partial class AbstractExtractMethodService<
             protected override ISymbol GetSymbol() => this.Symbol;
 
             protected sealed override int CompareTo(VariableSymbol right)
-            {
-                Contract.ThrowIfTrue(this.DisplayOrder != right.DisplayOrder);
-                if (this == right)
-                    return 0;
-
-                return this.CompareTo((TVariableSymbol)right);
-            }
+                => this.CompareTo((TVariableSymbol)right);
 
             protected abstract int CompareTo(TVariableSymbol right);
+
+            protected static int DefaultCompareTo(ISymbol left, ISymbol right)
+            {
+                var locationLeft = left.Locations.First();
+                var locationRight = right.Locations.First();
+
+                Contract.ThrowIfFalse(locationLeft.IsInSource);
+                Contract.ThrowIfFalse(locationRight.IsInSource);
+                Contract.ThrowIfFalse(locationLeft.SourceTree == locationRight.SourceTree);
+                Contract.ThrowIfFalse(locationLeft.SourceSpan.Start != locationRight.SourceSpan.Start);
+
+                return locationLeft.SourceSpan.Start - locationRight.SourceSpan.Start;
+            }
         }
 
         protected abstract class NotMovableVariableSymbol<TVariableSymbol, TSymbol>(
-            TSymbol symbol, ITypeSymbol symbolType) : VariableSymbol<TVariableSymbol, TSymbol>(symbol, symbolType)
+            TSymbol symbol, ITypeSymbol symbolType, int displayOrder)
+            : VariableSymbol<TVariableSymbol, TSymbol>(symbol, symbolType, displayOrder)
             where TVariableSymbol : VariableSymbol<TVariableSymbol, TSymbol>
             where TSymbol : ISymbol
         {
-            public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
+            public sealed override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
                 => default;
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable();
+            public sealed override SyntaxAnnotation IdentifierTokenAnnotation
+                => throw ExceptionUtilities.Unreachable();
 
-            public override void AddIdentifierTokenAnnotationPair(
+            public sealed override void AddIdentifierTokenAnnotationPair(
                 MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken)
             {
                 // do nothing for parameter
@@ -132,88 +135,39 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class ParameterVariableSymbol(IParameterSymbol symbol, ITypeSymbol symbolType)
-            : NotMovableVariableSymbol<ParameterVariableSymbol, IParameterSymbol>(symbol, symbolType)
+            : NotMovableVariableSymbol<ParameterVariableSymbol, IParameterSymbol>(
+                symbol, symbolType, displayOrder: 0)
         {
-            public override int DisplayOrder => 0;
+            public override bool CanBeCapturedByLocalFunction => true;
 
             protected override int CompareTo(ParameterVariableSymbol other)
             {
-                var compare = CompareMethodParameters((IMethodSymbol)this.Symbol.ContainingSymbol, (IMethodSymbol)other.Symbol.ContainingSymbol);
+                // these methods can be either regular one, anonymous function, local function and etc but all must
+                // belong to same outer regular method. so, it should have location pointing to same tree
+                var compare = DefaultCompareTo((IMethodSymbol)this.Symbol.ContainingSymbol, (IMethodSymbol)other.Symbol.ContainingSymbol);
                 if (compare != 0)
                     return compare;
 
                 Contract.ThrowIfFalse(Symbol.Ordinal != other.Symbol.Ordinal);
-                return Symbol.Ordinal > other.Symbol.Ordinal ? 1 : -1;
+                return Symbol.Ordinal - other.Symbol.Ordinal;
             }
-
-            private static int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
-            {
-                if (left == null && right == null)
-                {
-                    // not method parameters
-                    return 0;
-                }
-
-                if (left.Equals(right))
-                {
-                    // parameter of same method
-                    return 0;
-                }
-
-                // these methods can be either regular one, anonymous function, local function and etc
-                // but all must belong to same outer regular method.
-                // so, it should have location pointing to same tree
-                var leftLocations = left.Locations;
-                var rightLocations = right.Locations;
-
-                var commonTree = leftLocations.Select(l => l.SourceTree).Intersect(rightLocations.Select(l => l.SourceTree)).WhereNotNull().First();
-
-                var leftLocation = leftLocations.First(l => l.SourceTree == commonTree);
-                var rightLocation = rightLocations.First(l => l.SourceTree == commonTree);
-
-                return leftLocation.SourceSpan.Start - rightLocation.SourceSpan.Start;
-            }
-
-            public override bool CanBeCapturedByLocalFunction => true;
         }
 
         protected sealed class LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol symbolType)
-            : VariableSymbol<LocalVariableSymbol, ILocalSymbol>(localSymbol, symbolType)
+            : VariableSymbol<LocalVariableSymbol, ILocalSymbol>(
+                localSymbol, symbolType, displayOrder: 1)
         {
             private readonly SyntaxAnnotation _annotation = new();
 
-            public override int DisplayOrder => 1;
+            public override bool CanBeCapturedByLocalFunction => true;
 
             protected override int CompareTo(LocalVariableSymbol other)
-            {
-                Contract.ThrowIfFalse(Symbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(other.Symbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(Symbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(other.Symbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(Symbol.Locations[0].SourceTree == other.Symbol.Locations[0].SourceTree);
-                Contract.ThrowIfFalse(Symbol.Locations[0].SourceSpan.Start != other.Symbol.Locations[0].SourceSpan.Start);
-
-                return Symbol.Locations[0].SourceSpan.Start - other.Symbol.Locations[0].SourceSpan.Start;
-            }
+                => DefaultCompareTo(this.Symbol, other.Symbol);
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfFalse(Symbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(Symbol.Locations[0].IsInSource);
-                Contract.ThrowIfNull(Symbol.Locations[0].SourceTree);
-
-                var tree = Symbol.Locations[0].SourceTree;
-                var span = Symbol.Locations[0].SourceSpan;
-
-                var token = tree.GetRoot(cancellationToken).FindToken(span.Start);
-                Contract.ThrowIfFalse(token.Span.Equals(span));
-
-                return token;
-            }
+                => Symbol.Locations.First().FindToken(cancellationToken);
 
             public override SyntaxAnnotation IdentifierTokenAnnotation => _annotation;
-
-            public override bool CanBeCapturedByLocalFunction => true;
 
             public override void AddIdentifierTokenAnnotationPair(
                 MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken)
@@ -223,24 +177,13 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol symbolType)
-            : NotMovableVariableSymbol<QueryVariableSymbol, IRangeVariableSymbol>(symbol, symbolType)
+            : NotMovableVariableSymbol<QueryVariableSymbol, IRangeVariableSymbol>(
+                symbol, symbolType, displayOrder: 2)
         {
-            public override int DisplayOrder => 2;
+            public override bool CanBeCapturedByLocalFunction => false;
 
             protected override int CompareTo(QueryVariableSymbol other)
-            {
-                var locationLeft = this.Symbol.Locations.First();
-                var locationRight = other.Symbol.Locations.First();
-
-                Contract.ThrowIfFalse(locationLeft.IsInSource);
-                Contract.ThrowIfFalse(locationRight.IsInSource);
-                Contract.ThrowIfFalse(locationLeft.SourceTree == locationRight.SourceTree);
-                Contract.ThrowIfFalse(locationLeft.SourceSpan.Start != locationRight.SourceSpan.Start);
-
-                return locationLeft.SourceSpan.Start - locationRight.SourceSpan.Start;
-            }
-
-            public override bool CanBeCapturedByLocalFunction => false;
+                => DefaultCompareTo(this.Symbol, other.Symbol);
         }
     }
 }
