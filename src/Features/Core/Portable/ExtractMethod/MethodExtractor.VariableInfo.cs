@@ -117,11 +117,8 @@ internal abstract partial class AbstractExtractMethodService<
 
             public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
-            public static void SortVariables(ArrayBuilder<VariableInfo> variables)
-                => variables.Sort();
-
             public int CompareTo(VariableInfo other)
-                => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
+                => this._variableSymbol.CompareTo(other._variableSymbol);
         }
     }
 }

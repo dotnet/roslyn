@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SymbolMapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -18,7 +17,7 @@ internal abstract partial class AbstractExtractMethodService<
 {
     internal abstract partial class MethodExtractor
     {
-        protected abstract class VariableSymbol
+        protected abstract class VariableSymbol : IComparable<VariableSymbol>
         {
             /// <summary>
             /// Get the type of <see cref="GetSymbol"/> to use when generating code. May contain anonymous types in it.
@@ -58,25 +57,26 @@ internal abstract partial class AbstractExtractMethodService<
             public abstract SyntaxAnnotation IdentifierTokenAnnotation { get; }
             public abstract SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken);
 
+            protected abstract int CompareToWorker(VariableSymbol other);
+
             public abstract void AddIdentifierTokenAnnotationPair(
                 MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken);
 
-            protected abstract int CompareTo(VariableSymbol right);
-
-            public static int Compare(VariableSymbol left, VariableSymbol right)
+            public int CompareTo(VariableSymbol? other)
             {
-                if (left == right)
+                Contract.ThrowIfNull(other);
+                if (this == other)
                     return 0;
 
                 // CancellationTokens always go at the end of method signature.
-                return (left._isCancellationToken, right._isCancellationToken) switch
+                return (this._isCancellationToken, other._isCancellationToken) switch
                 {
                     (true, false) => 1,
                     (false, true) => -1,
                     // Then order by the general class of the variable (parameter, local, range-var).
-                    _ when (left._displayOrder != right._displayOrder) => left._displayOrder - right._displayOrder,
+                    _ when (this._displayOrder != other._displayOrder) => this._displayOrder - other._displayOrder,
                     // Finally, compare within the general class of the variable.
-                    _ => left.CompareTo(right),
+                    _ => this.CompareToWorker(other),
                 };
             }
 
@@ -96,7 +96,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected override ISymbol GetSymbol() => this.Symbol;
 
-            protected sealed override int CompareTo(VariableSymbol right)
+            protected sealed override int CompareToWorker(VariableSymbol right)
                 => this.CompareTo((TVariableSymbol)right);
 
             protected abstract int CompareTo(TVariableSymbol right);
