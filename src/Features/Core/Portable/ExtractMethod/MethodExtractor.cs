@@ -208,8 +208,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             foreach (var variable in analyzeResult.Variables)
             {
-                var originalType = variable.GetVariableType();
-                status = status.With(CheckType(semanticModel, originalType));
+                status = status.With(CheckType(semanticModel, variable.SymbolType));
                 if (status.Failed)
                     return status;
             }

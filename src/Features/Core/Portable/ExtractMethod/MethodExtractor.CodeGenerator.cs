@@ -333,13 +333,11 @@ internal abstract partial class AbstractExtractMethodService<
                     if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
                     {
                         var refKind = GetRefKind(parameter.ParameterModifier);
-                        var type = parameter.GetVariableType();
-
                         parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                             attributes: [],
                             refKind: refKind,
                             isParams: false,
-                            type: type,
+                            type: parameter.SymbolType,
                             name: parameter.Name));
                     }
                 }

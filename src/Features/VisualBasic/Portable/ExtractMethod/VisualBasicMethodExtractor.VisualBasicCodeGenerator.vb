@@ -431,8 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     Dim initializer = If(initialValue, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
 
-                    Dim variableType = variable.GetVariableType()
-                    Dim typeNode = variableType.GenerateTypeSyntax()
+                    Dim typeNode = variable.SymbolType.GenerateTypeSyntax()
 
                     Dim names = SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(variable.Name)))
                     Dim modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.DimKeyword))

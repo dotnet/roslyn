@@ -27,43 +27,38 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract class VariableSymbol
         {
             /// <summary>
-            /// return true if original type had anonymous type or delegate somewhere in the type
+            /// The underlying symbol this points at.
             /// </summary>
-            public bool OriginalTypeHadAnonymousTypeOrDelegate { get; }
+            public ISymbol Symbol { get; }
 
             /// <summary>
-            /// get the original type with anonymous type removed
+            /// Get the type of <see cref="Symbol"/> to use when generating code. May contain anonymous types in it.
+            /// Note: this is not necessarily the type symbol that can be directly accessed off of <see cref="Symbol"/>
+            /// itself.  For example, it may have had nullability information changes applied to it.
             /// </summary>
-            public ITypeSymbol OriginalType { get; }
+            public ITypeSymbol SymbolType { get; }
 
             private readonly bool _isCancellationToken;
 
-            protected VariableSymbol(ITypeSymbol type)
+            protected VariableSymbol(ISymbol symbol, ITypeSymbol symbolType)
             {
-                OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
-                OriginalType = type;
-                _isCancellationToken = IsCancellationToken(OriginalType);
+                Symbol = symbol;
+                SymbolType = symbolType;
+                _isCancellationToken = IsCancellationToken(SymbolType);
 
                 static bool IsCancellationToken(ITypeSymbol originalType)
                 {
                     return originalType is
                     {
                         Name: nameof(CancellationToken),
-                        ContainingNamespace:
-                        {
-                            Name: nameof(System.Threading),
-                            ContainingNamespace:
-                            {
-                                Name: nameof(System),
-                                ContainingNamespace.IsGlobalNamespace: true,
-                            }
-                        }
+                        ContainingNamespace.Name: nameof(System.Threading),
+                        ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                        ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
                     };
                 }
             }
 
             public abstract int DisplayOrder { get; }
-            public abstract string Name { get; }
             public abstract bool CanBeCapturedByLocalFunction { get; }
 
             public abstract SyntaxAnnotation IdentifierTokenAnnotation { get; }
@@ -96,9 +91,15 @@ internal abstract partial class AbstractExtractMethodService<
 
                 return left.DisplayOrder - right.DisplayOrder;
             }
+
+            public string Name => this.Symbol.ToDisplayString(
+                new SymbolDisplayFormat(
+                    parameterOptions: SymbolDisplayParameterOptions.IncludeName,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
-        protected abstract class NotMovableVariableSymbol(ITypeSymbol type) : VariableSymbol(type)
+        protected abstract class NotMovableVariableSymbol(
+            ISymbol symbol, ITypeSymbol symbolType) : VariableSymbol(symbol, symbolType)
         {
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
                 => default;
@@ -112,16 +113,10 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        protected sealed class ParameterVariableSymbol : NotMovableVariableSymbol, IComparable<ParameterVariableSymbol>
+        protected sealed class ParameterVariableSymbol(IParameterSymbol symbol, ITypeSymbol symbolType)
+            : NotMovableVariableSymbol(symbol, symbolType), IComparable<ParameterVariableSymbol>
         {
-            private readonly IParameterSymbol _parameterSymbol;
-
-            public ParameterVariableSymbol(IParameterSymbol parameterSymbol, ITypeSymbol type)
-                : base(type)
-            {
-                Contract.ThrowIfNull(parameterSymbol);
-                _parameterSymbol = parameterSymbol;
-            }
+            private IParameterSymbol ParameterSymbol => (IParameterSymbol)Symbol;
 
             public override int DisplayOrder => 0;
 
@@ -137,14 +132,14 @@ internal abstract partial class AbstractExtractMethodService<
                     return 0;
                 }
 
-                var compare = CompareMethodParameters((IMethodSymbol)_parameterSymbol.ContainingSymbol, (IMethodSymbol)other._parameterSymbol.ContainingSymbol);
+                var compare = CompareMethodParameters((IMethodSymbol)this.ParameterSymbol.ContainingSymbol, (IMethodSymbol)other.ParameterSymbol.ContainingSymbol);
                 if (compare != 0)
                 {
                     return compare;
                 }
 
-                Contract.ThrowIfFalse(_parameterSymbol.Ordinal != other._parameterSymbol.Ordinal);
-                return (_parameterSymbol.Ordinal > other._parameterSymbol.Ordinal) ? 1 : -1;
+                Contract.ThrowIfFalse(ParameterSymbol.Ordinal != other.ParameterSymbol.Ordinal);
+                return (ParameterSymbol.Ordinal > other.ParameterSymbol.Ordinal) ? 1 : -1;
             }
 
             private static int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
@@ -175,32 +170,15 @@ internal abstract partial class AbstractExtractMethodService<
                 return leftLocation.SourceSpan.Start - rightLocation.SourceSpan.Start;
             }
 
-            public override string Name
-            {
-                get
-                {
-                    return _parameterSymbol.ToDisplayString(
-                        new SymbolDisplayFormat(
-                            parameterOptions: SymbolDisplayParameterOptions.IncludeName,
-                            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
-                }
-            }
-
             public override bool CanBeCapturedByLocalFunction => true;
         }
 
-        protected sealed class LocalVariableSymbol : VariableSymbol, IComparable<LocalVariableSymbol>
+        protected sealed class LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol symbolType)
+            : VariableSymbol(localSymbol, symbolType), IComparable<LocalVariableSymbol>
         {
             private readonly SyntaxAnnotation _annotation = new();
-            private readonly ILocalSymbol _localSymbol;
 
-            public LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol type)
-                : base(type)
-            {
-                Contract.ThrowIfNull(localSymbol);
-
-                _localSymbol = localSymbol;
-            }
+            private ILocalSymbol LocalSymbol => (ILocalSymbol)Symbol;
 
             public override int DisplayOrder => 1;
 
@@ -216,34 +194,24 @@ internal abstract partial class AbstractExtractMethodService<
                     return 0;
                 }
 
-                Contract.ThrowIfFalse(_localSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(other._localSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(_localSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(other._localSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfFalse(_localSymbol.Locations[0].SourceTree == other._localSymbol.Locations[0].SourceTree);
-                Contract.ThrowIfFalse(_localSymbol.Locations[0].SourceSpan.Start != other._localSymbol.Locations[0].SourceSpan.Start);
+                Contract.ThrowIfFalse(LocalSymbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(other.LocalSymbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(LocalSymbol.Locations[0].IsInSource);
+                Contract.ThrowIfFalse(other.LocalSymbol.Locations[0].IsInSource);
+                Contract.ThrowIfFalse(LocalSymbol.Locations[0].SourceTree == other.LocalSymbol.Locations[0].SourceTree);
+                Contract.ThrowIfFalse(LocalSymbol.Locations[0].SourceSpan.Start != other.LocalSymbol.Locations[0].SourceSpan.Start);
 
-                return _localSymbol.Locations[0].SourceSpan.Start - other._localSymbol.Locations[0].SourceSpan.Start;
-            }
-
-            public override string Name
-            {
-                get
-                {
-                    return _localSymbol.ToDisplayString(
-                        new SymbolDisplayFormat(
-                            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
-                }
+                return LocalSymbol.Locations[0].SourceSpan.Start - other.LocalSymbol.Locations[0].SourceSpan.Start;
             }
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
             {
-                Contract.ThrowIfFalse(_localSymbol.Locations.Length == 1);
-                Contract.ThrowIfFalse(_localSymbol.Locations[0].IsInSource);
-                Contract.ThrowIfNull(_localSymbol.Locations[0].SourceTree);
+                Contract.ThrowIfFalse(LocalSymbol.Locations.Length == 1);
+                Contract.ThrowIfFalse(LocalSymbol.Locations[0].IsInSource);
+                Contract.ThrowIfNull(LocalSymbol.Locations[0].SourceTree);
 
-                var tree = _localSymbol.Locations[0].SourceTree;
-                var span = _localSymbol.Locations[0].SourceSpan;
+                var tree = LocalSymbol.Locations[0].SourceTree;
+                var span = LocalSymbol.Locations[0].SourceSpan;
 
                 var token = tree.GetRoot(cancellationToken).FindToken(span.Start);
                 Contract.ThrowIfFalse(token.Span.Equals(span));
@@ -262,17 +230,9 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        protected sealed class QueryVariableSymbol : NotMovableVariableSymbol, IComparable<QueryVariableSymbol>
+        protected sealed class QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol symbolType)
+            : NotMovableVariableSymbol(symbol, symbolType), IComparable<QueryVariableSymbol>
         {
-            private readonly IRangeVariableSymbol _symbol;
-
-            public QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol type)
-                : base(type)
-            {
-                Contract.ThrowIfNull(symbol);
-                _symbol = symbol;
-            }
-
             public override int DisplayOrder => 2;
 
             protected override int CompareTo(VariableSymbol right)
@@ -287,8 +247,8 @@ internal abstract partial class AbstractExtractMethodService<
                     return 0;
                 }
 
-                var locationLeft = _symbol.Locations.First();
-                var locationRight = other._symbol.Locations.First();
+                var locationLeft = this.Symbol.Locations.First();
+                var locationRight = other.Symbol.Locations.First();
 
                 Contract.ThrowIfFalse(locationLeft.IsInSource);
                 Contract.ThrowIfFalse(locationRight.IsInSource);
@@ -296,16 +256,6 @@ internal abstract partial class AbstractExtractMethodService<
                 Contract.ThrowIfFalse(locationLeft.SourceSpan.Start != locationRight.SourceSpan.Start);
 
                 return locationLeft.SourceSpan.Start - locationRight.SourceSpan.Start;
-            }
-
-            public override string Name
-            {
-                get
-                {
-                    return _symbol.ToDisplayString(
-                        new SymbolDisplayFormat(
-                            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
-                }
             }
 
             public override bool CanBeCapturedByLocalFunction => false;

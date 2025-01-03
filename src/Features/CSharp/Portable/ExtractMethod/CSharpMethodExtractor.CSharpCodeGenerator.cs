@@ -662,8 +662,7 @@ internal sealed partial class CSharpExtractMethodService
 
                 if (variableInfos is [var singleVariable])
                 {
-                    var type = singleVariable.GetVariableType();
-                    var typeNode = type.GenerateTypeSyntax();
+                    var typeNode = singleVariable.SymbolType.GenerateTypeSyntax();
 
                     var originalIdentifierToken = singleVariable.GetOriginalIdentifierToken(cancellationToken);
 
@@ -704,7 +703,7 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         left = TupleExpression(
                             [.. variableInfos.Select(v => Argument(v.ReturnBehavior == ReturnBehavior.Initialization
-                            ? DeclarationExpression(v.GetVariableType().GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
+                            ? DeclarationExpression(v.SymbolType.GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
                             : v.Name.ToIdentifierName()))]);
                     }
 

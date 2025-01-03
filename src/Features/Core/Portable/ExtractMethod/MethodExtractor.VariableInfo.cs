@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -105,12 +106,12 @@ internal abstract partial class AbstractExtractMethodService<
             public bool CanBeCapturedByLocalFunction
                 => _variableSymbol.CanBeCapturedByLocalFunction;
 
-            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
+            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.SymbolType.ContainsAnonymousType();
 
-            public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
+            public ITypeSymbol SymbolType => _variableSymbol.SymbolType;
 
-            public ITypeSymbol GetVariableType()
-                => _variableSymbol.OriginalType;
+            //public ITypeSymbol GetVariableType()
+            //    => _variableSymbol.OriginalType;
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
                 => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);

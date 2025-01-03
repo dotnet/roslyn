@@ -237,10 +237,10 @@ internal abstract partial class AbstractExtractMethodService<
                         return compilation.GetSpecialType(SpecialType.System_Void);
 
                     if (variablesToUseAsReturnValue is [var info])
-                        return info.GetVariableType();
+                        return info.SymbolType;
 
                     return compilation.CreateTupleTypeSymbol(
-                        variablesToUseAsReturnValue.SelectAsArray(v => v.GetVariableType()),
+                        variablesToUseAsReturnValue.SelectAsArray(v => v.SymbolType),
                         variablesToUseAsReturnValue.SelectAsArray(v => v.Name)!);
                 }
             }
