@@ -24,12 +24,6 @@ internal sealed partial class CSharpExtractMethodService
             protected override bool IsInPrimaryConstructorBaseType()
                 => this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>() != null;
 
-            protected override VariableInfo CreateFromSymbol(
-                ISymbol symbol, ITypeSymbol type, VariableStyle style, bool variableDeclared)
-            {
-                return CreateFromSymbolCommon(symbol, type, style);
-            }
-
             protected override ITypeSymbol? GetRangeVariableType(IRangeVariableSymbol symbol)
             {
                 var info = this.SemanticModel.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);

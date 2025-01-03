@@ -52,11 +52,6 @@ internal abstract partial class AbstractExtractMethodService<
             /// </summary>
             protected abstract bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints);
 
-            /// <summary>
-            /// create VariableInfo type
-            /// </summary>
-            protected abstract VariableInfo CreateFromSymbol(ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
-
             protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
                 => readOutsideMap.Contains(symbol);
 
@@ -525,10 +520,20 @@ internal abstract partial class AbstractExtractMethodService<
                         continue;
                     }
 
+                    // An assignment to a VB 'function value'.  (e.g. `MethodName = value`) needs to be treated as a
+                    // return value from the inner function which the outer function then still assigns to its function
+                    // value.
+                    if (symbol is ILocalSymbol { IsFunctionValue: true } &&
+                        variableStyle.ParameterStyle.DeclarationBehavior != DeclarationBehavior.None)
+                    {
+                        Contract.ThrowIfFalse(variableStyle.ParameterStyle.DeclarationBehavior == DeclarationBehavior.MoveIn || variableStyle.ParameterStyle.DeclarationBehavior == DeclarationBehavior.SplitIn);
+                        variableStyle = AlwaysReturn(variableStyle);
+                    }
+
                     AddVariableToMap(
                         variableInfoMap,
                         symbol,
-                        CreateFromSymbol(symbol, type, variableStyle, variableDeclared));
+                        CreateFromSymbol(symbol, type, variableStyle));
                 }
 
                 return;
@@ -571,6 +576,23 @@ internal abstract partial class AbstractExtractMethodService<
                     }
 
                     return type;
+                }
+
+                static VariableInfo CreateFromSymbol(
+                   ISymbol symbol,
+                   ITypeSymbol type,
+                   VariableStyle style)
+                {
+                    return symbol switch
+                    {
+                        ILocalSymbol local => new VariableInfo(
+                            new LocalVariableSymbol(local, type),
+                            style,
+                            useAsReturnValue: false),
+                        IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
+                        IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(rangeVariable, type), style, useAsReturnValue: false),
+                        _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                    };
                 }
             }
 
@@ -932,23 +954,6 @@ internal abstract partial class AbstractExtractMethodService<
                     return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket, string.Join(", ", names)));
 
                 return OperationStatus.SucceededStatus;
-            }
-
-            protected static VariableInfo CreateFromSymbolCommon(
-                ISymbol symbol,
-                ITypeSymbol type,
-                VariableStyle style)
-            {
-                return symbol switch
-                {
-                    ILocalSymbol local => new VariableInfo(
-                        new LocalVariableSymbol(local, type),
-                        style,
-                        useAsReturnValue: false),
-                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
-                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(rangeVariable, type), style, useAsReturnValue: false),
-                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-                };
             }
         }
     }
