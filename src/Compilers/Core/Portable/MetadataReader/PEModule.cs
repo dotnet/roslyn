@@ -1022,6 +1022,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
         }
 
+        internal bool HasCompilerLoweringPreserveAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.CompilerLoweringPreserveAttribute).HasValue;
+        }
+
         internal bool HasInterpolatedStringHandlerAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerAttribute).HasValue;

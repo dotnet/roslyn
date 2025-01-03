@@ -1881,6 +1881,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                Dim attributesBag = GetAttributesBag()
+                Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonTypeWellKnownAttributeData)
+                Return (wellKnownAttributeData IsNot Nothing) AndAlso wellKnownAttributeData.HasCompilerLoweringPreserveAttribute
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsExtensibleInterfaceNoUseSiteDiagnostics As Boolean
             Get
                 If _lazyIsExtensibleInterface = ThreeState.Unknown Then
@@ -2304,6 +2312,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.RequiredAttributeAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
                     diagnostics.Add(ERRID.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.CompilerLoweringPreserveAttribute) Then
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasCompilerLoweringPreserveAttribute = True
                 End If
             End If
 
@@ -2475,7 +2485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Dim compilation = Me.DeclaringCompilation

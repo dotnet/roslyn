@@ -870,20 +870,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build and add synthesized attributes for this symbol.
         /// </summary>
-        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
         }
 
         /// <summary>
         /// Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         /// </summary>
-        internal static void AddSynthesizedAttribute(ref ArrayBuilder<SynthesizedAttributeData> attributes, SynthesizedAttributeData attribute)
+        internal static void AddSynthesizedAttribute(ref ArrayBuilder<CSharpAttributeData> attributes, CSharpAttributeData attribute)
         {
             if (attribute != null)
             {
                 if (attributes == null)
                 {
-                    attributes = new ArrayBuilder<SynthesizedAttributeData>(1);
+                    attributes = new ArrayBuilder<CSharpAttributeData>(1);
                 }
 
                 attributes.Add(attribute);
@@ -1668,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
                     break;
                 case SymbolKind.TypeParameter:
-                    if (this is SourceTypeParameterSymbolBase typeParameter)
+                    if (this is SourceTypeParameterSymbol typeParameter)
                     {
                         builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
                         foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
