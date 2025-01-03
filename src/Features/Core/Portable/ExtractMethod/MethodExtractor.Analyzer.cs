@@ -124,7 +124,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // check whether the selection contains "&" over a symbol exist
                 var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
-                var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue) = GetSignatureInformation(variableInfoMap);
+                var (variables, variablesToUseAsReturnValue, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
 
                 (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
@@ -135,12 +135,12 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
+                    symbolMap, variables, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
 
                 return new AnalyzerResult(
                     typeParametersInDeclaration,
                     typeParametersInConstraintList,
-                    parameters,
+                    variables,
                     variablesToUseAsReturnValue,
                     returnType,
                     returnsByRef,
@@ -207,26 +207,27 @@ internal abstract partial class AbstractExtractMethodService<
                 return (returnType, awaitTaskReturn: false);
             }
 
-            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
+            private (ImmutableArray<VariableInfo> parameters, ImmutableArray<VariableInfo> variablesToUseAsReturnValue, ITypeSymbol returnType, bool returnsByRef)
                 GetSignatureInformation(Dictionary<ISymbol, VariableInfo> variableInfoMap)
             {
+                var allVariableInfos = variableInfoMap.Values.Order().ToImmutableArray();
+
                 if (this.IsInExpressionOrHasReturnStatement())
                 {
                     // check whether current selection contains return statement
-                    var parameters = GetMethodParameters(variableInfoMap);
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
 
-                    return (parameters, returnType, returnsByRef, []);
+                    return (allVariableInfos, [], returnType, returnsByRef);
                 }
                 else
                 {
                     // no return statement
-                    var parameters = MarkVariableInfosToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap));
-                    var variablesToUseAsReturnValue = parameters.WhereAsArray(v => v.UseAsReturnValue);
+                    allVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var variablesToUseAsReturnValue = allVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
 
-                    return (parameters, returnType, returnsByRef: false, variablesToUseAsReturnValue);
+                    return (allVariableInfos, variablesToUseAsReturnValue, returnType, returnsByRef: false);
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
@@ -250,7 +251,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             private OperationStatus GetOperationStatus(
                 MultiDictionary<ISymbol, SyntaxToken> symbolMap,
-                IList<VariableInfo> parameters,
+                ImmutableArray<VariableInfo> variables,
                 IList<ISymbol> failedVariables,
                 bool unsafeAddressTakenUsed,
                 bool returnTypeHasAnonymousType,
@@ -258,7 +259,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(symbolMap);
 
-                var namesWithAnonymousTypes = parameters.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
+                var namesWithAnonymousTypes = variables.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
                 if (returnTypeHasAnonymousType)
                 {
                     namesWithAnonymousTypes = namesWithAnonymousTypes.Concat("return type");
@@ -275,7 +276,7 @@ internal abstract partial class AbstractExtractMethodService<
                     ? OperationStatus.UnsafeAddressTaken
                     : OperationStatus.SucceededStatus;
 
-                var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(parameters);
+                var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(variables);
 
                 var variableMapStatus = failedVariables.Count == 0
                     ? OperationStatus.SucceededStatus
@@ -417,14 +418,6 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 return -1;
-            }
-
-            private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)
-            {
-                var list = new FixedSizeArrayBuilder<VariableInfo>(variableInfoMap.Count);
-                list.AddRange(variableInfoMap.Values);
-                list.Sort();
-                return list.MoveToImmutable();
             }
 
             /// <param name="bestEffort">When false, variables whose data flow is not understood
