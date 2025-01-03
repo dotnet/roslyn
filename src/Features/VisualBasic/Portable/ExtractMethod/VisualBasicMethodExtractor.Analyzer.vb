@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return True
                     End If
 
-                    Return Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax
+                    Return TypeOf methodBlock.BlockStatement IsNot SubNewStatementSyntax
                 End Function
 
                 Protected Overrides Function GetComplexFlowControlInfo() As (breakStatementCount As Integer, continueStatementCount As Integer, exitIsReachable As Boolean)

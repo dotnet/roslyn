@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             SyntaxFactory.SeparatedList(typedConstant.Values.Select(Function(v) GenerateExpression(generator, v))))
                     End If
                 Case TypedConstantKind.Type
-                    If Not TypeOf typedConstant.Value Is ITypeSymbol Then
+                    If TypeOf typedConstant.Value IsNot ITypeSymbol Then
                         Return GenerateNothingLiteral()
                     End If
 
